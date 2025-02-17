@@ -18,6 +18,7 @@ type RetryOperationReq struct {
 	OperationID string `json:"operation_id" binding:"required"`
 }
 
+// Validate RetryOperationReq.
 func (req *RetryOperationReq) Validate() error {
 	if len(req.OperationID) == 0 {
 		return errors.New("operation_id is required")

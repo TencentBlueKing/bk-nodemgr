@@ -24,6 +24,7 @@ import (
 // LogConfig is the configuration for initializing logs.
 type LogConfig glog.LogConfig
 
+// NewLogConfig creates a new LogConfig instance.
 func NewLogConfig() LogConfig {
 	return LogConfig{
 		LogDir:       "./logs",

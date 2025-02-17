@@ -109,7 +109,7 @@ func main() {
 
 			fmt.Printf("run mode: %s\n", conf.RunMode)
 
-			switch tenant.Mode(conf.TenantMode) {
+			switch conf.TenantMode {
 			case tenant.ModeSingle:
 				tenant.SetMode(tenant.ModeSingle)
 			case tenant.ModeMultiple:
@@ -127,21 +127,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			go func() {
-				// listening signal
-				signalC := make(chan os.Signal, 1)
-				signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
-				receivedSignal := <-signalC
-
-				if err := svc.GracefulShutdown(); err != nil {
-					fmt.Printf("failed to graceful shutdown service: %v\n", err)
-					os.Exit(1)
-				}
-
-				fmt.Printf("received signal(%s), going to exit server\n", receivedSignal.String())
-
-				os.Exit(1)
-			}()
+			go watchShutdown(svc)
 
 			if err := svc.Start(); err != nil {
 				fmt.Printf("failed to start service: %v\n", err)
@@ -165,4 +151,21 @@ func main() {
 		fmt.Printf("failed to execute cmd, err: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+// watchShutdown listens signal and calls service.GracefulShutdown.
+func watchShutdown(svc *service.Service) {
+	// listening signal
+	signalC := make(chan os.Signal, 1)
+	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
+	receivedSignal := <-signalC
+
+	if err := svc.GracefulShutdown(); err != nil {
+		fmt.Printf("failed to graceful shutdown service: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("received signal(%s), going to exit server\n", receivedSignal.String())
+
+	os.Exit(1)
 }
