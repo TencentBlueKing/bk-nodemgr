@@ -31,7 +31,7 @@ func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
 
 	err := h.manager.RetryOperation(req.OperationID, &operengine.OperInstParam{
 		Timeout:     1 * time.Minute,
-		InitContent: map[string]map[string]any{},
+		InitContent: map[string]any{},
 	})
 	if err != nil {
 		h.logger.Errorf("failed to retry operation, err: %v", err)

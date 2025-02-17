@@ -21,6 +21,9 @@ type OperInstStorage interface {
 	// GetOperInstData will get the OperInst param.
 	GetOperInstData(ctx context.Context, operationInstID string) (*OperInstData, error)
 
+	// GetOperInstDataWithoutActionData will get the OperInst param without action data.
+	GetOperInstDataWithoutActionData(ctx context.Context, operationInstID string) (*OperInstData, error)
+
 	// UpsertOperInstData will insert/update the OperInst param.
 	UpsertOperInstData(ctx context.Context, data *OperInstData) error
 
@@ -30,8 +33,17 @@ type OperInstStorage interface {
 	// WatchOperInstStopping will return a chan, when the OperInst is stopping, it will close the chan.
 	WatchOperInstStopping(ctx context.Context, operationInstID string) <-chan struct{}
 
-	// RefreshActInstDataMsg will refresh the action_inst_data's msg.
-	RefreshActInstDataMsg(ctx context.Context, data *ActionInstData) error
+	// GetActionInstData will get the action_inst_data.
+	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*ActionInstData, error)
+
+	// UpdateActInstMsg will refresh the action_inst_data's msg.
+	UpdateActInstMsg(ctx context.Context, operInstID string, actionName string, msgs []Message) error
+
+	// UpdateActionInstData will update the OperInst's ActionInstData.
+	UpdateActionInstData(ctx context.Context, data *ActionInstData) error
+
+	// UpdateLifecycle will update the OperInst's Lifecycle.
+	UpdateLifecycle(ctx context.Context, operInstID string, data *Lifecycle) error
 }
 
 // OperationStorage represents a Operation operInstMgr storage handler.

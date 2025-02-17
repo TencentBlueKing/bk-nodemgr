@@ -54,21 +54,57 @@ func (data *ActionInstData) Log(messages ...string) {
 
 // OperInstData OperInst data.
 type OperInstData struct {
-	OperInstID        string
-	OperDefName       string
-	ActionNames       []string
+	// the below fields should be written only once
+	TriggerID        string
+	OperInstID       string
+	OperDefName      string
+	ActionNames      []string
+	ParentOperInstID string
+	Timeout          time.Duration
+	InitContent      map[string]any
+
+	// the below fields can be changed
 	ActionInstDataMap map[string]*ActionInstData
-	ParentOperInstID  string
-	Timeout           time.Duration
+	Lifecycle         *Lifecycle
+}
 
-	State OperInstState
-
-	InitContent map[string]map[string]any
-
+// Lifecycle describes the lifecycle of the operation instance.
+type Lifecycle struct {
+	State     OperInstState
 	CreatedAt time.Time
 	StartedAt time.Time
 	EndedAt   time.Time
 	StoppedAt time.Time
+}
+
+// Validate Lifecycle.
+func (l *Lifecycle) Validate() error {
+	if err := l.State.Validate(); err != nil {
+		return fmt.Errorf("lifecycle state validate failed, err(%w)", err)
+	}
+
+	return nil
+}
+
+// Validate the operation.
+func (data *OperInstData) Validate() error {
+	if data.OperInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if data.OperDefName == "" {
+		return errors.New("operationDef name is empty")
+	}
+
+	if len(data.ActionNames) == 0 {
+		return errors.New("action names is empty")
+	}
+
+	if err := data.Lifecycle.Validate(); err != nil {
+		return fmt.Errorf("operation instance lifecycle validate failed, err(%w)", err)
+	}
+
+	return nil
 }
 
 // OperInst is a operationDef instance.
@@ -79,12 +115,16 @@ type OperInst struct {
 
 // Validate  the operation.
 func (o *OperInst) Validate() error {
-	if o == nil {
-		return errors.New("operation is nil")
+	if err := o.data.Validate(); err != nil {
+		return fmt.Errorf("operation instance data validate failed, err(%w)", err)
 	}
 
-	if o.operationDef.name == "" {
-		return errors.New("operationDef name is empty")
+	if o.operationDef.name != o.data.OperDefName {
+		return errors.New("operationDef name not match")
+	}
+
+	if len(o.operationDef.actionDefs) != len(o.data.ActionNames) {
+		return errors.New("action count not match")
 	}
 
 	return nil

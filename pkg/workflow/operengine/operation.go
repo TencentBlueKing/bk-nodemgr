@@ -72,7 +72,7 @@ type OperInstParam struct {
 	Timeout time.Duration
 
 	// InitContent define the init content of operation instance.
-	InitContent map[string]map[string]any
+	InitContent map[string]any
 
 	// ParentOperInstID define the parent operation instance id.
 	ParentOperInstID string

@@ -46,6 +46,9 @@ const (
 type OperInstState string
 
 const (
+	// OperInstStateInit OperInst state init.
+	OperInstStateInit OperInstState = "init"
+
 	// OperInstStateRunning OperInst state running.
 	OperInstStateRunning OperInstState = "running"
 
@@ -65,7 +68,7 @@ const (
 // Validate OperInstState.
 func (state OperInstState) Validate() error {
 	switch state {
-	case OperInstStateRunning, OperInstStateSuccess, OperInstStateFailed,
+	case OperInstStateInit, OperInstStateRunning, OperInstStateSuccess, OperInstStateFailed,
 		OperInstStateTimeout, OperInstStateTerminated:
 		return nil
 	default:

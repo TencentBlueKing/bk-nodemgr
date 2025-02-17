@@ -95,7 +95,7 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 		operDef.Next(m.operInstMgr.GetRegisteredAction(actionName))
 	}
 
-	operInst, err := operDef.NewInstance(param.Timeout)
+	operInst, err := operDef.NewInstance(operation.TriggerID, param.Timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -104,15 +104,17 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 	operInst.data.ParentOperInstID = param.ParentOperInstID
 
 	for idx, actionName := range operation.DefSnapshot.ActionNames {
-		operInst.data.ActionInstDataMap[actionName] = &ActionInstData{
-			TriggerID:  operation.TriggerID,
-			OperInstID: operation.OperationID,
+		actionInstData := &ActionInstData{
+			TriggerID:  operInst.data.TriggerID,
+			OperInstID: operInst.data.OperInstID,
 			Name:       actionName,
 			Index:      idx,
 			State:      ActionInstStatePending,
 			Messages:   make([]Message, 0),
-			Content:    operInst.data.InitContent[actionName],
+			Content:    make(map[string]any),
 		}
+
+		operInst.data.ActionInstDataMap[actionName] = actionInstData
 	}
 
 	return operInst, nil

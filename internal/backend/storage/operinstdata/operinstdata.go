@@ -297,8 +297,27 @@ func (s *storage) removeSubscription(key string) {
 	delete(s.stopEventSubsMap, key)
 }
 
-// RefreshActInstDataMsg ...
-func (s *storage) RefreshActInstDataMsg(ctx context.Context, data *operengine.ActionInstData) error {
+// UpdateActInstMsg ...
+func (s *storage) UpdateActInstMsg(ctx context.Context, operInstID string, actionName string,
+	msgs []operengine.Message) error {
+
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if err := s.operinstdataDao.UpdateActInstMsg(ctx, operInstID, actionName, msgs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateActionInstData update operation instance's action instance data.
+func (s *storage) UpdateActionInstData(ctx context.Context, data *operengine.ActionInstData) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -307,9 +326,65 @@ func (s *storage) RefreshActInstDataMsg(ctx context.Context, data *operengine.Ac
 		return errors.New("data is nil")
 	}
 
-	if err := s.operinstdataDao.RefreshActInstDataMsg(ctx, data); err != nil {
+	if err := s.operinstdataDao.UpdateActionInstData(ctx, data); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// UpdateLifecycle update operation instance's lifecycle.
+func (s *storage) UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error {
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if lifecycle == nil {
+		return errors.New("lifecycle is nil")
+	}
+
+	if err := s.operinstdataDao.UpdateLifecycle(ctx, operInstID, lifecycle); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetOperInstDataWithoutActionData find one operation instance data.
+func (s *storage) GetOperInstDataWithoutActionData(ctx context.Context, operInstID string,
+) (*operengine.OperInstData, error) {
+
+	if ctx == nil {
+		return nil, base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	operInstData, err := s.operinstdataDao.FindOneWithoutActionData(ctx, operinstdata.WithOperInstID(operInstID))
+	if err != nil {
+		return nil, err
+	}
+
+	return operInstData, nil
+}
+
+// GetActionInstData find one action instance data.
+func (s *storage) GetActionInstData(ctx context.Context, operInstID string,
+	actionName string) (*operengine.ActionInstData, error) {
+
+	if ctx == nil {
+		return nil, base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("actionName is empty")
+	}
+
+	return s.operinstdataDao.GetActionInstData(ctx, operInstID, actionName)
 }

@@ -280,9 +280,9 @@ output:
   # The CLI flag (`--out-format`) override the configuration file.
   #
   # Default:
-  #   formats:
-  #     - format: colored-line-number
-  #       path: stdout
+  #     formats:
+  #       - format: colored-line-number
+  #         path: stdout
   formats:
     #    - format: json
     #      path: stderr

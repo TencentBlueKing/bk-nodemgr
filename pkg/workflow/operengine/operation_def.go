@@ -52,7 +52,7 @@ func (def *operationDef) Next(actionDef ActionDef) *operationDef {
 const OperInstIDPrefix = "oper-inst"
 
 // NewInstance creates a new OperInst.
-func (def *operationDef) NewInstance(timeout time.Duration) (*OperInst, error) {
+func (def *operationDef) NewInstance(triggerID string, timeout time.Duration) (*OperInst, error) {
 	if err := def.Validate(); err != nil {
 		return nil, err
 	}
@@ -63,13 +63,17 @@ func (def *operationDef) NewInstance(timeout time.Duration) (*OperInst, error) {
 
 	inst := &OperInst{
 		data: &OperInstData{
+			TriggerID:         triggerID,
 			OperInstID:        fmt.Sprintf("%s-%s", OperInstIDPrefix, uuid.NewString()),
 			OperDefName:       def.name,
 			ActionNames:       make([]string, len(def.actionDefs)),
 			ActionInstDataMap: make(map[string]*ActionInstData),
 			Timeout:           timeout,
-			InitContent:       make(map[string]map[string]any),
-			CreatedAt:         time.Now().Local(),
+			InitContent:       make(map[string]any),
+			Lifecycle: &Lifecycle{
+				CreatedAt: time.Now().Local(),
+				State:     OperInstStateInit,
+			},
 		},
 		operationDef: def,
 	}

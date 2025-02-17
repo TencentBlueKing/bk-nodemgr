@@ -13,6 +13,8 @@ package operinstdata
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -69,8 +71,40 @@ func buildUpsertParams(data *OperInstData) (bson.D, bson.D, *mongoOptions.Update
 }
 
 // find all operinstdata.
-func (d *dao) find(ctx context.Context, filter bson.D) ([]*OperInstData, error) {
-	result, err := d.client.Find(ctx, filter)
+func (d *dao) find(ctx context.Context, filter bson.D, fields ...string) ([]*OperInstData, error) {
+	projection := bson.D{}
+	for _, field := range fields {
+		projection = append(projection, bson.E{Key: field, Value: 1})
+	}
+	findOptions := mongoOptions.Find().SetProjection(projection)
+	result, err := d.client.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	datas := make([]*OperInstData, 0)
+	for result.Next(ctx) {
+		table := &TableOperInstData{}
+		if err := result.Decode(table); err != nil {
+			d.logger.Warnf("failed to decode operinstdata, err %v", err)
+
+			continue
+		}
+
+		datas = append(datas, table.Data)
+	}
+
+	return datas, nil
+}
+
+// findWithoutFields find without fields.
+func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, fields ...string) ([]*OperInstData, error) {
+	projection := bson.D{}
+	for _, field := range fields {
+		projection = append(projection, bson.E{Key: field, Value: 0})
+	}
+	findOptions := mongoOptions.Find().SetProjection(projection)
+	result, err := d.client.Find(ctx, filter, findOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -100,4 +134,28 @@ func (d *dao) updateField(ctx context.Context, filter bson.D, field string, valu
 	d.logger.Infof("successfully updated, field(%v), updated-count(%d)", field, result.MatchedCount)
 
 	return nil
+}
+
+// findOne find one.
+func (d *dao) findOne(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
+	projection := bson.M{
+		"basic": true,
+	}
+	for _, field := range fields {
+		projection[fmt.Sprintf("data.%s", field)] = true
+	}
+
+	findOptions := mongoOptions.FindOne().SetProjection(projection)
+	result := d.client.FindOne(ctx, filter, findOptions)
+
+	table := &TableOperInstData{}
+	if err := result.Decode(table); err != nil {
+		d.logger.Warnf("failed to decode operinstdata, err %v", err)
+	}
+
+	if table.Data == nil {
+		return nil, errors.New("no data found")
+	}
+
+	return table.Data, nil
 }

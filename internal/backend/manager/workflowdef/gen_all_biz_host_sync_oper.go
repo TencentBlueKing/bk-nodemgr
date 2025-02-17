@@ -114,12 +114,10 @@ func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz
 	operation := newOperSyncHostFromCMDB(data.TriggerID)
 	err := c.operMgr.ExecuteOperation(operation, &operengine.OperInstParam{
 		Timeout: time.Second * 10,
-		InitContent: map[string]map[string]any{
-			SyncHostFromCMDB: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
-				BizID:    biz.BizID,
-				TenantID: biz.TenantID,
-			}),
-		},
+		InitContent: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
+			BizID:    biz.BizID,
+			TenantID: biz.TenantID,
+		}),
 		ParentOperInstID: data.OperInstID,
 	})
 	if err != nil {

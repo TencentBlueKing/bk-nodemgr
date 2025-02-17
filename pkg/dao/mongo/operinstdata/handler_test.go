@@ -127,7 +127,7 @@ func Test_handler_Upsert(t *testing.T) {
 							},
 						},
 					},
-					InitContent: map[string]map[string]any{},
+					InitContent: map[string]any{},
 				},
 			},
 			wantErr: false,
@@ -154,11 +154,13 @@ func Test_handler_Upsert(t *testing.T) {
 	}
 }
 
-// Test_handler_RefreshActInstDataMsg ...
-func Test_handler_RefreshActInstDataMsg(t *testing.T) {
+// Test_handler_UpdateActInstMsg
+func Test_handler_UpdateActInstMsg(t *testing.T) {
 	type args struct {
-		ctx  context.Context
-		data *operengine.ActionInstData
+		ctx        context.Context
+		operInstID string
+		actionName string
+		msgs       []operengine.Message
 	}
 	tests := []struct {
 		name    string
@@ -168,46 +170,69 @@ func Test_handler_RefreshActInstDataMsg(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
-				data: &operengine.ActionInstData{
-					TriggerID:  "trigger-1",
-					OperInstID: "a19daad7-aaa5-4a1b-a74c-29e33eeae928",
-					Name:       "sync_biz_from_cmdb",
-					Index:      0,
-					Messages: []operengine.Message{
-						{
-							Time: time.Time{},
-							Text: "success",
-						},
-					},
-				},
+				ctx:        context.Background(),
+				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
+				actionName: "sync_biz_from_cmdb",
+				msgs:       []operengine.Message{},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.UpdateActInstMsg(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateActInstMsg() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_FindOneActionInstData ...
+func Test_handler_FindOneActionInstData(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-f5517941-16aa-4d40-9faf-e044066a3492",
+				actionName: "sync_biz_from_cmdb",
 			},
 			wantErr: false,
 		},
 		{
-			name: "nil content",
+			name: "nil context",
 			args: args{
-				ctx: nil,
-				data: &operengine.ActionInstData{
-					TriggerID:  "",
-					OperInstID: "",
-					Name:       "",
-					Index:      0,
-					State:      "",
-					StartedAt:  time.Time{},
-					EndedAt:    time.Time{},
-					StoppedAt:  time.Time{},
-					Messages:   nil,
-					Content:    nil,
-				},
+				ctx:        nil,
+				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
+				actionName: "sync_biz_from_cmdb",
 			},
 			wantErr: true,
 		},
 		{
-			name: "nil data",
+			name: "empty operInstID",
 			args: args{
-				ctx:  context.Background(),
-				data: nil,
+				ctx:        context.Background(),
+				operInstID: "",
+				actionName: "sync_biz_from_cmdb",
+			},
+			wantErr: true,
+		},
+		{
+			name: "empty actionName",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
+				actionName: "",
 			},
 			wantErr: true,
 		},
@@ -215,14 +240,94 @@ func Test_handler_RefreshActInstDataMsg(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.RefreshActInstDataMsg(tt.args.ctx, tt.args.data)
+			got, err := h.GetActionInstData(tt.args.ctx, tt.args.operInstID, tt.args.actionName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetActionInstData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("GetActionInstData() got = %#v", got)
+		})
+	}
+}
+
+// Test_handler_UpdateActionInstData ...
+func Test_handler_UpdateActionInstData(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		data       *operengine.ActionInstData
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
+				data: &operengine.ActionInstData{
+					TriggerID:  "trigger-2",
+					OperInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
+					Name:       "sync_biz_from_cmdb",
+					Index:      0,
+					State:      operengine.ActionInstStateRunning,
+					StartedAt:  time.Now(),
+					EndedAt:    time.Now(),
+					StoppedAt:  time.Now(),
+					Messages:   nil,
+					Content:    nil,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.UpdateActionInstData(tt.args.ctx, tt.args.data); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateActionInstData() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_FindOneOperInstDataWithoutActionData ...
+func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
+	type args struct {
+		ctx  context.Context
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:  context.Background(),
+				opts: []OptFn{WithOperInstID("oper-inst-1c27277f-d468-4b75-95b2-4b85cc9da013")},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.FindOneWithoutActionData(tt.args.ctx, tt.args.opts...)
 			if err != nil {
-				t.Logf("RefreshActInstDataMsg() error = %v", err)
+				t.Logf("FindOneWithoutActionData() error = %v", err)
 			}
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RefreshActInstDataMsg() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("FindOneWithoutActionData() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
+
+			t.Logf("FindOneWithoutActionData() got = %#v", got)
 		})
 	}
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	types "github.com/TencentBlueKing/bk-nodemgr/internal/backend/types/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"github.com/google/uuid"
 )
@@ -38,13 +37,8 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 
 	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncBizAndHost, triggerID, &operengine.OperInstParam{
 		Timeout: 1 * time.Minute,
-		InitContent: map[string]map[string]any{
-			workflowdef.SyncBizFromCMDB: conv.StructToMapIgnoreError(workflowdef.SyncBizFromCMDBParam{
-				TenantID: tenantID,
-			}),
-			workflowdef.GenAllBizHostSyncOper: conv.StructToMapIgnoreError(workflowdef.GenAllBizHostSyncOperParam{
-				TenantID: tenantID,
-			}),
+		InitContent: map[string]any{
+			workflowdef.CKeyTenantID: tenantID,
 		},
 	})
 	if err != nil {
