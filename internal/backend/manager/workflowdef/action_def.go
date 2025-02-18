@@ -20,4 +20,7 @@ const (
 
 	// GenAllBizHostSyncOper ...
 	GenAllBizHostSyncOper = "gen_all_biz_host_sync_oper"
+
+	// SshHostExecCmd use ssh build connection to execute command.
+	SshHostExecCmd = "ssh_host_exec_cmd"
 )

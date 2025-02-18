@@ -46,6 +46,7 @@ const (
 	defaultApplicationLogMaxNum     = 10
 	defaultApplicationLogMaxSizeMB  = 200
 	defaultApplicationLogLevel      = "INFO"
+	defaultEncryptKey               = "1234567890123456"
 )
 
 // Etcd the config of etcd.
@@ -182,6 +183,7 @@ type BackendService struct {
 	Redis       Redis       `yaml:"redis" usage:"redis config of backend service"`
 	MongoDB     MongoDB     `yaml:"mongodb" usage:"mongodb config of backend service"`
 	Log         Log         `yaml:"log" usage:"log config of backend service"`
+	EncryptKey  string      `yaml:"encryptKey" usage:"encrypt key of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -203,6 +205,7 @@ func NewBackendService() *BackendService {
 			MaxNum:    defaultBackendLogMaxNum,
 			Level:     defaultBackendLogLevel,
 		},
+		EncryptKey: defaultEncryptKey,
 	}
 }
 

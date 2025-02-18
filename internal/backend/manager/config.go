@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 )
@@ -30,6 +31,8 @@ type Config struct {
 
 	OperStorage     operation.Storage
 	OperInstStorage operinstdataStorage.Storage
+
+	Crypter crypter.Crypter
 
 	WorkflowConfig
 }

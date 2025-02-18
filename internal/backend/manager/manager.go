@@ -168,6 +168,7 @@ func (mgr *manager) registerActionDefs() error {
 		workflowdef.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
 		workflowdef.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
 		workflowdef.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
+		workflowdef.NewActionSshHostExecCmd(mgr.conf.Crypter, mgr.logger),
 	)
 }
 

@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -91,6 +92,12 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
 
 	var err error
+
+	crypter, err := crypter.NewAESCrypter([]byte(conf.EncryptKey))
+	if err != nil {
+		return nil, err
+	}
+
 	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB)
 	if err != nil {
 		return nil, err
@@ -142,6 +149,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 				DB:       conf.Redis.DB,
 			},
 		},
+		Crypter: crypter,
 	}, blog.GlobalLogger{})
 	if err != nil {
 		return nil, err
