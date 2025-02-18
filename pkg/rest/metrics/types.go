@@ -155,7 +155,11 @@ func (monitor *Monitor) AddMetric(metric *metric) error {
 	}
 	if f, ok := monitor.typeHandler[metric.Type]; ok {
 		if err := f(metric); err == nil {
-			prometheus.MustRegister(metric.vec)
+			promErr := prometheus.Register(metric.vec)
+			if promErr != nil {
+				return promErr
+			}
+
 			monitor.metrics[metric.Name] = metric
 
 			return nil
