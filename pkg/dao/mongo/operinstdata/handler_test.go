@@ -59,6 +59,7 @@ func Test_handler_FindOne(t *testing.T) {
 		ctx  context.Context
 		opts []OptFn
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -75,6 +76,7 @@ func Test_handler_FindOne(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -99,6 +101,7 @@ func Test_handler_Upsert(t *testing.T) {
 		ctx  context.Context
 		data *operengine.OperInstData
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -144,6 +147,7 @@ func Test_handler_Upsert(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -162,6 +166,7 @@ func Test_handler_UpdateActInstMsg(t *testing.T) {
 		actionName string
 		msgs       []operengine.Message
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -178,6 +183,7 @@ func Test_handler_UpdateActInstMsg(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -195,6 +201,7 @@ func Test_handler_FindOneActionInstData(t *testing.T) {
 		operInstID string
 		actionName string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -237,6 +244,7 @@ func Test_handler_FindOneActionInstData(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -258,6 +266,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 		operInstID string
 		data       *operengine.ActionInstData
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -284,6 +293,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -300,6 +310,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 		ctx  context.Context
 		opts []OptFn
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -314,6 +325,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)

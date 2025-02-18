@@ -27,7 +27,7 @@ type Manager struct {
 
 	// state
 	isRunning   bool
-	isComsuming bool
+	isConsuming bool
 
 	// context
 	ctx    context.Context
@@ -94,7 +94,7 @@ func (m *Manager) WaitWorkerShutdown() error {
 		return errors.New("manager is not running")
 	}
 
-	if !m.isComsuming {
+	if !m.isConsuming {
 		return errors.New("worker is not running")
 	}
 
@@ -233,10 +233,10 @@ func (m *Manager) launchWorker() error {
 	m.worker.SetPreTaskHandler(func(signature *tasks.Signature) {})
 	m.worker.SetPostTaskHandler(func(signature *tasks.Signature) {})
 
-	m.isComsuming = true
+	m.isConsuming = true
 	go func() {
 		m.launchWorkerErr <- m.worker.Launch()
-		m.isComsuming = false
+		m.isConsuming = false
 	}()
 
 	return nil

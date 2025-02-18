@@ -130,25 +130,6 @@ func (o *OperInst) Validate() error {
 	return nil
 }
 
-// LastActionInstState get the last action State.
-func (o *OperInst) LastActionInstState(actionName string) ActionInstState {
-	lastActionInstState := ActionInstStateSuccess
-
-	for _, action := range o.data.ActionNames {
-		if action != actionName {
-			lastActionData, ok := o.data.ActionInstDataMap[action]
-			if !ok {
-				return ActionInstStateUnknown
-			}
-
-			lastActionInstState = lastActionData.State
-			continue
-		}
-	}
-
-	return lastActionInstState
-}
-
 // GetActionInstData get the action instance.
 func (o *OperInst) GetActionInstData(actionName string) (*ActionInstData, error) {
 	actionData, ok := o.data.ActionInstDataMap[actionName]

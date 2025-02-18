@@ -62,6 +62,7 @@ func Test_handler_Upsert(t *testing.T) {
 		ctx        context.Context
 		operInstID string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -92,6 +93,7 @@ func Test_handler_Upsert(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -107,6 +109,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -120,6 +123,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 			want: []string{},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -159,6 +163,7 @@ func Test_handler_FindAll(t *testing.T) {
 	type args struct {
 		ctx context.Context
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -172,6 +177,7 @@ func Test_handler_FindAll(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)

@@ -76,7 +76,7 @@ type operInstMgr struct {
 
 	// state
 	isRunning   bool
-	isComsuming bool
+	isConsuming bool
 
 	// context
 	ctx    context.Context
@@ -189,12 +189,12 @@ func (mgr *operInstMgr) GracefulShutdown() error {
 		return errors.New("operInstMgr is not running")
 	}
 
-	if mgr.isComsuming {
+	if mgr.isConsuming {
 		go mgr.broker.StopConsuming()
 	}
 
 	mgr.isRunning = false
-	mgr.isComsuming = false
+	mgr.isConsuming = false
 
 	defer mgr.cancel()
 
@@ -337,10 +337,10 @@ func (mgr *operInstMgr) launchWorker() error {
 	mgr.worker.SetPreTaskHandler(func(signature *tasks.Signature) {})
 	mgr.worker.SetPostTaskHandler(func(signature *tasks.Signature) {})
 
-	mgr.isComsuming = true
+	mgr.isConsuming = true
 	go func() {
 		mgr.launchWorkerErr <- mgr.worker.Launch()
-		mgr.isComsuming = false
+		mgr.isConsuming = false
 	}()
 
 	return nil

@@ -66,6 +66,7 @@ func Test_handler_ListAll(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
@@ -90,6 +91,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		ctx   context.Context
 		hosts []*types.Host
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -174,6 +176,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)

@@ -91,6 +91,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		ctx  context.Context
 		bizs []*types.Business
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -130,6 +131,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
