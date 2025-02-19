@@ -12,7 +12,7 @@ package types
 
 import "time"
 
-const a = 2
+const a = 4
 
 // AgentStatusCode represents the gse agent status code.
 type AgentStatusCode int
