@@ -1,3 +1,13 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package cmdb
 
 import (
@@ -19,8 +29,8 @@ type Handler interface {
 	// SearchBusiness search business
 	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
 
-	// SearchNetArea search net area
-	SearchNetArea(ctx context.Context, page types.Page) ([]*types.NetArea, error)
+	// SearchNetworkArea search network area
+	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
 }
 
 type handler struct {
@@ -110,8 +120,8 @@ func (h *handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types
 	return bizs, nil
 }
 
-// SearchNetArea search net area
-func (h *handler) SearchNetArea(ctx context.Context, page types.Page) ([]*types.NetArea, error) {
+// SearchNetworkArea search network area
+func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -131,9 +141,9 @@ func (h *handler) SearchNetArea(ctx context.Context, page types.Page) ([]*types.
 		return nil, err
 	}
 
-	netAreas := make([]*types.NetArea, len(resp.Info))
+	netAreas := make([]*types.NetworkArea, len(resp.Info))
 	for idx, netArea := range resp.Info {
-		netAreas[idx] = &types.NetArea{
+		netAreas[idx] = &types.NetworkArea{
 			TenantID:  tenantID,
 			CloudID:   netArea.BkCloudID,
 			CloudName: netArea.BkCloudName,
