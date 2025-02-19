@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
 	apiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
@@ -93,7 +94,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	var err error
 
-	crypter, err := crypter.NewAESCrypter([]byte(conf.EncryptKey))
+	svc.Cap.Crypter, err = crypter.NewAESCrypter([]byte(conf.EncryptKey))
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 				DB:       conf.Redis.DB,
 			},
 		},
-		Crypter: crypter,
+		Crypter: svc.Cap.Crypter,
 	}, blog.GlobalLogger{})
 	if err != nil {
 		return nil, err
@@ -176,6 +177,14 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	)
 
 	svc.servers = append(svc.servers, adminServer)
+
+	callbackServer := rest.NewServer(svc.ctx, "callback", conf.CallbackServer.BindIP, conf.CallbackServer.Port,
+		loggerWriterAdaptor{},
+		rest.WithPing(),
+		withCallback(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, callbackServer)
 
 	return svc, nil
 }
@@ -258,6 +267,13 @@ func withBasic(capability *options.Capability) rest.OptionFunc {
 func withAdmin(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		admin.Load(rg, capability)
+	}
+}
+
+// withCallback load callback.
+func withCallback(capability *options.Capability) rest.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		callback.Load(rg, capability)
 	}
 }
 

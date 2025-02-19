@@ -22,16 +22,18 @@ import (
 
 const (
 	// backend service config default values.
-	defaultBackendRunMode      = RunModeRelease
-	defaultBackendTenantMode   = tenant.ModeSingle
-	defaultBackendHTTPBindIP   = "127.0.0.1"
-	defaultBackendHTTPPort     = 8000
-	defaultBackendAdminBindIP  = "127.0.0.1"
-	defaultBackendAdminPort    = 8001
-	defaultBackendLogDir       = "/bk-nodeman/log/"
-	defaultBackendLogMaxNum    = 10
-	defaultBackendLogMaxSizeMB = 200
-	defaultBackendLogLevel     = "INFO"
+	defaultBackendRunMode        = RunModeRelease
+	defaultBackendTenantMode     = tenant.ModeSingle
+	defaultBackendHTTPBindIP     = "127.0.0.1"
+	defaultBackendHTTPPort       = 8000
+	defaultBackendAdminBindIP    = "127.0.0.1"
+	defaultBackendAdminPort      = 8001
+	defaultBackendCallbackBindIP = "127.0.0.1"
+	defaultBackendCallbackPort   = 8002
+	defaultBackendLogDir         = "/bk-nodeman/log/"
+	defaultBackendLogMaxNum      = 10
+	defaultBackendLogMaxSizeMB   = 200
+	defaultBackendLogLevel       = "INFO"
 
 	// application service config default values.
 	defaultApplicationRunMode       = RunModeRelease
@@ -99,6 +101,13 @@ type HTTPServer struct {
 
 // AdminServer the config of admin service.
 type AdminServer struct {
+	BindIP    string `yaml:"bindIP"`
+	Port      int    `yaml:"port"`
+	StaticDir string `yaml:"staticDir"`
+}
+
+// CallbackServer the config of callback service.
+type CallbackServer struct {
 	BindIP    string `yaml:"bindIP"`
 	Port      int    `yaml:"port"`
 	StaticDir string `yaml:"staticDir"`
@@ -174,16 +183,17 @@ const (
 
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode     RunMode     `yaml:"runMode" usage:"run mode of service"`
-	TenantMode  tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	CMDB        CMDB        `yaml:"cmdb" usage:"cmdb config of backend service"`
-	Workflow    Workflow    `yaml:"workflow" usage:"workflow config of backend service"`
-	HTTPServer  HTTPServer  `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer AdminServer `yaml:"adminServer" usage:"admin server config of backend service"`
-	Redis       Redis       `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB     MongoDB     `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log         Log         `yaml:"log" usage:"log config of backend service"`
-	EncryptKey  string      `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
+	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	CMDB           CMDB           `yaml:"cmdb" usage:"cmdb config of backend service"`
+	Workflow       Workflow       `yaml:"workflow" usage:"workflow config of backend service"`
+	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of backend service"`
+	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of backend service"`
+	CallbackServer CallbackServer `yaml:"callbackServer" usage:"callback server config of backend service"`
+	Redis          Redis          `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log            Log            `yaml:"log" usage:"log config of backend service"`
+	EncryptKey     string         `yaml:"encryptKey" usage:"encrypt key of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -198,6 +208,10 @@ func NewBackendService() *BackendService {
 		AdminServer: AdminServer{
 			BindIP: defaultBackendAdminBindIP,
 			Port:   defaultBackendAdminPort,
+		},
+		CallbackServer: CallbackServer{
+			BindIP: defaultBackendCallbackBindIP,
+			Port:   defaultBackendCallbackPort,
 		},
 		Log: Log{
 			Dir:       defaultBackendLogDir,
