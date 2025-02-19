@@ -1,0 +1,14 @@
+dist
+public
+package.json
+locales/
+.eslintrc.js
+Dockerfile
+index.html
+pnpm-lock.yaml
+tsconfig.json
+README.md
+**/*.css
+cypress/
+test/__snapshots__/
+iconcool.js

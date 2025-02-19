@@ -1,0 +1,22 @@
+.bk-navigation-wrapper .navigation-container .container-content {
+  padding: 0 !important;
+}
+
+.bk-navigation {
+  .nav-slider {
+    background-color: #fff !important;
+  }
+  .bk-menu {
+    background-color: #fff !important;
+  }
+  .bk-menu-item {
+    color: #4D4F56;
+    &.is-active {
+      color: #3A84FF !important;
+      background: #E1ECFF !important;
+    }
+  }
+  .group-name {
+    color: #B0B2B8 !important;
+  }
+}
