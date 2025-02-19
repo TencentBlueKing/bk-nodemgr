@@ -35,8 +35,8 @@ type ExpoBackoffOpts struct {
 	// random jitter added to the retry delay.
 	JitterPercent float64
 
-	// logger ...
-	logger logger.Logger
+	// Logger ...
+	Logger logger.Logger
 }
 
 // ExpoBackoffOptsDefault default retry options.
@@ -46,7 +46,7 @@ func ExpoBackoffOptsDefault() ExpoBackoffOpts {
 		BaseDelay:     time.Second,
 		MaxDelay:      5 * time.Second,
 		JitterPercent: 0.2,
-		logger:        logger.LoggerDefault{},
+		Logger:        logger.LoggerDefault{},
 	}
 }
 
@@ -100,10 +100,9 @@ func (e *expoBackoff) Do(ctx context.Context, fn func(attempt int) error) error 
 		}
 
 		delay := e.calculateDelay(attempt)
-		e.opts.logger.Warnf("fn failed, attempt(%d/%d), retry-after(%vs), err: %v.",
+		e.opts.Logger.Warnf("fn failed, attempt(%d/%d), retry-after(%vs), err: %v.",
 			attempt+1, e.opts.MaxRetries, delay.Seconds(), err)
 
-		// 使用带上下文的延时
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
