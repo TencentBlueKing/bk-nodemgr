@@ -60,11 +60,14 @@ func Test_sshHostExecCmd_Do(t *testing.T) {
 					Ctx: context.Background(),
 					Data: &operengine.ActionInstData{
 						Content: map[string]any{
-							"ip":      "127.0.0.1",
-							"port":    36000,
-							"user":    "root",
-							"passwd":  ciphertext,
-							"command": "uname -a",
+							"ip":     "127.0.0.1",
+							"port":   36000,
+							"user":   "root",
+							"passwd": ciphertext,
+							"command": []string{
+								"free -h",
+								"uname -a",
+							},
 						},
 					},
 				},

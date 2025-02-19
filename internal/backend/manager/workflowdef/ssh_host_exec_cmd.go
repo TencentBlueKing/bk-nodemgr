@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"golang.org/x/crypto/ssh"
 )
@@ -34,13 +35,13 @@ func NewActionSshHostExecCmd(crypter crypter.Crypter, logger logger.Logger) oper
 
 // SshHostExecCmdParam ...
 type SshHostExecCmdParam struct {
-	IP         string `json:"ip"`
-	Port       int    `json:"port"`
-	User       string `json:"user"`
-	Password   []byte `json:"passwd"`
-	Network    string `json:"network"`
-	Command    string `json:"command"`
-	SSHTimeout int    `json:"ssh_timeout"`
+	IP         string   `json:"ip"`
+	Port       int      `json:"port"`
+	User       string   `json:"user"`
+	Password   []byte   `json:"passwd"`
+	Network    string   `json:"network"`
+	Commands   []string `json:"command"`
+	SSHTimeout int      `json:"ssh_timeout"`
 }
 
 // getUser get param user, if empty, use root.
@@ -52,18 +53,18 @@ func (s *SshHostExecCmdParam) getUser() string {
 	return s.User
 }
 
-// getCmd get cmd and check it.
-func (s *SshHostExecCmdParam) getCmd() (string, error) {
-	cmd := s.Command
-
-	dangerousCommands := []string{"rm -rf", "rm -fr", "sudo", "su", "rm -", "shutdown", "halt", "poweroff"}
-	for _, dc := range dangerousCommands {
-		if strings.Contains(cmd, dc) {
-			return "", fmt.Errorf("command contains dangerous element, element(%s)", dc)
+// getCmds get cmd and check it.
+func (s *SshHostExecCmdParam) getCmds() ([]string, error) {
+	for _, cmd := range s.Commands {
+		dangerousCommands := []string{"rm -rf", "rm -fr", "sudo", "su", "rm -", "shutdown", "halt", "poweroff"}
+		for _, dc := range dangerousCommands {
+			if strings.Contains(cmd, dc) {
+				return nil, fmt.Errorf("command contains dangerous element, element(%s)", dc)
+			}
 		}
 	}
 
-	return cmd, nil
+	return s.Commands, nil
 }
 
 func (s *SshHostExecCmdParam) getAddr() string {
@@ -152,11 +153,29 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 		Timeout: s.getTimeout(),
 	}
 
-	client, err := ssh.Dial(param.getNetwork(), param.getAddr(), config)
+	// because of the network may be unstable, so we need to retry.
+	retrier := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
+		MaxRetries:    5,
+		BaseDelay:     1 * time.Second,
+		MaxDelay:      3 * time.Second,
+		JitterPercent: 0.2,
+		Logger:        s.logger,
+	})
+
+	var client *ssh.Client
+	err = retrier.Do(ctx.Ctx, func(attempt int) error {
+		client, err = ssh.Dial(param.getNetwork(), param.getAddr(), config)
+		if err != nil {
+			s.logger.Errorf("failed to connect to host, host(%s), err: %v", param.getAddr(), err)
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
-		s.logger.Errorf("failed to connect to host, host(%s), err: %v", param.getAddr(), err)
 		return err
 	}
+
 	defer client.Close()
 
 	session, err := client.NewSession()
@@ -167,18 +186,25 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 
 	s.logger.Infof("successfully connected to host, addr(%s)", param.getAddr())
 
-	cmd, err := param.getCmd()
+	ctx.Data.Log(fmt.Sprintf("start to exec cmd on host, addr(%s)", param.getAddr()))
+
+	cmds, err := param.getCmds()
+	coutputs := make([]string, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get cmd, err: %v", err)
 	}
 
-	output, err := session.CombinedOutput(cmd)
-	if err != nil {
-		return fmt.Errorf("failed to exec cmd, err: %v", err)
+	for _, cmd := range cmds {
+		output, err := session.CombinedOutput(cmd)
+		if err != nil {
+			return fmt.Errorf("failed to exec cmd, err: %v", err)
+		}
+
+		ctx.Data.Log(fmt.Sprintf("exec cmd, cmd(%s), output(%s)", cmd, output))
+		s.logger.Infof("exec cmd on host, host(%s), cmd(%s), output(%s)", param.getAddr(), cmd, output)
 	}
 
-	ctx.Data.Content["ssh_output"] = string(output)
-	s.logger.Infof("successfully exec cmd on host, cmd(%s), output(%s)", cmd, ctx.Data.Content["ssh_output"])
+	ctx.Data.Content["ssh_output"] = coutputs
 
 	return nil
 }
