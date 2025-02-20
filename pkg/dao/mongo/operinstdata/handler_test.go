@@ -366,9 +366,14 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				operInstID: "",
-				actionName: "",
-				lifecycle:  nil,
+				operInstID: "oper-inst-db0b07dc-4d1e-41bd-99e9-b4059d1a0d84",
+				actionName: "sync_biz_from_cmdb",
+				lifecycle: &operengine.ActInstLifeCycle{
+					State:     operengine.ActionInstStateRunning,
+					StartedAt: time.Now(),
+					EndedAt:   time.Now(),
+					StoppedAt: time.Now(),
+				},
 			},
 			wantErr: false,
 		},
