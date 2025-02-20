@@ -419,9 +419,36 @@ func (mgr *operInstMgr) do(ctx context.Context, actionName string, operInstID st
 		return nil
 	}
 
-	if err := mgr.markActionRunning(actionInstData, operInstData); err != nil {
+	if err = mgr.markActionRunning(actionInstData); err != nil {
 		return err
 	}
+
+	if err = mgr.getActionInitContent(actionInstData, operInstData); err != nil {
+		return err
+	}
+
+	defer func() {
+		// when all action done or error happens, we need to update the state of the operation operInstData.
+		if actionInstData.Index == len(operInstData.ActionNames)-1 || err != nil {
+			if storeErr := mgr.markOperInstState(ctx, actionInstData, operInstData); storeErr != nil {
+				err = fmt.Errorf("store-err(%v), original-err(%v)", storeErr, err)
+			}
+		}
+
+		if storeErr := mgr.storage.UpdateActionInstData(ctx, actionInstData); storeErr != nil {
+			err = fmt.Errorf("store-err(%v), original-err(%v)", storeErr, err)
+		}
+	}()
+
+	if err = mgr.executeAndWatchAction(ctx, actionDef, operInstData, actionInstData); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (mgr *operInstMgr) executeAndWatchAction(ctx context.Context, actionDef ActionDef, operInstData *OperInstData,
+	actionInstData *ActionInstData) error {
 
 	// action context is used to control the timeout of the action.
 	actionCtx, actionCancel := context.WithTimeout(ctx, actionDef.Timeout())
@@ -442,75 +469,99 @@ func (mgr *operInstMgr) do(ctx context.Context, actionName string, operInstID st
 
 	go mgr.executeAction(doResult, actionInstCtx, actionDef)
 
-	defer func() {
-		// when all action done or error happens, we need to update the state of the operation operInstData.
-		if actionInstCtx.Data.Index == len(operInstData.ActionNames)-1 || err != nil {
-			switch actionInstCtx.Data.State {
-			case ActionInstStateSuccess:
-				operInstData.Lifecycle.State = OperInstStateSuccess
-			case ActionInstStateFailed:
-				operInstData.Lifecycle.State = OperInstStateFailed
-			case ActionInstStateTimeout:
-				operInstData.Lifecycle.State = OperInstStateTimeout
-			case ActionInstStateTerminated:
-				operInstData.Lifecycle.State = OperInstStateTerminated
-			case ActionInstStateRunning:
-				operInstData.Lifecycle.State = OperInstStateRunning
-			case ActionInstStatePending:
-				// TODO: implement me
-				operInstData.Lifecycle.State = OperInstStateFailed
-			case ActionInstStateSkipped:
-				// last action shouldn't be skipped
-				operInstData.Lifecycle.State = OperInstStateFailed
-			case ActionInstStateUnknown:
-				// last action shouldn't be unknown
-				operInstData.Lifecycle.State = OperInstStateFailed
-			}
-		}
-
-		storeErr := mgr.storage.UpdateLifecycle(ctx, operInstData.OperInstID, operInstData.Lifecycle)
-		if storeErr != nil {
-			err = fmt.Errorf("failed to update operation inst lifecycle, "+
-				"oper-inst-id(%s), action-name(%s), store-err(%v), original-err(%v)",
-				operInstID, actionName, storeErr, err)
-		}
-	}()
-
 	select {
-	case err = <-doResult:
-		actionInstData.EndedAt = time.Now()
+	case err := <-doResult:
+		{
+			actionInstData.Lifecycle.EndedAt = time.Now()
 
-		if err == nil {
-			actionInstData.State = ActionInstStateSuccess
-		} else {
-			actionInstData.State = ActionInstStateFailed
+			if err == nil {
+				actionInstData.Lifecycle.State = ActionInstStateSuccess
+			} else {
+				actionInstData.Lifecycle.State = ActionInstStateFailed
+			}
+
+			return err
 		}
-
-		return err
 	case <-actionCtx.Done():
-		return fmt.Errorf("action timeout, operation-operInstData-id(%s), action-name(%s)", operInstID, actionName)
+		{
+			actionInstData.Lifecycle.EndedAt = time.Now()
+			actionInstData.Lifecycle.State = ActionInstStateTimeout
+
+			return fmt.Errorf("action timeout, oper-inst-id(%s), action-name(%s)",
+				operInstData.OperInstID, actionInstData.Name)
+		}
 	case <-operInstCtx.Done():
-		return fmt.Errorf("operation operInstData timeout, operation-operInstData-id(%s), action-name(%s)",
-			operInstID, actionName)
+		{
+			actionInstData.Lifecycle.EndedAt = time.Now()
+			actionInstData.Lifecycle.State = ActionInstStateTimeout
+
+			return fmt.Errorf("operation instance timeout, oper-inst-id(%s), action-name(%s)",
+
+				operInstData.OperInstID, actionInstData.Name)
+		}
 	case <-terminatingC:
-		return fmt.Errorf("operation operInstData has been terminated, operation-operInstData-id(%s), action-name(%s)",
-			operInstID, actionName)
+		{
+			actionInstData.Lifecycle.EndedAt = time.Now()
+			actionInstData.Lifecycle.State = ActionInstStateTerminated
+
+			return fmt.Errorf("operation instance has been terminated, oper-inst-id(%s), action-name(%s)",
+
+				operInstData.OperInstID, actionInstData.Name)
+		}
 	case <-ctx.Done():
-		return fmt.Errorf("operation operInstMgr context done, operation-operInstData-id(%s), action-name(%s)",
-			operInstID, actionName)
+		{
+			// TODO: 考虑关闭 worker 时，worker 退出时，action 未完成，如何处理
+			actionInstData.Lifecycle.EndedAt = time.Now()
+			actionInstData.Lifecycle.State = ActionInstStateTerminated
+
+			return fmt.Errorf("operation operInstMgr context done, oper-inst-id(%s), action-name(%s)",
+
+				operInstData.OperInstID, actionInstData.Name)
+		}
 	}
 }
 
-// markActionRunning mark action running.
-func (mgr *operInstMgr) markActionRunning(actionInstData *ActionInstData, operInstData *OperInstData) error {
-	nowTime := time.Now()
-	actionInstData.StartedAt = nowTime
-	actionInstData.State = ActionInstStateRunning
+func (mgr *operInstMgr) markOperInstState(ctx context.Context, actionInstData *ActionInstData,
+	operInstData *OperInstData) error {
 
+	operInstData.Lifecycle.EndedAt = time.Now()
+
+	switch actionInstData.Lifecycle.State {
+	case ActionInstStateSuccess:
+		operInstData.Lifecycle.State = OperInstStateSuccess
+	case ActionInstStateFailed:
+		operInstData.Lifecycle.State = OperInstStateFailed
+	case ActionInstStateTimeout:
+		operInstData.Lifecycle.State = OperInstStateTimeout
+	case ActionInstStateTerminated:
+		operInstData.Lifecycle.State = OperInstStateTerminated
+	case ActionInstStateRunning:
+		operInstData.Lifecycle.State = OperInstStateRunning
+	case ActionInstStatePending:
+		// TODO: implement me
+		operInstData.Lifecycle.State = OperInstStateFailed
+	case ActionInstStateSkipped:
+		// last action shouldn't be skipped
+		operInstData.Lifecycle.State = OperInstStateFailed
+	case ActionInstStateUnknown:
+		// last action shouldn't be unknown
+		operInstData.Lifecycle.State = OperInstStateFailed
+	}
+
+	err := mgr.storage.UpdateLifecycle(ctx, operInstData.OperInstID, operInstData.Lifecycle)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getActionInitContent markActionRunning action running.
+func (mgr *operInstMgr) getActionInitContent(actionInstData *ActionInstData, operInstData *OperInstData) error {
 	// first action
 	if actionInstData.Index == 0 {
 		actionInstData.Content = operInstData.InitContent
-		operInstData.Lifecycle.StartedAt = actionInstData.StartedAt
+		operInstData.Lifecycle.StartedAt = actionInstData.Lifecycle.StartedAt
 
 		if err := mgr.storage.UpdateLifecycle(mgr.ctx, operInstData.OperInstID, operInstData.Lifecycle); err != nil {
 			return fmt.Errorf("failed to store operation inst data. oper-inst-id(%s), action-name(%s), err: %v",
@@ -527,9 +578,17 @@ func (mgr *operInstMgr) markActionRunning(actionInstData *ActionInstData, operIn
 		actionInstData.Content = preActionInstContent.Content
 	}
 
-	if err := mgr.storage.UpdateActionInstData(mgr.ctx, actionInstData); err != nil {
-		return fmt.Errorf("failed to store operation operInst param. operation-operInst-id(%s), action-name(%s), err: %v",
-			actionInstData.OperInstID, actionInstData.Name, err)
+	return nil
+}
+
+// markActionRunning mark action is running.
+func (mgr *operInstMgr) markActionRunning(data *ActionInstData) error {
+	data.Lifecycle.StartedAt = time.Now()
+	data.Lifecycle.State = ActionInstStateRunning
+
+	if err := mgr.storage.UpdateActInstLifecycle(mgr.ctx, data.OperInstID, data.Name, data.Lifecycle); err != nil {
+		return fmt.Errorf("failed to update action inst lifecycle. "+
+			"oper-inst-id(%s), action-name(%s), err: %v", data.OperInstID, data.Name, err)
 	}
 
 	return nil
@@ -541,21 +600,21 @@ func checkActionInstState(data *ActionInstData) (skip bool, err error) {
 		return false, fmt.Errorf("action instance data is nil")
 	}
 
-	switch data.State {
+	switch data.Lifecycle.State {
 	case ActionInstStateSuccess, ActionInstStateSkipped:
 		return true, nil
 	case ActionInstStateFailed, ActionInstStateTimeout,
 		ActionInstStateTerminated:
 		return false, fmt.Errorf("operation instance has completed. oper-inst-id(%s), action-name(%s), State(%s)",
-			data.OperInstID, data.Name, data.State)
+			data.OperInstID, data.Name, data.Lifecycle.State)
 	case ActionInstStateRunning:
 		return false, fmt.Errorf("action is running. oper-inst-id(%s), action-name(%s), State(%s)",
-			data.OperInstID, data.Name, data.State)
+			data.OperInstID, data.Name, data.Lifecycle.State)
 	case ActionInstStatePending:
 		return false, nil
 	default:
 		return false, fmt.Errorf("unexpected action State. oper-inst-id(%s), action-name(%s), State(%s)",
-			data.OperInstID, data.Name, data.State)
+			data.OperInstID, data.Name, data.Lifecycle.State)
 	}
 }
 

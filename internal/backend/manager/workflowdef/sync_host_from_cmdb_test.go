@@ -121,11 +121,13 @@ func Test_syncHostFromCMDB_Do(t *testing.T) {
 						OperInstID: "",
 						Name:       "",
 						Index:      0,
-						State:      operengine.ActionInstStateRunning,
-						StartedAt:  time.Time{},
-						EndedAt:    time.Time{},
-						StoppedAt:  time.Time{},
-						Messages:   nil,
+						Lifecycle: &operengine.ActInstLifeCycle{
+							State:     operengine.ActionInstStateRunning,
+							StartedAt: time.Time{},
+							EndedAt:   time.Time{},
+							StoppedAt: time.Time{},
+						},
+						Messages: nil,
 						Content: map[string]any{
 							"biz_id":   2,
 							"biz_name": "test",

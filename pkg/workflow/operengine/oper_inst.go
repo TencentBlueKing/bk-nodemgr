@@ -23,18 +23,23 @@ type ActionInstData struct {
 	OperInstID string
 	Name       string
 	Index      int
-	State      ActionInstState
-	StartedAt  time.Time
-	EndedAt    time.Time
-	StoppedAt  time.Time
 	Messages   []Message
 	Content    map[string]any
+	Lifecycle  *ActInstLifeCycle
 }
 
 // Message ...
 type Message struct {
 	Time time.Time
 	Text string
+}
+
+// ActInstLifeCycle define the lifecycle of the action instance.
+type ActInstLifeCycle struct {
+	State     ActionInstState
+	StartedAt time.Time
+	EndedAt   time.Time
+	StoppedAt time.Time
 }
 
 // Info ...

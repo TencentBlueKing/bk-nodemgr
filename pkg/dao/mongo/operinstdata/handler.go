@@ -37,6 +37,10 @@ type Handler interface {
 	// UpdateActInstMsg updates action inst data messages.
 	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []operengine.Message) error
 
+	// UpdateActInstLifecycle updates action inst data lifecycle.
+	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
+		lifecycle *operengine.ActInstLifeCycle) error
+
 	// UpdateActionInstData updates or inserts an ActionInstData.
 	UpdateActionInstData(ctx context.Context, data *operengine.ActionInstData) error
 
@@ -79,50 +83,6 @@ func (h *handler) Upsert(ctx context.Context, data *operengine.OperInstData) err
 	}
 
 	return nil
-}
-
-func convOperInstDataToDB(data *operengine.OperInstData) (*OperInstData, error) {
-	dbData := &OperInstData{
-		TriggerID:        data.TriggerID,
-		OperInstID:       data.OperInstID,
-		ActionNames:      data.ActionNames,
-		OperDefName:      data.OperDefName,
-		ParentOperInstID: data.ParentOperInstID,
-		Timeout:          data.Timeout,
-		Lifecycle:        convLifecycleToDB(data.Lifecycle),
-	}
-
-	if data.InitContent == nil {
-		return nil, errors.New("invalid init content")
-	}
-
-	bytes, err := json.Marshal(data.InitContent)
-	if err != nil {
-		return nil, err
-	}
-
-	dbData.InitContent = string(bytes)
-
-	dbData.ActionInstDataMap, err = convActionInstDataMapToDB(data.ActionInstDataMap)
-	if err != nil {
-		return nil, err
-	}
-
-	return dbData, nil
-}
-
-func convActionInstDataMapToDB(commData map[string]*operengine.ActionInstData) (map[string]*ActionInstData, error) {
-	var err error
-
-	dbData := make(map[string]*ActionInstData, len(commData))
-	for k, v := range commData {
-		dbData[k], err = convActionInstDataToDB(v)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return dbData, nil
 }
 
 // FindOne find one OperInstData.
@@ -173,10 +133,7 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperI
 			OperInstID: v.OperInstID,
 			Name:       v.Name,
 			Index:      v.Index,
-			State:      operengine.ActionInstState(v.State),
-			StartedAt:  v.StartedAt,
-			EndedAt:    v.EndedAt,
-			StoppedAt:  v.StoppedAt,
+			Lifecycle:  convActInstLifeCycleToCommon(v.Lifecycle),
 		}
 
 		for _, msg := range v.Messages {
@@ -258,7 +215,40 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 	}
 
 	filed := fmt.Sprintf("action_data.%s.messages", actionName)
-	err := h.dao.updateField(ctx, filter, filed, msgs)
+	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateActInstLifecycle update action inst lifecycle.
+func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
+	lifecycle *operengine.ActInstLifeCycle) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	filed := fmt.Sprintf("action_data.%s.life_cycle", actionName)
+	err := h.dao.updateField(ctx, filter, filed, convActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -306,9 +296,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		OperInstID: actionInstData.OperInstID,
 		Name:       actionInstData.Name,
 		Index:      actionInstData.Index,
-		State:      operengine.ActionInstState(actionInstData.State),
-		StartedAt:  actionInstData.StartedAt,
-		EndedAt:    actionInstData.EndedAt,
+		Lifecycle:  convActInstLifeCycleToCommon(actionInstData.Lifecycle),
 	}
 
 	for _, msg := range actionInstData.Messages {
@@ -416,6 +404,20 @@ func convLifecycleToDB(lifecycle *operengine.Lifecycle) *Lifecycle {
 	}
 }
 
+// convActInstLifeCycleToDB convert action instance lifecycle to db.
+func convActInstLifeCycleToDB(lifecycle *operengine.ActInstLifeCycle) *ActInstLifeCycle {
+	if lifecycle == nil {
+		return nil
+	}
+
+	return &ActInstLifeCycle{
+		StartedAt: lifecycle.StartedAt,
+		EndedAt:   lifecycle.EndedAt,
+		State:     string(lifecycle.State),
+		StoppedAt: lifecycle.StoppedAt,
+	}
+}
+
 // convLifecycleToCommon convert lifecycle to common.
 func convLifecycleToCommon(lifecycle *Lifecycle) *operengine.Lifecycle {
 	if lifecycle == nil {
@@ -431,16 +433,25 @@ func convLifecycleToCommon(lifecycle *Lifecycle) *operengine.Lifecycle {
 	}
 }
 
+// convActInstLifeCycleToCommon convert action instance lifecycle to common.
+func convActInstLifeCycleToCommon(lifecycle *ActInstLifeCycle) *operengine.ActInstLifeCycle {
+	dbData := &operengine.ActInstLifeCycle{
+		State:     operengine.ActionInstState(lifecycle.State),
+		StartedAt: lifecycle.StartedAt,
+		EndedAt:   lifecycle.EndedAt,
+		StoppedAt: lifecycle.StoppedAt,
+	}
+
+	return dbData
+}
+
 func convActionInstDataToDB(actionInstData *operengine.ActionInstData) (*ActionInstData, error) {
 	data := &ActionInstData{
 		TriggerID:  actionInstData.TriggerID,
 		OperInstID: actionInstData.OperInstID,
 		Name:       actionInstData.Name,
 		Index:      actionInstData.Index,
-		State:      string(actionInstData.State),
-		StartedAt:  actionInstData.StartedAt,
-		EndedAt:    actionInstData.EndedAt,
-		StoppedAt:  actionInstData.StoppedAt,
+		Lifecycle:  convActInstLifeCycleToDB(actionInstData.Lifecycle),
 	}
 
 	for _, message := range actionInstData.Messages {
@@ -458,4 +469,63 @@ func convActionInstDataToDB(actionInstData *operengine.ActionInstData) (*ActionI
 	data.Content = string(bytes)
 
 	return data, nil
+}
+
+// convOperInstDataToDB convert oper inst data to db.
+func convOperInstDataToDB(data *operengine.OperInstData) (*OperInstData, error) {
+	dbData := &OperInstData{
+		TriggerID:        data.TriggerID,
+		OperInstID:       data.OperInstID,
+		ActionNames:      data.ActionNames,
+		OperDefName:      data.OperDefName,
+		ParentOperInstID: data.ParentOperInstID,
+		Timeout:          data.Timeout,
+		Lifecycle:        convLifecycleToDB(data.Lifecycle),
+	}
+
+	if data.InitContent == nil {
+		return nil, errors.New("invalid init content")
+	}
+
+	bytes, err := json.Marshal(data.InitContent)
+	if err != nil {
+		return nil, err
+	}
+
+	dbData.InitContent = string(bytes)
+
+	dbData.ActionInstDataMap, err = convActionInstDataMapToDB(data.ActionInstDataMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return dbData, nil
+}
+
+// convActionInstDataMapToDB convert action inst data map to db.
+func convActionInstDataMapToDB(commData map[string]*operengine.ActionInstData) (map[string]*ActionInstData, error) {
+	var err error
+
+	dbData := make(map[string]*ActionInstData, len(commData))
+	for k, v := range commData {
+		dbData[k], err = convActionInstDataToDB(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return dbData, nil
+}
+
+// convMessageToDB convert message to db.
+func convMessageToDB(msgs []operengine.Message) []Message {
+	dbData := make([]Message, len(msgs))
+	for idx, msg := range msgs {
+		dbData[idx] = Message{
+			Time: msg.Time,
+			Text: msg.Text,
+		}
+	}
+
+	return dbData
 }

@@ -38,7 +38,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "success",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateSuccess,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateSuccess,
+					},
 				},
 			},
 			want:    true,
@@ -48,7 +50,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "skipped",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateSkipped,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateSkipped,
+					},
 				},
 			},
 			want:    true,
@@ -58,7 +62,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "failed",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateFailed,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateFailed,
+					},
 				},
 			},
 			want:    false,
@@ -68,7 +74,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "timeout",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateTimeout,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateTimeout,
+					},
 				},
 			},
 			want:    false,
@@ -78,7 +86,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "terminated",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateTerminated,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateTerminated,
+					},
 				},
 			},
 			want:    false,
@@ -88,7 +98,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "running",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateRunning,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateRunning,
+					},
 				},
 			},
 			want:    false,
@@ -98,7 +110,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "pending",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStatePending,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStatePending,
+					},
 				},
 			},
 			want:    false,
@@ -108,7 +122,9 @@ func Test_evaluateActionInstanceState(t *testing.T) {
 			name: "unknown",
 			args: args{
 				data: &ActionInstData{
-					State: ActionInstStateUnknown,
+					Lifecycle: ActInstLifeCycle{
+						State: ActionInstStateUnknown,
+					},
 				},
 			},
 			want:    false,

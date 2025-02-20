@@ -22,22 +22,27 @@ const TableName = "oper_inst_data"
 
 // ActionInstData represents a action data.
 type ActionInstData struct {
-	TriggerID  string    `json:"trigger_id" bson:"trigger_id"`
-	OperInstID string    `json:"oper_inst_id" bson:"oper_inst_id"`
-	Name       string    `json:"name" bson:"name"`
-	Index      int       `json:"index" bson:"index"`
-	State      string    `json:"state" bson:"state"`
-	StartedAt  time.Time `json:"started_at" bson:"started_at"`
-	EndedAt    time.Time `json:"ended_at" bson:"ended_at"`
-	StoppedAt  time.Time `json:"stopped_at" bson:"stopped_at"`
-	Messages   []Message `json:"messages" bson:"messages"`
-	Content    string    `json:"content" bson:"content"`
+	TriggerID  string            `json:"trigger_id" bson:"trigger_id"`
+	OperInstID string            `json:"oper_inst_id" bson:"oper_inst_id"`
+	Name       string            `json:"name" bson:"name"`
+	Index      int               `json:"index" bson:"index"`
+	Lifecycle  *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`
+	Messages   []Message         `json:"messages" bson:"messages"`
+	Content    string            `json:"content" bson:"content"`
 }
 
 // Message represents a message.
 type Message struct {
 	Time time.Time `json:"time" bson:"time"`
 	Text string    `json:"text" bson:"text"`
+}
+
+// ActInstLifeCycle is the lifecycle of an action instance.
+type ActInstLifeCycle struct {
+	State     string    `json:"state" bson:"state"`
+	StartedAt time.Time `json:"started_at" bson:"started_at"`
+	EndedAt   time.Time `json:"ended_at" bson:"ended_at"`
+	StoppedAt time.Time `json:"stopped_at" bson:"stopped_at"`
 }
 
 // OperInstData represents a operation instance data.

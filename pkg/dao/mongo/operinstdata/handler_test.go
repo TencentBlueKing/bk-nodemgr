@@ -121,12 +121,15 @@ func Test_handler_Upsert(t *testing.T) {
 							OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 							Name:       "action-1",
 							Index:      0,
-							State:      "success",
-							StartedAt:  time.Time{},
-							EndedAt:    time.Time{},
 							Messages:   nil,
 							Content: map[string]any{
 								"biz": "1",
+							},
+							Lifecycle: &operengine.ActInstLifeCycle{
+								State:     "success",
+								StartedAt: time.Time{},
+								EndedAt:   time.Time{},
+								StoppedAt: time.Time{},
 							},
 						},
 					},
@@ -282,12 +285,14 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 					OperInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
 					Name:       "sync_biz_from_cmdb",
 					Index:      0,
-					State:      operengine.ActionInstStateRunning,
-					StartedAt:  time.Now(),
-					EndedAt:    time.Now(),
-					StoppedAt:  time.Now(),
-					Messages:   nil,
-					Content:    nil,
+					Lifecycle: &operengine.ActInstLifeCycle{
+						State:     operengine.ActionInstStateRunning,
+						StartedAt: time.Now(),
+						EndedAt:   time.Now(),
+						StoppedAt: time.Now(),
+					},
+					Messages: nil,
+					Content:  nil,
 				},
 			},
 			wantErr: false,
@@ -298,7 +303,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 			if err := h.UpdateActionInstData(tt.args.ctx, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateActionInstData() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -340,6 +345,45 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 			}
 
 			t.Logf("FindOneWithoutActionData() got = %#v", got)
+		})
+	}
+}
+
+// Test_handler_UpdateActInstLifecycle ...
+func Test_handler_UpdateActInstLifecycle(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+		lifecycle  *operengine.ActInstLifeCycle
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "",
+				actionName: "",
+				lifecycle:  nil,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.UpdateActInstLifecycle(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.lifecycle)
+			if err != nil {
+				t.Logf("UpdateActInstLifecycle() error = %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

@@ -333,6 +333,33 @@ func (s *storage) UpdateActionInstData(ctx context.Context, data *operengine.Act
 	return nil
 }
 
+// UpdateActInstLifecycle update operation instance's action instance lifecycle.
+func (s *storage) UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string,
+	lifecycle *operengine.ActInstLifeCycle) error {
+
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	if lifecycle == nil {
+		return errors.New("lifecycle is nil")
+	}
+
+	if err := s.operinstdataDao.UpdateActInstLifecycle(ctx, operInstID, actionName, lifecycle); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UpdateLifecycle update operation instance's lifecycle.
 func (s *storage) UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error {
 	if ctx == nil {

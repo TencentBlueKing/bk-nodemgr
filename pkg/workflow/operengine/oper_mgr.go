@@ -109,9 +109,11 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 			OperInstID: operInst.data.OperInstID,
 			Name:       actionName,
 			Index:      idx,
-			State:      ActionInstStatePending,
-			Messages:   make([]Message, 0),
-			Content:    make(map[string]any),
+			Lifecycle: &ActInstLifeCycle{
+				State: ActionInstStatePending,
+			},
+			Messages: make([]Message, 0),
+			Content:  make(map[string]any),
 		}
 
 		operInst.data.ActionInstDataMap[actionName] = actionInstData

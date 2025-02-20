@@ -27,7 +27,7 @@ type OperInstStorage interface {
 	// UpsertOperInstData will insert/update the OperInst param.
 	UpsertOperInstData(ctx context.Context, data *OperInstData) error
 
-	// MarkOperInstStopping will mark the OperInst is stopping.
+	// MarkOperInstStopping will markActionRunning the OperInst is stopping.
 	MarkOperInstStopping(ctx context.Context, operationInstID string) error
 
 	// WatchOperInstStopping will return a chan, when the OperInst is stopping, it will close the chan.
@@ -41,6 +41,9 @@ type OperInstStorage interface {
 
 	// UpdateActionInstData will update the OperInst's ActionInstData.
 	UpdateActionInstData(ctx context.Context, data *ActionInstData) error
+
+	// UpdateActInstLifecycle will update the action_inst_data's lifecycle.
+	UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string, lifecycle *ActInstLifeCycle) error
 
 	// UpdateLifecycle will update the OperInst's Lifecycle.
 	UpdateLifecycle(ctx context.Context, operInstID string, data *Lifecycle) error

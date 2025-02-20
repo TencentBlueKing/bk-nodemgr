@@ -84,9 +84,11 @@ func (def *operationDef) NewInstance(triggerID string, timeout time.Duration) (*
 			OperInstID: inst.data.OperInstID,
 			Name:       action.Name(),
 			Index:      index,
-			State:      ActionInstStatePending,
-			Messages:   make([]Message, 0),
-			Content:    make(map[string]any),
+			Lifecycle: &ActInstLifeCycle{
+				State: ActionInstStatePending,
+			},
+			Messages: make([]Message, 0),
+			Content:  make(map[string]any),
 		}
 	}
 
