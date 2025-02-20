@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
@@ -56,8 +57,73 @@ func WithPing() OptionFunc {
 	}
 }
 
+type staticResourcePair struct {
+	relative string
+	target   string
+}
+
+// NewStaitcOptions generates a new static options.
+func NewStaitcOptions(baseStaticDir string) *StaticOptions {
+	return &StaticOptions{
+		baseStaticDir: baseStaticDir,
+		dirs:          make([]*staticResourcePair, 0),
+		files:         make([]*staticResourcePair, 0),
+		htmls:         make([]string, 0),
+	}
+}
+
+// StaticOptions describes the static file settings and routings.
+type StaticOptions struct {
+	// BaseStaticDir is the base dir of all static files.
+	baseStaticDir string
+
+	dirs []*staticResourcePair
+
+	files []*staticResourcePair
+
+	htmls []string
+}
+
+// WithDirs loads static dirs into options.
+func (opt *StaticOptions) WithDirs(relatives ...string) *StaticOptions {
+	for _, relative := range relatives {
+		opt.dirs = append(opt.dirs, &staticResourcePair{
+			relative: "/" + relative,
+			target:   path.Join(opt.baseStaticDir, relative),
+		})
+	}
+
+	return opt
+}
+
+// WithFiles loads static files into options.
+func (opt *StaticOptions) WithFiles(relatives ...string) *StaticOptions {
+	for _, relative := range relatives {
+		opt.files = append(opt.files, &staticResourcePair{
+			relative: "/" + relative,
+			target:   path.Join(opt.baseStaticDir, relative),
+		})
+	}
+
+	return opt
+}
+
+// WithHTMLs loads static htmls into options.
+func (opt *StaticOptions) WithHTMLs(relatives ...string) *StaticOptions {
+	for _, relative := range relatives {
+		opt.htmls = append(opt.htmls, path.Join(opt.baseStaticDir, relative))
+	}
+
+	return opt
+}
+
 // NewServer creates a new restful API server.
-func NewServer(ctx context.Context, name, ip string, port int, logWriter LogWriter, apiOptFns ...OptionFunc) *Server {
+func NewServer(ctx context.Context,
+	name, ip string, port int,
+	logWriter LogWriter,
+	staticOpt *StaticOptions,
+	apiOptFns ...OptionFunc) *Server {
+
 	svr := &Server{
 		ctx:    ctx,
 		ip:     ip,
@@ -87,6 +153,22 @@ func NewServer(ctx context.Context, name, ip string, port int, logWriter LogWrit
 
 	// Set authentication middleware.
 	svr.rg.Use(MiddlewareContext())
+
+	// Set static settings.
+	if staticOpt != nil {
+		// load html templates.
+		svr.engine.LoadHTMLFiles(staticOpt.htmls...)
+
+		// load static dirs.
+		for _, item := range staticOpt.dirs {
+			svr.engine.Static(item.relative, item.target)
+		}
+
+		// load static files.
+		for _, item := range staticOpt.files {
+			svr.engine.StaticFile(item.relative, item.target)
+		}
+	}
 
 	for _, fn := range apiOptFns {
 		fn(svr.rg)

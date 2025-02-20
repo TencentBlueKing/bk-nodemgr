@@ -8,8 +8,10 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositori
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 RUN apk add mongodb && rm -f /usr/bin/mongod /usr/bin/mongos
 
-RUN mkdir -p /bk-nodeman/bin /bk-nodeman/etc /bk-nodeman/cert /bk-nodeman/log
+RUN mkdir -p /bk-nodeman/bin /bk-nodeman/etc /bk-nodeman/cert /bk-nodeman/log /bk-nodeman/static
+
+COPY bk-nodeman-backend /bk-nodeman/bin/
+COPY bk-nodeman-application /bk-nodeman/bin/
+COPY dist/ /bk-nodeman/static/
 
 WORKDIR /bk-nodeman/bin
-COPY bk-nodeman-backend .
-COPY bk-nodeman-application .

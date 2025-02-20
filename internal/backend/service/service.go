@@ -157,6 +157,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
 		loggerWriterAdaptor{},
+		nil,
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
@@ -167,6 +168,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	adminServer := rest.NewServer(svc.ctx, RouterNameAdminServer, conf.AdminServer.BindIP, conf.AdminServer.Port,
 		loggerWriterAdaptor{},
+		nil,
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),

@@ -1,4 +1,4 @@
-.PHONY: tidy build test
+.PHONY: tidy build test pre backend application front docker-build all clean doc
 
 # directories
 ROOT_DIR = $(CURDIR)
@@ -24,6 +24,7 @@ CD    = cd
 CP    = cp
 RM    = rm
 SH    = sh
+NPM   = pnpm
 
 default: all
 pre:
@@ -36,11 +37,15 @@ backend: pre
 application: pre
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
 
-docker-build: backend application
+front: pre
+	$(CD) $(ROOT_DIR)/front && $(NPM) build
+	$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
+
+docker-build: backend application front
 	$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
 	$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
 
-all: backend application
+all: backend application front
 
 clean:
 	$(RM) -rf build

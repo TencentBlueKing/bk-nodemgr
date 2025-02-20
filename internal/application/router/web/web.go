@@ -25,7 +25,7 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/web"),
+		rg: rg.Group(""),
 	}
 }
 
@@ -33,10 +33,10 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.GET("/index", h.Index)
+	h.rg.GET("", h.Index)
 }
 
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "welcome to bk-nodeman")
+	ctx.HTML(http.StatusOK, "index.html", gin.H{})
 }
