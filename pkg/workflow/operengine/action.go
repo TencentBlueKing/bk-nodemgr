@@ -20,10 +20,8 @@ import (
 type ActionTag string
 
 const (
-	// ActionTagIdempotent represents an idempotent action.
-	ActionTagIdempotent ActionTag = "idempotent"
-	// ActionTagNotIdempotent represents a not idempotent action.
-	ActionTagNotIdempotent ActionTag = "non-idempotent"
+	// ActionTagDisabledAutoRefreshMsg represents an action which is disabled auto refresh msg.
+	ActionTagDisabledAutoRefreshMsg ActionTag = "disabled_auto_refresh_msg"
 )
 
 // ActionInstContext represents the context of an action.

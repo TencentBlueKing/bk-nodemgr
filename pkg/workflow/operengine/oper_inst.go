@@ -19,13 +19,14 @@ import (
 
 // ActionInstData action instance.
 type ActionInstData struct {
-	TriggerID  string
-	OperInstID string
-	Name       string
-	Index      int
-	Messages   []Message
-	Content    map[string]any
-	Lifecycle  *ActInstLifeCycle
+	TriggerID   string
+	OperInstID  string
+	Name        string
+	Index       int
+	Messages    []Message
+	Content     map[string]any
+	PrivateData map[string]any
+	Lifecycle   *ActInstLifeCycle
 }
 
 // Message ...

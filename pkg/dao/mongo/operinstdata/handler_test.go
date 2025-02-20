@@ -161,42 +161,6 @@ func Test_handler_Upsert(t *testing.T) {
 	}
 }
 
-// Test_handler_UpdateActInstMsg
-func Test_handler_UpdateActInstMsg(t *testing.T) {
-	type args struct {
-		ctx        context.Context
-		operInstID string
-		actionName string
-		msgs       []operengine.Message
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:        context.Background(),
-				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
-				actionName: "sync_biz_from_cmdb",
-				msgs:       []operengine.Message{},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			if err := h.UpdateActInstMsg(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateActInstMsg() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 // Test_handler_FindOneActionInstData ...
 func Test_handler_FindOneActionInstData(t *testing.T) {
 	type args struct {
@@ -388,6 +352,120 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_PushActInstMsgs ...
+func Test_handler_PushActInstMsgs(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+		msgs       []operengine.Message
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-f30540ee-19b9-438a-912f-6d538bd18508",
+				actionName: "sync_host_from_cmdb",
+				msgs: []operengine.Message{
+					{
+						Time: time.Now(),
+						Text: "test1 ",
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.PushActInstMsgs(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs...); (err != nil) != tt.wantErr {
+				t.Errorf("PushActInstMsgs() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_AddActInstPrivateData ...
+func Test_handler_AddActInstPrivateData(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+		data       map[string]any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-f30540ee-19b9-438a-912f-6d538bd18508",
+				actionName: "sync_host_from_cmdb",
+				data:       map[string]any{"test": "test1"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.AddActInstPrivateData(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.data)
+			if err != nil {
+				t.Logf("AddActInstPrivateData() error = %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddActInstPrivateData() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_AddActInstPrivateData ...
+func Test_handler_UpdateActionInstContent(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+		content    map[string]any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-f30540ee-19b9-438a-912f-6d538bd18508",
+				actionName: "sync_host_from_cmdb",
+				content: map[string]any{
+					"test": "test1",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.UpdateActionInstContent(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.content); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateActionInstContent() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

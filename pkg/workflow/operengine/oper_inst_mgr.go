@@ -435,13 +435,28 @@ func (mgr *operInstMgr) do(ctx context.Context, actionName string, operInstID st
 			}
 		}
 
-		if storeErr := mgr.storage.UpdateActionInstData(ctx, actionInstData); storeErr != nil {
+		if storeErr := mgr.markActInstComplete(ctx, actionInstData); storeErr != nil {
 			err = fmt.Errorf("store-err(%v), original-err(%v)", storeErr, err)
 		}
 	}()
 
 	if err = mgr.executeAndWatchAction(ctx, actionDef, operInstData, actionInstData); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// markActInstComplete mark an action instance complete.
+func (mgr *operInstMgr) markActInstComplete(ctx context.Context, data *ActionInstData) interface{} {
+	if err := mgr.storage.UpdateActInstLifecycle(ctx, data.OperInstID, data.Name, data.Lifecycle); err != nil {
+		return fmt.Errorf("failed to update action inst lifecycle. "+
+			"oper-inst-id(%s), action-name(%s), err: %v", data.OperInstID, data.Name, err)
+	}
+
+	if err := mgr.storage.UpdateActionInstContent(ctx, data.OperInstID, data.Name, data.Content); err != nil {
+		return fmt.Errorf("failed to update action inst content. "+
+			"oper-inst-id(%s), action-name(%s), err: %v", data.OperInstID, data.Name, err)
 	}
 
 	return nil
@@ -647,16 +662,32 @@ func (mgr *operInstMgr) autoRefreshActionDataMsg(ctx context.Context, data *Acti
 	ticker := time.NewTicker(msgRefreshInterval)
 	defer ticker.Stop()
 
+	idx := 0
+
 	// refresh action inst data messages to storage
 	for {
 		select {
 		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if err := mgr.storage.UpdateActInstMsg(ctx, data.OperInstID, data.Name, data.Messages); err != nil {
+			// when finished, push the rest messages to storage.
+			msgs := data.Messages[idx:]
+
+			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
+			if err := mgr.storage.PushActInstMsgs(mgr.ctx, data.OperInstID, data.Name, msgs...); err != nil {
 				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)
 			}
+
+			return
+		case <-ticker.C:
+			msgs := data.Messages[idx:]
+			idx += len(msgs)
+
+			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
+			if err := mgr.storage.PushActInstMsgs(mgr.ctx, data.OperInstID, data.Name, msgs...); err != nil {
+				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
+					data.Name, err)
+			}
+
 			continue
 		}
 	}
