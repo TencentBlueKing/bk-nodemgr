@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+// Package report_log ...
+package report_log
 
 import (
 	"encoding/base64"
@@ -17,11 +17,12 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types/reportlog"
 )
 
-// ReportLog report shell log.
-func (h handler) ReportLog(ctx *rest.Context) (interface{}, error) {
-	req := new(ReportLogReq)
+// AgentInstall report agent install shell script log.
+func (h handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
+	req := new(ReportInstallLogReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, err
 	}
@@ -42,7 +43,12 @@ func (h handler) ReportLog(ctx *rest.Context) (interface{}, error) {
 	for _, log := range req.Logs {
 		h.logger.Debugf("report log: %s", log)
 		// TODO: 推送数据到数据库
+
 	}
+
+	// TODO: 去除日志
+	bytes, _ := json.Marshal(req)
+	fmt.Println(string(bytes))
 
 	resp := new(ReportLogResp)
 
@@ -70,6 +76,7 @@ func (h handler) parseToken(tokenStr string) (*Token, error) {
 	return token, nil
 }
 
+// Token the token for callback.
 type Token struct {
 	TaskID    string `json:"task_id"`
 	BKHostID  string `json:"bk_host_id"`
@@ -78,4 +85,17 @@ type Token struct {
 	Timestamp string `json:"timestamp"`
 	InstID    string `json:"inst_id"`
 	HostApID  string `json:"host_ap_id"`
+}
+
+// parseLog
+func (h handler) parseLog(log reportlog.ReportLog) error {
+	switch log.Step {
+	case "start":
+	case "end":
+	case "error":
+	default:
+		return fmt.Errorf("invalid step in agent install shell script, step(%s)", log.Step)
+	}
+
+	return nil
 }

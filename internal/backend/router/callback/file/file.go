@@ -8,12 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+// Package file this package provide file callback api.
+package file
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/report_log"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/file/agent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +28,7 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/workflow"),
+		rg:     rg.Group("/file"),
 		logger: cap.Logger,
 	}
 }
@@ -38,5 +38,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
 	// TODO: 设置权限封禁
-	report_log.Load(h.rg, cap)
+	agent.Load(h.rg, cap)
 }

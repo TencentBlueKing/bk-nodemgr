@@ -8,28 +8,30 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package report_log
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/report_log"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.Logger
+	rg      *gin.RouterGroup
+	logger  logger.Logger
+	crypter crypter.Crypter
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/workflow"),
-		logger: cap.Logger,
+		rg:      rg.Group("/report_log"),
+		logger:  cap.Logger,
+		crypter: cap.Crypter,
 	}
 }
 
@@ -38,5 +40,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
 	// TODO: 设置权限封禁
-	report_log.Load(h.rg, cap)
+	h.rg.POST("/agent_install", rest.RestHandlerFunc(h.AgentInstall))
 }

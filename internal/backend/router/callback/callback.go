@@ -13,6 +13,7 @@ package callback
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/file"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
@@ -40,4 +41,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	// TODO: 设置权限封禁
 
 	workflow.Load(h.rg, cap)
+	file.Load(h.rg, cap)
 }

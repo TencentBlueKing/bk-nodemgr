@@ -574,7 +574,6 @@ func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, action
 	}
 
 	return nil
-
 }
 
 // AddActInstPrivateData add act inst private data.

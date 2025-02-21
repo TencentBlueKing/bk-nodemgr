@@ -14,25 +14,22 @@ package agent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg      *gin.RouterGroup
-	logger  logger.Logger
-	crypter crypter.Crypter
+	rg     *gin.RouterGroup
+	logger logger.Logger
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/agent"),
-		logger:  cap.Logger,
-		crypter: cap.Crypter,
+		rg:     rg.Group("/agent"),
+		logger: cap.Logger,
 	}
 }
 
@@ -41,5 +38,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
 	// TODO: 设置权限封禁
-	h.rg.POST("/report_log", rest.RestHandlerFunc(h.ReportLog))
+	h.rg.POST("/get_gse_config", rest.RestHandlerFunc(h.GetGSEConfig))
 }

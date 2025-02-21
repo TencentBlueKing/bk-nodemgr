@@ -8,13 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+package report_log
 
 import "fmt"
 
-// ReportLogReq ReportLog req.
-type ReportLogReq struct {
+// ReportInstallLogReq AgentInstall req.
+type ReportInstallLogReq struct {
 	TaskID string `json:"task_id"`
 	Token  string `json:"token"`
 	Logs   []struct {
@@ -26,8 +25,8 @@ type ReportLogReq struct {
 	} `json:"logs"`
 }
 
-// Validate ReportLogReq.
-func (req ReportLogReq) Validate() error {
+// Validate ReportInstallLogReq.
+func (req ReportInstallLogReq) Validate() error {
 	if req.TaskID == "" {
 		return fmt.Errorf("task_id is empty")
 	}
@@ -39,6 +38,6 @@ func (req ReportLogReq) Validate() error {
 	return nil
 }
 
-// ReportLogResp ReportLog resp.
+// ReportLogResp AgentInstall resp.
 type ReportLogResp struct {
 }
