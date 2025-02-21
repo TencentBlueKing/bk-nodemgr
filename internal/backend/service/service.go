@@ -180,6 +180,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	callbackServer := rest.NewServer(svc.ctx, "callback", conf.CallbackServer.BindIP, conf.CallbackServer.Port,
 		loggerWriterAdaptor{},
+		nil,
 		rest.WithPing(),
 		withCallback(svc.Cap),
 	)
