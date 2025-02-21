@@ -14,9 +14,9 @@ import "fmt"
 
 // ReportInstallLogReq AgentInstall req.
 type ReportInstallLogReq struct {
-	TaskID string `json:"task_id"`
-	Token  string `json:"token"`
-	Logs   []struct {
+	OperInstID string `json:"oper_inst_id"`
+	Token      string `json:"token"`
+	Logs       []struct {
 		Timestamp string `json:"timestamp"`
 		Level     string `json:"level"`
 		Step      string `json:"step"`
@@ -27,8 +27,8 @@ type ReportInstallLogReq struct {
 
 // Validate ReportInstallLogReq.
 func (req ReportInstallLogReq) Validate() error {
-	if req.TaskID == "" {
-		return fmt.Errorf("task_id is empty")
+	if req.OperInstID == "" {
+		return fmt.Errorf("oper_inst_id is empty")
 	}
 
 	if req.Token == "" {

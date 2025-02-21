@@ -15,6 +15,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types/reportlog"
@@ -31,24 +33,39 @@ func (h handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	token, err := h.parseToken(req.Token)
-	if err != nil {
-		return nil, fmt.Errorf("parse token failed, err: %v", err)
-	}
+	h.logger.Infof("req: %+v", req)
 
-	if token.TaskID != req.TaskID {
-		return nil, fmt.Errorf("task_id not match")
-	}
+	//token, err := h.parseToken(req.Token)
+	//if err != nil {
+	//	return nil, fmt.Errorf("parse token failed, err: %v", err)
+	//}
+
+	//if token.OperInstID != req.OperInstID {
+	//	return nil, fmt.Errorf("task_id not match")
+	//}
 
 	for _, log := range req.Logs {
 		h.logger.Debugf("report log: %s", log)
 		// TODO: 推送数据到数据库
 
-	}
+		timestamp, err := strconv.ParseInt(log.Timestamp, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid timestamp, err: %v", err)
+		}
 
-	// TODO: 去除日志
-	bytes, _ := json.Marshal(req)
-	fmt.Println(string(bytes))
+		rpLog := reportlog.ReportLog{
+			Timestamp: time.Unix(timestamp, 0),
+			Level:     log.Level,
+			Step:      reportlog.Step(log.Step),
+			Log:       log.Log,
+			Status:    log.Status,
+		}
+
+		err = h.parseLog(rpLog)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	resp := new(ReportLogResp)
 
@@ -78,21 +95,30 @@ func (h handler) parseToken(tokenStr string) (*Token, error) {
 
 // Token the token for callback.
 type Token struct {
-	TaskID    string `json:"task_id"`
-	BKHostID  string `json:"bk_host_id"`
-	InnerIP   string `json:"inner_ip"`
-	BKCloudID string `json:"bk_cloud_id"`
-	Timestamp string `json:"timestamp"`
-	InstID    string `json:"inst_id"`
-	HostApID  string `json:"host_ap_id"`
+	OperInstID string `json:"oper_inst_id"`
+	BKHostID   string `json:"bk_host_id"`
+	InnerIP    string `json:"inner_ip"`
+	BKCloudID  string `json:"bk_cloud_id"`
+	Timestamp  string `json:"timestamp"`
+	InstID     string `json:"inst_id"`
+	HostApID   string `json:"host_ap_id"`
 }
 
 // parseLog
 func (h handler) parseLog(log reportlog.ReportLog) error {
 	switch log.Step {
-	case "start":
-	case "end":
-	case "error":
+	case reportlog.StepCheckEnv:
+		h.logger.Infof("check env log: %s", log)
+	case reportlog.StepDownloadPkg:
+		h.logger.Infof("download pkg log: %s", log)
+	case reportlog.StepRemoveAgent:
+		h.logger.Infof("remove agent log: %s", log)
+	case reportlog.StepRemoveProxyIfExists:
+		h.logger.Infof("remove proxy if exists log: %s", log)
+	case reportlog.StepSetupAgent:
+		h.logger.Infof("setup agent log: %s", log)
+	case reportlog.StepCheckDeployResult:
+		h.logger.Infof("check deploy result log: %s", log)
 	default:
 		return fmt.Errorf("invalid step in agent install shell script, step(%s)", log.Step)
 	}

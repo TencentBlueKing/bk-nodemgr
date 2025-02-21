@@ -11,13 +11,15 @@
 // Package reportlog ...
 package reportlog
 
+import "time"
+
 // ReportLog the log report from agent.
 type ReportLog struct {
-	Timestamp string `json:"timestamp"`
-	Level     string `json:"level"`
-	Step      Step   `json:"step"`
-	Log       string `json:"log"`
-	Status    string `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+	Level     string    `json:"level"`
+	Step      Step      `json:"step"`
+	Log       string    `json:"log"`
+	Status    string    `json:"status"`
 }
 
 // Step define the step of shell script.

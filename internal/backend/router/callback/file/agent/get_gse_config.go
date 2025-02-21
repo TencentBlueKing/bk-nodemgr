@@ -12,14 +12,17 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 )
 
 // GetGSEConfig ...
-func (h handler) GetGSEConfig(ctx *rest.Context) (interface{}, error) {
+func (h handler) GetGSEConfig(ctx *rest.Context) (*rest.FileResponse, error) {
 	//TODO: Mock 方案
 
-	resp := map[string]any{
+	data := map[string]any{
 		"run_mode": "agent",
 		"cloud_id": 0,
 		"zone_id":  "2",
@@ -73,6 +76,22 @@ func (h handler) GetGSEConfig(ctx *rest.Context) (interface{}, error) {
 			"flush_interval_ms": 1000,
 		},
 		"extra_config_directory": "/etc/sysconfig/gse/opbk/user_conf",
+	}
+
+	buffer := bytes.NewBuffer(nil)
+
+	err := json.NewEncoder(buffer).Encode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &rest.FileResponse{
+		Data:        buffer,
+		Size:        int64(buffer.Len()),
+		FilePath:    "",
+		FileName:    "gse_config.json",
+		ContentType: "",
+		Headers:     nil,
 	}
 
 	return resp, nil

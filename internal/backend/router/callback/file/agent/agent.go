@@ -38,5 +38,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
 	// TODO: 设置权限封禁
-	h.rg.POST("/get_gse_config", rest.RestHandlerFunc(h.GetGSEConfig))
+	h.rg.Any("/get_gse_config", rest.FileHandler(h.GetGSEConfig))
 }
