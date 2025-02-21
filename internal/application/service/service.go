@@ -60,7 +60,7 @@ func NewService(conf *config.ApplicationService) *Service {
 
 	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
 		loggerWriter{},
-		rest.NewStaitcOptions(conf.HTTPServer.StaticDir).
+		rest.NewStaticOptions(conf.HTTPServer.StaticDir).
 			WithHTMLs("index.html").
 			WithDirs("assets").
 			WithFiles("bk.svg", "favicon.png", "nodeman.png"),

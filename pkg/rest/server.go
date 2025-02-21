@@ -62,8 +62,8 @@ type staticResourcePair struct {
 	target   string
 }
 
-// NewStaitcOptions generates a new static options.
-func NewStaitcOptions(baseStaticDir string) *StaticOptions {
+// NewStaticOptions generates a new static options.
+func NewStaticOptions(baseStaticDir string) *StaticOptions {
 	return &StaticOptions{
 		baseStaticDir: baseStaticDir,
 		dirs:          make([]*staticResourcePair, 0),
@@ -72,7 +72,7 @@ func NewStaitcOptions(baseStaticDir string) *StaticOptions {
 	}
 }
 
-// StaticOptions describes the static file settings and routings.
+// StaticOptions describes the static file settings and routers.
 type StaticOptions struct {
 	// BaseStaticDir is the base dir of all static files.
 	baseStaticDir string
