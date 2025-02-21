@@ -125,11 +125,13 @@ func NewServer(ctx context.Context,
 	apiOptFns ...OptionFunc) *Server {
 
 	svr := &Server{
-		ctx:    ctx,
-		ip:     ip,
-		port:   port,
-		name:   name,
-		engine: gin.New(),
+		ctx:  ctx,
+		ip:   ip,
+		port: port,
+		name: name,
+		engine: gin.New(func(engine *gin.Engine) {
+			engine.RemoveExtraSlash = true
+		}),
 	}
 
 	// Recover from panic
