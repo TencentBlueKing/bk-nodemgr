@@ -13,7 +13,10 @@ package rest
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
+	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
@@ -150,5 +153,95 @@ func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 			return
 		}
 		handler(rCtx)
+	}
+}
+
+// FileHandlerFunc define file handler.
+type FileHandlerFunc func(*Context) (*FileResponse, error)
+
+// FileResponse file response.
+type FileResponse struct {
+	// Data defines file data.
+	Data io.Reader
+
+	// Size defines file size.
+	Size int64
+
+	// FilePath defines file path.
+	FilePath string
+
+	// FileName defines file name.
+	FileName string
+
+	// ContentType defines content type.
+	ContentType string
+
+	// Headers defines custom headers.
+	Headers map[string]string
+}
+
+// FileHandler file handler.
+func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
+	return func(gCtx *gin.Context) {
+		rCtx, err := GetRestContext(gCtx)
+		if err != nil {
+			InitRestContext(gCtx).AbortWithUnauthorizedError(err)
+
+			return
+		}
+
+		fileResp, err := handler(rCtx)
+		if err != nil {
+			rCtx.AbortWithJSONError(err)
+			return
+		}
+
+		if fileResp == nil || fileResp.Data == nil {
+			rCtx.AbortWithJSONError(fmt.Errorf("invalid file response"))
+			return
+		}
+
+		if fileResp.ContentType == "" {
+			fileResp.ContentType = getDefaultContentType(fileResp.FilePath)
+		}
+
+		if fileResp.FileName == "" {
+			fileResp.FileName = filepath.Base(fileResp.FilePath)
+		}
+
+		setFileHeaders(gCtx, fileResp)
+
+		gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
+	}
+}
+
+func setFileHeaders(c *gin.Context, resp *FileResponse) {
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", resp.FileName))
+	c.Header("Content-Type", resp.ContentType)
+
+	for key, value := range resp.Headers {
+		c.Header(key, value)
+	}
+}
+
+func getDefaultContentType(filePath string) string {
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".pdf":
+		return "application/pdf"
+	case ".doc", ".docx":
+		return "application/msword"
+	case ".xls", ".xlsx":
+		return "application/vnd.ms-excel"
+	case ".zip":
+		return "application/zip"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	default:
+		return "application/octet-stream"
 	}
 }
