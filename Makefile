@@ -38,7 +38,7 @@ application: pre
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
 
 front: pre
-	$(CD) $(ROOT_DIR)/front && $(NPM) build
+	$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
 	$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
 
 docker-build: backend application front
