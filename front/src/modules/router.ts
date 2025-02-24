@@ -7,6 +7,10 @@ import AgentManager from '@/pages/node/agent.vue';
 import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
+import TopoManager from '@/pages/topo/index.vue';
+import ControlledRegion from '@/pages/topo/region.vue';
+import Topography from '@/pages/topo/topo.vue';
+import OperationRecord from '@/pages/topo/record.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -53,7 +57,36 @@ const routes = setupLayouts([
       {
         name: 'topoManager',
         path: 'topo-manager',
-        children: [],
+        redirect: { name: 'region' },
+        children: [
+          {
+            name: 'region',
+            path: 'region',
+            component: ControlledRegion,
+            meta: {
+              back: false,
+              mainMenu: 'topoManager',
+            },
+          },
+          {
+            name: 'topo',
+            path: 'topo',
+            component: Topography,
+            meta: {
+              back: false,
+              mainMenu: 'topoManager',
+            },
+          },
+          {
+            name: 'record',
+            path: 'record',
+            component: OperationRecord,
+            meta: {
+              back: false,
+              mainMenu: 'topoManager',
+            },
+          }
+        ],
       },
       // 策略管理
       {

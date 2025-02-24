@@ -52,6 +52,33 @@ const navList = [
   {
     routeName: 'topoManager',
     title: i18n.global.t('拓扑管理'),
+    group: [
+      {
+        title: i18n.global.t('拓扑'),
+        children: [
+          {
+            routeName: 'region',
+            icon: '',
+            title: i18n.global.t('管控区域'),
+          },
+          {
+            routeName: 'topo',
+            icon: '',
+            title: i18n.global.t('拓扑图'),
+          },
+        ],
+      },
+      {
+        title: i18n.global.t('记录'),
+        children: [
+          {
+            routeName: 'record',
+            icon: '',
+            title: i18n.global.t('操作记录'),
+          },
+        ],
+      },
+    ],
   },
   {
     routeName: 'ruleManager',
