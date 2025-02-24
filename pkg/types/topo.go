@@ -22,24 +22,13 @@ type Business struct {
 	BizName string
 }
 
-// NetArea represents a cmdb net-area. In which IPs will not be duplicated.
-type NetArea struct {
-	// belongs to
-	TenantID string
-
-	// cloud-id is the unique identifier for a net-area.
-	CloudID int64
-
-	// cloud-name is the name of a net-area.
-	CloudName string
-}
-
 // Host represents a cmdb host.
 type Host struct {
 	// belongs to
-	TenantID string
-	CloudID  int64
-	BizID    int64
+	TenantID      string
+	NetworkAreaID int64
+	UnitID        int64
+	BizID         int64
 
 	// host-id is the unique identifier for a host.
 	HostID int64
@@ -48,4 +37,81 @@ type Host struct {
 	InnerIP string
 	Mac     string
 	OSType  string
+}
+
+// NetworkArea represents a cmdb network-area. In which IPs will not be duplicated.
+type NetworkArea struct {
+	// belongs to
+	TenantID string
+
+	// area-id is the unique identifier for a network-area.
+	ID int64
+
+	// area-name the name of a network-area.
+	Name string
+}
+
+// NetworkUnit represents a basic unit for proxy management.
+type NetworkUnit struct {
+	// belongs to
+	TenantID      string
+	NetworkAreaID int64
+
+	// unit-id is the unique identifier for a network-unit.
+	// unit-id should be globally unique among all tenants.
+	ID int64
+
+	// unit-name is the name of a network-unit.
+	Name string
+
+	// access points for this network-unit.
+	AccessPoints []*AccessPoint
+
+	// links link to upstreams.
+	Links map[LinkChannel]*Link
+}
+
+// LinkChannel represents a link channel in gse topology.
+type LinkChannel string
+
+const (
+	// LinkChannelCluster represents a cluster network channel.
+	// It is the basic message channel in gse.
+	LinkChannelCluster LinkChannel = "cluster"
+
+	// LinkChannelFile represents a file network channel.
+	// It is the file transferring channel in gse.
+	LinkChannelFile LinkChannel = "file"
+
+	// LinkChannelData represents a data network channel.
+	// It is the data transferring channel in gse.
+	LinkChannelData LinkChannel = "data"
+)
+
+// AccessPoint represents an access point for connecting network units.
+type AccessPoint struct {
+	// belongs to
+	TenantID      string
+	NetworkAreaID int64
+	UnitID        int64
+
+	// access-point-id is the unique identifier for an access point.
+	// access-point-id should be globally unique among all tenants.
+	ID int64
+
+	// access-point-name is the name of an access point.
+	Name string
+
+	// access configs.
+	// each channel should have a endpoint list.
+	AccessEndpoints map[LinkChannel][]string
+}
+
+// Link represents a link from one unit to one access point.
+type Link struct {
+	// channel of this link.
+	Channel LinkChannel
+
+	TargetTenantID      string
+	TargetAccessPointID int64
 }

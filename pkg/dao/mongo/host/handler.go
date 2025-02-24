@@ -67,13 +67,13 @@ func (h *handler) UpsertMany(ctx context.Context, hosts []*types.Host) error {
 	data := make([]*Host, len(hosts))
 	for idx, host := range hosts {
 		data[idx] = &Host{
-			TenantID: host.TenantID,
-			CloudID:  host.CloudID,
-			BizID:    host.BizID,
-			HostID:   host.HostID,
-			InnerIP:  host.InnerIP,
-			Mac:      host.Mac,
-			OSType:   host.OSType,
+			TenantID:      host.TenantID,
+			NetworkAreaID: host.NetworkAreaID,
+			BizID:         host.BizID,
+			HostID:        host.HostID,
+			InnerIP:       host.InnerIP,
+			Mac:           host.Mac,
+			OSType:        host.OSType,
 		}
 
 		if data[idx].TenantID != tenantID {
@@ -103,13 +103,13 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
 	data := make([]*types.Host, len(hosts))
 	for idx, host := range hosts {
 		data[idx] = &types.Host{
-			TenantID: host.TenantID,
-			CloudID:  host.CloudID,
-			BizID:    host.BizID,
-			HostID:   host.HostID,
-			InnerIP:  host.InnerIP,
-			Mac:      host.Mac,
-			OSType:   host.OSType,
+			TenantID:      host.TenantID,
+			NetworkAreaID: host.NetworkAreaID,
+			BizID:         host.BizID,
+			HostID:        host.HostID,
+			InnerIP:       host.InnerIP,
+			Mac:           host.Mac,
+			OSType:        host.OSType,
 		}
 	}
 

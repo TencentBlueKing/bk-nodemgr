@@ -25,13 +25,13 @@ func TableName(tenantID string) string {
 
 // Host represents a host.
 type Host struct {
-	TenantID string `json:"tenant_id" bson:"tenant_id"`
-	CloudID  int64  `json:"cloud_id" bson:"cloud_id"`
-	BizID    int64  `json:"biz_id" bson:"biz_id"`
-	HostID   int64  `json:"host_id" bson:"host_id"`
-	InnerIP  string `json:"inner_ip" bson:"inner_ip"`
-	Mac      string `json:"mac" bson:"mac"`
-	OSType   string `json:"os_type" bson:"os_type"`
+	TenantID      string `json:"tenant_id" bson:"tenant_id"`
+	NetworkAreaID int64  `json:"network_area_id" bson:"network_area_id"`
+	BizID         int64  `json:"biz_id" bson:"biz_id"`
+	HostID        int64  `json:"host_id" bson:"host_id"`
+	InnerIP       string `json:"inner_ip" bson:"inner_ip"`
+	Mac           string `json:"mac" bson:"mac"`
+	OSType        string `json:"os_type" bson:"os_type"`
 }
 
 // UniqueKey unique key of the table.

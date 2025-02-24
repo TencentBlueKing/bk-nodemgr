@@ -1,0 +1,702 @@
+syntax = "proto3";
+package application;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application";
+
+// Page describes the generaic conditions when paging query.
+message Page {
+  uint32 offset = 1;
+  uint32 limit = 2;
+}
+
+// Business describes the business informations.
+message Business {
+  string tenant_id = 1;
+  int32 bk_biz_id = 2;
+  string bk_biz_name = 3;
+}
+
+// NetworkArea describes the network area informations.
+message NetworkArea {
+  string tenant_id = 1;
+  int32 bk_network_area_id = 2;
+  string bk_network_area_name = 3;
+  int32 bk_cloud_vendor = 4;
+}
+
+// Link describes the network unit link points target.
+message Link {
+  string tenant_id = 1;
+  int32 ap_id = 2;
+}
+
+// AccessPoint describes the access point informations.
+message AccessPoint {
+  string tenant_id = 1;
+  int32 ap_id = 2;
+  string ap_name = 3;
+
+  message Endpoints {
+    repeated string cluster = 1;
+    repeated string file = 2;
+    repeated string data = 3;
+  }
+  Endpoints endpoints = 4;
+}
+
+// NetworkUnit describes the network unit informations.
+message NetworkUnit {
+  int32 bk_network_unit_id = 1;
+  string bk_network_unit_name = 2;
+  repeated AccessPoint access_points = 3;
+
+  message Links {
+    Link cluster = 1;
+    Link file = 2;
+    Link data = 3;
+  }
+  Links links = 4;
+}
+
+// HostState describes the host state informations. Usually contains
+// agent-related things.
+message HostState {
+  string status = 1;
+  string version = 2;
+  string bk_agent_id = 3;
+}
+
+// HostInfo describes the host info informations. Usually contains static
+// configs.
+message HostInfo {
+  int32 bk_host_id = 1;
+  string bk_host_name = 2;
+  int32 bk_biz_id = 3;
+  string bk_biz_name = 4;
+  int32 bk_set_id = 5;
+  string bk_set_name = 6;
+  int32 bk_module_id = 7;
+  string bk_module_name = 8;
+  int32 bk_network_area_id = 9;
+  string bk_network_area_name = 10;
+  int32 bk_network_unit_id = 11;
+  string bk_network_unit_name = 12;
+  int32 bk_operate_dept_id = 13;
+  string bk_operate_dept_name = 14;
+  string bk_host_innerip = 15;
+  string bk_host_innerip_v6 = 16;
+  string bk_host_outerip = 17;
+  string bk_host_outerip_v6 = 18;
+  string login_ip = 19;
+  uint32 login_port = 20;
+  int32 bk_os_type = 21;
+}
+
+// Host describes the host informations.
+message Host {
+  HostState state = 1;
+  HostInfo info = 2;
+  uint64 create_at = 3;
+  uint64 updated_at = 4;
+}
+
+// TopoBusinessListReq describes the HTTP request body when list business in
+// topo service.
+message TopoBusinessListReq { Page page = 1; }
+
+// TopoBusinessListResp describes the HTTP response body when list business in
+// topo service.
+message TopoBusinessListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated Business items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkAreaListReq describes the HTTP request body when list network-area
+// in topo service.
+message TopoNetworkAreaListReq {
+  Page page = 1;
+
+  message Conditions {
+    repeated int32 bk_network_area_id = 1;
+    repeated string bk_network_area_name = 2;
+    repeated int32 bk_cloud_vendor = 3;
+  }
+  Conditions conditions = 2;
+}
+
+// TopoNetworkAreaListResp describes the HTTP response body when list
+// network-area in topo service.
+message TopoNetworkAreaListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated NetworkArea items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+// in topo service.
+message TopoNetworkAreaGetReq {}
+
+// TopoNetworkAreaGetResp describe the HTTP response body when get network-area
+// in topo service.
+message TopoNetworkAreaGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  NetworkArea data = 5;
+}
+
+// TopoNetworkAreaCreateReq describes the HTTP request body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateReq {
+  string bk_network_area_name = 1;
+  int32 bk_cloud_vendor = 2;
+}
+
+// TopoNetworkAreaCreateResp describes the HTTP response body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkAreaUpdateReq describes the HTTP request body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateReq {
+  string bk_network_area_name = 1;
+  int32 bk_cloud_vendor = 2;
+}
+
+// TopoNetworkAreaUpdateResp describes the HTTP response body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkAreaDeleteReq describes the HTTP request body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteReq {}
+
+// TopoNetworkAreaDeleteResp describes the HTTP response body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+// in topo service.
+message TopoNetworkUnitListReq { Page page = 1; }
+
+// TopoNetworkUnitListResp describes the HTTP response body when list
+// network-unit in topo service.
+message TopoNetworkUnitListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated NetworkUnit items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetReq {}
+
+// TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  NetworkUnit data = 5;
+}
+
+// TopoNetworkUnitCreateReq describes the HTTP request body when create
+// network-unit in topo service.
+message TopoNetworkUnitCreateReq {
+  string bk_network_unit_name = 1;
+  repeated AccessPoint access_points = 2;
+
+  message Links {
+    Link cluster = 1;
+    Link file = 2;
+    Link data = 3;
+  }
+  Links links = 3;
+}
+
+// TopoNetworkUnitCreateResp describes the HTTP response body when create
+// network unit in topo service.
+message TopoNetworkUnitCreateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitUpdateReq describes the HTTP request body when update
+// network-unit in topo service.
+message TopoNetworkUnitUpdateReq {
+  string bk_network_unit_name = 1;
+  repeated AccessPoint access_points = 2;
+
+  message Links {
+    Link cluster = 1;
+    Link file = 2;
+    Link data = 3;
+  }
+  Links links = 3;
+}
+
+// TopoNetworkUnitUpdateResp describes the HTTP response body when update
+// network unit in topo service.
+message TopoNetworkUnitUpdateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitDeleteReq describes the HTTP request body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteReq {}
+
+// TopoNetworkUnitDeleteResp describes the HTTP response body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoHostListReq describes the HTTP request body when list host in topo
+// service.
+message TopoHostListReq {
+  Page page = 1;
+
+  message Conditions {
+    repeated string status = 1;
+    repeated string version = 2;
+    repeated string bk_agent_id = 3;
+    repeated int32 bk_host_id = 4;
+    repeated string bk_host_name = 5;
+    repeated int32 bk_biz_id = 6;
+    repeated string bk_biz_name = 7;
+    repeated int32 bk_set_id = 8;
+    repeated string bk_set_name = 9;
+    repeated int32 bk_module_id = 10;
+    repeated string bk_module_name = 11;
+    repeated int32 bk_network_area_id = 12;
+    repeated string bk_network_area_name = 13;
+    repeated int32 bk_network_unit_id = 14;
+    repeated string bk_network_unit_name = 15;
+    repeated int32 bk_operate_dept_id = 16;
+    repeated string bk_operate_dept_name = 17;
+    repeated string bk_host_innerip = 18;
+    repeated string bk_host_innerip_v6 = 19;
+    repeated string bk_host_outerip = 20;
+    repeated string bk_host_outerip_v6 = 21;
+    repeated string login_ip = 22;
+    repeated uint32 login_port = 23;
+    repeated int32 bk_os_type = 24;
+  }
+  Conditions conditions = 2;
+}
+
+// WorkflowHostParameter describes the host action parameters in workflows
+// service. Such as installing, upgrading.
+message WorkflowHostParameter {
+  int32 bk_host_id = 1;
+
+  message Topo {
+    int32 bk_biz_id = 1;
+    int32 bk_network_area_id = 2;
+    int32 bk_network_unit_id = 3;
+  }
+  Topo topo = 2;
+
+  message Attributes {
+    string bk_host_innerip = 1;
+    string bk_host_innerip_v6 = 2;
+    string bk_host_outerip = 3;
+    string bk_host_outerip_v6 = 4;
+    string login_ip = 5;
+    uint32 login_port = 6;
+    string login_password = 7;
+  }
+  Attributes attributes = 3;
+
+  message Config { string version = 1; }
+  Config config = 4;
+}
+
+// WorkflowAgentInstallReq describes the HTTP request body when install agent in
+// workflow service.
+message WorkflowAgentInstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowAgentInstallResp describes the HTTP response body when install agent
+// in workflow service.
+message WorkflowAgentInstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentUpgradeReq describes the HTTP request body when upgrade agent in
+// workflow service.
+message WorkflowAgentUpgradeReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentUpgradeResp describes the HTTP response body when upgrade agent
+// in workflow service.
+message WorkflowAgentUpgradeResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentReconfigReq describes the HTTP request body when reconfig agent
+// in workflow service.
+message WorkflowAgentReconfigReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentReconfigResp describes the HTTP response body when reconfig
+// agent in workflow service.
+message WorkflowAgentReconfigResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentRestartReq describes the HTTP request body when restart agent in
+// workflow service.
+message WorkflowAgentRestartReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentRestartResp describes the HTTP response body when restart agent
+// in workflow service.
+message WorkflowAgentRestartResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentUninstallReq describes the HTTP request body when uninstall
+// agent in workflow service.
+message WorkflowAgentUninstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowAgentUninstallResp describes the HTTP response body when uninstall
+// agent in workflow service.
+message WorkflowAgentUninstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyInstallReq describes the HTTP request body when install proxy in
+// workflow service.
+message WorkflowProxyInstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowProxyInstallResp describes the HTTP response body when install proxy
+// in workflow service.
+message WorkflowProxyInstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyUpgradeReq describes the HTTP request body when upgrade proxy in
+// workflow service.
+message WorkflowProxyUpgradeReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyUpgradeResp describes the HTTP response body when upgrade proxy
+// in workflow service.
+message WorkflowProxyUpgradeResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyReconfigReq describes the HTTP request body when reconfig proxy
+// in workflow service.
+message WorkflowProxyReconfigReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyReconfigResp describes the HTTP response body when reconfig
+// proxy in workflow service.
+message WorkflowProxyReconfigResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyRestartReq describes the HTTP request body when restart proxy in
+// workflow service.
+message WorkflowProxyRestartReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyRestartResp describes the HTTP response body when restart proxy
+// in workflow service.
+message WorkflowProxyRestartResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyUninstallReq describes the HTTP request body when uninstall
+// proxy in workflow service.
+message WorkflowProxyUninstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowProxyUninstallResp describes the HTTP response body when uninstall
+// proxy in workflow service.
+message WorkflowProxyUninstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// OperationInstance describes the operation instance informations. One
+// operation may contains multi instances.
+message OperationInstance {
+  string instance_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+
+  message Message {
+    uint64 timestamp = 1;
+    string text = 2;
+  }
+
+  message Action {
+    uint64 create_at = 1;
+    uint64 started_at = 2;
+    uint64 ended_at = 3;
+    uint64 stopped_at = 4;
+    string status = 5;
+    repeated Message message = 6;
+  }
+  repeated Action action = 6;
+}
+
+// OperationBrief describes the operation informations in brief.
+message OperationBrief {
+  string operation_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+  int32 bk_host_id = 6;
+  int32 bk_host_innerip = 7;
+  int32 instance_count = 8;
+}
+
+// OperationDetail describes the operation informations in detail.
+message OperationDetail {
+  string operation_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+  int32 bk_host_id = 6;
+  int32 bk_host_innerip = 7;
+  int32 instance_count = 8;
+  repeated OperationInstance instances = 9;
+}
+
+// WorkflowBrief describes the workflow informations in brief.
+message WorkflowBrief {
+  string workflow_id = 1;
+  string status = 2;
+  string operator = 3;
+  int32 type = 4;
+  uint64 create_at = 5;
+  uint64 started_at = 6;
+  uint64 ended_at = 7;
+  uint64 stopped_at = 8;
+  int32 operation_count = 9;
+}
+
+// WorkflowDetail describes the workflow informations in detail.
+message WorkflowDetail {
+  string workflow_id = 1;
+  string status = 2;
+  string operator = 3;
+  int32 type = 4;
+  uint64 create_at = 5;
+  uint64 started_at = 6;
+  uint64 ended_at = 7;
+  uint64 stopped_at = 8;
+  int32 operation_count = 9;
+  repeated OperationBrief operations = 10;
+}
+
+// WorkflowListReq describes the HTTP request body when list workflows in
+// workflow service.
+message WorkflowListReq {
+  Page page = 1;
+
+  message Conditions {}
+  Conditions conditions = 2;
+}
+
+// WorkflowListResp describes the HTTP response body when list workflows in
+// workflow service.
+message WorkflowListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated WorkflowBrief items = 2;
+  }
+  Data data = 5;
+}
+
+// WorkflowGetReq describes the HTTP request body when get workflow in workflow
+// service.
+message WorkflowGetReq {}
+
+// WorkflowGetResp describes the HTTP response body when get workflow in
+// workflow service.
+message WorkflowGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  WorkflowDetail data = 5;
+}
+
+// WorkflowOperationGetReq describes the HTTP request body when get operation in
+// workflow service.
+message WorkflowOperationGetReq {}
+
+// WorkflowOperationGetResp describes the HTTP response body when get operation
+// in workflow service.
+message WorkflowOperationGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  OperationDetail Data = 5;
+}

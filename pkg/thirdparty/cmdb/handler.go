@@ -19,8 +19,8 @@ type Handler interface {
 	// SearchBusiness search business
 	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
 
-	// SearchNetArea search net area
-	SearchNetArea(ctx context.Context, page types.Page) ([]*types.NetArea, error)
+	// SearchNetworkArea search network area
+	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
 }
 
 type handler struct {
@@ -62,13 +62,13 @@ func (h *handler) ListBizHosts(ctx context.Context, BizID int64, page types.Page
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
 		hosts[idx] = &types.Host{
-			TenantID: tenantID,
-			CloudID:  host.BKCloudID,
-			BizID:    req.BKBizID,
-			HostID:   host.BKHostID,
-			InnerIP:  host.BKHostInnerIPV4,
-			Mac:      host.BKMac,
-			OSType:   host.BKOsType,
+			TenantID:      tenantID,
+			NetworkAreaID: host.BKCloudID,
+			BizID:         req.BKBizID,
+			HostID:        host.BKHostID,
+			InnerIP:       host.BKHostInnerIPV4,
+			Mac:           host.BKMac,
+			OSType:        host.BKOsType,
 		}
 	}
 
@@ -110,8 +110,8 @@ func (h *handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types
 	return bizs, nil
 }
 
-// SearchNetArea search net area
-func (h *handler) SearchNetArea(ctx context.Context, page types.Page) ([]*types.NetArea, error) {
+// SearchNetworkArea search network area
+func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -131,12 +131,12 @@ func (h *handler) SearchNetArea(ctx context.Context, page types.Page) ([]*types.
 		return nil, err
 	}
 
-	netAreas := make([]*types.NetArea, len(resp.Info))
+	netAreas := make([]*types.NetworkArea, len(resp.Info))
 	for idx, netArea := range resp.Info {
-		netAreas[idx] = &types.NetArea{
-			TenantID:  tenantID,
-			CloudID:   netArea.BkCloudID,
-			CloudName: netArea.BkCloudName,
+		netAreas[idx] = &types.NetworkArea{
+			TenantID: tenantID,
+			ID:       netArea.BkCloudID,
+			Name:     netArea.BkCloudName,
 		}
 	}
 
