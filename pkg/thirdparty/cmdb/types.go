@@ -3,8 +3,6 @@ package cmdb
 import (
 	"fmt"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
 // Page describe the page data in request.
@@ -258,9 +256,12 @@ type BaseBroker[T any] struct {
 	Data T `json:"data"`
 }
 
+// CodeOK define the success code.
+const CodeOK = 0
+
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
-	if resp.Result != true || resp.Code != errf.OK {
+	if resp.Result != true || resp.Code != CodeOK {
 		return fmt.Errorf("result(%v), code(%d) , msg(%s) ", resp.Result, resp.Code, resp.Message)
 	}
 

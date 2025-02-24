@@ -8,39 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest ...
-package rest
+// Package runtime ...
+package runtime
 
-import (
-	"net/http"
+// System is the unique identifier of the system.
+const System = "bk-nodemgr"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/gin-gonic/gin"
-)
-
-// MiddlewareContext ...
-func MiddlewareContext() gin.HandlerFunc {
-	return func(gCtx *gin.Context) {
-		rCtx := InitRestContext(gCtx)
-
-		if gCtx.Request.Method == http.MethodOptions {
-			gCtx.Next()
-			return
-		}
-
-		switch {
-		case initContextWithJWT(rCtx):
-		default:
-			rCtx.AbortWithJSONError(errf.Unauthorized, nil)
-			return
-		}
-
-		gCtx.Next()
-	}
-}
-
-// initContextWithJWT init context with jwt
-func initContextWithJWT(_ *Context) bool {
-	// TODO: implement jwt
-	return true
-}
+// SystemName is the system name.
+const SystemName = "bk-nodemgr"

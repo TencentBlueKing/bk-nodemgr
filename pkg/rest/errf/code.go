@@ -11,52 +11,100 @@
 // Package errf provides blueking error code.
 package errf
 
+import "net/http"
+
 // NOTE: 错误码规则
 // 38号段 + 5位错误码共7位
 // 注意：
 // - 特殊错误码, 3830403（未授权）, 内部保留
 
-// common error code.
+// Code is the error code.
+type Code int
+
+// retain status code.
 const (
 	// OK means success.
-	OK int = 0
+	OK Code = 0
+
 	// PermissionDenied means the user has no permission.
-	PermissionDenied int = 3830403
+	PermissionDenied Code = 3830403
+
+	// MaxErrCode this code is used to check if the error code is out of range.
+	MaxErrCode Code = 3900000
 )
 
-// SysAlarmFlag is the system alarm flag.
-const SysAlarmFlag = "SysAlarmFlag"
-
 // Note:
-// this scope's error code ranges at [4000000, 4089999], and works for all the scenario
+// this scope's error code ranges at [3800000, 3899999], and works for all the scenario
 // except sidecar related scenario.
 const (
 	// Unknown is unknown error, it is always used when an
 	// error is wrapped, but the error code is not parsed.
-	Unknown int = 3800000
+	Unknown Code = 3800000
+
 	// InvalidParameter means the request parameter is invalid.
-	InvalidParameter int = 3800001
+	InvalidParameter Code = 3800001
+
 	// TooManyRequest means the incoming request have already exceeded the max limit.
 	// and the incoming request is rejected.
-	TooManyRequest int = 3800002
-	// RecordNotFound means resource not exist.
-	RecordNotFound int = 3800003
-	// DecodeRequestFailed means decode the request body failed.
-	DecodeRequestFailed int = 3800004
-	// UnHealthy means service health check failed, current service is not healthy.
-	UnHealthy int = 3800005
-	// Aborted means the request is aborted because of some unexpected exceptions.
-	Aborted int = 3800006
-	// DoAuthorizeFailed try to do user's operate authorize, but got an error,
-	// so we do not know if the user has the permission or not.
-	DoAuthorizeFailed int = 3800007
-	// PartialFailed means batch operation is partially failed.
-	PartialFailed int = 3800008
-	// DBExecCmdFailed means exec database command failed.
-	DBExecCmdFailed int = 3800009
-	// InvalidCache means cache is invalid.
-	InvalidCache int = 3800010
+	TooManyRequest Code = 3800002
 
-	// MaxErrCode this code is used to check if the error code is out of range.
-	MaxErrCode int = 3900000
+	// RecordNotFound means resource not exist.
+	RecordNotFound Code = 3800003
+
+	// DecodeRequestFailed means decode the request body failed.
+	DecodeRequestFailed Code = 3800004
+
+	// UnHealthy means service health check failed, current service is not healthy.
+	UnHealthy Code = 3800005
+
+	// Aborted means the request is aborted because of some unexpected exceptions.
+	Aborted Code = 3800006
+
+	// Unauthorized try to do user's operate authorize, but got an error,
+	// so we do not know if the user has the permission or not.
+	Unauthorized Code = 3800007
+
+	// PartialFailed means batch operation is partially failed.
+	PartialFailed Code = 3800008
+
+	// DBExecCmdFailed means exec database command failed.
+	DBExecCmdFailed Code = 3800009
+
+	// InvalidCache means cache is invalid.
+	InvalidCache Code = 3800010
+
+	// InvalidFileResource means file resource is invalid.
+	InvalidFileResource Code = 3800011
 )
+
+var (
+	codeHttpStatus = map[Code]int{
+		// retain status code.
+		OK:               http.StatusOK,
+		PermissionDenied: http.StatusForbidden,
+		MaxErrCode:       http.StatusBadGateway,
+
+		// custom status code.
+		InvalidParameter:    http.StatusBadRequest,
+		TooManyRequest:      http.StatusTooManyRequests,
+		RecordNotFound:      http.StatusNotFound,
+		DecodeRequestFailed: http.StatusBadRequest,
+		UnHealthy:           http.StatusServiceUnavailable,
+		Aborted:             http.StatusBadGateway,
+		Unauthorized:        http.StatusUnauthorized,
+		PartialFailed:       http.StatusBadGateway,
+		DBExecCmdFailed:     http.StatusBadGateway,
+		InvalidCache:        http.StatusBadGateway,
+		InvalidFileResource: http.StatusBadGateway,
+	}
+)
+
+// HttpStatusCode returns the http status code.
+func (code Code) HttpStatusCode() int {
+	httpStatus, ok := codeHttpStatus[code]
+	if !ok {
+		return http.StatusInternalServerError
+	}
+
+	return httpStatus
+}

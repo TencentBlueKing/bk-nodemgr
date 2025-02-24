@@ -20,16 +20,43 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/gin-gonic/gin"
 )
 
 // Response standard response.
 type Response struct {
-	Result    bool        `json:"result"`
-	Code      int         `json:"code"`
-	Message   string      `json:"message"`
-	RequestID string      `json:"request_id"`
-	Data      interface{} `json:"data"`
+	Code       errf.Code   `json:"code"`
+	Message    string      `json:"message,omitempty"`
+	RequestID  string      `json:"request_id"`
+	Data       interface{} `json:"data,omitempty"`
+	Error      Error       `json:"error,omitempty"`
+	Permission Permission  `json:"permission"`
+}
+
+// Error defines the error struct.
+type Error struct {
+	System  string   `json:"system"`
+	Message string   `json:"message"`
+	Details []Detail `json:"details,omitempty"`
+}
+
+// Detail defines the error detail.
+type Detail struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// Permission defines the permission struct.
+type Permission struct {
+	System     string   `json:"system"`
+	SystemName string   `json:"system_name"`
+	Actions    []Action `json:"actions"`
+}
+
+// Action defines the action struct.
+type Action struct {
+	// TODO: 支持 IAM 权限
 }
 
 // HandlerFunc defines the router handler.
@@ -38,34 +65,53 @@ type HandlerFunc func(*Context) (interface{}, error)
 // StreamHandlerFunc defines the stream handler.
 type StreamHandlerFunc func(*Context)
 
-// AbortWithBadRequestError provides handler process failing response.
-func (c *Context) AbortWithBadRequestError(err error) {
-	result := Response{Code: errf.InvalidParameter, Message: err.Error(), RequestID: c.RequestID}
-	c.gCtx.AbortWithStatusJSON(http.StatusBadRequest, result)
-}
-
-// AbortWithUnauthorizedError provides auth check failing response.
-func (c *Context) AbortWithUnauthorizedError(err error) {
-	result := Response{Code: errf.DoAuthorizeFailed, Message: err.Error(), RequestID: c.RequestID}
-	c.gCtx.AbortWithStatusJSON(http.StatusUnauthorized, result)
-}
-
-// AbortWithWithForbiddenError provides permission denied response.
-func (c *Context) AbortWithWithForbiddenError(err error) {
-	result := Response{Code: errf.PermissionDenied, Message: err.Error(), RequestID: c.RequestID}
-	c.gCtx.AbortWithStatusJSON(http.StatusForbidden, result)
-}
-
 // AbortWithJSONError provides handler process failing response.
-func (c *Context) AbortWithJSONError(err error) {
-	// TODO: support error code
-	result := Response{Code: errf.Aborted, Result: false, Message: err.Error(), RequestID: c.RequestID}
-	c.gCtx.AbortWithStatusJSON(http.StatusOK, result)
+func (c *Context) AbortWithJSONError(code errf.Code, errs []error) {
+	result := Response{
+		Code: code,
+		Error: Error{
+			System:  runtime.System,
+			Message: errf.CodeErrMap(code).Error(),
+			Details: nil,
+		},
+		RequestID: c.RequestID,
+	}
+
+	for _, unwrapErr := range errs {
+		result.Error.Details = append(result.Error.Details, Detail{
+			Message: unwrapErr.Error(),
+		})
+	}
+
+	c.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
+}
+
+// AbortWithJSONPermDenied provides handler process permission denied response.
+func (c *Context) AbortWithJSONPermDenied(code errf.Code, errs []error) {
+	result := Response{
+		Code: code,
+		Permission: Permission{
+			System:     runtime.System,
+			SystemName: runtime.SystemName,
+			Actions:    nil,
+		},
+		RequestID: c.RequestID,
+	}
+
+	// TODO: 参考 errf.ErrUnwrap 的写法实现 permission 的解析。
+
+	c.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
 }
 
 // APIResponse provides handler process successfully and make a normal response.
 func (c *Context) APIResponse(data interface{}) {
-	result := Response{Code: 0, Result: true, Message: "OK", RequestID: c.RequestID, Data: data}
+	result := Response{
+		Code:      0,
+		Message:   "OK",
+		RequestID: c.RequestID,
+		Data:      data,
+	}
+
 	c.gCtx.JSON(http.StatusOK, result)
 }
 
@@ -94,12 +140,12 @@ func InitRestContext(gCtx *gin.Context) *Context {
 func GetRestContext(c *gin.Context) (*Context, error) {
 	ctxObj, ok := c.Get(restContextKey)
 	if !ok {
-		return nil, errf.ErrorUnauthorized
+		return nil, errf.CodeErrMap(errf.Unauthorized)
 	}
 
 	restContext, ok := ctxObj.(*Context)
 	if !ok {
-		return nil, errf.ErrorUnauthorized
+		return nil, errf.CodeErrMap(errf.Unauthorized)
 	}
 
 	return restContext, nil
@@ -110,36 +156,21 @@ func RestHandlerFunc(handler HandlerFunc) gin.HandlerFunc { // nolint
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithUnauthorizedError(err)
+			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}
 		result, err := handler(rCtx)
-		if err != nil {
-			rCtx.AbortWithJSONError(err)
 
-			return
+		code, unwrapErrs := errf.ErrUnwrap(err)
+		switch code {
+		case errf.OK:
+			rCtx.APIResponse(result)
+		case errf.PermissionDenied:
+			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
+		default:
+			rCtx.AbortWithJSONError(code, unwrapErrs)
 		}
-
-		rCtx.APIResponse(result)
-	}
-}
-
-// STDRestHandlerFunc std rest handler.
-func STDRestHandlerFunc(handler HandlerFunc) gin.HandlerFunc {
-	return func(gCtx *gin.Context) {
-		rCtx, err := GetRestContext(gCtx)
-		if err != nil {
-			InitRestContext(gCtx).AbortWithUnauthorizedError(err)
-			return
-		}
-		result, err := handler(rCtx)
-		if err != nil {
-			rCtx.AbortWithBadRequestError(err)
-			return
-		}
-
-		rCtx.APIResponse(result)
 	}
 }
 
@@ -148,7 +179,7 @@ func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithUnauthorizedError(err)
+			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}
@@ -185,33 +216,37 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithUnauthorizedError(err)
+			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}
 
 		fileResp, err := handler(rCtx)
-		if err != nil {
-			rCtx.AbortWithJSONError(err)
-			return
+		code, unwrapErrs := errf.ErrUnwrap(err)
+		switch code {
+		case errf.OK:
+			if fileResp == nil || fileResp.Data == nil {
+				rCtx.AbortWithJSONError(errf.InvalidFileResource, nil)
+
+				return
+			}
+
+			if fileResp.ContentType == "" {
+				fileResp.ContentType = getDefaultContentType(fileResp.FilePath)
+			}
+
+			if fileResp.FileName == "" {
+				fileResp.FileName = filepath.Base(fileResp.FilePath)
+			}
+
+			setFileHeaders(gCtx, fileResp)
+
+			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
+		case errf.PermissionDenied:
+			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
+		default:
+			rCtx.AbortWithJSONError(code, unwrapErrs)
 		}
-
-		if fileResp == nil || fileResp.Data == nil {
-			rCtx.AbortWithJSONError(fmt.Errorf("invalid file response"))
-			return
-		}
-
-		if fileResp.ContentType == "" {
-			fileResp.ContentType = getDefaultContentType(fileResp.FilePath)
-		}
-
-		if fileResp.FileName == "" {
-			fileResp.FileName = filepath.Base(fileResp.FilePath)
-		}
-
-		setFileHeaders(gCtx, fileResp)
-
-		gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
 	}
 }
 

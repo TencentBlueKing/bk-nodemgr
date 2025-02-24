@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
@@ -22,11 +23,11 @@ import (
 func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
 	req := new(RetryOperationReq)
 	if err := ctx.BindJSON(req); err != nil {
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	err := h.manager.RetryOperation(req.OperationID, &operengine.OperInstParam{
