@@ -1,5 +1,9 @@
 name: Auto Assign Reviewers to Master PRs
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   pull_request: # 触发工作流的事件
     branches:
