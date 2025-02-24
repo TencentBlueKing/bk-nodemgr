@@ -1,2 +1,13 @@
 platform:
   name: bk-nodeman
+topoManager:
+  region:
+    title: Controlled Area
+  topo:
+    title: Topology Map
+    toobar:
+      minimap: Map
+      center: Back To Center
+      originalSize: Original Size
+  record:
+    title: Operation Record
