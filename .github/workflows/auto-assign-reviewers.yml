@@ -1,0 +1,58 @@
+name: Auto Assign Reviewers to Master PRs
+
+on:
+  pull_request: # 触发工作流的事件
+    branches:
+      - master # 仅在目标分支是 master 时触发
+    types: 
+      - opened # 当 PR 被创建时触发
+      - reopened # 当 PR 被重新打开时触发
+      - ready_for_review # 当草稿 PR 转换为可审查时触发
+
+jobs:
+  assign-reviewers:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Assign reviewers to the PR
+      - name: Assign reviewers
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const reviewers = ["zouxingyuks", "Lwxiang"];
+            const prAuthor = context.payload.pull_request.user.login; // 获取 PR 作者
+            const prNumber = context.payload.pull_request.number;
+
+            // 过滤掉 PR 作者
+            const filteredReviewers = reviewers.filter(reviewer => reviewer !== prAuthor);
+
+            if (filteredReviewers.length === 0) {
+              console.log("No reviewers available after filtering out the PR author.");
+            } else {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                reviewers: filteredReviewers,
+              });
+              console.log(`Reviewers assigned: ${filteredReviewers.join(", ")}`);
+            }
+      # Set the PR author as an Assignee
+      - name: Assign PR author as Assignee
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login; // 获取 PR 作者
+            const prNumber = context.payload.pull_request.number;
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber, // PR 号也是 Issue 号
+              assignees: [prAuthor],
+            });
+            console.log(`PR author (${prAuthor}) has been assigned.`);
