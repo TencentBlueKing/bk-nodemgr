@@ -14,6 +14,7 @@
     "sizecheck": "npx vite-bundle-visualizer"
   },
   "dependencies": {
+    "@antv/g6": "^5.0.43",
     "@blueking/platform-config": "^1.0.5",
     "@blueking/table": "0.0.1-beta.35",
     "@vueuse/core": "^12.7.0",

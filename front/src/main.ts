@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import type { UserModule } from './types.ts';
 
+import '@/fonts/iconcool';
 import '@blueking/table/vue3/vue3.css';
 import '@unocss/reset/tailwind.css';
 import './styles/main.css';
