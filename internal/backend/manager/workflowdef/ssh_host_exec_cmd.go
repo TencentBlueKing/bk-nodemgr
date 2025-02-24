@@ -185,7 +185,6 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 	defer session.Close()
 
 	s.logger.Infof("successfully connected to host, addr(%s)", param.getAddr())
-
 	ctx.Data.Log(fmt.Sprintf("start to exec cmd on host, addr(%s)", param.getAddr()))
 
 	cmds, err := param.getCmds()
