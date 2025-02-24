@@ -30,8 +30,8 @@ type Response struct {
 	Message    string      `json:"message,omitempty"`
 	RequestID  string      `json:"request_id"`
 	Data       interface{} `json:"data,omitempty"`
-	Error      Error       `json:"error,omitempty"`
-	Permission Permission  `json:"permission"`
+	Error      *Error      `json:"error,omitempty"`
+	Permission *Permission `json:"permission,omitempty"`
 }
 
 // Error defines the error struct.
@@ -69,7 +69,7 @@ type StreamHandlerFunc func(*Context)
 func (c *Context) AbortWithJSONError(code errf.Code, errs []error) {
 	result := Response{
 		Code: code,
-		Error: Error{
+		Error: &Error{
 			System:  runtime.System,
 			Message: errf.CodeErrMap(code).Error(),
 			Details: nil,
@@ -90,7 +90,7 @@ func (c *Context) AbortWithJSONError(code errf.Code, errs []error) {
 func (c *Context) AbortWithJSONPermDenied(code errf.Code, errs []error) {
 	result := Response{
 		Code: code,
-		Permission: Permission{
+		Permission: &Permission{
 			System:     runtime.System,
 			SystemName: runtime.SystemName,
 			Actions:    nil,
@@ -106,10 +106,12 @@ func (c *Context) AbortWithJSONPermDenied(code errf.Code, errs []error) {
 // APIResponse provides handler process successfully and make a normal response.
 func (c *Context) APIResponse(data interface{}) {
 	result := Response{
-		Code:      0,
-		Message:   "OK",
-		RequestID: c.RequestID,
-		Data:      data,
+		Code:       0,
+		Message:    "OK",
+		RequestID:  c.RequestID,
+		Data:       data,
+		Error:      nil,
+		Permission: nil,
 	}
 
 	c.gCtx.JSON(http.StatusOK, result)
