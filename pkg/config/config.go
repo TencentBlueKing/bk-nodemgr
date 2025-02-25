@@ -47,6 +47,18 @@ const (
 	defaultApplicationLogMaxSizeMB  = 200
 	defaultApplicationLogLevel      = "INFO"
 	defaultEncryptKey               = "1234567890123456"
+
+	// file service config default values.
+	defaultFileRunMode      = RunModeRelease
+	defaultFileTenantMode   = tenant.ModeSingle
+	defaultFileHTTPBindIP   = "127.0.0.1"
+	defaultFileHTTPPort     = 6000
+	defaultFileAdminBindIP  = "127.0.0.1"
+	defaultFileAdminPort    = 6001
+	defaultFileLogDir       = "/bk-nodeman/log/"
+	defaultFileLogMaxNum    = 10
+	defaultFileLogMaxSizeMB = 200
+	defaultFileLogLevel     = "INFO"
 )
 
 // Etcd the config of etcd.
@@ -363,4 +375,73 @@ func EnvMustGet(key string) string {
 	}
 
 	panic(fmt.Sprintf("required environment variable %s unset", key))
+}
+
+// NewFileService generates a new FileService with default values.
+func NewFileService() *FileService {
+	return &FileService{
+		RunMode:    defaultFileRunMode,
+		TenantMode: defaultFileTenantMode,
+		HTTPServer: HTTPServer{
+			BindIP: defaultFileHTTPBindIP,
+			Port:   defaultFileHTTPPort,
+		},
+		AdminServer: AdminServer{
+			BindIP: defaultFileAdminBindIP,
+			Port:   defaultFileAdminPort,
+		},
+		Log: Log{
+			Dir:       defaultFileLogDir,
+			MaxSizeMB: defaultFileLogMaxSizeMB,
+			MaxNum:    defaultFileLogMaxNum,
+			Level:     defaultFileLogLevel,
+		},
+	}
+}
+
+// FileService the config of file service.
+type FileService struct {
+	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
+	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of backend service"`
+	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of backend service"`
+	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of backend service"`
+	Log            Log            `yaml:"log" usage:"log config of backend service"`
+}
+
+// LoadFromFile loads config from file.
+func (b *FileService) LoadFromFile(path string) error {
+	configContent, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(configContent, b); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Validate validates the config.
+func (b *FileService) Validate() error {
+	if err := b.AgentFileGroup.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AgentFileGroup agent file group config.
+type AgentFileGroup struct {
+	FullPath string `yaml:"fullPath" usage:"full path of agent file group"`
+}
+
+// Validate validates the config.
+func (group *AgentFileGroup) Validate() error {
+	if group.FullPath == "" {
+		return fmt.Errorf("fullPath is empty")
+	}
+
+	return nil
 }

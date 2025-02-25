@@ -8,27 +8,37 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+// Package local support the realize of filex to control local LocalFile.
+package local
 
 import (
-	"github.com/gin-gonic/gin"
+	"sync"
+
+	"github.com/spf13/afero"
 )
 
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
+var readFS struct {
+	once sync.Once
+	fs   afero.Fs
 }
 
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
+func rFs() afero.Fs {
+	readFS.once.Do(func() {
+		readFS.fs = afero.NewOsFs()
+	})
+
+	return readFS.fs
 }
 
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
+var writeFS struct {
+	once sync.Once
+	fs   afero.Fs
+}
+
+func wFs() afero.Fs {
+	writeFS.once.Do(func() {
+		writeFS.fs = afero.NewOsFs()
+	})
+
+	return writeFS.fs
 }

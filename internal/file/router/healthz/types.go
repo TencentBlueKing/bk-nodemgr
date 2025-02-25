@@ -8,27 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+// Package healthz defines the types in healthz api handler.
+package healthz
 
-import (
-	"github.com/gin-gonic/gin"
-)
+// Response this is a response for healthz.
+type Response struct {
+	// define the result of whole health check.
+	OK bool `json:"ok"`
 
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
-}
-
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
-}
-
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
+	// detail reason of several services.
+	Manager string `json:"manager"`
 }

@@ -8,27 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+// Package options provides the various capabilities the service supports.
+package options
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
-}
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// Logger logger
+	Logger logger.Logger
 
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
-}
-
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
+	// AgentFileGroup agent file group.
+	AgentFileGroup iface.FileGroup
 }

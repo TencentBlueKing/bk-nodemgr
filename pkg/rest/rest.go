@@ -195,7 +195,7 @@ type FileHandlerFunc func(*Context) (*FileResponse, error)
 // FileResponse file response.
 type FileResponse struct {
 	// Data defines file data.
-	Data io.Reader
+	Data io.ReadCloser
 
 	// Size defines file size.
 	Size int64
@@ -243,6 +243,7 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 
 			setFileHeaders(gCtx, fileResp)
 
+			defer fileResp.Data.Close()
 			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
 		case errf.PermissionDenied:
 			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
