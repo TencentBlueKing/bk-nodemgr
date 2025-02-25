@@ -545,11 +545,11 @@
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_area_id": {
+        "bk_networkarea_id": {
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         }
