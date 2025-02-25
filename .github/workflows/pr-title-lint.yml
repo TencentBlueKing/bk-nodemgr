@@ -5,13 +5,14 @@ on:
     # 触发事件类型
     types: [ opened, edited, reopened, synchronize ]
 
+permissions:
+  contents: write
+  pull-requests: write
+  discussions: write
+
 jobs:
   check-pr-title:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      discussions: write
     steps:
       - uses: morrisoncole/pr-lint-action@v1.7.1
         with:
