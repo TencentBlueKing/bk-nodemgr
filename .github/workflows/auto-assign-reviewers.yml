@@ -1,13 +1,12 @@
 name: Auto Assign Reviewers to Master PRs
 
 permissions:
-  contents: read
+  checks: write
+  contents: write
   pull-requests: write
 
 on:
   pull_request: # 触发工作流的事件
-    branches:
-      - master # 仅在目标分支是 master 时触发
     types:
       - opened # 当 PR 被创建时触发
       - reopened # 当 PR 被重新打开时触发
@@ -50,7 +49,7 @@ jobs:
       - name: Assign PR author as Assignee
         uses: actions/github-script@v7
         with:
-          repo-token: "${{ secrets.PAT_TOKEN }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
             const prAuthor = context.payload.pull_request.user.login; // 获取 PR 作者
             const prNumber = context.payload.pull_request.number;
