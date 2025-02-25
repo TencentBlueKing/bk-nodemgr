@@ -8,6 +8,9 @@ on:
 jobs:
   check-pr-title:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: morrisoncole/pr-lint-action@v1.7.1
         with:
