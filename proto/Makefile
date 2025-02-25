@@ -6,12 +6,14 @@ ROOT_DIR = $(CURDIR)/..
 # application v3
 APPLICATION_V3_PROTO_DIR = $(CURDIR)/application/api/v3
 APPLICATION_V3_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/application/api/v3
+APPLICATION_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/application/api/v3
 APPLICATION_V3_PROTO_FILES = $(wildcard $(APPLICATION_V3_PROTO_DIR)/*.proto)
 APPLICATION_V3_GO_FILES = $(patsubst $(APPLICATION_V3_PROTO_DIR)/%.proto,$(APPLICATION_V3_GO_OUT_DIR)/%.pb.go,$(APPLICATION_V3_PROTO_FILES))
 
 # backend v3
 BACKEND_V3_PROTO_DIR = $(CURDIR)/backend/api/v3
 BACKEND_V3_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/backend/api/v3
+BACKEND_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/backend/api/v3
 BACKEND_V3_PROTO_FILES = $(wildcard $(BACKEND_V3_PROTO_DIR)/*.proto)
 BACKEND_V3_GO_FILES = $(patsubst $(BACKEND_V3_PROTO_DIR)/%.proto,$(BACKEND_V3_GO_OUT_DIR)/%.pb.go,$(BACKEND_V3_PROTO_FILES))
 
@@ -22,26 +24,26 @@ CD     = cd
 CP     = cp
 RM     = rm
 SH     = sh
-PROTOC = protoc -I.
+PROTOC = protoc -Ithirdparty/
 FORMAT = clang-format -i
 
 default: all
 pre:
-	$(MKDIR) $(APPLICATION_V3_GO_OUT_DIR)
-	$(MKDIR) $(BACKEND_V3_GO_OUT_DIR)
+	$(MKDIR) $(APPLICATION_V3_GO_OUT_DIR) $(APPLICATION_V3_SWAGGER_OUT_DIR)
+	$(MKDIR) $(BACKEND_V3_GO_OUT_DIR) $(BACKEND_V3_SWAGGER_OUT_DIR)
 
 	$(FORMAT) $(APPLICATION_V3_PROTO_FILES)
 	$(FORMAT) $(BACKEND_V3_PROTO_FILES)
 
 $(APPLICATION_V3_GO_OUT_DIR)/%.pb.go: $(APPLICATION_V3_PROTO_DIR)/%.proto
-	$(PROTOC) -I=$(APPLICATION_V3_PROTO_DIR) --go_out=paths=source_relative:$(APPLICATION_V3_GO_OUT_DIR) $<
+	$(PROTOC) -I=$(APPLICATION_V3_PROTO_DIR) --go_out=paths=source_relative:$(APPLICATION_V3_GO_OUT_DIR) --openapiv2_out=$(APPLICATION_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 
 application-v3: pre
 	$(MAKE) $(APPLICATION_V3_GO_FILES)
 	$(ECHO) "successfully generated application api/v3"
 
 $(BACKEND_V3_GO_OUT_DIR)/%.pb.go: $(BACKEND_V3_PROTO_DIR)/%.proto
-	$(PROTOC) -I=$(BACKEND_V3_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_V3_GO_OUT_DIR) $<
+	$(PROTOC) -I=$(BACKEND_V3_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_V3_GO_OUT_DIR) --openapiv2_out=$(BACKEND_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 
 backend-v3: pre
 	$(MAKE) $(BACKEND_V3_GO_FILES)

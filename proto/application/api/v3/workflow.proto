@@ -43,13 +43,12 @@ message WorkflowAgentInstallReq {
 // WorkflowAgentInstallResp describes the HTTP response body when install agent
 // in workflow service.
 message WorkflowAgentInstallResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowAgentUpgradeReq describes the HTTP request body when upgrade agent in
@@ -63,13 +62,12 @@ message WorkflowAgentUpgradeReq {
 // WorkflowAgentUpgradeResp describes the HTTP response body when upgrade agent
 // in workflow service.
 message WorkflowAgentUpgradeResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowAgentReconfigReq describes the HTTP request body when reconfig agent
@@ -83,13 +81,12 @@ message WorkflowAgentReconfigReq {
 // WorkflowAgentReconfigResp describes the HTTP response body when reconfig
 // agent in workflow service.
 message WorkflowAgentReconfigResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowAgentRestartReq describes the HTTP request body when restart agent in
@@ -103,13 +100,12 @@ message WorkflowAgentRestartReq {
 // WorkflowAgentRestartResp describes the HTTP response body when restart agent
 // in workflow service.
 message WorkflowAgentRestartResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowAgentUninstallReq describes the HTTP request body when uninstall
@@ -122,13 +118,12 @@ message WorkflowAgentUninstallReq {
 // WorkflowAgentUninstallResp describes the HTTP response body when uninstall
 // agent in workflow service.
 message WorkflowAgentUninstallResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowProxyInstallReq describes the HTTP request body when install proxy in
@@ -141,13 +136,12 @@ message WorkflowProxyInstallReq {
 // WorkflowProxyInstallResp describes the HTTP response body when install proxy
 // in workflow service.
 message WorkflowProxyInstallResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowProxyUpgradeReq describes the HTTP request body when upgrade proxy in
@@ -161,13 +155,12 @@ message WorkflowProxyUpgradeReq {
 // WorkflowProxyUpgradeResp describes the HTTP response body when upgrade proxy
 // in workflow service.
 message WorkflowProxyUpgradeResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowProxyReconfigReq describes the HTTP request body when reconfig proxy
@@ -181,13 +174,12 @@ message WorkflowProxyReconfigReq {
 // WorkflowProxyReconfigResp describes the HTTP response body when reconfig
 // proxy in workflow service.
 message WorkflowProxyReconfigResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowProxyRestartReq describes the HTTP request body when restart proxy in
@@ -201,13 +193,12 @@ message WorkflowProxyRestartReq {
 // WorkflowProxyRestartResp describes the HTTP response body when restart proxy
 // in workflow service.
 message WorkflowProxyRestartResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowProxyUninstallReq describes the HTTP request body when uninstall
@@ -220,13 +211,12 @@ message WorkflowProxyUninstallReq {
 // WorkflowProxyUninstallResp describes the HTTP response body when uninstall
 // proxy in workflow service.
 message WorkflowProxyUninstallResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data { string workflow_id = 1; }
-  Data data = 5;
+  Data data = 4;
 }
 
 // OperationInstance describes the operation instance informations. One
@@ -319,44 +309,44 @@ message WorkflowListReq {
 // WorkflowListResp describes the HTTP response body when list workflows in
 // workflow service.
 message WorkflowListResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
 
   message Data {
     uint32 total = 1;
     repeated WorkflowBrief items = 2;
   }
-  Data data = 5;
+  Data data = 4;
 }
 
 // WorkflowGetReq describes the HTTP request body when get workflow in workflow
 // service.
-message WorkflowGetReq {}
+message WorkflowGetReq { string workflow_id = 1; }
 
 // WorkflowGetResp describes the HTTP response body when get workflow in
 // workflow service.
 message WorkflowGetResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
-  WorkflowDetail data = 5;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  WorkflowDetail data = 4;
 }
 
 // WorkflowOperationGetReq describes the HTTP request body when get operation in
 // workflow service.
-message WorkflowOperationGetReq {}
+message WorkflowOperationGetReq {
+  string workflow_id = 1;
+  string operation_id = 2;
+}
 
 // WorkflowOperationGetResp describes the HTTP response body when get operation
 // in workflow service.
 message WorkflowOperationGetResp {
-  bool result = 1;
-  int32 code = 2;
-  string message = 3;
-  string request_id = 4;
-  OperationDetail Data = 5;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  OperationDetail Data = 4;
 }
 
 // workflow service.
@@ -448,7 +438,7 @@ service Workflow {
   // WorkflowList provides workflow listing.
   rpc WorkflowList(WorkflowListReq) returns (WorkflowListResp) {
     option (google.api.http) = {
-      get : "/api/v3/workflow"
+      post : "/api/v3/workflow/list"
       body : "*"
     };
   }
@@ -456,7 +446,7 @@ service Workflow {
   // WorkflowGet provides getting an existing workflow by id.
   rpc WorkflowGet(WorkflowGetReq) returns (WorkflowGetResp) {
     option (google.api.http) = {
-      get : "/api/v3/workflow/{workflow_id}"
+      post : "/api/v3/workflow/get"
       body : "*"
     };
   }
@@ -464,7 +454,7 @@ service Workflow {
   // OperationGet provides getting an existing operation by id.
   rpc OperationGet(WorkflowOperationGetReq) returns (WorkflowOperationGetResp) {
     option (google.api.http) = {
-      get : "/api/v3/workflow/{workflow_id}/operation/{operation_id}"
+      post : "/api/v3/workflow/operation/get"
       body : "*"
     };
   }

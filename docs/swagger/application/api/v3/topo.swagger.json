@@ -1,0 +1,1430 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "topo.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Topo"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/topo/business/list": {
+      "post": {
+        "summary": "BusinessList provides business listing.",
+        "operationId": "Topo_BusinessList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessListReq describes the HTTP request body when list business in\ntopo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/list": {
+      "post": {
+        "summary": "HostList provides business listing.",
+        "operationId": "Topo_HostList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostListReq describes the HTTP request body when list host in topo\nservice.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkarea/create": {
+      "post": {
+        "summary": "NetworkAreaCreate provides creating a new network-area.",
+        "operationId": "Topo_NetworkAreaCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaCreateReq describes the HTTP request body when create\nnetwork-area in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkarea/delete": {
+      "post": {
+        "summary": "NetworkAreaDelete provides deleting an existing network-area by id.",
+        "operationId": "Topo_NetworkAreaDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkarea/get": {
+      "post": {
+        "summary": "NetworkAreaGet provides getting an existing network-area by id.",
+        "operationId": "Topo_NetworkAreaGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkarea/list": {
+      "post": {
+        "summary": "NetworkAreaList provides network-area listing.",
+        "operationId": "Topo_NetworkAreaList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkarea/update": {
+      "post": {
+        "summary": "NetworkAreaUpdate provides updating an existing network-area by id.",
+        "operationId": "Topo_NetworkAreaUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaUpdateReq describes the HTTP request body when update\nnetwork-area in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkunit/create": {
+      "post": {
+        "summary": "NetworkUnitCreate provides creating a new network-unit.",
+        "operationId": "Topo_NetworkUnitCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkunit/delete": {
+      "post": {
+        "summary": "NetworkUnitDelete provides deleting an existing network-unit by id.",
+        "operationId": "Topo_NetworkUnitDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkunit/get": {
+      "post": {
+        "summary": "NetworkUnitGet provides getting an existing network-unit by id.",
+        "operationId": "Topo_NetworkUnitGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkunit/list": {
+      "post": {
+        "summary": "NetworkUnitList provides network-unit listing.",
+        "operationId": "Topo_NetworkUnitList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/networkunit/update": {
+      "post": {
+        "summary": "NetworkUnitUpdate provides updating an existing network-unit by id.",
+        "operationId": "Topo_NetworkUnitUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "AccessPointEndpoints": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3AccessPoint": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "ap_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ap_name": {
+          "type": "string"
+        },
+        "endpoints": {
+          "$ref": "#/definitions/AccessPointEndpoints"
+        }
+      },
+      "description": "AccessPoint describes the access point informations."
+    },
+    "v3Business": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_biz_name": {
+          "type": "string"
+        }
+      },
+      "description": "Business describes the business informations."
+    },
+    "v3Host": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/v3HostState"
+        },
+        "info": {
+          "$ref": "#/definitions/v3HostInfo"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "description": "Host describes the host informations."
+    },
+    "v3HostInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_host_name": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_biz_name": {
+          "type": "string"
+        },
+        "bk_set_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_set_name": {
+          "type": "string"
+        },
+        "bk_module_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_module_name": {
+          "type": "string"
+        },
+        "bk_network_area_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_network_area_name": {
+          "type": "string"
+        },
+        "bk_network_unit_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_network_unit_name": {
+          "type": "string"
+        },
+        "bk_operate_dept_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_operate_dept_name": {
+          "type": "string"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "bk_host_outerip": {
+          "type": "string"
+        },
+        "bk_host_outerip_v6": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_os_type": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."
+    },
+    "v3HostState": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "bk_agent_id": {
+          "type": "string"
+        }
+      },
+      "description": "HostState describes the host state informations. Usually contains\nagent-related things."
+    },
+    "v3Link": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "ap_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Link describes the network unit link points target."
+    },
+    "v3NetworkArea": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_network_area_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_network_area_name": {
+          "type": "string"
+        },
+        "bk_cloud_vendor": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "NetworkArea describes the network area informations."
+    },
+    "v3NetworkUnit": {
+      "type": "object",
+      "properties": {
+        "bk_network_unit_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bk_network_unit_name": {
+          "type": "string"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3NetworkUnitLinks"
+        }
+      },
+      "description": "NetworkUnit describes the network unit informations."
+    },
+    "v3NetworkUnitLinks": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "file": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "data": {
+          "$ref": "#/definitions/v3Link"
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3TopoBusinessListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        }
+      },
+      "description": "TopoBusinessListReq describes the HTTP request body when list business in\ntopo service."
+    },
+    "v3TopoBusinessListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoBusinessListRespData"
+        }
+      },
+      "description": "TopoBusinessListResp describes the HTTP response body when list business in\ntopo service."
+    },
+    "v3TopoBusinessListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Business"
+          }
+        }
+      }
+    },
+    "v3TopoHostListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "include_conditions": {
+          "$ref": "#/definitions/v3TopoHostListReqConditions"
+        }
+      },
+      "description": "TopoHostListReq describes the HTTP request body when list host in topo\nservice."
+    },
+    "v3TopoHostListReqConditions": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_agent_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_host_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_biz_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_set_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_set_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_module_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_module_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_networkarea_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_network_unit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_network_unit_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_operate_dept_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_operate_dept_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_outerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_outerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "login_ip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "login_port": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_os_type": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    "v3TopoHostListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostListRespData"
+        }
+      },
+      "description": "TopoHostListResp describes the HTTP response body when list host in topo\nservice."
+    },
+    "v3TopoHostListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Host"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaCreateReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_cloud_vendor": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "TopoNetworkAreaCreateReq describes the HTTP request body when create\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkAreaCreateRespData"
+        }
+      },
+      "description": "TopoNetworkAreaCreateResp describes the HTTP response body when create\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaCreateRespData": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v3TopoNetworkAreaDeleteReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "string"
+        }
+      },
+      "description": "TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespData"
+        }
+      },
+      "description": "TopoNetworkAreaDeleteResp describes the HTTP response body when delete\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaDeleteRespData": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v3TopoNetworkAreaGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "string"
+        }
+      },
+      "description": "TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service."
+    },
+    "v3TopoNetworkAreaGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NetworkArea"
+        }
+      },
+      "description": "TopoNetworkAreaGetResp describe the HTTP response body when get network-area\nin topo service."
+    },
+    "v3TopoNetworkAreaListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkAreaListReqConditions"
+        }
+      },
+      "description": "TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service."
+    },
+    "v3TopoNetworkAreaListReqConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_networkarea_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_cloud_vendor": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkAreaListRespData"
+        }
+      },
+      "description": "TopoNetworkAreaListResp describes the HTTP response body when list\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkArea"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaUpdateReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "string"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_cloud_vendor": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "TopoNetworkAreaUpdateReq describes the HTTP request body when update\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespData"
+        }
+      },
+      "description": "TopoNetworkAreaUpdateResp describes the HTTP response body when update\nnetwork-area in topo service."
+    },
+    "v3TopoNetworkAreaUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v3TopoNetworkUnitCreateReq": {
+      "type": "object",
+      "properties": {
+        "bk_network_unit_name": {
+          "type": "string"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3TopoNetworkUnitCreateReqLinks"
+        }
+      },
+      "description": "TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service."
+    },
+    "v3TopoNetworkUnitCreateReqLinks": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "file": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "data": {
+          "$ref": "#/definitions/v3Link"
+        }
+      }
+    },
+    "v3TopoNetworkUnitCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkUnitCreateRespData"
+        }
+      },
+      "description": "TopoNetworkUnitCreateResp describes the HTTP response body when create\nnetwork unit in topo service."
+    },
+    "v3TopoNetworkUnitCreateRespData": {
+      "type": "object",
+      "properties": {
+        "bk_network_unit_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v3TopoNetworkUnitDeleteReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "string"
+        }
+      },
+      "description": "TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service."
+    },
+    "v3TopoNetworkUnitDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespData"
+        }
+      },
+      "description": "TopoNetworkUnitDeleteResp describes the HTTP response body when delete\nnetwork unit in topo service."
+    },
+    "v3TopoNetworkUnitDeleteRespData": {
+      "type": "object",
+      "properties": {
+        "bk_network_unit_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v3TopoNetworkUnitGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "string"
+        }
+      },
+      "description": "TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NetworkUnit"
+        }
+      },
+      "description": "TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        }
+      },
+      "description": "TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListRespData"
+        }
+      },
+      "description": "TopoNetworkUnitListResp describes the HTTP response body when list\nnetwork-unit in topo service."
+    },
+    "v3TopoNetworkUnitListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkUnit"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitUpdateReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "string"
+        },
+        "bk_network_unit_name": {
+          "type": "string"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3TopoNetworkUnitUpdateReqLinks"
+        }
+      },
+      "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service."
+    },
+    "v3TopoNetworkUnitUpdateReqLinks": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "file": {
+          "$ref": "#/definitions/v3Link"
+        },
+        "data": {
+          "$ref": "#/definitions/v3Link"
+        }
+      }
+    },
+    "v3TopoNetworkUnitUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespData"
+        }
+      },
+      "description": "TopoNetworkUnitUpdateResp describes the HTTP response body when update\nnetwork unit in topo service."
+    },
+    "v3TopoNetworkUnitUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "bk_network_unit_id": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    }
+  }
+}
