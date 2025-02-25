@@ -18,8 +18,8 @@ message Business {
 // NetworkArea describes the network area informations.
 message NetworkArea {
   string tenant_id = 1;
-  int32 bk_network_area_id = 2;
-  string bk_network_area_name = 3;
+  int32 bk_networkarea_id = 2;
+  string bk_networkarea_name = 3;
   int32 bk_cloud_vendor = 4;
 }
 
@@ -45,8 +45,8 @@ message AccessPoint {
 
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
-  int32 bk_network_unit_id = 1;
-  string bk_network_unit_name = 2;
+  int32 bk_networkunit_id = 1;
+  string bk_networkunit_name = 2;
   repeated AccessPoint access_points = 3;
 
   message Links {
@@ -76,10 +76,10 @@ message HostInfo {
   string bk_set_name = 6;
   int32 bk_module_id = 7;
   string bk_module_name = 8;
-  int32 bk_network_area_id = 9;
-  string bk_network_area_name = 10;
-  int32 bk_network_unit_id = 11;
-  string bk_network_unit_name = 12;
+  int32 bk_networkarea_id = 9;
+  string bk_networkarea_name = 10;
+  int32 bk_networkunit_id = 11;
+  string bk_networkunit_name = 12;
   int32 bk_operate_dept_id = 13;
   string bk_operate_dept_name = 14;
   string bk_host_innerip = 15;

@@ -57,7 +57,7 @@ message TopoNetworkAreaListResp {
 
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
 // in topo service.
-message TopoNetworkAreaGetReq { string bk_networkarea_id = 1; }
+message TopoNetworkAreaGetReq { int32 bk_networkarea_id = 1; }
 
 // TopoNetworkAreaGetResp describe the HTTP response body when get network-area
 // in topo service.
@@ -89,7 +89,7 @@ message TopoNetworkAreaCreateResp {
 // TopoNetworkAreaUpdateReq describes the HTTP request body when update
 // network-area in topo service.
 message TopoNetworkAreaUpdateReq {
-  string bk_networkarea_id = 1;
+  int32 bk_networkarea_id = 1;
   string bk_networkarea_name = 2;
   int32 bk_cloud_vendor = 3;
 }
@@ -107,7 +107,7 @@ message TopoNetworkAreaUpdateResp {
 
 // TopoNetworkAreaDeleteReq describes the HTTP request body when delete
 // network-area in topo service.
-message TopoNetworkAreaDeleteReq { string bk_networkarea_id = 1; }
+message TopoNetworkAreaDeleteReq { int32 bk_networkarea_id = 1; }
 
 // TopoNetworkAreaDeleteResp describes the HTTP response body when delete
 // network-area in topo service.
@@ -143,7 +143,7 @@ message TopoNetworkUnitListResp {
 
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
 // in topo service.
-message TopoNetworkUnitGetReq { string bk_networkunit_id = 1; }
+message TopoNetworkUnitGetReq { int32 bk_networkunit_id = 1; }
 
 // TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
 // in topo service.
@@ -157,7 +157,7 @@ message TopoNetworkUnitGetResp {
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
 // network-unit in topo service.
 message TopoNetworkUnitCreateReq {
-  string bk_network_unit_name = 1;
+  string bk_networkunit_name = 1;
   repeated AccessPoint access_points = 2;
 
   message Links {
@@ -175,15 +175,15 @@ message TopoNetworkUnitCreateResp {
   string message = 2;
   string request_id = 3;
 
-  message Data { int32 bk_network_unit_id = 1; }
+  message Data { int32 bk_networkunit_id = 1; }
   Data data = 4;
 }
 
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 message TopoNetworkUnitUpdateReq {
-  string bk_networkunit_id = 1;
-  string bk_network_unit_name = 2;
+  int32 bk_networkunit_id = 1;
+  string bk_networkunit_name = 2;
   repeated AccessPoint access_points = 3;
 
   message Links {
@@ -201,13 +201,13 @@ message TopoNetworkUnitUpdateResp {
   string message = 2;
   string request_id = 3;
 
-  message Data { int32 bk_network_unit_id = 1; }
+  message Data { int32 bk_networkunit_id = 1; }
   Data data = 4;
 }
 
 // TopoNetworkUnitDeleteReq describes the HTTP request body when delete
 // network unit in topo service.
-message TopoNetworkUnitDeleteReq { string bk_networkunit_id = 1; }
+message TopoNetworkUnitDeleteReq { int32 bk_networkunit_id = 1; }
 
 // TopoNetworkUnitDeleteResp describes the HTTP response body when delete
 // network unit in topo service.
@@ -216,7 +216,7 @@ message TopoNetworkUnitDeleteResp {
   string message = 2;
   string request_id = 3;
 
-  message Data { int32 bk_network_unit_id = 1; }
+  message Data { int32 bk_networkunit_id = 1; }
   Data data = 4;
 }
 
@@ -240,8 +240,8 @@ message TopoHostListReq {
     repeated string bk_module_name = 11;
     repeated int32 bk_networkarea_id = 12;
     repeated string bk_networkarea_name = 13;
-    repeated int32 bk_network_unit_id = 14;
-    repeated string bk_network_unit_name = 15;
+    repeated int32 bk_networkunit_id = 14;
+    repeated string bk_networkunit_name = 15;
     repeated int32 bk_operate_dept_id = 16;
     repeated string bk_operate_dept_name = 17;
     repeated string bk_host_innerip = 18;

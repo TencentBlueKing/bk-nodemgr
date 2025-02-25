@@ -563,18 +563,18 @@
         "bk_module_name": {
           "type": "string"
         },
-        "bk_network_area_id": {
+        "bk_networkarea_id": {
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_area_name": {
+        "bk_networkarea_name": {
           "type": "string"
         },
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_unit_name": {
+        "bk_networkunit_name": {
           "type": "string"
         },
         "bk_operate_dept_id": {
@@ -644,11 +644,11 @@
         "tenant_id": {
           "type": "string"
         },
-        "bk_network_area_id": {
+        "bk_networkarea_id": {
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_area_name": {
+        "bk_networkarea_name": {
           "type": "string"
         },
         "bk_cloud_vendor": {
@@ -661,11 +661,11 @@
     "v3NetworkUnit": {
       "type": "object",
       "properties": {
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         },
-        "bk_network_unit_name": {
+        "bk_networkunit_name": {
           "type": "string"
         },
         "access_points": {
@@ -857,14 +857,14 @@
             "type": "string"
           }
         },
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int32"
           }
         },
-        "bk_network_unit_name": {
+        "bk_networkunit_name": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1009,7 +1009,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         }
       },
       "description": "TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service."
@@ -1046,7 +1047,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         }
       },
       "description": "TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service."
@@ -1149,7 +1151,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         },
         "bk_networkarea_name": {
           "type": "string"
@@ -1192,7 +1195,7 @@
     "v3TopoNetworkUnitCreateReq": {
       "type": "object",
       "properties": {
-        "bk_network_unit_name": {
+        "bk_networkunit_name": {
           "type": "string"
         },
         "access_points": {
@@ -1244,7 +1247,7 @@
     "v3TopoNetworkUnitCreateRespData": {
       "type": "object",
       "properties": {
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         }
@@ -1254,7 +1257,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         }
       },
       "description": "TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service."
@@ -1281,7 +1285,7 @@
     "v3TopoNetworkUnitDeleteRespData": {
       "type": "object",
       "properties": {
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         }
@@ -1291,7 +1295,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         }
       },
       "description": "TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service."
@@ -1366,9 +1371,10 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         },
-        "bk_network_unit_name": {
+        "bk_networkunit_name": {
           "type": "string"
         },
         "access_points": {
@@ -1420,7 +1426,7 @@
     "v3TopoNetworkUnitUpdateRespData": {
       "type": "object",
       "properties": {
-        "bk_network_unit_id": {
+        "bk_networkunit_id": {
           "type": "integer",
           "format": "int32"
         }

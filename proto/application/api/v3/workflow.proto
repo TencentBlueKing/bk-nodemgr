@@ -13,8 +13,8 @@ message WorkflowHostParameter {
 
   message Topo {
     int32 bk_biz_id = 1;
-    int32 bk_network_area_id = 2;
-    int32 bk_network_unit_id = 3;
+    int32 bk_networkarea_id = 2;
+    int32 bk_networkunit_id = 3;
   }
   Topo topo = 2;
 
