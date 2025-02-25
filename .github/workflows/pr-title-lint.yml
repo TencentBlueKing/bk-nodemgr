@@ -1,0 +1,34 @@
+name: PR Title Lint
+
+on:
+  pull_request:
+    # 触发事件类型
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  check-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: morrisoncole/pr-lint-action@v1.7.1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          # 正则表达式解析:
+          # ^                   - 从开头匹配
+          # (feat|fix|chore)   - 标准git标签
+          # :\s                - 冒号+空格
+          # [a-z\s\.]+         - 纯英文小写字母、空格和点号
+          # --issue=#\d+       - 必须以 --issue=#数字 结尾
+          # $                  - 匹配结尾
+          title-regex: "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):\\s[a-z\\s\\.]+\\s--issue=#\\d+$"
+          on-failed-regex-fail-action: true
+          on-failed-regex-create-review: true
+          on-failed-regex-request-changes: true
+          on-failed-regex-comment: |
+            PR 标题不符合规范,请按以下格式修改:
+            1. 以 feat/fix/chore 等标准git标签开头
+            2. 标签后跟冒号和空格
+            3. 描述文字使用纯英文小写字母
+            4. 结尾必须包含 --issue=#数字
+            
+            正确示例: fix: fix some varname error --issue=#4
+          on-succeeded-regex-dismiss-review-comment: "PR 标题规范检查通过! ✅"
