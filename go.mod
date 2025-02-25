@@ -9,13 +9,13 @@ require (
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.3.0
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/spf13/cobra v1.8.1
 	go.mongodb.org/mongo-driver v1.17.1
 	golang.org/x/crypto v0.31.0
 	golang.org/x/sync v0.10.0
+	google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -84,7 +84,6 @@ require (
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/api v0.39.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210207032614-bba0dbe2a9ea // indirect
 	google.golang.org/grpc v1.35.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

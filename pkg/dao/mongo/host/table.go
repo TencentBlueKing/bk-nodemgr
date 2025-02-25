@@ -26,7 +26,7 @@ func TableName(tenantID string) string {
 // Host represents a host.
 type Host struct {
 	TenantID      string `json:"tenant_id" bson:"tenant_id"`
-	NetworkAreaID int64  `json:"network_area_id" bson:"network_area_id"`
+	NetworkAreaID int64  `json:"networkarea_id" bson:"networkarea_id"`
 	BizID         int64  `json:"biz_id" bson:"biz_id"`
 	HostID        int64  `json:"host_id" bson:"host_id"`
 	InnerIP       string `json:"inner_ip" bson:"inner_ip"`

@@ -4,6 +4,8 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/applicat
 
 import "common.proto";
 
+import "google/api/annotations.proto";
+
 // WorkflowHostParameter describes the host action parameters in workflows
 // service. Such as installing, upgrading.
 message WorkflowHostParameter {
@@ -355,4 +357,115 @@ message WorkflowOperationGetResp {
   string message = 3;
   string request_id = 4;
   OperationDetail Data = 5;
+}
+
+// workflow service.
+service Workflow {
+  // AgentInstall provides multi agent installing.
+  rpc AgentInstall(WorkflowAgentInstallReq) returns (WorkflowAgentInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/agent/install"
+      body : "*"
+    };
+  }
+
+  // AgentUpgrade provides multi agent upgrading.
+  rpc AgentUpgrade(WorkflowAgentUpgradeReq) returns (WorkflowAgentUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/agent/upgrade"
+      body : "*"
+    };
+  }
+
+  // AgentReconfig provides multi agent reconfiging.
+  rpc AgentReconfig(WorkflowAgentReconfigReq)
+      returns (WorkflowAgentReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/agent/reconfig"
+      body : "*"
+    };
+  }
+
+  // AgentRestart provides multi agent restarting.
+  rpc AgentRestart(WorkflowAgentRestartReq) returns (WorkflowAgentRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/agent/restart"
+      body : "*"
+    };
+  }
+
+  // AgentUninstall provides multi agent uninstalling.
+  rpc AgentUninstall(WorkflowAgentUninstallReq)
+      returns (WorkflowAgentUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/agent/uninstall"
+      body : "*"
+    };
+  }
+
+  // ProxyInstall provides multi  proxy installing.
+  rpc ProxyInstall(WorkflowProxyInstallReq) returns (WorkflowProxyInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/proxy/install"
+      body : "*"
+    };
+  }
+
+  // ProxyUpgrade provides multi proxy upgrading.
+  rpc ProxyUpgrade(WorkflowProxyUpgradeReq) returns (WorkflowProxyUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/proxy/upgrade"
+      body : "*"
+    };
+  }
+
+  // ProxyReconfig provides multi proxy reconfiging.
+  rpc ProxyReconfig(WorkflowProxyReconfigReq)
+      returns (WorkflowProxyReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/proxy/reconfig"
+      body : "*"
+    };
+  }
+
+  // ProxyRestart provides multi proxy restarting.
+  rpc ProxyRestart(WorkflowProxyRestartReq) returns (WorkflowProxyRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/proxy/restart"
+      body : "*"
+    };
+  }
+
+  // ProxyUninstall provides multi proxy uninstalling.
+  rpc ProxyUninstall(WorkflowProxyUninstallReq)
+      returns (WorkflowProxyUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/workflow/proxy/uninstall"
+      body : "*"
+    };
+  }
+
+  // WorkflowList provides workflow listing.
+  rpc WorkflowList(WorkflowListReq) returns (WorkflowListResp) {
+    option (google.api.http) = {
+      get : "/api/v3/workflow"
+      body : "*"
+    };
+  }
+
+  // WorkflowGet provides getting an existing workflow by id.
+  rpc WorkflowGet(WorkflowGetReq) returns (WorkflowGetResp) {
+    option (google.api.http) = {
+      get : "/api/v3/workflow/{workflow_id}"
+      body : "*"
+    };
+  }
+
+  // OperationGet provides getting an existing operation by id.
+  rpc OperationGet(WorkflowOperationGetReq) returns (WorkflowOperationGetResp) {
+    option (google.api.http) = {
+      get : "/api/v3/workflow/{workflow_id}/operation/{operation_id}"
+      body : "*"
+    };
+  }
 }

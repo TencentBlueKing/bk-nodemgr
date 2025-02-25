@@ -22,7 +22,7 @@ CD     = cd
 CP     = cp
 RM     = rm
 SH     = sh
-PROTOC = protoc
+PROTOC = protoc -I.
 FORMAT = clang-format -i
 
 default: all
