@@ -3,7 +3,7 @@ name: PR Title Lint
 on:
   pull_request:
     # 触发事件类型
-    types: [opened, edited, reopened, synchronize]
+    types: [ opened, edited, reopened, synchronize ]
 
 jobs:
   check-pr-title:
@@ -11,10 +11,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      discussions: write
     steps:
       - uses: morrisoncole/pr-lint-action@v1.7.1
         with:
-          repo-token: "${{ secrets.PAT_TOKEN }}"
           # 正则表达式解析:
           # ^                   - 从开头匹配
           # (feat|fix|chore)   - 标准git标签
@@ -22,6 +22,7 @@ jobs:
           # [a-z\s\.]+         - 纯英文小写字母、空格和点号
           # --issue=#\d+       - 必须以 --issue=#数字 结尾
           # $                  - 匹配结尾
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
           title-regex: "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):\\s[a-z\\s\\.]+\\s--issue=#\\d+$"
           on-failed-regex-fail-action: true
           on-failed-regex-create-review: true

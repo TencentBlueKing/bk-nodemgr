@@ -8,27 +8,40 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+// Package healthz defines the healthz router.
+package healthz
 
 import (
+	"net/http"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/gin-gonic/gin"
 )
 
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
+// handler ...
+type handler struct {
+	rg *gin.RouterGroup
 }
 
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
+// newHandler ...
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+	return &handler{
+		// this is a sub router, so we can use some special middleware in it and not affect the father router.
+		rg: rg.Group("/healthz"),
+	}
 }
 
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
+// Load ...
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
+
+	h.rg.GET("", h.Healthz)
+}
+
+// Healthz check service health.
+func (h *handler) Healthz(ctx *gin.Context) {
+	resp := new(Response)
+	resp.OK = true
+	resp.Manager = "ok"
+	ctx.JSON(http.StatusOK, resp)
 }

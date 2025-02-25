@@ -8,7 +8,7 @@ on:
   pull_request: # 触发工作流的事件
     branches:
       - master # 仅在目标分支是 master 时触发
-    types: 
+    types:
       - opened # 当 PR 被创建时触发
       - reopened # 当 PR 被重新打开时触发
       - ready_for_review # 当草稿 PR 转换为可审查时触发
@@ -24,9 +24,9 @@ jobs:
 
       # Assign reviewers to the PR
       - name: Assign reviewers
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
-          repo-token: "${{ secrets.PAT_TOKEN }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
             const reviewers = ["zouxingyuks", "Lwxiang"];
             const prAuthor = context.payload.pull_request.user.login; // 获取 PR 作者
@@ -48,7 +48,7 @@ jobs:
             }
       # Set the PR author as an Assignee
       - name: Assign PR author as Assignee
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           repo-token: "${{ secrets.PAT_TOKEN }}"
           script: |

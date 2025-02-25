@@ -899,7 +899,7 @@ const bufferSize = 256 * 1024
 // l.mu is held.
 func (l *loggingT) createFiles(sev severity) error {
 	now := time.Now()
-	// Files are created in decreasing severity order, so as soon as we find one
+	// AllFiles are created in decreasing severity order, so as soon as we find one
 	// has already been created, we can stop.
 	least := severity(logging.verbosity.get())
 	for s := sev; s >= least && l.file[s] == nil; s-- {
