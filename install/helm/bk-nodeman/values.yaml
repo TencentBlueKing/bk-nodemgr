@@ -686,3 +686,67 @@ application:
       maxSizeMB: 200
       toStderr: false
       alsoToStderr: false
+
+## Nodeman file
+##
+file:
+  ## @param enabled Enable file
+  ##
+  enabled: true
+
+  ## @param imageTag module image tag, it's empty as default.
+  ## NOTE: would use root image configs when it's empty.
+  imageTag: ""
+
+  ## @param podAnnotations module pod annotations,
+  ## NOTE: would use root annotations configs when it's not set.
+  podAnnotations: { }
+
+  ## @param hostNetwork module host network mode config.
+  hostNetwork: false
+
+  ## @param nodeSelector specify node labels for task pod assignment.
+  ## NOTE: will be combined with the top nodeSelector in values.
+  nodeSelector: { }
+
+  ## @param terminationGracePeriodSeconds module pod termination grace period
+  ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
+  terminationGracePeriodSeconds: 30
+
+  ## file containers' resource requests and limits
+  ##
+  resources:
+    limits:
+      memory: 4096Mi
+      cpu: 2000m
+    requests:
+      memory: 2048Mi
+      cpu: 1000m
+
+  ## @param configs module configs
+  ##
+  config:
+    ## mode: release or debug, default is release.
+    runMode: "release"
+
+    ## tenant_mode: multi or single, default is single.
+    tenantMode: "single"
+
+    ## defines the file http server related settings.
+    httpServer:
+      bindIP: "0.0.0.0"
+      port: 7000
+
+    ## defines the file admin server related settings.
+    adminServer:
+      bindIP: "0.0.0.0"
+      port: 7001
+
+    ## defines the log related settings.
+    log:
+      dir: "/bk-nodeman/log"
+      level: "INFO"
+      maxNum: 10
+      maxSizeMB: 200
+      toStderr: false
+      alsoToStderr: false
