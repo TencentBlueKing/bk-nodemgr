@@ -1,9 +1,0 @@
-syntax = "proto3";
-package backend;
-option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend";
-
-// Page describes the generaic conditions when paging query.
-message Page {
-    uint32 offset = 1;
-    uint32 limit = 2;
-  }

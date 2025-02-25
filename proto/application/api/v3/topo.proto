@@ -1,0 +1,263 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+// TopoBusinessListReq describes the HTTP request body when list business in
+// topo service.
+message TopoBusinessListReq {
+  Page page = 1;
+  bool only_count = 2;
+}
+
+// TopoBusinessListResp describes the HTTP response body when list business in
+// topo service.
+message TopoBusinessListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated Business items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkAreaListReq describes the HTTP request body when list network-area
+// in topo service.
+message TopoNetworkAreaListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message Conditions {
+    repeated int32 bk_network_area_id = 1;
+    repeated string bk_network_area_name = 2;
+    repeated int32 bk_cloud_vendor = 3;
+  }
+  Conditions include_conditions = 3;
+}
+
+// TopoNetworkAreaListResp describes the HTTP response body when list
+// network-area in topo service.
+message TopoNetworkAreaListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated NetworkArea items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+// in topo service.
+message TopoNetworkAreaGetReq {}
+
+// TopoNetworkAreaGetResp describe the HTTP response body when get network-area
+// in topo service.
+message TopoNetworkAreaGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  NetworkArea data = 5;
+}
+
+// TopoNetworkAreaCreateReq describes the HTTP request body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateReq {
+  string bk_network_area_name = 1;
+  int32 bk_cloud_vendor = 2;
+}
+
+// TopoNetworkAreaCreateResp describes the HTTP response body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkAreaUpdateReq describes the HTTP request body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateReq {
+  string bk_network_area_name = 1;
+  int32 bk_cloud_vendor = 2;
+}
+
+// TopoNetworkAreaUpdateResp describes the HTTP response body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkAreaDeleteReq describes the HTTP request body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteReq {}
+
+// TopoNetworkAreaDeleteResp describes the HTTP response body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_area_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+// in topo service.
+message TopoNetworkUnitListReq {
+  Page page = 1;
+  bool only_count = 2;
+}
+
+// TopoNetworkUnitListResp describes the HTTP response body when list
+// network-unit in topo service.
+message TopoNetworkUnitListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated NetworkUnit items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetReq {}
+
+// TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  NetworkUnit data = 5;
+}
+
+// TopoNetworkUnitCreateReq describes the HTTP request body when create
+// network-unit in topo service.
+message TopoNetworkUnitCreateReq {
+  string bk_network_unit_name = 1;
+  repeated AccessPoint access_points = 2;
+
+  message Links {
+    Link cluster = 1;
+    Link file = 2;
+    Link data = 3;
+  }
+  Links links = 3;
+}
+
+// TopoNetworkUnitCreateResp describes the HTTP response body when create
+// network unit in topo service.
+message TopoNetworkUnitCreateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitUpdateReq describes the HTTP request body when update
+// network-unit in topo service.
+message TopoNetworkUnitUpdateReq {
+  string bk_network_unit_name = 1;
+  repeated AccessPoint access_points = 2;
+
+  message Links {
+    Link cluster = 1;
+    Link file = 2;
+    Link data = 3;
+  }
+  Links links = 3;
+}
+
+// TopoNetworkUnitUpdateResp describes the HTTP response body when update
+// network unit in topo service.
+message TopoNetworkUnitUpdateResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoNetworkUnitDeleteReq describes the HTTP request body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteReq {}
+
+// TopoNetworkUnitDeleteResp describes the HTTP response body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { int32 bk_network_unit_id = 1; }
+  Data data = 5;
+}
+
+// TopoHostListReq describes the HTTP request body when list host in topo
+// service.
+message TopoHostListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message Conditions {
+    repeated string status = 1;
+    repeated string version = 2;
+    repeated string bk_agent_id = 3;
+    repeated int32 bk_host_id = 4;
+    repeated string bk_host_name = 5;
+    repeated int32 bk_biz_id = 6;
+    repeated string bk_biz_name = 7;
+    repeated int32 bk_set_id = 8;
+    repeated string bk_set_name = 9;
+    repeated int32 bk_module_id = 10;
+    repeated string bk_module_name = 11;
+    repeated int32 bk_network_area_id = 12;
+    repeated string bk_network_area_name = 13;
+    repeated int32 bk_network_unit_id = 14;
+    repeated string bk_network_unit_name = 15;
+    repeated int32 bk_operate_dept_id = 16;
+    repeated string bk_operate_dept_name = 17;
+    repeated string bk_host_innerip = 18;
+    repeated string bk_host_innerip_v6 = 19;
+    repeated string bk_host_outerip = 20;
+    repeated string bk_host_outerip_v6 = 21;
+    repeated string login_ip = 22;
+    repeated uint32 login_port = 23;
+    repeated int32 bk_os_type = 24;
+  }
+  Conditions include_conditions = 3;
+}

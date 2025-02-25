@@ -1,0 +1,358 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+// WorkflowHostParameter describes the host action parameters in workflows
+// service. Such as installing, upgrading.
+message WorkflowHostParameter {
+  int32 bk_host_id = 1;
+
+  message Topo {
+    int32 bk_biz_id = 1;
+    int32 bk_network_area_id = 2;
+    int32 bk_network_unit_id = 3;
+  }
+  Topo topo = 2;
+
+  message Attributes {
+    string bk_host_innerip = 1;
+    string bk_host_innerip_v6 = 2;
+    string bk_host_outerip = 3;
+    string bk_host_outerip_v6 = 4;
+    string login_ip = 5;
+    uint32 login_port = 6;
+    string login_password = 7;
+  }
+  Attributes attributes = 3;
+
+  message Config { string version = 1; }
+  Config config = 4;
+}
+
+// WorkflowAgentInstallReq describes the HTTP request body when install agent in
+// workflow service.
+message WorkflowAgentInstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowAgentInstallResp describes the HTTP response body when install agent
+// in workflow service.
+message WorkflowAgentInstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentUpgradeReq describes the HTTP request body when upgrade agent in
+// workflow service.
+message WorkflowAgentUpgradeReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentUpgradeResp describes the HTTP response body when upgrade agent
+// in workflow service.
+message WorkflowAgentUpgradeResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentReconfigReq describes the HTTP request body when reconfig agent
+// in workflow service.
+message WorkflowAgentReconfigReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentReconfigResp describes the HTTP response body when reconfig
+// agent in workflow service.
+message WorkflowAgentReconfigResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentRestartReq describes the HTTP request body when restart agent in
+// workflow service.
+message WorkflowAgentRestartReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowAgentRestartResp describes the HTTP response body when restart agent
+// in workflow service.
+message WorkflowAgentRestartResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowAgentUninstallReq describes the HTTP request body when uninstall
+// agent in workflow service.
+message WorkflowAgentUninstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowAgentUninstallResp describes the HTTP response body when uninstall
+// agent in workflow service.
+message WorkflowAgentUninstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyInstallReq describes the HTTP request body when install proxy in
+// workflow service.
+message WorkflowProxyInstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowProxyInstallResp describes the HTTP response body when install proxy
+// in workflow service.
+message WorkflowProxyInstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyUpgradeReq describes the HTTP request body when upgrade proxy in
+// workflow service.
+message WorkflowProxyUpgradeReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyUpgradeResp describes the HTTP response body when upgrade proxy
+// in workflow service.
+message WorkflowProxyUpgradeResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyReconfigReq describes the HTTP request body when reconfig proxy
+// in workflow service.
+message WorkflowProxyReconfigReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyReconfigResp describes the HTTP response body when reconfig
+// proxy in workflow service.
+message WorkflowProxyReconfigResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyRestartReq describes the HTTP request body when restart proxy in
+// workflow service.
+message WorkflowProxyRestartReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+  bool force = 3;
+}
+
+// WorkflowProxyRestartResp describes the HTTP response body when restart proxy
+// in workflow service.
+message WorkflowProxyRestartResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// WorkflowProxyUninstallReq describes the HTTP request body when uninstall
+// proxy in workflow service.
+message WorkflowProxyUninstallReq {
+  repeated WorkflowHostParameter hosts = 1;
+  uint32 timeout_sec = 2;
+}
+
+// WorkflowProxyUninstallResp describes the HTTP response body when uninstall
+// proxy in workflow service.
+message WorkflowProxyUninstallResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// OperationInstance describes the operation instance informations. One
+// operation may contains multi instances.
+message OperationInstance {
+  string instance_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+
+  message Message {
+    uint64 timestamp = 1;
+    string text = 2;
+  }
+
+  message Action {
+    uint64 create_at = 1;
+    uint64 started_at = 2;
+    uint64 ended_at = 3;
+    uint64 stopped_at = 4;
+    string status = 5;
+    repeated Message message = 6;
+  }
+  repeated Action action = 6;
+}
+
+// OperationBrief describes the operation informations in brief.
+message OperationBrief {
+  string operation_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+  int32 bk_host_id = 6;
+  int32 bk_host_innerip = 7;
+  int32 instance_count = 8;
+}
+
+// OperationDetail describes the operation informations in detail.
+message OperationDetail {
+  string operation_id = 1;
+  uint64 create_at = 2;
+  uint64 started_at = 3;
+  uint64 ended_at = 4;
+  uint64 stopped_at = 5;
+  int32 bk_host_id = 6;
+  int32 bk_host_innerip = 7;
+  int32 instance_count = 8;
+  repeated OperationInstance instances = 9;
+}
+
+// WorkflowBrief describes the workflow informations in brief.
+message WorkflowBrief {
+  string workflow_id = 1;
+  string status = 2;
+  string operator = 3;
+  int32 type = 4;
+  uint64 create_at = 5;
+  uint64 started_at = 6;
+  uint64 ended_at = 7;
+  uint64 stopped_at = 8;
+  int32 operation_count = 9;
+}
+
+// WorkflowDetail describes the workflow informations in detail.
+message WorkflowDetail {
+  string workflow_id = 1;
+  string status = 2;
+  string operator = 3;
+  int32 type = 4;
+  uint64 create_at = 5;
+  uint64 started_at = 6;
+  uint64 ended_at = 7;
+  uint64 stopped_at = 8;
+  int32 operation_count = 9;
+  repeated OperationBrief operations = 10;
+}
+
+// WorkflowListReq describes the HTTP request body when list workflows in
+// workflow service.
+message WorkflowListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message Conditions {}
+  Conditions include_conditions = 3;
+}
+
+// WorkflowListResp describes the HTTP response body when list workflows in
+// workflow service.
+message WorkflowListResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+
+  message Data {
+    uint32 total = 1;
+    repeated WorkflowBrief items = 2;
+  }
+  Data data = 5;
+}
+
+// WorkflowGetReq describes the HTTP request body when get workflow in workflow
+// service.
+message WorkflowGetReq {}
+
+// WorkflowGetResp describes the HTTP response body when get workflow in
+// workflow service.
+message WorkflowGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  WorkflowDetail data = 5;
+}
+
+// WorkflowOperationGetReq describes the HTTP request body when get operation in
+// workflow service.
+message WorkflowOperationGetReq {}
+
+// WorkflowOperationGetResp describes the HTTP response body when get operation
+// in workflow service.
+message WorkflowOperationGetResp {
+  bool result = 1;
+  int32 code = 2;
+  string message = 3;
+  string request_id = 4;
+  OperationDetail Data = 5;
+}

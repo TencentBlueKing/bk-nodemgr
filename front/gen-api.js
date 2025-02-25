@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const protobuf = require('protobufjs');
 
-const protoDir = '../../proto'; // Directory containing proto files
+const protoDir = '../proto/application/api/v3'; // Directory containing proto files
 
 // Function to parse proto files and generate output
 async function generateFiles() {
