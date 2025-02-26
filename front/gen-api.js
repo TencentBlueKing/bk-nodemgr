@@ -3,6 +3,7 @@ const path = require('path');
 const protobuf = require('protobufjs');
 
 const protoDir = '../proto/application/api/v3'; // Directory containing proto files
+const apiType = '(google.api.http)'
 
 // Function to parse proto files and generate output
 async function generateFiles() {
@@ -40,21 +41,18 @@ async function generateFiles() {
 function generateTypeDefinitions(root) {
   let output = '// gen-api.js 自动生成，请勿手动修改\n';
   root.nestedArray.forEach((namespace) => {
-    namespace.nestedArray.forEach((namespace) => {
-      namespace.nestedArray.forEach((namespace) => {
-        output += `// ${namespace.name}\n`;
-        namespace.nestedArray.forEach((type) => {
-          if (type instanceof protobuf.Type) {
-            output += `export interface ${type.name} {\n`;
-            type.fieldsArray.forEach((field) => {
-              const commentList = field.comment?.split('\n');
-              output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-              output += `  ${field.name}: ${mapProtoTypeToTs(field)};\n`;
-            });
-            output += '}\n\n';
-          }
+    namespace.nestedArray.forEach((type) => {
+      if (type instanceof protobuf.Type) {
+        const typeCommentList = type.comment?.split('\n');
+        output += typeCommentList?.length ? `${typeCommentList.map(comment => `// ${comment}\n`).join('')}` : '';
+        output += `export interface ${type.name} {\n`;
+        type.fieldsArray.forEach((field) => {
+          const commentList = field.comment?.split('\n');
+          output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
+          output += `  ${field.name}: ${mapProtoTypeToTs(field)};\n`;
         });
-      });
+        output += '}\n\n';
+      }
     });
   });
   return output;
@@ -71,33 +69,29 @@ import { type Config } from '../interceptors';
   let tmpOutput = '';
   const types = [];
   root.nestedArray.forEach((namespace) => {
-    namespace.nestedArray.forEach((namespace) => {
-      namespace.nestedArray.forEach((namespace) => {
-        namespace.nestedArray.forEach((service) => {
-          if (service instanceof protobuf.Service) {
-            tmpOutput += `export const ${service.name}Service = {\n`;
-            service.methodsArray.forEach((method) => {
-              const trpcOpts = method.parsedOptions?.find(opt => opt['(trpc.api.http)']);
-              let httpMethod = '';
-              let path = '';
-              if (trpcOpts) {
-                httpMethod = allHttpMethods.find(m => trpcOpts['(trpc.api.http)']?.[m]);
-                path = trpcOpts['(trpc.api.http)']?.[httpMethod];
-              }
-              if (!types.includes(method.requestType)) {
-                types.push(method.requestType);
-              }
-              if (!types.includes(method.responseType)) {
-                types.push(method.responseType);
-              }
-              const commentList = method.comment?.split('\n');
-              tmpOutput += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-              tmpOutput += `  ${method.name}: async <Request = ${method.requestType}, ResponseData = ${method.responseType}['datas']>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
-            });
-            tmpOutput += '};\n\n';
+    namespace.nestedArray.forEach((service) => {
+      if (service instanceof protobuf.Service) {
+        tmpOutput += `export const ${service.name}Service = {\n`;
+        service.methodsArray.forEach((method) => {
+          const trpcOpts = method.parsedOptions?.find(opt => opt[apiType]);
+          let httpMethod = '';
+          let path = '';
+          if (trpcOpts) {
+            httpMethod = allHttpMethods.find(m => trpcOpts[apiType]?.[m]);
+            path = trpcOpts[apiType]?.[httpMethod];
           }
+          if (!types.includes(method.requestType)) {
+            types.push(method.requestType);
+          }
+          if (!types.includes(method.responseType)) {
+            types.push(method.responseType);
+          }
+          const commentList = method.comment?.split('\n');
+          tmpOutput += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
+          tmpOutput += `  ${method.name}: async <Request = ${method.requestType}, ResponseData = ${method.responseType}['data']>(params?: Request, config?: Config) => await fetch.${httpMethod}<Request, ResponseData>('${path}')(params, config),\n`;
         });
-      });
+        tmpOutput += '};\n\n';
+      }
     });
   });
 
