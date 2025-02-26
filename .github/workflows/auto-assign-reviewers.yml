@@ -6,7 +6,7 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request: # 触发工作流的事件
+  pull_request_target: # 触发工作流的事件
     types:
       - opened # 当 PR 被创建时触发
       - reopened # 当 PR 被重新打开时触发
