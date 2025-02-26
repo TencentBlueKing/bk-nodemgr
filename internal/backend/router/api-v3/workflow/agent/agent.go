@@ -8,33 +8,41 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apiv3 defines the api v3 router.
-package apiv3
+// Package agent defines the agent apis.
+package agent
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg *gin.RouterGroup
+	rg      *gin.RouterGroup
+	manager manager.Manager
+	logger  logger.Logger
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg:      rg.Group("/agent"),
+		manager: capability.Manager,
+		logger:  capability.Logger,
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
+// Load load agent handler.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
-	sync.Load(h.rg, cap)
-	workflow.Load(h.rg, cap)
+	h.rg.POST("/install", rest.RestHandlerFunc(h.AgentInstall))
+	h.rg.POST("/upgrade", rest.RestHandlerFunc(h.AgentUpgrade))
+	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReConfig))
+	h.rg.POST("/restart", rest.RestHandlerFunc(h.AgentRestart))
+	h.rg.POST("/uninstall", rest.RestHandlerFunc(h.AgentUninstall))
 }
