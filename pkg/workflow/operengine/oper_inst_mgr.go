@@ -26,6 +26,7 @@ import (
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/google/uuid"
 )
 
 const (
@@ -346,13 +347,16 @@ func (mgr *operInstMgr) launchWorker() error {
 	return nil
 }
 
+// ActionInstPrefix is the prefix of action instance id.
+const ActionInstPrefix = "A"
+
 // dispatchOperInst dispatch OperInst to machinery chain.
 func (mgr *operInstMgr) dispatchOperInst(inst *OperInst) error {
 	var signatures []*tasks.Signature
 
 	for _, actionDef := range inst.operationDef.actionDefs {
 		signature := &tasks.Signature{
-			UUID: fmt.Sprintf("%s-%s", inst.data.OperInstID, actionDef.Name()),
+			UUID: fmt.Sprintf("%s-%s", ActionInstPrefix, uuid.NewString()),
 			Name: actionDef.Name(),
 			Args: []tasks.Arg{
 				{
@@ -361,7 +365,7 @@ func (mgr *operInstMgr) dispatchOperInst(inst *OperInst) error {
 					Value: actionDef.Name(),
 				},
 				{
-					Name:  "operation-instance-id",
+					Name:  "oper-inst-id",
 					Type:  "string",
 					Value: inst.data.OperInstID,
 				},

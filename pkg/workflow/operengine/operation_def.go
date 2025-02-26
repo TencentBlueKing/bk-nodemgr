@@ -49,7 +49,7 @@ func (def *operationDef) Next(actionDef ActionDef) *operationDef {
 }
 
 // OperInstIDPrefix ...
-const OperInstIDPrefix = "oper-inst"
+const OperInstIDPrefix = "I"
 
 // NewInstance creates a new OperInst.
 func (def *operationDef) NewInstance(triggerID string, timeout time.Duration) (*OperInst, error) {

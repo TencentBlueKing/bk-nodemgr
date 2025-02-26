@@ -20,9 +20,9 @@ import (
 	"github.com/google/uuid"
 )
 
-// TriggerPrefix ...
 const (
-	TriggerPrefix = "trigger"
+	// TriggerPrefix ...
+	TriggerPrefix = "T"
 )
 
 // Trigger ...
