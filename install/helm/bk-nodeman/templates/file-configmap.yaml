@@ -1,0 +1,45 @@
+{{- if .Values.file.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodeman.fullname" . }}-file-config
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  file_conf.yaml: |
+    runMode: {{ .Values.file.config.runMode }}
+
+    tenantMode: {{ .Values.file.config.tenantMode }}
+
+    httpServer: {{ .Values.file.config.httpServer | toYaml | nindent 6 }}
+
+    adminServer: {{ .Values.file.config.adminServer | toYaml | nindent 6 }}
+
+    agentFileGroup: {{ .Values.file.config.agentFileGroup | toYaml | nindent 6 }}
+
+    log: {{ .Values.file.config.log | toYaml | nindent 6 }}
+
+    mongodb:
+      {{- if .Values.mongodb.enabled }}
+      hosts:
+        - {{ template "bk-nodeman.fullname" . }}-mongodb-headless
+      username: {{ .Values.mongodb.auth.username }}
+      password: {{ .Values.mongodb.auth.password }}
+      database: {{ .Values.mongodb.auth.database }}
+      authSource: {{ .Values.mongodb.auth.database }}
+      authMechanism: SCRAM-SHA-256
+      {{- else }}
+      hosts:
+        - {{ .Values.externalMongodb.hosts }}
+      username: {{ .Values.externalMongodb.username }}
+      password: {{ .Values.externalMongodb.password }}
+      database: {{ .Values.externalMongodb.database }}
+      authSource: {{ .Values.externalMongodb.authSource }}
+      authMechanism: {{ .Values.externalMongodb.authMechanism }}
+      {{- end}}
+{{- end }}

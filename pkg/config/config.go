@@ -96,10 +96,10 @@ type MongoDB struct {
 
 // Log the config of log.
 type Log struct {
-	Dir          string `yaml:"dir" usage:"log dir of backend server"`
+	Dir          string `yaml:"dir" usage:"log dir of server"`
 	MaxSizeMB    int    `yaml:"maxSizeMB" usage:"max size in MBytes of single log file"`
 	MaxNum       int    `yaml:"maxNum" usage:"max number of log files"`
-	Level        string `yaml:"level" usage:"log level of backend server. DEBUG, INFO, WARN, ERROR"`
+	Level        string `yaml:"level" usage:"log level of server. DEBUG, INFO, WARN, ERROR"`
 	ToStdErr     bool   `yaml:"toStderr" usage:"log to stderr instead of files"`
 	AlsoToStdErr bool   `yaml:"alsoToStderr" usage:"log to stderr in addition to files"`
 }
@@ -417,10 +417,11 @@ func NewFileService() *FileService {
 type FileService struct {
 	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
 	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of backend service"`
-	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of backend service"`
-	Log            Log            `yaml:"log" usage:"log config of backend service"`
+	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of file service"`
+	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of file service"`
+	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of file service"`
+	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of file service"`
+	Log            Log            `yaml:"log" usage:"log config of file service"`
 }
 
 // LoadFromFile loads config from file.

@@ -700,7 +700,7 @@ file:
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: false
@@ -741,6 +741,9 @@ file:
     adminServer:
       bindIP: "0.0.0.0"
       port: 7001
+
+    agentFileGroup:
+      fullPath: "/bk-nodeman/file/agent"
 
     ## defines the log related settings.
     log:
