@@ -4,14 +4,14 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/applicat
 
 // Page describes the generaic conditions when paging query.
 message Page {
-  uint32 offset = 1;
-  uint32 limit = 2;
+  int32 offset = 1;
+  int32 limit = 2;
 }
 
 // Business describes the business informations.
 message Business {
   string tenant_id = 1;
-  int32 bk_biz_id = 2;
+  int64 bk_biz_id = 2;
   string bk_biz_name = 3;
 }
 
@@ -26,13 +26,13 @@ message NetworkArea {
 // Link describes the network unit link points target.
 message Link {
   string tenant_id = 1;
-  int32 ap_id = 2;
+  int64 ap_id = 2;
 }
 
 // AccessPoint describes the access point informations.
 message AccessPoint {
   string tenant_id = 1;
-  int32 ap_id = 2;
+  int64 ap_id = 2;
   string ap_name = 3;
 
   message Endpoints {
@@ -45,7 +45,7 @@ message AccessPoint {
 
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
-  int32 bk_networkunit_id = 1;
+  int64 bk_networkunit_id = 1;
   string bk_networkunit_name = 2;
   repeated AccessPoint access_points = 3;
 
@@ -68,19 +68,19 @@ message HostState {
 // HostInfo describes the host info informations. Usually contains static
 // configs.
 message HostInfo {
-  int32 bk_host_id = 1;
+  int64 bk_host_id = 1;
   string bk_host_name = 2;
-  int32 bk_biz_id = 3;
+  int64 bk_biz_id = 3;
   string bk_biz_name = 4;
-  int32 bk_set_id = 5;
+  int64 bk_set_id = 5;
   string bk_set_name = 6;
-  int32 bk_module_id = 7;
+  int64 bk_module_id = 7;
   string bk_module_name = 8;
-  int32 bk_networkarea_id = 9;
+  int64 bk_networkarea_id = 9;
   string bk_networkarea_name = 10;
-  int32 bk_networkunit_id = 11;
+  int64 bk_networkunit_id = 11;
   string bk_networkunit_name = 12;
-  int32 bk_operate_dept_id = 13;
+  int64 bk_operate_dept_id = 13;
   string bk_operate_dept_name = 14;
   string bk_host_innerip = 15;
   string bk_host_innerip_v6 = 16;
@@ -88,7 +88,7 @@ message HostInfo {
   string bk_host_outerip_v6 = 18;
   string login_ip = 19;
   uint32 login_port = 20;
-  int32 bk_os_type = 21;
+  int64 bk_os_type = 21;
 }
 
 // Host describes the host informations.

@@ -8,26 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo provides topology storage interface.
-package topo
-
-import (
-	"context"
-
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-)
-
-// Storage defines the storage interface.
-type Storage interface {
-	base.Interface
-
-	// UpsertBusiness updates or inserts a business.
-	UpsertBusiness(ctx context.Context, biz ...*types.Business) error
-
-	// ListBusinesses ...
-	ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) ([]*types.Business, int64, error)
-
-	// UpsertHosts updates or inserts host.
-	UpsertHosts(ctx context.Context, host ...*types.Host) error
-}
+// Package backend provides handlers to operate nodemgr backend api.
+package backend

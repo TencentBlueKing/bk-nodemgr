@@ -8,35 +8,38 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apiv3 defines the api v3 router.
-package apiv3
+// Package topo provides the topo API handler.
+package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
-	rg *gin.RouterGroup
+	rg      *gin.RouterGroup
+	manager manager.Manager
+	storage topo.Storage
+	logger  logger.Logger
 }
 
-// newHandler ...
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg:      rg.Group("/topo"),
+		manager: capability.Manager,
+		storage: capability.TopoStorage,
+		logger:  capability.Logger,
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
+// Load loads topo handler.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
-	sync.Load(h.rg, cap)
-	workflow.Load(h.rg, cap)
-	topo.Load(h.rg, cap)
+	h.rg.POST("/business/list", rest.RestHandlerFunc(h.ListBusiness))
 }

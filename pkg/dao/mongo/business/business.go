@@ -13,11 +13,13 @@ package business
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -71,6 +73,39 @@ func buildUpsertParams(biz *Business) (bson.D, bson.D, *mongoOptions.UpdateOptio
 // ListAll list all business.
 func (d *dao) listAll(ctx context.Context) ([]*Business, error) {
 	result, err := d.client.Find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
+	if err != nil {
+		return nil, err
+	}
+
+	bizs := make([]*Business, 0)
+	for result.Next(ctx) {
+		table := &TableBusiness{}
+		if err := result.Decode(table); err != nil {
+			d.logger.Warnf("failed to decode business, err %v", err)
+
+			continue
+		}
+		bizs = append(bizs, table.Data)
+	}
+
+	return bizs, nil
+}
+
+func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
+	num, err := d.client.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	if num < 0 {
+		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
+	}
+
+	return num, nil
+}
+
+func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*Business, error) {
+	result, err := d.client.Find(ctx, filter, findOpt)
 	if err != nil {
 		return nil, err
 	}

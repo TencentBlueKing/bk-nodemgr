@@ -8,36 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+package types
 
-import (
-	"context"
+// Condition defines the generic condition settings.
+type Condition struct {
+}
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
-	"github.com/gin-gonic/gin"
+// ConditionType define the condition type.
+type ConditionType string
+
+const (
+	// ConditionTypeInclude means this condition should be matched including given values.
+	ConditionTypeInclude ConditionType = "include"
+
+	// ConditionTypeExclude means this condition should be matched excluding given values.
+	ConditionTypeExclude ConditionType = "exclude"
 )
-
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
-}
-
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
-}
-
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
-}
-
-// GetContext get a generic context from rest-context.
-func (c *Context) GetContext() (context.Context, error) {
-	ctx := c.gCtx.Request.Context()
-	return tenant.SetID(ctx, c.TenantID)
-}

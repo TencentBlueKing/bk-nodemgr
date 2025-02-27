@@ -14,6 +14,7 @@ package business
 import (
 	"context"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -53,9 +54,43 @@ func testClient(t *testing.T) Handler {
 	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
 }
 
+var once = sync.Once{}
+
+// prepareData for all tests.
+func prepareData(t *testing.T, ctx context.Context) {
+	once.Do(func() {
+		tenantID, _ := tenant.GetID(ctx)
+
+		// pre insert.
+		h := testClient(t)
+		err := h.UpsertMany(ctx,
+			&types.Business{
+				TenantID: tenantID,
+				BizID:    90001,
+				BizName:  "test-name-90001",
+			},
+			&types.Business{
+				TenantID: tenantID,
+				BizID:    90002,
+				BizName:  "test-name-same",
+			},
+			&types.Business{
+				TenantID: tenantID,
+				BizID:    90003,
+				BizName:  "test-name-same",
+			},
+		)
+		if err != nil {
+			t.Errorf("prepareData() error = %v", err)
+		}
+	})
+}
+
 // Test_handler_ListAll ...
 func Test_handler_ListAll(t *testing.T) {
 	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
 
 	tests := []struct {
 		name    string
@@ -78,6 +113,133 @@ func Test_handler_ListAll(t *testing.T) {
 
 			for _, v := range got {
 				t.Logf("ListAll() got = %v", v)
+			}
+		})
+	}
+}
+
+// Test_handler_Count covers count method.
+func Test_handler_Count(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	tests := []struct {
+		name      string
+		optFn     []OptFn
+		wantTotal int64
+		wantErr   bool
+	}{
+		{
+			name:      "normal",
+			optFn:     nil,
+			wantTotal: -1,
+			wantErr:   false,
+		},
+		{
+			name:      "filter by biz id",
+			optFn:     []OptFn{WithBizID(90001, 90002)},
+			wantTotal: 2,
+			wantErr:   false,
+		},
+		{
+			name:      "filter by biz name",
+			optFn:     []OptFn{WithBizName("test-name-90001", "test-name-same")},
+			wantTotal: 3,
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.Count(ctx, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantTotal > 0 && got != tt.wantTotal {
+				t.Errorf("Count() got = %d, wantTotal %d", got, tt.wantTotal)
+				return
+			}
+			t.Logf("Count() got = %d", got)
+		})
+	}
+}
+
+// Test_handler_List covers list method.
+func Test_handler_List(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	tests := []struct {
+		name      string
+		page      types.Page
+		optFn     []OptFn
+		wantTotal int64
+		wantNum   int64
+		wantErr   bool
+	}{
+		{
+			name: "normal",
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:     nil,
+			wantTotal: -1,
+			wantNum:   -1,
+			wantErr:   false,
+		},
+		{
+			name: "filter by biz id",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:     []OptFn{WithBizID(90001, 90002)},
+			wantTotal: 2,
+			wantNum:   1,
+			wantErr:   false,
+		},
+		{
+			name: "filter by biz name",
+			page: types.Page{
+				Offset: 1,
+				Limit:  1,
+			},
+			optFn:     []OptFn{WithBizName("test-name-same")},
+			wantTotal: 2,
+			wantNum:   1,
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.List(ctx, tt.page, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantTotal > 0 && tt.wantTotal != total {
+				t.Errorf("List() total = %d, wantTotal %d", total, tt.wantTotal)
+				return
+			}
+			t.Logf("List() total = %d", total)
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("List() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("List() num = %d", len(got))
+
+			for _, v := range got {
+				t.Logf("List() got = %v", v)
 			}
 		})
 	}

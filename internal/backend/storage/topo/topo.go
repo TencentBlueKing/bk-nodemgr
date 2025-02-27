@@ -93,13 +93,30 @@ func (s *storage) UpsertBusiness(ctx context.Context, biz ...*types.Business) er
 }
 
 // ListBusinesses lists all businesses.
-func (s *storage) ListBusinesses(ctx context.Context) ([]*types.Business, error) {
-	bizs, err := s.daoBusiness.ListAll(ctx)
-	if err != nil {
-		return nil, err
+func (s *storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) (
+	[]*types.Business, int64, error) {
+
+	opts := make([]business.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeInclude:
+			opts = append(opts,
+				business.WithBizID(condition.BizID...),
+				business.WithBizName(condition.BizName...),
+			)
+
+		case types.ConditionTypeExclude:
+			opts = append(opts,
+				business.WithoutBizID(condition.BizID...),
+				business.WithoutBizName(condition.BizName...),
+			)
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
 	}
 
-	return bizs, nil
+	return s.daoBusiness.List(ctx, page, opts...)
 }
 
 // UpsertHosts ...

@@ -314,7 +314,7 @@ message WorkflowListResp {
   string request_id = 3;
 
   message Data {
-    uint32 total = 1;
+    int64 total = 1;
     repeated WorkflowBrief items = 2;
   }
   Data data = 4;

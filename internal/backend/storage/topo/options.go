@@ -8,36 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest defines rest context.
-package rest
+package topo
 
-import (
-	"context"
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
-	"github.com/gin-gonic/gin"
-)
+// BusinessCondition defines the business condition.
+// in this condition, fields are generated with AND expr.
+type BusinessCondition struct {
+	Type types.ConditionType
 
-// Context rest context.
-type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
-}
-
-// BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
-}
-
-// Param parse the param from url
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
-}
-
-// GetContext get a generic context from rest-context.
-func (c *Context) GetContext() (context.Context, error) {
-	ctx := c.gCtx.Request.Context()
-	return tenant.SetID(ctx, c.TenantID)
+	BizID   []int64
+	BizName []string
 }

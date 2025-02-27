@@ -704,11 +704,11 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int32"
         },
         "limit": {
           "type": "integer",
-          "format": "int64"
+          "format": "int32"
         }
       },
       "description": "Page describes the generaic conditions when paging query."
@@ -1112,7 +1112,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {

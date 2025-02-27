@@ -19,13 +19,21 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Handler business handler interface.
 type Handler interface {
 	// ListAll list all business.
 	ListAll(ctx context.Context) ([]*types.Business, error)
+
+	// Count counts business by opts.
+	Count(ctx context.Context, opts ...OptFn) (int64, error)
+
+	// List lists business by page and opts.
+	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Business, int64, error)
 
 	// UpsertMany updates or inserts business.
 	UpsertMany(ctx context.Context, bizs ...*types.Business) error
@@ -82,6 +90,65 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Business, error) {
 	}
 
 	return data, nil
+}
+
+// Count counts business by opts.
+func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).count(ctx, filter)
+}
+
+// List list business by page and conditions.
+func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+	[]*types.Business, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.tenantDao(tenantID).count(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := new(options.FindOptions)
+	if page.Offset > 0 {
+		findOpt.SetSkip(int64(page.Offset))
+	}
+	if page.Limit > 0 {
+		findOpt.SetLimit(int64(page.Limit))
+	}
+
+	bizs, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := make([]*types.Business, len(bizs))
+	for idx, biz := range bizs {
+		data[idx] = &types.Business{
+			TenantID: biz.TenantID,
+			BizID:    biz.BizID,
+			BizName:  biz.BizName,
+		}
+	}
+
+	return data, num, nil
 }
 
 // UpsertMany updates or inserts business.
