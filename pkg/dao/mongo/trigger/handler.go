@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
 	"go.mongodb.org/mongo-driver/bson"
@@ -100,9 +101,9 @@ func (h handler) FindAll(ctx context.Context) ([]*trigengine.Trigger, error) {
 
 // Find ...
 func (h handler) Find(ctx context.Context, opts ...OptFn) ([]*trigengine.Trigger, error) {
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := base.AliveFilter()
 	for _, opt := range opts {
-		opt(filter)
+		filter = opt(filter)
 	}
 
 	triggers, err := h.dao.find(ctx, filter)
@@ -129,9 +130,9 @@ func (h handler) Find(ctx context.Context, opts ...OptFn) ([]*trigengine.Trigger
 
 // FindOne ...
 func (h handler) FindOne(ctx context.Context, opts ...OptFn) (*trigengine.Trigger, error) {
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := base.AliveFilter()
 	for _, opt := range opts {
-		opt(filter)
+		filter = opt(filter)
 	}
 
 	triggers, err := h.dao.find(ctx, filter)

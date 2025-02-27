@@ -42,13 +42,13 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	items := make([]*proto.Business, 0)
-	for _, biz := range bizs {
-		items = append(items, &proto.Business{
+	items := make([]*proto.Business, len(bizs))
+	for idx, biz := range bizs {
+		items[idx] = &proto.Business{
 			TenantId:  biz.TenantID,
 			BkBizId:   biz.BizID,
 			BkBizName: biz.BizName,
-		})
+		}
 	}
 
 	resp := &proto.TopoBusinessListResp_Data{

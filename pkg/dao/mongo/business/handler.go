@@ -16,10 +16,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -99,7 +99,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		return 0, err
 	}
 
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
@@ -116,7 +116,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		return nil, 0, err
 	}
 
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
