@@ -1,9 +1,10 @@
-import { BaseNode } from "@antv/g6";
-import { Rect, Image, Text } from '@antv/g';
-import type { RectStyleProps, Group, ImageStyleProps, TextStyleProps } from '@antv/g';
+import type { Group, ImageStyleProps, RectStyleProps, TextStyleProps } from '@antv/g';
+import { Image, Rect, Text } from '@antv/g';
 import type { BaseNodeStyleProps } from '@antv/g6';
-import { iconPathMap } from "./config";
-import { letterAspectRatio } from "./letter-aspect-ratio";
+import { BaseNode } from '@antv/g6';
+
+import { iconPathMap } from './config';
+import { letterAspectRatio } from './letter-aspect-ratio';
 
 export interface INodeData {
   name: string;
@@ -11,7 +12,7 @@ export interface INodeData {
   agent: number;
 }
 
-export interface IResourceNodeProps extends BaseNodeStyleProps {}
+export type IResourceNodeProps = BaseNodeStyleProps;
 
 type Theme = 'primary' | 'warning';
 interface ThemeConfig {
@@ -38,13 +39,14 @@ const THEME_CONFIG: Record<Theme, ThemeConfig> = {
   },
 };
 
-export default class ResourceNode extends BaseNode {
+export default class NetWorkUnitNode extends BaseNode {
   // 默认Logo样式
   static defaultLogoStyle: ImageStyleProps = {
     width: 24,
     height: 24,
     x: 20,
     y: 20,
+    zIndex: 2,
   };
   // 默认Logo文案样式
   static defaultLogoTextStyle: Omit<TextStyleProps, 'text'> = {
@@ -55,6 +57,7 @@ export default class ResourceNode extends BaseNode {
     y: 80,
     textAlign: 'end',
     fill: '#4D4F56',
+    zIndex: 2,
   };
   // 默认外层节点属性
   static defaultNodeStyle: RectStyleProps = {
@@ -68,29 +71,32 @@ export default class ResourceNode extends BaseNode {
     height: 64,
     width: 64,
     radius: 200,
+    zIndex: 2,
   };
 
   // 默认tag样式
   static defaultTagStyle: Omit<RectStyleProps, 'width'> = {
     height: 16,
     radius: 8,
-    x: 4
+    x: 12,
+    zIndex: 2,
   };
 
   static defaultTagTextStyle: Omit<TextStyleProps, 'text'> = {
     fontSize: 8,
     x: 10,
     lineHeight: 22,
-  }
+    zIndex: 2,
+  };
 
-  get data(): Partial<INodeData> {
+  get data(): INodeData {
     return this.context.model.getNodeLikeDatum(this.id)?.data as unknown as INodeData;// 获取当前节点数据
   }
 
   protected getKeyStyle(attr: Required<IResourceNodeProps>) {
-    return { 
+    return {
       ...super.getKeyStyle(attr),
-      ...ResourceNode.defaultNodeStyle,
+      ...NetWorkUnitNode.defaultNodeStyle,
     };
   }
 
@@ -99,39 +105,43 @@ export default class ResourceNode extends BaseNode {
     return this.upsert('key', Rect, this.getKeyStyle(attr), container);
   }
 
-  render(attr: Required<IResourceNodeProps>, container: Group) {
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public render(attr: Required<IResourceNodeProps>, container: Group) {
+    const { agent, proxy } = this.data;
     super.render(attr, container);
     this.drawNodeCenterLogo(container);
-    this.drawNodeLabel(attr, container);
-    this.drawNodeTag(container, 'primary', this.data.proxy);
-    this.drawNodeTag(container, 'warning', this.data.agent);
+    this.drawNodeLabel(container);
+    this.drawNodeTag(container, 'primary', proxy);
+    this.drawNodeTag(container, 'warning', agent);
   }
 
   private drawNodeCenterLogo(container: Group) {
     return this.upsert('logo', Image, {
-      ...ResourceNode.defaultLogoStyle,
+      ...NetWorkUnitNode.defaultLogoStyle,
       src: iconPathMap.Machine,
     }, container);
   }
 
-  drawNodeLabel(attr: Required<IResourceNodeProps>, container: Group) {
-    const textWidth = this.getStrCanvasWidth(this.data.name, 14);
-    const offsetX = (ResourceNode.defaultNodeStyle.width - textWidth) / 2;
+  private drawNodeLabel(container: Group) {
+    const text = this.data.name;
+    const textWidth = this.getStrCanvasWidth(text, 14);
+    const width = NetWorkUnitNode.defaultNodeStyle.width as number;
+    const offsetX = (width - textWidth) / 2;
     return this.upsert('label', Text, {
-      ...ResourceNode.defaultLogoTextStyle,
+      ...NetWorkUnitNode.defaultLogoTextStyle,
       x: textWidth + offsetX,
-      text: this.data.name,
+      text,
     }, container);
   }
 
-  drawNodeTag(container: Group, theme: 'primary' | 'warning', count: number) {
+  private drawNodeTag(container: Group, theme: 'primary' | 'warning', count: number) {
     const config = THEME_CONFIG[theme];
     const text = `${config.text} ${count}`;
-    const { x, height, radius } = ResourceNode.defaultTagStyle;
-    const { fontSize, lineHeight } = ResourceNode.defaultTagTextStyle;
+    const { x, height, radius } = NetWorkUnitNode.defaultTagStyle;
+    const { fontSize, lineHeight } = NetWorkUnitNode.defaultTagTextStyle;
     const paddingX = 12;
     const width = this.getStrCanvasWidth(text, fontSize) + paddingX;
-    this.upsert('label' + theme, Rect, {
+    this.upsert(`label${theme}`, Rect, {
       x,
       y: config.y,
       height,
@@ -140,8 +150,8 @@ export default class ResourceNode extends BaseNode {
       fill: config.backgroundColor,
     }, container);
 
-    this.upsert('theme' + theme, Text, {
-      x: config.x,
+    this.upsert(`theme${theme}`, Text, {
+      x: config.x + 8,
       y: config.y + 20,
       lineHeight,
       fontSize,
@@ -151,7 +161,7 @@ export default class ResourceNode extends BaseNode {
   }
 
   // 获取ASCII码对应的像素大小 todo 可能有性能问题
-  getStrCanvasWidth(str: string|number, fontSize: string|number = 10) {
+  private getStrCanvasWidth(str: string|number, fontSize: string|number = 10) {
     let len = 0;
     for (const letter of String(str)) {
       len += Number(fontSize) * (letterAspectRatio[letter] || 1);

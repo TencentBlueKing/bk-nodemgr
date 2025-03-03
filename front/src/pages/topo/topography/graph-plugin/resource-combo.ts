@@ -1,14 +1,13 @@
-import { BaseCombo } from "@antv/g6";
+import type { Group, RectStyleProps, TextStyleProps } from '@antv/g';
 import { Rect, Text } from '@antv/g';
-import type { RectStyleProps, Group, TextStyleProps } from '@antv/g';
-import type { BaseComboStyleProps } from '@antv/g6';
+import type { BaseComboStyleProps, NodeData } from '@antv/g6';
+import { BaseCombo } from '@antv/g6';
 
-export interface IResourceComboProps extends BaseComboStyleProps {}
+export type IResourceComboProps = BaseComboStyleProps;
 
 export interface IComboData {
   label: string;
 }
-
 export default class ResourceCombo extends BaseCombo {
   // 默认外层节点属性
   static defaultComboStyle: RectStyleProps = {
@@ -17,7 +16,10 @@ export default class ResourceCombo extends BaseCombo {
     stroke: '#F5F7FA',
     // stroke: '#000',
   };
-  static maxDefaultWidth = 520;
+  static readonly maxComboWidth = 520;
+  static readonly maxComboCol = 2;
+  static readonly maxComboRow = 4;
+  static readonly heightSegment = (ResourceCombo.defaultComboStyle.height as number) / ResourceCombo.maxComboRow;
 
   static defaultLabelStyle: Omit<TextStyleProps, 'text'> = {
     fontSize: 12,
@@ -27,23 +29,23 @@ export default class ResourceCombo extends BaseCombo {
     y: 26,
   };
 
-  constructor (options) {
-    super(options);
-  }
-
-
-  get data(): Partial<IComboData> {
+  get data(): IComboData {
     return this.context.model.getNodeLikeDatum(this.id)?.data as unknown as IComboData;// 获取当前节点数据
   }
 
   protected getKeyStyle(attr: Required<IResourceComboProps>) {
-    const { width, offsetX, offsetY } = this.getComboOffset(attr);
-    return { 
+    const { offsetX, offsetY } = this.getComboOffset(attr);
+    const nodes = attr.childrenData;
+    const width = this.getComboWidth(nodes) as number;
+    const height = this.getComboHeight(nodes) as number;
+    console.log('size', width, height)
+    return {
       ...super.getKeyStyle(attr),
       ...ResourceCombo.defaultComboStyle,
       width,
+      height,
       x: offsetX,
-      y: offsetY
+      y: offsetY,
     };
   }
 
@@ -52,7 +54,7 @@ export default class ResourceCombo extends BaseCombo {
     return this.upsert('key', Rect, this.getKeyStyle(attr), container);
   }
 
-  render(attr: Required<IResourceComboProps>, container: Group) {
+  protected render(attr: Required<IResourceComboProps>, container: Group) {
     super.render(attr, container);
     this.drawComboLabel(attr, container);
   }
@@ -61,6 +63,7 @@ export default class ResourceCombo extends BaseCombo {
     const text = this.data.label;
     const { offsetX, offsetY } = this.getComboOffset(attr);
     const { x, y } = ResourceCombo.defaultLabelStyle;
+    console.log('label', offsetX + (x as number), offsetY + (y as number))
     return this.upsert('label', Text, {
       ...ResourceCombo.defaultLabelStyle,
       x: offsetX + (x as number),
@@ -69,19 +72,29 @@ export default class ResourceCombo extends BaseCombo {
     }, container);
   }
 
-  getComboWidth(nodes) {
+  protected getComboWidth(nodes: NodeData[]) {
     const nodeCount = nodes.length;
     if (nodeCount >= 2) {
-      return ResourceCombo.maxDefaultWidth;
+      return ResourceCombo.maxComboWidth;
     }
     return ResourceCombo.defaultComboStyle.width;
   }
 
-  getComboOffset(attr: Required<IResourceComboProps>) {
+  protected getComboHeight(nodes: NodeData[]) {
+    let { height } = ResourceCombo.defaultComboStyle;
+    const maxNodesInCombo = ResourceCombo.maxComboCol * ResourceCombo.maxComboRow;
+    if (nodes.length > maxNodesInCombo) {
+      height = Math.ceil(nodes.length / ResourceCombo.maxComboCol) * ResourceCombo.heightSegment;
+    }
+    return height;
+  }
+
+  protected getComboOffset(attr: Required<IResourceComboProps>) {
     const comboPosition = this.getComboPosition(attr);
+    console.log('comboPosition', comboPosition)
     const width = this.getComboWidth(attr.childrenData) as number;
     const offsetX = (width / 2) * -1;
     const offsetY = (comboPosition[1]) * -1;
-    return { width, offsetX, offsetY };
+    return { offsetX, offsetY };
   }
 }
