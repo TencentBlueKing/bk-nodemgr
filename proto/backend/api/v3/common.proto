@@ -60,41 +60,32 @@ message NetworkUnit {
 // HostState describes the host state informations. Usually contains
 // agent-related things.
 message HostState {
-  string status = 1;
-  string version = 2;
-  string bk_agent_id = 3;
+  optional string node_role = 1;
+  optional string node_status = 2;
+  optional string node_version = 3;
+  optional string bk_agent_id = 4;
 }
 
 // HostInfo describes the host info informations. Usually contains static
 // configs.
 message HostInfo {
-  int64 bk_host_id = 1;
-  string bk_host_name = 2;
-  int64 bk_biz_id = 3;
-  string bk_biz_name = 4;
-  int64 bk_set_id = 5;
-  string bk_set_name = 6;
-  int64 bk_module_id = 7;
-  string bk_module_name = 8;
-  int64 bk_networkarea_id = 9;
-  string bk_networkarea_name = 10;
-  int64 bk_networkunit_id = 11;
-  string bk_networkunit_name = 12;
-  int64 bk_operate_dept_id = 13;
-  string bk_operate_dept_name = 14;
-  string bk_host_innerip = 15;
-  string bk_host_innerip_v6 = 16;
-  string bk_host_outerip = 17;
-  string bk_host_outerip_v6 = 18;
-  string login_ip = 19;
-  uint32 login_port = 20;
-  int64 bk_os_type = 21;
+  optional int64 bk_biz_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_host_name = 3;
+  optional string dept_name = 4;
+  optional string bk_host_innerip = 5;
+  optional string bk_host_innerip_v6 = 6;
+  optional string bk_host_outerip = 7;
+  optional string bk_host_outerip_v6 = 8;
+  optional string bk_mac = 9;
+  optional string bk_os_type = 10;
 }
 
 // Host describes the host informations.
 message Host {
-  HostState state = 1;
+  optional int64 bk_host_id = 1;
   HostInfo info = 2;
-  uint64 create_at = 3;
-  uint64 updated_at = 4;
+  HostState state = 3;
+  optional uint64 create_at = 4;
+  optional uint64 updated_at = 5;
 }

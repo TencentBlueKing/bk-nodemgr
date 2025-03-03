@@ -449,6 +449,128 @@
         }
       }
     },
+    "TopoHostListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_agent_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "TopoHostListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "bk_host_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dept_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_outerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_outerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "TopoNetworkAreaListReqConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "bk_networkarea_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_cloud_vendor": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -515,11 +637,15 @@
     "v3Host": {
       "type": "object",
       "properties": {
-        "state": {
-          "$ref": "#/definitions/v3HostState"
+        "bk_host_id": {
+          "type": "string",
+          "format": "int64"
         },
         "info": {
           "$ref": "#/definitions/v3HostInfo"
+        },
+        "state": {
+          "$ref": "#/definitions/v3HostState"
         },
         "create_at": {
           "type": "string",
@@ -535,53 +661,18 @@
     "v3HostInfo": {
       "type": "object",
       "properties": {
-        "bk_host_id": {
+        "bk_biz_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
           "type": "string",
           "format": "int64"
         },
         "bk_host_name": {
           "type": "string"
         },
-        "bk_biz_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_biz_name": {
-          "type": "string"
-        },
-        "bk_set_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_set_name": {
-          "type": "string"
-        },
-        "bk_module_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_module_name": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkarea_name": {
-          "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "bk_operate_dept_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_operate_dept_name": {
+        "dept_name": {
           "type": "string"
         },
         "bk_host_innerip": {
@@ -596,16 +687,11 @@
         "bk_host_outerip_v6": {
           "type": "string"
         },
-        "login_ip": {
+        "bk_mac": {
           "type": "string"
         },
-        "login_port": {
-          "type": "integer",
-          "format": "int64"
-        },
         "bk_os_type": {
-          "type": "string",
-          "format": "int64"
+          "type": "string"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."
@@ -613,10 +699,13 @@
     "v3HostState": {
       "type": "object",
       "properties": {
-        "status": {
+        "node_role": {
           "type": "string"
         },
-        "version": {
+        "node_status": {
+          "type": "string"
+        },
+        "node_version": {
           "type": "string"
         },
         "bk_agent_id": {
@@ -765,169 +854,14 @@
         "only_count": {
           "type": "boolean"
         },
-        "include_conditions": {
-          "$ref": "#/definitions/v3TopoHostListReqConditions"
+        "exact_include_conditions": {
+          "$ref": "#/definitions/TopoHostListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/TopoHostListReqFuzzyConditions"
         }
       },
       "description": "TopoHostListReq describes the HTTP request body when list host in topo\nservice."
-    },
-    "v3TopoHostListReqConditions": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "version": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_agent_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_host_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_biz_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_biz_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_set_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_set_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_module_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_module_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_networkarea_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkarea_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_networkunit_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkunit_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_operate_dept_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_operate_dept_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip_v6": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_outerip": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_outerip_v6": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "login_ip": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "login_port": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "bk_os_type": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      }
     },
     "v3TopoHostListResp": {
       "type": "object",
@@ -1082,35 +1016,10 @@
           "type": "boolean"
         },
         "include_conditions": {
-          "$ref": "#/definitions/v3TopoNetworkAreaListReqConditions"
+          "$ref": "#/definitions/TopoNetworkAreaListReqConditions"
         }
       },
       "description": "TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service."
-    },
-    "v3TopoNetworkAreaListReqConditions": {
-      "type": "object",
-      "properties": {
-        "bk_networkarea_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkarea_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_cloud_vendor": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      }
     },
     "v3TopoNetworkAreaListResp": {
       "type": "object",

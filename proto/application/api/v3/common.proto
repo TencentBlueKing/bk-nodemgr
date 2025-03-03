@@ -72,23 +72,19 @@ message HostInfo {
   string bk_host_name = 2;
   int64 bk_biz_id = 3;
   string bk_biz_name = 4;
-  int64 bk_set_id = 5;
-  string bk_set_name = 6;
-  int64 bk_module_id = 7;
-  string bk_module_name = 8;
-  int64 bk_networkarea_id = 9;
-  string bk_networkarea_name = 10;
-  int64 bk_networkunit_id = 11;
-  string bk_networkunit_name = 12;
-  int64 bk_operate_dept_id = 13;
-  string bk_operate_dept_name = 14;
-  string bk_host_innerip = 15;
-  string bk_host_innerip_v6 = 16;
-  string bk_host_outerip = 17;
-  string bk_host_outerip_v6 = 18;
-  string login_ip = 19;
-  uint32 login_port = 20;
-  int64 bk_os_type = 21;
+  int64 bk_networkarea_id = 5;
+  string bk_networkarea_name = 6;
+  int64 bk_networkunit_id = 7;
+  string bk_networkunit_name = 8;
+  int64 bk_operate_dept_id = 9;
+  string bk_operate_dept_name = 10;
+  string bk_host_innerip = 11;
+  string bk_host_innerip_v6 = 12;
+  string bk_host_outerip = 13;
+  string bk_host_outerip_v6 = 14;
+  string login_ip = 15;
+  uint32 login_port = 16;
+  string bk_os_type = 17;
 }
 
 // Host describes the host informations.

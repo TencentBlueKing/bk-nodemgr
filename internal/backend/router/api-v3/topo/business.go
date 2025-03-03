@@ -13,7 +13,12 @@ package topo
 import (
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	maxBusinessLimit = 1000
 )
 
 // ListBusiness list business with specified conditions.
@@ -21,13 +26,13 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 	req := new(proto.TopoBusinessListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list business, failed to decode request body. err: %v", err)
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	page := types.Page{}
@@ -36,10 +41,10 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		page.Limit = int(reqPage.GetLimit())
 	}
 
-	bizs, num, err := h.storage.ListBusinesses(sCtx, page)
+	bizs, num, err := h.storage.ListBusinesses(sCtx, generatePage(req.GetPage(), maxBusinessLimit))
 	if err != nil {
 		h.logger.Errorf("failed to list business, err: %v", err)
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	items := make([]*proto.Business, len(bizs))

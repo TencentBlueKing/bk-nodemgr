@@ -12,7 +12,7 @@
 // Everything from API or Database should be converted into types in this package before using.
 package types
 
-// Business represents a cmdb business under a tenant.
+// Business represents a business under a tenant.
 type Business struct {
 	// belongs to.
 	TenantID string
@@ -22,24 +22,98 @@ type Business struct {
 	BizName string
 }
 
-// Host represents a cmdb host.
-type Host struct {
+// HostStatic represents a static host under a host.
+// static means it is synced from CMDB.
+// or sometimes it will be insert first into database in case of syncing latency.
+type HostStatic struct {
 	// belongs to
-	TenantID      string
-	NetworkAreaID int64
-	UnitID        int64
 	BizID         int64
-
-	// host-id is the unique identifier for a host.
-	HostID int64
+	NetworkAreaID int64
 
 	// host information.
-	InnerIP string
-	Mac     string
-	OSType  string
+	HostName  string
+	DeptName  string
+	InnerIP   string
+	InnerIPV6 string
+	OuterIP   string
+	OuterIPV6 string
+	Mac       string
+	OSType    string
+
+	// synced types, do not use this for processing.
+	// just use it for comparing and checking.
+	SyncedAgentID string
 }
 
-// NetworkArea represents a cmdb network-area. In which IPs will not be duplicated.
+// NodeRole represents a node role.
+type NodeRole string
+
+const (
+	// NodeRoleBlank means this node is blank. nothing installed.
+	NodeRoleBlank NodeRole = "blank"
+
+	// NodeRoleAgent means this node is an agent.
+	NodeRoleAgent NodeRole = "agent"
+
+	// NodeRoleProxy means this node is a proxy.
+	NodeRoleProxy NodeRole = "proxy"
+)
+
+// NodeStatus represents a node status when node role is not blank.
+type NodeStatus string
+
+const (
+	// NodeStatusUnknown means this node status is unknown.
+	NodeStatusUnknown NodeStatus = "unknown"
+
+	// NodeStatusInit means this node status is init.
+	NodeStatusInit NodeStatus = "init"
+
+	// NodeStatusRunning means this node status is running.
+	NodeStatusRunning NodeStatus = "running"
+
+	// NodeStatusDamaged means this node status is damaged.
+	NodeStatusDamaged NodeStatus = "damaged"
+
+	// NodeStatusBusy means this node status is busy.
+	NodeStatusBusy NodeStatus = "busy"
+
+	// NodeStatusUpgrading means this node status is upgrading.
+	NodeStatusUpgrading NodeStatus = "upgrading"
+
+	// NodeStatusOffline means this node status is offline.
+	NodeStatusOffline NodeStatus = "offline"
+)
+
+// HostDynamic represents a dynamic host under a host.
+// dynamic means it is set by user.
+type HostDynamic struct {
+	NodeRole    NodeRole
+	NodeStatus  NodeStatus
+	NodeVersion string
+	AgentID     string
+}
+
+// NewBlankNodeDynamic returns a blank node dynamic.
+func NewBlankNodeDynamic() *HostDynamic {
+	return &HostDynamic{
+		NodeRole:    NodeRoleBlank,
+		NodeStatus:  NodeStatusUnknown,
+		NodeVersion: "",
+		AgentID:     "",
+	}
+}
+
+// Host represents a host.
+type Host struct {
+	HostID   int64
+	TenantID string
+
+	Static  *HostStatic
+	Dynamic *HostDynamic
+}
+
+// NetworkArea represents a network-area. In which IPs will not be duplicated.
 type NetworkArea struct {
 	// belongs to
 	TenantID string

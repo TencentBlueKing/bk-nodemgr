@@ -92,20 +92,20 @@ func (s *storage) UpsertBusiness(ctx context.Context, biz ...*types.Business) er
 	return nil
 }
 
-// ListBusinesses lists all businesses.
+// ListBusinesses lists businesses by page and conditions.
 func (s *storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) (
 	[]*types.Business, int64, error) {
 
 	opts := make([]business.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
-		case types.ConditionTypeInclude:
+		case types.ConditionTypeExactInclude:
 			opts = append(opts,
 				business.WithBizID(condition.BizID...),
 				business.WithBizName(condition.BizName...),
 			)
 
-		case types.ConditionTypeExclude:
+		case types.ConditionTypeExactExclude:
 			opts = append(opts,
 				business.WithoutBizID(condition.BizID...),
 				business.WithoutBizName(condition.BizName...),
@@ -129,9 +129,94 @@ func (s *storage) UpsertHosts(ctx context.Context, hosts ...*types.Host) error {
 		return nil
 	}
 
-	if err := s.daoHost.UpsertMany(ctx, hosts); err != nil {
+	if err := s.daoHost.UpsertMany(ctx, hosts...); err != nil {
 		return fmt.Errorf("failed to upsert hosts: %v", err)
 	}
 
 	return nil
+}
+
+// UpsertHostStatics updates or inserts host statics.
+func (s *storage) UpsertHostStatics(ctx context.Context, hosts ...*types.Host) error {
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if len(hosts) == 0 {
+		return nil
+	}
+
+	if err := s.daoHost.UpsertStaticMany(ctx, hosts...); err != nil {
+		return fmt.Errorf("failed to upsert host statics: %v", err)
+	}
+
+	return nil
+}
+
+// nolint:cyclop
+// ListHosts lists hosts by page and conditions.
+func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...HostCondition) (
+	[]*types.Host, int64, error) {
+
+	opts := make([]host.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					host.WithHostID(condition.Exact.HostID...),
+					host.WithBizID(condition.Exact.BizID...),
+					host.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+					host.WithOSType(condition.Exact.OSType...),
+					host.WithNodeRole(condition.Exact.NodeRole...),
+					host.WithNodeStatus(condition.Exact.NodeStatus...),
+					host.WithNodeVersion(condition.Exact.NodeVersion...),
+					host.WithAgentID(condition.Exact.AgentID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					business.WithoutBizID(condition.Exact.HostID...),
+					host.WithoutBizID(condition.Exact.BizID...),
+					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+					host.WithoutOSType(condition.Exact.OSType...),
+					host.WithoutNodeRole(condition.Exact.NodeRole...),
+					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
+					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
+					host.WithoutAgentID(condition.Exact.AgentID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					host.WithFuzzyHostName(condition.Fuzzy.HostName...),
+					host.WithFuzzyDeptName(condition.Fuzzy.DeptName...),
+					host.WithFuzzyInnerIP(condition.Fuzzy.InnerIP...),
+					host.WithFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
+					host.WithFuzzyOuterIP(condition.Fuzzy.OuterIP...),
+					host.WithFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyExclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					host.WithoutFuzzyHostName(condition.Fuzzy.HostName...),
+					host.WithoutFuzzyDeptName(condition.Fuzzy.DeptName...),
+					host.WithoutFuzzyInnerIP(condition.Fuzzy.InnerIP...),
+					host.WithoutFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
+					host.WithoutFuzzyOuterIP(condition.Fuzzy.OuterIP...),
+					host.WithoutFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
+				)
+			}
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoHost.List(ctx, page, opts...)
 }

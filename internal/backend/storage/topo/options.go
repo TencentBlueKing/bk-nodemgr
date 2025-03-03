@@ -20,3 +20,38 @@ type BusinessCondition struct {
 	BizID   []int64
 	BizName []string
 }
+
+// HostExactFields defines the host exact fields.
+// support includes and excludes.
+type HostExactFields struct {
+	HostID        []int64
+	BizID         []int64
+	NetworkAreaID []int64
+	OSType        []string
+	NodeRole      []types.NodeRole
+	NodeStatus    []types.NodeStatus
+	NodeVersion   []string
+	AgentID       []string
+}
+
+// HostFuzzyFields defines the host fuzzy fields.
+type HostFuzzyFields struct {
+	HostName  []string
+	DeptName  []string
+	InnerIP   []string
+	InnerIPV6 []string
+	OuterIP   []string
+	OuterIPV6 []string
+}
+
+// HostCondition defines the host condition.
+// in this condition, fields are generated with AND expr.
+type HostCondition struct {
+	Type types.ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *HostExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *HostFuzzyFields
+}

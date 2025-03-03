@@ -10,83 +10,29 @@
 
 package business
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+)
 
-// OptFn option of find.
-type OptFn func(f bson.D) bson.D
+// OptFn provides filtering options.
+type OptFn = base.OptFn
 
 // WithBizID filters by biz-id.
 func WithBizID(bizIDs ...int64) OptFn {
-	if len(bizIDs) == 0 {
-		return func(f bson.D) bson.D {
-			return f
-		}
-	}
-
-	if len(bizIDs) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.biz_id", Value: bizIDs[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.biz_id", Value: bson.M{"$in": bizIDs}})
-	}
+	return base.WithInt64Values("data.biz_id", bizIDs...)
 }
 
 // WithoutBizID filters by not contains biz-id.
 func WithoutBizID(bizIDs ...int64) OptFn {
-	if len(bizIDs) == 0 {
-		return func(f bson.D) bson.D {
-			return f
-		}
-	}
-
-	if len(bizIDs) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.biz_id", Value: bson.M{"$ne": bizIDs[0]}})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.biz_id", Value: bson.M{"$nin": bizIDs}})
-	}
+	return base.WithoutInt64Values("data.biz_id", bizIDs...)
 }
 
 // WithBizName filters by biz-name.
 func WithBizName(bizNames ...string) OptFn {
-	if len(bizNames) == 0 {
-		return func(f bson.D) bson.D {
-			return f
-		}
-	}
-
-	if len(bizNames) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.biz_name", Value: bizNames[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.biz_name", Value: bson.M{"$in": bizNames}})
-	}
+	return base.WithStringValues("data.biz_name", bizNames...)
 }
 
 // WithoutBizName filters by not contains biz-name.
 func WithoutBizName(bizNames ...string) OptFn {
-	if len(bizNames) == 0 {
-		return func(f bson.D) bson.D {
-			return f
-		}
-	}
-
-	if len(bizNames) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.biz_name", Value: bson.M{"$ne": bizNames[0]}})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.biz_name", Value: bson.M{"$nin": bizNames}})
-	}
+	return base.WithoutStringValues("data.biz_name", bizNames...)
 }

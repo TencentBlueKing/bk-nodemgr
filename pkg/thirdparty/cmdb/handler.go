@@ -62,13 +62,22 @@ func (h *handler) ListBizHosts(ctx context.Context, BizID int64, page types.Page
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
 		hosts[idx] = &types.Host{
-			TenantID:      tenantID,
-			NetworkAreaID: host.BKCloudID,
-			BizID:         req.BKBizID,
-			HostID:        host.BKHostID,
-			InnerIP:       host.BKHostInnerIPV4,
-			Mac:           host.BKMac,
-			OSType:        host.BKOsType,
+			HostID:   host.BKHostID,
+			TenantID: tenantID,
+			Static: &types.HostStatic{
+				BizID:         BizID,
+				NetworkAreaID: host.BKCloudID,
+				HostName:      host.BKHostName,
+				DeptName:      host.DeptName,
+				InnerIP:       host.BKHostInnerIPV4,
+				InnerIPV6:     host.BKHostInnerIPV6,
+				OuterIP:       host.BKHostOuterIPV4,
+				OuterIPV6:     host.BKHostOuterIPV6,
+				Mac:           host.BKMac,
+				OSType:        host.BKOsType,
+				SyncedAgentID: host.BKAgentID,
+			},
+			Dynamic: types.NewBlankNodeDynamic(),
 		}
 	}
 

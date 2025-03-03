@@ -184,7 +184,7 @@ func Test_handler_SearchNetArea(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.SearchNetArea(tt.args.ctx, tt.args.page)
+			got, err := h.SearchNetworkArea(tt.args.ctx, tt.args.page)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SearchNetArea() error = %v, wantErr %v", err, tt.wantErr)
 				return

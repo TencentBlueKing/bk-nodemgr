@@ -15,8 +15,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,4 +44,28 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/business/list", rest.RestHandlerFunc(h.ListBusiness))
+	h.rg.POST("/host/list", rest.RestHandlerFunc(h.ListHost))
+}
+
+// generatePage generates list page.
+func generatePage(reqPage *proto.Page, maxLimit int) types.Page {
+	page := types.Page{}
+	if reqPage != nil {
+		page.Offset = int(reqPage.GetOffset())
+		page.Limit = int(reqPage.GetLimit())
+	}
+
+	if page.Offset < 0 {
+		page.Offset = 0
+	}
+
+	if page.Limit < 0 {
+		page.Limit = 0
+	}
+
+	if page.Limit > maxLimit {
+		page.Limit = maxLimit
+	}
+
+	return page
 }

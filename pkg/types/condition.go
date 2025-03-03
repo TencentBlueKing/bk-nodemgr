@@ -18,9 +18,15 @@ type Condition struct {
 type ConditionType string
 
 const (
-	// ConditionTypeInclude means this condition should be matched including given values.
-	ConditionTypeInclude ConditionType = "include"
+	// ConditionTypeExactInclude means this condition should be matched including given values in exact mode.
+	ConditionTypeExactInclude ConditionType = "exact_include"
 
-	// ConditionTypeExclude means this condition should be matched excluding given values.
-	ConditionTypeExclude ConditionType = "exclude"
+	// ConditionTypeExactExclude means this condition should be matched excluding given values in exact mode.
+	ConditionTypeExactExclude ConditionType = "exact_exclude"
+
+	// ConditionTypeFuzzyInclude means this condition should be matched including given values in a fuzzy mode.
+	ConditionTypeFuzzyInclude ConditionType = "fuzzy_include"
+
+	// ConditionTypeFuzzyExclude means this condition should be matched excluding given values in a fuzzy mode.
+	ConditionTypeFuzzyExclude ConditionType = "fuzzy_exclude"
 )

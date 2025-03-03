@@ -549,20 +549,6 @@
         "bk_biz_name": {
           "type": "string"
         },
-        "bk_set_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_set_name": {
-          "type": "string"
-        },
-        "bk_module_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_module_name": {
-          "type": "string"
-        },
         "bk_networkarea_id": {
           "type": "string",
           "format": "int64"
@@ -604,8 +590,7 @@
           "format": "int64"
         },
         "bk_os_type": {
-          "type": "string",
-          "format": "int64"
+          "type": "string"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."

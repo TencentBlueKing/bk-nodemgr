@@ -25,9 +25,15 @@ type Storage interface {
 	// UpsertBusiness updates or inserts a business.
 	UpsertBusiness(ctx context.Context, biz ...*types.Business) error
 
-	// ListBusinesses ...
+	// ListBusinesses lists businesses by page and conditions.
 	ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) ([]*types.Business, int64, error)
 
 	// UpsertHosts updates or inserts host.
 	UpsertHosts(ctx context.Context, host ...*types.Host) error
+
+	// UpsertHostStatics updates or inserts host statics.
+	UpsertHostStatics(ctx context.Context, host ...*types.Host) error
+
+	// ListHosts lists hosts by page and conditions.
+	ListHosts(ctx context.Context, page types.Page, conditions ...HostCondition) ([]*types.Host, int64, error)
 }
