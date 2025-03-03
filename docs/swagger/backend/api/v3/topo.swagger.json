@@ -637,6 +637,9 @@
     "v3Host": {
       "type": "object",
       "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
         "bk_host_id": {
           "type": "string",
           "format": "int64"

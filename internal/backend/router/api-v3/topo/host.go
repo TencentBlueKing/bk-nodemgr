@@ -45,6 +45,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	items := make([]*proto.Host, len(hosts))
 	for idx, host := range hosts {
 		item := generateEmptyHost()
+		*item.TenantId = host.TenantID
 		*item.BkHostId = host.HostID
 
 		*item.Info.BkBizId = host.Static.BizID
@@ -133,6 +134,7 @@ func genericHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
 
 func generateEmptyHost() *proto.Host {
 	return &proto.Host{
+		TenantId: new(string),
 		BkHostId: new(int64),
 		Info: &proto.HostInfo{
 			BkBizId:         new(int64),

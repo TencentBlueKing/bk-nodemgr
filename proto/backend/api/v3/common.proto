@@ -10,9 +10,9 @@ message Page {
 
 // Business describes the business informations.
 message Business {
-  string tenant_id = 1;
-  int64 bk_biz_id = 2;
-  string bk_biz_name = 3;
+  optional string tenant_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional string bk_biz_name = 3;
 }
 
 // NetworkArea describes the network area informations.
@@ -83,9 +83,10 @@ message HostInfo {
 
 // Host describes the host informations.
 message Host {
-  optional int64 bk_host_id = 1;
-  HostInfo info = 2;
-  HostState state = 3;
-  optional uint64 create_at = 4;
-  optional uint64 updated_at = 5;
+  optional string tenant_id = 1;
+  optional int64 bk_host_id = 2;
+  HostInfo info = 3;
+  HostState state = 4;
+  optional uint64 create_at = 5;
+  optional uint64 updated_at = 6;
 }
