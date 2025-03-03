@@ -12,6 +12,8 @@
 package topo
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -45,6 +47,22 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/business/list", rest.RestHandlerFunc(h.ListBusiness))
 	h.rg.POST("/host/list", rest.RestHandlerFunc(h.ListHost))
+}
+
+func validateTopoPage(reqPage *proto.Page) error {
+	if reqPage == nil {
+		return nil
+	}
+
+	if reqPage.GetOffset() < 0 {
+		return errors.New("\"page.offset\" field must be >= 0")
+	}
+
+	if reqPage.GetLimit() < 0 {
+		return errors.New("\"page.limit\" field must be >= 0")
+	}
+
+	return nil
 }
 
 // generatePage generates list page.

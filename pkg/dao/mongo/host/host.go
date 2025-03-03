@@ -90,18 +90,18 @@ func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOpti
 		return nil, err
 	}
 
-	bizs := make([]*Host, 0)
+	hosts := make([]*Host, 0)
 	for result.Next(ctx) {
 		table := &TableHost{}
 		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode business, err %v", err)
+			d.logger.Warnf("failed to decode host, err %v", err)
 
 			continue
 		}
-		bizs = append(bizs, table.Data)
+		hosts = append(hosts, table.Data)
 	}
 
-	return bizs, nil
+	return hosts, nil
 }
 
 // upsertMany upsert many hosts.

@@ -30,6 +30,11 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	if err := validateTopoHostListReq(req); err != nil {
+		h.logger.Errorf("failed to list host, failed to validate request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to list host, failed to get request context. err: %v", err)
@@ -73,6 +78,14 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	}
 
 	return resp, nil
+}
+
+func validateTopoHostListReq(req *proto.TopoHostListReq) error {
+	if err := validateTopoPage(req.GetPage()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func genericHostConditions(req *proto.TopoHostListReq) topo.HostCondition {

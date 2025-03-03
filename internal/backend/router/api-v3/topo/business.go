@@ -29,6 +29,11 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	if err := validateTopoBusinessListReq(req); err != nil {
+		h.logger.Errorf("failed to list business, failed to validate request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
@@ -63,6 +68,14 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 	}
 
 	return resp, nil
+}
+
+func validateTopoBusinessListReq(req *proto.TopoBusinessListReq) error {
+	if err := validateTopoPage(req.GetPage()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func newEmptyBusiness() *proto.Business {
