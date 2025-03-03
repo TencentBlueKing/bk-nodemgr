@@ -95,6 +95,8 @@ topoManager:
       minimap: Map
       center: Back To Center
       originalSize: Original Size
+    select:
+      tips: 至少选择{count}个区域
   record:
     title: Operation Record
 action:

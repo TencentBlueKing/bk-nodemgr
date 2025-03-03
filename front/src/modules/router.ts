@@ -10,7 +10,7 @@ import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
 import OperationRecord from '@/pages/topo/record.vue';
-import Topography from '@/pages/topo/topo.vue';
+import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import type { UserModule } from '@/types';
@@ -98,9 +98,9 @@ const routes = setupLayouts([
             path: 'workarea',
             component: WorkArea,
             meta: {
+              title: '管控区域',
               back: false,
               mainMenu: 'topoManager',
-              title: '管控区域',
             },
           },
           {
@@ -118,6 +118,8 @@ const routes = setupLayouts([
             path: 'topo',
             component: Topography,
             meta: {
+              title: '拓扑图',
+              subTitle: '拓扑图展示各个管控单元之间的拓扑联系',
               back: false,
               mainMenu: 'topoManager',
             },
@@ -127,6 +129,7 @@ const routes = setupLayouts([
             path: 'record',
             component: OperationRecord,
             meta: {
+              title: '操作记录',
               back: false,
               mainMenu: 'topoManager',
             },

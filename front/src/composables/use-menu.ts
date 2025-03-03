@@ -59,12 +59,12 @@ const navList = [
         children: [
           {
             routeName: 'workarea',
-            icon: '',
+            icon: 'nodeman-icon nc-workarea',
             title: i18n.global.t('topoManager.workArea.title'),
           },
           {
             routeName: 'topo',
-            icon: '',
+            icon: 'nodeman-icon nc-topo',
             title: i18n.global.t('拓扑图'),
           },
         ],
@@ -74,7 +74,7 @@ const navList = [
         children: [
           {
             routeName: 'record',
-            icon: '',
+            icon: 'nodeman-icon nc-record',
             title: i18n.global.t('操作记录'),
           },
         ],

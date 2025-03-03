@@ -114,6 +114,8 @@ topoManager:
       minimap: 地图
       center: 回中
       originalSize: 原始大小
+    select:
+      tips: Select at least {count} workarea
   record:
     title: 操作记录
 action:

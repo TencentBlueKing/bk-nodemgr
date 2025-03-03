@@ -353,3 +353,27 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-angle-double-down:before {
 	content: "\e17c";
 }
+.nc-excel-2:before {
+	content: "\e17e";
+}
+.nc-topo:before {
+	content: "\e17d";
+}
+.nc-edit:before {
+	content: "\e17f";
+}
+.nc-remote-install:before {
+	content: "\e182";
+}
+.nc-workarea:before {
+	content: "\e180";
+}
+.nc-record:before {
+	content: "\e181";
+}
+.nc-custom-install:before {
+	content: "\e183";
+}
+.nc-cloud-machine:before {
+	content: "\e184";
+}
