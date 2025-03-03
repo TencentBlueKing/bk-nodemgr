@@ -49,7 +49,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 
 	items := make([]*proto.Business, len(bizs))
 	for idx, biz := range bizs {
-		item := generateEmptyBusiness()
+		item := newEmptyBusiness()
 		*item.TenantId = biz.TenantID
 		*item.BkBizId = biz.BizID
 		*item.BkBizName = biz.BizName
@@ -65,7 +65,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func generateEmptyBusiness() *proto.Business {
+func newEmptyBusiness() *proto.Business {
 	return &proto.Business{
 		TenantId:  new(string),
 		BkBizId:   new(int64),
