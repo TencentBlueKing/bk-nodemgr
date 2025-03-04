@@ -12,6 +12,7 @@
 package workflowdef
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"strings"
@@ -188,22 +189,32 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 	ctx.Data.Log(fmt.Sprintf("start to exec cmd on host, addr(%s)", param.getAddr()))
 
 	cmds, err := param.getCmds()
-	coutputs := make([]string, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get cmd, err: %v", err)
 	}
 
+	var stdout, stderr bytes.Buffer
+	session.Stdout = &stdout
+	session.Stderr = &stderr
+
+	outputMap := make(map[string]string)
 	for _, cmd := range cmds {
-		output, err := session.CombinedOutput(cmd)
+		err = session.Run(cmd)
+
+		output := fmt.Sprintf("stdout(%s), stderr(%s)", stdout.String(), stderr.String())
+		stdout.Reset()
+		stderr.Reset()
+
 		if err != nil {
-			return fmt.Errorf("failed to exec cmd, err: %v", err)
+			return fmt.Errorf("failed to exec cmd, cmd(%s), output(%s), err: %v", cmd, output, err)
 		}
 
 		ctx.Data.Log(fmt.Sprintf("exec cmd, cmd(%s), output(%s)", cmd, output))
 		s.logger.Infof("exec cmd on host, host(%s), cmd(%s), output(%s)", param.getAddr(), cmd, output)
+		outputMap[cmd] = output
 	}
 
-	ctx.Data.Content["ssh_output"] = coutputs
+	ctx.Data.Content["ssh_output"] = outputMap
 
 	return nil
 }
