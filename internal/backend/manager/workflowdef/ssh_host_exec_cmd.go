@@ -12,18 +12,15 @@
 package workflowdef
 
 import (
-	"bytes"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
-	"golang.org/x/crypto/ssh"
 )
 
 // NewActionSshHostExecCmd ...
@@ -138,52 +135,18 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	config := &ssh.ClientConfig{
-		User: param.getUser(),
-		Auth: []ssh.AuthMethod{
-			ssh.Password(string(passwd)),
-		},
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
-		BannerCallback: func(message string) error {
-			s.logger.Infof("ssh banner: %s", message)
-
-			return nil
-		},
-		Timeout: s.getTimeout(),
-	}
-
-	// because of the network may be unstable, so we need to retry.
-	retrier := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
-		MaxRetries:    5,
-		BaseDelay:     1 * time.Second,
-		MaxDelay:      3 * time.Second,
-		JitterPercent: 0.2,
-		Logger:        s.logger,
-	})
-
-	var client *ssh.Client
-	err = retrier.Do(ctx.Ctx, func(attempt int) error {
-		client, err = ssh.Dial(param.getNetwork(), param.getAddr(), config)
-		if err != nil {
-			s.logger.Errorf("failed to connect to host, host(%s), err: %v", param.getAddr(), err)
-			return err
-		}
-
-		return nil
-	})
+	client, err := sshx.NewClient(ctx.Ctx, &sshx.Config{
+		Network:  sshx.Network(param.getNetwork()),
+		IP:       param.IP,
+		Port:     param.Port,
+		User:     param.getUser(),
+		Password: string(passwd),
+		Logger:   s.logger,
+	}, s.getTimeout())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to host, err: %v", err)
 	}
-
 	defer client.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		return fmt.Errorf("failed to create session, err: %v", err)
-	}
-	defer session.Close()
 
 	s.logger.Infof("successfully connected to host, addr(%s)", param.getAddr())
 	ctx.Data.Log(fmt.Sprintf("start to exec cmd on host, addr(%s)", param.getAddr()))
@@ -193,18 +156,9 @@ func (s *sshHostExecCmd) Do(ctx *operengine.ActionInstContext) error {
 		return fmt.Errorf("failed to get cmd, err: %v", err)
 	}
 
-	var stdout, stderr bytes.Buffer
-	session.Stdout = &stdout
-	session.Stderr = &stderr
-
 	outputMap := make(map[string]string)
 	for _, cmd := range cmds {
-		err = session.Run(cmd)
-
-		output := fmt.Sprintf("stdout(%s), stderr(%s)", stdout.String(), stderr.String())
-		stdout.Reset()
-		stderr.Reset()
-
+		output, err := client.RunCommand(cmd)
 		if err != nil {
 			return fmt.Errorf("failed to exec cmd, cmd(%s), output(%s), err: %v", cmd, output, err)
 		}
