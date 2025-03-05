@@ -30,8 +30,9 @@ type HeaderSetter interface {
 
 // Config the config of cmdb.
 type Config struct {
-	TenantID     string
-	HeaderSetter HeaderSetter
+	TenantID        string
+	SupplierAccount string
+	HeaderSetter    HeaderSetter
 }
 
 // cli client for cmdb.
@@ -103,7 +104,7 @@ func (c *cli) searchBusiness(ctx context.Context, req *SearchBusinessReq) (*Sear
 	}
 
 	err = c.client.Post().
-		SubResourcef("/biz/search/%s", req.BKSupplierAccount).
+		SubResourcef("/biz/search/%s", c.config.SupplierAccount).
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -139,6 +140,205 @@ func (c *cli) searchCloudArea(ctx context.Context, req *SearchCloudAreaReq) (*Se
 
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("search cloud area failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// createCloudArea create cloud area.
+func (c *cli) createCloudArea(ctx context.Context, req *CreateCloudAreaReq) (*CreateCloudAreaResp, error) {
+	resp := new(BaseBroker[*CreateCloudAreaResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/create/cloudarea").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("create cloud area failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// updateCloudArea update cloud area
+func (c *cli) updateCloudArea(ctx context.Context, req *UpdateCloudAreaReq) error {
+	resp := new(BaseBroker[*UpdateCloudAreaResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Put().
+		SubResourcef("/update/cloudarea/%d", req.BKCloudID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("update cloud area failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// deleteCloudArea delete cloud area
+func (c *cli) deleteCloudArea(ctx context.Context, req *DeleteCloudAreaReq) error {
+	resp := new(BaseBroker[*UpdateCloudAreaResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Delete().
+		SubResourcef("/delete/cloudarea/%d", req.BKCloudID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("delete cloud area failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// updateHostCloudAreaField update host cloud area field
+func (c *cli) updateHostCloudAreaField(ctx context.Context, req *UpdateHostCloudAreaFieldReq) error {
+	resp := new(BaseBroker[*UpdateHostCloudAreaFieldResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Put().
+		SubResourcef("/updatemany/hosts/cloudarea_field").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("update host cloud area field failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// searchBizInstTopo search biz inst topo.
+func (c *cli) searchBizInstTopo(ctx context.Context, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
+	resp := new(BaseBroker[*SearchBizInstTopoResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/find/topoinst/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search biz inst topo failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// getBizInternalModule get biz internal module.
+func (c *cli) getBizInternalModule(ctx context.Context, req *GetBizInternalModuleReq) (*GetBizInternalModuleResp, error) {
+	resp := new(BaseBroker[*GetBizInternalModuleResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		SubResourcef("/topo/internal/%d/%d", c.config.SupplierAccount, req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get biz internal module failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findTopoNodePaths find topo node paths
+func (c *cli) findTopoNodePaths(ctx context.Context, req *FindTopoNodePathsReq) (*FindTopoNodePathsResp, error) {
+	resp := new(BaseBroker[*FindTopoNodePathsResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/cache/find/cache/topo/node_path/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find topo node paths failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findModuleBatch find module batch
+func (c *cli) findModuleBatch(ctx context.Context, req *FindModuleBatchReq) (*FindModuleBatchResp, error) {
+	resp := new(BaseBroker[*FindModuleBatchResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("findmany/module/bk_biz_id/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find module batch failed, err: %v", err)
 	}
 
 	return resp.Data, nil

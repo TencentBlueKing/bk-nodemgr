@@ -149,8 +149,8 @@ type APIGateway struct {
 
 // CMDB the config of cmdb.
 type CMDB struct {
-	TenantID   string
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+	SupplierAccount string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
+	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
 // TLSConfig defines tls related options.

@@ -288,8 +288,8 @@ func newCMDBHandler(conf config.CMDB) (cmdb.Handler, error) {
 
 	apiGwClientCapability.Name = "cmdb"
 	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
-		TenantID:     conf.TenantID,
-		HeaderSetter: apiGwHeaderSetter,
+		SupplierAccount: conf.SupplierAccount,
+		HeaderSetter:    apiGwHeaderSetter,
 	})
 	if err != nil {
 		return nil, err
