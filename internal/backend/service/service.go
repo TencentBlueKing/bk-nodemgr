@@ -156,6 +156,12 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.registerRestServer(conf)
+
+	return svc, nil
+}
+
+func (svc *Service) registerRestServer(conf *config.BackendService) {
 	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
 		loggerWriterAdaptor{},
 		nil,
@@ -186,8 +192,6 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	)
 
 	svc.servers = append(svc.servers, callbackServer)
-
-	return svc, nil
 }
 
 func initRedis(conf *config.Redis) (*redis.Client, error) {
@@ -280,8 +284,8 @@ func withCallback(capability *options.Capability) rest.OptionFunc {
 
 // newCMDBHandler.
 func newCMDBHandler(conf config.CMDB) (cmdb.Handler, error) {
-	apiGwHeaderSetter := newApiGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newApiGwClientCapability(&conf.APIGateway)
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
 	if err != nil {
 		return nil, err
 	}
@@ -298,8 +302,8 @@ func newCMDBHandler(conf config.CMDB) (cmdb.Handler, error) {
 	return cmdbHandler, nil
 }
 
-// newApiGwClientCapability creates a new api-gateway client capability.
-func newApiGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
+// newAPIGwClientCapability creates a new api-gateway client capability.
+func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
 	httpClient, err := client.NewClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -322,8 +326,8 @@ func newApiGwClientCapability(conf *config.APIGateway) (*client.Capability, erro
 	return clientCap, nil
 }
 
-// newApiGwHeaderSetter creates a new api-gateway header setter.
-func newApiGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
+// newAPIGwHeaderSetter creates a new api-gateway header setter.
+func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
 	return &apigw.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,
@@ -355,7 +359,7 @@ func (svc *Service) Start() error {
 
 	// start servers
 	gp := gopool.NewPool()
-	for idx, _ := range svc.servers {
+	for idx := range svc.servers {
 		server := svc.servers[idx]
 
 		// server start will block until server stop, so we need to run it in a goroutine.
