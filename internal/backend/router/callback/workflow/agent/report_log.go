@@ -70,6 +70,7 @@ func (h handler) parseToken(tokenStr string) (*Token, error) {
 	return token, nil
 }
 
+// Token this is the token of report log.
 type Token struct {
 	TaskID    string `json:"task_id"`
 	BKHostID  string `json:"bk_host_id"`

@@ -12,8 +12,6 @@ package gse
 
 import (
 	"fmt"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
 // AgentInfo describes the agent information from gse.
@@ -77,9 +75,12 @@ type BaseBroker[T any] struct {
 	Data T `json:"data"`
 }
 
+// CodeOK define the success code.
+const CodeOK = 0
+
 // IsFailed returns the code of response.
 func (resp *BaseBroker[T]) IsFailed() error {
-	if resp.Code != errf.OK {
+	if resp.Code != CodeOK {
 		return fmt.Errorf("code(%d) , msg(%s) ", resp.Code, resp.Message)
 	}
 
