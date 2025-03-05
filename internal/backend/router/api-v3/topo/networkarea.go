@@ -43,13 +43,16 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: cmdb create cloudarea and get the cloud-id back.
-	var cloudID int64 = 1
+	networkArea, err := h.cmdbHandler.CreateNetworkArea(sCtx, req.GetBkNetworkareaName())
+	if err != nil {
+		h.logger.Errorf("failed to create networkarea, failed to create networkarea via cmdb. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 
 	if err := h.storage.UpsertManyNetworkArea(sCtx, &types.NetworkArea{
 		TenantID:    ctx.TenantID,
-		ID:          cloudID,
-		Name:        req.GetBkNetworkareaName(),
+		ID:          networkArea.ID,
+		Name:        networkArea.Name,
 		CloudVendor: req.GetBkCloudVendor(),
 	}); err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to upsert networkarea. err: %v", err)
@@ -57,7 +60,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 	}
 
 	resp := &proto.TopoNetworkAreaCreateResp_Data{BkNetworkareaId: new(int64)}
-	*resp.BkNetworkareaId = cloudID
+	*resp.BkNetworkareaId = networkArea.ID
 
 	return resp, nil
 }
