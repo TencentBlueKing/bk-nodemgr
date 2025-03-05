@@ -17,23 +17,27 @@ message Business {
 
 // NetworkArea describes the network area informations.
 message NetworkArea {
-  string tenant_id = 1;
-  int32 bk_networkarea_id = 2;
-  string bk_networkarea_name = 3;
-  int32 bk_cloud_vendor = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_networkarea_name = 3;
+  optional string bk_cloud_vendor = 4;
 }
 
 // Link describes the network unit link points target.
-message Link {
-  string tenant_id = 1;
-  int64 ap_id = 2;
+message Link { int64 accesspoint_id = 1; }
+
+// Links describes the network unit links.
+message Links {
+  Link cluster = 1;
+  Link file = 2;
+  Link data = 3;
 }
 
 // AccessPoint describes the access point informations.
 message AccessPoint {
-  string tenant_id = 1;
-  int64 ap_id = 2;
-  string ap_name = 3;
+  optional string tenant_id = 1;
+  optional int64 accesspoint_id = 2;
+  optional string accesspoint_name = 3;
 
   message Endpoints {
     repeated string cluster = 1;
@@ -45,16 +49,12 @@ message AccessPoint {
 
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
-  int64 bk_networkunit_id = 1;
-  string bk_networkunit_name = 2;
-  repeated AccessPoint access_points = 3;
-
-  message Links {
-    Link cluster = 1;
-    Link file = 2;
-    Link data = 3;
-  }
-  Links links = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated AccessPoint access_points = 5;
+  optional Links links = 6;
 }
 
 // HostState describes the host state informations. Usually contains

@@ -41,9 +41,12 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.storage.ListHosts(sCtx, generatePage(req.GetPage(), maxHostLimit), genericHostConditions(req))
+	hosts, num, err := h.storage.ListHosts(
+		sCtx,
+		generatePage(req.GetPage(), maxHostLimit),
+		generateHostConditions(req))
 	if err != nil {
-		h.logger.Errorf("failed to list host, err: %v", err)
+		h.logger.Errorf("failed to list host. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -88,8 +91,8 @@ func validateTopoHostListReq(req *proto.TopoHostListReq) error {
 	return nil
 }
 
-func genericHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
-	// include conditions.
+func generateHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
+	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := topo.HostCondition{
 			Type: types.ConditionTypeExactInclude,

@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo ...
-package topo
+package counter
 
 import (
 	"context"
@@ -18,14 +17,12 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// testClient ...
-func testClient(t *testing.T) Storage {
+func testClient(t *testing.T) Handler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -50,58 +47,60 @@ func testClient(t *testing.T) Storage {
 		t.Fatal(err)
 	}
 
-	s, err := NewStorage(mongoClient, "test", logger.LoggerDefault{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err = s.Start(ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	return s
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
 }
 
-// Test_storage_UpsertHosts ...
-func Test_storage_UpsertHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+// Test_handler_Generate generate sequence.
+func Test_handler_Generate(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
 
-	type args struct {
-		ctx   context.Context
-		hosts []*types.Host
-	}
 	tests := []struct {
 		name    string
-		args    args
+		key     string
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
-			args: args{
-				ctx:   nil,
-				hosts: nil,
-			},
-			wantErr: true,
+			name:    "test-1",
+			key:     "key-1",
+			wantErr: false,
 		},
 		{
-			name: "normal",
-			args: args{
-				ctx: ctx,
-				hosts: []*types.Host{
-					{
-						TenantID: "single",
-					},
-				},
-			},
+			name:    "test-2",
+			key:     "key-1",
+			wantErr: false,
+		},
+		{
+			name:    "test-3",
+			key:     "key-1",
+			wantErr: false,
+		},
+		{
+			name:    "test-4",
+			key:     "key-1",
+			wantErr: false,
+		},
+		{
+			name:    "test-5",
+			key:     "key-1",
+			wantErr: false,
+		},
+		{
+			name:    "test-6",
+			key:     "key-2",
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ds := testClient(t)
-			if err := ds.UpsertHosts(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
-				t.Errorf("UpsertHosts() error = %v, wantErr %v", err, tt.wantErr)
+			h := testClient(t)
+			got, err := h.Generate(ctx, tt.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
+
+			t.Logf("Generate() got = %v", got)
 		})
 	}
 }

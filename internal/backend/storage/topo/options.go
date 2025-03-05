@@ -55,3 +55,70 @@ type HostCondition struct {
 	// will be used when condition type is in fuzzy mode.
 	Fuzzy *HostFuzzyFields
 }
+
+// NetworkAreaExactFields defines the network area exact fields.
+type NetworkAreaExactFields struct {
+	NetworkAreaID []int64
+	CloudVendor   []string
+}
+
+// NetworkAreaFuzzyFields defines the network area fuzzy fields.
+type NetworkAreaFuzzyFields struct {
+	NetworkAreaName []string
+}
+
+// NetworkAreaCondition defines the network area condition.
+// in this condition, fields are generated with AND expr.
+type NetworkAreaCondition struct {
+	Type types.ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *NetworkAreaExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *NetworkAreaFuzzyFields
+}
+
+// NetworkUnitExactFields defines the network unit exact fields.
+type NetworkUnitExactFields struct {
+	NetworkUnitID []int64
+	NetworkAreaID []int64
+}
+
+// NetworkUnitFuzzyFields defines the network unit fuzzy fields.
+type NetworkUnitFuzzyFields struct {
+}
+
+// NetworkUnitCondition defines the network unit condition.
+// in this condition, fields are generated with AND expr.
+type NetworkUnitCondition struct {
+	Type types.ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *NetworkUnitExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *NetworkUnitFuzzyFields
+}
+
+// AccessPointExactFields defines the access point exact fields.
+type AccessPointExactFields struct {
+	AccessPointID []int64
+	NetworkAreaID []int64
+}
+
+// AccessPointFuzzyFields defines the access point fuzzy fields.
+type AccessPointFuzzyFields struct {
+}
+
+// AccessPointCondition defines the access point condition.
+// in this condition, fields are generated with AND expr.
+type AccessPointCondition struct {
+	Type types.ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *AccessPointExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *AccessPointFuzzyFields
+}

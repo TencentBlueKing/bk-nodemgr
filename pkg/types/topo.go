@@ -123,6 +123,9 @@ type NetworkArea struct {
 
 	// area-name the name of a network-area.
 	Name string
+
+	// cloud vendor.
+	CloudVendor string
 }
 
 // NetworkUnit represents a basic unit for proxy management.
@@ -139,35 +142,29 @@ type NetworkUnit struct {
 	Name string
 
 	// access points for this network-unit.
-	AccessPoints []*AccessPoint
+	AccessPoints []int64
 
 	// links link to upstreams.
-	Links map[LinkChannel]*Link
+	Links Links
 }
 
-// LinkChannel represents a link channel in gse topology.
-type LinkChannel string
+// Links represents links.
+type Links struct {
+	Cluster *Link
+	File    *Link
+	Data    *Link
+}
 
-const (
-	// LinkChannelCluster represents a cluster network channel.
-	// It is the basic message channel in gse.
-	LinkChannelCluster LinkChannel = "cluster"
-
-	// LinkChannelFile represents a file network channel.
-	// It is the file transferring channel in gse.
-	LinkChannelFile LinkChannel = "file"
-
-	// LinkChannelData represents a data network channel.
-	// It is the data transferring channel in gse.
-	LinkChannelData LinkChannel = "data"
-)
+// Link represents link.
+type Link struct {
+	AccessPointID int64
+}
 
 // AccessPoint represents an access point for connecting network units.
 type AccessPoint struct {
 	// belongs to
 	TenantID      string
 	NetworkAreaID int64
-	UnitID        int64
 
 	// access-point-id is the unique identifier for an access point.
 	// access-point-id should be globally unique among all tenants.
@@ -177,15 +174,12 @@ type AccessPoint struct {
 	Name string
 
 	// access configs.
-	// each channel should have a endpoint list.
-	AccessEndpoints map[LinkChannel][]string
+	Endpoints Endpoints
 }
 
-// Link represents a link from one unit to one access point.
-type Link struct {
-	// channel of this link.
-	Channel LinkChannel
-
-	TargetTenantID      string
-	TargetAccessPointID int64
+// Endpoints represents endpoints of access point.
+type Endpoints struct {
+	Cluster []string
+	File    []string
+	Data    []string
 }

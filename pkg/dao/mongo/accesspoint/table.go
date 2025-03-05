@@ -1,0 +1,39 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package accesspoint
+
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+
+// TableName accesspoint table name.
+func TableName() string {
+	return "accesspoint"
+}
+
+// AccessPoint represents access point table.
+// AccessPointID should be the unique key.
+type AccessPoint struct {
+	TenantID        string `json:"tenant_id" bson:"tenant_id"`
+	AccessPointID   int64  `json:"access_point_id" bson:"access_point_id"`
+	AccessPointName string `json:"access_point_name" bson:"access_point_name"`
+
+	NetworkAreaID int64      `json:"networkarea_id" bson:"networkarea_id"`
+	Endpoints     *Endpoints `json:"endpoints" bson:"endpoints"`
+}
+
+// Endpoints represents endpoints of access point.
+type Endpoints struct {
+	Cluster []string `json:"cluster" bson:"cluster"`
+	File    []string `json:"file" bson:"file"`
+	Data    []string `json:"data" bson:"data"`
+}
+
+// TableAccessPoint represent the complete db structures of a access point.
+type TableAccessPoint base.TableBroker[*AccessPoint]

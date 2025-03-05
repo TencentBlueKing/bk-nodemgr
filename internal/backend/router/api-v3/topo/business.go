@@ -46,7 +46,9 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		page.Limit = int(reqPage.GetLimit())
 	}
 
-	bizs, num, err := h.storage.ListBusinesses(sCtx, generatePage(req.GetPage(), maxBusinessLimit))
+	bizs, num, err := h.storage.ListBusinesses(
+		sCtx,
+		generatePage(req.GetPage(), maxBusinessLimit))
 	if err != nil {
 		h.logger.Errorf("failed to list business, err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)

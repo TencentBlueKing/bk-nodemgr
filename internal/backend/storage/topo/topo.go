@@ -17,8 +17,11 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -58,11 +61,20 @@ type storage struct {
 	daoBusiness business.Handler
 
 	daoHost host.Handler
+
+	daoNetworkArea networkarea.Handler
+
+	daoNetworkUnit networkunit.Handler
+
+	daoAccessPoint accesspoint.Handler
 }
 
 func (s *storage) initDao() error {
 	s.daoBusiness = business.New(s.Database, s.Logger)
 	s.daoHost = host.New(s.Database, s.Logger)
+	s.daoNetworkArea = networkarea.New(s.Database, s.Logger)
+	s.daoNetworkUnit = networkunit.New(s.Database, s.Logger)
+	s.daoAccessPoint = accesspoint.New(s.Database, s.Logger)
 
 	return nil
 }
@@ -219,4 +231,220 @@ func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...
 	}
 
 	return s.daoHost.List(ctx, page, opts...)
+}
+
+// nolint:cyclop
+// ListNetworkArea lists networkarea by page and conditions.
+func (s *storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...NetworkAreaCondition) (
+	[]*types.NetworkArea, int64, error) {
+
+	opts := make([]networkarea.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					networkarea.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					networkarea.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					networkarea.WithFuzzyNetworkAreaName(condition.Fuzzy.NetworkAreaName...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyExclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					networkarea.WithoutFuzzyNetworkAreaName(condition.Fuzzy.NetworkAreaName...),
+				)
+			}
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoNetworkArea.List(ctx, page, opts...)
+}
+
+// GetNetworkArea gets networkarea by id.
+func (s *storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error) {
+	return s.daoNetworkArea.Get(ctx, networkAreaID)
+}
+
+// UpsertManyNetworkArea updates or inserts networkarea.
+func (s *storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error {
+	return s.daoNetworkArea.UpsertMany(ctx, networkAreas...)
+}
+
+// UpdateManyNetworkArea updates networkarea.
+func (s *storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error {
+	return s.daoNetworkArea.UpdateMany(ctx, networkArea...)
+}
+
+// DeleteManyNetworkArea deletes networkarea.
+func (s *storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error {
+	return s.daoNetworkArea.DeleteMany(ctx, networkAreaIDs...)
+}
+
+// ListNetworkUnit lists networkunit.
+func (s *storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...NetworkUnitCondition) (
+	[]*types.NetworkUnit, int64, error) {
+
+	opts := make([]networkunit.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					networkunit.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
+					networkunit.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					networkunit.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
+					networkunit.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+		case types.ConditionTypeFuzzyExclude:
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoNetworkUnit.List(ctx, page, opts...)
+}
+
+// GetNetworkUnit gets networkunit by id.
+func (s *storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error) {
+	return s.daoNetworkUnit.Get(ctx, networkUnitID)
+}
+
+// CreateNetworkUnit creates networkunit.
+func (s *storage) CreateNetworkUnit(
+	ctx context.Context,
+	networkUnit *types.NetworkUnit,
+	accessPoints ...*types.AccessPoint) (int64, error) {
+
+	if len(accessPoints) == 0 {
+		networkUnit.AccessPoints = nil
+
+		return s.daoNetworkUnit.Create(ctx, networkUnit)
+	}
+
+	// create accesspoints first.
+	accessPointIDs, err := s.daoAccessPoint.CreateMany(ctx, accessPoints...)
+	if err != nil {
+		s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
+
+		return -1, err
+	}
+	networkUnit.AccessPoints = accessPointIDs
+
+	return s.daoNetworkUnit.Create(ctx, networkUnit)
+}
+
+// UpdateNetworkUnit updates networkunit.
+func (s *storage) UpdateNetworkUnit(
+	ctx context.Context,
+	networkUnit *types.NetworkUnit,
+	accessPoints ...*types.AccessPoint) error {
+
+	if len(accessPoints) == 0 {
+		networkUnit.AccessPoints = nil
+
+		return s.daoNetworkUnit.UpdateMany(ctx, networkUnit)
+	}
+
+	// update old accesspoints, create new accesspoints.
+	accessPointIDs := make([]int64, 0)
+	oldAccessPoints := make([]*types.AccessPoint, 0)
+	newAccessPoints := make([]*types.AccessPoint, 0)
+	for _, accessPoint := range accessPoints {
+		if accessPoint.ID >= 0 {
+			accessPointIDs = append(accessPointIDs, accessPoint.ID)
+			oldAccessPoints = append(oldAccessPoints, accessPoint)
+
+			continue
+		}
+
+		newAccessPoints = append(newAccessPoints, accessPoint)
+	}
+
+	if len(oldAccessPoints) > 0 {
+		err := s.daoAccessPoint.UpdateMany(ctx, oldAccessPoints...)
+		if err != nil {
+			s.Logger.Errorf("failed to create networkunit, failed to update accesspoint: %v", err.Error())
+
+			return err
+		}
+	}
+	if len(newAccessPoints) > 0 {
+		createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(ctx, newAccessPoints...)
+		if err != nil {
+			s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
+
+			return err
+		}
+
+		accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
+	}
+	networkUnit.AccessPoints = accessPointIDs
+
+	return s.daoNetworkUnit.UpdateMany(ctx, networkUnit)
+}
+
+// DeleteManyNetworkUnit deletes networkunit.
+func (s *storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error {
+	return s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...)
+}
+
+// ListAccessPoint lists accesspoint.
+func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...AccessPointCondition) (
+	[]*types.AccessPoint, int64, error) {
+
+	opts := make([]accesspoint.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					accesspoint.WithAccessPointID(condition.Exact.AccessPointID...),
+					accesspoint.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					accesspoint.WithoutAccessPointID(condition.Exact.AccessPointID...),
+					accesspoint.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+		case types.ConditionTypeFuzzyExclude:
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoAccessPoint.List(ctx, page, opts...)
 }

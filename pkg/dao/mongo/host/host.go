@@ -213,7 +213,7 @@ func buildUpsertStaticManyParams(hosts []*Host) []mongo.WriteModel {
 func buildUpdateDynamicManyParams(hosts []*Host) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 	for _, host := range hosts {
-		filter := bson.D{{Key: "data.host_id", Value: host.HostID}}
+		filter := append(base.AliveFilter(), bson.E{Key: "data.host_id", Value: host.HostID})
 
 		nowTime := time.Now()
 		update := bson.D{

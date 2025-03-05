@@ -20,24 +20,27 @@ import (
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.Manager
-	storage topo.Storage
-	logger  logger.Logger
+	rg          *gin.RouterGroup
+	manager     manager.Manager
+	storage     topo.Storage
+	cmdbHandler cmdb.Handler
+	logger      logger.Logger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/topo"),
-		manager: capability.Manager,
-		storage: capability.TopoStorage,
-		logger:  capability.Logger,
+		rg:          rg.Group("/topo"),
+		manager:     capability.Manager,
+		storage:     capability.TopoStorage,
+		cmdbHandler: capability.CmdbHandler,
+		logger:      capability.Logger,
 	}
 }
 
@@ -45,8 +48,25 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
+	// business apis.
 	h.rg.POST("/business/list", rest.RestHandlerFunc(h.ListBusiness))
+
+	// host apis.
 	h.rg.POST("/host/list", rest.RestHandlerFunc(h.ListHost))
+
+	// networkarea apis.
+	h.rg.POST("/networkarea/list", rest.RestHandlerFunc(h.ListNetworkArea))
+	h.rg.POST("/networkarea/get", rest.RestHandlerFunc(h.GetNetworkArea))
+	h.rg.POST("/networkarea/create", rest.RestHandlerFunc(h.CreateNetworkArea))
+	h.rg.POST("/networkarea/update", rest.RestHandlerFunc(h.UpdateNetworkArea))
+	h.rg.POST("/networkarea/delete", rest.RestHandlerFunc(h.DeleteNetworkArea))
+
+	// networkunit apis.
+	h.rg.POST("/networkunit/list", rest.RestHandlerFunc(h.ListNetworkUnit))
+	h.rg.POST("/networkunit/get", rest.RestHandlerFunc(h.GetNetworkUnit))
+	h.rg.POST("/networkunit/create", rest.RestHandlerFunc(h.CreateNetworkUnit))
+	h.rg.POST("/networkunit/update", rest.RestHandlerFunc(h.UpdateNetworkUnit))
+	h.rg.POST("/networkunit/delete", rest.RestHandlerFunc(h.DeleteNetworkUnit))
 }
 
 func validateTopoPage(reqPage *proto.Page) error {
