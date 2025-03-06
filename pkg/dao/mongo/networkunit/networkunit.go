@@ -185,8 +185,9 @@ func buildDeleteManyParams(tenantID string, networkUnitIDs ...int64) []mongo.Wri
 }
 
 // tenantFilter additional tenant filter.
-// all tenants can filter global networkarea in query methods.
-// and the networkunits in their own tenant.
+// global networkarea is a special networkarea, it belongs to system tenant, but it can be seen by all tenants.
+// this scene is also ensured in CMDB.
+// a query from a tenant, should be filtered in its own tenant, and plus the global networkarea.
 func tenantFilter(tenantID string) bson.E {
 	return bson.E{
 		Key: "$or",
