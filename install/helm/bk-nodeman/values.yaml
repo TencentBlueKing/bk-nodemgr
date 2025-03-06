@@ -634,7 +634,8 @@ application:
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
 
-    apiGateway:
+    # defines the nodeman backend (BK API gateway) related settings.
+    backend:
       # endpoints is a seed list of host:port addresses of esb nodes.
       endpoints:
         - "https://example.com/api/bk-nodeman/prod"

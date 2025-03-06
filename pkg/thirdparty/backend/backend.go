@@ -28,19 +28,18 @@ type HeaderSetter interface {
 	GetAuthHeader() (string, error)
 }
 
-// Config the config of cmdb.
+// Config the config of backend.
 type Config struct {
-	TenantID     string
 	HeaderSetter HeaderSetter
 }
 
-// cli client for cmdb.
+// cli client for backend.
 type cli struct {
 	client rest.ClientInterface
 	config *Config
 }
 
-// newClient initialize a new cmdb client.
+// newClient initialize a new backend client.
 func newClient(c *client.Capability, conf *Config) (*cli, error) {
 	restCli, err := rest.NewClient(c, "/api/v3")
 	if err != nil {
@@ -53,7 +52,7 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 	}, nil
 }
 
-// getCommonHeader get cmdb common header.
+// getCommonHeader get backend common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.RIDKey, restheader.RIDGenerator())

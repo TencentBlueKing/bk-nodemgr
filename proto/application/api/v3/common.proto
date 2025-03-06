@@ -10,30 +10,34 @@ message Page {
 
 // Business describes the business informations.
 message Business {
-  string tenant_id = 1;
-  int64 bk_biz_id = 2;
-  string bk_biz_name = 3;
+  optional string tenant_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional string bk_biz_name = 3;
 }
 
 // NetworkArea describes the network area informations.
 message NetworkArea {
-  string tenant_id = 1;
-  int32 bk_networkarea_id = 2;
-  string bk_networkarea_name = 3;
-  int32 bk_cloud_vendor = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_networkarea_name = 3;
+  optional string bk_cloud_vendor = 4;
 }
 
 // Link describes the network unit link points target.
-message Link {
-  string tenant_id = 1;
-  int64 ap_id = 2;
+message Link { int64 accesspoint_id = 1; }
+
+// Links describes the network unit links.
+message Links {
+  Link cluster = 1;
+  Link file = 2;
+  Link data = 3;
 }
 
 // AccessPoint describes the access point informations.
 message AccessPoint {
-  string tenant_id = 1;
-  int64 ap_id = 2;
-  string ap_name = 3;
+  optional string tenant_id = 1;
+  optional int64 accesspoint_id = 2;
+  optional string accesspoint_name = 3;
 
   message Endpoints {
     repeated string cluster = 1;
@@ -45,52 +49,55 @@ message AccessPoint {
 
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
-  int64 bk_networkunit_id = 1;
-  string bk_networkunit_name = 2;
-  repeated AccessPoint access_points = 3;
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated AccessPoint access_points = 5;
+  optional Links links = 6;
+}
 
-  message Links {
-    Link cluster = 1;
-    Link file = 2;
-    Link data = 3;
-  }
-  Links links = 4;
+// NetworkUnitBrief describes the network unit brief informations.
+// only contains the access point ids.
+message NetworkUnitBrief {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated int64 access_points = 5;
+  optional Links links = 6;
 }
 
 // HostState describes the host state informations. Usually contains
 // agent-related things.
 message HostState {
-  string status = 1;
-  string version = 2;
-  string bk_agent_id = 3;
+  optional string node_role = 1;
+  optional string node_status = 2;
+  optional string node_version = 3;
+  optional string bk_agent_id = 4;
 }
 
 // HostInfo describes the host info informations. Usually contains static
 // configs.
 message HostInfo {
-  int64 bk_host_id = 1;
-  string bk_host_name = 2;
-  int64 bk_biz_id = 3;
-  string bk_biz_name = 4;
-  int64 bk_networkarea_id = 5;
-  string bk_networkarea_name = 6;
-  int64 bk_networkunit_id = 7;
-  string bk_networkunit_name = 8;
-  int64 bk_operate_dept_id = 9;
-  string bk_operate_dept_name = 10;
-  string bk_host_innerip = 11;
-  string bk_host_innerip_v6 = 12;
-  string bk_host_outerip = 13;
-  string bk_host_outerip_v6 = 14;
-  string login_ip = 15;
-  uint32 login_port = 16;
-  string bk_os_type = 17;
+  optional int64 bk_biz_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_host_name = 3;
+  optional string dept_name = 4;
+  optional string bk_host_innerip = 5;
+  optional string bk_host_innerip_v6 = 6;
+  optional string bk_host_outerip = 7;
+  optional string bk_host_outerip_v6 = 8;
+  optional string bk_mac = 9;
+  optional string bk_os_type = 10;
 }
 
 // Host describes the host informations.
 message Host {
-  HostState state = 1;
-  HostInfo info = 2;
-  uint64 create_at = 3;
-  uint64 updated_at = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_host_id = 2;
+  HostInfo info = 3;
+  HostState state = 4;
+  optional uint64 create_at = 5;
+  optional uint64 updated_at = 6;
 }

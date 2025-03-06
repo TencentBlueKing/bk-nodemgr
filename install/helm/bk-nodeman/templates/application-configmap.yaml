@@ -16,11 +16,11 @@ data:
 
     tenantMode: {{ .Values.application.config.tenantMode }}
 
-    apiGateway: {{ .Values.application.config.apiGateway | toYaml | nindent 6 }}
-
     httpServer: {{ .Values.application.config.httpServer | toYaml | nindent 6 }}
 
     adminServer: {{ .Values.application.config.adminServer | toYaml | nindent 6 }}
+
+    backend: {{ .Values.application.config.backend | toYaml | nindent 6 }}
 
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}
 

@@ -30,7 +30,6 @@ type HeaderSetter interface {
 
 // Config the config of cmdb.
 type Config struct {
-	TenantID        string
 	SupplierAccount string
 	HeaderSetter    HeaderSetter
 }

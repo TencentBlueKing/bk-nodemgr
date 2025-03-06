@@ -11,7 +11,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -57,17 +56,18 @@ func NewWebServerCMD() *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := service.NewService(conf).Start(context.Background()); err != nil {
-				fmt.Printf("failed to start service: %v\n", err)
+			svc, err := service.NewService(conf)
+			if err != nil {
+				fmt.Printf("failed to create service: %v\n", err)
 				os.Exit(1)
 			}
 
-			// listening signal
-			signalC := make(chan os.Signal, 1)
-			signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
-			receivedSignal := <-signalC
+			go watchShutdown(svc)
 
-			fmt.Printf("received signal(%s), going to exit server\n", receivedSignal.String())
+			if err := svc.Start(); err != nil {
+				fmt.Printf("failed to start service: %v\n", err)
+				os.Exit(1)
+			}
 		},
 	}
 
@@ -76,4 +76,21 @@ func NewWebServerCMD() *cobra.Command {
 	)
 
 	return wsCMD
+}
+
+// watchShutdown listens signal and calls service.GracefulShutdown.
+func watchShutdown(svc *service.Service) {
+	// listening signal
+	signalC := make(chan os.Signal, 1)
+	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
+	receivedSignal := <-signalC
+
+	if err := svc.GracefulShutdown(); err != nil {
+		fmt.Printf("failed to graceful shutdown service: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("received signal(%s), going to exit server\n", receivedSignal.String())
+
+	os.Exit(1)
 }

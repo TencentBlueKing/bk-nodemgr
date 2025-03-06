@@ -483,11 +483,11 @@
         "tenant_id": {
           "type": "string"
         },
-        "ap_id": {
+        "accesspoint_id": {
           "type": "string",
           "format": "int64"
         },
-        "ap_name": {
+        "accesspoint_name": {
           "type": "string"
         },
         "endpoints": {
@@ -515,11 +515,18 @@
     "v3Host": {
       "type": "object",
       "properties": {
-        "state": {
-          "$ref": "#/definitions/v3HostState"
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "string",
+          "format": "int64"
         },
         "info": {
           "$ref": "#/definitions/v3HostInfo"
+        },
+        "state": {
+          "$ref": "#/definitions/v3HostState"
         },
         "create_at": {
           "type": "string",
@@ -535,39 +542,18 @@
     "v3HostInfo": {
       "type": "object",
       "properties": {
-        "bk_host_id": {
+        "bk_biz_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
           "type": "string",
           "format": "int64"
         },
         "bk_host_name": {
           "type": "string"
         },
-        "bk_biz_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_biz_name": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkarea_name": {
-          "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "bk_operate_dept_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_operate_dept_name": {
+        "dept_name": {
           "type": "string"
         },
         "bk_host_innerip": {
@@ -582,12 +568,8 @@
         "bk_host_outerip_v6": {
           "type": "string"
         },
-        "login_ip": {
+        "bk_mac": {
           "type": "string"
-        },
-        "login_port": {
-          "type": "integer",
-          "format": "int64"
         },
         "bk_os_type": {
           "type": "string"
@@ -598,10 +580,13 @@
     "v3HostState": {
       "type": "object",
       "properties": {
-        "status": {
+        "node_role": {
           "type": "string"
         },
-        "version": {
+        "node_status": {
+          "type": "string"
+        },
+        "node_version": {
           "type": "string"
         },
         "bk_agent_id": {
@@ -613,60 +598,14 @@
     "v3Link": {
       "type": "object",
       "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "ap_id": {
+        "accesspoint_id": {
           "type": "string",
           "format": "int64"
         }
       },
       "description": "Link describes the network unit link points target."
     },
-    "v3NetworkArea": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "bk_networkarea_name": {
-          "type": "string"
-        },
-        "bk_cloud_vendor": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "description": "NetworkArea describes the network area informations."
-    },
-    "v3NetworkUnit": {
-      "type": "object",
-      "properties": {
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "access_points": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3AccessPoint"
-          }
-        },
-        "links": {
-          "$ref": "#/definitions/v3NetworkUnitLinks"
-        }
-      },
-      "description": "NetworkUnit describes the network unit informations."
-    },
-    "v3NetworkUnitLinks": {
+    "v3Links": {
       "type": "object",
       "properties": {
         "cluster": {
@@ -678,7 +617,87 @@
         "data": {
           "$ref": "#/definitions/v3Link"
         }
-      }
+      },
+      "description": "Links describes the network unit links."
+    },
+    "v3NetworkArea": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_cloud_vendor": {
+          "type": "string"
+        }
+      },
+      "description": "NetworkArea describes the network area informations."
+    },
+    "v3NetworkUnit": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        }
+      },
+      "description": "NetworkUnit describes the network unit informations."
+    },
+    "v3NetworkUnitBrief": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        }
+      },
+      "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
     },
     "v3Page": {
       "type": "object",
@@ -702,9 +721,38 @@
         },
         "only_count": {
           "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoBusinessListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoBusinessListReqFuzzyConditions"
         }
       },
       "description": "TopoBusinessListReq describes the HTTP request body when list business in\ntopo service."
+    },
+    "v3TopoBusinessListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoBusinessListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "bk_biz_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3TopoBusinessListResp": {
       "type": "object",
@@ -750,22 +798,58 @@
         "only_count": {
           "type": "boolean"
         },
-        "include_conditions": {
-          "$ref": "#/definitions/v3TopoHostListReqConditions"
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostListReqFuzzyConditions"
         }
       },
       "description": "TopoHostListReq describes the HTTP request body when list host in topo\nservice."
     },
-    "v3TopoHostListReqConditions": {
+    "v3TopoHostListReqExactConditions": {
       "type": "object",
       "properties": {
-        "status": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_os_type": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "version": {
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_version": {
           "type": "array",
           "items": {
             "type": "string"
@@ -776,93 +860,19 @@
           "items": {
             "type": "string"
           }
-        },
-        "bk_host_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
+        }
+      }
+    },
+    "v3TopoHostListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
         "bk_host_name": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "bk_biz_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_biz_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_set_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_set_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_module_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_module_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_networkarea_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkarea_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_networkunit_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkunit_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_operate_dept_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_operate_dept_name": {
+        "dept_name": {
           "type": "array",
           "items": {
             "type": "string"
@@ -890,26 +900,6 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
-        },
-        "login_ip": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "login_port": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "bk_os_type": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       }
@@ -956,8 +946,7 @@
           "type": "string"
         },
         "bk_cloud_vendor": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         }
       },
       "description": "TopoNetworkAreaCreateReq describes the HTTP request body when create\nnetwork-area in topo service."
@@ -985,8 +974,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -994,8 +983,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service."
@@ -1023,8 +1012,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -1032,8 +1021,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service."
@@ -1066,33 +1055,40 @@
         "only_count": {
           "type": "boolean"
         },
-        "include_conditions": {
-          "$ref": "#/definitions/v3TopoNetworkAreaListReqConditions"
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkAreaListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkAreaListReqFuzzyConditions"
         }
       },
       "description": "TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service."
     },
-    "v3TopoNetworkAreaListReqConditions": {
+    "v3TopoNetworkAreaListReqExactConditions": {
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "bk_networkarea_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           }
         },
         "bk_cloud_vendor": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
@@ -1136,15 +1132,14 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         },
         "bk_networkarea_name": {
           "type": "string"
         },
         "bk_cloud_vendor": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         }
       },
       "description": "TopoNetworkAreaUpdateReq describes the HTTP request body when update\nnetwork-area in topo service."
@@ -1172,8 +1167,8 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -1183,6 +1178,10 @@
         "bk_networkunit_name": {
           "type": "string"
         },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "access_points": {
           "type": "array",
           "items": {
@@ -1191,24 +1190,10 @@
           }
         },
         "links": {
-          "$ref": "#/definitions/v3TopoNetworkUnitCreateReqLinks"
+          "$ref": "#/definitions/v3Links"
         }
       },
       "description": "TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service."
-    },
-    "v3TopoNetworkUnitCreateReqLinks": {
-      "type": "object",
-      "properties": {
-        "cluster": {
-          "$ref": "#/definitions/v3Link"
-        },
-        "file": {
-          "$ref": "#/definitions/v3Link"
-        },
-        "data": {
-          "$ref": "#/definitions/v3Link"
-        }
-      }
     },
     "v3TopoNetworkUnitCreateResp": {
       "type": "object",
@@ -1233,8 +1218,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -1242,8 +1227,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service."
@@ -1271,8 +1256,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -1280,8 +1265,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service."
@@ -1313,9 +1298,31 @@
         },
         "only_count": {
           "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListReqExactConditions"
         }
       },
       "description": "TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      }
     },
     "v3TopoNetworkUnitListResp": {
       "type": "object",
@@ -1347,7 +1354,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NetworkUnit"
+            "$ref": "#/definitions/v3NetworkUnitBrief"
           }
         }
       }
@@ -1356,11 +1363,15 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         },
         "bk_networkunit_name": {
           "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
         },
         "access_points": {
           "type": "array",
@@ -1370,24 +1381,10 @@
           }
         },
         "links": {
-          "$ref": "#/definitions/v3TopoNetworkUnitUpdateReqLinks"
+          "$ref": "#/definitions/v3Links"
         }
       },
       "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service."
-    },
-    "v3TopoNetworkUnitUpdateReqLinks": {
-      "type": "object",
-      "properties": {
-        "cluster": {
-          "$ref": "#/definitions/v3Link"
-        },
-        "file": {
-          "$ref": "#/definitions/v3Link"
-        },
-        "data": {
-          "$ref": "#/definitions/v3Link"
-        }
-      }
     },
     "v3TopoNetworkUnitUpdateResp": {
       "type": "object",
@@ -1412,8 +1409,8 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         }
       }
     }

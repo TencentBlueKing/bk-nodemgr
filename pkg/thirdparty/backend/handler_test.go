@@ -55,7 +55,6 @@ func testClient(t *testing.T) Handler {
 	}
 
 	h, err := New(clientCap, &Config{
-		TenantID:     os.Getenv("BK_APIGW_TENANT_ID"),
 		HeaderSetter: testHeaderSetter{},
 	})
 	if err != nil {

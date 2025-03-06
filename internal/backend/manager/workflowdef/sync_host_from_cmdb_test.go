@@ -86,7 +86,6 @@ func testClient(t *testing.T) operengine.ActionDef {
 	}
 
 	cmdbHandler, err := cmdb.New(clientCap, &cmdb.Config{
-		TenantID:     os.Getenv("BK_APIGW_TENANT_ID"),
 		HeaderSetter: testHeaderSetter{},
 	})
 
