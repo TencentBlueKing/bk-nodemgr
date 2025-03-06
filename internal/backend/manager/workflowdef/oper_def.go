@@ -29,6 +29,9 @@ const (
 
 	// OperDefNameSyncBizAndHost sync all biz and their host from cmdb.
 	OperDefNameSyncBizAndHost = "oper_def_sync_biz_and_host"
+
+	// OperDefNameSyncNetworkArea sync networkarea from cmdb.
+	OperDefNameSyncNetworkArea = "oper_def_sync_networkarea"
 )
 
 // OperBuilder used to create an operation.
@@ -49,9 +52,10 @@ var instance = struct {
 func OperBuilderRegistry() map[OperDefName]OperBuilder {
 	instance.once.Do(func() {
 		instance.registry = map[OperDefName]OperBuilder{
-			OperDefNameSyncHost:       newOperSyncHostFromCMDB,
-			OperDefNameSyncBiz:        newOperSyncBizFromCMDB,
-			OperDefNameSyncBizAndHost: newOperSyncBizAndHostFromCMDB,
+			OperDefNameSyncHost:        newOperSyncHostFromCMDB,
+			OperDefNameSyncBiz:         newOperSyncBizFromCMDB,
+			OperDefNameSyncBizAndHost:  newOperSyncBizAndHostFromCMDB,
+			OperDefNameSyncNetworkArea: newOperSyncNetworkAreaFromCMDB,
 		}
 	})
 	return instance.registry
@@ -86,6 +90,18 @@ func newOperSyncBizAndHostFromCMDB(triggerID string) *operengine.Operation {
 	defSnapshot := operengine.OperDefSnapshot{
 		OperDefName: OperDefNameSyncHost,
 		ActionNames: []string{SyncBizFromCMDB, GenAllBizHostSyncOper},
+	}
+
+	operation := operengine.NewOperation(triggerID, defSnapshot)
+
+	return operation
+}
+
+// newOperSyncNetworkAreaFromCMDB new an operation to sync all networkareas from cmdb.
+func newOperSyncNetworkAreaFromCMDB(triggerID string) *operengine.Operation {
+	defSnapshot := operengine.OperDefSnapshot{
+		OperDefName: OperDefNameSyncNetworkArea,
+		ActionNames: []string{SyncNetworkAreaFromCMDB},
 	}
 
 	operation := operengine.NewOperation(triggerID, defSnapshot)

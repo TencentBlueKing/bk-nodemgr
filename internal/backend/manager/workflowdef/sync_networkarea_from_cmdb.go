@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
 package workflowdef
 
 import (
@@ -24,66 +23,65 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.Storage) operengine.ActionDef {
-	return &syncHostFromCMDB{
+// NewActionSyncNetworkAreaFromCMDB get a new action.
+func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.Storage) operengine.ActionDef {
+	return &syncNetworkAreaFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
 	}
 }
 
-// SyncHostFromCMDBParam ...
-type SyncHostFromCMDBParam struct {
-	BizID    int64  `json:"biz_id"`
+// SyncNetworkAreaFromCMDBParam describes the parameters.
+type SyncNetworkAreaFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// syncHostFromCMDB ...
-type syncHostFromCMDB struct {
+// syncNetworkAreaFromCMDB defines the action.
+type syncNetworkAreaFromCMDB struct {
 	cmdbHandler cmdb.Handler
 	topoStorage topo.Storage
 }
 
-// Name ...
-func (s *syncHostFromCMDB) Name() string {
-	return SyncHostFromCMDB
+// Name returns the name of the action.
+func (s *syncNetworkAreaFromCMDB) Name() string {
+	return SyncNetworkAreaFromCMDB
 }
 
-// Version ...
-func (s *syncHostFromCMDB) Version() string {
+// Version returns the version of the action.
+func (s *syncNetworkAreaFromCMDB) Version() string {
 	return "v1"
 }
 
-// Description ...
-func (s *syncHostFromCMDB) Description() string {
-	return "Get the host information of the designated business from CMDB, and update to the database."
+// Description returns the description of the action.
+func (s *syncNetworkAreaFromCMDB) Description() string {
+	return "Get the networkareas which also called cloudarea from CMDB, and update to the database."
 }
 
-// Timeout ...
-func (s *syncHostFromCMDB) Timeout() time.Duration {
+// Timeout returns the timeout of the action.
+func (s *syncNetworkAreaFromCMDB) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
-// Tags ...
-func (s *syncHostFromCMDB) Tags() []operengine.ActionTag {
+// Tags returns the tags of the action.
+func (s *syncNetworkAreaFromCMDB) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
-// MaxRetryCount ...
-func (s *syncHostFromCMDB) MaxRetryCount() uint {
+// MaxRetryCount returns the retry count of the action.
+func (s *syncNetworkAreaFromCMDB) MaxRetryCount() uint {
 	return 3
 }
 
-// DelayFn ...
-func (s *syncHostFromCMDB) DelayFn() func() {
+// DelayFn returns the delay function.
+func (s *syncNetworkAreaFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
-// Do ...
-func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
-	param := new(SyncHostFromCMDBParam)
+// Do does the action.
+func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+	param := new(SyncNetworkAreaFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -94,14 +92,14 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour)
-	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
-		hosts, err := s.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
+	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour)
+	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
+		networkareas, err := s.cmdbHandler.SearchNetworkArea(ctx, p)
 		if err != nil {
 			return nil, err
 		}
 
-		return hosts, nil
+		return networkareas, nil
 	}
 
 	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
@@ -109,7 +107,7 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertHosts(tenantCtx, result.Items...); err != nil {
+	if err = s.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

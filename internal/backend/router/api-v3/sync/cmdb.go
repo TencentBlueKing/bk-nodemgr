@@ -15,21 +15,18 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
-	types "github.com/TencentBlueKing/bk-nodemgr/internal/backend/types/router/api-v3"
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"github.com/google/uuid"
 )
 
-// SyncCmdbHost ...
+// SyncCmdbHost start an operation to sync business and host from cmdb.
 func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
-	req := new(types.SyncCmdbHostReq)
+	req := new(proto.SyncCmdbHostReq)
 	if err := ctx.BindJSON(req); err != nil {
-		return nil, err
-	}
-
-	if err := req.Validate(); err != nil {
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	triggerID := uuid.New().String()
@@ -43,11 +40,39 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 	})
 	if err != nil {
 		h.logger.Errorf("failed to start sync cmdb host operation, err: %v", err)
-		return nil, err
+		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	resp := &types.SyncCmdbHostResp{
-		TriggerID: triggerID,
+	resp := &proto.SyncCmdbHostResp_Data{
+		WorkflowId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
+func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
+	req := new(proto.SyncCmdbNetworkAreaReq)
+	if err := ctx.BindJSON(req); err != nil {
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	triggerID := uuid.New().String()
+	tenantID := ctx.TenantID
+
+	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncNetworkArea, triggerID, &operengine.OperInstParam{
+		Timeout: 1 * time.Minute,
+		InitContent: map[string]any{
+			workflowdef.CKeyTenantID: tenantID,
+		},
+	})
+	if err != nil {
+		h.logger.Errorf("failed to start sync cmdb networkarea operation, err: %v", err)
+		return nil, errf.ErrWrap(errf.Aborted, err)
+	}
+
+	resp := &proto.SyncCmdbNetworkAreaResp_Data{
+		WorkflowId: triggerID,
 	}
 
 	return resp, nil

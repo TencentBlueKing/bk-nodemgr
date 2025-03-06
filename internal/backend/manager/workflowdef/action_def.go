@@ -18,6 +18,9 @@ const (
 	// SyncHostFromCMDB ...
 	SyncHostFromCMDB = "sync_host_from_cmdb"
 
+	// SyncNetworkAreaFromCMDB sync networkarea from cmdb.
+	SyncNetworkAreaFromCMDB = "sync_networkarea_from_cmdb"
+
 	// GenAllBizHostSyncOper ...
 	GenAllBizHostSyncOper = "gen_all_biz_host_sync_oper"
 
