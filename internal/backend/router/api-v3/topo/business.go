@@ -40,15 +40,10 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	page := types.Page{}
-	if reqPage := req.GetPage(); reqPage != nil {
-		page.Offset = int(reqPage.GetOffset())
-		page.Limit = int(reqPage.GetLimit())
-	}
-
 	bizs, num, err := h.storage.ListBusinesses(
 		sCtx,
-		generatePage(req.GetPage(), maxBusinessLimit))
+		generatePage(req.GetPage(), maxBusinessLimit),
+		generateBusinessConditions(req))
 	if err != nil {
 		h.logger.Errorf("failed to list business, err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -78,6 +73,35 @@ func validateTopoBusinessListReq(req *proto.TopoBusinessListReq) error {
 	}
 
 	return nil
+}
+
+func generateBusinessConditions(req *proto.TopoBusinessListReq) types.BusinessCondition {
+	// exact conditions.
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		conditions := types.BusinessCondition{Type: types.ConditionTypeExactInclude}
+		conditions.Exact = &types.BusinessExactFields{
+			BizID: exactCond.GetBkBizId(),
+		}
+
+		return conditions
+	}
+
+	// fuzzy conditions.
+	if fuzzyCond := req.GetFuzzyIncludeConditions(); fuzzyCond != nil {
+		conditions := types.BusinessCondition{
+			Type: types.ConditionTypeFuzzyInclude,
+		}
+		conditions.Fuzzy = &types.BusinessFuzzyFields{
+			BizName: fuzzyCond.GetBkBizName(),
+		}
+
+		return conditions
+	}
+
+	// default empty conditions.
+	return types.BusinessCondition{
+		Type: types.ConditionTypeExactInclude,
+	}
 }
 
 func newEmptyBusiness() *proto.Business {

@@ -13,7 +13,6 @@ package topo
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -154,9 +153,9 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		accessPoints, _, err = h.storage.ListAccessPoint(
 			sCtx,
 			types.Page{Offset: 0, Limit: len(networkUnit.AccessPoints)},
-			topo.AccessPointCondition{
+			types.AccessPointCondition{
 				Type: types.ConditionTypeExactInclude,
-				Exact: &topo.AccessPointExactFields{
+				Exact: &types.AccessPointExactFields{
 					AccessPointID: networkUnit.AccessPoints,
 					NetworkAreaID: []int64{networkUnit.NetworkAreaID},
 				},
@@ -220,13 +219,14 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	items := make([]*proto.NetworkUnit, len(networkAreas))
+	items := make([]*proto.NetworkUnitBrief, len(networkAreas))
 	for idx, networkUnit := range networkAreas {
-		item := newEmptyNetworkUnit()
+		item := newEmptyNetworkUnitBrief()
 		*item.TenantId = networkUnit.TenantID
 		*item.BkNetworkunitId = networkUnit.ID
 		*item.BkNetworkunitName = networkUnit.Name
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
+		item.AccessPoints = networkUnit.AccessPoints
 		item.Links = convertLinksToProto(networkUnit.Links)
 
 		items[idx] = item
@@ -380,13 +380,13 @@ func validateTopoNetworkUnitDeleteReq(req *proto.TopoNetworkUnitDeleteReq) error
 	return nil
 }
 
-func generateNetworkUnitConditions(req *proto.TopoNetworkUnitListReq) topo.NetworkUnitCondition {
+func generateNetworkUnitConditions(req *proto.TopoNetworkUnitListReq) types.NetworkUnitCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		conditions := topo.NetworkUnitCondition{
+		conditions := types.NetworkUnitCondition{
 			Type: types.ConditionTypeExactInclude,
 		}
-		conditions.Exact = &topo.NetworkUnitExactFields{
+		conditions.Exact = &types.NetworkUnitExactFields{
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 		}
@@ -395,7 +395,7 @@ func generateNetworkUnitConditions(req *proto.TopoNetworkUnitListReq) topo.Netwo
 	}
 
 	// default empty conditions.
-	return topo.NetworkUnitCondition{
+	return types.NetworkUnitCondition{
 		Type: types.ConditionTypeExactInclude,
 	}
 }
@@ -407,6 +407,21 @@ func newEmptyNetworkUnit() *proto.NetworkUnit {
 		BkNetworkunitName: new(string),
 		BkNetworkareaId:   new(int64),
 		AccessPoints:      make([]*proto.AccessPoint, 0),
+		Links: &proto.Links{
+			Cluster: &proto.Link{},
+			File:    &proto.Link{},
+			Data:    &proto.Link{},
+		},
+	}
+}
+
+func newEmptyNetworkUnitBrief() *proto.NetworkUnitBrief {
+	return &proto.NetworkUnitBrief{
+		TenantId:          new(string),
+		BkNetworkunitId:   new(int64),
+		BkNetworkunitName: new(string),
+		BkNetworkareaId:   new(int64),
+		AccessPoints:      make([]int64, 0),
 		Links: &proto.Links{
 			Cluster: &proto.Link{},
 			File:    &proto.Link{},

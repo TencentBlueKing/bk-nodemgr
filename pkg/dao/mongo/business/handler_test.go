@@ -144,7 +144,7 @@ func Test_handler_Count(t *testing.T) {
 		},
 		{
 			name:      "filter by biz name",
-			optFn:     []OptFn{WithBizName("test-name-90001", "test-name-same")},
+			optFn:     []OptFn{WithFuzzyBizName("test-name-90001", "test-name-same")},
 			wantTotal: 3,
 			wantErr:   false,
 		},
@@ -210,7 +210,7 @@ func Test_handler_List(t *testing.T) {
 				Offset: 1,
 				Limit:  1,
 			},
-			optFn:     []OptFn{WithBizName("test-name-same")},
+			optFn:     []OptFn{WithFuzzyBizName("test-name-same")},
 			wantTotal: 2,
 			wantNum:   1,
 			wantErr:   false,

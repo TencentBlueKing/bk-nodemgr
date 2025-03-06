@@ -57,6 +57,17 @@ message NetworkUnit {
   optional Links links = 6;
 }
 
+// NetworkUnitBrief describes the network unit brief informations.
+// only contains the access point ids.
+message NetworkUnitBrief {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated int64 access_points = 5;
+  optional Links links = 6;
+}
+
 // HostState describes the host state informations. Usually contains
 // agent-related things.
 message HostState {

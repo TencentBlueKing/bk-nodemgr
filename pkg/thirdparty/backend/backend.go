@@ -11,8 +11,11 @@
 package backend
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
@@ -64,4 +67,202 @@ func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
+}
+
+func (c *cli) listBusiness(ctx context.Context, tenantID string, req *proto.TopoBusinessListReq) (
+	*proto.TopoBusinessListResp_Data, error) {
+
+	resp := new(proto.TopoBusinessListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/business/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list business failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("list business failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) listHost(ctx context.Context, tenantID string, req *proto.TopoHostListReq) (
+	*proto.TopoHostListResp_Data, error) {
+
+	resp := new(proto.TopoHostListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/host/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list host failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("list host failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaListReq) (
+	*proto.TopoNetworkAreaListResp_Data, error) {
+
+	resp := new(proto.TopoNetworkAreaListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkarea/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list networkarea failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("list networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitListReq) (
+	*proto.TopoNetworkUnitListResp_Data, error) {
+
+	resp := new(proto.TopoNetworkUnitListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("list networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaGetReq) (
+	*proto.NetworkArea, error) {
+
+	resp := new(proto.TopoNetworkAreaGetResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkarea/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get networkarea failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("get networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitGetReq) (
+	*proto.NetworkUnit, error) {
+
+	resp := new(proto.TopoNetworkUnitGetResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("get networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
 }

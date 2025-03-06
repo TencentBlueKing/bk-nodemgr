@@ -30,3 +30,129 @@ const (
 	// ConditionTypeFuzzyExclude means this condition should be matched excluding given values in a fuzzy mode.
 	ConditionTypeFuzzyExclude ConditionType = "fuzzy_exclude"
 )
+
+// BusinessExactFields defines the business exact fields.
+// support includes and excludes.
+type BusinessExactFields struct {
+	BizID []int64
+}
+
+// BusinessFuzzyFields defines the business fuzzy fields.
+// support includes and excludes.
+type BusinessFuzzyFields struct {
+	BizName []string
+}
+
+// BusinessCondition defines the business condition.
+// in this condition, fields are generated with AND expr.
+type BusinessCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *BusinessExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *BusinessFuzzyFields
+}
+
+// HostExactFields defines the host exact fields.
+// support includes and excludes.
+type HostExactFields struct {
+	HostID        []int64
+	BizID         []int64
+	NetworkAreaID []int64
+	OSType        []string
+	NodeRole      []NodeRole
+	NodeStatus    []NodeStatus
+	NodeVersion   []string
+	AgentID       []string
+}
+
+// HostFuzzyFields defines the host fuzzy fields.
+type HostFuzzyFields struct {
+	HostName  []string
+	DeptName  []string
+	InnerIP   []string
+	InnerIPV6 []string
+	OuterIP   []string
+	OuterIPV6 []string
+}
+
+// HostCondition defines the host condition.
+// in this condition, fields are generated with AND expr.
+type HostCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *HostExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *HostFuzzyFields
+}
+
+// NetworkAreaExactFields defines the network area exact fields.
+type NetworkAreaExactFields struct {
+	NetworkAreaID []int64
+	CloudVendor   []string
+}
+
+// NetworkAreaFuzzyFields defines the network area fuzzy fields.
+type NetworkAreaFuzzyFields struct {
+	NetworkAreaName []string
+}
+
+// NetworkAreaCondition defines the network area condition.
+// in this condition, fields are generated with AND expr.
+type NetworkAreaCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *NetworkAreaExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *NetworkAreaFuzzyFields
+}
+
+// NetworkUnitExactFields defines the network unit exact fields.
+type NetworkUnitExactFields struct {
+	NetworkUnitID []int64
+	NetworkAreaID []int64
+}
+
+// NetworkUnitFuzzyFields defines the network unit fuzzy fields.
+type NetworkUnitFuzzyFields struct {
+}
+
+// NetworkUnitCondition defines the network unit condition.
+// in this condition, fields are generated with AND expr.
+type NetworkUnitCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *NetworkUnitExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *NetworkUnitFuzzyFields
+}
+
+// AccessPointExactFields defines the access point exact fields.
+type AccessPointExactFields struct {
+	AccessPointID []int64
+	NetworkAreaID []int64
+}
+
+// AccessPointFuzzyFields defines the access point fuzzy fields.
+type AccessPointFuzzyFields struct {
+}
+
+// AccessPointCondition defines the access point condition.
+// in this condition, fields are generated with AND expr.
+type AccessPointCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *AccessPointExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *AccessPointFuzzyFields
+}

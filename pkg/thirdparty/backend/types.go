@@ -9,3 +9,29 @@
  */
 
 package backend
+
+import (
+	"errors"
+
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// CodeOK defines the success code.
+const CodeOK = 0
+
+func convertPage(page types.Page) *proto.Page {
+	return &proto.Page{
+		Offset: int32(page.Offset),
+		Limit:  int32(page.Limit),
+	}
+}
+
+var (
+	errConditionTypeNotSupport = errors.New("condition type not support")
+)
+
+// ErrConditionTypeNotSupport err
+func ErrConditionTypeNotSupport() error {
+	return errConditionTypeNotSupport
+}

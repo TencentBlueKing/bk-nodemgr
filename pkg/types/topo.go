@@ -48,6 +48,26 @@ type HostStatic struct {
 // NodeRole represents a node role.
 type NodeRole string
 
+// NodeRoleListToStringList converts a node role list to a string list.
+func NodeRoleListToStringList(nodeRoleList []NodeRole) []string {
+	data := make([]string, len(nodeRoleList))
+	for idx, nodeRole := range nodeRoleList {
+		data[idx] = string(nodeRole)
+	}
+
+	return data
+}
+
+// StringListToNodeRoleList converts a string list to a node role list.
+func StringListToNodeRoleList(stringList []string) []NodeRole {
+	data := make([]NodeRole, len(stringList))
+	for idx, nodeRole := range stringList {
+		data[idx] = NodeRole(nodeRole)
+	}
+
+	return data
+}
+
 const (
 	// NodeRoleBlank means this node is blank. nothing installed.
 	NodeRoleBlank NodeRole = "blank"
@@ -61,6 +81,26 @@ const (
 
 // NodeStatus represents a node status when node role is not blank.
 type NodeStatus string
+
+// NodeStatusListToStringList converts a node status list to a string list.
+func NodeStatusListToStringList(nodeStatusList []NodeStatus) []string {
+	data := make([]string, len(nodeStatusList))
+	for idx, nodeStatus := range nodeStatusList {
+		data[idx] = string(nodeStatus)
+	}
+
+	return data
+}
+
+// StringListToNodeStatusList converts a string list to a node status list.
+func StringListToNodeStatusList(stringList []string) []NodeStatus {
+	data := make([]NodeStatus, len(stringList))
+	for idx, nodeStatus := range stringList {
+		data[idx] = NodeStatus(nodeStatus)
+	}
+
+	return data
+}
 
 const (
 	// NodeStatusUnknown means this node status is unknown.

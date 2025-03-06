@@ -669,6 +669,36 @@
       },
       "description": "NetworkUnit describes the network unit informations."
     },
+    "v3NetworkUnitBrief": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        }
+      },
+      "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
+    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -691,9 +721,38 @@
         },
         "only_count": {
           "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoBusinessListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoBusinessListReqFuzzyConditions"
         }
       },
       "description": "TopoBusinessListReq describes the HTTP request body when list business in\ntopo service."
+    },
+    "v3TopoBusinessListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoBusinessListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "bk_biz_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3TopoBusinessListResp": {
       "type": "object",
@@ -1295,7 +1354,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NetworkUnit"
+            "$ref": "#/definitions/v3NetworkUnitBrief"
           }
         }
       }

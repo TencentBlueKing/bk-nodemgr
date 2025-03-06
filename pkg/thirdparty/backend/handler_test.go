@@ -10,3 +10,449 @@
 
 // Package backend provides handlers to operate nodemgr backend api.
 package backend
+
+import (
+	"context"
+	"os"
+	"testing"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/joho/godotenv"
+)
+
+type testHeaderSetter struct{}
+
+// GetAuthHeader ...
+func (testHeaderSetter) GetAuthHeader() (string, error) {
+	return os.Getenv("BK_APIGW_AUTHHEADER"), nil
+}
+
+// testClient ...
+func testClient(t *testing.T) Handler {
+	err := godotenv.Load(".env")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clientCap := &client.Capability{
+		Client:               httpClient,
+		Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	h, err := New(clientCap, &Config{
+		TenantID:     os.Getenv("BK_APIGW_TENANT_ID"),
+		HeaderSetter: testHeaderSetter{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return h
+}
+
+// Test_handler_ListBusiness list business.
+func Test_handler_ListBusiness(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx       context.Context
+		page      types.Page
+		condition *types.BusinessCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "page",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "condition",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: &types.BusinessCondition{
+					Type: types.ConditionTypeExactInclude,
+					Exact: &types.BusinessExactFields{
+						BizID: []int64{0, 1, 2},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.ListBusiness(tt.args.ctx, tt.args.page, tt.args.condition)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListBizHosts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("biz: %v", item)
+			}
+
+			t.Logf("total: %d", total)
+		})
+	}
+}
+
+// Test_hanlder_ListHost list host.
+func Test_hanlder_ListHost(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx       context.Context
+		page      types.Page
+		condition *types.HostCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "page",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "condition",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: &types.HostCondition{
+					Type: types.ConditionTypeExactInclude,
+					Exact: &types.HostExactFields{
+						BizID: []int64{0, 1, 2},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.ListHost(tt.args.ctx, tt.args.page, tt.args.condition)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListHost() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("host: %v", item)
+			}
+
+			t.Logf("total: %d", total)
+		})
+	}
+}
+
+// Test_hanlder_ListNetworkArea list networkarea.
+func Test_hanlder_ListNetworkArea(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx       context.Context
+		page      types.Page
+		condition *types.NetworkAreaCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "page",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "condition",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: &types.NetworkAreaCondition{
+					Type: types.ConditionTypeExactInclude,
+					Exact: &types.NetworkAreaExactFields{
+						NetworkAreaID: []int64{0, 1, 2},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.ListNetworkArea(tt.args.ctx, tt.args.page, tt.args.condition)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("networkarea: %v", item)
+			}
+
+			t.Logf("total: %d", total)
+		})
+	}
+}
+
+// Test_hanlder_ListNetworkUnit list networkunit.
+func Test_hanlder_ListNetworkUnit(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx       context.Context
+		page      types.Page
+		condition *types.NetworkUnitCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "page",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "condition",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: &types.NetworkUnitCondition{
+					Type: types.ConditionTypeExactInclude,
+					Exact: &types.NetworkUnitExactFields{
+						NetworkAreaID: []int64{0, 1, 2},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.ListNetworkUnit(tt.args.ctx, tt.args.page, tt.args.condition)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListNetworkUnit() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("networkunit: %v", item)
+			}
+
+			t.Logf("total: %d", total)
+		})
+	}
+}
+
+// Test_hanlder_ListNetworkArea get network area.
+func Test_hanlder_GetNetworkArea(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx context.Context
+		id  int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid id",
+			args: args{
+				ctx: ctx,
+				id:  -1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+				id:  0,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetNetworkArea(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("networkarea: %v", got)
+		})
+	}
+}
+
+// Test_hanlder_GetNetworkUnit get network unit.
+func Test_hanlder_GetNetworkUnit(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx context.Context
+		id  int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid id",
+			args: args{
+				ctx: ctx,
+				id:  -1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+				id:  0,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, aps, err := h.GetNetworkUnit(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetNetworkUnit() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err == nil {
+				if len(aps) != len(got.AccessPoints) {
+					t.Errorf("GetNetworkUnit() accesspoints length not match")
+					return
+				}
+
+				t.Logf("networkunit: %v", got)
+				t.Logf("accesspoints: %v", aps)
+			}
+		})
+	}
+}

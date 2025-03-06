@@ -13,7 +13,6 @@ package topo
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -263,13 +262,13 @@ func validateTopoNetworkAreaDeleteReq(req *proto.TopoNetworkAreaDeleteReq) error
 	return nil
 }
 
-func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) topo.NetworkAreaCondition {
+func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) types.NetworkAreaCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		conditions := topo.NetworkAreaCondition{
+		conditions := types.NetworkAreaCondition{
 			Type: types.ConditionTypeExactInclude,
 		}
-		conditions.Exact = &topo.NetworkAreaExactFields{
+		conditions.Exact = &types.NetworkAreaExactFields{
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			CloudVendor:   exactCond.GetBkCloudVendor(),
 		}
@@ -279,10 +278,10 @@ func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) topo.Netwo
 
 	// fuzzy conditions.
 	if fuzzyCond := req.GetFuzzyIncludeConditions(); fuzzyCond != nil {
-		conditions := topo.NetworkAreaCondition{
+		conditions := types.NetworkAreaCondition{
 			Type: types.ConditionTypeFuzzyInclude,
 		}
-		conditions.Fuzzy = &topo.NetworkAreaFuzzyFields{
+		conditions.Fuzzy = &types.NetworkAreaFuzzyFields{
 			NetworkAreaName: fuzzyCond.GetBkNetworkareaName(),
 		}
 
@@ -290,7 +289,7 @@ func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) topo.Netwo
 	}
 
 	// default empty conditions.
-	return topo.NetworkAreaCondition{
+	return types.NetworkAreaCondition{
 		Type: types.ConditionTypeExactInclude,
 	}
 }

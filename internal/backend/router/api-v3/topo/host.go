@@ -11,7 +11,6 @@
 package topo
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -91,13 +90,13 @@ func validateTopoHostListReq(req *proto.TopoHostListReq) error {
 	return nil
 }
 
-func generateHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
+func generateHostConditions(req *proto.TopoHostListReq) types.HostCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		conditions := topo.HostCondition{
+		conditions := types.HostCondition{
 			Type: types.ConditionTypeExactInclude,
 		}
-		conditions.Exact = &topo.HostExactFields{
+		conditions.Exact = &types.HostExactFields{
 			HostID:        exactCond.GetBkHostId(),
 			BizID:         exactCond.GetBkBizId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
@@ -127,10 +126,10 @@ func generateHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
 
 	// fuzzy conditions.
 	if fuzzyCond := req.GetFuzzyIncludeConditions(); fuzzyCond != nil {
-		conditions := topo.HostCondition{
+		conditions := types.HostCondition{
 			Type: types.ConditionTypeFuzzyInclude,
 		}
-		conditions.Fuzzy = &topo.HostFuzzyFields{
+		conditions.Fuzzy = &types.HostFuzzyFields{
 			HostName:  fuzzyCond.GetBkHostName(),
 			DeptName:  fuzzyCond.GetDeptName(),
 			InnerIP:   fuzzyCond.GetBkHostInnerip(),
@@ -143,7 +142,7 @@ func generateHostConditions(req *proto.TopoHostListReq) topo.HostCondition {
 	}
 
 	// default empty conditions.
-	return topo.HostCondition{
+	return types.HostCondition{
 		Type: types.ConditionTypeExactInclude,
 	}
 }

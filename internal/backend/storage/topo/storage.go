@@ -26,7 +26,8 @@ type Storage interface {
 	UpsertBusiness(ctx context.Context, biz ...*types.Business) error
 
 	// ListBusinesses lists businesses by page and conditions.
-	ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) ([]*types.Business, int64, error)
+	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+		[]*types.Business, int64, error)
 
 	// UpsertHosts updates or inserts host.
 	UpsertHosts(ctx context.Context, host ...*types.Host) error
@@ -35,10 +36,10 @@ type Storage interface {
 	UpsertHostStatics(ctx context.Context, host ...*types.Host) error
 
 	// ListHosts lists hosts by page and conditions.
-	ListHosts(ctx context.Context, page types.Page, conditions ...HostCondition) ([]*types.Host, int64, error)
+	ListHosts(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
 
 	// ListNetworkArea lists networkarea by page and conditions.
-	ListNetworkArea(ctx context.Context, page types.Page, conditions ...NetworkAreaCondition) (
+	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
 
 	// GetNetworkArea gets networkarea by id.
@@ -54,7 +55,7 @@ type Storage interface {
 	DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error
 
 	// ListNetworkUnit lists networkunit by page and conditions.
-	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...NetworkUnitCondition) (
+	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
 
 	// GetNetworkUnit gets networkunit by id.
@@ -71,6 +72,6 @@ type Storage interface {
 	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
 
 	// ListAccessPoint lists accesspoint by page and conditions.
-	ListAccessPoint(ctx context.Context, page types.Page, conditions ...AccessPointCondition) (
+	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
 }

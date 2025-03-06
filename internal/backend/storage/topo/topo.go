@@ -105,23 +105,39 @@ func (s *storage) UpsertBusiness(ctx context.Context, biz ...*types.Business) er
 }
 
 // ListBusinesses lists businesses by page and conditions.
-func (s *storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...BusinessCondition) (
+func (s *storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
 	opts := make([]business.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
 		case types.ConditionTypeExactInclude:
-			opts = append(opts,
-				business.WithBizID(condition.BizID...),
-				business.WithBizName(condition.BizName...),
-			)
+			if condition.Exact != nil {
+				opts = append(opts,
+					business.WithBizID(condition.Exact.BizID...),
+				)
+			}
 
 		case types.ConditionTypeExactExclude:
-			opts = append(opts,
-				business.WithoutBizID(condition.BizID...),
-				business.WithoutBizName(condition.BizName...),
-			)
+			if condition.Exact != nil {
+				opts = append(opts,
+					business.WithoutBizID(condition.Exact.BizID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					business.WithFuzzyBizName(condition.Fuzzy.BizName...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyExclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					business.WithoutFuzzyBizName(condition.Fuzzy.BizName...),
+				)
+			}
 
 		default:
 			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
@@ -167,7 +183,7 @@ func (s *storage) UpsertHostStatics(ctx context.Context, hosts ...*types.Host) e
 
 // nolint:cyclop
 // ListHosts lists hosts by page and conditions.
-func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...HostCondition) (
+func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
 	[]*types.Host, int64, error) {
 
 	opts := make([]host.OptFn, 0)
@@ -235,7 +251,7 @@ func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...
 
 // nolint:cyclop
 // ListNetworkArea lists networkarea by page and conditions.
-func (s *storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...NetworkAreaCondition) (
+func (s *storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
 	opts := make([]networkarea.OptFn, 0)
@@ -298,7 +314,7 @@ func (s *storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...i
 }
 
 // ListNetworkUnit lists networkunit.
-func (s *storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...NetworkUnitCondition) (
+func (s *storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
 	opts := make([]networkunit.OptFn, 0)
@@ -416,7 +432,7 @@ func (s *storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...i
 }
 
 // ListAccessPoint lists accesspoint.
-func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...AccessPointCondition) (
+func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
 	opts := make([]accesspoint.OptFn, 0)

@@ -27,12 +27,12 @@ func WithoutBizID(bizIDs ...int64) OptFn {
 	return base.WithoutInt64Values("data.biz_id", bizIDs...)
 }
 
-// WithBizName filters by biz-name.
-func WithBizName(bizNames ...string) OptFn {
-	return base.WithStringValues("data.biz_name", bizNames...)
+// WithFuzzyBizName filters by biz-name.
+func WithFuzzyBizName(bizNames ...string) OptFn {
+	return base.WithFuzzyValues("data.biz_name", bizNames...)
 }
 
-// WithoutBizName filters by not contains biz-name.
-func WithoutBizName(bizNames ...string) OptFn {
-	return base.WithoutStringValues("data.biz_name", bizNames...)
+// WithoutFuzzyBizName filters by not contains biz-name.
+func WithoutFuzzyBizName(bizNames ...string) OptFn {
+	return base.WithoutFuzzyValues("data.biz_name", bizNames...)
 }

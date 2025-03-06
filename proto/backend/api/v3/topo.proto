@@ -11,6 +11,12 @@ import "google/api/annotations.proto";
 message TopoBusinessListReq {
   Page page = 1;
   bool only_count = 2;
+
+  message ExactConditions { repeated int64 bk_biz_id = 1; }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions { repeated string bk_biz_name = 1; }
+  FuzzyConditions fuzzy_include_conditions = 4;
 }
 
 // TopoBusinessListResp describes the HTTP response body when list business in
@@ -144,7 +150,7 @@ message TopoNetworkUnitListResp {
 
   message Data {
     int64 total = 1;
-    repeated NetworkUnit items = 2;
+    repeated NetworkUnitBrief items = 2;
   }
   Data data = 4;
 }
