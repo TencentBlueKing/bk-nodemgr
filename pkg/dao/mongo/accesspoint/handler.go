@@ -56,13 +56,13 @@ type handler struct {
 	daoMap sync.Map
 }
 
-func (h *handler) tenantDao(ctx context.Context, tenantID string) *dao {
+func (h *handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao)
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.ensureIndexes(ctx); err != nil {
+	if err := newDaoClient.ensureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure accesspoint indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
@@ -94,7 +94,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(ctx, tenantID).count(ctx, filter)
+	return h.tenantDao(tenantID).count(ctx, filter)
 }
 
 // List lists accesspoint by page and conditions.
@@ -111,7 +111,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(ctx, tenantID).count(ctx, filter)
+	num, err := h.tenantDao(tenantID).count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -124,7 +124,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		findOpt.SetLimit(int64(page.Limit))
 	}
 
-	accessPoints, err := h.tenantDao(ctx, tenantID).list(ctx, filter, findOpt)
+	accessPoints, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -148,7 +148,7 @@ func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPo
 	opt := base.WithInt64Values("data.access_point_id", accessPointID)
 	filter = opt(filter)
 
-	data, err := h.tenantDao(ctx, tenantID).get(ctx, filter)
+	data, err := h.tenantDao(tenantID).get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (h *handler) Create(ctx context.Context, accessPoint *types.AccessPoint) (i
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	return h.tenantDao(ctx, accessPoint.TenantID).create(ctx, convertAccessPointFromTypes(accessPoint))
+	return h.tenantDao(accessPoint.TenantID).create(ctx, convertAccessPointFromTypes(accessPoint))
 }
 
 // CreateMany creates many accesspoints and return the generated ids.
@@ -199,7 +199,7 @@ func (h *handler) CreateMany(ctx context.Context, accessPoints ...*types.AccessP
 		}
 	}
 
-	return h.tenantDao(ctx, tenantID).createMany(ctx, data)
+	return h.tenantDao(tenantID).createMany(ctx, data)
 }
 
 // UpdateMany updates accesspoint.
@@ -218,7 +218,7 @@ func (h *handler) UpdateMany(ctx context.Context, accessPoints ...*types.AccessP
 		}
 	}
 
-	if err := h.tenantDao(ctx, tenantID).updateMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).updateMany(ctx, data); err != nil {
 		return err
 	}
 
@@ -236,7 +236,7 @@ func (h *handler) DeleteMany(ctx context.Context, accessPointIDs ...int64) error
 		return errors.New("not accesspoint-id specified")
 	}
 
-	if err := h.tenantDao(ctx, tenantID).deleteMany(ctx, accessPointIDs...); err != nil {
+	if err := h.tenantDao(tenantID).deleteMany(ctx, accessPointIDs...); err != nil {
 		return err
 	}
 

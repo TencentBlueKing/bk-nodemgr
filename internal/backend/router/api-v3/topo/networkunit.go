@@ -49,7 +49,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		h.logger.Errorf("failed to create networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
 			networkAreaID, err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	// creates networkunit.
@@ -98,7 +98,7 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		h.logger.Errorf("failed to update networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
 			networkAreaID, err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	err = h.storage.UpdateNetworkUnit(
@@ -145,7 +145,7 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	networkUnit, err := h.storage.GetNetworkUnit(sCtx, req.GetBkNetworkunitId())
 	if err != nil {
 		h.logger.Errorf("failed to get networkunit. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	// get accesspoints.
@@ -217,7 +217,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		generateNetworkUnitConditions(req))
 	if err != nil {
 		h.logger.Errorf("failed to list networkunit. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	items := make([]*proto.NetworkUnit, len(networkAreas))
@@ -261,7 +261,7 @@ func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 	if err := h.storage.DeleteManyNetworkUnit(sCtx, req.GetBkNetworkunitId()); err != nil {
 		h.logger.Errorf("failed to delete networkunit. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	resp := &proto.TopoNetworkAreaDeleteResp_Data{BkNetworkareaId: new(int64)}

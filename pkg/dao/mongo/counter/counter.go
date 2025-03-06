@@ -33,14 +33,14 @@ type dao struct {
 }
 
 // ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes(ctx context.Context) error {
+func (d *dao) ensureIndexes() error {
 	var indexes []mongo.IndexModel
 
 	indexes = append(indexes, mongo.IndexModel{
 		Keys: bson.D{{Key: "data.key", Value: 1}},
 	})
 
-	_, err := d.client.Indexes().CreateMany(ctx, indexes)
+	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
 	if err != nil {
 		return err
 	}

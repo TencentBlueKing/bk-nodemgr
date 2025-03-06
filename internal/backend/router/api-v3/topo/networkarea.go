@@ -46,7 +46,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 	networkArea, err := h.cmdbHandler.CreateNetworkArea(sCtx, req.GetBkNetworkareaName())
 	if err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to create networkarea via cmdb. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
 	if err := h.storage.UpsertManyNetworkArea(sCtx, &types.NetworkArea{
@@ -56,7 +56,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 		CloudVendor: req.GetBkCloudVendor(),
 	}); err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to upsert networkarea. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	resp := &proto.TopoNetworkAreaCreateResp_Data{BkNetworkareaId: new(int64)}
@@ -91,7 +91,7 @@ func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
 		CloudVendor: req.GetBkCloudVendor(),
 	}); err != nil {
 		h.logger.Errorf("failed to update networkarea, failed to upsert networkarea. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	resp := &proto.TopoNetworkAreaUpdateResp_Data{BkNetworkareaId: new(int64)}
@@ -122,7 +122,7 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 	networkArea, err := h.storage.GetNetworkArea(sCtx, req.GetBkNetworkareaId())
 	if err != nil {
 		h.logger.Errorf("failed to get networkarea. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	data := newEmptyNetworkArea()
@@ -159,7 +159,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 		generateNetworkAreaConditions(req))
 	if err != nil {
 		h.logger.Errorf("failed to list networkarea. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	items := make([]*proto.NetworkArea, len(networkAreas))
@@ -202,7 +202,7 @@ func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	if err := h.storage.DeleteManyNetworkArea(sCtx, req.GetBkNetworkareaId()); err != nil {
 		h.logger.Errorf("failed to delete networkarea. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	resp := &proto.TopoNetworkAreaDeleteResp_Data{BkNetworkareaId: new(int64)}

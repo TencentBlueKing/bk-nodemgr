@@ -47,7 +47,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		generateHostConditions(req))
 	if err != nil {
 		h.logger.Errorf("failed to list host. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
 	items := make([]*proto.Host, len(hosts))

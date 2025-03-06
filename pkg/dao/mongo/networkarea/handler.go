@@ -53,13 +53,13 @@ type handler struct {
 	daoMap sync.Map
 }
 
-func (h *handler) tenantDao(ctx context.Context, tenantID string) *dao {
+func (h *handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao)
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.ensureIndexes(ctx); err != nil {
+	if err := newDaoClient.ensureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure networkarea indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
@@ -91,7 +91,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(ctx, tenantID).count(ctx, filter)
+	return h.tenantDao(tenantID).count(ctx, filter)
 }
 
 // List lists networkarea by page and conditions.
@@ -108,7 +108,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(ctx, tenantID).count(ctx, filter)
+	num, err := h.tenantDao(tenantID).count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -121,7 +121,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		findOpt.SetLimit(int64(page.Limit))
 	}
 
-	networkAreas, err := h.tenantDao(ctx, tenantID).list(ctx, filter, findOpt)
+	networkAreas, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -145,7 +145,7 @@ func (h *handler) Get(ctx context.Context, networkAreaID int64) (*types.NetworkA
 	opt := base.WithInt64Values("data.networkarea_id", networkAreaID)
 	filter = opt(filter)
 
-	data, err := h.tenantDao(ctx, tenantID).get(ctx, filter)
+	data, err := h.tenantDao(tenantID).get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (h *handler) UpsertMany(ctx context.Context, networkAreas ...*types.Network
 		}
 	}
 
-	if err := h.tenantDao(ctx, tenantID).upsertMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).upsertMany(ctx, data); err != nil {
 		return err
 	}
 
@@ -192,7 +192,7 @@ func (h *handler) UpdateMany(ctx context.Context, networkAreas ...*types.Network
 		}
 	}
 
-	if err := h.tenantDao(ctx, tenantID).updateMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).updateMany(ctx, data); err != nil {
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (h *handler) DeleteMany(ctx context.Context, networkAreaIDs ...int64) error
 		return errors.New("not networkarea-id specified")
 	}
 
-	if err := h.tenantDao(ctx, tenantID).deleteMany(ctx, networkAreaIDs...); err != nil {
+	if err := h.tenantDao(tenantID).deleteMany(ctx, networkAreaIDs...); err != nil {
 		return err
 	}
 

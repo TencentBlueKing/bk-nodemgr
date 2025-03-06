@@ -75,6 +75,9 @@ const (
 
 	// InvalidFileResource means file resource is invalid.
 	InvalidFileResource Code = 3800011
+
+	// ThirdpartyRequestFailed means request thirdparty service failed.
+	ThirdpartyRequestFailed Code = 3800012
 )
 
 var (
@@ -82,20 +85,21 @@ var (
 		// retain status code.
 		OK:               http.StatusOK,
 		PermissionDenied: http.StatusForbidden,
-		MaxErrCode:       http.StatusBadGateway,
+		MaxErrCode:       http.StatusInternalServerError,
 
 		// custom status code.
-		InvalidParameter:    http.StatusBadRequest,
-		TooManyRequest:      http.StatusTooManyRequests,
-		RecordNotFound:      http.StatusNotFound,
-		DecodeRequestFailed: http.StatusBadRequest,
-		UnHealthy:           http.StatusServiceUnavailable,
-		Aborted:             http.StatusBadGateway,
-		Unauthorized:        http.StatusUnauthorized,
-		PartialFailed:       http.StatusBadGateway,
-		DBExecCmdFailed:     http.StatusBadGateway,
-		InvalidCache:        http.StatusBadGateway,
-		InvalidFileResource: http.StatusBadGateway,
+		InvalidParameter:        http.StatusBadRequest,
+		TooManyRequest:          http.StatusTooManyRequests,
+		RecordNotFound:          http.StatusNotFound,
+		DecodeRequestFailed:     http.StatusBadRequest,
+		UnHealthy:               http.StatusServiceUnavailable,
+		Aborted:                 http.StatusInternalServerError,
+		Unauthorized:            http.StatusUnauthorized,
+		PartialFailed:           http.StatusInternalServerError,
+		DBExecCmdFailed:         http.StatusInternalServerError,
+		InvalidCache:            http.StatusInternalServerError,
+		InvalidFileResource:     http.StatusInternalServerError,
+		ThirdpartyRequestFailed: http.StatusInternalServerError,
 	}
 )
 

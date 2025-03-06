@@ -40,7 +40,7 @@ type dao struct {
 }
 
 // ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes(ctx context.Context) error {
+func (d *dao) ensureIndexes() error {
 	var indexes []mongo.IndexModel
 
 	opts := new(options.IndexOptions)
@@ -49,7 +49,7 @@ func (d *dao) ensureIndexes(ctx context.Context) error {
 		Options: opts.SetUnique(true),
 	})
 
-	_, err := d.client.Indexes().CreateMany(ctx, indexes)
+	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
 	if err != nil {
 		return err
 	}
