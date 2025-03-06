@@ -184,7 +184,7 @@ export interface TopoNetworkUnitGetResp {
 export interface TopoNetworkUnitCreateReq {
   bk_networkunit_name: string;
   bk_networkarea_id: number;
-  access_points: AccessPoint[];
+  accesspoints: AccessPoint[];
   links: Links;
 }
 
@@ -207,7 +207,7 @@ export interface TopoNetworkUnitUpdateReq {
   bk_networkunit_id: number;
   bk_networkunit_name: string;
   bk_networkarea_id: number;
-  access_points: AccessPoint[];
+  accesspoints: AccessPoint[];
   links: Links;
 }
 
@@ -261,6 +261,7 @@ export interface TopoHostListReqExactConditions {
   node_status: string[];
   node_version: string[];
   bk_agent_id: string[];
+  bk_networkunit_id: number[];
 }
 
 export interface TopoHostListReqFuzzyConditions {
@@ -284,5 +285,78 @@ export interface TopoHostListResp {
 export interface TopoHostListRespData {
   total: number;
   items: Host[];
+}
+
+// TopoGraphGetReq describes the HTTP request body when get graph in topo
+// service.
+export interface TopoGraphGetReq {
+  bk_networkarea_id: number[];
+}
+
+// TopoGraphGetResp describes the HTTP response body when get graph in topo
+// service.
+export interface TopoGraphGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoGraphGetRespData;
+}
+
+export interface TopoGraphGetRespData {
+  networkunit: NetworkUnitGraph[];
+  links: LinkGraph[];
+}
+
+// TopoGraphNodeCountReq describes the HTTP request body when get node count
+export interface TopoGraphNodeCountReq {
+  bk_networkunit_id: number[];
+}
+
+// TopoGraphNodeCountResp describes the HTTP response body when get node count
+export interface TopoGraphNodeCountResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoGraphNodeCountRespData;
+}
+
+export interface TopoGraphNodeCountRespNodeInfo {
+  bk_networkunit_id: number;
+  proxy: number;
+  agent: number;
+}
+
+export interface TopoGraphNodeCountRespData {
+  networkunits: NodeInfo[];
+}
+
+// TopoEventListReq describes the HTTP request body when get host in topo
+// service.
+export interface TopoEventListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoEventListReqExactConditions;
+}
+
+export interface TopoEventListReqExactConditions {
+  bk_networkarea_id: number[];
+  bk_networkunit_id: number[];
+  accesspoint_id: number[];
+  type: string[];
+  operator: string[];
+}
+
+// TopoEventListResp describes the HTTP response body when get host in topo
+// service.
+export interface TopoEventListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoEventListRespData;
+}
+
+export interface TopoEventListRespData {
+  total: number;
+  items: TopoEvent[];
 }
 

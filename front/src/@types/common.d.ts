@@ -22,6 +22,8 @@ interface NetworkArea {
 
 // Link describes the network unit link points target.
 interface Link {
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
   accesspoint_id: number;
 }
 
@@ -37,6 +39,7 @@ interface AccessPoint {
   tenant_id: string;
   accesspoint_id: number;
   accesspoint_name: string;
+  bk_networkarea_id: number;
   endpoints: AccessPointEndpoints;
 }
 
@@ -52,7 +55,7 @@ interface NetworkUnit {
   bk_networkunit_id: number;
   bk_networkunit_name: string;
   bk_networkarea_id: number;
-  access_points: AccessPoint[];
+  accesspoints: AccessPoint[];
   links: Links;
 }
 
@@ -63,18 +66,7 @@ interface NetworkUnitBrief {
   bk_networkunit_id: number;
   bk_networkunit_name: string;
   bk_networkarea_id: number;
-  access_points: number[];
-  links: Links;
-}
-
-// NetworkUnitBrief describes the network unit brief informations.
-// only contains the access point ids.
-export interface NetworkUnitBrief {
-  tenantId: string;
-  bkNetworkunitId: number;
-  bkNetworkunitName: string;
-  bkNetworkareaId: number;
-  accessPoints: number[];
+  accesspoints: number[];
   links: Links;
 }
 
@@ -85,6 +77,7 @@ interface HostState {
   node_status: string;
   node_version: string;
   bk_agent_id: string;
+  bk_networkunit_id: number;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -110,5 +103,36 @@ interface Host {
   state: HostState;
   create_at: number;
   updated_at: number;
+}
+
+// NetworkUnitGraph describes the graph networkunit informations.
+interface NetworkUnitGraph {
+  tenant_id: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  accesspoints: number[];
+}
+
+// LinkGraph describes the graph link informations between networkunits.
+interface LinkGraph {
+  source_networkunit_id: number;
+  target_networkunit_id: number;
+  target_accesspoint_id: number;
+  channel: string[];
+}
+
+// TopoEvent describes the topo event.
+interface TopoEvent {
+  tenant_id: string;
+  type: string;
+  bk_networkarea_id: number;
+  bk_networkarea_name: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  accesspoint_id: number;
+  accesspoint_name: string;
+  operate_time: number;
+  operator: string;
 }
 

@@ -6,6 +6,8 @@ import type { UserModule } from './types.ts';
 import '@/fonts/iconcool';
 import '@blueking/table/vue3/vue3.css';
 import '@blueking/vxe-table/lib/style.css';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/light.css';
 import '@unocss/reset/tailwind.css';
 import './styles/main.css';
 import 'uno.css';

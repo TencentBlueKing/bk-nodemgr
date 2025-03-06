@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp } from '@/@types/topo';
+import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp } from '@/@types/topo';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -33,5 +33,11 @@ export const TopoService = {
   NetworkUnitDelete: async <Request = TopoNetworkUnitDeleteReq, ResponseData = TopoNetworkUnitDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkunit/delete')(params, config),
   // HostList provides business listing.
   HostList: async <Request = TopoHostListReq, ResponseData = TopoHostListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/list')(params, config),
+  // GraphGet provides getting graph nodes and edges.
+  GraphGet: async <Request = TopoGraphGetReq, ResponseData = TopoGraphGetResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/graph/get')(params, config),
+  // GraphNodeCount provides getting graph node count.
+  GraphNodeCount: async <Request = TopoGraphNodeCountReq, ResponseData = TopoGraphNodeCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/graph/node/count')(params, config),
+  // EventList provides event listing.
+  EventList: async <Request = TopoEventListReq, ResponseData = TopoEventListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/event/list')(params, config),
 };
 

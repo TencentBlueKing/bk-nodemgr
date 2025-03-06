@@ -13,7 +13,7 @@ interceptors.response.use(async (response: Response, config: Config) => {
   } else if (config.needRes) {
     resData = res;
   } else {
-    resData = res.datas;
+    resData = res.data;
   }
   if (config.responseType && ['blod', 'text'].includes(config.responseType)) return resData;
   // todo 未认证
