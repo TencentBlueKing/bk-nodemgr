@@ -29,16 +29,11 @@ jobs:
           # 获取足够深度的历史记录以便进行比较
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          cache: true
-
       - name: Run golangci-lint with config
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.64
+          verify: false
           only-new-issues: true
           # 默认会自动使用项目根目录下的配置文件
           args: >
