@@ -37,6 +37,7 @@ jobs:
           skip-cache: true
           # 默认会自动使用项目根目录下的配置文件
           args: >
+            --timeout=5m
             --config=.golangci.yml
             --issues-exit-code=0
             --new=true
