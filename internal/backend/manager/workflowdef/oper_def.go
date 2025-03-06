@@ -58,6 +58,7 @@ func OperBuilderRegistry() map[OperDefName]OperBuilder {
 			OperDefNameSyncNetworkArea: newOperSyncNetworkAreaFromCMDB,
 		}
 	})
+
 	return instance.registry
 }
 
