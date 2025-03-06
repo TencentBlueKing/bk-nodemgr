@@ -39,6 +39,7 @@ type dao struct {
 	counter  counter.Handler
 }
 
+// nolint:contextcheck
 // ensureIndexes ensures the required indexes for the collection.
 func (d *dao) ensureIndexes() error {
 	var indexes []mongo.IndexModel

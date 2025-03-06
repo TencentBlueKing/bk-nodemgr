@@ -13,7 +13,6 @@ package accesspoint
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -144,6 +143,10 @@ func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPo
 		return nil, err
 	}
 
+	if accessPointID < 0 {
+		return nil, base.ErrInvalidID()
+	}
+
 	filter := base.AliveFilter()
 	opt := base.WithInt64Values("data.access_point_id", accessPointID)
 	filter = opt(filter)
@@ -164,12 +167,11 @@ func (h *handler) Create(ctx context.Context, accessPoint *types.AccessPoint) (i
 	}
 
 	if accessPoint == nil {
-		return -1, errors.New("accesspoint is empty")
+		return -1, base.ErrEmptyParamData()
 	}
 
-	if accessPoint.TenantID != tenantID {
-		return -1, fmt.Errorf("tenantID not match, ctx-tenantID(%s), accesspoint-tenantID(%s)",
-			tenantID, accessPoint.TenantID)
+	if err = base.CheckTenantIDMatched(tenantID, accessPoint.TenantID); err != nil {
+		return -1, err
 	}
 
 	if accessPoint.Name == "" {
@@ -180,7 +182,7 @@ func (h *handler) Create(ctx context.Context, accessPoint *types.AccessPoint) (i
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	return h.tenantDao(accessPoint.TenantID).create(ctx, convertAccessPointFromTypes(accessPoint))
+	return h.tenantDao(tenantID).create(ctx, convertAccessPointFromTypes(accessPoint))
 }
 
 // CreateMany creates many accesspoints and return the generated ids.
@@ -190,12 +192,20 @@ func (h *handler) CreateMany(ctx context.Context, accessPoints ...*types.AccessP
 		return nil, err
 	}
 
+	if len(accessPoints) == 0 {
+		return nil, errors.New("empty accesspoint")
+	}
+
 	data := make([]*AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
+		if accessPoint == nil {
+			return nil, base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertAccessPointFromTypes(accessPoint)
 
-		if data[idx].TenantID != tenantID {
-			return nil, fmt.Errorf("tenantID not match, ctx-tenantID(%s), accesspoint-tenantID(%s)", tenantID, accessPoint.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return nil, err
 		}
 	}
 
@@ -211,10 +221,14 @@ func (h *handler) UpdateMany(ctx context.Context, accessPoints ...*types.AccessP
 
 	data := make([]*AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
+		if accessPoint == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertAccessPointFromTypes(accessPoint)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), accesspoint-tenantID(%s)", tenantID, accessPoint.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -233,7 +247,7 @@ func (h *handler) DeleteMany(ctx context.Context, accessPointIDs ...int64) error
 	}
 
 	if len(accessPointIDs) == 0 {
-		return errors.New("not accesspoint-id specified")
+		return base.ErrEmptyParamData()
 	}
 
 	if err := h.tenantDao(tenantID).deleteMany(ctx, accessPointIDs...); err != nil {

@@ -13,7 +13,6 @@ package business
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -158,16 +157,24 @@ func (h *handler) UpsertMany(ctx context.Context, bizs ...*types.Business) error
 		return err
 	}
 
+	if len(bizs) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*Business, len(bizs))
 	for idx, biz := range bizs {
+		if biz == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = &Business{
 			TenantID: biz.TenantID,
 			BizID:    biz.BizID,
 			BizName:  biz.BizName,
 		}
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), biz-tenantID(%s)", tenantID, biz.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 

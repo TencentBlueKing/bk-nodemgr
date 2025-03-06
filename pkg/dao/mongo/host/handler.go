@@ -13,7 +13,6 @@ package host
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -156,12 +155,20 @@ func (h *handler) UpsertMany(ctx context.Context, hosts ...*types.Host) error {
 		return err
 	}
 
+	if len(hosts) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*Host, len(hosts))
 	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertHostFromTypes(host)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), host-tenantID(%s)", tenantID, host.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -179,13 +186,20 @@ func (h *handler) UpsertStaticMany(ctx context.Context, hosts ...*types.Host) er
 		return err
 	}
 
+	if len(hosts) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*Host, len(hosts))
 	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertHostFromTypes(host)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), host-tenantID(%s)",
-				tenantID, host.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -205,11 +219,14 @@ func (h *handler) UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) e
 
 	data := make([]*Host, len(hosts))
 	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertHostFromTypes(host)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), host-tenantID(%s)",
-				tenantID, host.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 

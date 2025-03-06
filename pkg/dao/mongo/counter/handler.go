@@ -14,7 +14,6 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -34,10 +33,6 @@ type handler struct {
 	once   sync.Once
 }
 
-const (
-	defaultEnsureIndexesTimeout = 5 * time.Second
-)
-
 // New create a new counter handler.
 func New(client *mongo.Database, logger logger.Logger) Handler {
 	return &handler{
@@ -49,10 +44,14 @@ func New(client *mongo.Database, logger logger.Logger) Handler {
 
 // Generate generate a global new sequence in namespace key.
 func (h *handler) Generate(ctx context.Context, key string) (int64, error) {
-	return h.getDao(ctx).generate(ctx, key)
+	if key == "" {
+		return -1, base.ErrEmptyParamData()
+	}
+
+	return h.getDao().generate(ctx, key)
 }
 
-func (h *handler) getDao(ctx context.Context) *dao {
+func (h *handler) getDao() *dao {
 	h.once.Do(func() {
 		if err := h.dao.ensureIndexes(); err != nil {
 			h.logger.Warnf("failed to ensure counter indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))

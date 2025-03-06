@@ -14,5 +14,33 @@ import "errors"
 
 // ErrEnsureIndexesFailed return the error when ensure indexes failed.
 func ErrEnsureIndexesFailed() error {
-	return errors.New("ensure indexes failed")
+	return errEnsureIndexesFailed
 }
+
+// ErrInvalidID return the error when specified id is invalid.
+func ErrInvalidID() error {
+	return errInvalidID
+}
+
+// ErrEmptyParamData return the error when param data is empty.
+func ErrEmptyParamData() error {
+	return errEmptyParamData
+}
+
+// ErrInvalidItemInParamList return the error when param item in param list is invalid.
+func ErrInvalidItemInParamList() error {
+	return errInvalidItemInParamList
+}
+
+// ErrTenantIDNotMatched return the error when tenant id is not matched.
+func ErrTenantIDNotMatched() error {
+	return errTenantIDNotMatched
+}
+
+var (
+	errEnsureIndexesFailed    = errors.New("ensure indexes failed")
+	errInvalidID              = errors.New("invalid id")
+	errEmptyParamData         = errors.New("empty param data")
+	errInvalidItemInParamList = errors.New("invalid item in param list")
+	errTenantIDNotMatched     = errors.New("tenant id is not matched")
+)

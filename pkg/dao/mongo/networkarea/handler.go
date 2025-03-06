@@ -13,7 +13,6 @@ package networkarea
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -141,6 +140,10 @@ func (h *handler) Get(ctx context.Context, networkAreaID int64) (*types.NetworkA
 		return nil, err
 	}
 
+	if networkAreaID < 0 {
+		return nil, base.ErrInvalidID()
+	}
+
 	filter := base.AliveFilter()
 	opt := base.WithInt64Values("data.networkarea_id", networkAreaID)
 	filter = opt(filter)
@@ -160,12 +163,20 @@ func (h *handler) UpsertMany(ctx context.Context, networkAreas ...*types.Network
 		return err
 	}
 
+	if len(networkAreas) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*NetworkArea, len(networkAreas))
 	for idx, networkArea := range networkAreas {
+		if networkArea == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertNetworkAreaFromTypes(networkArea)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), networkarea-tenantID(%s)", tenantID, networkArea.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -183,12 +194,20 @@ func (h *handler) UpdateMany(ctx context.Context, networkAreas ...*types.Network
 		return err
 	}
 
+	if len(networkAreas) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*NetworkArea, len(networkAreas))
 	for idx, networkArea := range networkAreas {
+		if networkArea == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertNetworkAreaFromTypes(networkArea)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), networkarea-tenantID(%s)", tenantID, networkArea.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -207,7 +226,7 @@ func (h *handler) DeleteMany(ctx context.Context, networkAreaIDs ...int64) error
 	}
 
 	if len(networkAreaIDs) == 0 {
-		return errors.New("not networkarea-id specified")
+		return base.ErrEmptyParamData()
 	}
 
 	if err := h.tenantDao(tenantID).deleteMany(ctx, networkAreaIDs...); err != nil {

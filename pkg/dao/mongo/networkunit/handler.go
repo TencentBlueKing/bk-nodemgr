@@ -13,7 +13,6 @@ package networkunit
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -141,6 +140,10 @@ func (h *handler) Get(ctx context.Context, networkUnitID int64) (*types.NetworkU
 		return nil, err
 	}
 
+	if networkUnitID < 0 {
+		return nil, base.ErrInvalidID()
+	}
+
 	filter := base.AliveFilter()
 	opt := base.WithInt64Values("data.networkunit_id", networkUnitID)
 	filter = opt(filter)
@@ -161,12 +164,11 @@ func (h *handler) Create(ctx context.Context, networkUnit *types.NetworkUnit) (i
 	}
 
 	if networkUnit == nil {
-		return -1, errors.New("networkunit is empty")
+		return -1, base.ErrEmptyParamData()
 	}
 
-	if networkUnit.TenantID != tenantID {
-		return -1, fmt.Errorf("tenantID not match, ctx-tenantID(%s), networkunit-tenantID(%s)",
-			tenantID, networkUnit.TenantID)
+	if err = base.CheckTenantIDMatched(tenantID, networkUnit.TenantID); err != nil {
+		return -1, err
 	}
 
 	if networkUnit.Name == "" {
@@ -187,12 +189,20 @@ func (h *handler) UpdateMany(ctx context.Context, networkUnits ...*types.Network
 		return err
 	}
 
+	if len(networkUnits) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
 	data := make([]*NetworkUnit, len(networkUnits))
 	for idx, networkUnit := range networkUnits {
+		if networkUnit == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
 		data[idx] = convertNetworkUnitFromTypes(networkUnit)
 
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), networkunit-tenantID(%s)", tenantID, networkUnit.TenantID)
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
 		}
 	}
 
@@ -211,7 +221,7 @@ func (h *handler) DeleteMany(ctx context.Context, networkUnitIDs ...int64) error
 	}
 
 	if len(networkUnitIDs) == 0 {
-		return errors.New("not networkunit-id specified")
+		return base.ErrEmptyParamData()
 	}
 
 	if err := h.tenantDao(tenantID).deleteMany(ctx, networkUnitIDs...); err != nil {
