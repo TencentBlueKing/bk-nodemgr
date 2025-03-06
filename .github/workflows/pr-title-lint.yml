@@ -26,7 +26,7 @@ jobs:
           # --issue=#\d+       - 必须以 --issue=#数字 结尾
           # $                  - 匹配结尾
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          title-regex: "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):\\s[a-z\\s\\.]+\\s--issue=#\\d+$"
+          title-regex: "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):\\s[a-z\\s\\.]+\\s--issue=#\\d+\\s*$"
           on-failed-regex-fail-action: true
           on-failed-regex-create-review: true
           on-failed-regex-request-changes: true
