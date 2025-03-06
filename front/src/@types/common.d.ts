@@ -37,7 +37,8 @@ interface AccessPoint {
   tenant_id: string;
   accesspoint_id: number;
   accesspoint_name: string;
-  endpoints: AccessPointEndpoints;
+  bk_networkarea_id: number;
+  endpoints: Endpoints;
 }
 
 interface AccessPointEndpoints {
@@ -74,6 +75,7 @@ interface HostState {
   node_status: string;
   node_version: string;
   bk_agent_id: string;
+  bk_networkunit_id: number;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -99,5 +101,22 @@ interface Host {
   state: HostState;
   create_at: number;
   updated_at: number;
+}
+
+// NetworkUnitGraph describes the graph networkunit informations.
+interface NetworkUnitGraph {
+  tenant_id: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  access_points: number[];
+}
+
+// LinkGraph describes the graph link informations between networkunits.
+interface LinkGraph {
+  source_networkunit_id: number;
+  target_networkunit_id: number;
+  target_accesspoint_id: number;
+  channel: string[];
 }
 

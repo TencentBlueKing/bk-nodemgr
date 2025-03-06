@@ -261,6 +261,7 @@ export interface TopoHostListReqExactConditions {
   node_status: string[];
   node_version: string[];
   bk_agent_id: string[];
+  bk_networkunit_id: number[];
 }
 
 export interface TopoHostListReqFuzzyConditions {
@@ -284,5 +285,25 @@ export interface TopoHostListResp {
 export interface TopoHostListRespData {
   total: number;
   items: Host[];
+}
+
+// TopoGraphGetReq describes the HTTP request body when get graph in topo
+// service.
+export interface TopoGraphGetReq {
+  bk_networkarea_id: number[];
+}
+
+// TopoGraphGetResp describes the HTTP response body when get graph in topo
+// service.
+export interface TopoGraphGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: Data;
+}
+
+export interface Data {
+  networkunit: NetworkUnitGraph[];
+  links: LinkGraph[];
 }
 

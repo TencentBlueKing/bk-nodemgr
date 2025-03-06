@@ -8,7 +8,7 @@ import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
 import TopoManager from '@/pages/topo/index.vue';
-import ControlledRegion from '@/pages/topo/region.vue';
+import ControlledRegion from '@/pages/topo/region/region.vue';
 import Topography from '@/pages/topo/topo.vue';
 import OperationRecord from '@/pages/topo/record.vue';
 import type { UserModule } from '@/types';
@@ -66,6 +66,7 @@ const routes = setupLayouts([
             meta: {
               back: false,
               mainMenu: 'topoManager',
+              title: '管控区域',
             },
           },
           {
