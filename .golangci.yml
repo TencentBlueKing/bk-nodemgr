@@ -128,7 +128,6 @@ linters:
     # Whitespace is a linter that checks for unnecessary newlines at the start and end of functions, if, for, etc.
     - whitespace
     # Add or remove empty lines.
-#    - wsl
 issues:
   # List of regexps of issue texts to exclude.
   #
@@ -172,9 +171,6 @@ issues:
   # To list all excluded by default patterns execute `golangci-lint run --help`.
   # Default: true
   exclude-use-default: false
-  # Make issues output unique by line.
-  # Default: true
-  uniq-by-line: true
   # If set to true, `exclude` and `exclude-rules` regular expressions become case-sensitive.
   # Default: false
   exclude-case-sensitive: false
@@ -358,7 +354,7 @@ run:
   # Number of operating system threads (`GOMAXPROCS`) that can execute golangci-lint simultaneously.
   # If it is explicitly set to 0 (i.e. not the default) then golangci-lint will automatically set the value to match Linux container CPU quota.
   # Default: the number of logical CPUs in the machine
-  concurrency: 5
+  concurrency: 0
 severity:
   # Set the default severity for issues.
   #
@@ -373,7 +369,7 @@ severity:
   # `@linter` can be used as severity value to keep the severity from linters (e.g. revive, gosec, ...)
   #
   # Default: ""
-  default-severity: error
+  default-severity: warn
   # If set to true `severity-rules` regular expressions become case-sensitive.
   # Default: false
   case-sensitive: true
@@ -439,61 +435,11 @@ linters-settings:
   gocyclo:
     # Maximal code complexity to report.
     # Default: 30 (but we recommend 10-20)
-    max-complexity: 20
+    min-complexity: 20
   gocognit:
-    # Maximal code complexity to report.
+    # Minimal code complexity to report.
     # Default: 30 (but we recommend 10-20)
-    max-complexity: 15
-  wsl:
-    # Do strict checking when assigning from append (x = append(x, y)).
-    # If this is set to true - the append call must append either a variable
-    # assigned, called or used on the line above.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#strict-append
-    # Default: true
-    strict-append: false
-    # Allows assignments to be cuddled with variables used in calls on
-    # line above and calls to be cuddled with assignments of variables
-    # used in call on line above.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-assign-and-call
-    # Default: true
-    allow-assign-and-call: false
-    # Allows assignments to be cuddled with anything.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-assign-and-anything
-    # Default: false
-    allow-assign-and-anything: true
-    # Allows cuddling to assignments even if they span over multiple lines.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-multiline-assign
-    # Default: true
-    allow-multiline-assign: false
-    # If the number of lines in a case block is equal to or lager than this number,
-    # the case *must* end white a newline.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#force-case-trailing-whitespace
-    # Default: 0
-    force-case-trailing-whitespace: 1
-    # Allow blocks to end with comments.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-trailing-comment
-    # Default: false
-    allow-trailing-comment: true
-    # Allow multiple comments in the beginning of a block separated with newline.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-separated-leading-comment
-    # Default: false
-    allow-separated-leading-comment: true
-    # Allow multiple var/declaration statements to be cuddled.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#allow-cuddle-declarations
-    # Default: false
-    allow-cuddle-declarations: true
-    # A list of call idents that everything can be cuddled with.
-    # Defaults: [ "Lock", "RLock" ]
-    allow-cuddle-with-calls: ["Foo", "Bar"]
-    # AllowCuddleWithRHS is a list of right hand side variables that is allowed
-    # to be cuddled with anything.
-    # Defaults: [ "Unlock", "RUnlock" ]
-    allow-cuddle-with-rhs: ["Foo", "Bar"]
-    # Causes an error when an If statement that checks an error variable doesn't
-    # cuddle with the assignment of that variable.
-    # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md#force-err-cuddling
-    # Default: false
-    force-err-cuddling: true
+    min-complexity: 20
   godot:
     # Comments to be checked: `declarations`, `toplevel`, or `all`.
     # Default: declarations
@@ -510,65 +456,64 @@ linters-settings:
     # Check that each sentence starts with a capital letter.
     # Default: false
     capital: false
-  linters-settings:
-    gosec:
-      # To select a subset of rules to run.
-      # Available rules: https://github.com/securego/gosec#available-rules
-      # Default: [] - means include all rules
-      includes: []
-      # To specify a set of rules to explicitly exclude.
-      # Available rules: https://github.com/securego/gosec#available-rules
-      # Default: []
-      excludes:
-        - G101 # Look for hard coded credentials
-        - G102 # Bind to all interfaces
-        - G115 # Potential integer overflow when converting between integer types
-      # Exclude generated files
-      # Default: false
-      exclude-generated: true
-      # Filter out the issues with a lower severity than the given value.
-      # Valid options are: low, medium, high.
-      # Default: low
-      severity: medium
-      # Filter out the issues with a lower confidence than the given value.
-      # Valid options are: low, medium, high.
-      # Default: low
-      confidence: medium
-      # Concurrency value.
-      # Default: the number of logical CPUs usable by the current process.
-      concurrency: 6
-      # To specify the configuration of rules.
-      config:
-        # Globals are applicable to all rules.
-        global:
-          # If true, ignore #nosec in comments (and an alternative as well).
-          # Default: false
-          nosec: false
-          # Add an alternative comment prefix to #nosec (both will work at the same time).
-          # Default: ""
-          "#nosec": "#my-custom-nosec"
-          # Define whether nosec issues are counted as finding or not.
-          # Default: false
-          show-ignored: true
-          # Audit mode enables addition checks that for normal code analysis might be too nosy.
-          # Default: false
-          audit: true
-        G104:
-          fmt:
-            - Fscanf
-        G111:
-          # Regexp pattern to find potential directory traversal.
-          # Default: "http\\.Dir\\(\"\\/\"\\)|http\\.Dir\\('\\/'\\)"
-          pattern: "custom\\.Dir\\(\\)"
-        # Maximum allowed permissions mode for os.Mkdir and os.MkdirAll
-        # Default: "0750"
-        G301: "0750"
-        # Maximum allowed permissions mode for os.OpenFile and os.Chmod
-        # Default: "0600"
-        G302: "0600"
-        # Maximum allowed permissions mode for os.WriteFile and ioutil.WriteFile
-        # Default: "0600"
-        G306: "0600"
+  gosec:
+    # To select a subset of rules to run.
+    # Available rules: https://github.com/securego/gosec#available-rules
+    # Default: [] - means include all rules
+    includes: []
+    # To specify a set of rules to explicitly exclude.
+    # Available rules: https://github.com/securego/gosec#available-rules
+    # Default: []
+    excludes:
+      - G101 # Look for hard coded credentials
+      - G102 # Bind to all interfaces
+      - G115 # Potential integer overflow when converting between integer types
+    # Exclude generated files
+    # Default: false
+    exclude-generated: true
+    # Filter out the issues with a lower severity than the given value.
+    # Valid options are: low, medium, high.
+    # Default: low
+    severity: medium
+    # Filter out the issues with a lower confidence than the given value.
+    # Valid options are: low, medium, high.
+    # Default: low
+    confidence: medium
+    # Concurrency value.
+    # Default: the number of logical CPUs usable by the current process.
+    concurrency: 6
+    # To specify the configuration of rules.
+    config:
+      # Globals are applicable to all rules.
+      global:
+        # If true, ignore #nosec in comments (and an alternative as well).
+        # Default: false
+        nosec: false
+        # Add an alternative comment prefix to #nosec (both will work at the same time).
+        # Default: ""
+        "#nosec": "#my-custom-nosec"
+        # Define whether nosec issues are counted as finding or not.
+        # Default: false
+        show-ignored: true
+        # Audit mode enables addition checks that for normal code analysis might be too nosy.
+        # Default: false
+        audit: true
+      G104:
+        fmt:
+          - Fscanf
+      G111:
+        # Regexp pattern to find potential directory traversal.
+        # Default: "http\\.Dir\\(\"\\/\"\\)|http\\.Dir\\('\\/'\\)"
+        pattern: "custom\\.Dir\\(\\)"
+      # Maximum allowed permissions mode for os.Mkdir and os.MkdirAll
+      # Default: "0750"
+      G301: "0750"
+      # Maximum allowed permissions mode for os.OpenFile and os.Chmod
+      # Default: "0600"
+      G302: "0600"
+      # Maximum allowed permissions mode for os.WriteFile and ioutil.WriteFile
+      # Default: "0600"
+      G306: "0600"
   varnamelen:
     # The longest distance, in source lines, that is being considered a "small scope".
     # Variables used in at most this many lines will be ignored.
