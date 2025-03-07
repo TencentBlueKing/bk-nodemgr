@@ -23,14 +23,9 @@ const (
 
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoHostListReq)
+	req := new(topoHostListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoHostListReq(req); err != nil {
-		h.logger.Errorf("failed to list host, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -82,15 +77,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func validateTopoHostListReq(req *proto.TopoHostListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateHostConditions(req *proto.TopoHostListReq) *types.HostCondition {
+func generateHostConditions(req *topoHostListReq) *types.HostCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := &types.HostCondition{
@@ -168,4 +155,13 @@ func newEmptyHost() *proto.Host {
 			BkAgentId:   new(string),
 		},
 	}
+}
+
+type topoHostListReq struct {
+	proto.TopoHostListReq
+}
+
+// Validate check body.
+func (req *topoHostListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
 }

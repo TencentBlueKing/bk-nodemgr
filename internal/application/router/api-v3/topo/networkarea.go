@@ -25,14 +25,9 @@ const (
 
 // GetNetworkArea gets an existing network-area.
 func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaGetReq)
+	req := new(topoNetworkAreaGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaGetReq(req); err != nil {
-		h.logger.Errorf("failed to get networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -59,14 +54,9 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkArea lists network-area.
 func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaListReq)
+	req := new(topoNetworkAreaListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaListReq(req); err != nil {
-		h.logger.Errorf("failed to list networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -104,23 +94,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func validateTopoNetworkAreaGetReq(req *proto.TopoNetworkAreaGetReq) error {
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is invalid")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkAreaListReq(req *proto.TopoNetworkAreaListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) *types.NetworkAreaCondition {
+func generateNetworkAreaConditions(req *topoNetworkAreaListReq) *types.NetworkAreaCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := &types.NetworkAreaCondition{
@@ -157,4 +131,26 @@ func newEmptyNetworkArea() *proto.NetworkArea {
 		BkNetworkareaName: new(string),
 		BkCloudVendor:     new(string),
 	}
+}
+
+type topoNetworkAreaGetReq struct {
+	proto.TopoNetworkAreaGetReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaGetReq) Validate() error {
+	if req.GetBkNetworkareaId() < 0 {
+		return errors.New("bk_networkarea_id is invalid")
+	}
+
+	return nil
+}
+
+type topoNetworkAreaListReq struct {
+	proto.TopoNetworkAreaListReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
 }

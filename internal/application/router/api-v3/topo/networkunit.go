@@ -25,14 +25,9 @@ const (
 
 // GetNetworkUnit gets an existing networkunit.
 func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitGetReq)
+	req := new(topoNetworkUnitGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitGetReq(req); err != nil {
-		h.logger.Errorf("failed to get networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -79,14 +74,9 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkUnit lists network units.
 func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitListReq)
+	req := new(topoNetworkUnitListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitListReq(req); err != nil {
-		h.logger.Errorf("failed to list networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -126,46 +116,6 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func convertAccssPoints(
-	ctx *rest.Context,
-	networkAreaID int64,
-	accessPoints []*proto.AccessPoint) []*types.AccessPoint {
-
-	data := make([]*types.AccessPoint, len(accessPoints))
-	for idx, accessPoint := range accessPoints {
-		data[idx] = &types.AccessPoint{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			Name:          accessPoint.GetAccesspointName(),
-		}
-
-		if endpoints := accessPoint.GetEndpoints(); endpoints != nil {
-			data[idx].Endpoints.Cluster = endpoints.GetCluster()
-			data[idx].Endpoints.File = endpoints.GetFile()
-			data[idx].Endpoints.Data = endpoints.GetData()
-		}
-	}
-
-	return data
-}
-
-func convertLinks(links *proto.Links) types.Links {
-	data := types.Links{}
-	if links != nil {
-		if reqLink := links.GetCluster(); reqLink != nil {
-			data.Cluster = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetFile(); reqLink != nil {
-			data.File = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetData(); reqLink != nil {
-			data.Data = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-	}
-
-	return data
-}
-
 func convertLinksToProto(links types.Links) *proto.Links {
 	data := &proto.Links{
 		Cluster: &proto.Link{},
@@ -192,23 +142,7 @@ func convertLinksToProto(links types.Links) *proto.Links {
 	return data
 }
 
-func validateTopoNetworkUnitGetReq(req *proto.TopoNetworkUnitGetReq) error {
-	if req.GetBkNetworkunitId() < 0 {
-		return errors.New("bk_networkunit_id is invalid")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkUnitListReq(req *proto.TopoNetworkUnitListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateNetworkUnitConditions(req *proto.TopoNetworkUnitListReq) *types.NetworkUnitCondition {
+func generateNetworkUnitConditions(req *topoNetworkUnitListReq) *types.NetworkUnitCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := &types.NetworkUnitCondition{
@@ -263,4 +197,26 @@ func newEmptyAccessPoint() *proto.AccessPoint {
 		AccesspointName: new(string),
 		Endpoints:       &proto.AccessPoint_Endpoints{},
 	}
+}
+
+type topoNetworkUnitGetReq struct {
+	proto.TopoNetworkUnitGetReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitGetReq) Validate() error {
+	if req.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id is invalid")
+	}
+
+	return nil
+}
+
+type topoNetworkUnitListReq struct {
+	proto.TopoNetworkUnitListReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
 }

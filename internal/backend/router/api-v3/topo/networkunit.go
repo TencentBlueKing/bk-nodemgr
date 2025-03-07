@@ -25,14 +25,9 @@ const (
 
 // CreateNetworkUnit creates a new network-unit.
 func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitCreateReq)
+	req := new(topoNetworkUnitCreateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to create networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitCreateReq(req); err != nil {
-		h.logger.Errorf("failed to create networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -74,14 +69,9 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // UpdateNetworkUnit updates networkunit.
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitUpdateReq)
+	req := new(topoNetworkUnitUpdateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to update networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitUpdateReq(req); err != nil {
-		h.logger.Errorf("failed to update networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -123,14 +113,9 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // GetNetworkUnit gets an existing networkunit.
 func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitGetReq)
+	req := new(topoNetworkUnitGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitGetReq(req); err != nil {
-		h.logger.Errorf("failed to get networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -193,14 +178,9 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkUnit lists network units.
 func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitListReq)
+	req := new(topoNetworkUnitListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkunit, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkUnitListReq(req); err != nil {
-		h.logger.Errorf("failed to list networkunit, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -242,15 +222,10 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitDeleteReq)
+	req := new(topoNetworkUnitDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkunit, failed to decode request body. err: %v", err)
 		return nil, err
-	}
-
-	if err := validateTopoNetworkUnitDeleteReq(req); err != nil {
-		h.logger.Errorf("failed to delete networkunit, failed to validate request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
@@ -336,51 +311,7 @@ func convertLinksToProto(links types.Links) *proto.Links {
 	return data
 }
 
-func validateTopoNetworkUnitCreateReq(req *proto.TopoNetworkUnitCreateReq) error {
-	if req.GetBkNetworkunitName() == "" {
-		return errors.New("bk_networkunit_name is required")
-	}
-
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is required")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkUnitUpdateReq(req *proto.TopoNetworkUnitUpdateReq) error {
-	if req.GetBkNetworkunitName() == "" {
-		return errors.New("bk_networkunit_name is required")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkUnitGetReq(req *proto.TopoNetworkUnitGetReq) error {
-	if req.GetBkNetworkunitId() < 0 {
-		return errors.New("bk_networkunit_id is invalid")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkUnitListReq(req *proto.TopoNetworkUnitListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func validateTopoNetworkUnitDeleteReq(req *proto.TopoNetworkUnitDeleteReq) error {
-	if req.GetBkNetworkunitId() < 0 {
-		return errors.New("bk_networkunit_id is invalid")
-	}
-
-	return nil
-}
-
-func generateNetworkUnitConditions(req *proto.TopoNetworkUnitListReq) types.NetworkUnitCondition {
+func generateNetworkUnitConditions(req *topoNetworkUnitListReq) types.NetworkUnitCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := types.NetworkUnitCondition{
@@ -437,4 +368,69 @@ func newEmptyAccessPoint() *proto.AccessPoint {
 		AccesspointName: new(string),
 		Endpoints:       &proto.AccessPoint_Endpoints{},
 	}
+}
+
+type topoNetworkUnitCreateReq struct {
+	proto.TopoNetworkUnitCreateReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitCreateReq) Validate() error {
+	if req.GetBkNetworkunitName() == "" {
+		return errors.New("bk_networkunit_name is required")
+	}
+
+	if req.GetBkNetworkareaId() < 0 {
+		return errors.New("bk_networkarea_id is required")
+	}
+
+	return nil
+}
+
+type topoNetworkUnitUpdateReq struct {
+	proto.TopoNetworkUnitUpdateReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitUpdateReq) Validate() error {
+	if req.GetBkNetworkunitName() == "" {
+		return errors.New("bk_networkunit_name is required")
+	}
+
+	return nil
+}
+
+type topoNetworkUnitGetReq struct {
+	proto.TopoNetworkUnitGetReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitGetReq) Validate() error {
+	if req.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id is invalid")
+	}
+
+	return nil
+}
+
+type topoNetworkUnitListReq struct {
+	proto.TopoNetworkUnitListReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
+}
+
+type topoNetworkUnitDeleteReq struct {
+	proto.TopoNetworkUnitDeleteReq
+}
+
+// Validate check body.
+func (req *topoNetworkUnitDeleteReq) Validate() error {
+	if req.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id is invalid")
+	}
+
+	return nil
 }

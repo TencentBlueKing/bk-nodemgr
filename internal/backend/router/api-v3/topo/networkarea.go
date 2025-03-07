@@ -25,14 +25,9 @@ const (
 
 // CreateNetworkArea creates a new network-area.
 func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaCreateReq)
+	req := new(topoNetworkAreaCreateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaCreateReq(req); err != nil {
-		h.logger.Errorf("failed to create networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -66,14 +61,9 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // UpdateNetworkArea updates an existing network-area.
 func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaUpdateReq)
+	req := new(topoNetworkAreaUpdateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to update networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaUpdateReq(req); err != nil {
-		h.logger.Errorf("failed to update networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -101,14 +91,9 @@ func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // GetNetworkArea gets an existing network-area.
 func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaGetReq)
+	req := new(topoNetworkAreaGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaGetReq(req); err != nil {
-		h.logger.Errorf("failed to get networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -135,14 +120,9 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkArea lists network-area.
 func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaListReq)
+	req := new(topoNetworkAreaListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkarea, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoNetworkAreaListReq(req); err != nil {
-		h.logger.Errorf("failed to list networkarea, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -182,15 +162,10 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // DeleteNetworkArea deletes an existing network-area.
 func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaDeleteReq)
+	req := new(topoNetworkAreaDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkarea, failed to decode request body. err: %v", err)
 		return nil, err
-	}
-
-	if err := validateTopoNetworkAreaDeleteReq(req); err != nil {
-		h.logger.Errorf("failed to delete networkarea, failed to validate request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
@@ -210,59 +185,7 @@ func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func validateTopoNetworkAreaCreateReq(req *proto.TopoNetworkAreaCreateReq) error {
-	if req.GetBkNetworkareaName() == "" {
-		return errors.New("bk_networkarea_name is required")
-	}
-
-	if req.GetBkCloudVendor() == "" {
-		return errors.New("bk_cloud_vendor is required")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkAreaUpdateReq(req *proto.TopoNetworkAreaUpdateReq) error {
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is invalid")
-	}
-
-	if req.GetBkNetworkareaName() == "" {
-		return errors.New("bk_networkarea_name is required")
-	}
-
-	if req.GetBkCloudVendor() == "" {
-		return errors.New("bk_cloud_vendor is required")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkAreaGetReq(req *proto.TopoNetworkAreaGetReq) error {
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is invalid")
-	}
-
-	return nil
-}
-
-func validateTopoNetworkAreaListReq(req *proto.TopoNetworkAreaListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func validateTopoNetworkAreaDeleteReq(req *proto.TopoNetworkAreaDeleteReq) error {
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is invalid")
-	}
-
-	return nil
-}
-
-func generateNetworkAreaConditions(req *proto.TopoNetworkAreaListReq) types.NetworkAreaCondition {
+func generateNetworkAreaConditions(req *topoNetworkAreaListReq) types.NetworkAreaCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := types.NetworkAreaCondition{
@@ -301,4 +224,77 @@ func newEmptyNetworkArea() *proto.NetworkArea {
 		BkNetworkareaName: new(string),
 		BkCloudVendor:     new(string),
 	}
+}
+
+type topoNetworkAreaCreateReq struct {
+	proto.TopoNetworkAreaCreateReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaCreateReq) Validate() error {
+	if req.GetBkNetworkareaName() == "" {
+		return errors.New("bk_networkarea_name is required")
+	}
+
+	if req.GetBkCloudVendor() == "" {
+		return errors.New("bk_cloud_vendor is required")
+	}
+
+	return nil
+}
+
+type topoNetworkAreaUpdateReq struct {
+	proto.TopoNetworkAreaUpdateReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaUpdateReq) Validate() error {
+	if req.GetBkNetworkareaId() < 0 {
+		return errors.New("bk_networkarea_id is invalid")
+	}
+
+	if req.GetBkNetworkareaName() == "" {
+		return errors.New("bk_networkarea_name is required")
+	}
+
+	if req.GetBkCloudVendor() == "" {
+		return errors.New("bk_cloud_vendor is required")
+	}
+
+	return nil
+}
+
+type topoNetworkAreaGetReq struct {
+	proto.TopoNetworkAreaGetReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaGetReq) Validate() error {
+	if req.GetBkNetworkareaId() < 0 {
+		return errors.New("bk_networkarea_id is invalid")
+	}
+
+	return nil
+}
+
+type topoNetworkAreaListReq struct {
+	proto.TopoNetworkAreaListReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
+}
+
+type topoNetworkAreaDeleteReq struct {
+	proto.TopoNetworkAreaDeleteReq
+}
+
+// Validate check body.
+func (req *topoNetworkAreaDeleteReq) Validate() error {
+	if req.GetBkNetworkareaId() < 0 {
+		return errors.New("bk_networkarea_id is invalid")
+	}
+
+	return nil
 }
