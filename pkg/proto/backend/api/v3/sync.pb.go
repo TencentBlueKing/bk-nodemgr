@@ -62,10 +62,10 @@ func (*SyncCmdbHostReq) Descriptor() ([]byte, []int) {
 // SyncCmdbHostResp describes the HTTP response body when sync cmdb host.
 type SyncCmdbHostResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *SyncCmdbHostResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *SyncCmdbHostResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -170,10 +170,10 @@ func (*SyncCmdbNetworkAreaReq) Descriptor() ([]byte, []int) {
 // networkarea.
 type SyncCmdbNetworkAreaResp struct {
 	state         protoimpl.MessageState        `protogen:"open.v1"`
-	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *SyncCmdbNetworkAreaResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *SyncCmdbNetworkAreaResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -238,7 +238,7 @@ func (x *SyncCmdbNetworkAreaResp) GetData() *SyncCmdbNetworkAreaResp_Data {
 
 type SyncCmdbHostResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,7 +282,7 @@ func (x *SyncCmdbHostResp_Data) GetWorkflowId() string {
 
 type SyncCmdbNetworkAreaResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -24,8 +24,8 @@ const (
 // Page describes the generaic conditions when paging query.
 type Page struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -77,9 +77,9 @@ func (x *Page) GetLimit() int32 {
 // Business describes the business informations.
 type Business struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TenantId      *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	BkBizId       *int64                 `protobuf:"varint,2,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id,omitempty"`
-	BkBizName     *string                `protobuf:"bytes,3,opt,name=bk_biz_name,json=bkBizName,proto3,oneof" json:"bk_biz_name,omitempty"`
+	TenantId      *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkBizId       *int64                 `protobuf:"varint,2,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id"`
+	BkBizName     *string                `protobuf:"bytes,3,opt,name=bk_biz_name,json=bkBizName,proto3,oneof" json:"bk_biz_name"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -138,10 +138,10 @@ func (x *Business) GetBkBizName() string {
 // NetworkArea describes the network area informations.
 type NetworkArea struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	BkNetworkareaId   *int64                 `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
-	BkNetworkareaName *string                `protobuf:"bytes,3,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3,oneof" json:"bk_networkarea_name,omitempty"`
-	BkCloudVendor     *string                `protobuf:"bytes,4,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3,oneof" json:"bk_cloud_vendor,omitempty"`
+	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkNetworkareaId   *int64                 `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
+	BkNetworkareaName *string                `protobuf:"bytes,3,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3,oneof" json:"bk_networkarea_name"`
+	BkCloudVendor     *string                `protobuf:"bytes,4,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3,oneof" json:"bk_cloud_vendor"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -207,7 +207,7 @@ func (x *NetworkArea) GetBkCloudVendor() string {
 // Link describes the network unit link points target.
 type Link struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccesspointId int64                  `protobuf:"varint,1,opt,name=accesspoint_id,json=accesspointId,proto3" json:"accesspoint_id,omitempty"`
+	AccesspointId int64                  `protobuf:"varint,1,opt,name=accesspoint_id,json=accesspointId,proto3" json:"accesspoint_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,9 +252,9 @@ func (x *Link) GetAccesspointId() int64 {
 // Links describes the network unit links.
 type Links struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Cluster       *Link                  `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
-	File          *Link                  `protobuf:"bytes,2,opt,name=file,proto3" json:"file,omitempty"`
-	Data          *Link                  `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	Cluster       *Link                  `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster"`
+	File          *Link                  `protobuf:"bytes,2,opt,name=file,proto3" json:"file"`
+	Data          *Link                  `protobuf:"bytes,3,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -313,10 +313,10 @@ func (x *Links) GetData() *Link {
 // AccessPoint describes the access point informations.
 type AccessPoint struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	TenantId        *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	AccesspointId   *int64                 `protobuf:"varint,2,opt,name=accesspoint_id,json=accesspointId,proto3,oneof" json:"accesspoint_id,omitempty"`
-	AccesspointName *string                `protobuf:"bytes,3,opt,name=accesspoint_name,json=accesspointName,proto3,oneof" json:"accesspoint_name,omitempty"`
-	Endpoints       *AccessPoint_Endpoints `protobuf:"bytes,4,opt,name=endpoints,proto3" json:"endpoints,omitempty"`
+	TenantId        *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	AccesspointId   *int64                 `protobuf:"varint,2,opt,name=accesspoint_id,json=accesspointId,proto3,oneof" json:"accesspoint_id"`
+	AccesspointName *string                `protobuf:"bytes,3,opt,name=accesspoint_name,json=accesspointName,proto3,oneof" json:"accesspoint_name"`
+	Endpoints       *AccessPoint_Endpoints `protobuf:"bytes,4,opt,name=endpoints,proto3" json:"endpoints"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -382,12 +382,12 @@ func (x *AccessPoint) GetEndpoints() *AccessPoint_Endpoints {
 // NetworkUnit describes the network unit informations.
 type NetworkUnit struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	BkNetworkunitId   *int64                 `protobuf:"varint,2,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id,omitempty"`
-	BkNetworkunitName *string                `protobuf:"bytes,3,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3,oneof" json:"bk_networkunit_name,omitempty"`
-	BkNetworkareaId   *int64                 `protobuf:"varint,4,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
-	AccessPoints      []*AccessPoint         `protobuf:"bytes,5,rep,name=access_points,json=accessPoints,proto3" json:"access_points,omitempty"`
-	Links             *Links                 `protobuf:"bytes,6,opt,name=links,proto3,oneof" json:"links,omitempty"`
+	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkNetworkunitId   *int64                 `protobuf:"varint,2,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
+	BkNetworkunitName *string                `protobuf:"bytes,3,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3,oneof" json:"bk_networkunit_name"`
+	BkNetworkareaId   *int64                 `protobuf:"varint,4,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
+	AccessPoints      []*AccessPoint         `protobuf:"bytes,5,rep,name=access_points,json=accessPoints,proto3" json:"access_points"`
+	Links             *Links                 `protobuf:"bytes,6,opt,name=links,proto3,oneof" json:"links"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -468,12 +468,12 @@ func (x *NetworkUnit) GetLinks() *Links {
 // only contains the access point ids.
 type NetworkUnitBrief struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	BkNetworkunitId   *int64                 `protobuf:"varint,2,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id,omitempty"`
-	BkNetworkunitName *string                `protobuf:"bytes,3,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3,oneof" json:"bk_networkunit_name,omitempty"`
-	BkNetworkareaId   *int64                 `protobuf:"varint,4,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
-	AccessPoints      []int64                `protobuf:"varint,5,rep,packed,name=access_points,json=accessPoints,proto3" json:"access_points,omitempty"`
-	Links             *Links                 `protobuf:"bytes,6,opt,name=links,proto3,oneof" json:"links,omitempty"`
+	TenantId          *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkNetworkunitId   *int64                 `protobuf:"varint,2,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
+	BkNetworkunitName *string                `protobuf:"bytes,3,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3,oneof" json:"bk_networkunit_name"`
+	BkNetworkareaId   *int64                 `protobuf:"varint,4,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
+	AccessPoints      []int64                `protobuf:"varint,5,rep,packed,name=access_points,json=accessPoints,proto3" json:"access_points"`
+	Links             *Links                 `protobuf:"bytes,6,opt,name=links,proto3,oneof" json:"links"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -554,10 +554,10 @@ func (x *NetworkUnitBrief) GetLinks() *Links {
 // agent-related things.
 type HostState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	NodeRole      *string                `protobuf:"bytes,1,opt,name=node_role,json=nodeRole,proto3,oneof" json:"node_role,omitempty"`
-	NodeStatus    *string                `protobuf:"bytes,2,opt,name=node_status,json=nodeStatus,proto3,oneof" json:"node_status,omitempty"`
-	NodeVersion   *string                `protobuf:"bytes,3,opt,name=node_version,json=nodeVersion,proto3,oneof" json:"node_version,omitempty"`
-	BkAgentId     *string                `protobuf:"bytes,4,opt,name=bk_agent_id,json=bkAgentId,proto3,oneof" json:"bk_agent_id,omitempty"`
+	NodeRole      *string                `protobuf:"bytes,1,opt,name=node_role,json=nodeRole,proto3,oneof" json:"node_role"`
+	NodeStatus    *string                `protobuf:"bytes,2,opt,name=node_status,json=nodeStatus,proto3,oneof" json:"node_status"`
+	NodeVersion   *string                `protobuf:"bytes,3,opt,name=node_version,json=nodeVersion,proto3,oneof" json:"node_version"`
+	BkAgentId     *string                `protobuf:"bytes,4,opt,name=bk_agent_id,json=bkAgentId,proto3,oneof" json:"bk_agent_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -624,16 +624,16 @@ func (x *HostState) GetBkAgentId() string {
 // configs.
 type HostInfo struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkBizId         *int64                 `protobuf:"varint,1,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id,omitempty"`
-	BkNetworkareaId *int64                 `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
-	BkHostName      *string                `protobuf:"bytes,3,opt,name=bk_host_name,json=bkHostName,proto3,oneof" json:"bk_host_name,omitempty"`
-	DeptName        *string                `protobuf:"bytes,4,opt,name=dept_name,json=deptName,proto3,oneof" json:"dept_name,omitempty"`
-	BkHostInnerip   *string                `protobuf:"bytes,5,opt,name=bk_host_innerip,json=bkHostInnerip,proto3,oneof" json:"bk_host_innerip,omitempty"`
-	BkHostInneripV6 *string                `protobuf:"bytes,6,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3,oneof" json:"bk_host_innerip_v6,omitempty"`
-	BkHostOuterip   *string                `protobuf:"bytes,7,opt,name=bk_host_outerip,json=bkHostOuterip,proto3,oneof" json:"bk_host_outerip,omitempty"`
-	BkHostOuteripV6 *string                `protobuf:"bytes,8,opt,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3,oneof" json:"bk_host_outerip_v6,omitempty"`
-	BkMac           *string                `protobuf:"bytes,9,opt,name=bk_mac,json=bkMac,proto3,oneof" json:"bk_mac,omitempty"`
-	BkOsType        *string                `protobuf:"bytes,10,opt,name=bk_os_type,json=bkOsType,proto3,oneof" json:"bk_os_type,omitempty"`
+	BkBizId         *int64                 `protobuf:"varint,1,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id"`
+	BkNetworkareaId *int64                 `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
+	BkHostName      *string                `protobuf:"bytes,3,opt,name=bk_host_name,json=bkHostName,proto3,oneof" json:"bk_host_name"`
+	DeptName        *string                `protobuf:"bytes,4,opt,name=dept_name,json=deptName,proto3,oneof" json:"dept_name"`
+	BkHostInnerip   *string                `protobuf:"bytes,5,opt,name=bk_host_innerip,json=bkHostInnerip,proto3,oneof" json:"bk_host_innerip"`
+	BkHostInneripV6 *string                `protobuf:"bytes,6,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3,oneof" json:"bk_host_innerip_v6"`
+	BkHostOuterip   *string                `protobuf:"bytes,7,opt,name=bk_host_outerip,json=bkHostOuterip,proto3,oneof" json:"bk_host_outerip"`
+	BkHostOuteripV6 *string                `protobuf:"bytes,8,opt,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3,oneof" json:"bk_host_outerip_v6"`
+	BkMac           *string                `protobuf:"bytes,9,opt,name=bk_mac,json=bkMac,proto3,oneof" json:"bk_mac"`
+	BkOsType        *string                `protobuf:"bytes,10,opt,name=bk_os_type,json=bkOsType,proto3,oneof" json:"bk_os_type"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -741,12 +741,12 @@ func (x *HostInfo) GetBkOsType() string {
 // Host describes the host informations.
 type Host struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TenantId      *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id,omitempty"`
-	BkHostId      *int64                 `protobuf:"varint,2,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id,omitempty"`
-	Info          *HostInfo              `protobuf:"bytes,3,opt,name=info,proto3" json:"info,omitempty"`
-	State         *HostState             `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
-	CreateAt      *uint64                `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3,oneof" json:"create_at,omitempty"`
-	UpdatedAt     *uint64                `protobuf:"varint,6,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	TenantId      *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkHostId      *int64                 `protobuf:"varint,2,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
+	Info          *HostInfo              `protobuf:"bytes,3,opt,name=info,proto3" json:"info"`
+	State         *HostState             `protobuf:"bytes,4,opt,name=state,proto3" json:"state"`
+	CreateAt      *uint64                `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3,oneof" json:"create_at"`
+	UpdatedAt     *uint64                `protobuf:"varint,6,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -825,9 +825,9 @@ func (x *Host) GetUpdatedAt() uint64 {
 
 type AccessPoint_Endpoints struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Cluster       []string               `protobuf:"bytes,1,rep,name=cluster,proto3" json:"cluster,omitempty"`
-	File          []string               `protobuf:"bytes,2,rep,name=file,proto3" json:"file,omitempty"`
-	Data          []string               `protobuf:"bytes,3,rep,name=data,proto3" json:"data,omitempty"`
+	Cluster       []string               `protobuf:"bytes,1,rep,name=cluster,proto3" json:"cluster"`
+	File          []string               `protobuf:"bytes,2,rep,name=file,proto3" json:"file"`
+	Data          []string               `protobuf:"bytes,3,rep,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

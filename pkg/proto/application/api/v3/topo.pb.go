@@ -26,10 +26,10 @@ const (
 // topo service.
 type TopoBusinessListReq struct {
 	state                  protoimpl.MessageState               `protogen:"open.v1"`
-	Page                   *Page                                `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	OnlyCount              bool                                 `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count,omitempty"`
-	ExactIncludeConditions *TopoBusinessListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions,omitempty"`
-	FuzzyIncludeConditions *TopoBusinessListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions,omitempty"`
+	Page                   *Page                                `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount              bool                                 `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	ExactIncludeConditions *TopoBusinessListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
+	FuzzyIncludeConditions *TopoBusinessListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -96,10 +96,10 @@ func (x *TopoBusinessListReq) GetFuzzyIncludeConditions() *TopoBusinessListReq_F
 // topo service.
 type TopoBusinessListResp struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                     `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                     `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoBusinessListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                     `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                     `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoBusinessListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -166,10 +166,10 @@ func (x *TopoBusinessListResp) GetData() *TopoBusinessListResp_Data {
 // in topo service.
 type TopoNetworkAreaListReq struct {
 	state                  protoimpl.MessageState                  `protogen:"open.v1"`
-	Page                   *Page                                   `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	OnlyCount              bool                                    `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count,omitempty"`
-	ExactIncludeConditions *TopoNetworkAreaListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions,omitempty"`
-	FuzzyIncludeConditions *TopoNetworkAreaListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions,omitempty"`
+	Page                   *Page                                   `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount              bool                                    `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	ExactIncludeConditions *TopoNetworkAreaListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
+	FuzzyIncludeConditions *TopoNetworkAreaListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -236,10 +236,10 @@ func (x *TopoNetworkAreaListReq) GetFuzzyIncludeConditions() *TopoNetworkAreaLis
 // network-area in topo service.
 type TopoNetworkAreaListResp struct {
 	state         protoimpl.MessageState        `protogen:"open.v1"`
-	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkAreaListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkAreaListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -306,7 +306,7 @@ func (x *TopoNetworkAreaListResp) GetData() *TopoNetworkAreaListResp_Data {
 // in topo service.
 type TopoNetworkAreaGetReq struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
+	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -352,10 +352,10 @@ func (x *TopoNetworkAreaGetReq) GetBkNetworkareaId() int64 {
 // in topo service.
 type TopoNetworkAreaGetResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *NetworkArea           `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *NetworkArea           `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -422,8 +422,8 @@ func (x *TopoNetworkAreaGetResp) GetData() *NetworkArea {
 // network-area in topo service.
 type TopoNetworkAreaCreateReq struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaName string                 `protobuf:"bytes,1,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name,omitempty"`
-	BkCloudVendor     string                 `protobuf:"bytes,2,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor,omitempty"`
+	BkNetworkareaName string                 `protobuf:"bytes,1,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name"`
+	BkCloudVendor     string                 `protobuf:"bytes,2,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -476,10 +476,10 @@ func (x *TopoNetworkAreaCreateReq) GetBkCloudVendor() string {
 // network-area in topo service.
 type TopoNetworkAreaCreateResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkAreaCreateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkAreaCreateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -546,9 +546,9 @@ func (x *TopoNetworkAreaCreateResp) GetData() *TopoNetworkAreaCreateResp_Data {
 // network-area in topo service.
 type TopoNetworkAreaUpdateReq struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId   int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	BkNetworkareaName string                 `protobuf:"bytes,2,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name,omitempty"`
-	BkCloudVendor     string                 `protobuf:"bytes,3,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor,omitempty"`
+	BkNetworkareaId   int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	BkNetworkareaName string                 `protobuf:"bytes,2,opt,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name"`
+	BkCloudVendor     string                 `protobuf:"bytes,3,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -608,10 +608,10 @@ func (x *TopoNetworkAreaUpdateReq) GetBkCloudVendor() string {
 // network-area in topo service.
 type TopoNetworkAreaUpdateResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkAreaUpdateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkAreaUpdateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -678,7 +678,7 @@ func (x *TopoNetworkAreaUpdateResp) GetData() *TopoNetworkAreaUpdateResp_Data {
 // network-area in topo service.
 type TopoNetworkAreaDeleteReq struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
+	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -724,10 +724,10 @@ func (x *TopoNetworkAreaDeleteReq) GetBkNetworkareaId() int64 {
 // network-area in topo service.
 type TopoNetworkAreaDeleteResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkAreaDeleteResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkAreaDeleteResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -794,9 +794,9 @@ func (x *TopoNetworkAreaDeleteResp) GetData() *TopoNetworkAreaDeleteResp_Data {
 // in topo service.
 type TopoNetworkUnitListReq struct {
 	state                  protoimpl.MessageState                  `protogen:"open.v1"`
-	Page                   *Page                                   `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	OnlyCount              bool                                    `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count,omitempty"`
-	ExactIncludeConditions *TopoNetworkUnitListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions,omitempty"`
+	Page                   *Page                                   `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount              bool                                    `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	ExactIncludeConditions *TopoNetworkUnitListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -856,10 +856,10 @@ func (x *TopoNetworkUnitListReq) GetExactIncludeConditions() *TopoNetworkUnitLis
 // network-unit in topo service.
 type TopoNetworkUnitListResp struct {
 	state         protoimpl.MessageState        `protogen:"open.v1"`
-	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkUnitListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkUnitListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -926,7 +926,7 @@ func (x *TopoNetworkUnitListResp) GetData() *TopoNetworkUnitListResp_Data {
 // in topo service.
 type TopoNetworkUnitGetReq struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id,omitempty"`
+	BkNetworkunitId int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -972,10 +972,10 @@ func (x *TopoNetworkUnitGetReq) GetBkNetworkunitId() int64 {
 // in topo service.
 type TopoNetworkUnitGetResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *NetworkUnit           `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *NetworkUnit           `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1042,10 +1042,10 @@ func (x *TopoNetworkUnitGetResp) GetData() *NetworkUnit {
 // network-unit in topo service.
 type TopoNetworkUnitCreateReq struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitName string                 `protobuf:"bytes,1,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3" json:"bk_networkunit_name,omitempty"`
-	BkNetworkareaId   int64                  `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	AccessPoints      []*AccessPoint         `protobuf:"bytes,3,rep,name=access_points,json=accessPoints,proto3" json:"access_points,omitempty"`
-	Links             *Links                 `protobuf:"bytes,4,opt,name=links,proto3" json:"links,omitempty"`
+	BkNetworkunitName string                 `protobuf:"bytes,1,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3" json:"bk_networkunit_name"`
+	BkNetworkareaId   int64                  `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	AccessPoints      []*AccessPoint         `protobuf:"bytes,3,rep,name=access_points,json=accessPoints,proto3" json:"access_points"`
+	Links             *Links                 `protobuf:"bytes,4,opt,name=links,proto3" json:"links"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1112,10 +1112,10 @@ func (x *TopoNetworkUnitCreateReq) GetLinks() *Links {
 // network unit in topo service.
 type TopoNetworkUnitCreateResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkUnitCreateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkUnitCreateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1182,11 +1182,11 @@ func (x *TopoNetworkUnitCreateResp) GetData() *TopoNetworkUnitCreateResp_Data {
 // network-unit in topo service.
 type TopoNetworkUnitUpdateReq struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId   int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id,omitempty"`
-	BkNetworkunitName string                 `protobuf:"bytes,2,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3" json:"bk_networkunit_name,omitempty"`
-	BkNetworkareaId   int64                  `protobuf:"varint,3,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	AccessPoints      []*AccessPoint         `protobuf:"bytes,4,rep,name=access_points,json=accessPoints,proto3" json:"access_points,omitempty"`
-	Links             *Links                 `protobuf:"bytes,5,opt,name=links,proto3" json:"links,omitempty"`
+	BkNetworkunitId   int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
+	BkNetworkunitName string                 `protobuf:"bytes,2,opt,name=bk_networkunit_name,json=bkNetworkunitName,proto3" json:"bk_networkunit_name"`
+	BkNetworkareaId   int64                  `protobuf:"varint,3,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	AccessPoints      []*AccessPoint         `protobuf:"bytes,4,rep,name=access_points,json=accessPoints,proto3" json:"access_points"`
+	Links             *Links                 `protobuf:"bytes,5,opt,name=links,proto3" json:"links"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1260,10 +1260,10 @@ func (x *TopoNetworkUnitUpdateReq) GetLinks() *Links {
 // network unit in topo service.
 type TopoNetworkUnitUpdateResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkUnitUpdateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkUnitUpdateResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1330,7 +1330,7 @@ func (x *TopoNetworkUnitUpdateResp) GetData() *TopoNetworkUnitUpdateResp_Data {
 // network unit in topo service.
 type TopoNetworkUnitDeleteReq struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id,omitempty"`
+	BkNetworkunitId int64                  `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1376,10 +1376,10 @@ func (x *TopoNetworkUnitDeleteReq) GetBkNetworkunitId() int64 {
 // network unit in topo service.
 type TopoNetworkUnitDeleteResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoNetworkUnitDeleteResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoNetworkUnitDeleteResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1446,10 +1446,10 @@ func (x *TopoNetworkUnitDeleteResp) GetData() *TopoNetworkUnitDeleteResp_Data {
 // service.
 type TopoHostListReq struct {
 	state                  protoimpl.MessageState           `protogen:"open.v1"`
-	Page                   *Page                            `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	OnlyCount              bool                             `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count,omitempty"`
-	ExactIncludeConditions *TopoHostListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions,omitempty"`
-	FuzzyIncludeConditions *TopoHostListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions,omitempty"`
+	Page                   *Page                            `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount              bool                             `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	ExactIncludeConditions *TopoHostListReq_ExactConditions `protobuf:"bytes,3,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
+	FuzzyIncludeConditions *TopoHostListReq_FuzzyConditions `protobuf:"bytes,4,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1516,10 +1516,10 @@ func (x *TopoHostListReq) GetFuzzyIncludeConditions() *TopoHostListReq_FuzzyCond
 // service.
 type TopoHostListResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *TopoHostListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *TopoHostListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1584,7 +1584,7 @@ func (x *TopoHostListResp) GetData() *TopoHostListResp_Data {
 
 type TopoBusinessListReq_ExactConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	BkBizId       []int64                `protobuf:"varint,1,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id,omitempty"`
+	BkBizId       []int64                `protobuf:"varint,1,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1628,7 +1628,7 @@ func (x *TopoBusinessListReq_ExactConditions) GetBkBizId() []int64 {
 
 type TopoBusinessListReq_FuzzyConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	BkBizName     []string               `protobuf:"bytes,1,rep,name=bk_biz_name,json=bkBizName,proto3" json:"bk_biz_name,omitempty"`
+	BkBizName     []string               `protobuf:"bytes,1,rep,name=bk_biz_name,json=bkBizName,proto3" json:"bk_biz_name"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1672,8 +1672,8 @@ func (x *TopoBusinessListReq_FuzzyConditions) GetBkBizName() []string {
 
 type TopoBusinessListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Items         []*Business            `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*Business            `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1724,8 +1724,8 @@ func (x *TopoBusinessListResp_Data) GetItems() []*Business {
 
 type TopoNetworkAreaListReq_ExactConditions struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId []int64                `protobuf:"varint,1,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	BkCloudVendor   []string               `protobuf:"bytes,2,rep,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor,omitempty"`
+	BkNetworkareaId []int64                `protobuf:"varint,1,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	BkCloudVendor   []string               `protobuf:"bytes,2,rep,name=bk_cloud_vendor,json=bkCloudVendor,proto3" json:"bk_cloud_vendor"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1776,7 +1776,7 @@ func (x *TopoNetworkAreaListReq_ExactConditions) GetBkCloudVendor() []string {
 
 type TopoNetworkAreaListReq_FuzzyConditions struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaName []string               `protobuf:"bytes,1,rep,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name,omitempty"`
+	BkNetworkareaName []string               `protobuf:"bytes,1,rep,name=bk_networkarea_name,json=bkNetworkareaName,proto3" json:"bk_networkarea_name"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1820,8 +1820,8 @@ func (x *TopoNetworkAreaListReq_FuzzyConditions) GetBkNetworkareaName() []string
 
 type TopoNetworkAreaListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Items         []*NetworkArea         `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*NetworkArea         `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1872,7 +1872,7 @@ func (x *TopoNetworkAreaListResp_Data) GetItems() []*NetworkArea {
 
 type TopoNetworkAreaCreateResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
+	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1916,7 +1916,7 @@ func (x *TopoNetworkAreaCreateResp_Data) GetBkNetworkareaId() int64 {
 
 type TopoNetworkAreaUpdateResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
+	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1960,7 +1960,7 @@ func (x *TopoNetworkAreaUpdateResp_Data) GetBkNetworkareaId() int64 {
 
 type TopoNetworkAreaDeleteResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id,omitempty"`
+	BkNetworkareaId *int64                 `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2004,8 +2004,8 @@ func (x *TopoNetworkAreaDeleteResp_Data) GetBkNetworkareaId() int64 {
 
 type TopoNetworkUnitListReq_ExactConditions struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId []int64                `protobuf:"varint,1,rep,packed,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id,omitempty"`
-	BkNetworkareaId []int64                `protobuf:"varint,2,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
+	BkNetworkunitId []int64                `protobuf:"varint,1,rep,packed,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
+	BkNetworkareaId []int64                `protobuf:"varint,2,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2056,8 +2056,8 @@ func (x *TopoNetworkUnitListReq_ExactConditions) GetBkNetworkareaId() []int64 {
 
 type TopoNetworkUnitListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Items         []*NetworkUnitBrief    `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*NetworkUnitBrief    `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2108,7 +2108,7 @@ func (x *TopoNetworkUnitListResp_Data) GetItems() []*NetworkUnitBrief {
 
 type TopoNetworkUnitCreateResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id,omitempty"`
+	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2152,7 +2152,7 @@ func (x *TopoNetworkUnitCreateResp_Data) GetBkNetworkunitId() int64 {
 
 type TopoNetworkUnitUpdateResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id,omitempty"`
+	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2196,7 +2196,7 @@ func (x *TopoNetworkUnitUpdateResp_Data) GetBkNetworkunitId() int64 {
 
 type TopoNetworkUnitDeleteResp_Data struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id,omitempty"`
+	BkNetworkunitId *int64                 `protobuf:"varint,1,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2240,14 +2240,14 @@ func (x *TopoNetworkUnitDeleteResp_Data) GetBkNetworkunitId() int64 {
 
 type TopoHostListReq_ExactConditions struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkHostId        []int64                `protobuf:"varint,1,rep,packed,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id,omitempty"`
-	BkBizId         []int64                `protobuf:"varint,2,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id,omitempty"`
-	BkNetworkareaId []int64                `protobuf:"varint,3,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	BkOsType        []string               `protobuf:"bytes,4,rep,name=bk_os_type,json=bkOsType,proto3" json:"bk_os_type,omitempty"`
-	NodeRole        []string               `protobuf:"bytes,5,rep,name=node_role,json=nodeRole,proto3" json:"node_role,omitempty"`
-	NodeStatus      []string               `protobuf:"bytes,6,rep,name=node_status,json=nodeStatus,proto3" json:"node_status,omitempty"`
-	NodeVersion     []string               `protobuf:"bytes,7,rep,name=node_version,json=nodeVersion,proto3" json:"node_version,omitempty"`
-	BkAgentId       []string               `protobuf:"bytes,8,rep,name=bk_agent_id,json=bkAgentId,proto3" json:"bk_agent_id,omitempty"`
+	BkHostId        []int64                `protobuf:"varint,1,rep,packed,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	BkBizId         []int64                `protobuf:"varint,2,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
+	BkNetworkareaId []int64                `protobuf:"varint,3,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	BkOsType        []string               `protobuf:"bytes,4,rep,name=bk_os_type,json=bkOsType,proto3" json:"bk_os_type"`
+	NodeRole        []string               `protobuf:"bytes,5,rep,name=node_role,json=nodeRole,proto3" json:"node_role"`
+	NodeStatus      []string               `protobuf:"bytes,6,rep,name=node_status,json=nodeStatus,proto3" json:"node_status"`
+	NodeVersion     []string               `protobuf:"bytes,7,rep,name=node_version,json=nodeVersion,proto3" json:"node_version"`
+	BkAgentId       []string               `protobuf:"bytes,8,rep,name=bk_agent_id,json=bkAgentId,proto3" json:"bk_agent_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2340,12 +2340,12 @@ func (x *TopoHostListReq_ExactConditions) GetBkAgentId() []string {
 
 type TopoHostListReq_FuzzyConditions struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkHostName      []string               `protobuf:"bytes,1,rep,name=bk_host_name,json=bkHostName,proto3" json:"bk_host_name,omitempty"`
-	DeptName        []string               `protobuf:"bytes,2,rep,name=dept_name,json=deptName,proto3" json:"dept_name,omitempty"`
-	BkHostInnerip   []string               `protobuf:"bytes,3,rep,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip,omitempty"`
-	BkHostInneripV6 []string               `protobuf:"bytes,4,rep,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6,omitempty"`
-	BkHostOuterip   []string               `protobuf:"bytes,5,rep,name=bk_host_outerip,json=bkHostOuterip,proto3" json:"bk_host_outerip,omitempty"`
-	BkHostOuteripV6 []string               `protobuf:"bytes,6,rep,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3" json:"bk_host_outerip_v6,omitempty"`
+	BkHostName      []string               `protobuf:"bytes,1,rep,name=bk_host_name,json=bkHostName,proto3" json:"bk_host_name"`
+	DeptName        []string               `protobuf:"bytes,2,rep,name=dept_name,json=deptName,proto3" json:"dept_name"`
+	BkHostInnerip   []string               `protobuf:"bytes,3,rep,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	BkHostInneripV6 []string               `protobuf:"bytes,4,rep,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
+	BkHostOuterip   []string               `protobuf:"bytes,5,rep,name=bk_host_outerip,json=bkHostOuterip,proto3" json:"bk_host_outerip"`
+	BkHostOuteripV6 []string               `protobuf:"bytes,6,rep,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3" json:"bk_host_outerip_v6"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2424,8 +2424,8 @@ func (x *TopoHostListReq_FuzzyConditions) GetBkHostOuteripV6() []string {
 
 type TopoHostListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Items         []*Host                `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*Host                `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

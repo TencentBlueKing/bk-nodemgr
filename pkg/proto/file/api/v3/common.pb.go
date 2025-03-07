@@ -24,8 +24,8 @@ const (
 // Page describes the generaic conditions when paging query.
 type Page struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        uint32                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         uint32                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        uint32                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset"`
+	Limit         uint32                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

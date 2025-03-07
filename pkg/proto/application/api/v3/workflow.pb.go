@@ -26,10 +26,10 @@ const (
 // service. Such as installing, upgrading.
 type WorkflowHostParameter struct {
 	state         protoimpl.MessageState            `protogen:"open.v1"`
-	BkHostId      int32                             `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id,omitempty"`
-	Topo          *WorkflowHostParameter_Topo       `protobuf:"bytes,2,opt,name=topo,proto3" json:"topo,omitempty"`
-	Attributes    *WorkflowHostParameter_Attributes `protobuf:"bytes,3,opt,name=attributes,proto3" json:"attributes,omitempty"`
-	Config        *WorkflowHostParameter_Config     `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
+	BkHostId      int32                             `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	Topo          *WorkflowHostParameter_Topo       `protobuf:"bytes,2,opt,name=topo,proto3" json:"topo"`
+	Attributes    *WorkflowHostParameter_Attributes `protobuf:"bytes,3,opt,name=attributes,proto3" json:"attributes"`
+	Config        *WorkflowHostParameter_Config     `protobuf:"bytes,4,opt,name=config,proto3" json:"config"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -96,8 +96,8 @@ func (x *WorkflowHostParameter) GetConfig() *WorkflowHostParameter_Config {
 // workflow service.
 type WorkflowAgentInstallReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -150,10 +150,10 @@ func (x *WorkflowAgentInstallReq) GetTimeoutSec() uint32 {
 // in workflow service.
 type WorkflowAgentInstallResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowAgentInstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowAgentInstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -220,9 +220,9 @@ func (x *WorkflowAgentInstallResp) GetData() *WorkflowAgentInstallResp_Data {
 // workflow service.
 type WorkflowAgentUpgradeReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,10 +282,10 @@ func (x *WorkflowAgentUpgradeReq) GetForce() bool {
 // in workflow service.
 type WorkflowAgentUpgradeResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowAgentUpgradeResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowAgentUpgradeResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -352,9 +352,9 @@ func (x *WorkflowAgentUpgradeResp) GetData() *WorkflowAgentUpgradeResp_Data {
 // in workflow service.
 type WorkflowAgentReconfigReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -414,10 +414,10 @@ func (x *WorkflowAgentReconfigReq) GetForce() bool {
 // agent in workflow service.
 type WorkflowAgentReconfigResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowAgentReconfigResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowAgentReconfigResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -484,9 +484,9 @@ func (x *WorkflowAgentReconfigResp) GetData() *WorkflowAgentReconfigResp_Data {
 // workflow service.
 type WorkflowAgentRestartReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -546,10 +546,10 @@ func (x *WorkflowAgentRestartReq) GetForce() bool {
 // in workflow service.
 type WorkflowAgentRestartResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowAgentRestartResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowAgentRestartResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -616,8 +616,8 @@ func (x *WorkflowAgentRestartResp) GetData() *WorkflowAgentRestartResp_Data {
 // agent in workflow service.
 type WorkflowAgentUninstallReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -670,10 +670,10 @@ func (x *WorkflowAgentUninstallReq) GetTimeoutSec() uint32 {
 // agent in workflow service.
 type WorkflowAgentUninstallResp struct {
 	state         protoimpl.MessageState           `protogen:"open.v1"`
-	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowAgentUninstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowAgentUninstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -740,8 +740,8 @@ func (x *WorkflowAgentUninstallResp) GetData() *WorkflowAgentUninstallResp_Data 
 // workflow service.
 type WorkflowProxyInstallReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -794,10 +794,10 @@ func (x *WorkflowProxyInstallReq) GetTimeoutSec() uint32 {
 // in workflow service.
 type WorkflowProxyInstallResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowProxyInstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowProxyInstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -864,9 +864,9 @@ func (x *WorkflowProxyInstallResp) GetData() *WorkflowProxyInstallResp_Data {
 // workflow service.
 type WorkflowProxyUpgradeReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -926,10 +926,10 @@ func (x *WorkflowProxyUpgradeReq) GetForce() bool {
 // in workflow service.
 type WorkflowProxyUpgradeResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowProxyUpgradeResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowProxyUpgradeResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -996,9 +996,9 @@ func (x *WorkflowProxyUpgradeResp) GetData() *WorkflowProxyUpgradeResp_Data {
 // in workflow service.
 type WorkflowProxyReconfigReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1058,10 +1058,10 @@ func (x *WorkflowProxyReconfigReq) GetForce() bool {
 // proxy in workflow service.
 type WorkflowProxyReconfigResp struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowProxyReconfigResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                           `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                          `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                          `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowProxyReconfigResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1128,9 +1128,9 @@ func (x *WorkflowProxyReconfigResp) GetData() *WorkflowProxyReconfigResp_Data {
 // workflow service.
 type WorkflowProxyRestartReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
-	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
+	Force         bool                     `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1190,10 +1190,10 @@ func (x *WorkflowProxyRestartReq) GetForce() bool {
 // in workflow service.
 type WorkflowProxyRestartResp struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowProxyRestartResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                          `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                         `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                         `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowProxyRestartResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1260,8 +1260,8 @@ func (x *WorkflowProxyRestartResp) GetData() *WorkflowProxyRestartResp_Data {
 // proxy in workflow service.
 type WorkflowProxyUninstallReq struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
+	Hosts         []*WorkflowHostParameter `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts"`
+	TimeoutSec    uint32                   `protobuf:"varint,2,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1314,10 +1314,10 @@ func (x *WorkflowProxyUninstallReq) GetTimeoutSec() uint32 {
 // proxy in workflow service.
 type WorkflowProxyUninstallResp struct {
 	state         protoimpl.MessageState           `protogen:"open.v1"`
-	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowProxyUninstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                            `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                           `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                           `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowProxyUninstallResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1384,12 +1384,12 @@ func (x *WorkflowProxyUninstallResp) GetData() *WorkflowProxyUninstallResp_Data 
 // operation may contains multi instances.
 type OperationInstance struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
-	InstanceId    string                      `protobuf:"bytes,1,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
-	CreateAt      uint64                      `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt     uint64                      `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt       uint64                      `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt     uint64                      `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	Action        []*OperationInstance_Action `protobuf:"bytes,6,rep,name=action,proto3" json:"action,omitempty"`
+	InstanceId    string                      `protobuf:"bytes,1,opt,name=instance_id,json=instanceId,proto3" json:"instance_id"`
+	CreateAt      uint64                      `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt     uint64                      `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt       uint64                      `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt     uint64                      `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	Action        []*OperationInstance_Action `protobuf:"bytes,6,rep,name=action,proto3" json:"action"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1469,14 +1469,14 @@ func (x *OperationInstance) GetAction() []*OperationInstance_Action {
 // OperationBrief describes the operation informations in brief.
 type OperationBrief struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
-	CreateAt      uint64                 `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt     uint64                 `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt       uint64                 `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt     uint64                 `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	BkHostId      int32                  `protobuf:"varint,6,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id,omitempty"`
-	BkHostInnerip int32                  `protobuf:"varint,7,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip,omitempty"`
-	InstanceCount int32                  `protobuf:"varint,8,opt,name=instance_count,json=instanceCount,proto3" json:"instance_count,omitempty"`
+	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
+	CreateAt      uint64                 `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt     uint64                 `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt       uint64                 `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt     uint64                 `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	BkHostId      int32                  `protobuf:"varint,6,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	BkHostInnerip int32                  `protobuf:"varint,7,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	InstanceCount int32                  `protobuf:"varint,8,opt,name=instance_count,json=instanceCount,proto3" json:"instance_count"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1570,15 +1570,15 @@ func (x *OperationBrief) GetInstanceCount() int32 {
 // OperationDetail describes the operation informations in detail.
 type OperationDetail struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
-	CreateAt      uint64                 `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt     uint64                 `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt       uint64                 `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt     uint64                 `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	BkHostId      int32                  `protobuf:"varint,6,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id,omitempty"`
-	BkHostInnerip int32                  `protobuf:"varint,7,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip,omitempty"`
-	InstanceCount int32                  `protobuf:"varint,8,opt,name=instance_count,json=instanceCount,proto3" json:"instance_count,omitempty"`
-	Instances     []*OperationInstance   `protobuf:"bytes,9,rep,name=instances,proto3" json:"instances,omitempty"`
+	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
+	CreateAt      uint64                 `protobuf:"varint,2,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt     uint64                 `protobuf:"varint,3,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt       uint64                 `protobuf:"varint,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt     uint64                 `protobuf:"varint,5,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	BkHostId      int32                  `protobuf:"varint,6,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	BkHostInnerip int32                  `protobuf:"varint,7,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	InstanceCount int32                  `protobuf:"varint,8,opt,name=instance_count,json=instanceCount,proto3" json:"instance_count"`
+	Instances     []*OperationInstance   `protobuf:"bytes,9,rep,name=instances,proto3" json:"instances"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1679,15 +1679,15 @@ func (x *OperationDetail) GetInstances() []*OperationInstance {
 // WorkflowBrief describes the workflow informations in brief.
 type WorkflowBrief struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId     string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Operator       string                 `protobuf:"bytes,3,opt,name=operator,proto3" json:"operator,omitempty"`
-	Type           int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
-	CreateAt       uint64                 `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt      uint64                 `protobuf:"varint,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt        uint64                 `protobuf:"varint,7,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt      uint64                 `protobuf:"varint,8,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	OperationCount int32                  `protobuf:"varint,9,opt,name=operation_count,json=operationCount,proto3" json:"operation_count,omitempty"`
+	WorkflowId     string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status"`
+	Operator       string                 `protobuf:"bytes,3,opt,name=operator,proto3" json:"operator"`
+	Type           int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type"`
+	CreateAt       uint64                 `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt      uint64                 `protobuf:"varint,6,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt        uint64                 `protobuf:"varint,7,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt      uint64                 `protobuf:"varint,8,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	OperationCount int32                  `protobuf:"varint,9,opt,name=operation_count,json=operationCount,proto3" json:"operation_count"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1788,16 +1788,16 @@ func (x *WorkflowBrief) GetOperationCount() int32 {
 // WorkflowDetail describes the workflow informations in detail.
 type WorkflowDetail struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId     string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Operator       string                 `protobuf:"bytes,3,opt,name=operator,proto3" json:"operator,omitempty"`
-	Type           int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
-	CreateAt       uint64                 `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt      uint64                 `protobuf:"varint,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt        uint64                 `protobuf:"varint,7,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt      uint64                 `protobuf:"varint,8,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	OperationCount int32                  `protobuf:"varint,9,opt,name=operation_count,json=operationCount,proto3" json:"operation_count,omitempty"`
-	Operations     []*OperationBrief      `protobuf:"bytes,10,rep,name=operations,proto3" json:"operations,omitempty"`
+	WorkflowId     string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status"`
+	Operator       string                 `protobuf:"bytes,3,opt,name=operator,proto3" json:"operator"`
+	Type           int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type"`
+	CreateAt       uint64                 `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt      uint64                 `protobuf:"varint,6,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt        uint64                 `protobuf:"varint,7,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt      uint64                 `protobuf:"varint,8,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	OperationCount int32                  `protobuf:"varint,9,opt,name=operation_count,json=operationCount,proto3" json:"operation_count"`
+	Operations     []*OperationBrief      `protobuf:"bytes,10,rep,name=operations,proto3" json:"operations"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1906,9 +1906,9 @@ func (x *WorkflowDetail) GetOperations() []*OperationBrief {
 // workflow service.
 type WorkflowListReq struct {
 	state             protoimpl.MessageState      `protogen:"open.v1"`
-	Page              *Page                       `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
-	OnlyCount         bool                        `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count,omitempty"`
-	IncludeConditions *WorkflowListReq_Conditions `protobuf:"bytes,3,opt,name=include_conditions,json=includeConditions,proto3" json:"include_conditions,omitempty"`
+	Page              *Page                       `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	OnlyCount         bool                        `protobuf:"varint,2,opt,name=only_count,json=onlyCount,proto3" json:"only_count"`
+	IncludeConditions *WorkflowListReq_Conditions `protobuf:"bytes,3,opt,name=include_conditions,json=includeConditions,proto3" json:"include_conditions"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1968,10 +1968,10 @@ func (x *WorkflowListReq) GetIncludeConditions() *WorkflowListReq_Conditions {
 // workflow service.
 type WorkflowListResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowListResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2038,7 +2038,7 @@ func (x *WorkflowListResp) GetData() *WorkflowListResp_Data {
 // service.
 type WorkflowGetReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2084,10 +2084,10 @@ func (x *WorkflowGetReq) GetWorkflowId() string {
 // workflow service.
 type WorkflowGetResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *WorkflowDetail        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *WorkflowDetail        `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2154,8 +2154,8 @@ func (x *WorkflowGetResp) GetData() *WorkflowDetail {
 // workflow service.
 type WorkflowOperationGetReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	OperationId   string                 `protobuf:"bytes,2,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	OperationId   string                 `protobuf:"bytes,2,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2208,10 +2208,10 @@ func (x *WorkflowOperationGetReq) GetOperationId() string {
 // in workflow service.
 type WorkflowOperationGetResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Data          *OperationDetail       `protobuf:"bytes,4,opt,name=Data,proto3" json:"Data,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *OperationDetail       `protobuf:"bytes,4,opt,name=Data,proto3" json:"Data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2276,9 +2276,9 @@ func (x *WorkflowOperationGetResp) GetData() *OperationDetail {
 
 type WorkflowHostParameter_Topo struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkBizId         int32                  `protobuf:"varint,1,opt,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id,omitempty"`
-	BkNetworkareaId int32                  `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id,omitempty"`
-	BkNetworkunitId int32                  `protobuf:"varint,3,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id,omitempty"`
+	BkBizId         int32                  `protobuf:"varint,1,opt,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
+	BkNetworkareaId int32                  `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	BkNetworkunitId int32                  `protobuf:"varint,3,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2336,13 +2336,13 @@ func (x *WorkflowHostParameter_Topo) GetBkNetworkunitId() int32 {
 
 type WorkflowHostParameter_Attributes struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkHostInnerip   string                 `protobuf:"bytes,1,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip,omitempty"`
-	BkHostInneripV6 string                 `protobuf:"bytes,2,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6,omitempty"`
-	BkHostOuterip   string                 `protobuf:"bytes,3,opt,name=bk_host_outerip,json=bkHostOuterip,proto3" json:"bk_host_outerip,omitempty"`
-	BkHostOuteripV6 string                 `protobuf:"bytes,4,opt,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3" json:"bk_host_outerip_v6,omitempty"`
-	LoginIp         string                 `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip,omitempty"`
-	LoginPort       uint32                 `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3" json:"login_port,omitempty"`
-	LoginPassword   string                 `protobuf:"bytes,7,opt,name=login_password,json=loginPassword,proto3" json:"login_password,omitempty"`
+	BkHostInnerip   string                 `protobuf:"bytes,1,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	BkHostInneripV6 string                 `protobuf:"bytes,2,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
+	BkHostOuterip   string                 `protobuf:"bytes,3,opt,name=bk_host_outerip,json=bkHostOuterip,proto3" json:"bk_host_outerip"`
+	BkHostOuteripV6 string                 `protobuf:"bytes,4,opt,name=bk_host_outerip_v6,json=bkHostOuteripV6,proto3" json:"bk_host_outerip_v6"`
+	LoginIp         string                 `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip"`
+	LoginPort       uint32                 `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3" json:"login_port"`
+	LoginPassword   string                 `protobuf:"bytes,7,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -2428,7 +2428,7 @@ func (x *WorkflowHostParameter_Attributes) GetLoginPassword() string {
 
 type WorkflowHostParameter_Config struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2472,7 +2472,7 @@ func (x *WorkflowHostParameter_Config) GetVersion() string {
 
 type WorkflowAgentInstallResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2516,7 +2516,7 @@ func (x *WorkflowAgentInstallResp_Data) GetWorkflowId() string {
 
 type WorkflowAgentUpgradeResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2560,7 +2560,7 @@ func (x *WorkflowAgentUpgradeResp_Data) GetWorkflowId() string {
 
 type WorkflowAgentReconfigResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2604,7 +2604,7 @@ func (x *WorkflowAgentReconfigResp_Data) GetWorkflowId() string {
 
 type WorkflowAgentRestartResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2648,7 +2648,7 @@ func (x *WorkflowAgentRestartResp_Data) GetWorkflowId() string {
 
 type WorkflowAgentUninstallResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2692,7 +2692,7 @@ func (x *WorkflowAgentUninstallResp_Data) GetWorkflowId() string {
 
 type WorkflowProxyInstallResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2736,7 +2736,7 @@ func (x *WorkflowProxyInstallResp_Data) GetWorkflowId() string {
 
 type WorkflowProxyUpgradeResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2780,7 +2780,7 @@ func (x *WorkflowProxyUpgradeResp_Data) GetWorkflowId() string {
 
 type WorkflowProxyReconfigResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2824,7 +2824,7 @@ func (x *WorkflowProxyReconfigResp_Data) GetWorkflowId() string {
 
 type WorkflowProxyRestartResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2868,7 +2868,7 @@ func (x *WorkflowProxyRestartResp_Data) GetWorkflowId() string {
 
 type WorkflowProxyUninstallResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2912,8 +2912,8 @@ func (x *WorkflowProxyUninstallResp_Data) GetWorkflowId() string {
 
 type OperationInstance_Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Timestamp     uint64                 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	Timestamp     uint64                 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp"`
+	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2964,12 +2964,12 @@ func (x *OperationInstance_Message) GetText() string {
 
 type OperationInstance_Action struct {
 	state         protoimpl.MessageState       `protogen:"open.v1"`
-	CreateAt      uint64                       `protobuf:"varint,1,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartedAt     uint64                       `protobuf:"varint,2,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt       uint64                       `protobuf:"varint,3,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	StoppedAt     uint64                       `protobuf:"varint,4,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
-	Status        string                       `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	Message       []*OperationInstance_Message `protobuf:"bytes,6,rep,name=message,proto3" json:"message,omitempty"`
+	CreateAt      uint64                       `protobuf:"varint,1,opt,name=create_at,json=createAt,proto3" json:"create_at"`
+	StartedAt     uint64                       `protobuf:"varint,2,opt,name=started_at,json=startedAt,proto3" json:"started_at"`
+	EndedAt       uint64                       `protobuf:"varint,3,opt,name=ended_at,json=endedAt,proto3" json:"ended_at"`
+	StoppedAt     uint64                       `protobuf:"varint,4,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at"`
+	Status        string                       `protobuf:"bytes,5,opt,name=status,proto3" json:"status"`
+	Message       []*OperationInstance_Message `protobuf:"bytes,6,rep,name=message,proto3" json:"message"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3084,8 +3084,8 @@ func (*WorkflowListReq_Conditions) Descriptor() ([]byte, []int) {
 
 type WorkflowListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Items         []*WorkflowBrief       `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*WorkflowBrief       `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
