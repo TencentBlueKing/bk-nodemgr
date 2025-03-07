@@ -70,3 +70,15 @@ type TopoNodePath struct {
 	InstName string
 	Paths    [][]*TopoNode
 }
+
+// CloudVendor represents a cloud vendor option.
+type CloudVendor struct {
+	Key  string
+	Name string
+}
+
+// OsType represents a os type option.
+type OsType struct {
+	Key  string
+	Name string
+}

@@ -169,7 +169,7 @@ func (c *cli) createCloudArea(ctx context.Context, req *CreateCloudAreaReq) (*Cr
 	return resp.Data, nil
 }
 
-// updateCloudArea update cloud area
+// updateCloudArea update cloud area.
 func (c *cli) updateCloudArea(ctx context.Context, req *UpdateCloudAreaReq) error {
 	resp := new(BaseBroker[*UpdateCloudAreaResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -194,7 +194,7 @@ func (c *cli) updateCloudArea(ctx context.Context, req *UpdateCloudAreaReq) erro
 	return nil
 }
 
-// deleteCloudArea delete cloud area
+// deleteCloudArea delete cloud area.
 func (c *cli) deleteCloudArea(ctx context.Context, req *DeleteCloudAreaReq) error {
 	resp := new(BaseBroker[*UpdateCloudAreaResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -219,7 +219,7 @@ func (c *cli) deleteCloudArea(ctx context.Context, req *DeleteCloudAreaReq) erro
 	return nil
 }
 
-// updateHostCloudAreaField update host cloud area field
+// updateHostCloudAreaField update host cloud area field.
 func (c *cli) updateHostCloudAreaField(ctx context.Context, req *UpdateHostCloudAreaFieldReq) error {
 	resp := new(BaseBroker[*UpdateHostCloudAreaFieldResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -293,7 +293,7 @@ func (c *cli) getBizInternalModule(ctx context.Context, req *GetBizInternalModul
 	return resp.Data, nil
 }
 
-// findTopoNodePaths find topo node paths
+// findTopoNodePaths find topo node paths.
 func (c *cli) findTopoNodePaths(ctx context.Context, req *FindTopoNodePathsReq) (*FindTopoNodePathsResp, error) {
 	resp := new(BaseBroker[*FindTopoNodePathsResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -318,7 +318,7 @@ func (c *cli) findTopoNodePaths(ctx context.Context, req *FindTopoNodePathsReq) 
 	return resp.Data, nil
 }
 
-// findModuleBatch find module batch
+// findModuleBatch find module batch.
 func (c *cli) findModuleBatch(ctx context.Context, req *FindModuleBatchReq) (*FindModuleBatchResp, error) {
 	resp := new(BaseBroker[*FindModuleBatchResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -327,7 +327,7 @@ func (c *cli) findModuleBatch(ctx context.Context, req *FindModuleBatchReq) (*Fi
 	}
 
 	err = c.client.Post().
-		SubResourcef("findmany/module/bk_biz_id/%d", req.BKBizID).
+		SubResourcef("/findmany/module/bk_biz_id/%d", req.BKBizID).
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -338,6 +338,33 @@ func (c *cli) findModuleBatch(ctx context.Context, req *FindModuleBatchReq) (*Fi
 
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("find module batch failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// searchObjectAttribute search object attribute.
+func (c *cli) searchObjectAttribute(ctx context.Context, req *SearchObjectAttributeReq) (
+	*SearchObjectAttributeResp, error) {
+
+	resp := new(BaseBroker[*SearchObjectAttributeResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/find/objectattr").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search object attribute failed, err: %v", err)
 	}
 
 	return resp.Data, nil

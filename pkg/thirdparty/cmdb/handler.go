@@ -2,6 +2,7 @@ package cmdb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -23,10 +24,10 @@ type Handler interface {
 	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
 
 	// CreateNetworkArea create network area
-	CreateNetworkArea(ctx context.Context, networkAreaName string) (*types.NetworkArea, error)
+	CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
 
 	// UpdateNetworkArea update network area
-	UpdateNetworkArea(ctx context.Context, id int64, networkAreaName string) error
+	UpdateNetworkArea(ctx context.Context, id int64, networkAreaName string, cloudVendor string) error
 
 	// DeleteNetworkArea delete network area
 	DeleteNetworkArea(ctx context.Context, id int64) error
@@ -45,6 +46,12 @@ type Handler interface {
 
 	// FindModuleBatch find module batch
 	FindModuleBatch(ctx context.Context, bizID int64, ids []int64, fields []string) ([]*types.Module, error)
+
+	// SearchCloudVendor search cloud vendor
+	SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error)
+
+	// SearchOsType search os type
+	SearchOsType(ctx context.Context) ([]*types.OsType, error)
 }
 
 type handler struct {
@@ -166,9 +173,10 @@ func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*ty
 	netAreas := make([]*types.NetworkArea, len(resp.Info))
 	for idx, netArea := range resp.Info {
 		netAreas[idx] = &types.NetworkArea{
-			TenantID: tenantID,
-			ID:       netArea.BKCloudID,
-			Name:     netArea.BKCloudName,
+			TenantID:    tenantID,
+			ID:          netArea.BKCloudID,
+			Name:        netArea.BKCloudName,
+			CloudVendor: netArea.BKCloudVendor,
 		}
 	}
 
@@ -176,15 +184,18 @@ func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*ty
 }
 
 // CreateNetworkArea create network area.
-func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string) (*types.NetworkArea, error) {
+func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (
+	*types.NetworkArea, error) {
+
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	req := &CreateCloudAreaReq{
-		TenantID:    tenantID,
-		BKCloudName: networkAreaName,
+		TenantID:      tenantID,
+		BKCloudName:   networkAreaName,
+		BKCloudVendor: cloudVendor,
 	}
 
 	resp, err := h.cli.createCloudArea(ctx, req)
@@ -193,25 +204,29 @@ func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string)
 	}
 
 	netArea := &types.NetworkArea{
-		TenantID: tenantID,
-		ID:       resp.Created.ID,
-		Name:     networkAreaName,
+		TenantID:    tenantID,
+		ID:          resp.Created.ID,
+		Name:        networkAreaName,
+		CloudVendor: cloudVendor,
 	}
 
 	return netArea, nil
 }
 
 // UpdateNetworkArea update network area.
-func (h *handler) UpdateNetworkArea(ctx context.Context, id int64, networkAreaName string) error {
+func (h *handler) UpdateNetworkArea(
+	ctx context.Context, id int64, networkAreaName string, cloudVendor string) error {
+
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
 	req := &UpdateCloudAreaReq{
-		TenantID:    tenantID,
-		BKCloudID:   id,
-		BKCloudName: networkAreaName,
+		TenantID:      tenantID,
+		BKCloudID:     id,
+		BKCloudName:   networkAreaName,
+		BKCloudVendor: cloudVendor,
 	}
 
 	err = h.cli.updateCloudArea(ctx, req)
@@ -460,4 +475,102 @@ func (h *handler) FindModuleBatch(ctx context.Context, bizID int64, ids []int64,
 	}
 
 	return result, nil
+}
+
+// searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
+func (h *handler) searchObjectAttributeEnumOption(ctx context.Context, objID string, bizID int64, objAttrID string) (
+	[]*EnumOption, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &SearchObjectAttributeReq{
+		TenantID: tenantID,
+		BKObjID:  objID,
+		BKBizID:  bizID,
+	}
+
+	resp, err := h.cli.searchObjectAttribute(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*EnumOption
+	for _, objAttribute := range *resp {
+		if objAttribute.BKPropertyID != objAttrID {
+			continue
+		}
+
+		options, ok := objAttribute.Option.([]any)
+		if !ok {
+			return nil, fmt.Errorf("try to convert type to []any failed, bk_property_id(%s), option(%v)", objAttrID,
+				objAttribute.Option)
+		}
+
+		result = make([]*EnumOption, len(options))
+		for index, option := range options {
+			mapOption, ok := option.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to map[string]any failed, bk_property_id(%s), option(%v)",
+					objAttrID, option)
+			}
+
+			key, ok := mapOption["id"].(string)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[id](%v)",
+					objAttrID, mapOption["id"])
+			}
+
+			name, ok := mapOption["name"].(string)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[name](%v)",
+					objAttrID, mapOption["name"])
+			}
+
+			result[index] = &EnumOption{
+				Key:   key,
+				Value: name,
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// SearchCloudVendor search cloud vendor.
+func (h *handler) SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error) {
+	result, err := h.searchObjectAttributeEnumOption(ctx, "plat", DefaultBusinessID, "bk_cloud_vendor")
+	if err != nil {
+		return nil, err
+	}
+
+	cloudVendors := make([]*types.CloudVendor, len(result))
+	for idx, vendor := range result {
+		cloudVendors[idx] = &types.CloudVendor{
+			Key:  vendor.Key,
+			Name: vendor.Value,
+		}
+	}
+
+	return cloudVendors, nil
+}
+
+// SearchOsType search ostype.
+func (h *handler) SearchOsType(ctx context.Context) ([]*types.OsType, error) {
+	result, err := h.searchObjectAttributeEnumOption(ctx, "host", DefaultBusinessID, "bk_os_type")
+	if err != nil {
+		return nil, err
+	}
+
+	osTypes := make([]*types.OsType, len(result))
+	for idx, osType := range result {
+		osTypes[idx] = &types.OsType{
+			Key:  osType.Key,
+			Name: osType.Value,
+		}
+	}
+
+	return osTypes, nil
 }

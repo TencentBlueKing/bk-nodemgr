@@ -203,6 +203,7 @@ func Test_handler_NetworkArea(t *testing.T) {
 	type args struct {
 		ctx             context.Context
 		networkAreaName string
+		cloudVendor     string
 	}
 
 	tests := []struct {
@@ -215,6 +216,7 @@ func Test_handler_NetworkArea(t *testing.T) {
 			args: args{
 				ctx:             ctx,
 				networkAreaName: "test_nodemgr_cloud",
+				cloudVendor:     "5",
 			},
 			wantErr: false,
 		},
@@ -222,7 +224,7 @@ func Test_handler_NetworkArea(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			created, err := h.CreateNetworkArea(tt.args.ctx, tt.args.networkAreaName)
+			created, err := h.CreateNetworkArea(tt.args.ctx, tt.args.networkAreaName, tt.args.cloudVendor)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -231,7 +233,8 @@ func Test_handler_NetworkArea(t *testing.T) {
 			t.Logf("CreateNetworkArea got: %v", created)
 
 			changeName := tt.args.networkAreaName + "_1"
-			err = h.UpdateNetworkArea(tt.args.ctx, created.ID, changeName)
+			changeVendor := "1"
+			err = h.UpdateNetworkArea(tt.args.ctx, created.ID, changeName, changeVendor)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -248,7 +251,9 @@ func Test_handler_NetworkArea(t *testing.T) {
 				t.Errorf("SearchNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			t.Logf("SearchNetworkArea got: %v", search)
+			for _, netArea := range search {
+				t.Logf("SearchNetworkArea got: %+v", *netArea)
+			}
 
 			err = h.DeleteNetworkArea(tt.args.ctx, created.ID)
 			if (err != nil) != tt.wantErr {
@@ -411,6 +416,78 @@ func Test_handler_FindModuleBatch(t *testing.T) {
 
 			for index, module := range got {
 				t.Logf("index: %d, module: %+v", index, module)
+			}
+		})
+	}
+}
+
+// Test_handler_SearchCloudVendor...
+func Test_handler_SearchCloudVendor(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchCloudVendor(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchCloudVendor() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, attr := range got {
+				t.Logf("index: %d, attr: %+v", index, *attr)
+			}
+		})
+	}
+}
+
+// Test_handler_SearchOsType...
+func Test_handler_SearchOsType(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchOsType(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchOsType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, attr := range got {
+				t.Logf("index: %d, attr: %+v", index, *attr)
 			}
 		})
 	}

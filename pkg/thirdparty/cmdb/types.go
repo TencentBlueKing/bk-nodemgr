@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	// DefaultBusinessID describe the default business id.
+	DefaultBusinessID = 0
+)
+
 // Page describe the page data in request.
 type Page struct {
 	Start int    `json:"start"`
@@ -326,7 +331,8 @@ type CreateCloudAreaReq struct {
 	// tenant id of this request.
 	TenantID string `json:"-"`
 
-	BKCloudName string `json:"bk_cloud_name"`
+	BKCloudName   string `json:"bk_cloud_name"`
+	BKCloudVendor string `json:"bk_cloud_vendor"`
 }
 
 // CreateCloudAreaResp describe the response data of create_cloud_area.
@@ -342,8 +348,9 @@ type UpdateCloudAreaReq struct {
 	// tenant id of this request.
 	TenantID string `json:"-"`
 
-	BKCloudID   int64  `json:"bk_cloud_id"`
-	BKCloudName string `json:"bk_cloud_name"`
+	BKCloudID     int64  `json:"bk_cloud_id"`
+	BKCloudName   string `json:"bk_cloud_name"`
+	BKCloudVendor string `json:"bk_cloud_vendor"`
 }
 
 // UpdateCloudAreaResp describe the response data of update_cloud_area.
@@ -377,6 +384,7 @@ type UpdateHostCloudAreaFieldResp string
 type CloudArea struct {
 	BKCloudID         int64     `json:"bk_cloud_id"`
 	BKCloudName       string    `json:"bk_cloud_name"`
+	BKCloudVendor     string    `json:"bk_cloud_vendor"`
 	BKSupplierAccount string    `json:"bk_supplier_account"`
 	CreateTime        time.Time `json:"create_time"`
 	LastTime          time.Time `json:"last_time"`
@@ -415,13 +423,13 @@ type GetBizInternalModuleReq struct {
 
 // GetBizInternalModuleResp describe the response data of get_biz_internal_module.
 type GetBizInternalModuleResp struct {
-	BKSetID   int64     `json:"bk_set_id"`
-	BKSetName string    `json:"bk_set_name"`
-	Module    []*Module `json:"module"`
+	BKSetID   int64         `json:"bk_set_id"`
+	BKSetName string        `json:"bk_set_name"`
+	Module    []*ModuleInfo `json:"module"`
 }
 
-// Module describe the module info define by cmdb.
-type Module struct {
+// ModuleInfo describe the module info define by cmdb.
+type ModuleInfo struct {
 	BKModuleID        int64     `json:"bk_module_id"`
 	BKModuleName      string    `json:"bk_module_name"`
 	Default           int64     `json:"default"`
@@ -487,4 +495,46 @@ type FindModuleBatchReq struct {
 }
 
 // FindModuleBatchResp describe the response data of find_module_batch.
-type FindModuleBatchResp []*Module
+type FindModuleBatchResp []*ModuleInfo
+
+// ObjectAttributeInfo describe the object attribute info define by cmdb.
+type ObjectAttributeInfo struct {
+	ID                  int64  `json:"id"`
+	BKBizID             int64  `json:"bk_biz_id"`
+	BKPropertyID        string `json:"bk_property_id"`
+	BKPropertyName      string `json:"bk_property_name"`
+	BKPropertyGroup     string `json:"bk_property_group"`
+	BKPropertyGroupType string `json:"bk_property_type"`
+	Creator             string `json:"creator"`
+	Unit                string `json:"unit"`
+	Placeholder         string `json:"placeholder"`
+	Editable            bool   `json:"editable"`
+	IsRequired          bool   `json:"isrequired"`
+	IsReadOnly          bool   `json:"isreadonly"`
+	IsOnly              bool   `json:"isonly"`
+	IsPre               bool   `json:"ispre"`
+	Option              any    `json:"option"`
+	Description         string `json:"description"`
+	BKSupplierAccount   string `json:"bk_supplier_account"`
+	BKAsstObjID         string `json:"bk_asst_obj_id"`
+	CreateTime          string `json:"create_time"`
+	LastTime            string `json:"last_time"`
+}
+
+// SearchObjectAttributeReq describe the request data of search_object_attribute.
+type SearchObjectAttributeReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64  `json:"bk_biz_id"`
+	BKObjID string `json:"bk_obj_id"`
+}
+
+// SearchObjectAttributeResp describe the response data of search_object_attribute.
+type SearchObjectAttributeResp []*ObjectAttributeInfo
+
+// EnumOption describe the enum option info define by cmdb.
+type EnumOption struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
