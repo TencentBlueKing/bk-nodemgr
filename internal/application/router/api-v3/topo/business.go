@@ -23,14 +23,9 @@ const (
 
 // ListBusiness list business with specified conditions.
 func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoBusinessListReq)
+	req := new(topoBusinessListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list business, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := validateTopoBusinessListReq(req); err != nil {
-		h.logger.Errorf("failed to list business, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -67,15 +62,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func validateTopoBusinessListReq(req *proto.TopoBusinessListReq) error {
-	if err := validateTopoPage(req.GetPage()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateBusinessConditions(req *proto.TopoBusinessListReq) *types.BusinessCondition {
+func generateBusinessConditions(req *topoBusinessListReq) *types.BusinessCondition {
 	// exact conditions.
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		conditions := &types.BusinessCondition{Type: types.ConditionTypeExactInclude}
@@ -108,4 +95,13 @@ func newEmptyBusiness() *proto.Business {
 		BkBizId:   new(int64),
 		BkBizName: new(string),
 	}
+}
+
+type topoBusinessListReq struct {
+	proto.TopoBusinessListReq
+}
+
+// Validate check body.
+func (req *topoBusinessListReq) Validate() error {
+	return validateTopoPage(req.GetPage())
 }

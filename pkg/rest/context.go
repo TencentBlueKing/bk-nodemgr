@@ -27,11 +27,15 @@ type Context struct {
 }
 
 // BindJSON bind json
-func (c *Context) BindJSON(obj any) error {
-	return c.gCtx.BindJSON(obj)
+func (c *Context) BindJSON(body RequestBody) error {
+	if err := c.gCtx.BindJSON(body); err != nil {
+		return err
+	}
+
+	return body.Validate()
 }
 
-// Param parse the param from url
+// Param parse the param from url.
 func (c *Context) Param(key string) string {
 	return c.gCtx.Param(key)
 }
@@ -40,4 +44,10 @@ func (c *Context) Param(key string) string {
 func (c *Context) GetContext() (context.Context, error) {
 	ctx := c.gCtx.Request.Context()
 	return tenant.SetID(ctx, c.TenantID)
+}
+
+// RequestBody rest request body.
+type RequestBody interface {
+	// Validate validate request body.
+	Validate() error
 }
