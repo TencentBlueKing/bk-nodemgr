@@ -50,6 +50,39 @@
         ]
       }
     },
+    "/api/v3/topo/graph/get": {
+      "post": {
+        "operationId": "Topo_GraphGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoGraphGetReq describes the HTTP request body when get graph in topo\nservice.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/list": {
       "post": {
         "summary": "HostList provides business listing.",
@@ -490,6 +523,10 @@
         "accesspoint_name": {
           "type": "string"
         },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "endpoints": {
           "$ref": "#/definitions/AccessPointEndpoints"
         }
@@ -605,6 +642,30 @@
       },
       "description": "Link describes the network unit link points target."
     },
+    "v3LinkGraph": {
+      "type": "object",
+      "properties": {
+        "source_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "target_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "target_accesspoint_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "channel": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "LinkGraph describes the graph link informations between networkunits."
+    },
     "v3Links": {
       "type": "object",
       "properties": {
@@ -699,6 +760,33 @@
       },
       "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
     },
+    "v3NetworkUnitGraph": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "access_points": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NetworkUnitGraph describes the graph networkunit informations."
+    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -785,6 +873,57 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Business"
+          }
+        }
+      }
+    },
+    "v3TopoGraphGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoGraphGetReq describes the HTTP request body when get graph in topo\nservice."
+    },
+    "v3TopoGraphGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoGraphGetRespData"
+        }
+      },
+      "description": "TopoGraphGetResp describes the HTTP response body when get graph in topo\nservice."
+    },
+    "v3TopoGraphGetRespData": {
+      "type": "object",
+      "properties": {
+        "networkunit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkUnitGraph"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3LinkGraph"
           }
         }
       }

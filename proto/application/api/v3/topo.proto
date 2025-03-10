@@ -390,4 +390,11 @@ service Topo {
       body : "*"
     };
   }
+
+  rpc GraphGet(TopoGraphGetReq) returns (TopoGraphGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/graph/get"
+      body : "*"
+    };
+  }
 }
