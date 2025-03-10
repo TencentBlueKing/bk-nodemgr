@@ -12,6 +12,7 @@ export interface NavItem {
   title: string;
   params?: Record<string, any>;
   group?: NavGroup[]
+  icon?: string;
 }
 export type MenuItem = (typeof navList)[number];
 export type MainMenuNames = MenuItem['routeName'];
@@ -23,27 +24,27 @@ const navList = [
     title: i18n.global.t('节点管理'),
     group: [
       {
-        title: i18n.global.t('节点'),
+        title: i18n.global.t('platform.nodeMan.node'),
         children: [
           {
             routeName: 'agent',
-            icon: '',
-            title: i18n.global.t('Agent状态'),
+            icon: 'nodeman-icon nc-state',
+            title: i18n.global.t('platform.nodeMan.agentStatus'),
           },
           {
             routeName: 'plugin',
-            icon: '',
-            title: i18n.global.t('插件管理'),
+            icon: 'nodeman-icon nc-plug-in',
+            title: i18n.global.t('platform.nodeMan.pluginManagement'),
           },
         ],
       },
       {
-        title: i18n.global.t('历史'),
+        title: i18n.global.t('platform.nodeMan.history'),
         children: [
           {
             routeName: 'history',
-            icon: '',
-            title: i18n.global.t('任务历史'),
+            icon: 'nodeman-icon nc-history',
+            title: i18n.global.t('platform.nodeMan.taskHistory'),
           },
         ],
       },

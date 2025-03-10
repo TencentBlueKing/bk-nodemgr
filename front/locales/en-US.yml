@@ -1,5 +1,32 @@
 platform:
   name: bk-nodeman
+  title: BK NodeMan
+  nodeManagement:
+    node: Node
+    agentStatus: Agent status
+    installAgent: Install agent
+    batchOperate: Batch
+    copy: Copy
+    uninstall: Uninstall
+    bussinessTopology: Business topo
+    agentSearchPlaceholder: 'Search IP, BK-Net ID:IP, Agent ID, BK-Net and more'
+    inner_ip: LAN IPv4
+    inner_ipv6: LAN IPv6
+    agentId: Agent ID
+    bk_cloud_name: BK-Net
+    bk_cloud_unit: BK-Net unit
+    os_type: Operating system
+    System/Arch: System/Architecture
+    status: Agent status
+    status_display: Agent status
+    agent_version: Agent version
+    is_manual: Install mode
+    operate: Actions
+    edit: Edit
+    delete: Detele
+    pluginManagement: Plugin management
+    history: History
+    taskHistory: Task history
 topoManager:
   region:
     title: Controlled Area

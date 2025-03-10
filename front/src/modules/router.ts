@@ -3,7 +3,7 @@ import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import NotFound from '@/pages/app/404.vue';
-import AgentManager from '@/pages/node/agent.vue';
+import AgentManager from '@/pages/node/agent/list.vue';
 import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
@@ -12,6 +12,8 @@ import ControlledRegion from '@/pages/topo/region.vue';
 import Topography from '@/pages/topo/topo.vue';
 import OperationRecord from '@/pages/topo/record.vue';
 import type { UserModule } from '@/types';
+import AgentSetup from '@/pages/node/agent/setup.vue';
+import AgentImport from '@/pages/node/agent/import.vue';
 
 const routes = setupLayouts([
   {
@@ -32,6 +34,38 @@ const routes = setupLayouts([
             meta: {
               title: 'Agent状态',
               back: false,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'agentSetup',
+            path: 'setup',
+            component: AgentSetup,
+            meta: {
+              title: '安装 Agent',
+              back: true,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'agentImport',
+            path: 'import',
+            props: true,
+            component: AgentImport,
+            meta: {
+              title: 'Excel导入安装',
+              back: true,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'agentEdit',
+            path: 'edit',
+            props: true,
+            component: AgentImport,
+            meta: {
+              title: '重装 Agent',
+              back: true,
               mainMenu: 'nodeManager',
             },
           },

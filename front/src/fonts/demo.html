@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./iconcool.js"></script>
+  <style>
+    html,
+    body,
+    ul,
+    li {
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      margin: 0 auto;
+      padding: 50px;
+      width: 980px;
+    }
+    .container .page-title {
+      margin: 0;
+      padding: 0;
+    }
+    .container .page-title .logo {
+      height: 50px;
+    }
+    .tab-wrapper {
+      padding-top: 26px;
+      border-bottom: 1px solid #dcdee5;
+      overflow: hidden;
+    }
+    .tab-wrapper .tab-panel {
+      float: left;
+      padding: 9px;
+      min-width: 124px;
+      font-size: 16px;
+      color: #979ba5;
+      text-align: center;
+      cursor: pointer;
+    }
+    .tab-wrapper .tab-panel.active {
+      color: #313238;
+      border-bottom: 3px solid #361ec6;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .icon-list .icon-item {
+      display: inline-block;
+      margin-top: 20px;
+      width: 116px;
+      color: #313238;
+      text-align: center;
+      vertical-align: top;
+      overflow: hidden;
+      list-style: none;
+    }
+    .icon-list .icon-item .icon {
+      display: inline-block;
+      height: 92px;
+      line-height: 92px;
+      font-size: 44px;
+    }
+    .icon-list .icon-text {
+      margin: 0;
+      font-size: 14px;
+      word-break: break-all;
+    }
+    .icon-list .colorful-icon {
+      display: inline-block;
+      margin-top: 20px;
+      width: 116px;
+      text-align: center;
+      vertical-align: top;
+      overflow: hidden;
+      list-style: none;
+    }
+    .icon-list .colorful-icon .icon {
+      display: block;
+      margin: 0 auto;
+      width: 1em;
+      height: 92px;
+      font-size: 44px;
+    }
+    .describe-title {
+      margin: 60px 0 0;
+      padding-bottom: 10px;
+      font-size: 20px;
+      font-weight: normal;
+      color: #313238;
+      border-bottom: 1px solid #dcdee5;
+    }
+    .use-describe {
+      padding-left: 20px;
+    }
+    .use-describe li {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #313238;
+      line-height: 20px;
+    }
+  </style>
+  <title>Icon Cool</title>
+</head>
+<body>
+  <div class="container">
+    <h2 class="page-title">
+      <img class="logo" src="data:image/svg+xml;base64,PHN2ZyBpZD0i5Zu+5bGCXzEiIGRhdGEtbmFtZT0i5Zu+5bGCIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDMzMSA2NCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNlNWVlZmY7fS5jbHMtMntmaWxsOiMzNjFlYzY7fS5jbHMtM3tmaWxsOiNiNWNiZmY7fS5jbHMtNHtmaWxsOiNkY2U5ZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5pY29uIGNvb2wgbG9nbzwvdGl0bGU+PHBvbHlnb24gY2xhc3M9ImNscy0xIiBwb2ludHM9IjI2LjkgNjIuOTQgMC42OCA0Ny4yMSAwLjY4IDE1LjczIDI2LjkgMzEuNDcgMjYuOSA2Mi45NCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIyMC4zNCA1MS4xNCA3LjIzIDQzLjI3IDcuMjMgMjcuNTQgMjAuMzQgMzUuNCAyMC4zNCA1MS4xNCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMyIgcG9pbnRzPSIyNi45IDYyLjk0IDUzLjEzIDQ3LjIxIDUzLjEzIDE1LjczIDI2LjkgMzEuNDcgMjYuOSA2Mi45NCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtNCIgcG9pbnRzPSIyNi45IDAgMC42OCAxNS43MyAyNi45IDMxLjQ3IDUzLjEzIDE1LjczIDI2LjkgMCIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMiIgY3g9IjI2LjkiIGN5PSIxNS43NCIgcng9IjEwLjQ5IiByeT0iNS44MyIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIzNC4yMyA1MS4xNCA0OC4xOCA0Mi43NyA0MS4zMSAzOS4zNCAzNC4yMyA1MS4xNCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSI0OC4xOCAyNy41NCAzNC4yMyAzNS45MSA0MS4xIDM5LjM0IDQ4LjE4IDI3LjU0Ii8+PHBhdGggZD0iTTcxLjIzLDE4LjU0aDkuOTRWMTUuOGgzLjg5djIuNzRoOC42N1YxNS44aDMuOXYyLjc0aDkuNjd2My4zMUg5Ny42M3YyaC0zLjl2LTJIODUuMDZ2MS45M0g4MS4xN1YyMS44NUg3MS4yM1ptMCwyOS4xSDc1VjM4LjI3aDI4LjY0djkuMzdoMy43VjUxSDcxLjIzWm0yLjg1LTIyaDMuN1YzNi4zNWgtMy43Wm01LDIyaDQuNDNWNDEuNDdINzkuMDlabTIuODUtMjNIODUuOHYxMkg4MS45NFptNC41OSw5LjgzYTI3LjI2LDI3LjI2LDAsMCwwLDUuMzktMTBsMy45LjU3TDk1LDI3LjI1aDExLjY3djMuMjhIOTMuNThhMzcuMjIsMzcuMjIsMCwwLDEtMy44NSw2LjEyQzg4LjgsMzYsODcuNjUsMzUuMTksODYuNTMsMzQuNVptLjU4LDEzLjE0aDQuNDNWNDEuNDdIODcuMTFabTcuMzYtMTQuNDksMi4yNy0yLjI4YzIuMzEsMS40Nyw0LjE2LDIuNyw2LjQsNC4yOGwtMi40MywyLjU0Qzk4LjY3LDM2LjExLDk2Ljc4LDM0LjczLDk0LjQ3LDMzLjE1Wm0uNjEsOC4zMnY2LjE3aDQuNDdWNDEuNDdaIi8+PHBhdGggZD0iTTEwOS4zNCwyNS40YTM2LjgzLDM2LjgzLDAsMCwwLDUuMzYtOS42M2wzLjUxLjVjLS40MywxLS44MSwxLjkyLTEuMjQsMi44MWg2djNsLTIuMiw0LjA5aDMuNTFWNDMuNTlIMTExLjEyVjI4LjUybC0uMzEuMzlBMzcuMTQsMzcuMTQsMCwwLDAsMTA5LjM0LDI1LjRaTTEyNCw0OC4xNGMwLC4zNSwwLC42OSwwLDEuMDgtNS4xMi40Mi05LjgyLjg1LTE0LDEuMzVsLS40Ny0zLjUxYzQuMDUtLjI3LDkuMjEtLjY5LDE0LjQ5LTEuMjMsMCwuNzMsMCwxLjM1LDAsMmE1NSw1NSwwLDAsMCw0Ljc0LTcuNTFsMywxLjYyYy0xLjc3LDMtMy4zMSw1LjQ3LTUuMiw4LjE3QzEyNS43Miw0OS4zNywxMjUsNDguNzksMTI0LDQ4LjE0Wm0tOC42OC0yNS44NmEzOS44MSwzOS44MSwwLDAsMS0yLjUsMy45M2g0LjU1bDIuMTktMy45M1ptLTEuNDIsMTEuMjFoMi41OFYyOS4xOGgtMi41OFptMCw3LjFoMi41OFYzNi4yN2gtMi41OFpNMTE5LDI5LjE4djQuMzFoMi41OFYyOS4xOFptMCwxMS40MWgyLjU4VjM2LjI3SDExOVpNMTI1LjQ1LDIwaDguMzdjLS40My0xLjI3LS44OS0yLjYyLTEuMzItMy43N2w0LjA5LS41Yy40NiwxLjM4LjkyLDIuODUsMS4zNSw0LjI3SDE0NlYyMy40SDEyNS40NVpNMTI5LDQ4LjFjMSwuMDgsMi4xMi4xMiwzLjEyLjEyLDEuMzUsMCwxLjg1LS41NCwxLjg1LTEuODV2LThoLTYuNzVWMjYuNTZoMTYuNjFWMzguMzVoLTYuMjR2OS4yMWMwLDIuNjYtMSw0LTMuNjYsNC4xMi0xLjE2LDAtMi43OC4wOC00LjE2LjA4QzEyOS41OCw1MC41MywxMjkuMzEsNDkuMjYsMTI5LDQ4LjFabTEuNzMtMTNoOS42VjI5LjgzaC05LjZaTTEzOSw0MS43OCwxNDIsNDAuMzVjMS42OSwyLjc4LDIuOTMsNSw0LjQ3LDcuNzlMMTQzLjMsNDkuOEMxNDIsNDcuMSwxNDAuNjgsNDQuNzEsMTM5LDQxLjc4WiIvPjxwYXRoIGQ9Ik0xNjAuNDUsMTcuNDR2NC43N2gtNVYxNy40NFptMCw5LjIyVjUyLjNoLTVWMjYuNjZaIi8+PHBhdGggZD0iTTE4MS41Miw0Mi43NWg1cTAsNC44OS0xLjMyLDYuODJhNi4xNiw2LjE2LDAsMCwxLTMuMzIsMi4zNywyMywyMywwLDAsMS02LjQxLjY4LDI0Ljc1LDI0Ljc1LDAsMCwxLTUuNDUtLjQ4LDguMjgsOC4yOCwwLDAsMS0zLjM4LTEuNTgsNy4yMiw3LjIyLDAsMCwxLTIuMjYtMy44OCwzMS4yMiwzMS4yMiwwLDAsMS0uNjYtNy4zOSwyNCwyNCwwLDAsMSwuODgtNy42Nyw3LjE2LDcuMTYsMCwwLDEsMy42My00LjEzcTIuMy0xLjE1LDcuMDgtMS4xNWExOSwxOSwwLDAsMSw2LjcxLjk0LDUuNzIsNS43MiwwLDAsMSwzLjMyLDMsMTMsMTMsMCwwLDEsLjc3LDUuMWgtNWE3LDcsMCwwLDAtLjUzLTMuMjcsMi44MywyLjgzLDAsMCwwLTEuNzQtMS4zLDEzLjIsMTMuMiwwLDAsMC0zLjcxLS4zOWMtMi41MywwLTQuMjEuNDMtNSwxLjMxcy0xLjIzLDMuNTEtMS4yMyw3LjgzcTAsNS44MiwxLjI2LDcuNTksMSwxLjQsNS42OCwxLjRjMi40MywwLDQtLjM1LDQuNjUtMVMxODEuNTIsNDUuMjQsMTgxLjUyLDQyLjc1WiIvPjxwYXRoIGQ9Ik0yMDAuMjUsMjYuMzRhMjQuMTMsMjQuMTMsMCwwLDEsNi40OS42Miw2LjY5LDYuNjksMCwwLDEsNC43OCw1LjEyLDI5Ljc1LDI5Ljc1LDAsMCwxLC41OSw2Ljg3cTAsNi0uODYsOC41NWE2LjQ2LDYuNDYsMCwwLDEtMy4zMSw0cS0yLjMzLDEuMDgtNy42MywxLjA4YTE5LjY5LDE5LjY5LDAsMCwxLTcuMTEtLjk0LDYuMzEsNi4zMSwwLDAsMS0yLjM5LTEuNjIsNy42NCw3LjY0LDAsMCwxLTEuNDQtMi43NSwzMC41LDMwLjUsMCwwLDEtLjc2LTguMjMsMzMuMjIsMzMuMjIsMCwwLDEsLjQ5LTYuNDEsOC4zOCw4LjM4LDAsMCwxLDEuNjEtMy43LDYuNDQsNi40NCwwLDAsMSwzLjM2LTJBMjQuNjEsMjQuNjEsMCwwLDEsMjAwLjI1LDI2LjM0Wm0uMDgsNC4wNXEtNC41LDAtNS40NywxLjUzdC0xLDcuMzJhNDIuNTQsNDIuNTQsMCwwLDAsLjI0LDUuMjYsNS45LDUuOSwwLDAsMCwuODYsMi42MnExLDEuNDYsNS41MiwxLjQ1LDMuOTIsMCw1LjA3LTEuMTVhNC44MSw0LjgxLDAsMCwwLDEuMDktMi42LDM3LjQzLDM3LjQzLDAsMCwwLC4zLTUuNTVxMC02LTEuMTItNy41MVEyMDQuNzYsMzAuNCwyMDAuMzMsMzAuMzlaIi8+PHBhdGggZD0iTTIxNS4zOSwyNi42Nmg1LjA1bC0uMTYsMi4xNmMxLjMxLTIuMTksNC0yLjQ4LDguMzEtMi40OHM3LDEuMSw4LjI5LDMuM3EuODgsMS41Ljg4LDUuNThWNTIuM2gtNVYzNi40MmExMC4zOSwxMC4zOSwwLDAsMC0uNTQtNC4xMywyLjc0LDIuNzQsMCwwLDAtMS42MS0xLjQsOS40OCw5LjQ4LDAsMCwwLTMuMTktLjQycS0zLjY3LDAtNS4zMSwxLjUzdC0xLjYzLDVWNTIuM2gtNS4wNVoiLz48cGF0aCBkPSJNMjY0LjQ4LDQyLjc1aDVjMCwzLjI2LS40Miw1LjUzLTEuMzIsNi44MmE2LjE2LDYuMTYsMCwwLDEtMy4zMiwyLjM3LDIzLDIzLDAsMCwxLTYuNDEuNjgsMjQuNzUsMjQuNzUsMCwwLDEtNS40NS0uNDgsOC4yOCw4LjI4LDAsMCwxLTMuMzgtMS41OCw3LjI5LDcuMjksMCwwLDEtMi4yNi0zLjg4LDMxLjIyLDMxLjIyLDAsMCwxLS42Ni03LjM5LDI0LDI0LDAsMCwxLC44OS03LjY3LDcuMTEsNy4xMSwwLDAsMSwzLjYyLTQuMTNxMi4yOS0xLjE1LDcuMDgtMS4xNWExOSwxOSwwLDAsMSw2LjcxLjk0LDUuNzIsNS43MiwwLDAsMSwzLjMyLDMsMTMsMTMsMCwwLDEsLjc3LDUuMWgtNWE3LjEsNy4xLDAsMCwwLS41NC0zLjI3LDIuODMsMi44MywwLDAsMC0xLjc0LTEuMywxMy4yLDEzLjIsMCwwLDAtMy43MS0uMzljLTIuNTMsMC00LjIxLjQzLTUsMS4zMXMtMS4yMywzLjUxLTEuMjMsNy44M3EwLDUuODIsMS4yNiw3LjU5Yy42NC45MywyLjU0LDEuNCw1LjY4LDEuNCwyLjQzLDAsNC0uMzUsNC42Ni0xUzI2NC40OCw0NS4yNCwyNjQuNDgsNDIuNzVaIi8+PHBhdGggZD0iTTI4My4yMSwyNi4zNGEyNC4xMywyNC4xMywwLDAsMSw2LjQ5LjYyLDYuNjksNi42OSwwLDAsMSw0Ljc4LDUuMTIsMjkuNzUsMjkuNzUsMCwwLDEsLjU5LDYuODdxMCw2LS44Niw4LjU1YTYuNDYsNi40NiwwLDAsMS0zLjMxLDRxLTIuMzIsMS4wOC03LjYzLDEuMDhhMTkuNjksMTkuNjksMCwwLDEtNy4xMS0uOTQsNi4zMSw2LjMxLDAsMCwxLTIuMzktMS42Miw3LjY0LDcuNjQsMCwwLDEtMS40NC0yLjc1LDMwLjYxLDMwLjYxLDAsMCwxLS43NS04LjIzLDMzLjM2LDMzLjM2LDAsMCwxLC40OC02LjQxLDguMzgsOC4zOCwwLDAsMSwxLjYxLTMuNyw2LjQ4LDYuNDgsMCwwLDEsMy4zNi0yQTI0LjYxLDI0LjYxLDAsMCwxLDI4My4yMSwyNi4zNFptLjA5LDQuMDVjLTMsMC00LjgzLjUxLTUuNDgsMS41M3MtMSwzLjUzLTEsNy4zMkE0Mi41NCw0Mi41NCwwLDAsMCwyNzcsNDQuNWE1LjksNS45LDAsMCwwLC44NiwyLjYycTEsMS40Niw1LjUyLDEuNDUsMy45MiwwLDUuMDctMS4xNWE0LjgxLDQuODEsMCwwLDAsMS4wOS0yLjYsMzcuMTMsMzcuMTMsMCwwLDAsLjMxLTUuNTVxMC02LTEuMTMtNy41MVEyODcuNzIsMzAuNCwyODMuMywzMC4zOVoiLz48cGF0aCBkPSJNMzA5LjE2LDI2LjM0YTI0LjEzLDI0LjEzLDAsMCwxLDYuNDkuNjIsNi42OSw2LjY5LDAsMCwxLDQuNzgsNS4xMkEyOS43NSwyOS43NSwwLDAsMSwzMjEsMzlxMCw2LS44Niw4LjU1YTYuNDYsNi40NiwwLDAsMS0zLjMxLDRxLTIuMzMsMS4wOC03LjYzLDEuMDhhMTkuNjksMTkuNjksMCwwLDEtNy4xMS0uOTQsNi4zMSw2LjMxLDAsMCwxLTIuMzktMS42Miw3LjgsNy44LDAsMCwxLTEuNDUtMi43NSwzMC42MSwzMC42MSwwLDAsMS0uNzUtOC4yMywzMi40NCwzMi40NCwwLDAsMSwuNDktNi40MSw4LjI2LDguMjYsMCwwLDEsMS42MS0zLjcsNi40NCw2LjQ0LDAsMCwxLDMuMzYtMkEyNC42MSwyNC42MSwwLDAsMSwzMDkuMTYsMjYuMzRabS4wOCw0LjA1cS00LjUsMC01LjQ3LDEuNTNjLS43LDEuMDktMSwzLjUzLTEsNy4zMkE0Mi41NCw0Mi41NCwwLDAsMCwzMDMsNDQuNWE1Ljc3LDUuNzcsMCwwLDAsLjg2LDIuNjJxMSwxLjQ2LDUuNTIsMS40NSwzLjkxLDAsNS4wNy0xLjE1YTQuODEsNC44MSwwLDAsMCwxLjA5LTIuNiwzNy40MywzNy40MywwLDAsMCwuMy01LjU1cTAtNi0xLjEyLTcuNTFRMzEzLjY3LDMwLjQsMzA5LjI0LDMwLjM5WiIvPjxwYXRoIGQ9Ik0zMjkuMzQsMTUuNjlWNTIuM2gtNVYxNS42OVoiLz48L3N2Zz4=">
+    </h2>
+    <div class="tab-wrapper">
+      <div class="tab-panel active" data-type="singleColor">单色图标</div>
+      <div class="tab-panel"  data-type="multipleColor">彩色图标</div>
+    </div>
+    <section class="tab-content single-color active" data-type="singleColor">
+      <ul class="icon-list">
+        <li class="icon-item" title="alicloud">
+          <span class="icon nodeman-icon nc-alicloud"></span>
+          <p class="icon-text">alicloud</p>
+        </li>
+        <li class="icon-item" title="aws">
+          <span class="icon nodeman-icon nc-aws"></span>
+          <p class="icon-text">aws</p>
+        </li>
+        <li class="icon-item" title="tencentcould">
+          <span class="icon nodeman-icon nc-tencentcould"></span>
+          <p class="icon-text">tencentcould</p>
+        </li>
+        <li class="icon-item" title="back-left">
+          <span class="icon nodeman-icon nc-back-left"></span>
+          <p class="icon-text">back-left</p>
+        </li>
+        <li class="icon-item" title="tips-fill">
+          <span class="icon nodeman-icon nc-tips-fill"></span>
+          <p class="icon-text">tips-fill</p>
+        </li>
+        <li class="icon-item" title="tips">
+          <span class="icon nodeman-icon nc-tips"></span>
+          <p class="icon-text">tips</p>
+        </li>
+        <li class="icon-item" title="plus">
+          <span class="icon nodeman-icon nc-plus"></span>
+          <p class="icon-text">plus</p>
+        </li>
+        <li class="icon-item" title="minus">
+          <span class="icon nodeman-icon nc-minus"></span>
+          <p class="icon-text">minus</p>
+        </li>
+        <li class="icon-item" title="delete">
+          <span class="icon nodeman-icon nc-delete"></span>
+          <p class="icon-text">delete</p>
+        </li>
+        <li class="icon-item" title="arrow-left">
+          <span class="icon nodeman-icon nc-arrow-left"></span>
+          <p class="icon-text">arrow-left</p>
+        </li>
+        <li class="icon-item" title="arrow-right">
+          <span class="icon nodeman-icon nc-arrow-right"></span>
+          <p class="icon-text">arrow-right</p>
+        </li>
+        <li class="icon-item" title="setting">
+          <span class="icon nodeman-icon nc-setting"></span>
+          <p class="icon-text">setting</p>
+        </li>
+        <li class="icon-item" title="double-up">
+          <span class="icon nodeman-icon nc-double-up"></span>
+          <p class="icon-text">double-up</p>
+        </li>
+        <li class="icon-item" title="increase">
+          <span class="icon nodeman-icon nc-increase"></span>
+          <p class="icon-text">increase</p>
+        </li>
+        <li class="icon-item" title="increase-2">
+          <span class="icon nodeman-icon nc-increase-2"></span>
+          <p class="icon-text">increase-2</p>
+        </li>
+        <li class="icon-item" title="filter-fill">
+          <span class="icon nodeman-icon nc-filter-fill"></span>
+          <p class="icon-text">filter-fill</p>
+        </li>
+        <li class="icon-item" title="loading">
+          <span class="icon nodeman-icon nc-loading"></span>
+          <p class="icon-text">loading</p>
+        </li>
+        <li class="icon-item" title="key">
+          <span class="icon nodeman-icon nc-key"></span>
+          <p class="icon-text">key</p>
+        </li>
+        <li class="icon-item" title="loading-2">
+          <span class="icon nodeman-icon nc-loading-2"></span>
+          <p class="icon-text">loading-2</p>
+        </li>
+        <li class="icon-item" title="arrow-down">
+          <span class="icon nodeman-icon nc-arrow-down"></span>
+          <p class="icon-text">arrow-down</p>
+        </li>
+        <li class="icon-item" title="bulk-edit">
+          <span class="icon nodeman-icon nc-bulk-edit"></span>
+          <p class="icon-text">bulk-edit</p>
+        </li>
+        <li class="icon-item" title="azure">
+          <span class="icon nodeman-icon nc-azure"></span>
+          <p class="icon-text">azure</p>
+        </li>
+        <li class="icon-item" title="huaweicloud">
+          <span class="icon nodeman-icon nc-huaweicloud"></span>
+          <p class="icon-text">huaweicloud</p>
+        </li>
+        <li class="icon-item" title="googlecloudplatform">
+          <span class="icon nodeman-icon nc-googlecloudplatform"></span>
+          <p class="icon-text">googlecloudplatform</p>
+        </li>
+        <li class="icon-item" title="salesforce">
+          <span class="icon nodeman-icon nc-salesforce"></span>
+          <p class="icon-text">salesforce</p>
+        </li>
+        <li class="icon-item" title="oraclecloud">
+          <span class="icon nodeman-icon nc-oraclecloud"></span>
+          <p class="icon-text">oraclecloud</p>
+        </li>
+        <li class="icon-item" title="ibmcloud">
+          <span class="icon nodeman-icon nc-ibmcloud"></span>
+          <p class="icon-text">ibmcloud</p>
+        </li>
+        <li class="icon-item" title="ecloud">
+          <span class="icon nodeman-icon nc-ecloud"></span>
+          <p class="icon-text">ecloud</p>
+        </li>
+        <li class="icon-item" title="export">
+          <span class="icon nodeman-icon nc-export"></span>
+          <p class="icon-text">export</p>
+        </li>
+        <li class="icon-item" title="u-cloud">
+          <span class="icon nodeman-icon nc-u-cloud"></span>
+          <p class="icon-text">u-cloud</p>
+        </li>
+        <li class="icon-item" title="meituanopenservices">
+          <span class="icon nodeman-icon nc-meituanopenservices"></span>
+          <p class="icon-text">meituanopenservices</p>
+        </li>
+        <li class="icon-item" title="ksyun">
+          <span class="icon nodeman-icon nc-ksyun"></span>
+          <p class="icon-text">ksyun</p>
+        </li>
+        <li class="icon-item" title="baiducloud">
+          <span class="icon nodeman-icon nc-baiducloud"></span>
+          <p class="icon-text">baiducloud</p>
+        </li>
+        <li class="icon-item" title="upload-cloud">
+          <span class="icon nodeman-icon nc-upload-cloud"></span>
+          <p class="icon-text">upload-cloud</p>
+        </li>
+        <li class="icon-item" title="excel">
+          <span class="icon nodeman-icon nc-excel"></span>
+          <p class="icon-text">excel</p>
+        </li>
+        <li class="icon-item" title="check-small">
+          <span class="icon nodeman-icon nc-check-small"></span>
+          <p class="icon-text">check-small</p>
+        </li>
+        <li class="icon-item" title="retry">
+          <span class="icon nodeman-icon nc-retry"></span>
+          <p class="icon-text">retry</p>
+        </li>
+        <li class="icon-item" title="arrow-up">
+          <span class="icon nodeman-icon nc-arrow-up"></span>
+          <p class="icon-text">arrow-up</p>
+        </li>
+        <li class="icon-item" title="icon-edit-2">
+          <span class="icon nodeman-icon nc-icon-edit-2"></span>
+          <p class="icon-text">icon-edit-2</p>
+        </li>
+        <li class="icon-item" title="delete-2">
+          <span class="icon nodeman-icon nc-delete-2"></span>
+          <p class="icon-text">delete-2</p>
+        </li>
+        <li class="icon-item" title="icon-export">
+          <span class="icon nodeman-icon nc-icon-export"></span>
+          <p class="icon-text">icon-export</p>
+        </li>
+        <li class="icon-item" title="icon-full-screen">
+          <span class="icon nodeman-icon nc-icon-full-screen"></span>
+          <p class="icon-text">icon-full-screen</p>
+        </li>
+        <li class="icon-item" title="icon-un-full-screen">
+          <span class="icon nodeman-icon nc-icon-un-full-screen"></span>
+          <p class="icon-text">icon-un-full-screen</p>
+        </li>
+        <li class="icon-item" title="icon-topping-fill">
+          <span class="icon nodeman-icon nc-icon-topping-fill"></span>
+          <p class="icon-text">icon-topping-fill</p>
+        </li>
+        <li class="icon-item" title="icon-control-fill">
+          <span class="icon nodeman-icon nc-icon-control-fill"></span>
+          <p class="icon-text">icon-control-fill</p>
+        </li>
+        <li class="icon-item" title="jump-link">
+          <span class="icon nodeman-icon nc-jump-link"></span>
+          <p class="icon-text">jump-link</p>
+        </li>
+        <li class="icon-item" title="monitor">
+          <span class="icon nodeman-icon nc-monitor"></span>
+          <p class="icon-text">monitor</p>
+        </li>
+        <li class="icon-item" title="icon-bottom-fill">
+          <span class="icon nodeman-icon nc-icon-bottom-fill"></span>
+          <p class="icon-text">icon-bottom-fill</p>
+        </li>
+        <li class="icon-item" title="discover">
+          <span class="icon nodeman-icon nc-discover"></span>
+          <p class="icon-text">discover</p>
+        </li>
+        <li class="icon-item" title="icon-excel-fill">
+          <span class="icon nodeman-icon nc-icon-excel-fill"></span>
+          <p class="icon-text">icon-excel-fill</p>
+        </li>
+        <li class="icon-item" title="install">
+          <span class="icon nodeman-icon nc-install"></span>
+          <p class="icon-text">install</p>
+        </li>
+        <li class="icon-item" title="package">
+          <span class="icon nodeman-icon nc-package"></span>
+          <p class="icon-text">package</p>
+        </li>
+        <li class="icon-item" title="state">
+          <span class="icon nodeman-icon nc-state"></span>
+          <p class="icon-text">state</p>
+        </li>
+        <li class="icon-item" title="upload-2">
+          <span class="icon nodeman-icon nc-upload-2"></span>
+          <p class="icon-text">upload-2</p>
+        </li>
+        <li class="icon-item" title="icon-audit">
+          <span class="icon nodeman-icon nc-icon-audit"></span>
+          <p class="icon-text">icon-audit</p>
+        </li>
+        <li class="icon-item" title="copy">
+          <span class="icon nodeman-icon nc-copy"></span>
+          <p class="icon-text">copy</p>
+        </li>
+        <li class="icon-item" title="help-document-fill">
+          <span class="icon nodeman-icon nc-help-document-fill"></span>
+          <p class="icon-text">help-document-fill</p>
+        </li>
+        <li class="icon-item" title="remind-fill">
+          <span class="icon nodeman-icon nc-remind-fill"></span>
+          <p class="icon-text">remind-fill</p>
+        </li>
+        <li class="icon-item" title="export2">
+          <span class="icon nodeman-icon nc-export2"></span>
+          <p class="icon-text">export2</p>
+        </li>
+        <li class="icon-item" title="qiyesiyouyun">
+          <span class="icon nodeman-icon nc-qiyesiyouyun"></span>
+          <p class="icon-text">qiyesiyouyun</p>
+        </li>
+        <li class="icon-item" title="danger">
+          <span class="icon nodeman-icon nc-danger"></span>
+          <p class="icon-text">danger</p>
+        </li>
+        <li class="icon-item" title="reduce">
+          <span class="icon nodeman-icon nc-reduce"></span>
+          <p class="icon-text">reduce</p>
+        </li>
+        <li class="icon-item" title="shoudouyun">
+          <span class="icon nodeman-icon nc-shoudouyun"></span>
+          <p class="icon-text">shoudouyun</p>
+        </li>
+        <li class="icon-item" title="danger-fill">
+          <span class="icon nodeman-icon nc-danger-fill"></span>
+          <p class="icon-text">danger-fill</p>
+        </li>
+        <li class="icon-item" title="danger-fill-2">
+          <span class="icon nodeman-icon nc-danger-fill-2"></span>
+          <p class="icon-text">danger-fill-2</p>
+        </li>
+        <li class="icon-item" title="reduce-fill">
+          <span class="icon nodeman-icon nc-reduce-fill"></span>
+          <p class="icon-text">reduce-fill</p>
+        </li>
+        <li class="icon-item" title="package-2">
+          <span class="icon nodeman-icon nc-package-2"></span>
+          <p class="icon-text">package-2</p>
+        </li>
+        <li class="icon-item" title="strategy">
+          <span class="icon nodeman-icon nc-strategy"></span>
+          <p class="icon-text">strategy</p>
+        </li>
+        <li class="icon-item" title="change-target">
+          <span class="icon nodeman-icon nc-change-target"></span>
+          <p class="icon-text">change-target</p>
+        </li>
+        <li class="icon-item" title="brush-fill">
+          <span class="icon nodeman-icon nc-brush-fill"></span>
+          <p class="icon-text">brush-fill</p>
+        </li>
+        <li class="icon-item" title="withdraw-fill">
+          <span class="icon nodeman-icon nc-withdraw-fill"></span>
+          <p class="icon-text">withdraw-fill</p>
+        </li>
+        <li class="icon-item" title="minus-line">
+          <span class="icon nodeman-icon nc-minus-line"></span>
+          <p class="icon-text">minus-line</p>
+        </li>
+        <li class="icon-item" title="plus-line">
+          <span class="icon nodeman-icon nc-plus-line"></span>
+          <p class="icon-text">plus-line</p>
+        </li>
+        <li class="icon-item" title="alert">
+          <span class="icon nodeman-icon nc-alert"></span>
+          <p class="icon-text">alert</p>
+        </li>
+        <li class="icon-item" title="xiazai">
+          <span class="icon nodeman-icon nc-xiazai"></span>
+          <p class="icon-text">xiazai</p>
+        </li>
+        <li class="icon-item" title="switchon">
+          <span class="icon nodeman-icon nc-switchon"></span>
+          <p class="icon-text">switchon</p>
+        </li>
+        <li class="icon-item" title="variable">
+          <span class="icon nodeman-icon nc-variable"></span>
+          <p class="icon-text">variable</p>
+        </li>
+        <li class="icon-item" title="deploy">
+          <span class="icon nodeman-icon nc-deploy"></span>
+          <p class="icon-text">deploy</p>
+        </li>
+        <li class="icon-item" title="list">
+          <span class="icon nodeman-icon nc-list"></span>
+          <p class="icon-text">list</p>
+        </li>
+        <li class="icon-item" title="more">
+          <span class="icon nodeman-icon nc-more"></span>
+          <p class="icon-text">more</p>
+        </li>
+        <li class="icon-item" title="deploy-2">
+          <span class="icon nodeman-icon nc-deploy-2"></span>
+          <p class="icon-text">deploy-2</p>
+        </li>
+        <li class="icon-item" title="sub">
+          <span class="icon nodeman-icon nc-sub"></span>
+          <p class="icon-text">sub</p>
+        </li>
+        <li class="icon-item" title="environment">
+          <span class="icon nodeman-icon nc-environment"></span>
+          <p class="icon-text">environment</p>
+        </li>
+        <li class="icon-item" title="saas">
+          <span class="icon nodeman-icon nc-saas"></span>
+          <p class="icon-text">saas</p>
+        </li>
+        <li class="icon-item" title="backstage">
+          <span class="icon nodeman-icon nc-backstage"></span>
+          <p class="icon-text">backstage</p>
+        </li>
+        <li class="icon-item" title="alert-2">
+          <span class="icon nodeman-icon nc-alert-2"></span>
+          <p class="icon-text">alert-2</p>
+        </li>
+        <li class="icon-item" title="wrong">
+          <span class="icon nodeman-icon nc-wrong"></span>
+          <p class="icon-text">wrong</p>
+        </li>
+        <li class="icon-item" title="linux">
+          <span class="icon nodeman-icon nc-linux"></span>
+          <p class="icon-text">linux</p>
+        </li>
+        <li class="icon-item" title="windows">
+          <span class="icon nodeman-icon nc-windows"></span>
+          <p class="icon-text">windows</p>
+        </li>
+        <li class="icon-item" title="aix">
+          <span class="icon nodeman-icon nc-aix"></span>
+          <p class="icon-text">aix</p>
+        </li>
+        <li class="icon-item" title="xiezai">
+          <span class="icon nodeman-icon nc-xiezai"></span>
+          <p class="icon-text">xiezai</p>
+        </li>
+        <li class="icon-item" title="parenet-node-line">
+          <span class="icon nodeman-icon nc-parenet-node-line"></span>
+          <p class="icon-text">parenet-node-line</p>
+        </li>
+        <li class="icon-item" title="lang-zh-cn">
+          <span class="icon nodeman-icon nc-lang-zh-cn"></span>
+          <p class="icon-text">lang-zh-cn</p>
+        </li>
+        <li class="icon-item" title="lang-en">
+          <span class="icon nodeman-icon nc-lang-en"></span>
+          <p class="icon-text">lang-en</p>
+        </li>
+        <li class="icon-item" title="copy-2">
+          <span class="icon nodeman-icon nc-copy-2"></span>
+          <p class="icon-text">copy-2</p>
+        </li>
+        <li class="icon-item" title="manual">
+          <span class="icon nodeman-icon nc-manual"></span>
+          <p class="icon-text">manual</p>
+        </li>
+        <li class="icon-item" title="history">
+          <span class="icon nodeman-icon nc-history"></span>
+          <p class="icon-text">history</p>
+        </li>
+        <li class="icon-item" title="plug-in">
+          <span class="icon nodeman-icon nc-plug-in"></span>
+          <p class="icon-text">plug-in</p>
+        </li>
+        <li class="icon-item" title="template">
+          <span class="icon nodeman-icon nc-template"></span>
+          <p class="icon-text">template</p>
+        </li>
+        <li class="icon-item" title="terminated">
+          <span class="icon nodeman-icon nc-terminated"></span>
+          <p class="icon-text">terminated</p>
+        </li>
+        <li class="icon-item" title="running">
+          <span class="icon nodeman-icon nc-running"></span>
+          <p class="icon-text">running</p>
+        </li>
+        <li class="icon-item" title="warning">
+          <span class="icon nodeman-icon nc-warning"></span>
+          <p class="icon-text">warning</p>
+        </li>
+        <li class="icon-item" title="unknown">
+          <span class="icon nodeman-icon nc-unknown"></span>
+          <p class="icon-text">unknown</p>
+        </li>
+        <li class="icon-item" title="return-center">
+          <span class="icon nodeman-icon nc-return-center"></span>
+          <p class="icon-text">return-center</p>
+        </li>
+        <li class="icon-item" title="minimap">
+          <span class="icon nodeman-icon nc-minimap"></span>
+          <p class="icon-text">minimap</p>
+        </li>
+        <li class="icon-item" title="proportion">
+          <span class="icon nodeman-icon nc-proportion"></span>
+          <p class="icon-text">proportion</p>
+        </li>
+        <li class="icon-item" title="awscloud">
+          <span class="icon nodeman-icon nc-awscloud"></span>
+          <p class="icon-text">awscloud</p>
+        </li>
+        <li class="icon-item" title="googlecloud-2">
+          <span class="icon nodeman-icon nc-googlecloud-2"></span>
+          <p class="icon-text">googlecloud-2</p>
+        </li>
+        <li class="icon-item" title="arrows-right">
+          <span class="icon nodeman-icon nc-arrows-right"></span>
+          <p class="icon-text">arrows-right</p>
+        </li>
+        <li class="icon-item" title="angle-double-down">
+          <span class="icon nodeman-icon nc-angle-double-down"></span>
+          <p class="icon-text">angle-double-down</p>
+        </li>
+      </ul>
+      <h3 class="describe-title">为什么使用</h3>
+      <ul class="use-describe">
+        <li>弹性，在网页或者 app 上，展示字体是很便捷的。用字体图标可以很方便的改变 icon 的颜色，或者加入一些其他的效果</li>
+        <li>可缩放，可以很方便的改变图标的大小</li>
+        <li>矢量，字体图标是矢量的并且具有独立的分辨率，不管在高分辨率还是低分辨率，不管是在网页还是手机端，都具有很好的展示效果，不会出现锯齿或者马赛克模糊</li>
+        <li>节省加载时间，字体图标很小，每个小图标只有几 kb，大大节省了加载时间</li>
+      </ul>
+      <h3 class="describe-title">如何使用</h3>
+      <ul class="use-describe">
+        <li>将整个目录复制到您的项目里</li>
+        <li>引入 style.css</li>
+        <li>挑选相应图标并获取类名，如 .bk-icon .icon-demo</li>
+      </ul>
+    </section>
+    <section class="tab-content multiple-color"  data-type="multipleColor">
+      <ul class="icon-list">
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-alicloud"></use>
+          </svg>
+          <p class="icon-text">alicloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-aws"></use>
+          </svg>
+          <p class="icon-text">aws</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-tencentcould"></use>
+          </svg>
+          <p class="icon-text">tencentcould</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-back-left"></use>
+          </svg>
+          <p class="icon-text">back-left</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-tips-fill"></use>
+          </svg>
+          <p class="icon-text">tips-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-tips"></use>
+          </svg>
+          <p class="icon-text">tips</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-plus"></use>
+          </svg>
+          <p class="icon-text">plus</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-minus"></use>
+          </svg>
+          <p class="icon-text">minus</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-delete"></use>
+          </svg>
+          <p class="icon-text">delete</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-arrow-left"></use>
+          </svg>
+          <p class="icon-text">arrow-left</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-arrow-right"></use>
+          </svg>
+          <p class="icon-text">arrow-right</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-setting"></use>
+          </svg>
+          <p class="icon-text">setting</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-double-up"></use>
+          </svg>
+          <p class="icon-text">double-up</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-increase"></use>
+          </svg>
+          <p class="icon-text">increase</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-increase-2"></use>
+          </svg>
+          <p class="icon-text">increase-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-filter-fill"></use>
+          </svg>
+          <p class="icon-text">filter-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-loading"></use>
+          </svg>
+          <p class="icon-text">loading</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-key"></use>
+          </svg>
+          <p class="icon-text">key</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-loading-2"></use>
+          </svg>
+          <p class="icon-text">loading-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-arrow-down"></use>
+          </svg>
+          <p class="icon-text">arrow-down</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-bulk-edit"></use>
+          </svg>
+          <p class="icon-text">bulk-edit</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-azure"></use>
+          </svg>
+          <p class="icon-text">azure</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-huaweicloud"></use>
+          </svg>
+          <p class="icon-text">huaweicloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-googlecloudplatform"></use>
+          </svg>
+          <p class="icon-text">googlecloudplatform</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-salesforce"></use>
+          </svg>
+          <p class="icon-text">salesforce</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-oraclecloud"></use>
+          </svg>
+          <p class="icon-text">oraclecloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-ibmcloud"></use>
+          </svg>
+          <p class="icon-text">ibmcloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-ecloud"></use>
+          </svg>
+          <p class="icon-text">ecloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-export"></use>
+          </svg>
+          <p class="icon-text">export</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-u-cloud"></use>
+          </svg>
+          <p class="icon-text">u-cloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-meituanopenservices"></use>
+          </svg>
+          <p class="icon-text">meituanopenservices</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-ksyun"></use>
+          </svg>
+          <p class="icon-text">ksyun</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-baiducloud"></use>
+          </svg>
+          <p class="icon-text">baiducloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-upload-cloud"></use>
+          </svg>
+          <p class="icon-text">upload-cloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-excel"></use>
+          </svg>
+          <p class="icon-text">excel</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-check-small"></use>
+          </svg>
+          <p class="icon-text">check-small</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-retry"></use>
+          </svg>
+          <p class="icon-text">retry</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-arrow-up"></use>
+          </svg>
+          <p class="icon-text">arrow-up</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-edit-2"></use>
+          </svg>
+          <p class="icon-text">icon-edit-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-delete-2"></use>
+          </svg>
+          <p class="icon-text">delete-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-export"></use>
+          </svg>
+          <p class="icon-text">icon-export</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-full-screen"></use>
+          </svg>
+          <p class="icon-text">icon-full-screen</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-un-full-screen"></use>
+          </svg>
+          <p class="icon-text">icon-un-full-screen</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-topping-fill"></use>
+          </svg>
+          <p class="icon-text">icon-topping-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-control-fill"></use>
+          </svg>
+          <p class="icon-text">icon-control-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-jump-link"></use>
+          </svg>
+          <p class="icon-text">jump-link</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-monitor"></use>
+          </svg>
+          <p class="icon-text">monitor</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-bottom-fill"></use>
+          </svg>
+          <p class="icon-text">icon-bottom-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-discover"></use>
+          </svg>
+          <p class="icon-text">discover</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-excel-fill"></use>
+          </svg>
+          <p class="icon-text">icon-excel-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-install"></use>
+          </svg>
+          <p class="icon-text">install</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-package"></use>
+          </svg>
+          <p class="icon-text">package</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-state"></use>
+          </svg>
+          <p class="icon-text">state</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-upload-2"></use>
+          </svg>
+          <p class="icon-text">upload-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-icon-audit"></use>
+          </svg>
+          <p class="icon-text">icon-audit</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-copy"></use>
+          </svg>
+          <p class="icon-text">copy</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-help-document-fill"></use>
+          </svg>
+          <p class="icon-text">help-document-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-remind-fill"></use>
+          </svg>
+          <p class="icon-text">remind-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-export2"></use>
+          </svg>
+          <p class="icon-text">export2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-qiyesiyouyun"></use>
+          </svg>
+          <p class="icon-text">qiyesiyouyun</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-danger"></use>
+          </svg>
+          <p class="icon-text">danger</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-reduce"></use>
+          </svg>
+          <p class="icon-text">reduce</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-shoudouyun"></use>
+          </svg>
+          <p class="icon-text">shoudouyun</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-danger-fill"></use>
+          </svg>
+          <p class="icon-text">danger-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-danger-fill-2"></use>
+          </svg>
+          <p class="icon-text">danger-fill-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-reduce-fill"></use>
+          </svg>
+          <p class="icon-text">reduce-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-package-2"></use>
+          </svg>
+          <p class="icon-text">package-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-strategy"></use>
+          </svg>
+          <p class="icon-text">strategy</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-change-target"></use>
+          </svg>
+          <p class="icon-text">change-target</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-brush-fill"></use>
+          </svg>
+          <p class="icon-text">brush-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-withdraw-fill"></use>
+          </svg>
+          <p class="icon-text">withdraw-fill</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-minus-line"></use>
+          </svg>
+          <p class="icon-text">minus-line</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-plus-line"></use>
+          </svg>
+          <p class="icon-text">plus-line</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-alert"></use>
+          </svg>
+          <p class="icon-text">alert</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-xiazai"></use>
+          </svg>
+          <p class="icon-text">xiazai</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-switchon"></use>
+          </svg>
+          <p class="icon-text">switchon</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-variable"></use>
+          </svg>
+          <p class="icon-text">variable</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-deploy"></use>
+          </svg>
+          <p class="icon-text">deploy</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-list"></use>
+          </svg>
+          <p class="icon-text">list</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-more"></use>
+          </svg>
+          <p class="icon-text">more</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-deploy-2"></use>
+          </svg>
+          <p class="icon-text">deploy-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-sub"></use>
+          </svg>
+          <p class="icon-text">sub</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-environment"></use>
+          </svg>
+          <p class="icon-text">environment</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-saas"></use>
+          </svg>
+          <p class="icon-text">saas</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-backstage"></use>
+          </svg>
+          <p class="icon-text">backstage</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-alert-2"></use>
+          </svg>
+          <p class="icon-text">alert-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-wrong"></use>
+          </svg>
+          <p class="icon-text">wrong</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-linux"></use>
+          </svg>
+          <p class="icon-text">linux</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-windows"></use>
+          </svg>
+          <p class="icon-text">windows</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-aix"></use>
+          </svg>
+          <p class="icon-text">aix</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-xiezai"></use>
+          </svg>
+          <p class="icon-text">xiezai</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-parenet-node-line"></use>
+          </svg>
+          <p class="icon-text">parenet-node-line</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-lang-zh-cn"></use>
+          </svg>
+          <p class="icon-text">lang-zh-cn</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-lang-en"></use>
+          </svg>
+          <p class="icon-text">lang-en</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-copy-2"></use>
+          </svg>
+          <p class="icon-text">copy-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-manual"></use>
+          </svg>
+          <p class="icon-text">manual</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-history"></use>
+          </svg>
+          <p class="icon-text">history</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-plug-in"></use>
+          </svg>
+          <p class="icon-text">plug-in</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-template"></use>
+          </svg>
+          <p class="icon-text">template</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-terminated"></use>
+          </svg>
+          <p class="icon-text">terminated</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-running"></use>
+          </svg>
+          <p class="icon-text">running</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-warning"></use>
+          </svg>
+          <p class="icon-text">warning</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-unknown"></use>
+          </svg>
+          <p class="icon-text">unknown</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-return-center"></use>
+          </svg>
+          <p class="icon-text">return-center</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-minimap"></use>
+          </svg>
+          <p class="icon-text">minimap</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-proportion"></use>
+          </svg>
+          <p class="icon-text">proportion</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-awscloud"></use>
+          </svg>
+          <p class="icon-text">awscloud</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-googlecloud-2"></use>
+          </svg>
+          <p class="icon-text">googlecloud-2</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-arrows-right"></use>
+          </svg>
+          <p class="icon-text">arrows-right</p>
+        </li>
+        <li class="colorful-icon">
+          <svg class="icon svg-icon">
+            <use xlink:href="#nc-angle-double-down"></use>
+          </svg>
+          <p class="icon-text">angle-double-down</p>
+        </li>
+      </ul>
+      <h3 class="describe-title">为什么使用</h3>
+      <ul class="use-describe">
+          <li>支持彩色图标</li>
+          <li>跨 SVG 使用，使用 use 可调用文档中加载的所有 SVG 图标 </li>
+      </ul>
+      <h3 class="describe-title">如何使用</h3>
+      <ul class="use-describe">
+        <li>将下载的资源文件中 iconcool.js 文件外部资源通过 script 标签引入</li>
+        <li>在 html 模板文件中挑选对应的对应图标的名称使用，例如：
+          <pre>
+    &lt;svg aria-hidden="true"&gt;
+      &lt;use xlink:href="#icon-xxx"&gt;&lt;/use&gt;
+    &lt;/svg&gt;
+          </pre>
+        </li>
+      </ul>
+      </section>
+    </section>
+  </div>
+  <script>
+    document.addEventListener('click', function (e) {
+      if (event.target.classList.contains('tab-panel')) {
+        const type = event.target.dataset.type
+        const tabPanels = document.querySelectorAll('.tab-panel')
+        const tabContents = document.querySelectorAll('.tab-content')
+
+        tabPanels.forEach(function(item) {
+          item.classList.remove('active')
+        })
+
+        e.target.classList.add('active')
+        
+        tabContents.forEach(function (item) {
+          const contentType = item.dataset.type
+          if (contentType === type) {
+            item.classList.add('active')
+          } else {
+            item.classList.remove('active')
+          }
+        })
+      }
+      
+    })
+  </script>
+</body>
+</html>

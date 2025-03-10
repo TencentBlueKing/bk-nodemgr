@@ -40,11 +40,15 @@
     </template>
     <template #menu>
       <Menu :active-key="String(route.name)">
-        <Menu.Group v-for="item in subMenuData" :key="item.title" :name="item.title">
+        <Menu.Group v-for="item in subMenuData" :key="item.title" :name="$t(item.title)">
           <Menu.Item
             v-for="subItem in item.children"
             :key="subItem.routeName"
+            :need-icon="true"
             @click="handleChangeSubMenu(subItem)">
+            <template #icon>
+              <i v-if="subItem.icon" :class="subItem.icon" />
+            </template>
             {{ $t(subItem.title) }}
           </Menu.Item>
         </Menu.Group>
@@ -56,7 +60,7 @@
 
 <script setup lang="ts">
 import { Menu, Navigation } from 'bkui-vue';
-import { computed, onBeforeMount, watch } from 'vue';
+import { computed, onBeforeMount, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -66,9 +70,11 @@ import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
 import useUserStore from '@/stores/user';
+import { debounce } from 'lodash';
+import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
-
+const mainStore = useMainStore();
 // 路由信息
 const route = useRoute();
 const router = useRouter();
@@ -122,5 +128,11 @@ watch(appName, () => {
 onBeforeMount(() => {
   userStore.getUser();
   getPlatformInfo();
+});
+onMounted(() => {
+  mainStore.updateWindowInnerHeight(window.innerHeight);
+  window.addEventListener('resize', debounce(() => {
+    mainStore.updateWindowInnerHeight(window.innerHeight)
+  },300));
 });
 </script>

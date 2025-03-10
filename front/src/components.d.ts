@@ -8,7 +8,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CopyIpDropdown: typeof import('./components/copy-ip-dropdown.vue')['default']
     FlexRow: typeof import('./components/flex-row.vue')['default']
+    InstallTable: typeof import('./components/install-table.vue')['default']
     PageHeader: typeof import('./components/page-header.vue')['default']
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

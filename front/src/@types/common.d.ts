@@ -67,6 +67,17 @@ interface NetworkUnitBrief {
   links: Links;
 }
 
+// NetworkUnitBrief describes the network unit brief informations.
+// only contains the access point ids.
+export interface NetworkUnitBrief {
+  tenantId: string;
+  bkNetworkunitId: number;
+  bkNetworkunitName: string;
+  bkNetworkareaId: number;
+  accessPoints: number[];
+  links: Links;
+}
+
 // HostState describes the host state informations. Usually contains
 // agent-related things.
 interface HostState {
