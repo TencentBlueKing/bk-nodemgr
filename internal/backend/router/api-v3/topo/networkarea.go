@@ -136,7 +136,7 @@ func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
 	req := new(proto.TopoNetworkAreaDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkarea, failed to decode request body. err: %v", err)
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
