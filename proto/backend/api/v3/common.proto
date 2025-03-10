@@ -38,13 +38,14 @@ message AccessPoint {
   optional string tenant_id = 1;
   optional int64 accesspoint_id = 2;
   optional string accesspoint_name = 3;
+  optional int64 bk_networkarea_id = 4;
 
   message Endpoints {
     repeated string cluster = 1;
     repeated string file = 2;
     repeated string data = 3;
   }
-  Endpoints endpoints = 4;
+  Endpoints endpoints = 5;
 }
 
 // NetworkUnit describes the network unit informations.

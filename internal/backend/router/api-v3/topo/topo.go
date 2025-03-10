@@ -12,16 +12,12 @@
 package topo
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -67,43 +63,4 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/networkunit/create", rest.RestHandlerFunc(h.CreateNetworkUnit))
 	h.rg.POST("/networkunit/update", rest.RestHandlerFunc(h.UpdateNetworkUnit))
 	h.rg.POST("/networkunit/delete", rest.RestHandlerFunc(h.DeleteNetworkUnit))
-}
-
-func validateTopoPage(reqPage *proto.Page) error {
-	if reqPage == nil {
-		return nil
-	}
-
-	if reqPage.GetOffset() < 0 {
-		return errors.New("\"page.offset\" field must be >= 0")
-	}
-
-	if reqPage.GetLimit() < 0 {
-		return errors.New("\"page.limit\" field must be >= 0")
-	}
-
-	return nil
-}
-
-// generatePage generates list page.
-func generatePage(reqPage *proto.Page, maxLimit int) types.Page {
-	page := types.Page{}
-	if reqPage != nil {
-		page.Offset = int(reqPage.GetOffset())
-		page.Limit = int(reqPage.GetLimit())
-	}
-
-	if page.Offset < 0 {
-		page.Offset = 0
-	}
-
-	if page.Limit < 0 {
-		page.Limit = 0
-	}
-
-	if page.Limit > maxLimit {
-		page.Limit = maxLimit
-	}
-
-	return page
 }

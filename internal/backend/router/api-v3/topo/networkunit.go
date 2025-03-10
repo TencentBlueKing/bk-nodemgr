@@ -11,8 +11,6 @@
 package topo
 
 import (
-	"errors"
-
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -25,7 +23,7 @@ const (
 
 // CreateNetworkUnit creates a new network-unit.
 func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(topoNetworkUnitCreateReq)
+	req := new(proto.TopoNetworkUnitCreateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to create networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -53,23 +51,23 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 			TenantID:      ctx.TenantID,
 			NetworkAreaID: networkAreaID,
 			Name:          req.GetBkNetworkunitName(),
-			Links:         convertLinks(req.GetLinks()),
+			Links:         req.ConvertLinksToTypes(),
 		},
-		convertAccssPoints(ctx, networkAreaID, req.GetAccessPoints())...)
+		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.Errorf("failed to create networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := &proto.TopoNetworkUnitCreateResp_Data{BkNetworkunitId: new(int64)}
-	*resp.BkNetworkunitId = networkUnitID
+	resp := new(proto.TopoNetworkUnitCreateResp)
+	resp.ConvertNetworkUnitFromTypes(networkUnitID)
 
-	return resp, nil
+	return resp.Data, nil
 }
 
 // UpdateNetworkUnit updates networkunit.
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(topoNetworkUnitUpdateReq)
+	req := new(proto.TopoNetworkUnitUpdateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to update networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -97,23 +95,23 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 			NetworkAreaID: networkAreaID,
 			ID:            req.GetBkNetworkunitId(),
 			Name:          req.GetBkNetworkunitName(),
-			Links:         convertLinks(req.GetLinks()),
+			Links:         req.ConvertLinksToTypes(),
 		},
-		convertAccssPoints(ctx, networkAreaID, req.GetAccessPoints())...)
+		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.Errorf("failed to update networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := &proto.TopoNetworkUnitUpdateResp_Data{BkNetworkunitId: new(int64)}
-	*resp.BkNetworkunitId = req.GetBkNetworkunitId()
+	resp := new(proto.TopoNetworkUnitUpdateResp)
+	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
-	return resp, nil
+	return resp.Data, nil
 }
 
 // GetNetworkUnit gets an existing networkunit.
 func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(topoNetworkUnitGetReq)
+	req := new(proto.TopoNetworkUnitGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -151,34 +149,15 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		}
 	}
 
-	data := newEmptyNetworkUnit()
-	*data.TenantId = networkUnit.TenantID
-	*data.BkNetworkunitId = networkUnit.ID
-	*data.BkNetworkunitName = networkUnit.Name
-	*data.BkNetworkareaId = networkUnit.NetworkAreaID
-	data.AccessPoints = make([]*proto.AccessPoint, len(accessPoints))
-	for idx, accessPoint := range accessPoints {
-		protoAccessPoint := newEmptyAccessPoint()
+	resp := new(proto.TopoNetworkUnitGetResp)
+	resp.ConvertNetworkUnitFromTypes(networkUnit, accessPoints)
 
-		*protoAccessPoint.TenantId = accessPoint.TenantID
-		*protoAccessPoint.AccesspointId = accessPoint.ID
-		*protoAccessPoint.AccesspointName = accessPoint.Name
-		protoAccessPoint.Endpoints = &proto.AccessPoint_Endpoints{
-			Cluster: accessPoint.Endpoints.Cluster,
-			File:    accessPoint.Endpoints.File,
-			Data:    accessPoint.Endpoints.Data,
-		}
-
-		data.AccessPoints[idx] = protoAccessPoint
-	}
-	data.Links = convertLinksToProto(networkUnit.Links)
-
-	return data, nil
+	return resp.Data, nil
 }
 
 // ListNetworkUnit lists network units.
 func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(topoNetworkUnitListReq)
+	req := new(proto.TopoNetworkUnitListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -190,39 +169,24 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	networkAreas, num, err := h.storage.ListNetworkUnit(
+	networkUnits, num, err := h.storage.ListNetworkUnit(
 		sCtx,
-		generatePage(req.GetPage(), maxNetworkUnitLimit),
-		generateNetworkUnitConditions(req))
+		req.ConvertPageToTypes(maxNetworkUnitLimit),
+		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.Errorf("failed to list networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	items := make([]*proto.NetworkUnitBrief, len(networkAreas))
-	for idx, networkUnit := range networkAreas {
-		item := newEmptyNetworkUnitBrief()
-		*item.TenantId = networkUnit.TenantID
-		*item.BkNetworkunitId = networkUnit.ID
-		*item.BkNetworkunitName = networkUnit.Name
-		*item.BkNetworkareaId = networkUnit.NetworkAreaID
-		item.AccessPoints = networkUnit.AccessPoints
-		item.Links = convertLinksToProto(networkUnit.Links)
+	resp := new(proto.TopoNetworkUnitListResp)
+	resp.ConvertNetworkUnitsFromTypes(num, networkUnits)
 
-		items[idx] = item
-	}
-
-	resp := &proto.TopoNetworkUnitListResp_Data{
-		Total: num,
-		Items: items,
-	}
-
-	return resp, nil
+	return resp.Data, nil
 }
 
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(topoNetworkUnitDeleteReq)
+	req := new(proto.TopoNetworkUnitDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkunit, failed to decode request body. err: %v", err)
 		return nil, err
@@ -239,198 +203,8 @@ func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := &proto.TopoNetworkAreaDeleteResp_Data{BkNetworkareaId: new(int64)}
-	*resp.BkNetworkareaId = req.GetBkNetworkunitId()
+	resp := new(proto.TopoNetworkUnitDeleteResp)
+	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
 	return resp, nil
-}
-
-func convertAccssPoints(
-	ctx *rest.Context,
-	networkAreaID int64,
-	accessPoints []*proto.AccessPoint) []*types.AccessPoint {
-
-	data := make([]*types.AccessPoint, len(accessPoints))
-	for idx, accessPoint := range accessPoints {
-		data[idx] = &types.AccessPoint{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			Name:          accessPoint.GetAccesspointName(),
-		}
-
-		if endpoints := accessPoint.GetEndpoints(); endpoints != nil {
-			data[idx].Endpoints.Cluster = endpoints.GetCluster()
-			data[idx].Endpoints.File = endpoints.GetFile()
-			data[idx].Endpoints.Data = endpoints.GetData()
-		}
-	}
-
-	return data
-}
-
-func convertLinks(links *proto.Links) types.Links {
-	data := types.Links{}
-	if links != nil {
-		if reqLink := links.GetCluster(); reqLink != nil {
-			data.Cluster = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetFile(); reqLink != nil {
-			data.File = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetData(); reqLink != nil {
-			data.Data = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-	}
-
-	return data
-}
-
-func convertLinksToProto(links types.Links) *proto.Links {
-	data := &proto.Links{
-		Cluster: &proto.Link{},
-		File:    &proto.Link{},
-		Data:    &proto.Link{},
-	}
-
-	if links.Cluster != nil {
-		data.Cluster = &proto.Link{
-			AccesspointId: links.Cluster.AccessPointID,
-		}
-	}
-	if links.File != nil {
-		data.File = &proto.Link{
-			AccesspointId: links.File.AccessPointID,
-		}
-	}
-	if links.Data != nil {
-		data.Data = &proto.Link{
-			AccesspointId: links.Data.AccessPointID,
-		}
-	}
-
-	return data
-}
-
-func generateNetworkUnitConditions(req *topoNetworkUnitListReq) types.NetworkUnitCondition {
-	// exact conditions.
-	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		conditions := types.NetworkUnitCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.NetworkUnitExactFields{
-			NetworkUnitID: exactCond.GetBkNetworkunitId(),
-			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-		}
-
-		return conditions
-	}
-
-	// default empty conditions.
-	return types.NetworkUnitCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
-}
-
-func newEmptyNetworkUnit() *proto.NetworkUnit {
-	return &proto.NetworkUnit{
-		TenantId:          new(string),
-		BkNetworkunitId:   new(int64),
-		BkNetworkunitName: new(string),
-		BkNetworkareaId:   new(int64),
-		AccessPoints:      make([]*proto.AccessPoint, 0),
-		Links: &proto.Links{
-			Cluster: &proto.Link{},
-			File:    &proto.Link{},
-			Data:    &proto.Link{},
-		},
-	}
-}
-
-func newEmptyNetworkUnitBrief() *proto.NetworkUnitBrief {
-	return &proto.NetworkUnitBrief{
-		TenantId:          new(string),
-		BkNetworkunitId:   new(int64),
-		BkNetworkunitName: new(string),
-		BkNetworkareaId:   new(int64),
-		AccessPoints:      make([]int64, 0),
-		Links: &proto.Links{
-			Cluster: &proto.Link{},
-			File:    &proto.Link{},
-			Data:    &proto.Link{},
-		},
-	}
-}
-
-func newEmptyAccessPoint() *proto.AccessPoint {
-	return &proto.AccessPoint{
-		TenantId:        new(string),
-		AccesspointId:   new(int64),
-		AccesspointName: new(string),
-		Endpoints:       &proto.AccessPoint_Endpoints{},
-	}
-}
-
-type topoNetworkUnitCreateReq struct {
-	proto.TopoNetworkUnitCreateReq
-}
-
-// Validate check body.
-func (req *topoNetworkUnitCreateReq) Validate() error {
-	if req.GetBkNetworkunitName() == "" {
-		return errors.New("bk_networkunit_name is required")
-	}
-
-	if req.GetBkNetworkareaId() < 0 {
-		return errors.New("bk_networkarea_id is required")
-	}
-
-	return nil
-}
-
-type topoNetworkUnitUpdateReq struct {
-	proto.TopoNetworkUnitUpdateReq
-}
-
-// Validate check body.
-func (req *topoNetworkUnitUpdateReq) Validate() error {
-	if req.GetBkNetworkunitName() == "" {
-		return errors.New("bk_networkunit_name is required")
-	}
-
-	return nil
-}
-
-type topoNetworkUnitGetReq struct {
-	proto.TopoNetworkUnitGetReq
-}
-
-// Validate check body.
-func (req *topoNetworkUnitGetReq) Validate() error {
-	if req.GetBkNetworkunitId() < 0 {
-		return errors.New("bk_networkunit_id is invalid")
-	}
-
-	return nil
-}
-
-type topoNetworkUnitListReq struct {
-	proto.TopoNetworkUnitListReq
-}
-
-// Validate check body.
-func (req *topoNetworkUnitListReq) Validate() error {
-	return validateTopoPage(req.GetPage())
-}
-
-type topoNetworkUnitDeleteReq struct {
-	proto.TopoNetworkUnitDeleteReq
-}
-
-// Validate check body.
-func (req *topoNetworkUnitDeleteReq) Validate() error {
-	if req.GetBkNetworkunitId() < 0 {
-		return errors.New("bk_networkunit_id is invalid")
-	}
-
-	return nil
 }

@@ -38,13 +38,14 @@ message AccessPoint {
   optional string tenant_id = 1;
   optional int64 accesspoint_id = 2;
   optional string accesspoint_name = 3;
+  optional int64 bk_networkarea_id = 4;
 
   message Endpoints {
     repeated string cluster = 1;
     repeated string file = 2;
     repeated string data = 3;
   }
-  Endpoints endpoints = 4;
+  Endpoints endpoints = 5;
 }
 
 // NetworkUnit describes the network unit informations.
@@ -100,4 +101,21 @@ message Host {
   HostState state = 4;
   optional uint64 create_at = 5;
   optional uint64 updated_at = 6;
+}
+
+// NetworkUnitGraph describes the graph networkunit informations.
+message NetworkUnitGraph {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated int64 access_points = 5;
+}
+
+// LinkGraph describes the graph link informations between networkunits.
+message LinkGraph {
+  optional int64 source_networkunit_id = 1;
+  optional int64 target_networkunit_id = 2;
+  optional int64 target_accesspoint_id = 3;
+  repeated string channel = 4;
 }

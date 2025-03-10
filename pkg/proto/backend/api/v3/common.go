@@ -8,19 +8,49 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package backend
+package v3
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// CodeOK defines the success code.
-const CodeOK = 0
-
-func convertPage(page types.Page) *proto.Page {
-	return &proto.Page{
-		Offset: int32(page.Offset),
-		Limit:  int32(page.Limit),
+func validateTopoPage(reqPage *Page) error {
+	if reqPage == nil {
+		return nil
 	}
+
+	if reqPage.GetOffset() < 0 {
+		return errors.New("\"page.offset\" field must be >= 0")
+	}
+
+	if reqPage.GetLimit() < 0 {
+		return errors.New("\"page.limit\" field must be >= 0")
+	}
+
+	return nil
+}
+
+// generatePage generates list page.
+func generatePage(reqPage *Page, maxLimit int) types.Page {
+	page := types.Page{}
+	if reqPage != nil {
+		page.Offset = int(reqPage.GetOffset())
+		page.Limit = int(reqPage.GetLimit())
+	}
+
+	if page.Offset < 0 {
+		page.Offset = 0
+	}
+
+	if page.Limit < 0 {
+		page.Limit = 0
+	}
+
+	if page.Limit > maxLimit {
+		page.Limit = maxLimit
+	}
+
+	return page
 }

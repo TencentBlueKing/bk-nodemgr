@@ -581,6 +581,7 @@ linters-settings:
       - s *storage
       - s *Storage
       - h handler
+      - x
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false

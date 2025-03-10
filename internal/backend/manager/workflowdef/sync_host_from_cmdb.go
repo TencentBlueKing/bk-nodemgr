@@ -109,7 +109,7 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertHosts(tenantCtx, result.Items...); err != nil {
+	if err = s.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

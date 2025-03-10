@@ -62,8 +62,8 @@ func testClient(t *testing.T) Storage {
 	return s
 }
 
-// Test_storage_UpsertHosts ...
-func Test_storage_UpsertHosts(t *testing.T) {
+// Test_storage_UpsertManyHost ...
+func Test_storage_UpsertManyHost(t *testing.T) {
 	ctx, _ := tenant.SetID(context.Background(), "single")
 
 	type args struct {
@@ -99,8 +99,8 @@ func Test_storage_UpsertHosts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ds := testClient(t)
-			if err := ds.UpsertHosts(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
-				t.Errorf("UpsertHosts() error = %v, wantErr %v", err, tt.wantErr)
+			if err := ds.UpsertManyHost(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
+				t.Errorf("UpsertManyHost() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

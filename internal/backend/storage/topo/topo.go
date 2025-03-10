@@ -87,8 +87,8 @@ func (s *storage) check() error {
 	return nil
 }
 
-// UpsertBusiness updates or inserts a business.
-func (s *storage) UpsertBusiness(ctx context.Context, biz ...*types.Business) error {
+// UpsertManyBusiness updates or inserts many business.
+func (s *storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -147,8 +147,8 @@ func (s *storage) ListBusinesses(ctx context.Context, page types.Page, condition
 	return s.daoBusiness.List(ctx, page, opts...)
 }
 
-// UpsertHosts ...
-func (s *storage) UpsertHosts(ctx context.Context, hosts ...*types.Host) error {
+// UpsertManyHost upserts many hosts.
+func (s *storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -164,8 +164,8 @@ func (s *storage) UpsertHosts(ctx context.Context, hosts ...*types.Host) error {
 	return nil
 }
 
-// UpsertHostStatics updates or inserts host statics.
-func (s *storage) UpsertHostStatics(ctx context.Context, hosts ...*types.Host) error {
+// UpsertManyHostStatic updates or inserts host statics.
+func (s *storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -182,8 +182,8 @@ func (s *storage) UpsertHostStatics(ctx context.Context, hosts ...*types.Host) e
 }
 
 // nolint:cyclop
-// ListHosts lists hosts by page and conditions.
-func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
+// ListHost lists hosts by page and conditions.
+func (s *storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
 	[]*types.Host, int64, error) {
 
 	opts := make([]host.OptFn, 0)
@@ -247,6 +247,71 @@ func (s *storage) ListHosts(ctx context.Context, page types.Page, conditions ...
 	}
 
 	return s.daoHost.List(ctx, page, opts...)
+}
+
+// CountHost counts host by conditions.
+func (s *storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
+	opts := make([]host.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					host.WithHostID(condition.Exact.HostID...),
+					host.WithBizID(condition.Exact.BizID...),
+					host.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+					host.WithOSType(condition.Exact.OSType...),
+					host.WithNodeRole(condition.Exact.NodeRole...),
+					host.WithNodeStatus(condition.Exact.NodeStatus...),
+					host.WithNodeVersion(condition.Exact.NodeVersion...),
+					host.WithAgentID(condition.Exact.AgentID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					business.WithoutBizID(condition.Exact.HostID...),
+					host.WithoutBizID(condition.Exact.BizID...),
+					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+					host.WithoutOSType(condition.Exact.OSType...),
+					host.WithoutNodeRole(condition.Exact.NodeRole...),
+					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
+					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
+					host.WithoutAgentID(condition.Exact.AgentID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					host.WithFuzzyHostName(condition.Fuzzy.HostName...),
+					host.WithFuzzyDeptName(condition.Fuzzy.DeptName...),
+					host.WithFuzzyInnerIP(condition.Fuzzy.InnerIP...),
+					host.WithFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
+					host.WithFuzzyOuterIP(condition.Fuzzy.OuterIP...),
+					host.WithFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyExclude:
+			if condition.Fuzzy != nil {
+				opts = append(opts,
+					host.WithoutFuzzyHostName(condition.Fuzzy.HostName...),
+					host.WithoutFuzzyDeptName(condition.Fuzzy.DeptName...),
+					host.WithoutFuzzyInnerIP(condition.Fuzzy.InnerIP...),
+					host.WithoutFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
+					host.WithoutFuzzyOuterIP(condition.Fuzzy.OuterIP...),
+					host.WithoutFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
+				)
+			}
+
+		default:
+			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoHost.Count(ctx, opts...)
 }
 
 // nolint:cyclop

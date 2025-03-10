@@ -455,3 +455,216 @@ func Test_hanlder_GetNetworkUnit(t *testing.T) {
 		})
 	}
 }
+
+// Test_hanlder_CreateNetworkUnit create network unit.
+func Test_handler_CreateNetworkUnit(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx          context.Context
+		networkunit  *types.NetworkUnit
+		accesspoints []*types.AccessPoint
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid name",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "",
+					NetworkAreaID: 0,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid networkarea id",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "default",
+					NetworkAreaID: -1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "default",
+					NetworkAreaID: 0,
+				},
+				accesspoints: []*types.AccessPoint{
+					{
+						TenantID:      "single",
+						Name:          "default ap",
+						NetworkAreaID: 0,
+						Endpoints: types.Endpoints{
+							Cluster: []string{"1.1.1.1"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.CreateNetworkUnit(tt.args.ctx, tt.args.networkunit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateNetworkUnit() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got < 0 {
+				t.Errorf("CreateNetworkUnit() got invalid id: %v", got)
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_handler_UpdateNetworkUnit update network unit.
+func Test_handler_UpdateNetworkUnit(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx          context.Context
+		networkunit  *types.NetworkUnit
+		accesspoints []*types.AccessPoint
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid name",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "",
+					NetworkAreaID: 0,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid networkarea id",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "default",
+					NetworkAreaID: -1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+				networkunit: &types.NetworkUnit{
+					TenantID:      "single",
+					Name:          "default-new",
+					NetworkAreaID: 0,
+				},
+				accesspoints: []*types.AccessPoint{
+					{
+						TenantID:      "single",
+						Name:          "default ap",
+						NetworkAreaID: 0,
+						Endpoints: types.Endpoints{
+							Cluster: []string{"1.1.1.1"},
+							File:    []string{"2.2.2.2", "3.3.3.3"},
+						},
+					},
+					{
+						TenantID:      "single",
+						Name:          "default ap2",
+						NetworkAreaID: 0,
+						Endpoints: types.Endpoints{
+							Cluster: []string{"1.1.1.1"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.UpdateNetworkUnit(tt.args.ctx, tt.args.networkunit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateNetworkUnit() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+// Test_handler_UpdateNetworkUnit
+func Test_handler_DeleteNetworkUnit(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx context.Context
+		id  int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid ctx",
+			args: args{
+				ctx: nil,
+				id:  -1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid id",
+			args: args{
+				ctx: ctx,
+				id:  -1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+				id:  0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.DeleteNetworkUnit(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeleteNetworkUnit() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

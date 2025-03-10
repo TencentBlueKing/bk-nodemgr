@@ -102,7 +102,7 @@ func (c *cli) listBusiness(ctx context.Context, tenantID string, req *proto.Topo
 }
 
 func (c *cli) listHost(ctx context.Context, tenantID string, req *proto.TopoHostListReq) (
-	*proto.TopoHostListResp_Data, error) {
+	*proto.TopoHostListResp, error) {
 
 	resp := new(proto.TopoHostListResp)
 	header, err := c.getCommonHeader(tenantID)
@@ -125,13 +125,76 @@ func (c *cli) listHost(ctx context.Context, tenantID string, req *proto.TopoHost
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
-	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list host failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
-	return data, nil
+	return resp, nil
+}
+
+func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaCreateReq) (
+	*proto.TopoNetworkAreaCreateResp, error) {
+
+	resp := new(proto.TopoNetworkAreaCreateResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkarea/create").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("create networkarea failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("create networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaUpdateReq) (
+	*proto.TopoNetworkAreaUpdateResp, error) {
+
+	resp := new(proto.TopoNetworkAreaUpdateResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkarea/update").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update networkarea failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("update networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
 }
 
 func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaListReq) (
@@ -159,7 +222,7 @@ func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.T
 	}
 
 	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
@@ -167,41 +230,8 @@ func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.T
 	return data, nil
 }
 
-func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitListReq) (
-	*proto.TopoNetworkUnitListResp_Data, error) {
-
-	resp := new(proto.TopoNetworkUnitListResp)
-	header, err := c.getCommonHeader(tenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
-		SubResourcef("/topo/networkunit/list").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
-	}
-
-	data := resp.GetData()
-	if data == nil {
-		return nil, fmt.Errorf("list networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
-			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return data, nil
-}
-
 func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaGetReq) (
-	*proto.NetworkArea, error) {
+	*proto.TopoNetworkAreaGetResp, error) {
 
 	resp := new(proto.TopoNetworkAreaGetResp)
 	header, err := c.getCommonHeader(tenantID)
@@ -224,17 +254,112 @@ func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *proto.To
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
-	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("get networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
-	return data, nil
+	return resp, nil
+}
+
+func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaDeleteReq) (
+	*proto.TopoNetworkAreaDeleteResp, error) {
+
+	resp := new(proto.TopoNetworkAreaDeleteResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkarea/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("delete networkarea failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("delete networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitCreateReq) (
+	*proto.TopoNetworkUnitCreateResp, error) {
+
+	resp := new(proto.TopoNetworkUnitCreateResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/create").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("create networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("create networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitUpdateReq) (
+	*proto.TopoNetworkUnitUpdateResp, error) {
+
+	resp := new(proto.TopoNetworkUnitUpdateResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/update").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("update networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
 }
 
 func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitGetReq) (
-	*proto.NetworkUnit, error) {
+	*proto.TopoNetworkUnitGetResp, error) {
 
 	resp := new(proto.TopoNetworkUnitGetResp)
 	header, err := c.getCommonHeader(tenantID)
@@ -257,11 +382,74 @@ func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *proto.To
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
-	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("get networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
-	return data, nil
+	return resp, nil
+}
+
+func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitListReq) (
+	*proto.TopoNetworkUnitListResp, error) {
+
+	resp := new(proto.TopoNetworkUnitListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitDeleteReq) (
+	*proto.TopoNetworkUnitDeleteResp, error) {
+
+	resp := new(proto.TopoNetworkUnitDeleteResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/networkunit/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("delete networkunit failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("delete networkunit failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
 }

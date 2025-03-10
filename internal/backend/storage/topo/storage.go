@@ -22,21 +22,24 @@ import (
 type Storage interface {
 	base.Interface
 
-	// UpsertBusiness updates or inserts a business.
-	UpsertBusiness(ctx context.Context, biz ...*types.Business) error
+	// UpsertManyBusiness updates or inserts a business.
+	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
 
 	// ListBusinesses lists businesses by page and conditions.
 	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
 		[]*types.Business, int64, error)
 
-	// UpsertHosts updates or inserts host.
-	UpsertHosts(ctx context.Context, host ...*types.Host) error
+	// UpsertManyHost updates or inserts host.
+	UpsertManyHost(ctx context.Context, host ...*types.Host) error
 
-	// UpsertHostStatics updates or inserts host statics.
-	UpsertHostStatics(ctx context.Context, host ...*types.Host) error
+	// UpsertManyHostStatic updates or inserts host statics.
+	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
 
-	// ListHosts lists hosts by page and conditions.
-	ListHosts(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
+	// ListHost lists hosts by page and conditions.
+	ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
+
+	// CountHost counts hosts by conditions.
+	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
 
 	// ListNetworkArea lists networkarea by page and conditions.
 	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (

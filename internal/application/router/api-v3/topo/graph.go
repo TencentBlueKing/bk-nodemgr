@@ -11,40 +11,45 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 )
 
-const (
-	maxBusinessLimit = 1000
-)
-
-// ListBusiness list business with specified conditions.
-func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoBusinessListReq)
+// GetGraph gets a graph descriptions.
+func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
+	req := new(proto.TopoGraphGetReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to list business, failed to decode request body. err: %v", err)
+		h.logger.Errorf("failed to get graph, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to get graph, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	bizs, num, err := h.storage.ListBusinesses(
+	// list networkunits.
+	networkUnits, _, err := h.backendHandler.ListNetworkUnit(
 		sCtx,
-		req.ConvertPageToTypes(maxBusinessLimit),
-		req.ConvertConditionsToTypes())
+		types.Page{Limit: maxNetworkUnitLimit},
+		&types.NetworkUnitCondition{
+			Type: types.ConditionTypeExactInclude,
+			Exact: &types.NetworkUnitExactFields{
+				NetworkAreaID: req.GetBkNetworkareaId(),
+			},
+		})
 	if err != nil {
-		h.logger.Errorf("failed to list business, err: %v", err)
+		h.logger.Errorf("failed to get graph, failed to list networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoBusinessListResp)
-	resp.ConvertBusinessFromTypes(num, bizs)
+	// generates links.
+	resp := new(proto.TopoGraphGetResp)
+	resp.ConvertNetworkUnitsToTypes(networkUnits)
 
 	return resp.Data, nil
 }
