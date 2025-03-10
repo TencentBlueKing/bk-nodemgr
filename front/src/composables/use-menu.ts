@@ -58,9 +58,9 @@ const navList = [
         title: i18n.global.t('拓扑'),
         children: [
           {
-            routeName: 'region',
+            routeName: 'workarea',
             icon: '',
-            title: i18n.global.t('管控区域'),
+            title: i18n.global.t('topoManager.workArea.title'),
           },
           {
             routeName: 'topo',

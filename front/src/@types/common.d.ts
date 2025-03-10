@@ -77,7 +77,6 @@ interface HostState {
   node_status: string;
   node_version: string;
   bk_agent_id: string;
-  bk_networkunit_id: number;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -85,6 +84,7 @@ interface HostState {
 interface HostInfo {
   bk_biz_id: number;
   bk_networkarea_id: number;
+  bk_networkunit_id: number;
   bk_host_name: string;
   dept_name: string;
   bk_host_innerip: string;
@@ -93,6 +93,9 @@ interface HostInfo {
   bk_host_outerip_v6: string;
   bk_mac: string;
   bk_os_type: string;
+  bk_networkarea_name: string;
+  bk_networkunit_name: string;
+  bk_os_type_name: string;
 }
 
 // Host describes the host informations.

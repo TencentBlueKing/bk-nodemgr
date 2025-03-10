@@ -14,16 +14,18 @@
       @column-filter="handleColumnFilter">
       <TableColumn type="checkbox" :width="60" :resizable="false" />
       <TableColumn
-        :label="$t('topoManager.region.workarea.table.workareaName')"
+        :label="$t('topoManager.workArea.table.workareaName')"
         field="bk_networkarea_name"
         show-overflow="tooltip"
         :min-width="280">
         <template #default="{ row }">
-          <Button theme="primary" class="!text-[12px]" text>{{ row.bk_networkarea_name }}</Button>
+          <Button theme="primary" class="!text-[12px]" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
+            {{ row.bk_networkarea_name }}
+          </Button>
         </template>
       </TableColumn>
       <TableColumn
-        :label="$t('topoManager.region.workarea.table.workareaId')"
+        :label="$t('topoManager.workArea.table.workareaId')"
         field="bk_networkarea_id"
         show-overflow="tooltip"
         :min-width="280">
@@ -34,7 +36,7 @@
         </template>
       </TableColumn>
       <TableColumn
-        :label="$t('topoManager.region.workarea.table.vendor')"
+        :label="$t('topoManager.workArea.table.vendor')"
         field="bk_cloud_vendor"
         show-overflow="tooltip"
         :filter="filterOption"
@@ -46,7 +48,7 @@
         </template>
       </TableColumn>
       <TableColumn
-        :label="$t('topoManager.region.workarea.table.workUnitsCount')"
+        :label="$t('topoManager.workArea.table.workUnitsCount')"
         field="areaCount"
         show-overflow="tooltip"
         sortable
@@ -58,7 +60,7 @@
         </template>
       </TableColumn>
       <TableColumn
-        :label="$t('topoManager.region.workarea.table.nodesCount')"
+        :label="$t('topoManager.workArea.table.nodesCount')"
         field="unitCount"
         show-overflow="tooltip"
         sortable
@@ -76,7 +78,7 @@
         :min-width="140">
         <template #default="{ row }">
           <div class="flex">
-            <Button theme="primary" text class="mr-[12px]" @click="handleEditWorkarea">
+            <Button theme="primary" text class="mr-[12px]" @click="handleToWorkareaDetail(row.bk_networkarea_id)">
               {{ $t('action.edit') }}
             </Button>
             <Button theme="primary" text @click="handlehandleDeleteWorkarea(row.bk_networkarea_id)">
@@ -93,6 +95,7 @@
 import { Button, InfoBox, Loading } from 'bkui-vue';
 import { onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
@@ -101,6 +104,7 @@ import useTableSetting from '@/composables/use-table-setting';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
+const router = useRouter();
 const workareaStore = useWorkareaStore();
 const sortConfig = ref({ multiple: true });
 
@@ -119,12 +123,12 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 
 // table filter逻辑
 const vendorMap = {
-  tencent: t('topoManager.region.workarea.vendor.tencent'),
-  google: t('topoManager.region.workarea.vendor.google'),
-  huawei: t('topoManager.region.workarea.vendor.huawei'),
-  microsoft: t('topoManager.region.workarea.vendor.microsoft'),
+  tencent: t('topoManager.workArea.vendor.tencent'),
+  google: t('topoManager.workArea.vendor.google'),
+  huawei: t('topoManager.workArea.vendor.huawei'),
+  microsoft: t('topoManager.workArea.vendor.microsoft'),
   aws: 'AWS',
-  ali: t('topoManager.region.workarea.vendor.ali'),
+  ali: t('topoManager.workArea.vendor.ali'),
 };
 const filterOption = reactive({
   list: Object.entries(vendorMap).map(item => ({
@@ -150,15 +154,20 @@ const handleFilter = (currentChecked: number[]) => {
 const tableOffset = 200;
 const { maxHeight } = useDynamicsHeight(tableOffset);
 
-const handleEditWorkarea = () => {
-  // todo 打开管控区域详情侧栏
+const handleToWorkareaDetail = (bk_networkarea_id: number) => {
+  router.push({
+    name: 'workareaDetail',
+    params: {
+      workarea: bk_networkarea_id,
+    },
+  });
 };
 
 // todo
 // 可能需要补充交互(message/重置筛选/重置pagination)
 const handlehandleDeleteWorkarea = (bk_networkarea_id: number) => {
   InfoBox({
-    title: t('topoManager.region.workarea.delete.title'),
+    title: t('topoManager.workArea.delete.title'),
     cancelText: t('action.cancel'),
     onConfirm() {
       workareaStore.handleDeleteWorkarea(bk_networkarea_id);

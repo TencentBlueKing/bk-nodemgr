@@ -16,7 +16,7 @@
         <SearchSelect
           class="w-[480px]"
           unique-select
-          :placeholder="$t('topoManager.region.workarea.search.placeholder')"
+          :placeholder="$t('topoManager.workArea.search.placeholder')"
           v-model.trim="searchKey"
           :data="searchSelectData">
         </SearchSelect>
@@ -50,15 +50,15 @@ const debounceSearch = useDebounce(searchKey, 300);
 
 const searchSelectData = ref([
   {
-    name: t('topoManager.region.workarea.search.workareaName'),
+    name: t('topoManager.workArea.search.workareaName'),
     id: 'workareaName',
   },
   {
-    name: t('topoManager.region.workarea.search.workareaId'),
+    name: t('topoManager.workArea.search.workareaId'),
     id: 'workareaId',
   },
   {
-    name: t('topoManager.region.workarea.search.vendor'),
+    name: t('topoManager.workArea.search.vendor'),
     id: 'vendor',
     multiple: true,
   },
