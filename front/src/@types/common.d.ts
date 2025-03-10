@@ -1,86 +1,103 @@
 // gen-api.js 自动生成，请勿手动修改
 // Page describes the generaic conditions when paging query.
-export interface Page {
+interface Page {
   offset: number;
   limit: number;
 }
 
 // Business describes the business informations.
-export interface Business {
-  tenantId: string;
-  bkBizId: number;
-  bkBizName: string;
+interface Business {
+  tenant_id: string;
+  bk_biz_id: number;
+  bk_biz_name: string;
 }
 
 // NetworkArea describes the network area informations.
-export interface NetworkArea {
-  tenantId: string;
-  bkNetworkareaId: number;
-  bkNetworkareaName: string;
-  bkCloudVendor: number;
+interface NetworkArea {
+  tenant_id: string;
+  bk_networkarea_id: number;
+  bk_networkarea_name: string;
+  bk_cloud_vendor: string;
 }
 
 // Link describes the network unit link points target.
-export interface Link {
-  tenantId: string;
-  apId: number;
+interface Link {
+  accesspoint_id: number;
+}
+
+// Links describes the network unit links.
+interface Links {
+  cluster: Link;
+  file: Link;
+  data: Link;
 }
 
 // AccessPoint describes the access point informations.
-export interface AccessPoint {
-  tenantId: string;
-  apId: number;
-  apName: string;
+interface AccessPoint {
+  tenant_id: string;
+  accesspoint_id: number;
+  accesspoint_name: string;
   endpoints: Endpoints;
 }
 
+interface Endpoints {
+  cluster: string[];
+  file: string[];
+  data: string[];
+}
+
 // NetworkUnit describes the network unit informations.
-export interface NetworkUnit {
-  bkNetworkunitId: number;
-  bkNetworkunitName: string;
-  accessPoints: AccessPoint[];
+interface NetworkUnit {
+  tenant_id: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  access_points: AccessPoint[];
+  links: Links;
+}
+
+// NetworkUnitBrief describes the network unit brief informations.
+// only contains the access point ids.
+interface NetworkUnitBrief {
+  tenant_id: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  access_points: number[];
   links: Links;
 }
 
 // HostState describes the host state informations. Usually contains
 // agent-related things.
-export interface HostState {
-  status: string;
-  version: string;
-  bkAgentId: string;
+interface HostState {
+  node_role: string;
+  node_status: string;
+  node_version: string;
+  bk_agent_id: string;
 }
 
 // HostInfo describes the host info informations. Usually contains static
 // configs.
-export interface HostInfo {
-  bkHostId: number;
-  bkHostName: string;
-  bkBizId: number;
-  bkBizName: string;
-  bkSetId: number;
-  bkSetName: string;
-  bkModuleId: number;
-  bkModuleName: string;
-  bkNetworkareaId: number;
-  bkNetworkareaName: string;
-  bkNetworkunitId: number;
-  bkNetworkunitName: string;
-  bkOperateDeptId: number;
-  bkOperateDeptName: string;
-  bkHostInnerip: string;
-  bkHostInneripV6: string;
-  bkHostOuterip: string;
-  bkHostOuteripV6: string;
-  loginIp: string;
-  loginPort: number;
-  bkOsType: number;
+interface HostInfo {
+  bk_biz_id: number;
+  bk_networkarea_id: number;
+  bk_host_name: string;
+  dept_name: string;
+  bk_host_innerip: string;
+  bk_host_innerip_v6: string;
+  bk_host_outerip: string;
+  bk_host_outerip_v6: string;
+  bk_mac: string;
+  bk_os_type: string;
 }
 
 // Host describes the host informations.
-export interface Host {
-  state: HostState;
+interface Host {
+  tenant_id: string;
+  bk_host_id: number;
   info: HostInfo;
-  createAt: number;
-  updatedAt: number;
+  state: HostState;
+  create_at: number;
+  updated_at: number;
 }
 

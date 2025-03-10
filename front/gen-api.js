@@ -16,7 +16,7 @@ async function generateFiles() {
     fileContent = fileContent.split('\n').filter(line => !line.trim().startsWith('import'))
       .join('\n');
 
-    const { root } = protobuf.parse(fileContent, { alternateCommentMode: true });
+    const { root } = protobuf.parse(fileContent, { alternateCommentMode: true, keepCase: true });
 
     if (!root || !root.nestedArray || root.nestedArray.length === 0) {
       console.warn(`No data found in proto file: ${file}`);
@@ -26,7 +26,7 @@ async function generateFiles() {
     const fileName = path.basename(file, '.proto');
 
     // Generate TypeScript definitions
-    const typeDefinitions = generateTypeDefinitions(root);
+    const typeDefinitions = generateTypeDefinitions(root, fileName);
     const typeFileName = path.join('./src/@types', `${fileName}.d.ts`);
     fs.writeFileSync(typeFileName, typeDefinitions);
 
@@ -37,22 +37,30 @@ async function generateFiles() {
   }
 }
 
+function appendInterfaceToTypeDefinitions(type, fileName) {
+  if (!(type instanceof protobuf.Type)) return '';
+  let output = '';
+  const typeCommentList = type.comment?.split('\n');
+  output += typeCommentList?.length ? `${typeCommentList.map(comment => `// ${comment}\n`).join('')}` : '';
+  output += `${fileName === 'common' ? '' : 'export '}interface ${type.name} {\n`;
+  type.fieldsArray.forEach((field) => {
+    const commentList = field.comment?.split('\n');
+    output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
+    output += `  ${field.name}: ${mapProtoTypeToTs(field)};\n`;
+  });
+  output += '}\n\n';
+  // 兼容里面的message
+  type.nestedArray.forEach((nestedType) => {
+    output += appendInterfaceToTypeDefinitions(nestedType, fileName);
+  });
+  return output;
+}
 // Function to generate TypeScript type definitions
-function generateTypeDefinitions(root) {
+function generateTypeDefinitions(root, fileName) {
   let output = '// gen-api.js 自动生成，请勿手动修改\n';
   root.nestedArray.forEach((namespace) => {
     namespace.nestedArray.forEach((type) => {
-      if (type instanceof protobuf.Type) {
-        const typeCommentList = type.comment?.split('\n');
-        output += typeCommentList?.length ? `${typeCommentList.map(comment => `// ${comment}\n`).join('')}` : '';
-        output += `export interface ${type.name} {\n`;
-        type.fieldsArray.forEach((field) => {
-          const commentList = field.comment?.split('\n');
-          output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-          output += `  ${field.name}: ${mapProtoTypeToTs(field)};\n`;
-        });
-        output += '}\n\n';
-      }
+      output += appendInterfaceToTypeDefinitions(type, fileName);
     });
   });
   return output;
