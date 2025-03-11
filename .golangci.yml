@@ -77,6 +77,8 @@ linters:
     - maintidx
     # Finds commonly misspelled English words.
     - misspell
+    # Enforces consistent import aliases.
+    - importas
     # An analyzer to detect magic numbers.
     - mnd
     # Enforce field tags in (un)marshaled structs.
@@ -416,7 +418,7 @@ linters-settings:
     ignore-tests: true
     # Look for existing constants matching the values.
     # Default: true
-    match-constant: false
+    match-constant: true
     # Search also for duplicated numbers.
     # Default: false
     numbers: true
@@ -428,7 +430,7 @@ linters-settings:
     max: 2
     # Ignore when constant is not used as function argument.
     # Default: true
-    ignore-calls: false
+    ignore-calls: true
     # Exclude strings matching the given regular expression.
     # Default: ""
     ignore-strings: 'foo.+'
@@ -544,6 +546,8 @@ linters-settings:
     # Optional list of variable names that should be ignored completely.
     # Default: []
     ignore-names:
+      - r
+      - n
       - err
     # Optional list of variable declarations that should be ignored completely.
     # Entries must be in one of the following forms (see below for examples):
@@ -566,6 +570,7 @@ linters-settings:
       - r gin.Router
       - r Router
       - h *handler
+      - h handler
       - r *Request
       - r *Result
       - c *Config
@@ -580,7 +585,6 @@ linters-settings:
       - d *dao
       - s *storage
       - s *Storage
-      - h handler
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
@@ -605,3 +609,29 @@ linters-settings:
     # The maximum number of methods allowed for an interface.
     # Default: 10
     max: 15
+  cyclop:
+    # The maximal code complexity to report.
+    # Default: 10
+    max-complexity: 20
+    # The maximal average package complexity.
+    # If it's higher than 0.0 (float) the check is enabled
+    # Default: 0.0
+    package-average: 0.0
+    # Should ignore tests.
+    # Default: false
+    skip-tests: true
+  importas:
+    # Do not allow unaliased imports of aliased packages.
+    # Default: false
+    no-unaliased: false
+    # Do not allow non-required aliases.
+    # Default: false
+    no-extra-aliases: true
+    # List of aliases
+    # Default: []
+    alias:
+      # An explicit empty alias can be used to ensure no aliases are used for a package.
+      # This can be useful if `no-extra-aliases: true` doesn't fit your need.
+      # Multiple packages can use an empty alias.
+      - pkg: errors
+        alias: ""

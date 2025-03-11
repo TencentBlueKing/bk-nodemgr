@@ -1,0 +1,94 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package report ...
+package logreporter
+
+import (
+	"context"
+	"io"
+	"os"
+	"testing"
+
+	"github.com/joho/godotenv"
+)
+
+func loadTestFile(t *testing.T) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestReporter_ReportLogs ...
+func TestReporter_ReportLogs(t *testing.T) {
+	loadTestFile(t)
+
+	file, _ := os.Open(os.Getenv("NODEMGR_LOG_FILE"))
+
+	type fields struct {
+		operInstID       string
+		token            string
+		reader           io.ReadCloser
+		logRptCnt        uint
+		bulkSize         int
+		callbackEndpoint string
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			fields: fields{
+				operInstID:       os.Getenv("BK_NODEMGR_OPER_INST_ID"),
+				token:            os.Getenv("BK_NODEMGR_TOKEN"),
+				reader:           file,
+				logRptCnt:        0,
+				bulkSize:         110,
+				callbackEndpoint: os.Getenv("BK_NODEMGR_CALLBACK_ENDPOINT"),
+			},
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reporter := NewReporter(ReportLogsArgs{
+				OperInstID:       tt.fields.operInstID,
+				Token:            tt.fields.token,
+				Reader:           tt.fields.reader,
+				LogRptCnt:        tt.fields.logRptCnt,
+				BulkSize:         tt.fields.bulkSize,
+				CallbackEndpoint: tt.fields.callbackEndpoint,
+			})
+			got, err := reporter.ReportLogs(tt.args.ctx)
+			if err != nil {
+				t.Logf("err:%s", err.Error())
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReportLogs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.fields.logRptCnt {
+				t.Errorf("ReportLogs() got = %v, want %v", got, tt.fields.logRptCnt)
+			}
+		})
+	}
+}
