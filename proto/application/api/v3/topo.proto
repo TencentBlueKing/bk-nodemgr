@@ -417,4 +417,11 @@ service Topo {
       body : "*"
     };
   }
+
+  rpc GraphNodeCount(TopoGraphNodeCountReq) returns (TopoGraphNodeCountResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/graph/node/count"
+      body : "*"
+    };
+  }
 }

@@ -83,6 +83,38 @@
         ]
       }
     },
+    "/api/v3/topo/graph/node/count": {
+      "post": {
+        "operationId": "Topo_GraphNodeCount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeCountResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeCountReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/list": {
       "post": {
         "summary": "HostList provides business listing.",
@@ -479,6 +511,23 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "TopoGraphNodeCountRespNodeInfo": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "proxy": {
+          "type": "string",
+          "format": "int64"
+        },
+        "agent": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -928,6 +977,50 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3LinkGraph"
+          }
+        }
+      }
+    },
+    "v3TopoGraphNodeCountReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "title": "TopoGraphNodeCountReq describes the HTTP request body when get node count"
+    },
+    "v3TopoGraphNodeCountResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoGraphNodeCountRespData"
+        }
+      },
+      "title": "TopoGraphNodeCountResp describes the HTTP response body when get node count"
+    },
+    "v3TopoGraphNodeCountRespData": {
+      "type": "object",
+      "properties": {
+        "networkunits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TopoGraphNodeCountRespNodeInfo"
           }
         }
       }
