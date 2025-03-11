@@ -239,6 +239,7 @@ message TopoHostListReq {
     repeated string node_status = 6;
     repeated string node_version = 7;
     repeated string bk_agent_id = 8;
+    repeated int64 bk_networkunit_id = 9;
   }
   ExactConditions exact_include_conditions = 3;
 

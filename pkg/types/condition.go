@@ -61,6 +61,7 @@ type HostExactFields struct {
 	HostID        []int64
 	BizID         []int64
 	NetworkAreaID []int64
+	NetworkUnitID []int64
 	OSType        []string
 	NodeRole      []NodeRole
 	NodeStatus    []NodeStatus

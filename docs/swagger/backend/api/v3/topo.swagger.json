@@ -490,6 +490,10 @@
         "accesspoint_name": {
           "type": "string"
         },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "endpoints": {
           "$ref": "#/definitions/AccessPointEndpoints"
         }
@@ -591,6 +595,10 @@
         },
         "bk_agent_id": {
           "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
@@ -859,6 +867,13 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
           }
         }
       }

@@ -76,6 +76,7 @@ message HostState {
   optional string node_status = 2;
   optional string node_version = 3;
   optional string bk_agent_id = 4;
+  optional int64 bk_networkunit_id = 5;
 }
 
 // HostInfo describes the host info informations. Usually contains static

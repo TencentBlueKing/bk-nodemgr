@@ -128,19 +128,21 @@ const (
 // HostDynamic represents a dynamic host under a host.
 // dynamic means it is set by user.
 type HostDynamic struct {
-	NodeRole    NodeRole
-	NodeStatus  NodeStatus
-	NodeVersion string
-	AgentID     string
+	NodeRole      NodeRole
+	NodeStatus    NodeStatus
+	NodeVersion   string
+	AgentID       string
+	NetworkUnitID int64
 }
 
 // NewBlankNodeDynamic returns a blank node dynamic.
 func NewBlankNodeDynamic() *HostDynamic {
 	return &HostDynamic{
-		NodeRole:    NodeRoleBlank,
-		NodeStatus:  NodeStatusUnknown,
-		NodeVersion: "",
-		AgentID:     "",
+		NodeRole:      NodeRoleBlank,
+		NodeStatus:    NodeStatusUnknown,
+		NodeVersion:   "",
+		AgentID:       "",
+		NetworkUnitID: -1,
 	}
 }
 

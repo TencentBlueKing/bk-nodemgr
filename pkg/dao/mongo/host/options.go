@@ -40,12 +40,22 @@ func WithoutBizID(bizIDs ...int64) OptFn {
 
 // WithNetworkAreaID filters by network area id.
 func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithInt64Values("data.static.network_area_id", networkAreaIDs...)
+	return base.WithInt64Values("data.static.networkarea_id", networkAreaIDs...)
 }
 
 // WithoutNetworkAreaID filters by not contains network area id.
 func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.static.network_area_id", networkAreaIDs...)
+	return base.WithoutInt64Values("data.static.networkarea_id", networkAreaIDs...)
+}
+
+// WithNetworkUnitID filters by network unit id.
+func WithNetworkUnitID(networkUnitID ...int64) OptFn {
+	return base.WithInt64Values("data.dynamic.networkunit_id", networkUnitID...)
+}
+
+// WithoutNetworkUnitID filters by not contains network unit id.
+func WithoutNetworkUnitID(networkUnitID ...int64) OptFn {
+	return base.WithoutInt64Values("data.dynamic.networkunit_id", networkUnitID...)
 }
 
 // WithFuzzyHostName filters by host name.

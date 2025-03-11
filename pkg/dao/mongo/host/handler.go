@@ -257,10 +257,11 @@ func convertHostFromTypes(host *types.Host) *Host {
 	dynamic := &HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &HostDynamic{
-			NodeRole:    string(host.Dynamic.NodeRole),
-			NodeStatus:  string(host.Dynamic.NodeStatus),
-			NodeVersion: host.Dynamic.NodeVersion,
-			AgentID:     host.Dynamic.AgentID,
+			NodeRole:      string(host.Dynamic.NodeRole),
+			NodeStatus:    string(host.Dynamic.NodeStatus),
+			NodeVersion:   host.Dynamic.NodeVersion,
+			AgentID:       host.Dynamic.AgentID,
+			NetworkUnitID: host.Dynamic.NetworkUnitID,
 		}
 	}
 
@@ -292,10 +293,11 @@ func convertHostToTypes(host *Host) *types.Host {
 	dynamic := &types.HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &types.HostDynamic{
-			NodeRole:    types.NodeRole(host.Dynamic.NodeRole),
-			NodeStatus:  types.NodeStatus(host.Dynamic.NodeStatus),
-			NodeVersion: host.Dynamic.NodeVersion,
-			AgentID:     host.Dynamic.AgentID,
+			NodeRole:      types.NodeRole(host.Dynamic.NodeRole),
+			NodeStatus:    types.NodeStatus(host.Dynamic.NodeStatus),
+			NodeVersion:   host.Dynamic.NodeVersion,
+			AgentID:       host.Dynamic.AgentID,
+			NetworkUnitID: host.Dynamic.NetworkUnitID,
 		}
 	}
 

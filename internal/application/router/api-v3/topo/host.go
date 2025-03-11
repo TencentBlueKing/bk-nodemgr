@@ -34,6 +34,22 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountHost(
+			sCtx,
+			req.ConvertConditionsToTypes())
+		if err != nil {
+			h.logger.Errorf("failed to list host, failed to count host. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+
+		resp := new(proto.TopoHostListResp)
+		resp.ConvertHostsFromTypes(num, nil)
+
+		return resp.Data, nil
+	}
+
 	hosts, num, err := h.backendHandler.ListHost(
 		sCtx,
 		req.ConvertPageToTypes(maxHostLimit),

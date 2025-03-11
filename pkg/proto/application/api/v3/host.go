@@ -37,6 +37,7 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
 			HostID:        exactCond.GetBkHostId(),
 			BizID:         exactCond.GetBkBizId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			OSType:        exactCond.GetBkOsType(),
 			NodeRole: func(source []string) []types.NodeRole {
 				target := make([]types.NodeRole, len(source))
@@ -97,6 +98,7 @@ func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondit
 				BkHostId:        condition.Exact.HostID,
 				BkBizId:         condition.Exact.BizID,
 				BkNetworkareaId: condition.Exact.NetworkAreaID,
+				BkNetworkunitId: condition.Exact.NetworkUnitID,
 				BkOsType:        condition.Exact.OSType,
 				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
 				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
@@ -147,6 +149,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
 		*item.State.BkAgentId = host.Dynamic.AgentID
+		*item.State.BkNetworkunitId = host.Dynamic.NetworkUnitID
 
 		items[idx] = item
 	}
@@ -191,10 +194,11 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 
 		if state := item.GetState(); state != nil {
 			host.Dynamic = &types.HostDynamic{
-				AgentID:     state.GetBkAgentId(),
-				NodeRole:    types.NodeRole(state.GetNodeRole()),
-				NodeStatus:  types.NodeStatus(state.GetNodeStatus()),
-				NodeVersion: state.GetNodeVersion(),
+				AgentID:       state.GetBkAgentId(),
+				NodeRole:      types.NodeRole(state.GetNodeRole()),
+				NodeStatus:    types.NodeStatus(state.GetNodeStatus()),
+				NodeVersion:   state.GetNodeVersion(),
+				NetworkUnitID: state.GetBkNetworkunitId(),
 			}
 		}
 
@@ -221,10 +225,11 @@ func newEmptyHost() *Host {
 			BkOsType:        new(string),
 		},
 		State: &HostState{
-			NodeRole:    new(string),
-			NodeStatus:  new(string),
-			NodeVersion: new(string),
-			BkAgentId:   new(string),
+			NodeRole:        new(string),
+			NodeStatus:      new(string),
+			NodeVersion:     new(string),
+			BkAgentId:       new(string),
+			BkNetworkunitId: new(int64),
 		},
 	}
 }
