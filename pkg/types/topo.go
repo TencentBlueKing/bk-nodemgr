@@ -225,3 +225,9 @@ type Endpoints struct {
 	File    []string
 	Data    []string
 }
+
+// NetworkUnitInfo describes the informations in one networkunit.
+type NetworkUnitInfo struct {
+	Proxy int64
+	Agent int64
+}

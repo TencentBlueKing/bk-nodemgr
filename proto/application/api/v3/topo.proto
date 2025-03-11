@@ -286,6 +286,25 @@ message TopoGraphGetResp {
   Data data = 4;
 }
 
+// TopoGraphNodeCountReq describes the HTTP request body when get node count
+message TopoGraphNodeCountReq { repeated int64 bk_networkunit_id = 1; }
+
+// TopoGraphNodeCountResp describes the HTTP response body when get node count
+message TopoGraphNodeCountResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message NodeInfo {
+    int64 bk_networkunit_id = 1;
+    int64 proxy = 2;
+    int64 agent = 3;
+  }
+
+  message Data { repeated NodeInfo networkunits = 1; }
+  Data data = 4;
+}
+
 // topo service.
 service Topo {
   // BusinessList provides business listing.

@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// Validate check body.
 func (x *TopoGraphGetReq) Validate() error {
 	if len(x.GetBkNetworkareaId()) == 0 {
 		return errors.New("bk_networkarea_id should not be empty")
@@ -41,6 +42,33 @@ func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.Netw
 	x.Data = &TopoGraphGetResp_Data{
 		Networkunit: unitItems,
 		Links:       convertLinks(networkUnits),
+	}
+}
+
+// Validate check body.
+func (x *TopoGraphNodeCountReq) Validate() error {
+	if len(x.GetBkNetworkunitId()) == 0 {
+		return errors.New("bk_networkunit_id should not be empty")
+	}
+
+	return nil
+}
+
+// ConvertNetworkUnitInfosFromTypes convert networkunitinfos from types to proto.
+func (x *TopoGraphNodeCountResp) ConvertNetworkUnitInfosFromTypes(networkUnitInfos map[int64]*types.NetworkUnitInfo) {
+	items := make([]*TopoGraphNodeCountResp_NodeInfo, len(networkUnitInfos))
+	idx := 0
+	for networkUnitID, networkUnitInfo := range networkUnitInfos {
+		items[idx] = &TopoGraphNodeCountResp_NodeInfo{
+			BkNetworkunitId: networkUnitID,
+			Proxy:           networkUnitInfo.Proxy,
+			Agent:           networkUnitInfo.Agent,
+		}
+		idx++
+	}
+
+	x.Data = &TopoGraphNodeCountResp_Data{
+		Networkunits: items,
 	}
 }
 

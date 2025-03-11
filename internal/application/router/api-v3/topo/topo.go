@@ -60,4 +60,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// topo graph.
 	h.rg.POST("/graph/get", rest.RestHandlerFunc(h.GetGraph))
+	h.rg.POST("/graph/node/count", rest.RestHandlerFunc(h.CountGraphNode))
 }

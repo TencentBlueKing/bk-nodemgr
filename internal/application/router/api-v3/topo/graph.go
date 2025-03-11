@@ -11,8 +11,13 @@
 package topo
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
@@ -50,6 +55,82 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 	// generates links.
 	resp := new(proto.TopoGraphGetResp)
 	resp.ConvertNetworkUnitsToTypes(networkUnits)
+
+	return resp.Data, nil
+}
+
+// CountGraphNode counts graph nodes.
+func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
+	req := new(proto.TopoGraphNodeCountReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.Errorf("failed to count graph node, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to count graph node, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	networkUnitIDs := req.GetBkNetworkunitId()
+
+	// init result map.
+	result := make(map[int64]*types.NetworkUnitInfo)
+	for _, networkUnitID := range networkUnitIDs {
+		result[networkUnitID] = &types.NetworkUnitInfo{Proxy: 0, Agent: 0}
+	}
+
+	gp := gopool.NewPool()
+	for _, networkUnitID := range req.GetBkNetworkunitId() {
+		id := networkUnitID
+
+		// count agent.
+		gp.Go(func() error {
+			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
+				Type: types.ConditionTypeExactInclude,
+				Exact: &types.HostExactFields{
+					NetworkUnitID: []int64{id},
+					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
+				},
+			})
+			if err != nil {
+				return errors.Join(err, fmt.Errorf("failed to count agent, networkunit-id: %d", id))
+			}
+
+			result[id].Agent = num
+
+			return nil
+		})
+
+		// count proxy.
+		gp.Go(func() error {
+			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
+				Type: types.ConditionTypeExactInclude,
+				Exact: &types.HostExactFields{
+					NetworkUnitID: []int64{id},
+					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
+				},
+			})
+			if err != nil {
+				return errors.Join(err, fmt.Errorf("failed to count proxy, networkunit-id: %d", id))
+			}
+
+			result[id].Proxy = num
+
+			return nil
+		})
+	}
+
+	// wait until all servers stopped or application error.
+	if err := gp.Wait(); err != nil {
+		blog.Errorf("failed to count graph node, failed to count host: %v", err)
+
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(proto.TopoGraphNodeCountResp)
+	resp.ConvertNetworkUnitInfosFromTypes(result)
 
 	return resp.Data, nil
 }
