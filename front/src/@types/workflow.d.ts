@@ -3,18 +3,18 @@
 // service. Such as installing, upgrading.
 export interface WorkflowHostParameter {
   bk_host_id: number;
-  topo: Topo;
-  attributes: Attributes;
-  config: Config;
+  topo: WorkflowHostParameterTopo;
+  attributes: WorkflowHostParameterAttributes;
+  config: WorkflowHostParameterConfig;
 }
 
-export interface Topo {
+export interface WorkflowHostParameterTopo {
   bk_biz_id: number;
   bk_networkarea_id: number;
   bk_networkunit_id: number;
 }
 
-export interface Attributes {
+export interface WorkflowHostParameterAttributes {
   bk_host_innerip: string;
   bk_host_innerip_v6: string;
   bk_host_outerip: string;
@@ -24,7 +24,7 @@ export interface Attributes {
   login_password: string;
 }
 
-export interface Config {
+export interface WorkflowHostParameterConfig {
   version: string;
 }
 
@@ -41,10 +41,10 @@ export interface WorkflowAgentInstallResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowAgentInstallRespData;
 }
 
-export interface Data {
+export interface WorkflowAgentInstallRespData {
   workflow_id: string;
 }
 
@@ -62,10 +62,10 @@ export interface WorkflowAgentUpgradeResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowAgentUpgradeRespData;
 }
 
-export interface Data {
+export interface WorkflowAgentUpgradeRespData {
   workflow_id: string;
 }
 
@@ -83,10 +83,10 @@ export interface WorkflowAgentReconfigResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowAgentReconfigRespData;
 }
 
-export interface Data {
+export interface WorkflowAgentReconfigRespData {
   workflow_id: string;
 }
 
@@ -104,10 +104,10 @@ export interface WorkflowAgentRestartResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowAgentRestartRespData;
 }
 
-export interface Data {
+export interface WorkflowAgentRestartRespData {
   workflow_id: string;
 }
 
@@ -124,10 +124,10 @@ export interface WorkflowAgentUninstallResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowAgentUninstallRespData;
 }
 
-export interface Data {
+export interface WorkflowAgentUninstallRespData {
   workflow_id: string;
 }
 
@@ -144,10 +144,10 @@ export interface WorkflowProxyInstallResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowProxyInstallRespData;
 }
 
-export interface Data {
+export interface WorkflowProxyInstallRespData {
   workflow_id: string;
 }
 
@@ -165,10 +165,10 @@ export interface WorkflowProxyUpgradeResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowProxyUpgradeRespData;
 }
 
-export interface Data {
+export interface WorkflowProxyUpgradeRespData {
   workflow_id: string;
 }
 
@@ -186,10 +186,10 @@ export interface WorkflowProxyReconfigResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowProxyReconfigRespData;
 }
 
-export interface Data {
+export interface WorkflowProxyReconfigRespData {
   workflow_id: string;
 }
 
@@ -207,10 +207,10 @@ export interface WorkflowProxyRestartResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowProxyRestartRespData;
 }
 
-export interface Data {
+export interface WorkflowProxyRestartRespData {
   workflow_id: string;
 }
 
@@ -227,10 +227,10 @@ export interface WorkflowProxyUninstallResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowProxyUninstallRespData;
 }
 
-export interface Data {
+export interface WorkflowProxyUninstallRespData {
   workflow_id: string;
 }
 
@@ -245,12 +245,12 @@ export interface OperationInstance {
   action: Action[];
 }
 
-export interface Message {
+export interface OperationInstanceMessage {
   timestamp: number;
   text: string;
 }
 
-export interface Action {
+export interface OperationInstanceAction {
   create_at: number;
   started_at: number;
   ended_at: number;
@@ -316,10 +316,10 @@ export interface WorkflowDetail {
 export interface WorkflowListReq {
   page: Page;
   only_count: boolean;
-  include_conditions: Conditions;
+  include_conditions: WorkflowListReqConditions;
 }
 
-export interface Conditions {
+export interface WorkflowListReqConditions {
 }
 
 // WorkflowListResp describes the HTTP response body when list workflows in
@@ -328,10 +328,10 @@ export interface WorkflowListResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: WorkflowListRespData;
 }
 
-export interface Data {
+export interface WorkflowListRespData {
   total: number;
   items: WorkflowBrief[];
 }

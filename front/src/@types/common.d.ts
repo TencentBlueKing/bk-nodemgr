@@ -37,10 +37,10 @@ interface AccessPoint {
   tenant_id: string;
   accesspoint_id: number;
   accesspoint_name: string;
-  endpoints: Endpoints;
+  endpoints: AccessPointEndpoints;
 }
 
-interface Endpoints {
+interface AccessPointEndpoints {
   cluster: string[];
   file: string[];
   data: string[];

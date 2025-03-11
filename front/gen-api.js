@@ -37,21 +37,24 @@ async function generateFiles() {
   }
 }
 
-function appendInterfaceToTypeDefinitions(type, fileName) {
+function appendInterfaceToTypeDefinitions(type, fileName, prefix = '') {
   if (!(type instanceof protobuf.Type)) return '';
   let output = '';
   const typeCommentList = type.comment?.split('\n');
   output += typeCommentList?.length ? `${typeCommentList.map(comment => `// ${comment}\n`).join('')}` : '';
-  output += `${fileName === 'common' ? '' : 'export '}interface ${type.name} {\n`;
+  output += `${fileName === 'common' ? '' : 'export '}interface ${prefix}${type.name} {\n`;
   type.fieldsArray.forEach((field) => {
     const commentList = field.comment?.split('\n');
     output += commentList?.length ? `${commentList.map(comment => `  // ${comment}\n`).join('')}` : '';
-    output += `  ${field.name}: ${mapProtoTypeToTs(field)};\n`;
+    // 当前类型是否在当前fields中定义，如果定义了则重新命名，防止名称冲突
+    const fieldTypeName = mapProtoTypeToTs(field);
+    const isCurrentTypeInFields = type.nestedArray.find(t => t.name === fieldTypeName);
+    output += `  ${field.name}: ${isCurrentTypeInFields ? `${type.name}${fieldTypeName}` : fieldTypeName};\n`;
   });
   output += '}\n\n';
   // 兼容里面的message
   type.nestedArray.forEach((nestedType) => {
-    output += appendInterfaceToTypeDefinitions(nestedType, fileName);
+    output += appendInterfaceToTypeDefinitions(nestedType, fileName, type.name);
   });
   return output;
 }

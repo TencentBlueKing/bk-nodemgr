@@ -4,15 +4,15 @@
 export interface TopoBusinessListReq {
   page: Page;
   only_count: boolean;
-  exact_include_conditions: ExactConditions;
-  fuzzy_include_conditions: FuzzyConditions;
+  exact_include_conditions: TopoBusinessListReqExactConditions;
+  fuzzy_include_conditions: TopoBusinessListReqFuzzyConditions;
 }
 
-export interface ExactConditions {
+export interface TopoBusinessListReqExactConditions {
   bk_biz_id: number[];
 }
 
-export interface FuzzyConditions {
+export interface TopoBusinessListReqFuzzyConditions {
   bk_biz_name: string[];
 }
 
@@ -22,10 +22,10 @@ export interface TopoBusinessListResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoBusinessListRespData;
 }
 
-export interface Data {
+export interface TopoBusinessListRespData {
   total: number;
   items: Business[];
 }
@@ -35,16 +35,16 @@ export interface Data {
 export interface TopoNetworkAreaListReq {
   page: Page;
   only_count: boolean;
-  exact_include_conditions: ExactConditions;
-  fuzzy_include_conditions: FuzzyConditions;
+  exact_include_conditions: TopoNetworkAreaListReqExactConditions;
+  fuzzy_include_conditions: TopoNetworkAreaListReqFuzzyConditions;
 }
 
-export interface ExactConditions {
+export interface TopoNetworkAreaListReqExactConditions {
   bk_networkarea_id: number[];
   bk_cloud_vendor: string[];
 }
 
-export interface FuzzyConditions {
+export interface TopoNetworkAreaListReqFuzzyConditions {
   bk_networkarea_name: string[];
 }
 
@@ -54,10 +54,10 @@ export interface TopoNetworkAreaListResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkAreaListRespData;
 }
 
-export interface Data {
+export interface TopoNetworkAreaListRespData {
   total: number;
   items: NetworkArea[];
 }
@@ -90,10 +90,10 @@ export interface TopoNetworkAreaCreateResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkAreaCreateRespData;
 }
 
-export interface Data {
+export interface TopoNetworkAreaCreateRespData {
   bk_networkarea_id: number;
 }
 
@@ -111,10 +111,10 @@ export interface TopoNetworkAreaUpdateResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkAreaUpdateRespData;
 }
 
-export interface Data {
+export interface TopoNetworkAreaUpdateRespData {
   bk_networkarea_id: number;
 }
 
@@ -130,10 +130,10 @@ export interface TopoNetworkAreaDeleteResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkAreaDeleteRespData;
 }
 
-export interface Data {
+export interface TopoNetworkAreaDeleteRespData {
   bk_networkarea_id: number;
 }
 
@@ -142,10 +142,10 @@ export interface Data {
 export interface TopoNetworkUnitListReq {
   page: Page;
   only_count: boolean;
-  exact_include_conditions: ExactConditions;
+  exact_include_conditions: TopoNetworkUnitListReqExactConditions;
 }
 
-export interface ExactConditions {
+export interface TopoNetworkUnitListReqExactConditions {
   bk_networkunit_id: number[];
   bk_networkarea_id: number[];
 }
@@ -156,10 +156,10 @@ export interface TopoNetworkUnitListResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkUnitListRespData;
 }
 
-export interface Data {
+export interface TopoNetworkUnitListRespData {
   total: number;
   items: NetworkUnitBrief[];
 }
@@ -194,10 +194,10 @@ export interface TopoNetworkUnitCreateResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkUnitCreateRespData;
 }
 
-export interface Data {
+export interface TopoNetworkUnitCreateRespData {
   bk_networkunit_id: number;
 }
 
@@ -217,10 +217,10 @@ export interface TopoNetworkUnitUpdateResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkUnitUpdateRespData;
 }
 
-export interface Data {
+export interface TopoNetworkUnitUpdateRespData {
   bk_networkunit_id: number;
 }
 
@@ -236,10 +236,10 @@ export interface TopoNetworkUnitDeleteResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoNetworkUnitDeleteRespData;
 }
 
-export interface Data {
+export interface TopoNetworkUnitDeleteRespData {
   bk_networkunit_id: number;
 }
 
@@ -248,11 +248,11 @@ export interface Data {
 export interface TopoHostListReq {
   page: Page;
   only_count: boolean;
-  exact_include_conditions: ExactConditions;
-  fuzzy_include_conditions: FuzzyConditions;
+  exact_include_conditions: TopoHostListReqExactConditions;
+  fuzzy_include_conditions: TopoHostListReqFuzzyConditions;
 }
 
-export interface ExactConditions {
+export interface TopoHostListReqExactConditions {
   bk_host_id: number[];
   bk_biz_id: number[];
   bk_networkarea_id: number[];
@@ -263,7 +263,7 @@ export interface ExactConditions {
   bk_agent_id: string[];
 }
 
-export interface FuzzyConditions {
+export interface TopoHostListReqFuzzyConditions {
   bk_host_name: string[];
   dept_name: string[];
   bk_host_innerip: string[];
@@ -278,10 +278,10 @@ export interface TopoHostListResp {
   code: number;
   message: string;
   request_id: string;
-  data: Data;
+  data: TopoHostListRespData;
 }
 
-export interface Data {
+export interface TopoHostListRespData {
   total: number;
   items: Host[];
 }
