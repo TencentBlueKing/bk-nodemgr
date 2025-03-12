@@ -411,6 +411,7 @@ service Topo {
     };
   }
 
+  // GraphGet provides getting graph nodes and edges.
   rpc GraphGet(TopoGraphGetReq) returns (TopoGraphGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/get"
@@ -418,6 +419,7 @@ service Topo {
     };
   }
 
+  // GraphNodeCount provides getting graph node count.
   rpc GraphNodeCount(TopoGraphNodeCountReq) returns (TopoGraphNodeCountResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/node/count"
