@@ -369,3 +369,894 @@ func (c *cli) searchObjectAttribute(ctx context.Context, req *SearchObjectAttrib
 
 	return resp.Data, nil
 }
+
+// createDynamicGroup create dynamic group.
+func (c *cli) createDynamicGroup(ctx context.Context, req *CreateDynamicGroupReq) (*CreateDynamicGroupResp, error) {
+	resp := new(BaseBroker[*CreateDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/dynamicgroup").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("create dynamic group failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// executeHostDynamicGroup execute host dynamic group.
+func (c *cli) executeHostDynamicGroup(ctx context.Context, req *ExecuteDynamicGroupReq) (
+	*ExecuteHostDynamicGroupResp, error) {
+
+	resp := new(BaseBroker[*ExecuteHostDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/dynamicgroup/data/%d/%s", req.BKBizID, req.ID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("execute host dynamic group failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// searchDynamicGroup search dynamic group.
+func (c *cli) searchDynamicGroup(ctx context.Context, req *SearchDynamicGroupReq) (*SearchDynamicGroupResp, error) {
+	resp := new(BaseBroker[*SearchDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/dynamicgroup/search/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search dynamic group failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// deleteDynamicGroup delete dynamic group.
+func (c *cli) deleteDynamicGroup(ctx context.Context, req *DeleteDynamicGroupReq) error {
+	resp := new(BaseBroker[*DeleteDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Delete().
+		SubResourcef("/dynamicgroup/%d/%s", req.BKBizID, req.ID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("delete dynamic group failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// getDynamicGroup get dynamic group.
+func (c *cli) getDynamicGroup(ctx context.Context, req *GetDynamicGroupReq) (*GetDynamicGroupResp, error) {
+	resp := new(BaseBroker[*GetDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		SubResourcef("/dynamicgroup/%d/%s", req.BKBizID, req.ID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get dynamic group failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// updateDynamicGroup update dynamic group.
+func (c *cli) updateDynamicGroup(ctx context.Context, req *UpdateDynamicGroupReq) error {
+	resp := new(BaseBroker[*UpdateDynamicGroupResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Put().
+		SubResourcef("/dynamicgroup/%d/%s", req.BKBizID, req.ID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("update dynamic group failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// listHostsWithoutBusiness list hosts without business.
+func (c *cli) listHostsWithoutBusiness(ctx context.Context, req *ListHostsWithoutBusinessReq) (
+	*ListHostsWithoutBusinessResp, error) {
+
+	resp := new(BaseBroker[*ListHostsWithoutBusinessResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/hosts/list_hosts_without_app").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list hosts without business failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listServiceTemplate list service template.
+func (c *cli) listServiceTemplate(ctx context.Context, req *ListServiceTemplateReq) (
+	*ListServiceTemplateResp, error) {
+
+	resp := new(BaseBroker[*ListServiceTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/service_template").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list service template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listServiceInstance list service instance.
+func (c *cli) listServiceInstance(ctx context.Context, req *ListServiceInstanceReq) (
+	*ListServiceInstanceResp, error) {
+
+	resp := new(BaseBroker[*ListServiceInstanceResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/service_instance").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list service instance failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listProcessInstance list process instance.
+func (c *cli) listProcessInstance(ctx context.Context, req *ListProcessInstanceReq) (
+	*ListProcessInstanceResp, error) {
+
+	resp := new(BaseBroker[*ListProcessInstanceResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/process_instance").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list process instance failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listProcTemplate list proc template.
+func (c *cli) listProcTemplate(ctx context.Context, req *ListProcTemplateReq) (
+	*ListProcTemplateResp, error) {
+
+	resp := new(BaseBroker[*ListProcTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/proc_template").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list proc template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findSetBatch find set batch.
+func (c *cli) findSetBatch(ctx context.Context, req *FindSetBatchReq) (*FindSetBatchResp, error) {
+	resp := new(BaseBroker[*FindSetBatchResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/set/bk_biz_id/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find set batch failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// searchSet search set.
+func (c *cli) searchSet(ctx context.Context, req *SearchSetReq) (*SearchSetResp, error) {
+	resp := new(BaseBroker[*SearchSetResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/set/search/%s/%d", c.config.SupplierAccount, req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search set failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// searchModule search module.
+func (c *cli) searchModule(ctx context.Context, req *SearchModuleReq) (*SearchModuleResp, error) {
+	resp := new(BaseBroker[*SearchModuleResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/module/search/%s/%d/%d", c.config.SupplierAccount, req.BKBizID, req.BKSetID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search module failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostTopoRelation find host topo relation.
+func (c *cli) findHostTopoRelation(ctx context.Context, req *FindHostTopoRelationReq) (
+	*FindHostTopoRelationResp, error) {
+
+	resp := new(BaseBroker[*FindHostTopoRelationResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/host/topo/relation/read").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host topo relation failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostBizRelations find host biz relations.
+func (c *cli) findHostBizRelations(ctx context.Context, req *FindHostBizRelationsReq) (
+	*FindHostBizRelationsResp, error) {
+
+	resp := new(BaseBroker[*FindHostBizRelationsResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/hosts/modules/read").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host biz relations failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostByServiceTemplate find host by service template.
+func (c *cli) findHostByServiceTemplate(ctx context.Context, req *FindHostByServiceTemplateReq) (
+	*FindHostByServiceTemplateResp, error) {
+
+	resp := new(BaseBroker[*FindHostByServiceTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("findmany/hosts/by_service_templates/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host by service template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostBySetTemplate find host by set template.
+func (c *cli) findHostBySetTemplate(ctx context.Context, req *FindHostBySetTemplateReq) (
+	*FindHostBySetTemplateResp, error) {
+
+	resp := new(BaseBroker[*FindHostBySetTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/hosts/by_set_templates/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host by set template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostByTopo find host by topo.
+func (c *cli) findHostByTopo(ctx context.Context, req *FindHostByTopoReq) (
+	*FindHostByTopoResp, error) {
+
+	resp := new(BaseBroker[*FindHostByTopoResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/hosts/by_topo/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host by topo failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostRelationsWithTopo find host relations with topo.
+func (c *cli) findHostRelationsWithTopo(ctx context.Context, req *FindHostRelationsWithTopoReq) (
+	*FindHostRelationsWithTopoResp, error) {
+
+	resp := new(BaseBroker[*FindHostRelationsWithTopoResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/hosts/relation/with_topo").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host relations with topo failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listServiceInstanceDetail list service instance detail.
+func (c *cli) listServiceInstanceDetail(ctx context.Context, req *ListServiceInstanceDetailReq) (
+	*ListServiceInstanceDetailResp, error) {
+
+	resp := new(BaseBroker[*ListServiceInstanceDetailResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/service_instance/details").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list service instance detail failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// getMainlineObjectTopo get mainline object topo.
+func (c *cli) getMainlineObjectTopo(ctx context.Context, req *GetMainlineObjectTopoReq) (
+	*GetMainlineObjectTopoResp, error) {
+
+	resp := new(BaseBroker[*GetMainlineObjectTopoResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/find/topomodelmainline").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get mainline object failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listBizHostsTopo list biz hosts topo.
+func (c *cli) listBizHostsTopo(ctx context.Context, req *ListBizHostsTopoReq) (
+	*ListBizHostsTopoResp, error) {
+
+	resp := new(BaseBroker[*ListBizHostsTopoResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/hosts/app/%d/list_hosts_topo", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list hosts topo failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listServiceInstanceByHost list service instance by host.
+func (c *cli) listServiceInstanceByHost(ctx context.Context, req *ListServiceInstanceByHostReq) (
+	*ListServiceInstanceByHostResp, error) {
+
+	resp := new(BaseBroker[*ListServiceInstanceByHostResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/service_instance/with_host").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list service instance by host failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listServiceInstanceBySetTemplate list service instance by host.
+func (c *cli) listServiceInstanceBySetTemplate(ctx context.Context, req *ListServiceInstanceBySetTemplateReq) (
+	*ListServiceInstanceBySetTemplateResp, error) {
+
+	resp := new(BaseBroker[*ListServiceInstanceBySetTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/findmany/proc/service/set_template/list_service_instance/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list service instance by set template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// listSetTemplate list set template.
+func (c *cli) listSetTemplate(ctx context.Context, req *ListSetTemplateReq) (
+	*ListSetTemplateResp, error) {
+
+	resp := new(BaseBroker[*ListSetTemplateResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("findmany/topo/set_template/bk_biz_id/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("list set template failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// batchUpdateHost batch update host.
+func (c *cli) batchUpdateHost(ctx context.Context, req *BatchUpdateHostReq) error {
+	resp := new(BaseBroker[*BatchUpdateHostResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Put().
+		SubResourcef("/hosts/property/batch").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("batch update host failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// bindHostAgent bind host agent.
+func (c *cli) bindHostAgent(ctx context.Context, req *BindHostAgentReq) error {
+	resp := new(BaseBroker[*BindHostAgentResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/host/bind/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("bind host agent failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// unbindHostAgent bind host agent.
+func (c *cli) unbindHostAgent(ctx context.Context, req *UnbindHostAgentReq) error {
+	resp := new(BaseBroker[*UnbindHostAgentResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/host/unbind/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("unbind host agent failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// addHostToBusiessIdle add host to business idle.
+func (c *cli) addHostToBusinessIdle(ctx context.Context, req *AddHostToBusinessIdleReq) (*AddHostToBusinessIdleResp,
+	error) {
+
+	resp := new(BaseBroker[*AddHostToBusinessIdleResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/hosts/add/business_idle").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("add host to business idle failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// pushHostIdentifier push host identifier.
+func (c *cli) pushHostIdentifier(ctx context.Context, req *PushHostIdentifierReq) (*PushHostIdentifierResp, error) {
+	resp := new(BaseBroker[*PushHostIdentifierResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/push/host_identifier").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("push host identifier failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// hostResourceWatch resource watch.
+func (c *cli) hostResourceWatch(ctx context.Context, req *ResourceWatchReq) (*ResourceWatchResp[HostEvent], error) {
+	resp := new(BaseBroker[*ResourceWatchResp[HostEvent]])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/watch/resource/%s", req.BKResource).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("host resource watch failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// hostRelationResourceWatch resource watch.
+func (c *cli) hostRelationResourceWatch(ctx context.Context, req *ResourceWatchReq) (
+	*ResourceWatchResp[HostRelationEvent], error) {
+
+	resp := new(BaseBroker[*ResourceWatchResp[HostRelationEvent]])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/watch/resource/%s", req.BKResource).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("host relation resource watch failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// processResourceWatch resource watch.
+func (c *cli) processResourceWatch(ctx context.Context, req *ResourceWatchReq) (
+	*ResourceWatchResp[ProcessEvent], error) {
+
+	resp := new(BaseBroker[*ResourceWatchResp[ProcessEvent]])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/watch/resource/%s", req.BKResource).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("process resource watch failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}

@@ -538,3 +538,879 @@ type EnumOption struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+// FieldCondition describe the general field condition structure defined by cmdb.
+type FieldCondition struct {
+	Field    string `json:"field"`
+	Operator string `json:"operator"`
+	Value    any    `json:"value"`
+}
+
+// DynamicGroupCondition describe the dynamic group condition define by cmdb.
+type DynamicGroupCondition struct {
+	BKObjID   string            `json:"bk_obj_id"`
+	Condition []*FieldCondition `json:"condition"`
+}
+
+// DynamicGroupInfo describe the dynamic group info define by cmdb.
+type DynamicGroupInfo struct {
+	ID      string `json:"id"`
+	BKBizID int64  `json:"bk_biz_id"`
+	BKObjID string `json:"bk_obj_id"`
+	Name    string `json:"name"`
+	Info    struct {
+		Condition         []*DynamicGroupCondition `json:"condition"`
+		VariableCondition []*DynamicGroupCondition `json:"variable_condition"`
+	} `json:"info"`
+	CreateUser  string    `json:"create_user"`
+	ModifyUseer string    `json:"modify_user"`
+	LastTime    time.Time `json:"last_time"`
+	CreateTime  time.Time `json:"create_time"`
+}
+
+// CreateDynamicGroupReq describe the request data of create_dynamic_group.
+type CreateDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	DynamicGroupInfo `json:",inline"`
+}
+
+// CreateDynamicGroupResp describe the response data of create_dynamic_group.
+type CreateDynamicGroupResp struct {
+	ID string `json:"id"`
+}
+
+// ExecuteDynamicGroupReq describe the request data of execute_dynamic_group.
+type ExecuteDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID        int64    `json:"bk_biz_id"`
+	ID             string   `json:"id"`
+	Fields         []string `json:"fields"`
+	DisableCounter bool     `json:"disable_counter"`
+	Page           Page     `json:"page"`
+}
+
+// ExecuteHostDynamicGroupResp describe the response data of execute_dynamic_group when dynamic group type is host.
+type ExecuteHostDynamicGroupResp struct {
+	Count int         `json:"count"`
+	Info  []*HostInfo `json:"info"`
+}
+
+// SetInfo describe the set info define by cmdb.
+type SetInfo struct {
+	BKSetID            int64     `json:"bk_set_id"`
+	BKSetName          string    `json:"bk_set_name"`
+	BKSetDesc          string    `json:"bk_set_desc"`
+	BKSetEnv           string    `json:"bk_set_env"`
+	BKBizID            int64     `json:"bk_biz_id"`
+	BKCapacity         int64     `json:"bk_capacity"`
+	BKParentID         int64     `json:"bk_parent_id"`
+	Description        string    `json:"description"`
+	SetTemplateID      int64     `json:"set_template_id"`
+	SetTemplateVersion int64     `json:"set_template_version"`
+	BKServiceStatus    string    `json:"bk_service_status"`
+	BKSupplierAccount  string    `json:"bk_supplier_account"`
+	Default            int64     `json:"default"`
+	CreateTime         time.Time `json:"create_time"`
+	LastTime           time.Time `json:"last_time"`
+	BKCreateAt         time.Time `json:"bk_create_at"`
+	BKUpdatedAt        time.Time `json:"bk_updated_at"`
+}
+
+// ExecuteSetDynamicGroupResp describe the response data of execute_dynamic_group when dynamic group type is set.
+type ExecuteSetDynamicGroupResp struct {
+	Count int        `json:"count"`
+	Info  []*SetInfo `json:"info"`
+}
+
+// SearchDynamicGroupReq describe the request data of search_dynamic_group.
+type SearchDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID        int64 `json:"bk_biz_id"`
+	DisableCounter bool  `json:"disable_counter"`
+	Condition      struct {
+		Name string `json:"name"`
+	} `json:"condition"`
+	Page Page `json:"page"`
+}
+
+// SearchDynamicGroupResp describe the response data of search_dynamic_group.
+type SearchDynamicGroupResp struct {
+	Count int                 `json:"count"`
+	Info  []*DynamicGroupInfo `json:"info"`
+}
+
+// DeleteDynamicGroupReq describe the request data of delete_dynamic_group.
+type DeleteDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	ID      string `json:"id"`
+	BKBizID int64  `json:"bk_biz_id"`
+}
+
+// DeleteDynamicGroupResp describe the response data of delete_dynamic_group.
+type DeleteDynamicGroupResp string
+
+// GetDynamicGroupReq describe the request data of get_dynamic_group.
+type GetDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	ID      string `json:"id"`
+	BKBizID int64  `json:"bk_biz_id"`
+}
+
+// GetDynamicGroupResp describe the response data of get_dynamic_group.
+type GetDynamicGroupResp struct {
+	DynamicGroupInfo `json:",inline"`
+}
+
+// UpdateDynamicGroupReq describe the request data of update_dynamic_group.
+type UpdateDynamicGroupReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	DynamicGroupInfo `json:",inline"`
+}
+
+// UpdateDynamicGroupResp describe the response data of update_dynamic_group.
+type UpdateDynamicGroupResp string
+
+// ListHostsWithoutBusinessReq describe the request data of list_host_without_business.
+type ListHostsWithoutBusinessReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	Fields []string `json:"fields"`
+	Page   Page     `json:"page"`
+}
+
+// ListHostsWithoutBusinessResp describe the response data of list_host_without_business.
+type ListHostsWithoutBusinessResp struct {
+	Count int         `json:"count"`
+	Info  []*HostInfo `json:"info"`
+}
+
+// ListServiceTemplateReq describe the request data of list_service_template.
+type ListServiceTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID             int64   `json:"bk_biz_id"`
+	ServiceCategoryID   int64   `json:"service_category_id"`
+	ServiceTemplateName string  `json:"search"`
+	ServiceTemplateIDs  []int64 `json:"service_template_ids"`
+	IsExact             bool    `json:"is_exact"`
+	Page                Page    `json:"page"`
+}
+
+// ServiceTemplateInfo describe the service template info define by cmdb.
+type ServiceTemplateInfo struct {
+	BKBizID             int64     `json:"bk_biz_id"`
+	ID                  int64     `json:"id"`
+	ServiceTemplateName string    `json:"name"`
+	ServiceCategoryID   int64     `json:"service_category_id"`
+	Creator             string    `json:"creator"`
+	Modifier            string    `json:"modifier"`
+	CreateTime          time.Time `json:"create_time"`
+	LastTime            time.Time `json:"last_time"`
+	BKSupplierAccount   string    `json:"bk_supplier_account"`
+	HostApplyEnabled    bool      `json:"host_apply_enabled"`
+}
+
+// ListServiceTemplateResp describe the response data of list_service_template.
+type ListServiceTemplateResp struct {
+	Count int                    `json:"count"`
+	Info  []*ServiceTemplateInfo `json:"info"`
+}
+
+// KeyCondition describe the key condition define by cmdb.
+type KeyCondition struct {
+	Key      string `json:"key"`
+	Values   any    `json:"values"`
+	Operator string `json:"operator"`
+}
+
+// ListServiceInstanceReq describe the request data of list_service_instance.
+type ListServiceInstanceReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID                  int64           `json:"bk_biz_id"`
+	BKModuleID               int64           `json:"bk_module_id"`
+	BKHostIDs                []int64         `json:"bk_host_ids"`
+	ServiceInstanceFuzzyName string          `json:"search_key"`
+	Selectors                []*KeyCondition `json:"selectors"`
+	Page                     Page            `json:"page"`
+}
+
+// ServiceInstanceInfo describe the service instance info define by cmdb.
+type ServiceInstanceInfo struct {
+	BKBizID             int64     `json:"bk_biz_id"`
+	ID                  int64     `json:"id"`
+	ServiceInstanceName string    `json:"name"`
+	BKHostID            int64     `json:"bk_host_id"`
+	BKModuleID          int64     `json:"bk_module_id"`
+	Creator             string    `json:"creator"`
+	Modifier            string    `json:"modifier"`
+	CreateTime          time.Time `json:"create_time"`
+	LastTime            time.Time `json:"last_time"`
+	BKSupplierAccount   string    `json:"bk_supplier_account"`
+}
+
+// ListServiceInstanceResp describe the response data of list_service_instance.
+type ListServiceInstanceResp struct {
+	Count int                    `json:"count"`
+	Info  []*ServiceInstanceInfo `json:"info"`
+}
+
+// ListProcessInstanceReq describe the request data of list_process_instance.
+type ListProcessInstanceReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID           int64 `json:"bk_biz_id"`
+	ServiceInstanceID int64 `json:"service_instance_id"`
+}
+
+// ProcessProperty describe the process property define by cmdb.
+type ProcessProperty struct {
+	AutoStart         bool      `json:"auto_start"`
+	BKBizID           int64     `json:"bk_biz_id"`
+	BKFuncName        string    `json:"bk_func_name"`
+	BKProcessID       int64     `json:"bk_process_id"`
+	BKProcessName     string    `json:"bk_process_name"`
+	BKStartParamRegex string    `json:"bk_start_param_regex"`
+	BKSupplierAccount string    `json:"bk_supplier_account"`
+	CreateTime        time.Time `json:"create_time"`
+	LastTime          time.Time `json:"last_time"`
+	Description       string    `json:"description"`
+	FaceStopCMD       string    `json:"face_stop_cmd"`
+	PidFile           string    `json:"pid_file"`
+	Priority          int64     `json:"priority"`
+	ProcNum           int64     `json:"proc_num"`
+	ReloadCMD         string    `json:"reload_cmd"`
+	RestartCMD        string    `json:"restart_cmd"`
+	StartCMD          string    `json:"start_cmd"`
+	StopCMD           string    `json:"stop_cmd"`
+	Timeout           int64     `json:"timeout"`
+	User              string    `json:"user"`
+	WorkPath          string    `json:"work_path"`
+	BKCreateAt        string    `json:"bk_created_at"`
+	BKCreateBy        string    `json:"bk_created_by"`
+	BKUpdateAt        string    `json:"bk_updated_at"`
+	BKUpdateBy        string    `json:"bk_updated_by"`
+	BindInfo          []struct {
+		Enable        bool   `json:"enable"`
+		IP            string `json:"ip"`
+		Port          string `json:"port"`
+		Protocol      string `json:"protocol"`
+		TemplateRowID int64  `json:"template_row_id"`
+	} `json:"bind_info"`
+}
+
+// ProcessInstanceInfo describe the process instance info define by cmdb.
+type ProcessInstanceInfo struct {
+	Property ProcessProperty `json:"property"`
+	Relation struct {
+		BKBizID           int64  `json:"bk_biz_id"`
+		BKProcessID       int64  `json:"bk_process_id"`
+		ServiceInstanceID int64  `json:"service_instance_id"`
+		ProcessTemplateID int64  `json:"process_template_id"`
+		BKHostID          int64  `json:"bk_host_id"`
+		BKSupplierAccount string `json:"bk_supplier_account"`
+	} `json:"relation"`
+}
+
+// ListProcessInstanceResp describe the response data of list_process_instance.
+type ListProcessInstanceResp []*ProcessInstanceInfo
+
+// ListProcTemplateReq describe the request data of list_proc_template.
+type ListProcTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID            int64   `json:"bk_biz_id"`
+	ServiceTemplateID  int64   `json:"service_template_id"`
+	ProcessTemplateIDs []int64 `json:"process_template_ids"`
+}
+
+// ProcessTemplateInfo describe the process template info define by cmdb.
+type ProcessTemplateInfo struct {
+	ID                    int64     `json:"id"`
+	BKProcessTemplateName string    `json:"bk_process_name"`
+	BKBizID               int64     `json:"bk_biz_id"`
+	ServiceTemplateID     int64     `json:"service_template_id"`
+	Creator               string    `json:"creator"`
+	Modifier              string    `json:"modifier"`
+	CreateTime            time.Time `json:"create_time"`
+	LastTime              time.Time `json:"last_time"`
+	BKSupplierAccount     string    `json:"bk_supplier_account"`
+	Property              struct {
+		AutoStart struct {
+			Value          bool `json:"value"`
+			AsDefaultValue bool `json:"as_default_value"`
+		} `json:"auto_start"`
+		BKBizID struct {
+			Value          int64 `json:"value"`
+			AsDefaultValue bool  `json:"as_default_value"`
+		} `json:"bk_biz_id"`
+		BKFuncName struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"bk_func_name"`
+		BKProcessID struct {
+			Value          int64 `json:"value"`
+			AsDefaultValue bool  `json:"as_default_value"`
+		} `json:"bk_process_id"`
+		BKProcessName struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"bk_process_name"`
+		BKStartParamRegex struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"bk_start_param_regex"`
+		Description struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"description"`
+		FaceStopCMD struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"face_stop_cmd"`
+		PidFile struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"pid_file"`
+		Priority struct {
+			Value          int64 `json:"value"`
+			AsDefaultValue bool  `json:"as_default_value"`
+		} `json:"priority"`
+		ProcNum struct {
+			Value          int64 `json:"value"`
+			AsDefaultValue bool  `json:"as_default_value"`
+		} `json:"proc_num"`
+		ReloadCMD struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"reload_cmd"`
+		RestartCMD struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"restart_cmd"`
+		StartCMD struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"start_cmd"`
+		StopCMD struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"stop_cmd"`
+		Timeout struct {
+			Value          int64 `json:"value"`
+			AsDefaultValue bool  `json:"as_default_value"`
+		} `json:"timeout"`
+		User struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"user"`
+		WorkPath struct {
+			Value          string `json:"value"`
+			AsDefaultValue bool   `json:"as_default_value"`
+		} `json:"work_path"`
+		BindInfo struct {
+			Value []struct {
+				Enable struct {
+					Value          bool `json:"value"`
+					AsDefaultValue bool `json:"as_default_value"`
+				} `json:"enable"`
+				IP struct {
+					Value          string `json:"value"`
+					AsDefaultValue bool   `json:"as_default_value"`
+				} `json:"ip"`
+				Port struct {
+					Value          string `json:"value"`
+					AsDefaultValue bool   `json:"as_default_value"`
+				} `json:"port"`
+				Protocol struct {
+					Value          string `json:"value"`
+					AsDefaultValue bool   `json:"as_default_value"`
+				} `json:"protocol"`
+				TemplateRowID int64 `json:"row_id"`
+			}
+			AsDefaultValue bool `json:"as_default_value"`
+		}
+	}
+}
+
+// ListProcTemplateResp describe the response data of list_proc_template.
+type ListProcTemplateResp struct {
+	Count int                    `json:"count"`
+	Info  []*ProcessTemplateInfo `json:"info"`
+}
+
+// FindSetBatchReq describe the request data of find_set_batch.
+type FindSetBatchReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64    `json:"bk_biz_id"`
+	BKIDs   []int64  `json:"bk_ids"`
+	Fields  []string `json:"fields"`
+}
+
+// FindSetBatchResp describe the response data of find_set_batch.
+type FindSetBatchResp []*SetInfo
+
+// SearchSetReq describe the request data of search_set.
+type SearchSetReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64    `json:"bk_biz_id"`
+	Fields  []string `json:"fields"`
+	Page    Page     `json:"page"`
+}
+
+// SearchSetResp describe the response data of search_set.
+type SearchSetResp struct {
+	Count int        `json:"count"`
+	Info  []*SetInfo `json:"info"`
+}
+
+// SearchModuleReq describe the request data of search_module.
+type SearchModuleReq struct {
+	// tenant id of this request.
+	TenantID string   `json:"-"`
+	BKBizID  int64    `json:"bk_biz_id"`
+	BKSetID  int64    `json:"bk_set_id"`
+	Fields   []string `json:"fields"`
+	Page     Page     `json:"page"`
+}
+
+// SearchModuleResp describe the response data of search_module.
+type SearchModuleResp struct {
+	Count int           `json:"count"`
+	Info  []*ModuleInfo `json:"info"`
+}
+
+// FindHostTopoRelationReq describe the request data of find_host_topo_relation.
+type FindHostTopoRelationReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID     int64   `json:"bk_biz_id"`
+	BKSetIDs    []int64 `json:"bk_set_ids"`
+	BKModuleIDs []int64 `json:"bk_module_ids"`
+	BKHostIDs   []int64 `json:"bk_host_ids"`
+	Page        Page    `json:"page"`
+}
+
+// HostTopoRelation describe the host topo relation define by cmdb.
+type HostTopoRelation struct {
+	BKBizID           int64  `json:"bk_biz_id"`
+	BKHostID          int64  `json:"bk_host_id"`
+	BKModuleID        int64  `json:"bk_module_id"`
+	BKSetID           int64  `json:"bk_set_id"`
+	BKSupplierAccount string `json:"bk_supplier_account"`
+}
+
+// FindHostTopoRelationResp describe the response data of find_host_topo_relation.
+type FindHostTopoRelationResp struct {
+	Count int                 `json:"count"`
+	Data  []*HostTopoRelation `json:"data"`
+	Page  Page                `json:"page"`
+}
+
+// FindHostBizRelationsReq describe the request data of find_host_biz_relations.
+type FindHostBizRelationsReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID  int64   `json:"bk_biz_id"`
+	BKHostID []int64 `json:"bk_host_id"`
+}
+
+// FindHostBizRelationsResp describe the response data of find_host_biz_relations.
+type FindHostBizRelationsResp []*HostTopoRelation
+
+// FindHostByServiceTemplateReq describe the request data of find_host_by_service_template.
+type FindHostByServiceTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID              int64    `json:"bk_biz_id"`
+	BKServiceTemplateIDs []int64  `json:"bk_service_template_ids"`
+	BKModuleIDs          []int64  `json:"bk_module_ids"`
+	Fields               []string `json:"fields"`
+	Page                 Page     `json:"page"`
+}
+
+// FindHostByServiceTemplateResp describe the response data of find_host_by_service_template.
+type FindHostByServiceTemplateResp struct {
+	Count int         `json:"count"`
+	Info  []*HostInfo `json:"info"`
+}
+
+// FindHostBySetTemplateReq describe the request data of find_host_by_set_template.
+type FindHostBySetTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID          int64    `json:"bk_biz_id"`
+	BKSetTemplateIDs []int64  `json:"bk_set_template_ids"`
+	BKSetIDs         []int64  `json:"bk_set_ids"`
+	Fields           []string `json:"fields"`
+	Page             Page     `json:"page"`
+}
+
+// FindHostBySetTemplateResp describe the response data of find_host_by_set_template.
+type FindHostBySetTemplateResp struct {
+	Count int         `json:"count"`
+	Info  []*HostInfo `json:"info"`
+}
+
+// FindHostByTopoReq describe the request data of find_host_by_topo.
+type FindHostByTopoReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID  int64    `json:"bk_biz_id"`
+	BKObjID  string   `json:"bk_obj_id"`
+	BKInstID int64    `json:"bk_inst_id"`
+	Fields   []string `json:"fields"`
+	Page     Page     `json:"page"`
+}
+
+// FindHostByTopoResp describe the response data of find_host_by_topo.
+type FindHostByTopoResp struct {
+	Count int         `json:"count"`
+	Info  []*HostInfo `json:"info"`
+}
+
+// FindHostRelationsWithTopoReq describe the request data of find_host_relations_with_topo.
+type FindHostRelationsWithTopoReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID   int64    `json:"bk_biz_id"`
+	BKObjID   string   `json:"bk_obj_id"`
+	BKInstIDs []int64  `json:"bk_inst_ids"`
+	Fields    []string `json:"fields"`
+	Page      Page     `json:"page"`
+}
+
+// FindHostRelationsWithTopoResp describe the response data of find_host_relations_with_topo.
+type FindHostRelationsWithTopoResp struct {
+	Count int                 `json:"count"`
+	Info  []*HostTopoRelation `json:"info"`
+}
+
+// ListServiceInstanceDetailReq describe the request data of list_service_instance_detail .
+type ListServiceInstanceDetailReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64 `json:"bk_biz_id"`
+	Page    Page  `json:"page"`
+}
+
+// ServiceInstanceDetailInfo describe the service instance detail info define by cmdb.
+type ServiceInstanceDetailInfo struct {
+	ID                int64     `json:"id"`
+	Name              string    `json:"name"`
+	ServiceTemplateID int64     `json:"service_template_id"`
+	BKBizID           int64     `json:"bk_biz_id"`
+	BKHostID          int64     `json:"bk_host_id"`
+	BKModuleID        int64     `json:"bk_module_id"`
+	Creator           string    `json:"creator"`
+	Modifier          string    `json:"modifier"`
+	CreateTime        time.Time `json:"create_time"`
+	LastTime          time.Time `json:"last_time"`
+	BKSupplierAccount string    `json:"bk_supplier_account"`
+	ServiceCategoryID int64     `json:"service_category_id"`
+	ProcessInstances  []struct {
+		Process struct {
+			AutoStart         bool      `json:"auto_start"`
+			BKBizID           int64     `json:"bk_biz_id"`
+			BKFuncName        string    `json:"bk_func_name"`
+			BKProcessID       int64     `json:"bk_process_id"`
+			BKProcessName     string    `json:"bk_process_name"`
+			BKStartParamRegex string    `json:"bk_start_param_regex"`
+			BKSupplierAccount string    `json:"bk_supplier_account"`
+			CreateTime        time.Time `json:"create_time"`
+			LastTime          time.Time `json:"last_time"`
+			Description       string    `json:"description"`
+			FaceStopCMD       string    `json:"face_stop_cmd"`
+			PidFile           string    `json:"pid_file"`
+			Priority          int64     `json:"priority"`
+			ProcNum           int64     `json:"proc_num"`
+			ReloadCMD         string    `json:"reload_cmd"`
+			RestartCMD        string    `json:"restart_cmd"`
+			StartCMD          string    `json:"start_cmd"`
+			StopCMD           string    `json:"stop_cmd"`
+			Timeout           int64     `json:"timeout"`
+			User              string    `json:"user"`
+			WorkPath          string    `json:"work_path"`
+			BKCreateAt        string    `json:"bk_created_at"`
+			BKCreateBy        string    `json:"bk_created_by"`
+			BKUpdateAt        string    `json:"bk_updated_at"`
+			BKUpdateBy        string    `json:"bk_updated_by"`
+			BindInfo          []struct {
+				Enable        bool   `json:"enable"`
+				IP            string `json:"ip"`
+				Port          string `json:"port"`
+				Protocol      string `json:"protocol"`
+				TemplateRowID int64  `json:"template_row_id"`
+			} `json:"bind_info"`
+		} `json:"process"`
+		Relation struct {
+			BKBizID           int64  `json:"bk_biz_id"`
+			BKProcessID       int64  `json:"bk_process_id"`
+			ServiceInstanceID int64  `json:"service_instance_id"`
+			ProcessTemplateID int64  `json:"process_template_id"`
+			BKHostID          int64  `json:"bk_host_id"`
+			BKSupplierAccount string `json:"bk_supplier_account"`
+		}
+	} `json:"process_instances"`
+}
+
+// ListServiceInstanceDetailResp describe the response data of list_service_instance_detail.
+type ListServiceInstanceDetailResp struct {
+	Count int                          `json:"count"`
+	Info  []*ServiceInstanceDetailInfo `json:"info"`
+}
+
+// GetMainlineObjectTopoReq describe the request data of get_mainline_object_topo.
+type GetMainlineObjectTopoReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+}
+
+// MainlineObjectTopo describe the mainline object topo define by cmdb.
+type MainlineObjectTopo struct {
+	BKObjID           string `json:"bk_obj_id"`
+	BKObjName         string `json:"bk_obj_name"`
+	BKSupplierAccount string `json:"bk_supplier_account"`
+	BKNextObj         string `json:"bk_next_obj"`
+	BKNextName        string `json:"bk_next_name"`
+	BKPreObjID        string `json:"bk_pre_obj_id"`
+	BKPreObjName      string `json:"bk_pre_obj_name"`
+}
+
+// GetMainlineObjectTopoResp describe the response data of get_mainline_object_topo.
+type GetMainlineObjectTopoResp []*MainlineObjectTopo
+
+// ListBizHostsTopoReq describe the request data of list_biz_hosts_topo.
+type ListBizHostsTopoReq struct {
+	//	tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64    `json:"bk_biz_id"`
+	Fields  []string `json:"fields"`
+	Page    Page     `json:"page"`
+}
+
+// HostTopo describe the topo node define by cmdb.
+type HostTopo struct {
+	BKSetID   int64  `json:"bk_set_id"`
+	BKSetName string `json:"bk_set_name"`
+	Module    []struct {
+		BKModuleID   int64  `json:"bk_module_id"`
+		BKModuleName string `json:"bk_module_name"`
+	} `json:"module"`
+}
+
+// ListBizHostsTopoResp describe the response data of list_biz_hosts_topo.
+type ListBizHostsTopoResp struct {
+	Count int `json:"count"`
+	Info  []struct {
+		Host *HostInfo   `json:"host"`
+		Topo []*HostTopo `json:"topo"`
+	} `json:"info"`
+}
+
+// ListServiceInstanceByHostReq describe the request data of list_service_instance_by_host.
+type ListServiceInstanceByHostReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID  int64 `json:"bk_biz_id"`
+	BKHostID int64 `json:"bk_host_id"`
+	Page     Page  `json:"page"`
+}
+
+// ListServiceInstanceByHostResp describe the response data of list_service_instance_by_host.
+type ListServiceInstanceByHostResp struct {
+	Count int                    `json:"count"`
+	Info  []*ServiceInstanceInfo `json:"info"`
+}
+
+// ListServiceInstanceBySetTemplateReq describe the request data of list_service_instance_by_set_template.
+type ListServiceInstanceBySetTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID       int64 `json:"bk_biz_id"`
+	SetTemplateID int64 `json:"set_template_id"`
+	Page          Page  `json:"page"`
+}
+
+// ListServiceInstanceBySetTemplateResp describe the response data of list_service_instance_by_set_template.
+type ListServiceInstanceBySetTemplateResp struct {
+	Count int                    `json:"count"`
+	Info  []*ServiceInstanceInfo `json:"info"`
+}
+
+// ListSetTemplateReq describe the request data of list_set_template.
+type ListSetTemplateReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID        int64   `json:"bk_biz_id"`
+	SetTemplateIDs []int64 `json:"set_template_ids"`
+	Page           Page    `json:"page"`
+}
+
+// ListSetTemplateResp describe the response data of list_set_template.
+type ListSetTemplateResp struct {
+	Count int                    `json:"count"`
+	Info  []*ServiceInstanceInfo `json:"info"`
+}
+
+// UpdateHostProperties describe the host properties to be updated.
+type UpdateHostProperties struct {
+	Properties struct {
+		BKHostName string `json:"bk_host_name,omitempty"`
+		Operator   string `json:"operator,omitempty"`
+		BKComment  string `json:"bk_comment,omitempty"`
+		BKIspName  string `json:"bk_isp_name,omitempty"`
+	} `json:"properties"`
+	BKHostID int64 `json:"bk_host_id"`
+}
+
+// BatchUpdateHostReq describe the request data of batch_update_host.
+type BatchUpdateHostReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	Update []*UpdateHostProperties `json:"update"`
+}
+
+// BatchUpdateHostResp describe the response data of batch_update_host.
+type BatchUpdateHostResp string
+
+// HostAgentIDInfo describe the host agent id info define by cmdb.
+type HostAgentIDInfo struct {
+	BKHostID  int64  `json:"bk_host_id"`
+	BKAgentID string `json:"bk_agent_id"`
+}
+
+// BindHostAgentReq describe the request data of bind_host_agent.
+type BindHostAgentReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	List []*HostAgentIDInfo `json:"list"`
+}
+
+// BindHostAgentResp describe the response data of bind_host_agent.
+type BindHostAgentResp string
+
+// UnbindHostAgentReq describe the request data of unbind_host_agent.
+type UnbindHostAgentReq BindHostAgentReq
+
+// UnbindHostAgentResp describe the response data of unbind_host_agent.
+type UnbindHostAgentResp string
+
+// CreateHostInfo describe the host info to be created.
+type CreateHostInfo struct {
+	BKCloudID         int64  `json:"bk_cloud_id"`
+	BKHostInnerIP     string `json:"bk_host_innerip"`
+	BKHostInnerIPV6   string `json:"bk_host_innerip_v6"`
+	BKHostOuterIP     string `json:"bk_host_outerip"`
+	BKHostOuterIPV6   string `json:"bk_host_outerip_v6"`
+	BKOSType          string `json:"bk_os_type"`
+	BKCpuArchitecture string `json:"bk_cpu_architecture"`
+	BKAddressing      string `json:"bk_addressing"`
+}
+
+// AddHostToBusinessIdleReq describe the request data of add_host_to_business_idle.
+type AddHostToBusinessIdleReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID    int64             `json:"bk_biz_id"`
+	BKHostList []*CreateHostInfo `json:"bk_host_list"`
+}
+
+// AddHostToBusinessIdleResp describe the response data of add_host_to_business_idle.
+type AddHostToBusinessIdleResp struct {
+	BKHostIDs []int64 `json:"bk_host_ids"`
+}
+
+// PushHostIdentifierReq describe the request data of push_host_identifier.
+type PushHostIdentifierReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKHostIDs []int64 `json:"bk_host_ids"`
+}
+
+// PushHostIdentifierResp describe the response data of push_host_identifier.
+type PushHostIdentifierResp struct {
+	TaskID    string `json:"task_id"`
+	HostInfos []struct {
+		BKHostID       int64  `json:"bk_host_id"`
+		Identification string `json:"identification"`
+	} `json:"host_infos"`
+}
+
+// ResourceWatchReq describe the request data of resource_watch.
+type ResourceWatchReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKEventTypes []string `json:"bk_event_types"`
+	BKResource   string   `json:"bk_resource"`
+	BKFields     []string `json:"bk_fields"`
+	BKStartFrom  int64    `json:"bk_start_from"`
+	BKCursor     string   `json:"bk_cursor"`
+}
+
+// HostEvent describe the event info define by cmdb.
+type HostEvent struct {
+	BKCursor    string    `json:"bk_cursor"`
+	BKResource  string    `json:"bk_resource"`
+	BKEventType string    `json:"bk_event_type"`
+	BKDetail    *HostInfo `json:"bk_detail"`
+}
+
+// HostRelationEvent describe the event info define by cmdb.
+type HostRelationEvent struct {
+	BKCursor    string            `json:"bk_cursor"`
+	BKResource  string            `json:"bk_resource"`
+	BKEventType string            `json:"bk_event_type"`
+	BKDetail    *HostTopoRelation `json:"bk_detail"`
+}
+
+// ProcessEvent describe the event info define by cmdb.
+type ProcessEvent struct {
+	BKCursor    string           `json:"bk_cursor"`
+	BKResource  string           `json:"bk_resource"`
+	BKEventType string           `json:"bk_event_type"`
+	BKDetail    *ProcessProperty `json:"bk_detail"`
+}
+
+// ResourceWatchResp describe the response data of resource_watch.
+type ResourceWatchResp[T any] struct {
+	BKWatched bool `json:"bk_watched"`
+	BKEvents  []*T `json:"bk_events"`
+}
