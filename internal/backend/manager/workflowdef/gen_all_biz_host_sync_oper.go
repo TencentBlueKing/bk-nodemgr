@@ -118,7 +118,7 @@ func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz
 			BizID:    biz.BizID,
 			TenantID: biz.TenantID,
 		}),
-		ParentOperInstID: data.OperInstID,
+		ParentOperationID: data.OperationID,
 	})
 	if err != nil {
 		msg := fmt.Sprintf("failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",

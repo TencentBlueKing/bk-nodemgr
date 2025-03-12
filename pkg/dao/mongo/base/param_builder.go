@@ -73,3 +73,25 @@ func BuildDeleteParam() bson.D {
 
 	return update
 }
+
+// BuildPushField build push field param.
+// please don't use slice as value.
+func BuildPushField(key string, value any) bson.D {
+	nowTime := time.Now()
+	push := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				"basic.is_deleted": false,
+				"basic.updated_at": nowTime,
+			},
+		}, {
+			Key: "$push",
+			Value: bson.M{
+				fmt.Sprintf("data.%s", key): value,
+			},
+		},
+	}
+
+	return push
+}

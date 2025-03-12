@@ -49,6 +49,15 @@ type Handler interface {
 
 	// UpdateLifecycle updates or inserts an OperInstData's lifecycle.
 	UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error
+
+	// PushActInstMsgs push a message to the action_inst_data's msg queue.
+	PushActInstMsgs(ctx context.Context, operInstID string, actionName string, msgs ...operengine.Message) error
+
+	// UpdateActionInstContent update the action_inst_data's content.
+	UpdateActionInstContent(ctx context.Context, operInstID string, actionName string, content map[string]any) error
+
+	// AddActInstPrivateData add action inst data private data.
+	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
 }
 
 type handler struct {
@@ -113,7 +122,8 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperI
 		OperDefName:       operInstData.OperDefName,
 		ActionNames:       operInstData.ActionNames,
 		ActionInstDataMap: make(map[string]*operengine.ActionInstData, len(operInstData.ActionInstDataMap)),
-		ParentOperInstID:  operInstData.ParentOperInstID,
+		OperationID:       operInstData.OperationID,
+		ParentOperationID: operInstData.ParentOperationID,
 		Timeout:           operInstData.Timeout,
 		Lifecycle:         convLifecycleToCommon(operInstData.Lifecycle),
 	}
@@ -129,18 +139,21 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperI
 
 	for k, v := range operInstData.ActionInstDataMap {
 		actionInstData := &operengine.ActionInstData{
-			TriggerID:  v.TriggerID,
-			OperInstID: v.OperInstID,
-			Name:       v.Name,
-			Index:      v.Index,
-			Lifecycle:  convActInstLifeCycleToCommon(v.Lifecycle),
+			TriggerID:   v.TriggerID,
+			OperInstID:  v.OperInstID,
+			Name:        v.Name,
+			Index:       v.Index,
+			Messages:    make([]operengine.Message, len(v.Messages)),
+			Content:     make(map[string]any, len(v.Content)),
+			PrivateData: v.PrivateData,
+			Lifecycle:   convActInstLifeCycleToCommon(v.Lifecycle),
 		}
 
-		for _, msg := range v.Messages {
-			actionInstData.Messages = append(actionInstData.Messages, operengine.Message{
+		for idx, msg := range v.Messages {
+			actionInstData.Messages[idx] = operengine.Message{
 				Time: msg.Time,
 				Text: msg.Text,
-			})
+			}
 		}
 
 		err = json.Unmarshal([]byte(v.Content), &actionInstData.Content)
@@ -292,11 +305,12 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	data := &operengine.ActionInstData{
-		TriggerID:  actionInstData.TriggerID,
-		OperInstID: actionInstData.OperInstID,
-		Name:       actionInstData.Name,
-		Index:      actionInstData.Index,
-		Lifecycle:  convActInstLifeCycleToCommon(actionInstData.Lifecycle),
+		TriggerID:   actionInstData.TriggerID,
+		OperInstID:  actionInstData.OperInstID,
+		Name:        actionInstData.Name,
+		Index:       actionInstData.Index,
+		PrivateData: actionInstData.PrivateData,
+		Lifecycle:   convActInstLifeCycleToCommon(actionInstData.Lifecycle),
 	}
 
 	for _, msg := range actionInstData.Messages {
@@ -338,13 +352,13 @@ func (h *handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 	operInstData := operInstDatas[0]
 
 	data := &operengine.OperInstData{
-		TriggerID:        operInstData.TriggerID,
-		OperInstID:       operInstData.OperInstID,
-		OperDefName:      operInstData.OperDefName,
-		ActionNames:      operInstData.ActionNames,
-		ParentOperInstID: operInstData.ParentOperInstID,
-		Timeout:          operInstData.Timeout,
-		Lifecycle:        convLifecycleToCommon(operInstData.Lifecycle),
+		TriggerID:         operInstData.TriggerID,
+		OperInstID:        operInstData.OperInstID,
+		OperDefName:       operInstData.OperDefName,
+		ActionNames:       operInstData.ActionNames,
+		ParentOperationID: operInstData.ParentOperationID,
+		Timeout:           operInstData.Timeout,
+		Lifecycle:         convLifecycleToCommon(operInstData.Lifecycle),
 	}
 
 	if len(operInstData.InitContent) == 0 {
@@ -451,6 +465,7 @@ func convActionInstDataToDB(actionInstData *operengine.ActionInstData) (*ActionI
 		OperInstID: actionInstData.OperInstID,
 		Name:       actionInstData.Name,
 		Index:      actionInstData.Index,
+		Messages:   make([]Message, 0, len(actionInstData.Messages)),
 		Lifecycle:  convActInstLifeCycleToDB(actionInstData.Lifecycle),
 	}
 
@@ -474,13 +489,13 @@ func convActionInstDataToDB(actionInstData *operengine.ActionInstData) (*ActionI
 // convOperInstDataToDB convert oper inst data to db.
 func convOperInstDataToDB(data *operengine.OperInstData) (*OperInstData, error) {
 	dbData := &OperInstData{
-		TriggerID:        data.TriggerID,
-		OperInstID:       data.OperInstID,
-		ActionNames:      data.ActionNames,
-		OperDefName:      data.OperDefName,
-		ParentOperInstID: data.ParentOperInstID,
-		Timeout:          data.Timeout,
-		Lifecycle:        convLifecycleToDB(data.Lifecycle),
+		TriggerID:         data.TriggerID,
+		OperInstID:        data.OperInstID,
+		ActionNames:       data.ActionNames,
+		OperDefName:       data.OperDefName,
+		ParentOperationID: data.ParentOperationID,
+		Timeout:           data.Timeout,
+		Lifecycle:         convLifecycleToDB(data.Lifecycle),
 	}
 
 	if data.InitContent == nil {
@@ -528,4 +543,116 @@ func convMessageToDB(msgs []operengine.Message) []Message {
 	}
 
 	return dbData
+}
+
+// PushActInstMsgs push act inst msg.
+func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
+	msgs ...operengine.Message) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if len(msgs) == 0 {
+		return errors.New("msgs is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	field := fmt.Sprintf("action_data.%s.messages", actionName)
+	for _, msg := range convMessageToDB(msgs) {
+		err := h.dao.pushField(ctx, filter, field, msg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AddActInstPrivateData add act inst private data.
+func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, actionName string,
+	data map[string]any) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	if len(data) == 0 {
+		return errors.New("data is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	for k, v := range data {
+		field := fmt.Sprintf("action_data.%s.private_data.%s", actionName, k)
+		err := h.dao.updateField(ctx, filter, field, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateActionInstContent update action instance content.
+func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
+	content map[string]any) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	bytes, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+
+	filed := fmt.Sprintf("action_data.%s.content", actionName)
+	err = h.dao.updateField(ctx, filter, filed, string(bytes))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

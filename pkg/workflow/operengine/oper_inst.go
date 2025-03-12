@@ -19,13 +19,15 @@ import (
 
 // ActionInstData action instance.
 type ActionInstData struct {
-	TriggerID  string
-	OperInstID string
-	Name       string
-	Index      int
-	Messages   []Message
-	Content    map[string]any
-	Lifecycle  *ActInstLifeCycle
+	TriggerID   string
+	OperInstID  string
+	OperationID string
+	Name        string
+	Index       int
+	Messages    []Message
+	Content     map[string]any
+	PrivateData map[string]any
+	Lifecycle   *ActInstLifeCycle
 }
 
 // Message ...
@@ -60,13 +62,14 @@ func (data *ActionInstData) Log(messages ...string) {
 // OperInstData OperInst data.
 type OperInstData struct {
 	// the below fields should be written only once
-	TriggerID        string
-	OperInstID       string
-	OperDefName      string
-	ActionNames      []string
-	ParentOperInstID string
-	Timeout          time.Duration
-	InitContent      map[string]any
+	TriggerID         string
+	OperInstID        string
+	OperDefName       string
+	OperationID       string
+	ActionNames       []string
+	ParentOperationID string
+	Timeout           time.Duration
+	InitContent       map[string]any
 
 	// the below fields can be changed
 	ActionInstDataMap map[string]*ActionInstData

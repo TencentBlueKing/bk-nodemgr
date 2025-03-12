@@ -81,7 +81,7 @@ func Test_storage_UpsertOperInstData(t *testing.T) {
 					OperDefName:       "",
 					ActionNames:       nil,
 					ActionInstDataMap: nil,
-					ParentOperInstID:  "",
+					ParentOperationID: "",
 					Timeout:           0,
 					InitContent:       map[string]any{},
 					Lifecycle: &operengine.Lifecycle{

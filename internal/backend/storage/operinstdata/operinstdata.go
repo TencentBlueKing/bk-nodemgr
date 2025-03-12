@@ -297,42 +297,6 @@ func (s *storage) removeSubscription(key string) {
 	delete(s.stopEventSubsMap, key)
 }
 
-// UpdateActInstMsg ...
-func (s *storage) UpdateActInstMsg(ctx context.Context, operInstID string, actionName string,
-	msgs []operengine.Message) error {
-
-	if ctx == nil {
-		return base.ErrNilContent()
-	}
-
-	if operInstID == "" {
-		return errors.New("operation instance id is empty")
-	}
-
-	if err := s.operinstdataDao.UpdateActInstMsg(ctx, operInstID, actionName, msgs); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// UpdateActionInstData update operation instance's action instance data.
-func (s *storage) UpdateActionInstData(ctx context.Context, data *operengine.ActionInstData) error {
-	if ctx == nil {
-		return base.ErrNilContent()
-	}
-
-	if data == nil {
-		return errors.New("data is nil")
-	}
-
-	if err := s.operinstdataDao.UpdateActionInstData(ctx, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // UpdateActInstLifecycle update operation instance's action instance lifecycle.
 func (s *storage) UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string,
 	lifecycle *operengine.ActInstLifeCycle) error {
@@ -414,4 +378,60 @@ func (s *storage) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	return s.operinstdataDao.GetActionInstData(ctx, operInstID, actionName)
+}
+
+// PushActInstMsgs push action instance msgs.
+func (s *storage) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
+	msgs ...operengine.Message) error {
+
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	if len(msgs) == 0 {
+		return nil
+	}
+
+	for _, msg := range msgs {
+		if err := s.operinstdataDao.PushActInstMsgs(ctx, operInstID, actionName, msg); err != nil {
+			return fmt.Errorf("push action instance msg failed, err(%v)", err)
+		}
+	}
+
+	return nil
+}
+
+// UpdateActionInstContent update action instance content.
+func (s *storage) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
+	content map[string]any) error {
+
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	if len(content) == 0 {
+		return errors.New("content is empty")
+	}
+
+	if err := s.operinstdataDao.UpdateActionInstContent(ctx, operInstID, actionName, content); err != nil {
+		return fmt.Errorf("update action instance content failed, err(%v)", err)
+	}
+
+	return nil
 }
