@@ -93,6 +93,7 @@ func (svc *Service) registerRestServer(conf *config.ApplicationService) {
 		rest.NewStaticOptions(conf.HTTPServer.StaticDir).
 			WithHTMLs("index.html").
 			WithDirs("assets").
+			WithDirs("images").
 			WithFiles("bk.svg", "favicon.png", "nodeman.png"),
 		rest.WithPing(),
 		withHealthz(svc.Cap),
