@@ -80,7 +80,6 @@ message HostState {
   optional string node_status = 2;
   optional string node_version = 3;
   optional string bk_agent_id = 4;
-  optional int64 bk_networkunit_id = 5;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -88,14 +87,18 @@ message HostState {
 message HostInfo {
   optional int64 bk_biz_id = 1;
   optional int64 bk_networkarea_id = 2;
-  optional string bk_host_name = 3;
-  optional string dept_name = 4;
-  optional string bk_host_innerip = 5;
-  optional string bk_host_innerip_v6 = 6;
-  optional string bk_host_outerip = 7;
-  optional string bk_host_outerip_v6 = 8;
-  optional string bk_mac = 9;
-  optional string bk_os_type = 10;
+  optional int64 bk_networkunit_id = 3;
+  optional string bk_host_name = 4;
+  optional string dept_name = 5;
+  optional string bk_host_innerip = 6;
+  optional string bk_host_innerip_v6 = 7;
+  optional string bk_host_outerip = 8;
+  optional string bk_host_outerip_v6 = 9;
+  optional string bk_mac = 10;
+  optional string bk_os_type = 11;
+  optional string bk_networkarea_name = 12;
+  optional string bk_networkunit_name = 13;
+  optional string bk_os_type_name = 14;
 }
 
 // Host describes the host informations.

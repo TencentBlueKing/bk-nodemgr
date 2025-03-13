@@ -127,7 +127,7 @@ func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondit
 }
 
 // ConvertHostsFromTypes convert types to proto.
-func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Host) {
+func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Host, mapping types.TopoNameMapping) {
 	items := make([]*Host, len(hosts))
 	for idx, host := range hosts {
 		item := newEmptyHost()
@@ -136,6 +136,9 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 
 		*item.Info.BkBizId = host.Static.BizID
 		*item.Info.BkNetworkareaId = host.Static.NetworkAreaID
+		*item.Info.BkNetworkareaName = mapping.GetNetworkAreaName(host.Static.NetworkAreaID)
+		*item.Info.BkNetworkunitId = host.Dynamic.NetworkUnitID
+		*item.Info.BkNetworkunitName = mapping.GetNetworkUnitName(host.Dynamic.NetworkUnitID)
 		*item.Info.BkHostName = host.Static.HostName
 		*item.Info.DeptName = host.Static.DeptName
 		*item.Info.BkHostInnerip = host.Static.InnerIP
@@ -144,12 +147,12 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.BkHostOuteripV6 = host.Static.OuterIPV6
 		*item.Info.BkMac = host.Static.Mac
 		*item.Info.BkOsType = host.Static.OSType
+		*item.Info.BkOsTypeName = mapping.GetOsTypeName(host.Static.OSType)
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
 		*item.State.BkAgentId = host.Dynamic.AgentID
-		*item.State.BkNetworkunitId = host.Dynamic.NetworkUnitID
 
 		items[idx] = item
 	}
@@ -177,29 +180,29 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			Dynamic:  &types.HostDynamic{},
 		}
 
-		if info := item.GetInfo(); info != nil {
-			host.Static = &types.HostStatic{
-				BizID:         info.GetBkBizId(),
-				NetworkAreaID: info.GetBkNetworkareaId(),
-				HostName:      info.GetBkHostName(),
-				DeptName:      info.GetDeptName(),
-				InnerIP:       info.GetBkHostInnerip(),
-				InnerIPV6:     info.GetBkHostInneripV6(),
-				OuterIP:       info.GetBkHostOuterip(),
-				OuterIPV6:     info.GetBkHostOuteripV6(),
-				Mac:           info.GetBkMac(),
-				OSType:        info.GetBkOsType(),
-			}
+		info := item.GetInfo()
+		state := item.GetState()
+		if info == nil || state == nil {
+			continue
 		}
-
-		if state := item.GetState(); state != nil {
-			host.Dynamic = &types.HostDynamic{
-				AgentID:       state.GetBkAgentId(),
-				NodeRole:      types.NodeRole(state.GetNodeRole()),
-				NodeStatus:    types.NodeStatus(state.GetNodeStatus()),
-				NodeVersion:   state.GetNodeVersion(),
-				NetworkUnitID: state.GetBkNetworkunitId(),
-			}
+		host.Static = &types.HostStatic{
+			BizID:         info.GetBkBizId(),
+			NetworkAreaID: info.GetBkNetworkareaId(),
+			HostName:      info.GetBkHostName(),
+			DeptName:      info.GetDeptName(),
+			InnerIP:       info.GetBkHostInnerip(),
+			InnerIPV6:     info.GetBkHostInneripV6(),
+			OuterIP:       info.GetBkHostOuterip(),
+			OuterIPV6:     info.GetBkHostOuteripV6(),
+			Mac:           info.GetBkMac(),
+			OSType:        info.GetBkOsType(),
+		}
+		host.Dynamic = &types.HostDynamic{
+			AgentID:       state.GetBkAgentId(),
+			NodeRole:      types.NodeRole(state.GetNodeRole()),
+			NodeStatus:    types.NodeStatus(state.GetNodeStatus()),
+			NodeVersion:   state.GetNodeVersion(),
+			NetworkUnitID: info.GetBkNetworkunitId(),
 		}
 
 		result[idx] = host
@@ -213,23 +216,26 @@ func newEmptyHost() *Host {
 		TenantId: new(string),
 		BkHostId: new(int64),
 		Info: &HostInfo{
-			BkBizId:         new(int64),
-			BkNetworkareaId: new(int64),
-			BkHostName:      new(string),
-			DeptName:        new(string),
-			BkHostInnerip:   new(string),
-			BkHostInneripV6: new(string),
-			BkHostOuterip:   new(string),
-			BkHostOuteripV6: new(string),
-			BkMac:           new(string),
-			BkOsType:        new(string),
+			BkBizId:           new(int64),
+			BkNetworkareaId:   new(int64),
+			BkNetworkareaName: new(string),
+			BkNetworkunitId:   new(int64),
+			BkNetworkunitName: new(string),
+			BkHostName:        new(string),
+			DeptName:          new(string),
+			BkHostInnerip:     new(string),
+			BkHostInneripV6:   new(string),
+			BkHostOuterip:     new(string),
+			BkHostOuteripV6:   new(string),
+			BkMac:             new(string),
+			BkOsType:          new(string),
+			BkOsTypeName:      new(string),
 		},
 		State: &HostState{
-			NodeRole:        new(string),
-			NodeStatus:      new(string),
-			NodeVersion:     new(string),
-			BkAgentId:       new(string),
-			BkNetworkunitId: new(int64),
+			NodeRole:    new(string),
+			NodeStatus:  new(string),
+			NodeVersion: new(string),
+			BkAgentId:   new(string),
 		},
 	}
 }

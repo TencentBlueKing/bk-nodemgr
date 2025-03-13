@@ -47,9 +47,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// networkarea apis.
 	h.rg.POST("/networkarea/list", rest.RestHandlerFunc(h.ListNetworkArea))
 	h.rg.POST("/networkarea/get", rest.RestHandlerFunc(h.GetNetworkArea))
-	// h.rg.POST("/networkarea/create", rest.RestHandlerFunc(h.CreateNetworkArea))
-	// h.rg.POST("/networkarea/update", rest.RestHandlerFunc(h.UpdateNetworkArea))
-	// h.rg.POST("/networkarea/delete", rest.RestHandlerFunc(h.DeleteNetworkArea))
+	h.rg.POST("/networkarea/create", rest.RestHandlerFunc(h.CreateNetworkArea))
+	h.rg.POST("/networkarea/update", rest.RestHandlerFunc(h.UpdateNetworkArea))
+	h.rg.POST("/networkarea/delete", rest.RestHandlerFunc(h.DeleteNetworkArea))
 
 	// networkunit apis.
 	h.rg.POST("/networkunit/list", rest.RestHandlerFunc(h.ListNetworkUnit))

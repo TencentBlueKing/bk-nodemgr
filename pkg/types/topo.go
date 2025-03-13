@@ -192,6 +192,66 @@ type NetworkUnit struct {
 	Links Links
 }
 
+// TopoNameMapping represents id to name mapping.
+type TopoNameMapping struct {
+	NetworkArea map[int64]string
+	NetworkUnit map[int64]string
+	AccessPoint map[int64]string
+	OsType      map[string]string
+}
+
+// GetNetworkAreaName gets the name of a network area.
+func (tnm *TopoNameMapping) GetNetworkAreaName(id int64) string {
+	if tnm.NetworkArea == nil {
+		return ""
+	}
+
+	if name, ok := tnm.NetworkArea[id]; ok {
+		return name
+	}
+
+	return ""
+}
+
+// GetNetworkUnitName gets the name of a network unit.
+func (tnm *TopoNameMapping) GetNetworkUnitName(id int64) string {
+	if tnm.NetworkUnit == nil {
+		return ""
+	}
+
+	if name, ok := tnm.NetworkUnit[id]; ok {
+		return name
+	}
+
+	return ""
+}
+
+// GetAccessPointName gets the name of a access point.
+func (tnm *TopoNameMapping) GetAccessPointName(id int64) string {
+	if tnm.AccessPoint == nil {
+		return ""
+	}
+
+	if name, ok := tnm.AccessPoint[id]; ok {
+		return name
+	}
+
+	return ""
+}
+
+// GetOsTypeName gets the name of an os type.
+func (tnm *TopoNameMapping) GetOsTypeName(osType string) string {
+	if tnm.OsType == nil {
+		return ""
+	}
+
+	if name, ok := tnm.OsType[osType]; ok {
+		return name
+	}
+
+	return ""
+}
+
 // Links represents links.
 type Links struct {
 	Cluster *Link

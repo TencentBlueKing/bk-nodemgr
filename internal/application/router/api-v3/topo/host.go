@@ -11,9 +11,13 @@
 package topo
 
 import (
+	"context"
+
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -45,7 +49,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		}
 
 		resp := new(proto.TopoHostListResp)
-		resp.ConvertHostsFromTypes(num, nil)
+		resp.ConvertHostsFromTypes(num, nil, types.TopoNameMapping{})
 
 		return resp.GetData(), nil
 	}
@@ -59,8 +63,96 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
+	var mapping types.TopoNameMapping
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		_ = h.completeNetworkAreaName(sCtx, hosts, &mapping)
+		return nil
+	})
+	gp.Go(func() error {
+		_ = h.completeNetworkUnitName(sCtx, hosts, &mapping)
+		return nil
+	})
+	_ = gp.Wait()
+
 	resp := new(proto.TopoHostListResp)
-	resp.ConvertHostsFromTypes(num, hosts)
+	resp.ConvertHostsFromTypes(num, hosts, mapping)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) completeNetworkAreaName(ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	idMap := make(map[int64]bool)
+	for _, host := range hosts {
+		idMap[host.Static.NetworkAreaID] = true
+	}
+
+	ids := make([]int64, len(idMap))
+	index := 0
+	for id := range idMap {
+		ids[index] = id
+		index++
+	}
+
+	items, _, err := h.backendHandler.ListNetworkArea(
+		ctx,
+		types.Page{Limit: len(ids)},
+		&types.NetworkAreaCondition{
+			Type: types.ConditionTypeExactInclude,
+			Exact: &types.NetworkAreaExactFields{
+				NetworkAreaID: ids,
+			},
+		},
+	)
+
+	if err != nil {
+		h.logger.Errorf("failed to complete networkarea name. err: %v", err)
+		return err
+	}
+
+	h.logger.Info("successfully completed networkarea name: %d", len(items))
+	mapping.NetworkArea = make(map[int64]string)
+	for _, item := range items {
+		mapping.NetworkArea[item.ID] = item.Name
+	}
+
+	return nil
+}
+
+func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	idMap := make(map[int64]bool)
+	for _, host := range hosts {
+		idMap[host.Dynamic.NetworkUnitID] = true
+	}
+
+	ids := make([]int64, len(idMap))
+	index := 0
+	for id := range idMap {
+		ids[index] = id
+		index++
+	}
+
+	items, _, err := h.backendHandler.ListNetworkUnit(
+		ctx,
+		types.Page{Limit: len(ids)},
+		&types.NetworkUnitCondition{
+			Type: types.ConditionTypeExactInclude,
+			Exact: &types.NetworkUnitExactFields{
+				NetworkUnitID: ids,
+			},
+		},
+	)
+
+	if err != nil {
+		h.logger.Errorf("failed to complete networkunit name. err: %v", err)
+		return err
+	}
+
+	h.logger.Info("successfully completed networkunit name: %d", len(items))
+	mapping.NetworkUnit = make(map[int64]string)
+	for _, item := range items {
+		mapping.NetworkUnit[item.ID] = item.Name
+	}
+
+	return nil
 }
