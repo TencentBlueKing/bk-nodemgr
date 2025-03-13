@@ -3,7 +3,7 @@
     <Table
       class="mt-[16px] w-full"
       ref="tableRef"
-      :data="workareaStore.list"
+      :data="workareaStore.workareaList"
       :empty-text="$t('table.empty')"
       :pagination="workareaStore.pagination"
       :sort-config="sortConfig"
@@ -78,10 +78,10 @@
         :min-width="140">
         <template #default="{ row }">
           <div class="flex">
-            <Button theme="primary" text class="mr-[12px]" @click="handleToWorkareaDetail(row.bk_networkarea_id)">
+            <Button theme="primary" text class="mr-[12px]" @click="handleEditWorkarea(row)">
               {{ $t('action.edit') }}
             </Button>
-            <Button theme="primary" text @click="handlehandleDeleteWorkarea(row.bk_networkarea_id)">
+            <Button theme="primary" text @click="handleDeleteWorkarea(row.bk_networkarea_id)">
               {{ $t('action.delete') }}
             </Button>
           </div>
@@ -102,6 +102,8 @@ import { Table, TableColumn } from '@blueking/table';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import { useWorkareaStore } from '@/stores/workarea';
+
+const emit = defineEmits(['edit']);
 
 const { t } = useI18n();
 const router = useRouter();
@@ -163,9 +165,13 @@ const handleToWorkareaDetail = (bk_networkarea_id: number) => {
   });
 };
 
+const handleEditWorkarea = (workareaData: NetworkArea) => {
+  emit('edit', workareaData);
+};
+
 // todo
 // 可能需要补充交互(message/重置筛选/重置pagination)
-const handlehandleDeleteWorkarea = (bk_networkarea_id: number) => {
+const handleDeleteWorkarea = (bk_networkarea_id: number) => {
   InfoBox({
     title: t('topoManager.workArea.delete.title'),
     cancelText: t('action.cancel'),

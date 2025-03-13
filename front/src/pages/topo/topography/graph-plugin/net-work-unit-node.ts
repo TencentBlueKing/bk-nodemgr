@@ -46,7 +46,6 @@ export default class NetWorkUnitNode extends BaseNode {
     height: 24,
     x: 20,
     y: 20,
-    zIndex: 2,
   };
   // 默认Logo文案样式
   static defaultLogoTextStyle: Omit<TextStyleProps, 'text'> = {
@@ -57,7 +56,6 @@ export default class NetWorkUnitNode extends BaseNode {
     y: 80,
     textAlign: 'end',
     fill: '#4D4F56',
-    zIndex: 2,
   };
   // 默认外层节点属性
   static defaultNodeStyle: RectStyleProps = {
@@ -71,7 +69,6 @@ export default class NetWorkUnitNode extends BaseNode {
     height: 64,
     width: 64,
     radius: 200,
-    zIndex: 2,
   };
 
   // 默认tag样式
@@ -79,14 +76,12 @@ export default class NetWorkUnitNode extends BaseNode {
     height: 16,
     radius: 8,
     x: 12,
-    zIndex: 2,
   };
 
   static defaultTagTextStyle: Omit<TextStyleProps, 'text'> = {
     fontSize: 8,
     x: 10,
     lineHeight: 22,
-    zIndex: 2,
   };
 
   get data(): INodeData {

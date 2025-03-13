@@ -3,27 +3,26 @@
     <Dialog
       :is-show="isShow"
       :title="dialogTitle"
-      @confirm="handleConfirm"
-      @closed="isShow = false"
       render-directive="if"
+      @closed="isShow = false"
     >
       <Loading :loading="loading">
         <Form :model="form" form-type="vertical" :rules="rules" ref="formRef" :width="480">
           <Form.FormItem
             :label="$t('topoManager.workArea.form.workareaName')"
-            property="bkNetworkareaName"
+            property="bk_networkarea_name"
             required>
-            <Input class="w-[432px]" v-model="form.bkNetworkareaName" />
+            <Input class="w-[432px]" v-model="form.bk_networkarea_name" />
           </Form.FormItem>
           <Form.FormItem
             :label="$t('topoManager.workArea.form.vendor')"
-            property="bkCloudVendor"
+            property="bk_cloud_vendor"
             required>
             <Select
-              v-model="vendor"
+              v-model="form.bk_cloud_vendor"
               :filterable="false"
             >
-              <template #prefix v-if="vendor">
+              <template #prefix v-if="form.bk_cloud_vendor">
                 <div class="flex items-center">
                   <img
                     class="h-[18px] w-[18px] rounded-[50px] p-[2px] ml-[8px]"
@@ -49,14 +48,24 @@
           </Form.FormItem>
         </Form>
       </Loading>
+      <template #footer>
+        <Button
+          theme="primary"
+          :loading="loading"
+          class="mr-[8px] w-[64px]"
+          @click="handleConfirm">
+          {{ $t('action.confirm') }}
+        </Button>
+        <Button @click="isShow = false" class="w-[64px]">{{ $t('action.cancel') }}</Button>
+      </template>
     </Dialog>
     <GuideDialog v-model:is-show="isGuideShow"></GuideDialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Dialog, Form, Input, Loading, Select } from 'bkui-vue';
-import { computed, reactive, ref } from 'vue';
+import { Button, Dialog, Form, Input, Loading, Select } from 'bkui-vue';
+import { computed, PropType, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import GuideDialog from './guide-dialog.vue';
@@ -71,15 +80,15 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  curWorkareaData: {
+    type: Object as PropType<NetworkArea>,
+  },
 });
 
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
 const dialogTitle = computed(() => (props.isCreate ? t('topoManager.workArea.form.create') : t('topoManager.workArea.form.edit')));
-
-const vendor = ref();
-const curVendor = computed(() => SelectOptions.value.find(item => item.id === vendor.value));
 
 const isGuideShow = ref(false);
 
@@ -131,20 +140,21 @@ const SelectOptions = ref([
   },
 ]);
 const formRef = ref();
-const form = reactive({
-  bkNetworkareaName: '',
-  bkCloudVendor: 0,
-} as TopoNetworkAreaCreateReq);
+const form = reactive<TopoNetworkAreaCreateReq>({
+  bk_networkarea_name: '',
+  bk_cloud_vendor: '',
+});
+const curVendor = computed(() => SelectOptions.value.find(item => item.id === form.bk_cloud_vendor));
 
 const rules = ref({
-  bkNetworkareaName: [
+  bk_networkarea_name: [
     {
       required: true,
       message: t('topoManager.workArea.formRule.workareaName'),
       trigger: 'blur',
     },
   ],
-  bkCloudVendor: [
+  bk_cloud_vendor: [
     {
       required: true,
       message: t('topoManager.workArea.formRule.vendor'),
@@ -153,27 +163,40 @@ const rules = ref({
   ],
 });
 
-const initForm = () => {
-  form.bkCloudVendor = 0;
-  form.bkNetworkareaName = '';
-  vendor.value = '';
+const resetForm = () => {
+  form.bk_cloud_vendor = '';
+  form.bk_networkarea_name = '';
 };
 const loading = ref(false);
 const handleConfirm = async () => {
-  const result = await formRef.value.validate();
-  if (!result) return;
-  loading.value = true;
-  const res = await workareaStore.handleCreateWorkarea({
-    bk_networkarea_name: form.bkNetworkareaName,
-    bk_cloud_vendor: form.bkCloudVendor,
-  });
-  loading.value = false;
-  if (res) {
-
+  try {
+    const result = await formRef.value.validate();
+    if (!result) return;
+    loading.value = true;
+    const res = await workareaStore.handleCreateWorkarea(form);
+    if (res && props.isCreate) {
+      isGuideShow.value = true;
+    }
+    isShow.value = false;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
   }
-  isShow.value = false;
-  initForm();
-  isGuideShow.value = true;
 };
+
+const initFormData = async () => {
+  form.bk_cloud_vendor = props.curWorkareaData?.bk_cloud_vendor || '';
+  form.bk_networkarea_name = props.curWorkareaData?.bk_networkarea_name || '';
+}
+
+watch(isShow, (curShow) => {
+  if (!curShow) {
+    resetForm();
+  }
+  if (!props.isCreate) {
+    initFormData();
+  }
+});
 
 </script>

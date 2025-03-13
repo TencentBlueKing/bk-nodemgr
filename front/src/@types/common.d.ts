@@ -77,7 +77,6 @@ interface HostState {
   node_status: string;
   node_version: string;
   bk_agent_id: string;
-  bk_networkunit_id: number;
 }
 
 // HostInfo describes the host info informations. Usually contains static

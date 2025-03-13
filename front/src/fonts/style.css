@@ -377,3 +377,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-cloud-machine:before {
 	content: "\e184";
 }
+.nc-delete-3:before {
+	content: "\e185";
+}
