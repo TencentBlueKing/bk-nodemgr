@@ -68,6 +68,9 @@
           </template>
         </VxeColumn>
       </VxeColgroup>
+      <template #empty>
+        <slot></slot>
+      </template>
     </VxeTable>
 </template>
 
@@ -76,9 +79,14 @@ import { VxeTable, VxeColumn, VxeColgroup } from '@blueking/vxe-table';
 import { Input, Button } from 'bkui-vue';
 import { ref } from 'vue';
 
+const props = defineProps({
+  data: {
+    type: Array,
+    default: () => [],
+  }
+});
 const tableData = ref( [
-    { ipv4: '', ipv6: '', os: 'Windows', loginIp: '', loginPort: '', loginUser: '', authMethod: '', password: '', configName: '', action: '' },
-    
+  // { ipv4: '', ipv6: '', os: 'Windows', loginIp: '', loginPort: '', loginUser: '', authMethod: '', password: '', configName: '', action: '' },
 ]);
 </script>
   

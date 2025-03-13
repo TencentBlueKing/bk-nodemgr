@@ -20,35 +20,7 @@
         <div class="installForm">
             <Form ref="formRef" :model="formData" :rules="rules">
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.type')" required>
-                    <div class="form-item-content">   
-                        <div class="normal type">
-                            <div class="prefix">
-                                <i class="nodeman-icon nc-monitor"></i>
-                            </div>
-                            <div class="text">
-                                <p>普通远程安装</p>
-                                <p>线上表单填写，需要提供登录信息</p>
-                            </div>
-                        </div>
-                        <div class="excel_import type">
-                            <div class="prefix">
-                                <i class="nodeman-icon nc-excel"></i>
-                            </div>
-                            <div class="text">
-                                <p>Excel 导入远程安装</p>
-                                <p>Excel 导入填写， 需要提供登录信息</p>
-                            </div>
-                        </div>
-                        <div class="manual type">
-                            <div class="prefix">
-                                <i class="nodeman-icon nc-manual"></i>
-                            </div>
-                            <div class="text">
-                                <p>手动安装</p>
-                                <p>无需提供登录信息，自行在服务器上执行给定命令完成安装</p>
-                            </div>
-                        </div>
-                    </div>
+                    <install-type @update:active-type="updateInstallType"></install-type>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.business')" property="business" required>
                     <Select class="content-basic" v-model="formData.business" auto-focus filterable :list="datasourceList" @select="handleSelect"></Select>
@@ -132,6 +104,11 @@ const selectedValue = ref('');
 const datasourceList = ref([]);
 const isAtBottom = ref(false);
 const handleSelect = (value: string) => {
+}
+// 安装方式
+const activeInstallType = ref('normal');
+const updateInstallType = (type: string) => {
+    activeInstallType.value = type;
 }
 // 显示侧边栏安装策略
 const handleShowPanel = () => {
