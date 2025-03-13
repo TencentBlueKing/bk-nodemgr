@@ -34,7 +34,7 @@ func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.Netw
 		*item.BkNetworkunitId = networkUnit.ID
 		*item.BkNetworkunitName = networkUnit.Name
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
-		item.AccessPoints = networkUnit.AccessPoints
+		item.Accesspoints = networkUnit.AccessPoints
 
 		unitItems[idx] = item
 	}
@@ -157,6 +157,6 @@ func newEmptyNetworkUnitGraph() *NetworkUnitGraph {
 		BkNetworkunitId:   new(int64),
 		BkNetworkunitName: new(string),
 		BkNetworkareaId:   new(int64),
-		AccessPoints:      make([]int64, 0),
+		Accesspoints:      make([]int64, 0),
 	}
 }

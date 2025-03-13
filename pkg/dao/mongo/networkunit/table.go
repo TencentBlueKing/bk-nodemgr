@@ -25,13 +25,15 @@ type NetworkUnit struct {
 	NetworkUnitName string `json:"networkunit_name" bson:"networkunit_name"`
 
 	NetworkAreaID int64   `json:"networkarea_id" bson:"networkarea_id"`
-	AccessPoints  []int64 `json:"access_points" bson:"access_points"`
+	AccessPoints  []int64 `json:"accesspoints" bson:"accesspoints"`
 	Links         *Links  `json:"links" bson:"links"`
 }
 
 // Link represents link target.
 type Link struct {
-	AccessPointID int64 `json:"access_point_id" bson:"access_point_id"`
+	NetworkAreaID int64 `json:"networkarea_id" bson:"networkarea_id"`
+	NetworkUnitID int64 `json:"networkunit_id" bson:"networkunit_id"`
+	AccessPointID int64 `json:"accesspoint_id" bson:"accesspoint_id"`
 }
 
 // Links represents links.

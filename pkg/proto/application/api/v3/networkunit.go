@@ -35,12 +35,12 @@ func (x *TopoNetworkUnitCreateReq) ConvertAccssPointsToTypes(
 	tenantID string,
 	networkAreaID int64) []*types.AccessPoint {
 
-	return convertAccessPointsToTypes(tenantID, networkAreaID, x.GetAccessPoints())
+	return convertAccesspointsToTypes(tenantID, networkAreaID, x.GetAccesspoints())
 }
 
-// ConvertAccessPointsFromTypes convert accesspoint from types to proto.
-func (x *TopoNetworkUnitCreateReq) ConvertAccessPointsFromTypes(accessPoints []*types.AccessPoint) {
-	x.AccessPoints = convertAccessPointsFromTypes(accessPoints)
+// ConvertAccesspointsFromTypes convert accesspoint from types to proto.
+func (x *TopoNetworkUnitCreateReq) ConvertAccesspointsFromTypes(accessPoints []*types.AccessPoint) {
+	x.Accesspoints = convertAccesspointsFromTypes(accessPoints)
 }
 
 // ConvertLinksToTypes convert links from proto to types.
@@ -75,12 +75,12 @@ func (x *TopoNetworkUnitUpdateReq) ConvertAccssPointsToTypes(
 	tenantID string,
 	networkAreaID int64) []*types.AccessPoint {
 
-	return convertAccessPointsToTypes(tenantID, networkAreaID, x.GetAccessPoints())
+	return convertAccesspointsToTypes(tenantID, networkAreaID, x.GetAccesspoints())
 }
 
-// ConvertAccessPointsFromTypes convert access points from types to proto.
-func (x *TopoNetworkUnitUpdateReq) ConvertAccessPointsFromTypes(accessPoints []*types.AccessPoint) {
-	x.AccessPoints = convertAccessPointsFromTypes(accessPoints)
+// ConvertAccesspointsFromTypes convert access points from types to proto.
+func (x *TopoNetworkUnitUpdateReq) ConvertAccesspointsFromTypes(accessPoints []*types.AccessPoint) {
+	x.Accesspoints = convertAccesspointsFromTypes(accessPoints)
 }
 
 // ConvertLinksToTypes convert links from proto to types.
@@ -120,7 +120,7 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	*data.BkNetworkunitName = networkUnit.Name
 	*data.BkNetworkareaId = networkUnit.NetworkAreaID
 
-	data.AccessPoints = convertAccessPointsFromTypes(accessPoints)
+	data.Accesspoints = convertAccesspointsFromTypes(accessPoints)
 	data.Links = convertLinksFromTypes(networkUnit.Links)
 
 	x.Data = data
@@ -133,7 +133,7 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 		return nil, nil
 	}
 
-	accessPoints := convertAccessPointsToTypes(data.GetTenantId(), data.GetBkNetworkareaId(), data.GetAccessPoints())
+	accessPoints := convertAccesspointsToTypes(data.GetTenantId(), data.GetBkNetworkareaId(), data.GetAccesspoints())
 	accessPointsMap := make(map[int64]*types.AccessPoint)
 	accessPointIDs := make([]int64, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
@@ -213,7 +213,7 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, netw
 		*item.BkNetworkunitId = networkUnit.ID
 		*item.BkNetworkunitName = networkUnit.Name
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
-		item.AccessPoints = networkUnit.AccessPoints
+		item.Accesspoints = networkUnit.AccessPoints
 		item.Links = convertLinksFromTypes(networkUnit.Links)
 
 		items[idx] = item
@@ -240,7 +240,7 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 			NetworkAreaID: item.GetBkNetworkareaId(),
 			ID:            item.GetBkNetworkunitId(),
 			Name:          item.GetBkNetworkunitName(),
-			AccessPoints:  item.GetAccessPoints(),
+			AccessPoints:  item.GetAccesspoints(),
 			Links:         convertLinksToTypes(item.GetLinks()),
 		}
 	}
@@ -271,7 +271,7 @@ func newEmptyNetworkUnit() *NetworkUnit {
 		BkNetworkunitId:   new(int64),
 		BkNetworkunitName: new(string),
 		BkNetworkareaId:   new(int64),
-		AccessPoints:      make([]*AccessPoint, 0),
+		Accesspoints:      make([]*AccessPoint, 0),
 		Links: &Links{
 			Cluster: newEmptyLink(),
 			File:    newEmptyLink(),
@@ -286,7 +286,7 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 		BkNetworkunitId:   new(int64),
 		BkNetworkunitName: new(string),
 		BkNetworkareaId:   new(int64),
-		AccessPoints:      make([]int64, 0),
+		Accesspoints:      make([]int64, 0),
 		Links: &Links{
 			Cluster: newEmptyLink(),
 			File:    newEmptyLink(),
@@ -309,7 +309,7 @@ func newEmptyAccessPoint() *AccessPoint {
 	}
 }
 
-func convertAccessPointsToTypes(
+func convertAccesspointsToTypes(
 	tenantID string, networkAreaID int64, accessPoints []*AccessPoint) []*types.AccessPoint {
 
 	data := make([]*types.AccessPoint, len(accessPoints))
@@ -331,7 +331,7 @@ func convertAccessPointsToTypes(
 	return data
 }
 
-func convertAccessPointsFromTypes(accessPoints []*types.AccessPoint) []*AccessPoint {
+func convertAccesspointsFromTypes(accessPoints []*types.AccessPoint) []*AccessPoint {
 	data := make([]*AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
 		protoAccessPoint := newEmptyAccessPoint()
@@ -355,36 +355,42 @@ func convertAccessPointsFromTypes(accessPoints []*types.AccessPoint) []*AccessPo
 func convertLinksToTypes(links *Links) types.Links {
 	data := types.Links{}
 	if links != nil {
-		if reqLink := links.GetCluster(); reqLink != nil {
-			data.Cluster = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetFile(); reqLink != nil {
-			data.File = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
-		if reqLink := links.GetData(); reqLink != nil {
-			data.Data = &types.Link{AccessPointID: reqLink.GetAccesspointId()}
-		}
+		data.Cluster = convertLinkToTypes(links.GetCluster())
+		data.File = convertLinkToTypes(links.GetFile())
+		data.Data = convertLinkToTypes(links.GetData())
 	}
 
 	return data
 }
 
 func convertLinksFromTypes(links types.Links) *Links {
-	data := &Links{
-		Cluster: &Link{AccesspointId: -1},
-		File:    &Link{AccesspointId: -1},
-		Data:    &Link{AccesspointId: -1},
+	return &Links{
+		Cluster: convertLinkFromTypes(links.Cluster),
+		File:    convertLinkFromTypes(links.File),
+		Data:    convertLinkFromTypes(links.Data),
+	}
+}
+
+func convertLinkToTypes(link *Link) *types.Link {
+	if link == nil {
+		return nil
 	}
 
-	if links.Cluster != nil {
-		data.Cluster.AccesspointId = links.Cluster.AccessPointID
+	return &types.Link{
+		NetworkAreaID: link.GetBkNetworkareaId(),
+		NetworkUnitID: link.GetBkNetworkunitId(),
+		AccessPointID: link.GetAccesspointId(),
 	}
-	if links.File != nil {
-		data.File.AccesspointId = links.File.AccessPointID
-	}
-	if links.Data != nil {
-		data.Data.AccesspointId = links.Data.AccessPointID
+}
+
+func convertLinkFromTypes(link *types.Link) *Link {
+	if link == nil {
+		return nil
 	}
 
-	return data
+	return &Link{
+		BkNetworkareaId: link.NetworkAreaID,
+		BkNetworkunitId: link.NetworkUnitID,
+		AccesspointId:   link.AccessPointID,
+	}
 }

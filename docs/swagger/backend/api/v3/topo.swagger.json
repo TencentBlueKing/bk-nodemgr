@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/topo/event/list": {
+      "post": {
+        "summary": "EventList provides event listing.",
+        "operationId": "Topo_EventList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoEventListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoEventListReq describes the HTTP request body when get host in topo\nservice.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoEventListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/list": {
       "post": {
         "summary": "HostList provides business listing.",
@@ -606,6 +640,14 @@
     "v3Link": {
       "type": "object",
       "properties": {
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "accesspoint_id": {
           "type": "string",
           "format": "int64"
@@ -664,7 +706,7 @@
           "type": "string",
           "format": "int64"
         },
-        "access_points": {
+        "accesspoints": {
           "type": "array",
           "items": {
             "type": "object",
@@ -694,7 +736,7 @@
           "type": "string",
           "format": "int64"
         },
-        "access_points": {
+        "accesspoints": {
           "type": "array",
           "items": {
             "type": "string",
@@ -793,6 +835,134 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Business"
+          }
+        }
+      }
+    },
+    "v3TopoEvent": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "accesspoint_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "accesspoint_name": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "TopoEvent describes the topo event."
+    },
+    "v3TopoEventListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoEventListReqExactConditions"
+        }
+      },
+      "description": "TopoEventListReq describes the HTTP request body when get host in topo\nservice."
+    },
+    "v3TopoEventListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "accesspoint_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3TopoEventListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoEventListRespData"
+        }
+      },
+      "description": "TopoEventListResp describes the HTTP response body when get host in topo\nservice."
+    },
+    "v3TopoEventListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "string",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoEvent"
           }
         }
       }
@@ -1197,7 +1367,7 @@
           "type": "string",
           "format": "int64"
         },
-        "access_points": {
+        "accesspoints": {
           "type": "array",
           "items": {
             "type": "object",
@@ -1388,7 +1558,7 @@
           "type": "string",
           "format": "int64"
         },
-        "access_points": {
+        "accesspoints": {
           "type": "array",
           "items": {
             "type": "object",

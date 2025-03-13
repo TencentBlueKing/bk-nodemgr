@@ -17,50 +17,50 @@ import (
 )
 
 const (
-	maxHostLimit = 1000
+	maxEventLimit = 1000
 )
 
-// ListHost lists hosts with page and conditions.
-func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoHostListReq)
+// ListEvent lists events with page and conditions.
+func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
+	req := new(proto.TopoEventListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
+		h.logger.Errorf("failed to list event, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to list host, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to list event, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountHost(
+		num, err := h.storage.CountTopoEvent(
 			sCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.Errorf("failed to list host. failed to count host. err: %v", err)
+			h.logger.Errorf("failed to list event. failed to count event. err: %v", err)
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 		}
 
-		resp := new(proto.TopoHostListResp)
-		resp.ConvertHostsFromTypes(num, nil)
+		resp := new(proto.TopoEventListResp)
+		resp.ConvertTopoEventsFromTypes(num, nil)
 
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListHost(
+	events, num, err := h.storage.ListTopoEvent(
 		sCtx,
-		req.ConvertPageToTypes(maxHostLimit),
+		req.ConvertPageToTypes(maxEventLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to list host. err: %v", err)
+		h.logger.Errorf("failed to list event. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoHostListResp)
-	resp.ConvertHostsFromTypes(num, hosts)
+	resp := new(proto.TopoEventListResp)
+	resp.ConvertTopoEventsFromTypes(num, events)
 
 	return resp.GetData(), nil
 }

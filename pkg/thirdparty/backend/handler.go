@@ -80,7 +80,8 @@ type Handler interface {
 	// @param networkUnit the network unit to create.
 	// @param accessPoints the access points of the network unit.
 	// @return the network-unit id.
-	CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (int64, error)
+	CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+		int64, error)
 
 	// UpdateNetworkUnit update network unit within specified tenant in context.
 	// @param ctx context, contains tenant-id.
@@ -108,6 +109,20 @@ type Handler interface {
 	// @param networkUnitID the network unit id.
 	// @return the network-unit id.
 	DeleteNetworkUnit(ctx context.Context, networkUnitID int64) error
+
+	// ListTopoEvent list topo events by page and conditions.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the topo-event list with page and the total count with filter.
+	ListTopoEvent(ctx context.Context, page types.Page, condition *types.TopoEventCondition) (
+		[]*types.TopoEvent, int64, error)
+
+	// CountTopoEvent count topo events by condition.
+	// @param ctx context, contains tenant-id.
+	// @param condition the filter conditions.
+	// @return the topo-event count with filter.
+	CountTopoEvent(ctx context.Context, condition *types.TopoEventCondition) (int64, error)
 }
 
 type handler struct {
@@ -193,7 +208,6 @@ func (h *handler) CountHost(ctx context.Context, condition *types.HostCondition)
 	}
 
 	req := &proto.TopoHostListReq{
-		Page:      &proto.Page{},
 		OnlyCount: true,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -340,7 +354,7 @@ func (h *handler) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 		BkNetworkunitName: networkUnit.Name,
 		BkNetworkareaId:   networkUnit.NetworkAreaID,
 	}
-	req.ConvertAccessPointsFromTypes(accessPoints)
+	req.ConvertAccesspointsFromTypes(accessPoints)
 	req.ConvertLinksFromTypes(networkUnit.Links)
 
 	resp, err := h.cli.createNetworkUnit(ctx, tenantID, req)
@@ -363,7 +377,7 @@ func (h *handler) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 		BkNetworkunitName: networkUnit.Name,
 		BkNetworkareaId:   networkUnit.NetworkAreaID,
 	}
-	req.ConvertAccessPointsFromTypes(accessPoints)
+	req.ConvertAccesspointsFromTypes(accessPoints)
 	req.ConvertLinksFromTypes(networkUnit.Links)
 
 	_, err = h.cli.updateNetworkUnit(ctx, tenantID, req)
@@ -439,4 +453,52 @@ func (h *handler) DeleteNetworkUnit(ctx context.Context, networkUnitID int64) er
 	}
 
 	return nil
+}
+
+// ListTopoEvent list topo event within specified tenant in context.
+func (h *handler) ListTopoEvent(ctx context.Context, page types.Page, condition *types.TopoEventCondition) (
+	[]*types.TopoEvent, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &proto.TopoEventListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listTopoEvent(ctx, tenantID, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, events := resp.ConvertTopoEventsToTypes()
+
+	return events, total, nil
+}
+
+// CountTopoEvent count the number of topo events by conditions.
+func (h *handler) CountTopoEvent(ctx context.Context, condition *types.TopoEventCondition) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	req := &proto.TopoEventListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listTopoEvent(ctx, tenantID, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
 }

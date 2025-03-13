@@ -56,7 +56,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoGraphGetResp)
 	resp.ConvertNetworkUnitsToTypes(networkUnits)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // CountGraphNode counts graph nodes.
@@ -132,5 +132,5 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoGraphNodeCountResp)
 	resp.ConvertNetworkUnitInfosFromTypes(result)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }

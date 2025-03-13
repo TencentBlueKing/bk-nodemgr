@@ -148,7 +148,7 @@ func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPo
 	}
 
 	filter := base.AliveFilter()
-	opt := base.WithInt64Values("data.access_point_id", accessPointID)
+	opt := base.WithInt64Values("data.accesspoint_id", accessPointID)
 	filter = opt(filter)
 
 	data, err := h.tenantDao(tenantID).get(ctx, filter)

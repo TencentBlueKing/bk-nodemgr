@@ -232,56 +232,27 @@ func (h *handler) DeleteMany(ctx context.Context, networkUnitIDs ...int64) error
 }
 
 func convertNetworkUnitFromTypes(networkUnit *types.NetworkUnit) *NetworkUnit {
-	links := &Links{}
-
-	if networkUnit.Links.Cluster != nil {
-		links.Cluster = &Link{
-			AccessPointID: networkUnit.Links.Cluster.AccessPointID,
-		}
-	}
-
-	if networkUnit.Links.File != nil {
-		links.File = &Link{
-			AccessPointID: networkUnit.Links.File.AccessPointID,
-		}
-	}
-
-	if networkUnit.Links.Data != nil {
-		links.Data = &Link{
-			AccessPointID: networkUnit.Links.Data.AccessPointID,
-		}
-	}
-
 	return &NetworkUnit{
 		TenantID:        networkUnit.TenantID,
 		NetworkUnitID:   networkUnit.ID,
 		NetworkUnitName: networkUnit.Name,
 		NetworkAreaID:   networkUnit.NetworkAreaID,
 		AccessPoints:    networkUnit.AccessPoints,
-		Links:           links,
+		Links: &Links{
+			Cluster: convertLinksFromTypes(networkUnit.Links.Cluster),
+			File:    convertLinksFromTypes(networkUnit.Links.File),
+			Data:    convertLinksFromTypes(networkUnit.Links.Data),
+		},
 	}
 }
 
 func convertNetworkUnitToTypes(networkArea *NetworkUnit) *types.NetworkUnit {
-	links := types.Links{}
-
+	var links types.Links
 	if networkArea.Links != nil {
-		if networkArea.Links.Cluster != nil {
-			links.Cluster = &types.Link{
-				AccessPointID: networkArea.Links.Cluster.AccessPointID,
-			}
-		}
-
-		if networkArea.Links.File != nil {
-			links.File = &types.Link{
-				AccessPointID: networkArea.Links.File.AccessPointID,
-			}
-		}
-
-		if networkArea.Links.Data != nil {
-			links.Data = &types.Link{
-				AccessPointID: networkArea.Links.Data.AccessPointID,
-			}
+		links = types.Links{
+			Cluster: convertLinksToTypes(networkArea.Links.Cluster),
+			File:    convertLinksToTypes(networkArea.Links.File),
+			Data:    convertLinksToTypes(networkArea.Links.Data),
 		}
 	}
 
@@ -292,5 +263,29 @@ func convertNetworkUnitToTypes(networkArea *NetworkUnit) *types.NetworkUnit {
 		NetworkAreaID: networkArea.NetworkAreaID,
 		AccessPoints:  networkArea.AccessPoints,
 		Links:         links,
+	}
+}
+
+func convertLinksFromTypes(link *types.Link) *Link {
+	if link == nil {
+		return nil
+	}
+
+	return &Link{
+		NetworkAreaID: link.NetworkAreaID,
+		NetworkUnitID: link.NetworkUnitID,
+		AccessPointID: link.AccessPointID,
+	}
+}
+
+func convertLinksToTypes(link *Link) *types.Link {
+	if link == nil {
+		return nil
+	}
+
+	return &types.Link{
+		NetworkAreaID: link.NetworkAreaID,
+		NetworkUnitID: link.NetworkUnitID,
+		AccessPointID: link.AccessPointID,
 	}
 }

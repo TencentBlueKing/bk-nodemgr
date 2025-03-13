@@ -39,24 +39,10 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() types.HostCondition {
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			OSType:        exactCond.GetBkOsType(),
-			NodeRole: func(source []string) []types.NodeRole {
-				target := make([]types.NodeRole, len(source))
-				for idx, s := range source {
-					target[idx] = types.NodeRole(s)
-				}
-
-				return target
-			}(exactCond.GetNodeRole()),
-			NodeStatus: func(source []string) []types.NodeStatus {
-				target := make([]types.NodeStatus, len(source))
-				for idx, s := range source {
-					target[idx] = types.NodeStatus(s)
-				}
-
-				return target
-			}(exactCond.GetNodeStatus()),
-			NodeVersion: exactCond.GetNodeVersion(),
-			AgentID:     exactCond.GetBkAgentId(),
+			NodeRole:      types.StringListToNodeRoleList(exactCond.GetNodeRole()),
+			NodeStatus:    types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
+			NodeVersion:   exactCond.GetNodeVersion(),
+			AgentID:       exactCond.GetBkAgentId(),
 		}
 
 		return conditions

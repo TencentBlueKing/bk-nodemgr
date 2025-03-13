@@ -11,6 +11,9 @@
 package topo
 
 import (
+	"context"
+	"time"
+
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -37,7 +40,8 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
-	if _, err = h.storage.GetNetworkArea(sCtx, networkAreaID); err != nil {
+	networkArea, err := h.storage.GetNetworkArea(sCtx, networkAreaID)
+	if err != nil {
 		h.logger.Errorf("failed to create networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
 			networkAreaID, err)
 
@@ -45,7 +49,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	}
 
 	// creates networkunit.
-	networkUnitID, err := h.storage.CreateNetworkUnit(
+	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(
 		sCtx,
 		&types.NetworkUnit{
 			TenantID:      ctx.TenantID,
@@ -59,12 +63,49 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	// generates access point event.
+	events := make([]*types.TopoEvent, len(accessPointResult.Created))
+	for idx, accessPoint := range accessPointResult.Created {
+		events[idx] = &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventAccessPointCreate,
+			NetworkAreaID:   networkAreaID,
+			NetworkAreaName: networkArea.Name,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: req.GetBkNetworkunitName(),
+			AccessPointID:   accessPoint.ID,
+			AccessPointName: accessPoint.Name,
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		}
+	}
+
+	// record event.
+	go func() {
+		if err := h.storage.CreateManyTopoEvent(context.Background(), append(events, &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventNetworkUnitCreate,
+			NetworkAreaID:   networkArea.ID,
+			NetworkAreaName: networkArea.Name,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: req.GetBkNetworkunitName(),
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		})...); err != nil {
+			h.logger.Warnf("failed to record topo event in networkunit create. networkunit-id(%d), err: %v", networkUnitID, err)
+		}
+	}()
+
+	h.logger.Infof("successfully created networkunit. networkunit-id(%d), created-accesspoints(%d)",
+		networkUnitID, len(accessPointResult.Created))
+
 	resp := new(proto.TopoNetworkUnitCreateResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnitID)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
+// nolint:funlen
 // UpdateNetworkUnit updates networkunit.
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	req := new(proto.TopoNetworkUnitUpdateReq)
@@ -81,20 +122,24 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
-	if _, err = h.storage.GetNetworkArea(sCtx, networkAreaID); err != nil {
+	networkArea, err := h.storage.GetNetworkArea(sCtx, networkAreaID)
+	if err != nil {
 		h.logger.Errorf("failed to update networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
 			networkAreaID, err)
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	err = h.storage.UpdateNetworkUnit(
+	networkUnitID := req.GetBkNetworkunitId()
+	networkUnitName := req.GetBkNetworkunitName()
+
+	accessPointResult, err := h.storage.UpdateNetworkUnit(
 		sCtx,
 		&types.NetworkUnit{
 			TenantID:      ctx.TenantID,
 			NetworkAreaID: networkAreaID,
-			ID:            req.GetBkNetworkunitId(),
-			Name:          req.GetBkNetworkunitName(),
+			ID:            networkUnitID,
+			Name:          networkUnitName,
 			Links:         req.ConvertLinksToTypes(),
 		},
 		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
@@ -103,10 +148,64 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := new(proto.TopoNetworkUnitUpdateResp)
-	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
+	// generates access point event.
+	cEvents := make([]*types.TopoEvent, len(accessPointResult.Created))
+	for idx, accessPoint := range accessPointResult.Created {
+		cEvents[idx] = &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventAccessPointCreate,
+			NetworkAreaID:   networkAreaID,
+			NetworkAreaName: networkArea.Name,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: networkUnitName,
+			AccessPointID:   accessPoint.ID,
+			AccessPointName: accessPoint.Name,
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		}
+	}
+	uEvents := make([]*types.TopoEvent, len(accessPointResult.Updated))
+	for idx, accessPoint := range accessPointResult.Created {
+		uEvents[idx] = &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventAccessPointUpdate,
+			NetworkAreaID:   networkAreaID,
+			NetworkAreaName: networkArea.Name,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: networkUnitName,
+			AccessPointID:   accessPoint.ID,
+			AccessPointName: accessPoint.Name,
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		}
+	}
+	events := append(cEvents, uEvents...)
 
-	return resp.Data, nil
+	// record event.
+	go func() {
+		if err := h.storage.CreateManyTopoEvent(context.Background(), append(events, &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventNetworkUnitUpdate,
+			NetworkAreaID:   networkArea.ID,
+			NetworkAreaName: networkArea.Name,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: networkUnitName,
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		})...); err != nil {
+			h.logger.Warnf("failed to record topo event in networkunit update. networkunit-id(%d), err: %v",
+				networkUnitID, err)
+		}
+	}()
+
+	h.logger.Infof(
+		"successfully updated networkunit. networkunit-id(%d), created-accesspoints(%d), updated-accesspoints(%d)",
+		networkUnitID, len(accessPointResult.Created), len(accessPointResult.Updated))
+
+	resp := new(proto.TopoNetworkUnitUpdateResp)
+	resp.ConvertNetworkUnitFromTypes(networkUnitID)
+
+	return resp.GetData(), nil
 }
 
 // GetNetworkUnit gets an existing networkunit.
@@ -152,7 +251,7 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitGetResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnit, accessPoints)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // ListNetworkUnit lists network units.
@@ -181,7 +280,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitListResp)
 	resp.ConvertNetworkUnitsFromTypes(num, networkUnits)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // DeleteNetworkUnit deletes an existing network-unit.
@@ -198,13 +297,47 @@ func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	if err := h.storage.DeleteManyNetworkUnit(sCtx, req.GetBkNetworkunitId()); err != nil {
+	networkUnitID := req.GetBkNetworkunitId()
+
+	networkUnit, err := h.storage.GetNetworkUnit(sCtx, networkUnitID)
+	if err != nil {
+		h.logger.Errorf("failed to delete networkunit, failed to get networkunit. err: %v", err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	if err := h.storage.DeleteManyNetworkUnit(sCtx, networkUnitID); err != nil {
 		h.logger.Errorf("failed to delete networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// record event.
+	go func() {
+		// try get networkarea.
+		networkAreaName := ""
+		networkArea, err := h.storage.GetNetworkArea(context.Background(), networkUnit.NetworkAreaID)
+		if err == nil {
+			networkAreaName = networkArea.Name
+		}
+
+		if err := h.storage.CreateManyTopoEvent(context.Background(), &types.TopoEvent{
+			TenantID:        ctx.TenantID,
+			Type:            types.TopoEventNetworkUnitDelete,
+			NetworkAreaID:   networkUnit.NetworkAreaID,
+			NetworkAreaName: networkAreaName,
+			NetworkUnitID:   networkUnitID,
+			NetworkUnitName: networkUnit.Name,
+			OperateTime:     time.Now(),
+			Operator:        ctx.Username,
+		}); err != nil {
+			h.logger.Warnf("failed to record topo event in networkunit delete. networkunit-id(%d), err: %v",
+				req.GetBkNetworkunitId(), err)
+		}
+	}()
+
+	h.logger.Infof("successfully deleted networkunit. networkunit-id(%d)", networkUnitID)
+
 	resp := new(proto.TopoNetworkUnitDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
-	return resp, nil
+	return resp.GetData(), nil
 }

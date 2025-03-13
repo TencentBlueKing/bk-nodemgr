@@ -38,7 +38,7 @@ func (d *dao) ensureIndexes() error {
 	var indexes []mongo.IndexModel
 
 	indexes = append(indexes, mongo.IndexModel{
-		Keys: bson.D{{Key: "data.biz_id", Value: 1}},
+		Keys: bson.D{{Key: "data.host_id", Value: 1}},
 	})
 
 	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)

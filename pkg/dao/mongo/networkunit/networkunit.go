@@ -14,6 +14,7 @@ package networkunit
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
@@ -116,6 +117,10 @@ func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, erro
 
 	networkUnit.NetworkUnitID = newSequence
 	table := &TableNetworkUnit{
+		BasicInfo: base.BasicInfo{
+			CreatedAt: time.Now(),
+			IsDeleted: false,
+		},
 		Data: networkUnit,
 	}
 

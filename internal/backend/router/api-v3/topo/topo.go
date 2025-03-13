@@ -63,4 +63,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/networkunit/create", rest.RestHandlerFunc(h.CreateNetworkUnit))
 	h.rg.POST("/networkunit/update", rest.RestHandlerFunc(h.UpdateNetworkUnit))
 	h.rg.POST("/networkunit/delete", rest.RestHandlerFunc(h.DeleteNetworkUnit))
+
+	// topo event apis.
+	h.rg.POST("/event/list", rest.RestHandlerFunc(h.ListEvent))
 }
