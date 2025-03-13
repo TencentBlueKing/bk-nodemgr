@@ -108,6 +108,32 @@ topoManager:
       proxyStatus: Proxy 状态
       action: 操作
       Reassembly: 重装
+  workUnit:
+    title:
+      create: 新建管控单元
+      edit: 编辑管控单元
+    form:
+      workUnitName: 管控单元名称
+      upstream: 上游接入点
+      downstream: 下游接入点
+      senior: 高级
+      accessPointName: 接入点名称
+      createAccessPoint: 新增接入点
+      deleteTips: 确认要删除该接入点？
+      input: 
+        placeholder: 请输入IP:端口
+        validate: 格式错误，请输入IP:端口
+    delete:
+      title: 确定删除该管控单元？
+      content: 管控单元
+      tips: 删除后，管控单元下按照的Proxy也会被清除，请谨慎操作！
+    empty: 暂无管控单元
+    accessPoints:
+      upstream: 上游接入点
+      downstream: 下游接入点
+    toggle:
+      expand: 展开
+      close: 收起
   topo:
     title: 拓扑图
     toolbar:
@@ -115,7 +141,7 @@ topoManager:
       center: 回中
       originalSize: 原始大小
     select:
-      tips: Select at least {count} workarea
+      tips: 至少选择{count}个区域
   record:
     title: 操作记录
 action:
@@ -125,8 +151,14 @@ action:
   delete: 删除
   confirm: 确定
   cancel: 取消
+  save: 保存
   installProxy: 安装 Proxy
   installLater: 稍后安装
 table:
   empty: 暂无数据
   action: 操作
+message:
+  success:
+    edit: 修改成功
+    create: 新建成功
+    delete: 删除成功

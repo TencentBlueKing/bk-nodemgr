@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { Loading, Select } from 'bkui-vue';
-import { filter, throttle } from 'lodash';
+import { throttle } from 'lodash';
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -48,6 +48,7 @@ import NetworkAreaNode from './graph-plugin/net-work-area-node';
 import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 import ResourceLayout from './graph-plugin/resource-layout';
 
+import type { TopoGraphNodeCountRespNodeInfo } from '@/@types/topo';
 import useMinLengthRef from '@/composables/use-min-length-ref';
 import { useTopoStore } from '@/stores/topo';
 
@@ -70,7 +71,7 @@ const graphData: GraphData = reactive({
 });
 let allAreaNodes: NodeData[] = [];
 let allUnitNodes: NodeData[] = [];
-let allUnitNodesInfo = [];
+let allUnitNodesInfo: TopoGraphNodeCountRespNodeInfo[] = [];
 let allLinkEdges: EdgeData[] = [];
 
 const isLoading = ref(false);
@@ -111,6 +112,10 @@ function handleInitTopo() {
         key: 'scroll-canvas',
         direction: 'y',
       },
+      {
+        type: 'drag-canvas',
+        key: 'drag-canvas',
+      }
     ],
     plugins: [
       {
@@ -245,13 +250,13 @@ function updateNodeProxyAgentInfo() {
 // 根据workarea_id筛选数据
 function filterAreaNodes() {
   const newValSet = new Set(regionList.value);
-  const curAreaNodes = allAreaNodes.filter((item) => {
+  const curAreaNodes = allAreaNodes.filter((item: NodeData) => {
     const targetId = Number(item.id.replace(workAreaPrefix, ''));
     const result = newValSet.has(targetId);
     return result;
   });
   const curUnitNodes = allUnitNodes.filter((item) => {
-    const targetId = Number(item.data.area.replace(workAreaPrefix, ''));
+    const targetId = Number((item.data?.area as string).replace(workAreaPrefix, ''));
     const result = newValSet.has(targetId);
     return result;
   });

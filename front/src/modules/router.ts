@@ -99,6 +99,7 @@ const routes = setupLayouts([
             component: WorkArea,
             meta: {
               title: '管控区域',
+              subTitle: '管控区域是互相之间能直接通信的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）。',
               back: false,
               mainMenu: 'topoManager',
             },
