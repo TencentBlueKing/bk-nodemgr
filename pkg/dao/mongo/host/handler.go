@@ -13,19 +13,35 @@ package host
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Handler host handler interface.
 type Handler interface {
-	UpsertMany(ctx context.Context, hosts []*types.Host) error
+	// ListAll lists all hosts.
 	ListAll(ctx context.Context) ([]*types.Host, error)
+
+	// Count count hosts by conditions.
+	Count(ctx context.Context, opts ...OptFn) (int64, error)
+
+	// List lists hosts by page and conditions.
+	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
+
+	// UpsertMany updates or inserts hosts.
+	UpsertMany(ctx context.Context, hosts ...*types.Host) error
+
+	// UpsertStaticMany updates or inserts host statics.
+	UpsertStaticMany(ctx context.Context, hosts ...*types.Host) error
+
+	// UpdateDynamicMany updates host dynamics. will not insert.
+	UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error
 }
 
 type handler struct {
@@ -57,37 +73,6 @@ func New(client *mongo.Database, logger logger.Logger) Handler {
 	}
 }
 
-// UpsertMany updates or inserts hosts.
-func (h *handler) UpsertMany(ctx context.Context, hosts []*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
-	data := make([]*Host, len(hosts))
-	for idx, host := range hosts {
-		data[idx] = &Host{
-			TenantID:      host.TenantID,
-			NetworkAreaID: host.NetworkAreaID,
-			BizID:         host.BizID,
-			HostID:        host.HostID,
-			InnerIP:       host.InnerIP,
-			Mac:           host.Mac,
-			OSType:        host.OSType,
-		}
-
-		if data[idx].TenantID != tenantID {
-			return fmt.Errorf("tenantID not match, ctx-tenantID(%s), host-tenantID(%s)", tenantID, host.TenantID)
-		}
-	}
-
-	if err := h.tenantDao(tenantID).upsertMany(ctx, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // ListAll list all host.
 func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
 	tenantID, err := tenant.GetID(ctx)
@@ -102,16 +87,224 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
 
 	data := make([]*types.Host, len(hosts))
 	for idx, host := range hosts {
-		data[idx] = &types.Host{
-			TenantID:      host.TenantID,
-			NetworkAreaID: host.NetworkAreaID,
-			BizID:         host.BizID,
-			HostID:        host.HostID,
-			InnerIP:       host.InnerIP,
-			Mac:           host.Mac,
-			OSType:        host.OSType,
-		}
+		data[idx] = convertHostToTypes(host)
 	}
 
 	return data, nil
+}
+
+// Count count host by conditions.
+func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).count(ctx, filter)
+}
+
+// List list host by page and conditions.
+func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+	[]*types.Host, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.tenantDao(tenantID).count(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := new(options.FindOptions)
+	if page.Offset > 0 {
+		findOpt.SetSkip(int64(page.Offset))
+	}
+	if page.Limit > 0 {
+		findOpt.SetLimit(int64(page.Limit))
+	}
+
+	bizs, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := make([]*types.Host, len(bizs))
+	for idx, host := range bizs {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, num, nil
+}
+
+// UpsertMany updates or inserts hosts.
+func (h *handler) UpsertMany(ctx context.Context, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(hosts) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	data := make([]*Host, len(hosts))
+	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		data[idx] = convertHostFromTypes(host)
+
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
+		}
+	}
+
+	if err := h.tenantDao(tenantID).upsertMany(ctx, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpsertStaticMany updates or inserts host statics.
+func (h *handler) UpsertStaticMany(ctx context.Context, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(hosts) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	data := make([]*Host, len(hosts))
+	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		data[idx] = convertHostFromTypes(host)
+
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
+		}
+	}
+
+	if err := h.tenantDao(tenantID).upsertStaticMany(ctx, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateDynamicMany updates host dynamics. will not insert.
+func (h *handler) UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	data := make([]*Host, len(hosts))
+	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		data[idx] = convertHostFromTypes(host)
+
+		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return err
+		}
+	}
+
+	if err := h.tenantDao(tenantID).updateDynamicMany(ctx, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func convertHostFromTypes(host *types.Host) *Host {
+	static := &HostStatic{}
+	if host.Static != nil {
+		static = &HostStatic{
+			NetworkAreaID: host.Static.NetworkAreaID,
+			BizID:         host.Static.BizID,
+			HostName:      host.Static.HostName,
+			DeptName:      host.Static.DeptName,
+			InnerIP:       host.Static.InnerIP,
+			InnerIPV6:     host.Static.InnerIPV6,
+			OuterIP:       host.Static.OuterIP,
+			OuterIPV6:     host.Static.OuterIPV6,
+			Mac:           host.Static.Mac,
+			OSType:        host.Static.OSType,
+		}
+	}
+
+	dynamic := &HostDynamic{}
+	if host.Dynamic != nil {
+		dynamic = &HostDynamic{
+			NodeRole:      string(host.Dynamic.NodeRole),
+			NodeStatus:    string(host.Dynamic.NodeStatus),
+			NodeVersion:   host.Dynamic.NodeVersion,
+			AgentID:       host.Dynamic.AgentID,
+			NetworkUnitID: host.Dynamic.NetworkUnitID,
+		}
+	}
+
+	return &Host{
+		HostID:   host.HostID,
+		TenantID: host.TenantID,
+		Static:   static,
+		Dynamic:  dynamic,
+	}
+}
+
+func convertHostToTypes(host *Host) *types.Host {
+	static := &types.HostStatic{}
+	if host.Static != nil {
+		static = &types.HostStatic{
+			NetworkAreaID: host.Static.NetworkAreaID,
+			BizID:         host.Static.BizID,
+			HostName:      host.Static.HostName,
+			DeptName:      host.Static.DeptName,
+			InnerIP:       host.Static.InnerIP,
+			InnerIPV6:     host.Static.InnerIPV6,
+			OuterIP:       host.Static.OuterIP,
+			OuterIPV6:     host.Static.OuterIPV6,
+			Mac:           host.Static.Mac,
+			OSType:        host.Static.OSType,
+		}
+	}
+
+	dynamic := &types.HostDynamic{}
+	if host.Dynamic != nil {
+		dynamic = &types.HostDynamic{
+			NodeRole:      types.NodeRole(host.Dynamic.NodeRole),
+			NodeStatus:    types.NodeStatus(host.Dynamic.NodeStatus),
+			NodeVersion:   host.Dynamic.NodeVersion,
+			AgentID:       host.Dynamic.AgentID,
+			NetworkUnitID: host.Dynamic.NetworkUnitID,
+		}
+	}
+
+	return &types.Host{
+		HostID:   host.HostID,
+		TenantID: host.TenantID,
+		Static:   static,
+		Dynamic:  dynamic,
+	}
 }

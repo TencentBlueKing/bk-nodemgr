@@ -25,14 +25,15 @@ FILE_V3_PROTO_FILES = $(wildcard $(FILE_V3_PROTO_DIR)/*.proto)
 FILE_V3_GO_FILES = $(patsubst $(FILE_V3_PROTO_DIR)/%.proto,$(FILE_V3_GO_OUT_DIR)/%.pb.go,$(FILE_V3_PROTO_FILES))
 
 # cmd
-MKDIR  = mkdir -p
-ECHO   = $(if $(filter Linux,$(shell uname)),@echo -e,@echo)
-CD     = cd
-CP     = cp
-RM     = rm
-SH     = sh
-PROTOC = protoc -Ithirdparty/
-FORMAT = clang-format -i
+MKDIR   = mkdir -p
+ECHO    = $(if $(filter Linux,$(shell uname)),@echo -e,@echo)
+CD      = cd
+CP      = cp
+RM      = rm
+SH      = sh
+PROTOC  = protoc -Ithirdparty/
+FORMAT  = clang-format -i
+REPLACE = sed -i 's/,omitempty//g'
 
 default: all
 pre:
@@ -46,6 +47,7 @@ pre:
 
 $(APPLICATION_V3_GO_OUT_DIR)/%.pb.go: $(APPLICATION_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(APPLICATION_V3_PROTO_DIR) --go_out=paths=source_relative:$(APPLICATION_V3_GO_OUT_DIR) --openapiv2_out=$(APPLICATION_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
+	$(REPLACE) $@
 
 application-v3: pre
 	$(MAKE) $(APPLICATION_V3_GO_FILES)
@@ -53,6 +55,7 @@ application-v3: pre
 
 $(BACKEND_V3_GO_OUT_DIR)/%.pb.go: $(BACKEND_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(BACKEND_V3_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_V3_GO_OUT_DIR) --openapiv2_out=$(BACKEND_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
+	$(REPLACE) $@
 
 backend-v3: pre
 	$(MAKE) $(BACKEND_V3_GO_FILES)
@@ -60,6 +63,7 @@ backend-v3: pre
 
 $(FILE_V3_GO_OUT_DIR)/%.pb.go: $(FILE_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(FILE_V3_PROTO_DIR) --go_out=paths=source_relative:$(FILE_V3_GO_OUT_DIR) --openapiv2_out=$(FILE_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
+	$(REPLACE) $@
 
 file-v3: pre
 	$(MAKE) $(FILE_V3_GO_FILES)

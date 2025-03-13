@@ -114,7 +114,7 @@ func (act *syncBusinessFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = act.topoStorage.UpsertBusiness(tenantCtx, result.Items...); err != nil {
+	if err = act.topoStorage.UpsertManyBusiness(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

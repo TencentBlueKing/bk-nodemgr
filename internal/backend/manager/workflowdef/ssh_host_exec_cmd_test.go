@@ -29,7 +29,7 @@ func testAction(t *testing.T) (crypter.Crypter, operengine.ActionDef) {
 		t.Fatal(err)
 	}
 
-	crypt, err := crypter.NewAESCrypter([]byte(os.Getenv("ENCRYPT_KEY")))
+	crypt, err := crypter.NewAESCrypter([]byte(os.Getenv("SSH_ENCRYPT_KEY")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func testAction(t *testing.T) (crypter.Crypter, operengine.ActionDef) {
 // Test_sshHostExecCmd_Do ...
 func Test_sshHostExecCmd_Do(t *testing.T) {
 	crypt, action := testAction(t)
-	ciphertext, err := crypt.Encrypt([]byte("cQtyA*3862zrGk"))
+	ciphertext, err := crypt.Encrypt([]byte(os.Getenv("SSH_PASSWD")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,9 +60,9 @@ func Test_sshHostExecCmd_Do(t *testing.T) {
 					Ctx: context.Background(),
 					Data: &operengine.ActionInstData{
 						Content: map[string]any{
-							"ip":     "127.0.0.1",
+							"ip":     os.Getenv("SSH_IP"),
 							"port":   36000,
-							"user":   "root",
+							"user":   os.Getenv("SSH_USER"),
 							"passwd": ciphertext,
 							"command": []string{
 								"free -h",

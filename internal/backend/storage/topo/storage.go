@@ -22,12 +22,59 @@ import (
 type Storage interface {
 	base.Interface
 
-	// UpsertBusiness updates or inserts a business.
-	UpsertBusiness(ctx context.Context, biz ...*types.Business) error
+	// UpsertManyBusiness updates or inserts a business.
+	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
 
-	// ListBusinesses ...
-	ListBusinesses(ctx context.Context) ([]*types.Business, error)
+	// ListBusinesses lists businesses by page and conditions.
+	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+		[]*types.Business, int64, error)
 
-	// UpsertHosts updates or inserts host.
-	UpsertHosts(ctx context.Context, host ...*types.Host) error
+	// UpsertManyHost updates or inserts host.
+	UpsertManyHost(ctx context.Context, host ...*types.Host) error
+
+	// UpsertManyHostStatic updates or inserts host statics.
+	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
+
+	// ListHost lists hosts by page and conditions.
+	ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
+
+	// CountHost counts hosts by conditions.
+	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
+
+	// ListNetworkArea lists networkarea by page and conditions.
+	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
+		[]*types.NetworkArea, int64, error)
+
+	// GetNetworkArea gets networkarea by id.
+	GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error)
+
+	// UpsertManyNetworkArea updates or inserts networkarea.
+	UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error
+
+	// UpdateManyNetworkArea updates networkarea.
+	UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error
+
+	// DeleteManyNetworkArea deletes networkarea.
+	DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error
+
+	// ListNetworkUnit lists networkunit by page and conditions.
+	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
+		[]*types.NetworkUnit, int64, error)
+
+	// GetNetworkUnit gets networkunit by id.
+	GetNetworkUnit(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error)
+
+	// CreateNetworkUnit creates networkunit.
+	CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+		int64, error)
+
+	// UpdateNetworkUnit updates networkunit.
+	UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error
+
+	// DeleteManyNetworkUnit deletes networkunits.
+	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
+
+	// ListAccessPoint lists accesspoint by page and conditions.
+	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
+		[]*types.AccessPoint, int64, error)
 }

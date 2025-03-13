@@ -40,5 +40,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/cmdb", rest.RestHandlerFunc(h.SyncCmdbHost))
+	h.rg.POST("/cmdb/host", rest.RestHandlerFunc(h.SyncCmdbHost))
+	h.rg.POST("/cmdb/networkarea", rest.RestHandlerFunc(h.SyncCmdbNetworkArea))
 }

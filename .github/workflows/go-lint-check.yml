@@ -1,0 +1,42 @@
+name: Go Lint Check
+
+on:
+  pull_request_target:
+    # 可以根据需要限定特定分支的 PR
+    # branches: [ main, master ]
+    # 可以根据需要限定仅当 Go 文件变更时触发
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+
+permissions:
+  contents: read
+  # 允许读取 PR 信息，用于"仅新问题"功能
+  pull-requests: read
+  # 允许添加代码注释到 PR 中
+  checks: write
+
+jobs:
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          # 获取足够深度的历史记录以便进行比较
+          fetch-depth: 0
+
+      - name: Run golangci-lint with config
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+          verify: false
+          skip-cache: true
+          # 默认会自动使用项目根目录下的配置文件
+          args: >
+            --config=${{ github.workspace }}/.golangci.yml
+            --timeout=5m
+            --issues-exit-code=0

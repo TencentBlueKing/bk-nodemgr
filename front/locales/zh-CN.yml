@@ -1,2 +1,13 @@
 platform:
   name: 节点管理
+topoManager:
+  region:
+    title: 管控区域
+  topo:
+    title: 拓扑图
+    toolbar:
+      minimap: 地图
+      center: 回中
+      originalSize: 原始大小
+  record:
+    title: 操作记录

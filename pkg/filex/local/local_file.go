@@ -100,6 +100,7 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
+// LocalFile represents a local file.
 type LocalFile struct {
 	name     string
 	info     *iface.FileInfo
@@ -131,7 +132,7 @@ func (f *LocalFile) Info() *iface.FileInfo {
 	return f.info
 }
 
-// Type returns LocalFile type.
+// FileObject returns LocalFile file object.
 func (f *LocalFile) FileObject() iface.FileObject {
 	return iface.LocalFile
 }

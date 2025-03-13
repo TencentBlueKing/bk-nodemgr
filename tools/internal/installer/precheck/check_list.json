@@ -1,0 +1,16 @@
+{
+  "demand_mb": 300,
+  "port_policies": [
+    {
+      "port": 8009,
+      "network": "tcp"
+    }
+  ],
+  "network_policies": [
+    {
+      "network": "tcp",
+      "port": 8006,
+      "host": "10.0.0.1"
+    }
+  ]
+}

@@ -4,97 +4,119 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/applicat
 
 // Page describes the generaic conditions when paging query.
 message Page {
-  uint32 offset = 1;
-  uint32 limit = 2;
+  int32 offset = 1;
+  int32 limit = 2;
 }
 
 // Business describes the business informations.
 message Business {
-  string tenant_id = 1;
-  int32 bk_biz_id = 2;
-  string bk_biz_name = 3;
+  optional string tenant_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional string bk_biz_name = 3;
 }
 
 // NetworkArea describes the network area informations.
 message NetworkArea {
-  string tenant_id = 1;
-  int32 bk_networkarea_id = 2;
-  string bk_networkarea_name = 3;
-  int32 bk_cloud_vendor = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_networkarea_name = 3;
+  optional string bk_cloud_vendor = 4;
 }
 
 // Link describes the network unit link points target.
-message Link {
-  string tenant_id = 1;
-  int32 ap_id = 2;
+message Link { int64 accesspoint_id = 1; }
+
+// Links describes the network unit links.
+message Links {
+  Link cluster = 1;
+  Link file = 2;
+  Link data = 3;
 }
 
 // AccessPoint describes the access point informations.
 message AccessPoint {
-  string tenant_id = 1;
-  int32 ap_id = 2;
-  string ap_name = 3;
+  optional string tenant_id = 1;
+  optional int64 accesspoint_id = 2;
+  optional string accesspoint_name = 3;
+  optional int64 bk_networkarea_id = 4;
 
   message Endpoints {
     repeated string cluster = 1;
     repeated string file = 2;
     repeated string data = 3;
   }
-  Endpoints endpoints = 4;
+  Endpoints endpoints = 5;
 }
 
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
-  int32 bk_networkunit_id = 1;
-  string bk_networkunit_name = 2;
-  repeated AccessPoint access_points = 3;
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated AccessPoint access_points = 5;
+  optional Links links = 6;
+}
 
-  message Links {
-    Link cluster = 1;
-    Link file = 2;
-    Link data = 3;
-  }
-  Links links = 4;
+// NetworkUnitBrief describes the network unit brief informations.
+// only contains the access point ids.
+message NetworkUnitBrief {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated int64 access_points = 5;
+  optional Links links = 6;
 }
 
 // HostState describes the host state informations. Usually contains
 // agent-related things.
 message HostState {
-  string status = 1;
-  string version = 2;
-  string bk_agent_id = 3;
+  optional string node_role = 1;
+  optional string node_status = 2;
+  optional string node_version = 3;
+  optional string bk_agent_id = 4;
+  optional int64 bk_networkunit_id = 5;
 }
 
 // HostInfo describes the host info informations. Usually contains static
 // configs.
 message HostInfo {
-  int32 bk_host_id = 1;
-  string bk_host_name = 2;
-  int32 bk_biz_id = 3;
-  string bk_biz_name = 4;
-  int32 bk_set_id = 5;
-  string bk_set_name = 6;
-  int32 bk_module_id = 7;
-  string bk_module_name = 8;
-  int32 bk_networkarea_id = 9;
-  string bk_networkarea_name = 10;
-  int32 bk_networkunit_id = 11;
-  string bk_networkunit_name = 12;
-  int32 bk_operate_dept_id = 13;
-  string bk_operate_dept_name = 14;
-  string bk_host_innerip = 15;
-  string bk_host_innerip_v6 = 16;
-  string bk_host_outerip = 17;
-  string bk_host_outerip_v6 = 18;
-  string login_ip = 19;
-  uint32 login_port = 20;
-  int32 bk_os_type = 21;
+  optional int64 bk_biz_id = 1;
+  optional int64 bk_networkarea_id = 2;
+  optional string bk_host_name = 3;
+  optional string dept_name = 4;
+  optional string bk_host_innerip = 5;
+  optional string bk_host_innerip_v6 = 6;
+  optional string bk_host_outerip = 7;
+  optional string bk_host_outerip_v6 = 8;
+  optional string bk_mac = 9;
+  optional string bk_os_type = 10;
 }
 
 // Host describes the host informations.
 message Host {
-  HostState state = 1;
-  HostInfo info = 2;
-  uint64 create_at = 3;
-  uint64 updated_at = 4;
+  optional string tenant_id = 1;
+  optional int64 bk_host_id = 2;
+  HostInfo info = 3;
+  HostState state = 4;
+  optional uint64 create_at = 5;
+  optional uint64 updated_at = 6;
+}
+
+// NetworkUnitGraph describes the graph networkunit informations.
+message NetworkUnitGraph {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
+  repeated int64 access_points = 5;
+}
+
+// LinkGraph describes the graph link informations between networkunits.
+message LinkGraph {
+  optional int64 source_networkunit_id = 1;
+  optional int64 target_networkunit_id = 2;
+  optional int64 target_accesspoint_id = 3;
+  repeated string channel = 4;
 }

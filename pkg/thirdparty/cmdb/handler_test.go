@@ -55,8 +55,8 @@ func testClient(t *testing.T) Handler {
 	}
 
 	h, err := New(clientCap, &Config{
-		TenantID:     os.Getenv("BK_APIGW_TENANT_ID"),
-		HeaderSetter: testHeaderSetter{},
+		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		HeaderSetter:    testHeaderSetter{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -156,7 +156,7 @@ func Test_handler_SearchBusiness(t *testing.T) {
 }
 
 // Test_handler_SearchNetArea ...
-func Test_handler_SearchNetArea(t *testing.T) {
+func Test_handler_SearchNetworkArea(t *testing.T) {
 	ctx, _ := tenant.SetID(context.Background(), "0")
 
 	type args struct {
@@ -184,7 +184,7 @@ func Test_handler_SearchNetArea(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.SearchNetArea(tt.args.ctx, tt.args.page)
+			got, err := h.SearchNetworkArea(tt.args.ctx, tt.args.page)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SearchNetArea() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -192,6 +192,302 @@ func Test_handler_SearchNetArea(t *testing.T) {
 
 			for _, netArea := range got {
 				t.Logf("netArea: %v", netArea)
+			}
+		})
+	}
+}
+
+// Test_handler_NetworkArea... handle network area curd test
+func Test_handler_NetworkArea(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+	type args struct {
+		ctx             context.Context
+		networkAreaName string
+		cloudVendor     string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:             ctx,
+				networkAreaName: "test_nodemgr_cloud",
+				cloudVendor:     "5",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			created, err := h.CreateNetworkArea(tt.args.ctx, tt.args.networkAreaName, tt.args.cloudVendor)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("CreateNetworkArea got: %v", created)
+
+			changeName := tt.args.networkAreaName + "_1"
+			changeVendor := "1"
+			err = h.UpdateNetworkArea(tt.args.ctx, created.ID, changeName, changeVendor)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			t.Logf("UpdateNetworkArea success")
+
+			page := types.Page{
+				Offset: 0,
+				Limit:  500,
+				Sort:   "",
+			}
+			search, err := h.SearchNetworkArea(tt.args.ctx, page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			for _, netArea := range search {
+				t.Logf("SearchNetworkArea got: %+v", *netArea)
+			}
+
+			err = h.DeleteNetworkArea(tt.args.ctx, created.ID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeleteNetworkArea() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			t.Logf("DeleteNetworkArea success")
+		})
+	}
+}
+
+// Test_handler_SearchBizInstTopo...
+func Test_handler_SearchBizInstTopo(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx   context.Context
+		bizID int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchBizInstTopo(tt.args.ctx, tt.args.bizID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchBizInstTopo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, topo := range got {
+				t.Logf("topo: %v", topo)
+			}
+		})
+	}
+}
+
+// Test_handler_GetBizInternalModule...
+func Test_handler_GetBizInternalModule(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx   context.Context
+		bizID int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetBizInternalModule(tt.args.ctx, tt.args.bizID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetBizInternalModule() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", *got)
+		})
+	}
+}
+
+// Test_handler_FindTopoNodePaths...
+func Test_handler_FindTopoNodePaths(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx   context.Context
+		bizID int64
+		node  []*types.TopoNode
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+				node:  []*types.TopoNode{},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.FindTopoNodePaths(tt.args.ctx, tt.args.bizID, tt.args.node)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindTopoNodePaths() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, path := range got {
+				t.Logf("index: %d, path: %+v", index, path)
+			}
+		})
+	}
+}
+
+// Test_handler_FindModuleBatch...
+func Test_handler_FindModuleBatch(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx    context.Context
+		bizID  int64
+		ids    []int64
+		fields []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:    ctx,
+				bizID:  2,
+				ids:    []int64{1, 2, 3},
+				fields: []string{"bk_module_id", "bk_module_name"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.FindModuleBatch(tt.args.ctx, tt.args.bizID, tt.args.ids, tt.args.fields)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindModuleBatch() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, module := range got {
+				t.Logf("index: %d, module: %+v", index, module)
+			}
+		})
+	}
+}
+
+// Test_handler_SearchCloudVendor...
+func Test_handler_SearchCloudVendor(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchCloudVendor(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchCloudVendor() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, attr := range got {
+				t.Logf("index: %d, attr: %+v", index, *attr)
+			}
+		})
+	}
+}
+
+// Test_handler_SearchOsType...
+func Test_handler_SearchOsType(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchOsType(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchOsType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, attr := range got {
+				t.Logf("index: %d, attr: %+v", index, *attr)
 			}
 		})
 	}

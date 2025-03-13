@@ -23,22 +23,23 @@ var instance = struct {
 func init() {
 	errorMaps := map[Code]error{
 		// retain status code.
-		Unknown:          errors.New("unauthorized"),
+		Unknown:          errors.New("unknown error"),
 		PermissionDenied: errors.New("permission denied"),
 		MaxErrCode:       errors.New("max err code"),
 
 		// custom status code.
-		InvalidParameter:    errors.New("invalid parameter"),
-		TooManyRequest:      errors.New("too many request"),
-		RecordNotFound:      errors.New("record not found"),
-		DecodeRequestFailed: errors.New("decode request failed"),
-		UnHealthy:           errors.New("unhealthy"),
-		Aborted:             errors.New("aborted"),
-		Unauthorized:        errors.New("unknown error"),
-		PartialFailed:       errors.New("partial failed"),
-		DBExecCmdFailed:     errors.New("db exec cmd failed"),
-		InvalidCache:        errors.New("invalid cache"),
-		InvalidFileResource: errors.New("invalid file resource"),
+		InvalidParameter:        errors.New("invalid parameter"),
+		TooManyRequest:          errors.New("too many request"),
+		RecordNotFound:          errors.New("record not found"),
+		DecodeRequestFailed:     errors.New("decode request failed"),
+		UnHealthy:               errors.New("unhealthy"),
+		Aborted:                 errors.New("aborted"),
+		Unauthorized:            errors.New("unauthorized"),
+		PartialFailed:           errors.New("partial failed"),
+		DBExecCmdFailed:         errors.New("db exec cmd failed"),
+		InvalidCache:            errors.New("invalid cache"),
+		InvalidFileResource:     errors.New("invalid file resource"),
+		ThirdpartyRequestFailed: errors.New("thirdparty request failed"),
 	}
 
 	instance.codeErrMap = make(map[Code]error)

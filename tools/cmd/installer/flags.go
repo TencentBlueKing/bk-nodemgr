@@ -1,0 +1,81 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package main
+
+import (
+	"fmt"
+	"path/filepath"
+	"runtime"
+	"time"
+)
+
+const (
+	// CmdFlagPkgVersion this flag is used to specify the version of the package.
+	CmdFlagPkgVersion = "pkg_version"
+	// CmdFlagInstallEnv this flag is used to specify the install env.
+	CmdFlagInstallEnv = "install_env"
+	// CmdFlagDownloadEndpoint this flag is used to specify the download endpoint.
+	CmdFlagDownloadEndpoint = "download_endpoint"
+	// CmdFlagCallbackEndpoint this flag is used to specify the callback endpoint.
+	CmdFlagCallbackEndpoint = "callback_endpoint"
+	// CmdFlagPkgGeneration this flag is used to specify the generation of the package.
+	CmdFlagPkgGeneration = "pkg_generation"
+	// CmdFlagGsePrefix this flag is used to specify the gse prefix.
+	CmdFlagGsePrefix = "gse_prefix"
+	// CmdFlagNodeType this flag is used to specify the node type.
+	CmdFlagNodeType = "node_type"
+	// CmdFlagDebug this flag is used to specify the debug.
+	CmdFlagDebug = "debug"
+	// CmdFlagTmpDir this flag is used to specify the tmp dir.
+	CmdFlagTmpDir = "tmp_dir"
+	// CmdFlagLogFilePath this flag is used to specify the log file path.
+	CmdFlagLogFilePath = "log_file_path"
+	// CmdFlagPkgName this flag is used to specify the pkg name.
+	CmdFlagPkgName = "pkg_name"
+	// CmdFlagPreCheckListPath this flag is used to specify the pre check list path.
+	CmdFlagPreCheckListPath = "pre_check_list_path"
+	// CmdFlagSetupDirPath this flag is used to specify the setup dir path.
+	CmdFlagSetupDirPath = "setup_dir_path"
+	// CmdFlagToken this flag is used to specify the token.
+	CmdFlagToken = "token"
+	// CmdFlagOperInstID this flag is used to specify the operation instance id.
+	CmdFlagOperInstID = "oper_inst_id"
+	// CmdFlagReinstall this flag is used to specify the reinstall.
+	CmdFlagReinstall = "reinstall"
+	// CmdFlagReRegisterAgentID this flag is used to specify the reinstall.
+	CmdFlagReRegisterAgentID = "re_register_agent_id"
+)
+
+const (
+	// CmdDefaultPkgGeneration this flag is used to specify the default generation.
+	CmdDefaultPkgGeneration int = 2
+	// CmdDefaultTmpDir this flag is used to specify the default tmp dir.
+	CmdDefaultTmpDir = "/tmp"
+	// CmdDefaultInstallEnv this flag is used to specify the default install env.
+	CmdDefaultInstallEnv = "gse"
+)
+
+// CmdDefaultGsePrefix get default gse prefix.
+func CmdDefaultGsePrefix() string {
+	switch runtime.GOOS {
+	// nolint: goconst
+	case "windows":
+		return "C:\\"
+	default:
+		// nolint: goconst
+		return "/usr/local"
+	}
+}
+
+// CmdDefaultLogFilePath get default log file path.
+func CmdDefaultLogFilePath() string {
+	return filepath.Join(GetTmpDir(), "logs", fmt.Sprintf("installer_%s.log", time.Now().Format("2006-01-02T15-04-05")))
+}

@@ -1,0 +1,376 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// TopoBusinessListReq describes the HTTP request body when list business in
+// topo service.
+message TopoBusinessListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions { repeated int64 bk_biz_id = 1; }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions { repeated string bk_biz_name = 1; }
+  FuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// TopoBusinessListResp describes the HTTP response body when list business in
+// topo service.
+message TopoBusinessListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated Business items = 2;
+  }
+  Data data = 4;
+}
+
+// TopoNetworkAreaListReq describes the HTTP request body when list network-area
+// in topo service.
+message TopoNetworkAreaListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkarea_id = 1;
+    repeated string bk_cloud_vendor = 2;
+  }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions { repeated string bk_networkarea_name = 1; }
+  FuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// TopoNetworkAreaListResp describes the HTTP response body when list
+// network-area in topo service.
+message TopoNetworkAreaListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated NetworkArea items = 2;
+  }
+  Data data = 4;
+}
+
+// TopoNetworkAreaGetReq describes the HTTP request body when get network-area
+// in topo service.
+message TopoNetworkAreaGetReq { int64 bk_networkarea_id = 1; }
+
+// TopoNetworkAreaGetResp describe the HTTP response body when get network-area
+// in topo service.
+message TopoNetworkAreaGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  NetworkArea data = 4;
+}
+
+// TopoNetworkAreaCreateReq describes the HTTP request body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateReq {
+  string bk_networkarea_name = 1;
+  string bk_cloud_vendor = 2;
+}
+
+// TopoNetworkAreaCreateResp describes the HTTP response body when create
+// network-area in topo service.
+message TopoNetworkAreaCreateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkarea_id = 1; }
+  Data data = 4;
+}
+
+// TopoNetworkAreaUpdateReq describes the HTTP request body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateReq {
+  int64 bk_networkarea_id = 1;
+  string bk_networkarea_name = 2;
+  string bk_cloud_vendor = 3;
+}
+
+// TopoNetworkAreaUpdateResp describes the HTTP response body when update
+// network-area in topo service.
+message TopoNetworkAreaUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkarea_id = 1; }
+  Data data = 4;
+}
+
+// TopoNetworkAreaDeleteReq describes the HTTP request body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteReq { int64 bk_networkarea_id = 1; }
+
+// TopoNetworkAreaDeleteResp describes the HTTP response body when delete
+// network-area in topo service.
+message TopoNetworkAreaDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkarea_id = 1; }
+  Data data = 4;
+}
+
+// TopoNetworkUnitListReq describes the HTTP request body when list network-unit
+// in topo service.
+message TopoNetworkUnitListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkunit_id = 1;
+    repeated int64 bk_networkarea_id = 2;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoNetworkUnitListResp describes the HTTP response body when list
+// network-unit in topo service.
+message TopoNetworkUnitListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated NetworkUnitBrief items = 2;
+  }
+  Data data = 4;
+}
+
+// TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetReq { int64 bk_networkunit_id = 1; }
+
+// TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
+// in topo service.
+message TopoNetworkUnitGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  NetworkUnit data = 4;
+}
+
+// TopoNetworkUnitCreateReq describes the HTTP request body when create
+// network-unit in topo service.
+message TopoNetworkUnitCreateReq {
+  string bk_networkunit_name = 1;
+  int64 bk_networkarea_id = 2;
+  repeated AccessPoint access_points = 3;
+  Links links = 4;
+}
+
+// TopoNetworkUnitCreateResp describes the HTTP response body when create
+// network unit in topo service.
+message TopoNetworkUnitCreateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkunit_id = 1; }
+  Data data = 4;
+}
+
+// TopoNetworkUnitUpdateReq describes the HTTP request body when update
+// network-unit in topo service.
+message TopoNetworkUnitUpdateReq {
+  int64 bk_networkunit_id = 1;
+  string bk_networkunit_name = 2;
+  int64 bk_networkarea_id = 3;
+  repeated AccessPoint access_points = 4;
+  Links links = 5;
+}
+
+// TopoNetworkUnitUpdateResp describes the HTTP response body when update
+// network unit in topo service.
+message TopoNetworkUnitUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkunit_id = 1; }
+  Data data = 4;
+}
+
+// TopoNetworkUnitDeleteReq describes the HTTP request body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteReq { int64 bk_networkunit_id = 1; }
+
+// TopoNetworkUnitDeleteResp describes the HTTP response body when delete
+// network unit in topo service.
+message TopoNetworkUnitDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 bk_networkunit_id = 1; }
+  Data data = 4;
+}
+
+// TopoHostListReq describes the HTTP request body when list host in topo
+// service.
+message TopoHostListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_host_id = 1;
+    repeated int64 bk_biz_id = 2;
+    repeated int64 bk_networkarea_id = 3;
+    repeated string bk_os_type = 4;
+    repeated string node_role = 5;
+    repeated string node_status = 6;
+    repeated string node_version = 7;
+    repeated string bk_agent_id = 8;
+    repeated int64 bk_networkunit_id = 9;
+  }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions {
+    repeated string bk_host_name = 1;
+    repeated string dept_name = 2;
+    repeated string bk_host_innerip = 3;
+    repeated string bk_host_innerip_v6 = 4;
+    repeated string bk_host_outerip = 5;
+    repeated string bk_host_outerip_v6 = 6;
+  }
+  FuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// TopoHostListResp describes the HTTP response body when list host in topo
+// service.
+message TopoHostListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated Host items = 2;
+  }
+  Data data = 4;
+}
+
+// topo service.
+service Topo {
+  // BusinessList provides business listing.
+  rpc BusinessList(TopoBusinessListReq) returns (TopoBusinessListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/business/list"
+      body : "*"
+    };
+  }
+
+  // NetworkAreaList provides network-area listing.
+  rpc NetworkAreaList(TopoNetworkAreaListReq)
+      returns (TopoNetworkAreaListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/list"
+      body : "*"
+    };
+  }
+
+  // NetworkAreaCreate provides creating a new network-area.
+  rpc NetworkAreaCreate(TopoNetworkAreaCreateReq)
+      returns (TopoNetworkAreaCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/create"
+      body : "*"
+    };
+  }
+
+  // NetworkAreaGet provides getting an existing network-area by id.
+  rpc NetworkAreaGet(TopoNetworkAreaGetReq) returns (TopoNetworkAreaGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/get"
+      body : "*"
+    };
+  }
+
+  // NetworkAreaUpdate provides updating an existing network-area by id.
+  rpc NetworkAreaUpdate(TopoNetworkAreaUpdateReq)
+      returns (TopoNetworkAreaUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/update"
+      body : "*"
+    };
+  }
+
+  // NetworkAreaDelete provides deleting an existing network-area by id.
+  rpc NetworkAreaDelete(TopoNetworkAreaDeleteReq)
+      returns (TopoNetworkAreaDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/delete"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitList provides network-unit listing.
+  rpc NetworkUnitList(TopoNetworkUnitListReq)
+      returns (TopoNetworkUnitListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/list"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitCreate provides creating a new network-unit.
+  rpc NetworkUnitCreate(TopoNetworkUnitCreateReq)
+      returns (TopoNetworkUnitCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/create"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitGet provides getting an existing network-unit by id.
+  rpc NetworkUnitGet(TopoNetworkUnitGetReq) returns (TopoNetworkUnitGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/get"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitUpdate provides updating an existing network-unit by id.
+  rpc NetworkUnitUpdate(TopoNetworkUnitUpdateReq)
+      returns (TopoNetworkUnitUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/update"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitDelete provides deleting an existing network-unit by id.
+  rpc NetworkUnitDelete(TopoNetworkUnitDeleteReq)
+      returns (TopoNetworkUnitDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/delete"
+      body : "*"
+    };
+  }
+
+  // HostList provides business listing.
+  rpc HostList(TopoHostListReq) returns (TopoHostListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/list"
+      body : "*"
+    };
+  }
+}

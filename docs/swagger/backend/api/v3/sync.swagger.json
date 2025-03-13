@@ -1,0 +1,180 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "sync.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Sync"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/sync/cmdb/host": {
+      "post": {
+        "summary": "SyncCmdbHost provides syncing cmdb host.",
+        "operationId": "Sync_SyncCmdbHost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbHostResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncCmdbHostReq describes the HTTP request body when sync cmdb host.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbHostReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/cmdb/networkarea": {
+      "post": {
+        "summary": "SyncCmdbNetworkArea provides syncing cmdb networkarea.",
+        "operationId": "Sync_SyncCmdbNetworkArea",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbNetworkAreaResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\nnetworkarea.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbNetworkAreaReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3SyncCmdbHostReq": {
+      "type": "object",
+      "description": "SyncCmdbHostReq describes the HTTP request body when sync cmdb host."
+    },
+    "v3SyncCmdbHostResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncCmdbHostRespData"
+        }
+      },
+      "description": "SyncCmdbHostResp describes the HTTP response body when sync cmdb host."
+    },
+    "v3SyncCmdbHostRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncCmdbNetworkAreaReq": {
+      "type": "object",
+      "description": "SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\nnetworkarea."
+    },
+    "v3SyncCmdbNetworkAreaResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncCmdbNetworkAreaRespData"
+        }
+      },
+      "description": "SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\nnetworkarea."
+    },
+    "v3SyncCmdbNetworkAreaRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

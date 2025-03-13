@@ -1,0 +1,55 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// SyncCmdbHostReq describes the HTTP request body when sync cmdb host.
+message SyncCmdbHostReq {}
+
+// SyncCmdbHostResp describes the HTTP response body when sync cmdb host.
+message SyncCmdbHostResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { string workflow_id = 1; }
+  Data data = 4;
+}
+
+// SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb
+// networkarea.
+message SyncCmdbNetworkAreaReq {}
+
+// SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb
+// networkarea.
+message SyncCmdbNetworkAreaResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { string workflow_id = 1; }
+  Data data = 4;
+}
+
+// sync service.
+service Sync {
+  // SyncCmdbHost provides syncing cmdb host.
+  rpc SyncCmdbHost(SyncCmdbHostReq) returns (SyncCmdbHostResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/cmdb/host"
+      body : "*"
+    };
+  }
+
+  // SyncCmdbNetworkArea provides syncing cmdb networkarea.
+  rpc SyncCmdbNetworkArea(SyncCmdbNetworkAreaReq)
+      returns (SyncCmdbNetworkAreaResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/cmdb/networkarea"
+      body : "*"
+    };
+  }
+}

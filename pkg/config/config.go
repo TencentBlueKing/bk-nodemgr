@@ -149,8 +149,8 @@ type APIGateway struct {
 
 // CMDB the config of cmdb.
 type CMDB struct {
-	TenantID   string
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+	SupplierAccount string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
+	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
 // TLSConfig defines tls related options.
@@ -258,14 +258,19 @@ func (b *BackendService) Validate() error {
 	return nil
 }
 
+// BackendGateway the config of backend gateway config.
+type BackendGateway struct {
+	APIGateway `yaml:",inline" usage:"api-gateway config of backend"`
+}
+
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode     RunMode     `yaml:"mode" usage:"run mode of service"`
-	TenantMode  tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	APIGateway  APIGateway  `yaml:"apiGateway" usage:"auth config of application service"`
-	HTTPServer  HTTPServer  `yaml:"httpServer" usage:"http server config of application service"`
-	AdminServer AdminServer `yaml:"adminServer" usage:"admin server config of application service"`
-	Log         Log         `yaml:"log" usage:"log config of application service"`
+	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
+	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
+	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
+	AdminServer AdminServer    `yaml:"adminServer" usage:"admin server config of application service"`
+	Log         Log            `yaml:"log" usage:"log config of application service"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -273,9 +278,6 @@ func NewApplicationService() *ApplicationService {
 	return &ApplicationService{
 		RunMode:    defaultApplicationRunMode,
 		TenantMode: defaultApplicationTenantMode,
-		APIGateway: APIGateway{
-			User: defaultApplicationAPIGwUser,
-		},
 		HTTPServer: HTTPServer{
 			BindIP:    defaultApplicationHTTPBindIP,
 			Port:      defaultApplicationHTTPPort,
@@ -315,24 +317,24 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	}
 
 	// api_gateway.
-	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.APIGateway.AppCode); err != nil {
+	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.Backend.AppCode); err != nil {
 		return err
 	}
-	if err := envx.MustLoadString("BKPAAS_APP_SECRET", &svc.APIGateway.AppSecret); err != nil {
+	if err := envx.MustLoadString("BKPAAS_APP_SECRET", &svc.Backend.AppSecret); err != nil {
 		return err
 	}
-	_ = envx.LoadString("NODEMAN_APIGW_USER", &svc.APIGateway.User)
-	_ = envx.LoadString("NODEMAN_APIGW_AUTH_MODE", &svc.APIGateway.AuthMode)
-	_ = envx.LoadString("NODEMAN_APIGW_BK_TICKET", &svc.APIGateway.BkTicket)
-	_ = envx.LoadString("NODEMAN_APIGW_BK_TOKEN", &svc.APIGateway.BkToken)
-	_ = envx.LoadString("NODEMAN_APIGW_ACCESS_TOKEN", &svc.APIGateway.AccessToken)
-	if _, err := envx.LoadBool("NODEMAN_APIGW_TLS_SKIP_VERIFY", &svc.APIGateway.TLS.InsecureSkipVerify); err != nil {
+	_ = envx.LoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
+	_ = envx.LoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
+	_ = envx.LoadString("NODEMAN_BACKEND_BK_TICKET", &svc.Backend.BkTicket)
+	_ = envx.LoadString("NODEMAN_BACKEND_BK_TOKEN", &svc.Backend.BkToken)
+	_ = envx.LoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
+	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
 		return err
 	}
-	_ = envx.LoadString("NODEMAN_APIGW_TLS_CERT", &svc.APIGateway.TLS.CertFile)
-	_ = envx.LoadString("NODEMAN_APIGW_TLS_KEY", &svc.APIGateway.TLS.KeyFile)
-	_ = envx.LoadString("NODEMAN_APIGW_TLS_CA", &svc.APIGateway.TLS.CAFile)
-	_ = envx.LoadString("NODEMAN_APIGW_TLS_PASSWORD", &svc.APIGateway.TLS.Password)
+	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CERT", &svc.Backend.TLS.CertFile)
+	_ = envx.LoadString("NODEMAN_BACKEND_TLS_KEY", &svc.Backend.TLS.KeyFile)
+	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CA", &svc.Backend.TLS.CAFile)
+	_ = envx.LoadString("NODEMAN_BACKEND_TLS_PASSWORD", &svc.Backend.TLS.Password)
 
 	// http_server.
 	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.HTTPServer.BindIP)

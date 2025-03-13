@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	// DefaultBusinessID describe the default business id.
+	DefaultBusinessID = 0
+)
+
 // Page describe the page data in request.
 type Page struct {
 	Start int    `json:"start"`
@@ -294,9 +299,6 @@ type SearchBusinessReq struct {
 	// tenant id of this request.
 	TenantID string `json:"-"`
 
-	// BKSupplierAccount ...
-	BKSupplierAccount string `json:"bk_supplier_account"`
-
 	// Page ...
 	Page Page `json:"page"`
 
@@ -324,11 +326,215 @@ type SearchCloudAreaResp struct {
 	Info  []*CloudArea `json:"info"`
 }
 
+// CreateCloudAreaReq describe the request data of create_cloud_area.
+type CreateCloudAreaReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKCloudName   string `json:"bk_cloud_name"`
+	BKCloudVendor string `json:"bk_cloud_vendor"`
+}
+
+// CreateCloudAreaResp describe the response data of create_cloud_area.
+type CreateCloudAreaResp struct {
+	Created struct {
+		ID          int64 `json:"id"`
+		OriginIndex int64 `json:"origin_index"`
+	} `json:"created"`
+}
+
+// UpdateCloudAreaReq describe the request data of update_cloud_area.
+type UpdateCloudAreaReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKCloudID     int64  `json:"bk_cloud_id"`
+	BKCloudName   string `json:"bk_cloud_name"`
+	BKCloudVendor string `json:"bk_cloud_vendor"`
+}
+
+// UpdateCloudAreaResp describe the response data of update_cloud_area.
+type UpdateCloudAreaResp string
+
+// DeleteCloudAreaReq describe the request data of delete_cloud_area.
+type DeleteCloudAreaReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKCloudID int64 `json:"bk_cloud_id"`
+}
+
+// DeleteCloudAreaResp describe the response data of delete_cloud_area.
+type DeleteCloudAreaResp string
+
+// UpdateHostCloudAreaFieldReq describe the request data of update_host_cloud_area_field.
+type UpdateHostCloudAreaFieldReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKCloudID int64   `json:"bk_cloud_id"`
+	BKBizID   int64   `json:"bk_biz_id"`
+	BKHostIDs []int64 `json:"bk_host_ids"`
+}
+
+// UpdateHostCloudAreaFieldResp describe the response data of update_host_cloud_area_field.
+type UpdateHostCloudAreaFieldResp string
+
 // CloudArea cloud area info
 type CloudArea struct {
-	BkCloudID         int64     `json:"bk_cloud_id"`
-	BkCloudName       string    `json:"bk_cloud_name"`
-	BkSupplierAccount string    `json:"bk_supplier_account"`
+	BKCloudID         int64     `json:"bk_cloud_id"`
+	BKCloudName       string    `json:"bk_cloud_name"`
+	BKCloudVendor     string    `json:"bk_cloud_vendor"`
+	BKSupplierAccount string    `json:"bk_supplier_account"`
 	CreateTime        time.Time `json:"create_time"`
 	LastTime          time.Time `json:"last_time"`
+}
+
+// SearchBizInstTopoReq describe the request data of search_biz_inst_topo.
+type SearchBizInstTopoReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	// biz id of this request.
+	BKBizID int64 `json:"bk_biz_id"`
+}
+
+// SearchBizInstTopoResp describe the response data of search_biz_inst_topo.
+type SearchBizInstTopoResp []*BizInstTopo
+
+// BizInstTopo describes the business instance topology structure defined by CMDB.
+type BizInstTopo struct {
+	Default    int            `json:"default"`
+	BKInstID   int64          `json:"bk_inst_id"`
+	BKInstName string         `json:"bk_inst_name"`
+	BKObjID    string         `json:"bk_obj_id"`
+	BKObjName  string         `json:"bk_obj_name"`
+	Children   []*BizInstTopo `json:"child"`
+}
+
+// GetBizInternalModuleReq describe the request data of get_biz_internal_module.
+type GetBizInternalModuleReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	// biz id of this request.
+	BKBizID int64 `json:"bk_biz_id"`
+}
+
+// GetBizInternalModuleResp describe the response data of get_biz_internal_module.
+type GetBizInternalModuleResp struct {
+	BKSetID   int64         `json:"bk_set_id"`
+	BKSetName string        `json:"bk_set_name"`
+	Module    []*ModuleInfo `json:"module"`
+}
+
+// ModuleInfo describe the module info define by cmdb.
+type ModuleInfo struct {
+	BKModuleID        int64     `json:"bk_module_id"`
+	BKModuleName      string    `json:"bk_module_name"`
+	Default           int64     `json:"default"`
+	CreateTime        time.Time `json:"create_time"`
+	BKSetID           int64     `json:"bk_set_id"`
+	BKBakOperator     string    `json:"bk_bak_operator"`
+	BKBizID           int64     `json:"bk_biz_id"`
+	BKModuleType      string    `json:"bk_module_type"`
+	BKParentID        int64     `json:"bk_parent_id"`
+	BKSupplierAccount string    `json:"bk_supplier_account"`
+	LastTime          time.Time `json:"last_time"`
+	HostApplyEnabled  bool      `json:"host_apply_enabled"`
+	Operator          string    `json:"operator"`
+	ServiceCategoryID int64     `json:"service_category_id"`
+	ServiceTemplateID int64     `json:"service_template_id"`
+	SetTemplateID     int64     `json:"set_template_id"`
+	BKCreatedAt       time.Time `json:"bk_created_at"`
+	BKUpdatedAt       time.Time `json:"bk_updated_at"`
+	BKCreatedBy       string    `json:"bk_created_by"`
+}
+
+// FindTopoNodePathsReq describe the request data of find_topo_node_paths.
+type FindTopoNodePathsReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	// biz id of this request.
+	BKBizID int64 `json:"bk_biz_id"`
+
+	// nodes of this request, list of business topo instance node information to be queried
+	BKNodes []*Node `json:"bk_nodes"`
+}
+
+// Node describe the node info define by cmdb.
+type Node struct {
+	BKObjID    string `json:"bk_obj_id"`
+	BKInstID   int64  `json:"bk_inst_id"`
+	BKInstName string `json:"bk_inst_name"`
+}
+
+// FindTopoNodePathsResp describe the response data of find_topo_node_paths.
+type FindTopoNodePathsResp []*NodePaths
+
+// NodePaths describe the node paths info define by cmdb.
+type NodePaths struct {
+	Node    `json:",inline"`
+	BKPaths [][]*Node `json:"bk_paths"`
+}
+
+// FindModuleBatchReq describe the request data of find_module_batch.
+type FindModuleBatchReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	// biz id of this request.
+	BKBizID int64 `json:"bk_biz_id"`
+
+	// ids of this request, module id list
+	BKIDs []int64 `json:"bk_ids"`
+
+	// fields of this request, module attribute list
+	Fields []string `json:"fields"`
+}
+
+// FindModuleBatchResp describe the response data of find_module_batch.
+type FindModuleBatchResp []*ModuleInfo
+
+// ObjectAttributeInfo describe the object attribute info define by cmdb.
+type ObjectAttributeInfo struct {
+	ID                  int64  `json:"id"`
+	BKBizID             int64  `json:"bk_biz_id"`
+	BKPropertyID        string `json:"bk_property_id"`
+	BKPropertyName      string `json:"bk_property_name"`
+	BKPropertyGroup     string `json:"bk_property_group"`
+	BKPropertyGroupType string `json:"bk_property_type"`
+	Creator             string `json:"creator"`
+	Unit                string `json:"unit"`
+	Placeholder         string `json:"placeholder"`
+	Editable            bool   `json:"editable"`
+	IsRequired          bool   `json:"isrequired"`
+	IsReadOnly          bool   `json:"isreadonly"`
+	IsOnly              bool   `json:"isonly"`
+	IsPre               bool   `json:"ispre"`
+	Option              any    `json:"option"`
+	Description         string `json:"description"`
+	BKSupplierAccount   string `json:"bk_supplier_account"`
+	BKAsstObjID         string `json:"bk_asst_obj_id"`
+	CreateTime          string `json:"create_time"`
+	LastTime            string `json:"last_time"`
+}
+
+// SearchObjectAttributeReq describe the request data of search_object_attribute.
+type SearchObjectAttributeReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID int64  `json:"bk_biz_id"`
+	BKObjID string `json:"bk_obj_id"`
+}
+
+// SearchObjectAttributeResp describe the response data of search_object_attribute.
+type SearchObjectAttributeResp []*ObjectAttributeInfo
+
+// EnumOption describe the enum option info define by cmdb.
+type EnumOption struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }

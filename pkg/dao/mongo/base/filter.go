@@ -11,11 +11,116 @@
 // Package base ...
 package base
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 // AliveFilter return a filter that only alive records.
 func AliveFilter() bson.D {
 	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
 
 	return filter
+}
+
+// OptFn option of find.
+type OptFn func(f bson.D) bson.D
+
+// WithInt64Values filters by int64 value.
+func WithInt64Values(key string, values ...int64) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: values[0]})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$in": values}})
+	}
+}
+
+// WithoutInt64Values filters by not contains int64 value.
+func WithoutInt64Values(key string, values ...int64) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: bson.M{"$ne": values[0]}})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$nin": values}})
+	}
+}
+
+// WithStringValues filters by string value.
+func WithStringValues(key string, values ...string) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: values[0]})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$in": values}})
+	}
+}
+
+// WithoutStringValues filters by not contains string value.
+func WithoutStringValues(key string, values ...string) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: bson.M{"$ne": values[0]}})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$nin": values}})
+	}
+}
+
+// WithFuzzyValues filters by fuzzy value.
+func WithFuzzyValues(key string, values ...string) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$regex": "(" + strings.Join(values, "|") + ")"}})
+	}
+}
+
+// WithoutFuzzyValues filters by not contains fuzzy value.
+func WithoutFuzzyValues(key string, values ...string) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": "(" + strings.Join(values, "|") + ")"}}})
+	}
 }

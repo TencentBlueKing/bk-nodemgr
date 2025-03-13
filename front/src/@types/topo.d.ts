@@ -3,7 +3,17 @@
 // topo service.
 export interface TopoBusinessListReq {
   page: Page;
-  onlyCount: boolean;
+  only_count: boolean;
+  exact_include_conditions: TopoBusinessListReqExactConditions;
+  fuzzy_include_conditions: TopoBusinessListReqFuzzyConditions;
+}
+
+export interface TopoBusinessListReqExactConditions {
+  bk_biz_id: number[];
+}
+
+export interface TopoBusinessListReqFuzzyConditions {
+  bk_biz_name: string[];
 }
 
 // TopoBusinessListResp describes the HTTP response body when list business in
@@ -11,16 +21,31 @@ export interface TopoBusinessListReq {
 export interface TopoBusinessListResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoBusinessListRespData;
+}
+
+export interface TopoBusinessListRespData {
+  total: number;
+  items: Business[];
 }
 
 // TopoNetworkAreaListReq describes the HTTP request body when list network-area
 // in topo service.
 export interface TopoNetworkAreaListReq {
   page: Page;
-  onlyCount: boolean;
-  includeConditions: Conditions;
+  only_count: boolean;
+  exact_include_conditions: TopoNetworkAreaListReqExactConditions;
+  fuzzy_include_conditions: TopoNetworkAreaListReqFuzzyConditions;
+}
+
+export interface TopoNetworkAreaListReqExactConditions {
+  bk_networkarea_id: number[];
+  bk_cloud_vendor: string[];
+}
+
+export interface TopoNetworkAreaListReqFuzzyConditions {
+  bk_networkarea_name: string[];
 }
 
 // TopoNetworkAreaListResp describes the HTTP response body when list
@@ -28,14 +53,19 @@ export interface TopoNetworkAreaListReq {
 export interface TopoNetworkAreaListResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkAreaListRespData;
+}
+
+export interface TopoNetworkAreaListRespData {
+  total: number;
+  items: NetworkArea[];
 }
 
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
 // in topo service.
 export interface TopoNetworkAreaGetReq {
-  bkNetworkareaId: number;
+  bk_networkarea_id: number;
 }
 
 // TopoNetworkAreaGetResp describe the HTTP response body when get network-area
@@ -43,15 +73,15 @@ export interface TopoNetworkAreaGetReq {
 export interface TopoNetworkAreaGetResp {
   code: number;
   message: string;
-  requestId: string;
+  request_id: string;
   data: NetworkArea;
 }
 
 // TopoNetworkAreaCreateReq describes the HTTP request body when create
 // network-area in topo service.
 export interface TopoNetworkAreaCreateReq {
-  bkNetworkareaName: string;
-  bkCloudVendor: number;
+  bk_networkarea_name: string;
+  bk_cloud_vendor: string;
 }
 
 // TopoNetworkAreaCreateResp describes the HTTP response body when create
@@ -59,16 +89,20 @@ export interface TopoNetworkAreaCreateReq {
 export interface TopoNetworkAreaCreateResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkAreaCreateRespData;
+}
+
+export interface TopoNetworkAreaCreateRespData {
+  bk_networkarea_id: number;
 }
 
 // TopoNetworkAreaUpdateReq describes the HTTP request body when update
 // network-area in topo service.
 export interface TopoNetworkAreaUpdateReq {
-  bkNetworkareaId: number;
-  bkNetworkareaName: string;
-  bkCloudVendor: number;
+  bk_networkarea_id: number;
+  bk_networkarea_name: string;
+  bk_cloud_vendor: string;
 }
 
 // TopoNetworkAreaUpdateResp describes the HTTP response body when update
@@ -76,14 +110,18 @@ export interface TopoNetworkAreaUpdateReq {
 export interface TopoNetworkAreaUpdateResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkAreaUpdateRespData;
+}
+
+export interface TopoNetworkAreaUpdateRespData {
+  bk_networkarea_id: number;
 }
 
 // TopoNetworkAreaDeleteReq describes the HTTP request body when delete
 // network-area in topo service.
 export interface TopoNetworkAreaDeleteReq {
-  bkNetworkareaId: number;
+  bk_networkarea_id: number;
 }
 
 // TopoNetworkAreaDeleteResp describes the HTTP response body when delete
@@ -91,15 +129,25 @@ export interface TopoNetworkAreaDeleteReq {
 export interface TopoNetworkAreaDeleteResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkAreaDeleteRespData;
+}
+
+export interface TopoNetworkAreaDeleteRespData {
+  bk_networkarea_id: number;
 }
 
 // TopoNetworkUnitListReq describes the HTTP request body when list network-unit
 // in topo service.
 export interface TopoNetworkUnitListReq {
   page: Page;
-  onlyCount: boolean;
+  only_count: boolean;
+  exact_include_conditions: TopoNetworkUnitListReqExactConditions;
+}
+
+export interface TopoNetworkUnitListReqExactConditions {
+  bk_networkunit_id: number[];
+  bk_networkarea_id: number[];
 }
 
 // TopoNetworkUnitListResp describes the HTTP response body when list
@@ -107,14 +155,19 @@ export interface TopoNetworkUnitListReq {
 export interface TopoNetworkUnitListResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkUnitListRespData;
+}
+
+export interface TopoNetworkUnitListRespData {
+  total: number;
+  items: NetworkUnitBrief[];
 }
 
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
 // in topo service.
 export interface TopoNetworkUnitGetReq {
-  bkNetworkunitId: number;
+  bk_networkunit_id: number;
 }
 
 // TopoNetworkUnitGetResp describe the HTTP response body when get network-unit
@@ -122,15 +175,16 @@ export interface TopoNetworkUnitGetReq {
 export interface TopoNetworkUnitGetResp {
   code: number;
   message: string;
-  requestId: string;
+  request_id: string;
   data: NetworkUnit;
 }
 
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
 // network-unit in topo service.
 export interface TopoNetworkUnitCreateReq {
-  bkNetworkunitName: string;
-  accessPoints: AccessPoint[];
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  access_points: AccessPoint[];
   links: Links;
 }
 
@@ -139,16 +193,21 @@ export interface TopoNetworkUnitCreateReq {
 export interface TopoNetworkUnitCreateResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkUnitCreateRespData;
+}
+
+export interface TopoNetworkUnitCreateRespData {
+  bk_networkunit_id: number;
 }
 
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 export interface TopoNetworkUnitUpdateReq {
-  bkNetworkunitId: number;
-  bkNetworkunitName: string;
-  accessPoints: AccessPoint[];
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
+  access_points: AccessPoint[];
   links: Links;
 }
 
@@ -157,14 +216,18 @@ export interface TopoNetworkUnitUpdateReq {
 export interface TopoNetworkUnitUpdateResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkUnitUpdateRespData;
+}
+
+export interface TopoNetworkUnitUpdateRespData {
+  bk_networkunit_id: number;
 }
 
 // TopoNetworkUnitDeleteReq describes the HTTP request body when delete
 // network unit in topo service.
 export interface TopoNetworkUnitDeleteReq {
-  bkNetworkunitId: number;
+  bk_networkunit_id: number;
 }
 
 // TopoNetworkUnitDeleteResp describes the HTTP response body when delete
@@ -172,16 +235,41 @@ export interface TopoNetworkUnitDeleteReq {
 export interface TopoNetworkUnitDeleteResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoNetworkUnitDeleteRespData;
+}
+
+export interface TopoNetworkUnitDeleteRespData {
+  bk_networkunit_id: number;
 }
 
 // TopoHostListReq describes the HTTP request body when list host in topo
 // service.
 export interface TopoHostListReq {
   page: Page;
-  onlyCount: boolean;
-  includeConditions: Conditions;
+  only_count: boolean;
+  exact_include_conditions: TopoHostListReqExactConditions;
+  fuzzy_include_conditions: TopoHostListReqFuzzyConditions;
+}
+
+export interface TopoHostListReqExactConditions {
+  bk_host_id: number[];
+  bk_biz_id: number[];
+  bk_networkarea_id: number[];
+  bk_os_type: string[];
+  node_role: string[];
+  node_status: string[];
+  node_version: string[];
+  bk_agent_id: string[];
+}
+
+export interface TopoHostListReqFuzzyConditions {
+  bk_host_name: string[];
+  dept_name: string[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
+  bk_host_outerip: string[];
+  bk_host_outerip_v6: string[];
 }
 
 // TopoHostListResp describes the HTTP response body when list host in topo
@@ -189,7 +277,12 @@ export interface TopoHostListReq {
 export interface TopoHostListResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: TopoHostListRespData;
+}
+
+export interface TopoHostListRespData {
+  total: number;
+  items: Host[];
 }
 

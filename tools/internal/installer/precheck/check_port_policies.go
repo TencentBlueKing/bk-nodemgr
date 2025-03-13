@@ -1,0 +1,78 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package precheck ...
+package precheck
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
+)
+
+// PortPolicy port policy.
+type PortPolicy struct {
+	// policy port
+	Port uint64 `json:"port"`
+
+	// Network
+	Network string `json:"network"`
+}
+
+// Validate validate port policy.
+func (policy *PortPolicy) Validate() error {
+	if policy.Port == 0 {
+		return fmt.Errorf("invalid port: %d", policy.Port)
+	}
+
+	switch policy.Network {
+	case "udp", "tcp", "udp6", "tcp6":
+	default:
+		return fmt.Errorf("invalid network: %s", policy.Network)
+	}
+
+	return nil
+}
+
+// CheckPortPolicies ...
+func CheckPortPolicies(ctx context.Context, polices []PortPolicy) error {
+	gp := gopool.NewPool()
+	for idx := range polices {
+		policy := &polices[idx]
+		gp.Go(func() error {
+			switch policy.Network {
+			case "tcp":
+				idle, err := utils.CheckTCPPortIdle(ctx, policy.Port)
+				if err != nil || !idle {
+					return fmt.Errorf("port %d is not idle", policy.Port)
+				}
+			case "tcp6":
+				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
+				if err != nil || !idle {
+					return fmt.Errorf("port %d is not idle", policy.Port)
+				}
+			case "udp", "udp6":
+				return fmt.Errorf("not support network: %s", policy.Network)
+			default:
+				return fmt.Errorf("invalid network: %s", policy.Network)
+			}
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}

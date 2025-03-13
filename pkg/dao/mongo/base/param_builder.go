@@ -57,3 +57,19 @@ func BuildUpdateField(key string, value any) bson.D {
 
 	return update
 }
+
+// BuildDeleteParam build delete param.
+func BuildDeleteParam() bson.D {
+	nowTime := time.Now()
+	update := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				"basic.is_deleted": true,
+				"basic.deleted_at": nowTime,
+			},
+		},
+	}
+
+	return update
+}

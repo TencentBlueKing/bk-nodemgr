@@ -96,7 +96,6 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 
 	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour)
 	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
-
 		hosts, err := s.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
 		if err != nil {
 			return nil, err
@@ -110,7 +109,7 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertHosts(tenantCtx, result.Items...); err != nil {
+	if err = s.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

@@ -130,7 +130,7 @@ func withMetrics(_ *options.Capability) rest.OptionFunc {
 	}
 }
 
-// withApiV3 load download.
+// withDownload load download.
 func withDownload(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		download.Load(rg, capability)

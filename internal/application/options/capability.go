@@ -11,6 +11,28 @@
 // Package options provides the various capabilities the service supports.
 package options
 
+import (
+	"context"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+)
+
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
+	// BackendHandler the backend api hanler.
+	BackendHandler backend.Handler
+
+	// Logger logger
+	Logger logger.Logger
+}
+
+// Start starts all services in capability.
+func (c *Capability) Start(_ context.Context) error {
+	return nil
+}
+
+// GracefulShutdown graceful shutdown all services in capability.
+func (c *Capability) GracefulShutdown() error {
+	return nil
 }

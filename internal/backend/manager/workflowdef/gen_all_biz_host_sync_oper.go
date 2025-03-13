@@ -91,7 +91,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	bizs, err := c.topoStorage.ListBusinesses(tenantCtx)
+	bizs, _, err := c.topoStorage.ListBusinesses(tenantCtx, types.Page{})
 	if err != nil {
 		return err
 	}

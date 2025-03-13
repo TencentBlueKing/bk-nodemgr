@@ -15,9 +15,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -47,7 +47,7 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operengine.Opera
 		return nil, errors.New("ctx is nil")
 	}
 
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}

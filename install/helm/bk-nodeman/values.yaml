@@ -543,6 +543,8 @@ backend:
 
     # defines the CMDB (BK API gateway) related settings.
     cmdb:
+      # supplierAccount is a value specified by some api of CMDB that needs to be provided
+      supplierAccount: "0"
       # endpoints is a seed list of host:port addresses of esb nodes.
       endpoints:
         - "https://example.com/api/bk-cmdb/prod"
@@ -632,7 +634,8 @@ application:
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
 
-    apiGateway:
+    # defines the nodeman backend (BK API gateway) related settings.
+    backend:
       # endpoints is a seed list of host:port addresses of esb nodes.
       endpoints:
         - "https://example.com/api/bk-nodeman/prod"

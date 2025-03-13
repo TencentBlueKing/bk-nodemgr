@@ -62,9 +62,9 @@ func testClient(t *testing.T) Storage {
 	return s
 }
 
-// Test_storage_UpsertHosts ...
-func Test_storage_UpsertHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "1")
+// Test_storage_UpsertManyHost ...
+func Test_storage_UpsertManyHost(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
 
 	type args struct {
 		ctx   context.Context
@@ -78,7 +78,7 @@ func Test_storage_UpsertHosts(t *testing.T) {
 		{
 			name: "nil ctx",
 			args: args{
-				ctx:   ctx,
+				ctx:   nil,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -89,13 +89,7 @@ func Test_storage_UpsertHosts(t *testing.T) {
 				ctx: ctx,
 				hosts: []*types.Host{
 					{
-						TenantID: "1",
-						CloudID:  1,
-						BizID:    1,
-						HostID:   1,
-						InnerIP:  "1.1.1.1",
-						Mac:      "11:11:11:11:11:11",
-						OSType:   "centos",
+						TenantID: "single",
 					},
 				},
 			},
@@ -105,8 +99,8 @@ func Test_storage_UpsertHosts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ds := testClient(t)
-			if err := ds.UpsertHosts(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
-				t.Errorf("UpsertHosts() error = %v, wantErr %v", err, tt.wantErr)
+			if err := ds.UpsertManyHost(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
+				t.Errorf("UpsertManyHost() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

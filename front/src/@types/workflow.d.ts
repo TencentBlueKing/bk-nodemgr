@@ -2,17 +2,37 @@
 // WorkflowHostParameter describes the host action parameters in workflows
 // service. Such as installing, upgrading.
 export interface WorkflowHostParameter {
-  bkHostId: number;
-  topo: Topo;
-  attributes: Attributes;
-  config: Config;
+  bk_host_id: number;
+  topo: WorkflowHostParameterTopo;
+  attributes: WorkflowHostParameterAttributes;
+  config: WorkflowHostParameterConfig;
+}
+
+export interface WorkflowHostParameterTopo {
+  bk_biz_id: number;
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+}
+
+export interface WorkflowHostParameterAttributes {
+  bk_host_innerip: string;
+  bk_host_innerip_v6: string;
+  bk_host_outerip: string;
+  bk_host_outerip_v6: string;
+  login_ip: string;
+  login_port: number;
+  login_password: string;
+}
+
+export interface WorkflowHostParameterConfig {
+  version: string;
 }
 
 // WorkflowAgentInstallReq describes the HTTP request body when install agent in
 // workflow service.
 export interface WorkflowAgentInstallReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
 }
 
 // WorkflowAgentInstallResp describes the HTTP response body when install agent
@@ -20,15 +40,19 @@ export interface WorkflowAgentInstallReq {
 export interface WorkflowAgentInstallResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowAgentInstallRespData;
+}
+
+export interface WorkflowAgentInstallRespData {
+  workflow_id: string;
 }
 
 // WorkflowAgentUpgradeReq describes the HTTP request body when upgrade agent in
 // workflow service.
 export interface WorkflowAgentUpgradeReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -37,15 +61,19 @@ export interface WorkflowAgentUpgradeReq {
 export interface WorkflowAgentUpgradeResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowAgentUpgradeRespData;
+}
+
+export interface WorkflowAgentUpgradeRespData {
+  workflow_id: string;
 }
 
 // WorkflowAgentReconfigReq describes the HTTP request body when reconfig agent
 // in workflow service.
 export interface WorkflowAgentReconfigReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -54,15 +82,19 @@ export interface WorkflowAgentReconfigReq {
 export interface WorkflowAgentReconfigResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowAgentReconfigRespData;
+}
+
+export interface WorkflowAgentReconfigRespData {
+  workflow_id: string;
 }
 
 // WorkflowAgentRestartReq describes the HTTP request body when restart agent in
 // workflow service.
 export interface WorkflowAgentRestartReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -71,15 +103,19 @@ export interface WorkflowAgentRestartReq {
 export interface WorkflowAgentRestartResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowAgentRestartRespData;
+}
+
+export interface WorkflowAgentRestartRespData {
+  workflow_id: string;
 }
 
 // WorkflowAgentUninstallReq describes the HTTP request body when uninstall
 // agent in workflow service.
 export interface WorkflowAgentUninstallReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
 }
 
 // WorkflowAgentUninstallResp describes the HTTP response body when uninstall
@@ -87,15 +123,19 @@ export interface WorkflowAgentUninstallReq {
 export interface WorkflowAgentUninstallResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowAgentUninstallRespData;
+}
+
+export interface WorkflowAgentUninstallRespData {
+  workflow_id: string;
 }
 
 // WorkflowProxyInstallReq describes the HTTP request body when install proxy in
 // workflow service.
 export interface WorkflowProxyInstallReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
 }
 
 // WorkflowProxyInstallResp describes the HTTP response body when install proxy
@@ -103,15 +143,19 @@ export interface WorkflowProxyInstallReq {
 export interface WorkflowProxyInstallResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowProxyInstallRespData;
+}
+
+export interface WorkflowProxyInstallRespData {
+  workflow_id: string;
 }
 
 // WorkflowProxyUpgradeReq describes the HTTP request body when upgrade proxy in
 // workflow service.
 export interface WorkflowProxyUpgradeReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -120,15 +164,19 @@ export interface WorkflowProxyUpgradeReq {
 export interface WorkflowProxyUpgradeResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowProxyUpgradeRespData;
+}
+
+export interface WorkflowProxyUpgradeRespData {
+  workflow_id: string;
 }
 
 // WorkflowProxyReconfigReq describes the HTTP request body when reconfig proxy
 // in workflow service.
 export interface WorkflowProxyReconfigReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -137,15 +185,19 @@ export interface WorkflowProxyReconfigReq {
 export interface WorkflowProxyReconfigResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowProxyReconfigRespData;
+}
+
+export interface WorkflowProxyReconfigRespData {
+  workflow_id: string;
 }
 
 // WorkflowProxyRestartReq describes the HTTP request body when restart proxy in
 // workflow service.
 export interface WorkflowProxyRestartReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
   force: boolean;
 }
 
@@ -154,15 +206,19 @@ export interface WorkflowProxyRestartReq {
 export interface WorkflowProxyRestartResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowProxyRestartRespData;
+}
+
+export interface WorkflowProxyRestartRespData {
+  workflow_id: string;
 }
 
 // WorkflowProxyUninstallReq describes the HTTP request body when uninstall
 // proxy in workflow service.
 export interface WorkflowProxyUninstallReq {
   hosts: WorkflowHostParameter[];
-  timeoutSec: number;
+  timeout_sec: number;
 }
 
 // WorkflowProxyUninstallResp describes the HTTP response body when uninstall
@@ -170,70 +226,88 @@ export interface WorkflowProxyUninstallReq {
 export interface WorkflowProxyUninstallResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowProxyUninstallRespData;
+}
+
+export interface WorkflowProxyUninstallRespData {
+  workflow_id: string;
 }
 
 // OperationInstance describes the operation instance informations. One
 // operation may contains multi instances.
 export interface OperationInstance {
-  instanceId: string;
-  createAt: number;
-  startedAt: number;
-  endedAt: number;
-  stoppedAt: number;
+  instance_id: string;
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
   action: Action[];
+}
+
+export interface OperationInstanceMessage {
+  timestamp: number;
+  text: string;
+}
+
+export interface OperationInstanceAction {
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
+  status: string;
+  message: Message[];
 }
 
 // OperationBrief describes the operation informations in brief.
 export interface OperationBrief {
-  operationId: string;
-  createAt: number;
-  startedAt: number;
-  endedAt: number;
-  stoppedAt: number;
-  bkHostId: number;
-  bkHostInnerip: number;
-  instanceCount: number;
+  operation_id: string;
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
+  bk_host_id: number;
+  bk_host_innerip: number;
+  instance_count: number;
 }
 
 // OperationDetail describes the operation informations in detail.
 export interface OperationDetail {
-  operationId: string;
-  createAt: number;
-  startedAt: number;
-  endedAt: number;
-  stoppedAt: number;
-  bkHostId: number;
-  bkHostInnerip: number;
-  instanceCount: number;
+  operation_id: string;
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
+  bk_host_id: number;
+  bk_host_innerip: number;
+  instance_count: number;
   instances: OperationInstance[];
 }
 
 // WorkflowBrief describes the workflow informations in brief.
 export interface WorkflowBrief {
-  workflowId: string;
+  workflow_id: string;
   status: string;
   operator: string;
   type: number;
-  createAt: number;
-  startedAt: number;
-  endedAt: number;
-  stoppedAt: number;
-  operationCount: number;
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
+  operation_count: number;
 }
 
 // WorkflowDetail describes the workflow informations in detail.
 export interface WorkflowDetail {
-  workflowId: string;
+  workflow_id: string;
   status: string;
   operator: string;
   type: number;
-  createAt: number;
-  startedAt: number;
-  endedAt: number;
-  stoppedAt: number;
-  operationCount: number;
+  create_at: number;
+  started_at: number;
+  ended_at: number;
+  stopped_at: number;
+  operation_count: number;
   operations: OperationBrief[];
 }
 
@@ -241,8 +315,11 @@ export interface WorkflowDetail {
 // workflow service.
 export interface WorkflowListReq {
   page: Page;
-  onlyCount: boolean;
-  includeConditions: Conditions;
+  only_count: boolean;
+  include_conditions: WorkflowListReqConditions;
+}
+
+export interface WorkflowListReqConditions {
 }
 
 // WorkflowListResp describes the HTTP response body when list workflows in
@@ -250,14 +327,19 @@ export interface WorkflowListReq {
 export interface WorkflowListResp {
   code: number;
   message: string;
-  requestId: string;
-  data: Data;
+  request_id: string;
+  data: WorkflowListRespData;
+}
+
+export interface WorkflowListRespData {
+  total: number;
+  items: WorkflowBrief[];
 }
 
 // WorkflowGetReq describes the HTTP request body when get workflow in workflow
 // service.
 export interface WorkflowGetReq {
-  workflowId: string;
+  workflow_id: string;
 }
 
 // WorkflowGetResp describes the HTTP response body when get workflow in
@@ -265,15 +347,15 @@ export interface WorkflowGetReq {
 export interface WorkflowGetResp {
   code: number;
   message: string;
-  requestId: string;
+  request_id: string;
   data: WorkflowDetail;
 }
 
 // WorkflowOperationGetReq describes the HTTP request body when get operation in
 // workflow service.
 export interface WorkflowOperationGetReq {
-  workflowId: string;
-  operationId: string;
+  workflow_id: string;
+  operation_id: string;
 }
 
 // WorkflowOperationGetResp describes the HTTP response body when get operation
@@ -281,7 +363,7 @@ export interface WorkflowOperationGetReq {
 export interface WorkflowOperationGetResp {
   code: number;
   message: string;
-  requestId: string;
+  request_id: string;
   Data: OperationDetail;
 }
 

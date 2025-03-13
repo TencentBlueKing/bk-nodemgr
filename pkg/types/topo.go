@@ -12,7 +12,7 @@
 // Everything from API or Database should be converted into types in this package before using.
 package types
 
-// Business represents a cmdb business under a tenant.
+// Business represents a business under a tenant.
 type Business struct {
 	// belongs to.
 	TenantID string
@@ -22,24 +22,140 @@ type Business struct {
 	BizName string
 }
 
-// Host represents a cmdb host.
-type Host struct {
+// HostStatic represents a static host under a host.
+// static means it is synced from CMDB.
+// or sometimes it will be insert first into database in case of syncing latency.
+type HostStatic struct {
 	// belongs to
-	TenantID      string
-	NetworkAreaID int64
-	UnitID        int64
 	BizID         int64
-
-	// host-id is the unique identifier for a host.
-	HostID int64
+	NetworkAreaID int64
 
 	// host information.
-	InnerIP string
-	Mac     string
-	OSType  string
+	HostName  string
+	DeptName  string
+	InnerIP   string
+	InnerIPV6 string
+	OuterIP   string
+	OuterIPV6 string
+	Mac       string
+	OSType    string
+
+	// synced types, do not use this for processing.
+	// just use it for comparing and checking.
+	SyncedAgentID string
 }
 
-// NetworkArea represents a cmdb network-area. In which IPs will not be duplicated.
+// NodeRole represents a node role.
+type NodeRole string
+
+// NodeRoleListToStringList converts a node role list to a string list.
+func NodeRoleListToStringList(nodeRoleList []NodeRole) []string {
+	data := make([]string, len(nodeRoleList))
+	for idx, nodeRole := range nodeRoleList {
+		data[idx] = string(nodeRole)
+	}
+
+	return data
+}
+
+// StringListToNodeRoleList converts a string list to a node role list.
+func StringListToNodeRoleList(stringList []string) []NodeRole {
+	data := make([]NodeRole, len(stringList))
+	for idx, nodeRole := range stringList {
+		data[idx] = NodeRole(nodeRole)
+	}
+
+	return data
+}
+
+const (
+	// NodeRoleBlank means this node is blank. nothing installed.
+	NodeRoleBlank NodeRole = "blank"
+
+	// NodeRoleAgent means this node is an agent.
+	NodeRoleAgent NodeRole = "agent"
+
+	// NodeRoleProxy means this node is a proxy.
+	NodeRoleProxy NodeRole = "proxy"
+)
+
+// NodeStatus represents a node status when node role is not blank.
+type NodeStatus string
+
+// NodeStatusListToStringList converts a node status list to a string list.
+func NodeStatusListToStringList(nodeStatusList []NodeStatus) []string {
+	data := make([]string, len(nodeStatusList))
+	for idx, nodeStatus := range nodeStatusList {
+		data[idx] = string(nodeStatus)
+	}
+
+	return data
+}
+
+// StringListToNodeStatusList converts a string list to a node status list.
+func StringListToNodeStatusList(stringList []string) []NodeStatus {
+	data := make([]NodeStatus, len(stringList))
+	for idx, nodeStatus := range stringList {
+		data[idx] = NodeStatus(nodeStatus)
+	}
+
+	return data
+}
+
+const (
+	// NodeStatusUnknown means this node status is unknown.
+	NodeStatusUnknown NodeStatus = "unknown"
+
+	// NodeStatusInit means this node status is init.
+	NodeStatusInit NodeStatus = "init"
+
+	// NodeStatusRunning means this node status is running.
+	NodeStatusRunning NodeStatus = "running"
+
+	// NodeStatusDamaged means this node status is damaged.
+	NodeStatusDamaged NodeStatus = "damaged"
+
+	// NodeStatusBusy means this node status is busy.
+	NodeStatusBusy NodeStatus = "busy"
+
+	// NodeStatusUpgrading means this node status is upgrading.
+	NodeStatusUpgrading NodeStatus = "upgrading"
+
+	// NodeStatusOffline means this node status is offline.
+	NodeStatusOffline NodeStatus = "offline"
+)
+
+// HostDynamic represents a dynamic host under a host.
+// dynamic means it is set by user.
+type HostDynamic struct {
+	NodeRole      NodeRole
+	NodeStatus    NodeStatus
+	NodeVersion   string
+	AgentID       string
+	NetworkUnitID int64
+}
+
+// NewBlankNodeDynamic returns a blank node dynamic.
+func NewBlankNodeDynamic() *HostDynamic {
+	return &HostDynamic{
+		NodeRole:      NodeRoleBlank,
+		NodeStatus:    NodeStatusUnknown,
+		NodeVersion:   "",
+		AgentID:       "",
+		NetworkUnitID: -1,
+	}
+}
+
+// Host represents a host.
+type Host struct {
+	HostID   int64
+	TenantID string
+
+	Static  *HostStatic
+	Dynamic *HostDynamic
+}
+
+// NetworkArea represents a network-area. In which IPs will not be duplicated.
 type NetworkArea struct {
 	// belongs to
 	TenantID string
@@ -49,6 +165,9 @@ type NetworkArea struct {
 
 	// area-name the name of a network-area.
 	Name string
+
+	// cloud vendor.
+	CloudVendor string
 }
 
 // NetworkUnit represents a basic unit for proxy management.
@@ -65,35 +184,29 @@ type NetworkUnit struct {
 	Name string
 
 	// access points for this network-unit.
-	AccessPoints []*AccessPoint
+	AccessPoints []int64
 
 	// links link to upstreams.
-	Links map[LinkChannel]*Link
+	Links Links
 }
 
-// LinkChannel represents a link channel in gse topology.
-type LinkChannel string
+// Links represents links.
+type Links struct {
+	Cluster *Link
+	File    *Link
+	Data    *Link
+}
 
-const (
-	// LinkChannelCluster represents a cluster network channel.
-	// It is the basic message channel in gse.
-	LinkChannelCluster LinkChannel = "cluster"
-
-	// LinkChannelFile represents a file network channel.
-	// It is the file transferring channel in gse.
-	LinkChannelFile LinkChannel = "file"
-
-	// LinkChannelData represents a data network channel.
-	// It is the data transferring channel in gse.
-	LinkChannelData LinkChannel = "data"
-)
+// Link represents link.
+type Link struct {
+	AccessPointID int64
+}
 
 // AccessPoint represents an access point for connecting network units.
 type AccessPoint struct {
 	// belongs to
 	TenantID      string
 	NetworkAreaID int64
-	UnitID        int64
 
 	// access-point-id is the unique identifier for an access point.
 	// access-point-id should be globally unique among all tenants.
@@ -103,15 +216,18 @@ type AccessPoint struct {
 	Name string
 
 	// access configs.
-	// each channel should have a endpoint list.
-	AccessEndpoints map[LinkChannel][]string
+	Endpoints Endpoints
 }
 
-// Link represents a link from one unit to one access point.
-type Link struct {
-	// channel of this link.
-	Channel LinkChannel
+// Endpoints represents endpoints of access point.
+type Endpoints struct {
+	Cluster []string
+	File    []string
+	Data    []string
+}
 
-	TargetTenantID      string
-	TargetAccessPointID int64
+// NetworkUnitInfo describes the informations in one networkunit.
+type NetworkUnitInfo struct {
+	Proxy int64
+	Agent int64
 }
