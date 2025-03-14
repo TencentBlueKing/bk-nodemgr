@@ -10,7 +10,11 @@
 
 package networkunit
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+)
 
 // TableName networkunit table name.
 func TableName() string {
@@ -41,6 +45,11 @@ type Links struct {
 	Cluster *Link `json:"cluster" bson:"cluster"`
 	File    *Link `json:"file" bson:"file"`
 	Data    *Link `json:"data" bson:"data"`
+}
+
+// UniqueKey unique key of the table.
+func (networkunit *NetworkUnit) UniqueKey() string {
+	return fmt.Sprintf("%d_%d", networkunit.NetworkAreaID, networkunit.NetworkUnitID)
 }
 
 // TableNetworkUnit represent the complete db structures of a networkunit.

@@ -583,6 +583,7 @@ linters-settings:
       - s *scheduler
       - m *Manager
       - d *dao
+      - d Dao
       - s *storage
       - s *Storage
   whitespace:
@@ -630,6 +631,9 @@ linters-settings:
     # List of aliases
     # Default: []
     alias:
+      # Using `$2Storage` alias for `pkg/storage/^[a-z0-9]+$`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/^[a-z0-9]+$/storage/^[a-z0-9]+$
+        alias: $2Storage
       # An explicit empty alias can be used to ensure no aliases are used for a package.
       # This can be useful if `no-extra-aliases: true` doesn't fit your need.
       # Multiple packages can use an empty alias.

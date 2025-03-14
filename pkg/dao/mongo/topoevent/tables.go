@@ -36,5 +36,10 @@ type TopoEvent struct {
 	Operator        string    `json:"operator" bson:"operator"`
 }
 
+// UniqueKey unique key of the table.
+func (event *TopoEvent) UniqueKey() string {
+	return fmt.Sprintf("%s_%d_%d_%d", event.TenantID, event.NetworkAreaID, event.NetworkUnitID, event.AccessPointID)
+}
+
 // TableTopoEvent represents the complete db structures of an event topo.
 type TableTopoEvent base.TableBroker[*TopoEvent]

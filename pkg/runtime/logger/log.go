@@ -88,7 +88,7 @@ func (logger LoggerDefault) Debugw(args ...interface{}) {
 }
 
 func infoPrefix(caller string) string {
-	return fmt.Sprintf("%s[Info]%s %s ", green, magenta, caller)
+	return fmt.Sprintf("%s[DeploymentInfo]%s %s ", green, magenta, caller)
 }
 
 // Info ...

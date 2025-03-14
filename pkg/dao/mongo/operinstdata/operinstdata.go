@@ -13,7 +13,6 @@ package operinstdata
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -154,7 +153,7 @@ func (d *dao) findOne(ctx context.Context, filter bson.D, fields ...string) (*Op
 	}
 
 	if table.Data == nil {
-		return nil, errors.New("no data found")
+		return nil, base.ErrRecordNoFound()
 	}
 
 	return table.Data, nil
