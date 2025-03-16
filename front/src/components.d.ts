@@ -8,7 +8,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CopyIp: typeof import('./components/copy-ip.vue')['default']
+    CopyIpDropdown: typeof import('./components/copy-ip-dropdown.vue')['default']
+    CopyProxyIp: typeof import('./components/copy-proxy-ip.vue')['default']
+    DefaultTable: typeof import('./components/default-table.vue')['default']
     FlexRow: typeof import('./components/flex-row.vue')['default']
+    InstallTable: typeof import('./components/install-table.vue')['default']
     PageHeader: typeof import('./components/page-header.vue')['default']
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

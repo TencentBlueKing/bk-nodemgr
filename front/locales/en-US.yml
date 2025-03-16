@@ -1,8 +1,72 @@
 platform:
   name: bk-nodeman
+  title: BK NodeMan
+  nodeManagement:
+    node: Node
+    agentStatus: Agent status
+    installAgent: Install agent
+    batchOperate: Batch
+    copy: Copy
+    uninstall: Uninstall
+    bussinessTopology: Business topo
+    agentSearchPlaceholder: 'Search IP, BK-Net ID:IP, Agent ID, BK-Net and more'
+    inner_ip: LAN IPv4
+    inner_ipv6: LAN IPv6
+    agentId: Agent ID
+    bk_cloud_name: BK-Net
+    bk_cloud_unit: BK-Net unit
+    os_type: Operating system
+    System/Arch: System/Architecture
+    status: Agent status
+    status_display: Agent status
+    agent_version: Agent version
+    is_manual: Install mode
+    operate: Actions
+    edit: Edit
+    delete: Detele
+    pluginManagement: Plugin management
+    history: History
+    taskHistory: Task history
 topoManager:
   region:
-    title: Controlled Area
+    title: Workarea
+    workarea:
+      search:
+        placeholder: Please enter the name, ID, and cloud service provider search for the controlled area
+        workareaName: Workarea name
+        workareaId: Workarea ID
+        vendor: Vendor
+      form:
+        create: Create a new workarea
+        edit: Edit workarea
+        workareaName: Workarea name
+        vendor: Vendor
+        tips: After creating the workarea, it is still necessary to install a proxy in order to use it normally
+        success: Workarea created successfully
+        failed: Workarea creation failed
+      formRule:
+        workareaName: The name of the Workarea cannot be empty
+        vendor: Vendor name cannot be empty
+      table:
+        workareaName: Workarea name
+        workareaId: Workarea ID
+        vendor: Vendor
+        workUnitsCount: Number of workUnits
+        nodesCount: Number of nodes
+      vendor:
+        tencent: Tencent Cloud
+        google: Google Cloud
+        huawei: HuaWei Cloud
+        microsoft: Microsoft Cloud
+        ali: Alibaba Cloud
+      copy:
+        workarea: Workarea
+        select: The selected Proxy IP
+        selectAll: Proxy IP for all items
+        success: Replicating Success
+        failed: Replicating Failed
+      delete:
+        title: Are you sure you want to delete this' Workarea '?
   topo:
     title: Topology Map
     toolbar:
@@ -11,3 +75,15 @@ topoManager:
       originalSize: Original Size
   record:
     title: Operation Record
+action:
+  create: Create
+  copy: Copy
+  edit: Edit
+  delete: Delete
+  confirm: Confirm
+  cancel: 取消
+  installProxy: Install Proxy
+  installLater: Install Later
+table:
+  empty: No data available at the moment
+  action: action

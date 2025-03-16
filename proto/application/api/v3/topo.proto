@@ -173,7 +173,7 @@ message TopoNetworkUnitGetResp {
 message TopoNetworkUnitCreateReq {
   string bk_networkunit_name = 1;
   int64 bk_networkarea_id = 2;
-  repeated AccessPoint access_points = 3;
+  repeated AccessPoint accesspoints = 3;
   Links links = 4;
 }
 
@@ -194,7 +194,7 @@ message TopoNetworkUnitUpdateReq {
   int64 bk_networkunit_id = 1;
   string bk_networkunit_name = 2;
   int64 bk_networkarea_id = 3;
-  repeated AccessPoint access_points = 4;
+  repeated AccessPoint accesspoints = 4;
   Links links = 5;
 }
 
@@ -305,6 +305,36 @@ message TopoGraphNodeCountResp {
   Data data = 4;
 }
 
+// TopoEventListReq describes the HTTP request body when get host in topo
+// service.
+message TopoEventListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkarea_id = 1;
+    repeated int64 bk_networkunit_id = 2;
+    repeated int64 accesspoint_id = 3;
+    repeated string type = 4;
+    repeated string operator = 5;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoEventListResp describes the HTTP response body when get host in topo
+// service.
+message TopoEventListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated TopoEvent items = 2;
+  }
+  Data data = 4;
+}
+
 // topo service.
 service Topo {
   // BusinessList provides business listing.
@@ -411,6 +441,7 @@ service Topo {
     };
   }
 
+  // GraphGet provides getting graph nodes and edges.
   rpc GraphGet(TopoGraphGetReq) returns (TopoGraphGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/get"
@@ -418,9 +449,18 @@ service Topo {
     };
   }
 
+  // GraphNodeCount provides getting graph node count.
   rpc GraphNodeCount(TopoGraphNodeCountReq) returns (TopoGraphNodeCountResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/node/count"
+      body : "*"
+    };
+  }
+
+  // EventList provides event listing.
+  rpc EventList(TopoEventListReq) returns (TopoEventListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/event/list"
       body : "*"
     };
   }

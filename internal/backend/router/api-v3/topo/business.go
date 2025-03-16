@@ -46,5 +46,5 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoBusinessListResp)
 	resp.ConvertBusinessFromTypes(num, bizs)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }

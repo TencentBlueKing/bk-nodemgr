@@ -453,3 +453,35 @@ func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto
 
 	return resp, nil
 }
+
+func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *proto.TopoEventListReq) (
+	*proto.TopoEventListResp, error) {
+
+	resp := new(proto.TopoEventListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/event/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list topoevent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list topoevent failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

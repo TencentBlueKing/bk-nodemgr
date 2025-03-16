@@ -46,7 +46,7 @@ func (d *dao) ensureIndexes() error {
 
 	opts := new(options.IndexOptions)
 	indexes = append(indexes, mongo.IndexModel{
-		Keys:    bson.D{{Key: "data.access_point_id", Value: 1}},
+		Keys:    bson.D{{Key: "data.accesspoint_id", Value: 1}},
 		Options: opts.SetUnique(true),
 	})
 
@@ -194,7 +194,7 @@ func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo
 
 	for _, accessPoint := range accessPoints {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: "data.access_point_id", Value: accessPoint.AccessPointID},
+			bson.E{Key: "data.accesspoint_id", Value: accessPoint.AccessPointID},
 			bson.E{Key: "data.tenant_id", Value: tenantID})
 
 		update := base.BuildUpsertParam(accessPoint)
@@ -208,7 +208,7 @@ func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo
 // buildDeleteManyParams build delete many params.
 func buildDeleteManyParams(tenantID string, accessPointIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: "data.access_point_id", Value: bson.D{{Key: "$in", Value: accessPointIDs}}},
+		bson.E{Key: "data.accesspoint_id", Value: bson.D{{Key: "$in", Value: accessPointIDs}}},
 		bson.E{Key: "data.tenant_id", Value: tenantID}}
 
 	update := base.BuildDeleteParam()

@@ -66,10 +66,11 @@ type Storage interface {
 
 	// CreateNetworkUnit creates networkunit.
 	CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
-		int64, error)
+		int64, *AccessPointResult, error)
 
 	// UpdateNetworkUnit updates networkunit.
-	UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error
+	UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+		*AccessPointResult, error)
 
 	// DeleteManyNetworkUnit deletes networkunits.
 	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
@@ -77,4 +78,14 @@ type Storage interface {
 	// ListAccessPoint lists accesspoint by page and conditions.
 	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
+
+	// CountTopoEvent counts topo events by conditions.
+	CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error)
+
+	// ListTopoEvent lists topo events by page and conditions.
+	ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+		[]*types.TopoEvent, int64, error)
+
+	// CreateManyTopoEvent creates multiple topo events.
+	CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error
 }

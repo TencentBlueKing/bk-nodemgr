@@ -3,14 +3,15 @@ import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import NotFound from '@/pages/app/404.vue';
-import AgentManager from '@/pages/node/agent.vue';
+import AgentImport from '@/pages/node/agent/import.vue';
+import AgentManager from '@/pages/node/agent/list.vue';
+import AgentSetup from '@/pages/node/agent/setup.vue';
 import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
-import TopoManager from '@/pages/topo/index.vue';
-import ControlledRegion from '@/pages/topo/region.vue';
-import Topography from '@/pages/topo/topo.vue';
 import OperationRecord from '@/pages/topo/record.vue';
+import Topography from '@/pages/topo/topo.vue';
+import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -36,6 +37,38 @@ const routes = setupLayouts([
             },
           },
           {
+            name: 'agentSetup',
+            path: 'setup',
+            component: AgentSetup,
+            meta: {
+              title: '安装 Agent',
+              back: true,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'agentImport',
+            path: 'import',
+            props: true,
+            component: AgentImport,
+            meta: {
+              title: 'Excel导入安装',
+              back: true,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'agentEdit',
+            path: 'edit',
+            props: true,
+            component: AgentImport,
+            meta: {
+              title: '重装 Agent',
+              back: true,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
             name: 'plugin',
             path: 'plugin',
             component: PluginManager,
@@ -57,15 +90,16 @@ const routes = setupLayouts([
       {
         name: 'topoManager',
         path: 'topo-manager',
-        redirect: { name: 'region' },
+        redirect: { name: 'workarea' },
         children: [
           {
-            name: 'region',
-            path: 'region',
-            component: ControlledRegion,
+            name: 'workarea',
+            path: 'workarea',
+            component: WorkArea,
             meta: {
               back: false,
               mainMenu: 'topoManager',
+              title: '管控区域',
             },
           },
           {
@@ -85,7 +119,7 @@ const routes = setupLayouts([
               back: false,
               mainMenu: 'topoManager',
             },
-          }
+          },
         ],
       },
       // 策略管理

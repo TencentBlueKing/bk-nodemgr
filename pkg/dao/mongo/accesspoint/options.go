@@ -17,12 +17,12 @@ type OptFn = base.OptFn
 
 // WithAccessPointID filters by accesspoint-id.
 func WithAccessPointID(accessPointIDs ...int64) OptFn {
-	return base.WithInt64Values("data.access_point_id", accessPointIDs...)
+	return base.WithInt64Values("data.accesspoint_id", accessPointIDs...)
 }
 
 // WithoutAccessPointID filters by not contains accesspoint-id.
 func WithoutAccessPointID(accessPointIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.access_point_id", accessPointIDs...)
+	return base.WithoutInt64Values("data.accesspoint_id", accessPointIDs...)
 }
 
 // WithNetworkAreaID filters by networkarea-id.

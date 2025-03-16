@@ -11,3 +11,8 @@ body,
 * {
   font-family: -apple-system, Helvetica Neue, Helvetica, Arial, PingFang SC, Microsoft YaHei, SimSun, sans-serif !important;
 }
+
+/* 隐藏setting Tab的滚动条 */
+.action-tab-wrapper {
+  overflow-y: auto !important;
+}

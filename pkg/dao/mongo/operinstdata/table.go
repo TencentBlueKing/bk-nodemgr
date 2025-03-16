@@ -22,13 +22,14 @@ const TableName = "oper_inst_data"
 
 // ActionInstData represents a action data.
 type ActionInstData struct {
-	TriggerID  string            `json:"trigger_id" bson:"trigger_id"`
-	OperInstID string            `json:"oper_inst_id" bson:"oper_inst_id"`
-	Name       string            `json:"name" bson:"name"`
-	Index      int               `json:"index" bson:"index"`
-	Lifecycle  *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`
-	Messages   []Message         `json:"messages" bson:"messages"`
-	Content    string            `json:"content" bson:"content"`
+	TriggerID   string            `json:"trigger_id" bson:"trigger_id"`
+	OperInstID  string            `json:"oper_inst_id" bson:"oper_inst_id"`
+	Name        string            `json:"name" bson:"name"`
+	Index       int               `json:"index" bson:"index"`
+	Lifecycle   *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`
+	Messages    []Message         `json:"messages" bson:"messages"`
+	Content     string            `json:"content" bson:"content"`
+	PrivateData map[string]any    `json:"private_data" bson:"private_data"`
 }
 
 // Message represents a message.
@@ -52,7 +53,8 @@ type OperInstData struct {
 	ActionNames       []string                   `json:"actions" bson:"actions"`
 	ActionInstDataMap map[string]*ActionInstData `json:"action_data" bson:"action_data"`
 	OperDefName       string                     `json:"oper_def_name" bson:"oper_def_name"`
-	ParentOperInstID  string                     `json:"parent_oper_inst_id" bson:"parent_oper_inst_id"`
+	OperationID       string                     `json:"operation_id" bson:"operation_id"`
+	ParentOperationID string                     `json:"parent_operation_id" bson:"parent_operation_id"`
 	Timeout           time.Duration              `json:"timeout" bson:"timeout"`
 	InitContent       string                     `json:"init_content" bson:"init_content"`
 	Lifecycle         *Lifecycle                 `json:"lifecycle" bson:"lifecycle"`

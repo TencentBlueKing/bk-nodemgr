@@ -32,6 +32,25 @@ type dao struct {
 	logger logger.Logger
 }
 
+// nolint:contextcheck
+// ensureIndexes ensures the required indexes for the collection.
+func (d *dao) ensureIndexes() error {
+	var indexes []mongo.IndexModel
+
+	indexes = append(indexes, mongo.IndexModel{
+		Keys: bson.D{{Key: "data.biz_id", Value: 1}},
+	})
+
+	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("successfully created required indexes")
+
+	return nil
+}
+
 // upsert updates or inserts a business.
 func (d *dao) upsert(ctx context.Context, biz *Business) error {
 	filter, upsert, opts := buildUpsertParams(biz)

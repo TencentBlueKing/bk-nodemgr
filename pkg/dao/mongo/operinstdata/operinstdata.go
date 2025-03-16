@@ -13,7 +13,6 @@ package operinstdata
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -154,8 +153,21 @@ func (d *dao) findOne(ctx context.Context, filter bson.D, fields ...string) (*Op
 	}
 
 	if table.Data == nil {
-		return nil, errors.New("no data found")
+		return nil, base.ErrRecordNoFound()
 	}
 
 	return table.Data, nil
+}
+
+// pushField push field.
+func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value any) error {
+	update := base.BuildPushField(field, value)
+	result, err := d.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("successfully push, field(%v), value(%v), updated-count(%d)", field, value, result.MatchedCount)
+
+	return nil
 }

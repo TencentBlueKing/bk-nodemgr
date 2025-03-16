@@ -95,13 +95,16 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 		operDef.Next(m.operInstMgr.GetRegisteredAction(actionName))
 	}
 
-	operInst, err := operDef.NewInstance(operation.TriggerID, param.Timeout)
+	operInst, err := operDef.NewInstance(param.Timeout)
 	if err != nil {
 		return nil, err
 	}
 
 	operInst.data.InitContent = param.InitContent
-	operInst.data.ParentOperInstID = param.ParentOperInstID
+	operInst.data.ParentOperationID = param.ParentOperationID
+
+	operInst.data.TriggerID = operation.TriggerID
+	operInst.data.OperationID = operation.OperationID
 
 	for idx, actionName := range operation.DefSnapshot.ActionNames {
 		actionInstData := &ActionInstData{

@@ -157,3 +157,27 @@ type AccessPointCondition struct {
 	// will be used when condition type is in fuzzy mode.
 	Fuzzy *AccessPointFuzzyFields
 }
+
+// TopoEventExactFields defines the topo event exact fields.
+type TopoEventExactFields struct {
+	NetworkAreaID []int64
+	NetworkUnitID []int64
+	AccessPointID []int64
+	Type          []TopoEventType
+	Operator      []string
+}
+
+// TopoEventFuzzyFields defines the topo event fuzzy fields.
+type TopoEventFuzzyFields struct {
+}
+
+// TopoEventCondition defines the topo event condition.
+type TopoEventCondition struct {
+	Type ConditionType
+
+	// will be used when condition type is in exact mode.
+	Exact *TopoEventExactFields
+
+	// will be used when condition type is in fuzzy mode.
+	Fuzzy *TopoEventFuzzyFields
+}

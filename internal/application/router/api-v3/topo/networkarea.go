@@ -43,7 +43,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkAreaCreateResp)
 	resp.ConvertNetworkAreaFromTypes(networkAreaID)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // UpdateNetworkArea updates an existing network-area.
@@ -68,7 +68,7 @@ func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkAreaUpdateResp)
 	resp.ConvertNetworkAreaFromTypes(req.GetBkNetworkareaId())
 
-	return resp, nil
+	return resp.GetData(), nil
 }
 
 // GetNetworkArea gets an existing network-area.
@@ -94,7 +94,7 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkAreaCreateResp)
 	resp.ConvertNetworkAreaFromTypes(networkArea.ID)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // ListNetworkArea lists network-area.
@@ -123,7 +123,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkAreaListResp)
 	resp.ConvertNetworkAreasFromTypes(num, networkAreas)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // DeleteNetworkArea deletes an existing network-area.
@@ -148,5 +148,5 @@ func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkAreaDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkareaId())
 
-	return resp, nil
+	return resp.GetData(), nil
 }

@@ -13,6 +13,7 @@ package business
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -51,7 +52,12 @@ func (h *handler) tenantDao(tenantID string) *dao {
 		return d.(*dao)
 	}
 
-	d, _ := h.daoMap.LoadOrStore(tenantID, newDao(tenantID, h.client, h.logger))
+	newDaoClient := newDao(tenantID, h.client, h.logger)
+	if err := newDaoClient.ensureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure business indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
 
 	// note: we can be sure that only the tenantDao func edit the daoMap,
 	// so we can just use the type assertion here.

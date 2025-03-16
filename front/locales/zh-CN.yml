@@ -1,8 +1,92 @@
 platform:
   name: 节点管理
+  title: 蓝鲸节点管理
+  nodeMan:
+    node: 节点
+    agentStatus: Agent 状态
+    installAgent: 安装 Agent
+    installAgentPage:
+      tip1: 对于外网 IP 等先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中；
+      tip1FirstSlotText: 全新主机
+      tip1SecondSlotText: 自动导入
+      tip2: 安装 Agent 需要开启一定的 {0}，完成 Agent 信息后，请点击 {1} 查看相对应的安装指南；如需更高级的配置，请单击安装信息的 {2}。
+      tip2FirstSlotText: 网络访问策略
+      tip2SecondSlotText: 安装要求
+      tip2ThirdSlotText: 表格展示设置
+      type: 安装方式
+      business: 安装到业务
+      cloud: 安装到管控区域
+      cloud_unit: 安装到管控单元
+      info: 安装信息
+      version: Agent 版本
+    batchOperate: 批量
+    copy: 复制
+    uninstall: 卸载
+    bussinessTopology: 业务拓扑
+    agentSearchPlaceholder: 搜索IP、管控区域ID:IP、Agent ID、管控区域...
+    inner_ip: 内网IPv4
+    inner_ipv6: 内网IPv6
+    agentId: Agent ID
+    bk_cloud_name: 管控区域
+    bk_cloud_unit: 管控单元
+    os_type: 操作系统
+    System/Arch: 操作系统/架构
+    status: Agent 状态
+    status_display: Agent 状态
+    agent_version: Agent 版本
+    is_manual: 安装方式
+    operate: 操作
+    edit: 编辑
+    delete: 删除
+    pluginManagement: 插件管理
+    history: 历史
+    taskHistory: 任务历史
+  topoManager:
+    name: 拓扑管理
+  ruleManager:
+    name: 策略管理
+  pkgManager:
+    name: 包管理
 topoManager:
   region:
     title: 管控区域
+    workarea:
+      search:
+        placeholder: 请输入 管控区名称、管控区ID、云服务商 搜索
+        workareaName: 管控区域名称
+        workareaId: 管控区域ID
+        vendor: 云服务商
+      form:
+        create: 新建管控区域
+        edit: 编辑管控区域
+        workareaName: 管控区域名称
+        vendor: 云服务商
+        tips: 创建完管控区后，仍需安装 Proxy 才能够正常使用
+        success: 管控区域创建成功
+        failed: 管控区域创建失败
+      formRule:
+        workareaName: 管控区域名称不能为空
+        vendor: 云服务商不能为空
+      table:
+        workareaName: 管控区域名称
+        workareaId: 管控区域ID
+        vendor: 云服务商
+        workUnitsCount: 管控单元数量
+        nodesCount: 节点数量
+      vendor:
+        tencent: 腾讯云
+        google: 谷歌云
+        huawei: 华为云
+        microsoft: 微软云
+        ali: 阿里云
+      copy:
+        workarea: 管控区域
+        select: 所选项的 Proxy IP
+        selectAll: 全部项的 Proxy IP
+        success: 复制成功
+        failed: 复制失败
+      delete:
+        title: 确认要删除该「管控区域」？
   topo:
     title: 拓扑图
     toolbar:
@@ -11,3 +95,15 @@ topoManager:
       originalSize: 原始大小
   record:
     title: 操作记录
+action:
+  create: 新建
+  copy: 复制
+  edit: 编辑
+  delete: 删除
+  confirm: 确定
+  cancel: 取消
+  installProxy: 安装 Proxy
+  installLater: 稍后安装
+table:
+  empty: 暂无数据
+  action: 操作

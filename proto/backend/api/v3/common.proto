@@ -24,7 +24,11 @@ message NetworkArea {
 }
 
 // Link describes the network unit link points target.
-message Link { int64 accesspoint_id = 1; }
+message Link {
+  int64 bk_networkarea_id = 1;
+  int64 bk_networkunit_id = 2;
+  int64 accesspoint_id = 3;
+}
 
 // Links describes the network unit links.
 message Links {
@@ -54,7 +58,7 @@ message NetworkUnit {
   optional int64 bk_networkunit_id = 2;
   optional string bk_networkunit_name = 3;
   optional int64 bk_networkarea_id = 4;
-  repeated AccessPoint access_points = 5;
+  repeated AccessPoint accesspoints = 5;
   optional Links links = 6;
 }
 
@@ -65,7 +69,7 @@ message NetworkUnitBrief {
   optional int64 bk_networkunit_id = 2;
   optional string bk_networkunit_name = 3;
   optional int64 bk_networkarea_id = 4;
-  repeated int64 access_points = 5;
+  repeated int64 accesspoints = 5;
   optional Links links = 6;
 }
 
@@ -76,7 +80,6 @@ message HostState {
   optional string node_status = 2;
   optional string node_version = 3;
   optional string bk_agent_id = 4;
-  optional int64 bk_networkunit_id = 5;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -84,14 +87,15 @@ message HostState {
 message HostInfo {
   optional int64 bk_biz_id = 1;
   optional int64 bk_networkarea_id = 2;
-  optional string bk_host_name = 3;
-  optional string dept_name = 4;
-  optional string bk_host_innerip = 5;
-  optional string bk_host_innerip_v6 = 6;
-  optional string bk_host_outerip = 7;
-  optional string bk_host_outerip_v6 = 8;
-  optional string bk_mac = 9;
-  optional string bk_os_type = 10;
+  optional int64 bk_networkunit_id = 3;
+  optional string bk_host_name = 4;
+  optional string dept_name = 5;
+  optional string bk_host_innerip = 6;
+  optional string bk_host_innerip_v6 = 7;
+  optional string bk_host_outerip = 8;
+  optional string bk_host_outerip_v6 = 9;
+  optional string bk_mac = 10;
+  optional string bk_os_type = 11;
 }
 
 // Host describes the host informations.
@@ -102,4 +106,18 @@ message Host {
   HostState state = 4;
   optional uint64 create_at = 5;
   optional uint64 updated_at = 6;
+}
+
+// TopoEvent describes the topo event.
+message TopoEvent {
+  optional string tenant_id = 1;
+  optional string type = 2;
+  optional int64 bk_networkarea_id = 3;
+  optional string bk_networkarea_name = 4;
+  optional int64 bk_networkunit_id = 5;
+  optional string bk_networkunit_name = 6;
+  optional int64 accesspoint_id = 7;
+  optional string accesspoint_name = 8;
+  optional int64 operate_time = 9;
+  optional string operator = 10;
 }

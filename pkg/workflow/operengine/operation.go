@@ -77,6 +77,6 @@ type OperInstParam struct {
 	// InitContent define the init content of operation instance.
 	InitContent map[string]any
 
-	// ParentOperInstID define the parent operation instance id.
-	ParentOperInstID string
+	// ParentOperationID define the parent operation id.
+	ParentOperationID string
 }

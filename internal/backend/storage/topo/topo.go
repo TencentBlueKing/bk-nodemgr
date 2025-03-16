@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -67,6 +68,8 @@ type storage struct {
 	daoNetworkUnit networkunit.Handler
 
 	daoAccessPoint accesspoint.Handler
+
+	daoTopoEvent topoevent.Handler
 }
 
 func (s *storage) initDao() error {
@@ -75,6 +78,7 @@ func (s *storage) initDao() error {
 	s.daoNetworkArea = networkarea.New(s.Database, s.Logger)
 	s.daoNetworkUnit = networkunit.New(s.Database, s.Logger)
 	s.daoAccessPoint = accesspoint.New(s.Database, s.Logger)
+	s.daoTopoEvent = topoevent.New(s.Database, s.Logger)
 
 	return nil
 }
@@ -251,6 +255,7 @@ func (s *storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 	return s.daoHost.List(ctx, page, opts...)
 }
 
+// nolint:cyclop
 // CountHost counts host by conditions.
 func (s *storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
 	opts := make([]host.OptFn, 0)
@@ -421,16 +426,91 @@ func (s *storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (*typ
 	return s.daoNetworkUnit.Get(ctx, networkUnitID)
 }
 
+func (s *storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.NetworkUnit) error {
+	upstreamNetworkUnitIDs := make([]int64, 0)
+	if networkUnit.Links.Cluster != nil {
+		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.Cluster.NetworkUnitID)
+	}
+	if networkUnit.Links.File != nil {
+		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.File.NetworkUnitID)
+	}
+	if networkUnit.Links.Data != nil {
+		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.Data.NetworkUnitID)
+	}
+
+	upstreamNetworkUnits, _, err := s.daoNetworkUnit.List(
+		ctx,
+		types.Page{Limit: 3},
+		networkunit.WithNetworkUnitID(upstreamNetworkUnitIDs...))
+	if err != nil {
+		s.Logger.Errorf("failed to check networkunit links, failed to list upstream networkunit: %v", err.Error())
+		return err
+	}
+
+	if err := findUpstreamNetworkUnitWithLink(upstreamNetworkUnits, networkUnit.Links.Cluster); err != nil {
+		return err
+	}
+
+	if err := findUpstreamNetworkUnitWithLink(upstreamNetworkUnits, networkUnit.Links.File); err != nil {
+		return err
+	}
+
+	if err := findUpstreamNetworkUnitWithLink(upstreamNetworkUnits, networkUnit.Links.Data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, link *types.Link) error {
+	if link == nil {
+		return nil
+	}
+
+	// find networkunit.
+	for _, upstreamNetworkUnit := range upstreamNetworkUnits {
+		if upstreamNetworkUnit.ID == link.NetworkUnitID {
+			// check networkarea.
+			if upstreamNetworkUnit.NetworkAreaID != link.NetworkAreaID {
+				return fmt.Errorf("upstream link networkarea not matched. networkarea-id(%d), networkunit-id(%d), accesspoint-id(%d)",
+					link.NetworkAreaID, link.NetworkUnitID, link.AccessPointID)
+			}
+
+			// check accesspoint.
+			for _, apID := range upstreamNetworkUnit.AccessPoints {
+				if apID == link.AccessPointID {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("upstream link accesspoint not found. networkarea-id(%d), networkunit-id(%d), accesspoint-id(%d)",
+				link.NetworkAreaID, link.NetworkUnitID, link.AccessPointID)
+		}
+	}
+
+	return fmt.Errorf("upstream link networkunit not found. networkarea-id(%d), networkunit-id(%d), accesspoint-id(%d)",
+		link.NetworkAreaID, link.NetworkUnitID, link.AccessPointID)
+}
+
 // CreateNetworkUnit creates networkunit.
 func (s *storage) CreateNetworkUnit(
 	ctx context.Context,
 	networkUnit *types.NetworkUnit,
-	accessPoints ...*types.AccessPoint) (int64, error) {
+	accessPoints ...*types.AccessPoint) (int64, *AccessPointResult, error) {
+
+	if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+		return -1, nil, err
+	}
 
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		return s.daoNetworkUnit.Create(ctx, networkUnit)
+		networkUnitID, err := s.daoNetworkUnit.Create(ctx, networkUnit)
+		if err != nil {
+			return -1, nil, err
+		}
+
+		return networkUnitID, &AccessPointResult{}, nil
 	}
 
 	// create accesspoints first.
@@ -438,23 +518,47 @@ func (s *storage) CreateNetworkUnit(
 	if err != nil {
 		s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
 
-		return -1, err
+		return -1, nil, err
 	}
-	networkUnit.AccessPoints = accessPointIDs
 
-	return s.daoNetworkUnit.Create(ctx, networkUnit)
+	networkUnit.AccessPoints = accessPointIDs
+	for idx, accessPointID := range accessPointIDs {
+		if idx > len(accessPointIDs) {
+			break
+		}
+
+		accessPoints[idx].ID = accessPointID
+	}
+
+	// create networkunit.
+	networkUnitID, err := s.daoNetworkUnit.Create(ctx, networkUnit)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	return networkUnitID, &AccessPointResult{
+		Created: accessPoints,
+	}, nil
 }
 
 // UpdateNetworkUnit updates networkunit.
 func (s *storage) UpdateNetworkUnit(
 	ctx context.Context,
 	networkUnit *types.NetworkUnit,
-	accessPoints ...*types.AccessPoint) error {
+	accessPoints ...*types.AccessPoint) (*AccessPointResult, error) {
+
+	if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+		return nil, err
+	}
 
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		return s.daoNetworkUnit.UpdateMany(ctx, networkUnit)
+		if err := s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+			return nil, err
+		}
+
+		return &AccessPointResult{}, nil
 	}
 
 	// update old accesspoints, create new accesspoints.
@@ -477,7 +581,7 @@ func (s *storage) UpdateNetworkUnit(
 		if err != nil {
 			s.Logger.Errorf("failed to create networkunit, failed to update accesspoint: %v", err.Error())
 
-			return err
+			return nil, err
 		}
 	}
 	if len(newAccessPoints) > 0 {
@@ -485,14 +589,29 @@ func (s *storage) UpdateNetworkUnit(
 		if err != nil {
 			s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
 
-			return err
+			return nil, err
 		}
 
 		accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
+		for idx, accessPointID := range accessPointIDs {
+			if idx > len(newAccessPoints) {
+				break
+			}
+
+			newAccessPoints[idx].ID = accessPointID
+		}
 	}
 	networkUnit.AccessPoints = accessPointIDs
 
-	return s.daoNetworkUnit.UpdateMany(ctx, networkUnit)
+	if err := s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+		return nil, err
+	}
+
+	return &AccessPointResult{
+		Created: newAccessPoints,
+		Updated: oldAccessPoints,
+		Deleted: nil,
+	}, nil
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
@@ -532,4 +651,90 @@ func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditio
 	}
 
 	return s.daoAccessPoint.List(ctx, page, opts...)
+}
+
+// CountTopoEvent counts topo events.
+func (s *storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error) {
+	opts := make([]topoevent.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					topoevent.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+					topoevent.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
+					topoevent.WithAccessPointID(condition.Exact.AccessPointID...),
+					topoevent.WithType(condition.Exact.Type...),
+					topoevent.WithOperator(condition.Exact.Operator...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					topoevent.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+					topoevent.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
+					topoevent.WithoutAccessPointID(condition.Exact.AccessPointID...),
+					topoevent.WithoutType(condition.Exact.Type...),
+					topoevent.WithoutOperator(condition.Exact.Operator...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+		case types.ConditionTypeFuzzyExclude:
+
+		default:
+			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoTopoEvent.Count(ctx, opts...)
+}
+
+// ListTopoEvent lists topo events.
+func (s *storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+	[]*types.TopoEvent, int64, error) {
+
+	opts := make([]topoevent.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					topoevent.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+					topoevent.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
+					topoevent.WithAccessPointID(condition.Exact.AccessPointID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					topoevent.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+					topoevent.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
+					topoevent.WithoutAccessPointID(condition.Exact.AccessPointID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+		case types.ConditionTypeFuzzyExclude:
+
+		default:
+			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoTopoEvent.List(ctx, page, opts...)
+}
+
+// CreateManyTopoEvent creates topo events.
+func (s *storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error {
+	return s.daoTopoEvent.CreateMany(ctx, events...)
+}
+
+// AccessPointResult describes the accesspoint result in networkunit handlers.
+type AccessPointResult struct {
+	Created []*types.AccessPoint
+	Updated []*types.AccessPoint
+	Deleted []*types.AccessPoint
 }

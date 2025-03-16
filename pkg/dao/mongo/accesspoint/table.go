@@ -10,7 +10,11 @@
 
 package accesspoint
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"strconv"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+)
 
 // TableName accesspoint table name.
 func TableName() string {
@@ -21,8 +25,8 @@ func TableName() string {
 // AccessPointID should be the unique key.
 type AccessPoint struct {
 	TenantID        string `json:"tenant_id" bson:"tenant_id"`
-	AccessPointID   int64  `json:"access_point_id" bson:"access_point_id"`
-	AccessPointName string `json:"access_point_name" bson:"access_point_name"`
+	AccessPointID   int64  `json:"accesspoint_id" bson:"accesspoint_id"`
+	AccessPointName string `json:"accesspoint_name" bson:"accesspoint_name"`
 
 	NetworkAreaID int64      `json:"networkarea_id" bson:"networkarea_id"`
 	Endpoints     *Endpoints `json:"endpoints" bson:"endpoints"`
@@ -33,6 +37,11 @@ type Endpoints struct {
 	Cluster []string `json:"cluster" bson:"cluster"`
 	File    []string `json:"file" bson:"file"`
 	Data    []string `json:"data" bson:"data"`
+}
+
+// UniqueKey unique key of the table.
+func (a *AccessPoint) UniqueKey() string {
+	return strconv.FormatInt(a.AccessPointID, 10)
 }
 
 // TableAccessPoint represent the complete db structures of a access point.

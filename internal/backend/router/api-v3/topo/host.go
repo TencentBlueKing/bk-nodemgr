@@ -47,7 +47,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		resp := new(proto.TopoHostListResp)
 		resp.ConvertHostsFromTypes(num, nil)
 
-		return resp.Data, nil
+		return resp.GetData(), nil
 	}
 
 	hosts, num, err := h.storage.ListHost(
@@ -62,5 +62,5 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoHostListResp)
 	resp.ConvertHostsFromTypes(num, hosts)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }

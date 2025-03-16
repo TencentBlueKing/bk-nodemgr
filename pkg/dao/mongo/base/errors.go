@@ -12,6 +12,11 @@ package base
 
 import "errors"
 
+// ErrInvalidContext return the error when context is invalid.
+func ErrInvalidContext() error {
+	return errInvalidContext
+}
+
 // ErrEnsureIndexesFailed return the error when ensure indexes failed.
 func ErrEnsureIndexesFailed() error {
 	return errEnsureIndexesFailed
@@ -37,10 +42,17 @@ func ErrTenantIDNotMatched() error {
 	return errTenantIDNotMatched
 }
 
+// ErrRecordNoFound return the error when record no found.
+func ErrRecordNoFound() error {
+	return errRecordNoFound
+}
+
 var (
 	errEnsureIndexesFailed    = errors.New("ensure indexes failed")
 	errInvalidID              = errors.New("invalid id")
 	errEmptyParamData         = errors.New("empty param data")
 	errInvalidItemInParamList = errors.New("invalid item in param list")
 	errTenantIDNotMatched     = errors.New("tenant id is not matched")
+	errInvalidContext         = errors.New("context is nil")
+	errRecordNoFound          = errors.New("no data found")
 )

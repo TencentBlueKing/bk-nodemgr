@@ -62,7 +62,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitCreateResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnitID)
 
-	return resp, nil
+	return resp.GetData(), nil
 }
 
 // UpdateNetworkUnit updates networkunit.
@@ -106,7 +106,7 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitUpdateResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // GetNetworkUnit gets an existing networkunit.
@@ -140,7 +140,7 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitGetResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnit, accessPoints)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // ListNetworkUnit lists network units.
@@ -169,7 +169,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitListResp)
 	resp.ConvertNetworkUnitsFromTypes(num, networkUnits)
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // DeleteNetworkUnit deletes an existing network-unit.
@@ -194,5 +194,5 @@ func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	resp := new(proto.TopoNetworkUnitDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
-	return resp, nil
+	return resp.GetData(), nil
 }

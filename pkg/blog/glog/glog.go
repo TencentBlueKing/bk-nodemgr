@@ -33,14 +33,14 @@
 //
 // Basic examples:
 //
-//	glog.Info("Prepare to repel boarders")
+//	glog.DeploymentInfo("Prepare to repel boarders")
 //
 //	glog.Fatalf("Initialization failed: %s", err)
 //
 // See the documentation for the V function for an explanation of these examples:
 //
 //	if glog.V(2) {
-//		glog.Info("Starting transaction...")
+//		glog.DeploymentInfo("Starting transaction...")
 //	}
 //
 //	glog.V(2).Infoln("Processed", nItems, "elements")
@@ -69,7 +69,7 @@
 //		When set to a file and line number holding a logging statement,
 //		such as
 //			-log_backtrace_at=gopherflakes.go:234
-//		a stack trace will be written to the Info log whenever execution
+//		a stack trace will be written to the DeploymentInfo log whenever execution
 //		hits that statement. (Unlike with -vmodule, the ".go" must be
 //		present.)
 //	-v=0
@@ -1028,11 +1028,11 @@ type Verbose bool
 // and Infof. These methods will write to the Info log if called.
 // Thus, one may write either
 //
-//	if glog.V(2) { glog.Info("log this") }
+//	if glog.V(2) { glog.DeploymentInfo("log this") }
 //
 // or
 //
-//	glog.V(2).Info("log this")
+//	glog.V(2).DeploymentInfo("log this")
 //
 // The second form is shorter but the first is cheaper if logging is off because it does
 // not evaluate its arguments.

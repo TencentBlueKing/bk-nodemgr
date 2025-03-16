@@ -36,17 +36,17 @@ type OperInstStorage interface {
 	// GetActionInstData will get the action_inst_data.
 	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*ActionInstData, error)
 
-	// UpdateActInstMsg will refresh the action_inst_data's msg.
-	UpdateActInstMsg(ctx context.Context, operInstID string, actionName string, msgs []Message) error
-
-	// UpdateActionInstData will update the OperInst's ActionInstData.
-	UpdateActionInstData(ctx context.Context, data *ActionInstData) error
-
 	// UpdateActInstLifecycle will update the action_inst_data's lifecycle.
 	UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string, lifecycle *ActInstLifeCycle) error
 
+	// UpdateActionInstContent will update the action_inst_data's content.
+	UpdateActionInstContent(ctx context.Context, operInstID string, actionName string, content map[string]any) error
+
 	// UpdateLifecycle will update the OperInst's Lifecycle.
 	UpdateLifecycle(ctx context.Context, operInstID string, data *Lifecycle) error
+
+	// PushActInstMsgs will push a message to the action_inst_data's msg queue.
+	PushActInstMsgs(ctx context.Context, operInstID string, actionName string, msgs ...Message) error
 }
 
 // OperationStorage represents a Operation operInstMgr storage handler.
