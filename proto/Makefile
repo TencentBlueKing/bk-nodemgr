@@ -24,6 +24,14 @@ FILE_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/file/api/v3
 FILE_V3_PROTO_FILES = $(wildcard $(FILE_V3_PROTO_DIR)/*.proto)
 FILE_V3_GO_FILES = $(patsubst $(FILE_V3_PROTO_DIR)/%.proto,$(FILE_V3_GO_OUT_DIR)/%.pb.go,$(FILE_V3_PROTO_FILES))
 
+# backend callback
+BACKEND_Callback_PROTO_DIR = $(CURDIR)/backend/callback
+BACKEND_Callback_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/backend/callback
+BACKEND_Callback_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/backend/callback
+BACKEND_Callback_PROTO_FILES = $(wildcard $(BACKEND_Callback_PROTO_DIR)/*.proto)
+BACKEND_Callback_GO_FILES = $(patsubst $(BACKEND_Callback_PROTO_DIR)/%.proto,$(BACKEND_Callback_GO_OUT_DIR)/%.pb.go,$(BACKEND_Callback_PROTO_FILES))
+
+
 # cmd
 MKDIR   = mkdir -p
 ECHO    = $(if $(filter Linux,$(shell uname)),@echo -e,@echo)
@@ -39,10 +47,12 @@ default: all
 pre:
 	$(MKDIR) $(APPLICATION_V3_GO_OUT_DIR) $(APPLICATION_V3_SWAGGER_OUT_DIR)
 	$(MKDIR) $(BACKEND_V3_GO_OUT_DIR) $(BACKEND_V3_SWAGGER_OUT_DIR)
+	$(MKDIR) $(BACKEND_Callback_GO_OUT_DIR) $(BACKEND_Callback_SWAGGER_OUT_DIR)
 	$(MKDIR) $(FILE_V3_GO_OUT_DIR) $(FILE_V3_SWAGGER_OUT_DIR)
 
 	$(FORMAT) $(APPLICATION_V3_PROTO_FILES)
 	$(FORMAT) $(BACKEND_V3_PROTO_FILES)
+	$(FORMAT) $(BACKEND_Callback_PROTO_FILES)
 	$(FORMAT) $(FILE_V3_PROTO_FILES)
 
 $(APPLICATION_V3_GO_OUT_DIR)/%.pb.go: $(APPLICATION_V3_PROTO_DIR)/%.proto
@@ -61,6 +71,14 @@ backend-v3: pre
 	$(MAKE) $(BACKEND_V3_GO_FILES)
 	$(ECHO) "successfully generated backend api/v3"
 
+$(BACKEND_Callback_GO_OUT_DIR)/%.pb.go: $(BACKEND_Callback_PROTO_DIR)/%.proto
+	$(PROTOC) -I=$(BACKEND_Callback_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_Callback_GO_OUT_DIR) --openapiv2_out=$(BACKEND_Callback_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
+	$(REPLACE) $@
+
+backend-callback: pre
+	$(MAKE) $(BACKEND_Callback_GO_FILES)
+	$(ECHO) "successfully generated backend callback"
+
 $(FILE_V3_GO_OUT_DIR)/%.pb.go: $(FILE_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(FILE_V3_PROTO_DIR) --go_out=paths=source_relative:$(FILE_V3_GO_OUT_DIR) --openapiv2_out=$(FILE_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 	$(REPLACE) $@
@@ -69,10 +87,11 @@ file-v3: pre
 	$(MAKE) $(FILE_V3_GO_FILES)
 	$(ECHO) "successfully generated file api/v3"
 
-all: application-v3 backend-v3 file-v3
+all: application-v3 backend-v3 file-v3 backend-callback
 	$(ECHO) "all generating done"
 
 clean:
 	$(RM) -f $(APPLICATION_V3_GO_FILES)
 	$(RM) -f $(BACKEND_V3_GO_FILES)
+	$(RM) -f $(BACKEND_Callback_GO_FILES)
 	$(RM) -f $(FILE_V3_GO_FILES)

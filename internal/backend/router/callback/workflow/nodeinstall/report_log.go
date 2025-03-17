@@ -8,26 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+// Package nodeinstall ...
+package nodeinstall
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
-// ReportLog report shell log.
-func (h handler) ReportLog(ctx *rest.Context) (interface{}, error) {
+// ReportLog report agent install shell script log.
+func (h *handler) ReportLog(ctx *rest.Context) (any, error) {
 	req := new(ReportLogReq)
 	if err := ctx.BindJSON(req); err != nil {
-		return nil, err
-	}
-
-	if err := req.Validate(); err != nil {
-		return nil, err
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	token, err := h.parseToken(req.Token)
@@ -35,13 +33,20 @@ func (h handler) ReportLog(ctx *rest.Context) (interface{}, error) {
 		return nil, fmt.Errorf("parse token failed, err: %v", err)
 	}
 
-	if token.TaskID != req.TaskID {
-		return nil, fmt.Errorf("task_id not match")
+	if token.OperInstID != req.OperInstID {
+		return nil, fmt.Errorf("oper inst id not match")
 	}
 
 	for _, log := range req.Logs {
-		h.logger.Debugf("report log: %s", log)
-		// TODO: 推送数据到数据库
+		installLog := InstallLog{
+			Timestamp: time.Unix(log.Timestamp, 0),
+			Level:     log.Level,
+			Step:      log.Step,
+			Log:       log.Log,
+			Status:    log.Status,
+		}
+
+		h.logger.Infof("report log: %+v", installLog)
 	}
 
 	resp := new(ReportLogResp)
@@ -50,7 +55,7 @@ func (h handler) ReportLog(ctx *rest.Context) (interface{}, error) {
 }
 
 // parseToken ...
-func (h handler) parseToken(tokenStr string) (*Token, error) {
+func (h *handler) parseToken(tokenStr string) (*Token, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(tokenStr)
 	if err != nil {
 		return nil, err
@@ -70,13 +75,22 @@ func (h handler) parseToken(tokenStr string) (*Token, error) {
 	return token, nil
 }
 
-// Token this is the token of report log.
+// Token the token for callback.
 type Token struct {
-	TaskID    string `json:"task_id"`
-	BKHostID  string `json:"bk_host_id"`
-	InnerIP   string `json:"inner_ip"`
-	BKCloudID string `json:"bk_cloud_id"`
-	Timestamp string `json:"timestamp"`
-	InstID    string `json:"inst_id"`
-	HostApID  string `json:"host_ap_id"`
+	OperInstID string `json:"oper_inst_id"`
+	BKHostID   string `json:"bk_host_id"`
+	InnerIP    string `json:"inner_ip"`
+	BKCloudID  string `json:"bk_cloud_id"`
+	Timestamp  string `json:"timestamp"`
+	InstID     string `json:"inst_id"`
+	HostApID   string `json:"host_ap_id"`
+}
+
+// InstallLog this is the report log.
+type InstallLog struct {
+	Timestamp time.Time `json:"timestamp"`
+	Level     string    `json:"level"`
+	Step      string    `json:"step"`
+	Log       string    `json:"log"`
+	Status    string    `json:"status"`
 }

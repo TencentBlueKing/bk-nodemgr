@@ -1,0 +1,37 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "google/api/annotations.proto";
+
+// GetAgentConfReq describes the HTTP request body when get agent conf.
+message GetAgentConfReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  string node_type = 3;
+  string token = 4;
+}
+
+// GetFileProxyConfReq describes the HTTP request body when get file proxy conf.
+message GetFileProxyConfReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  string node_type = 3;
+  string token = 4;
+}
+
+// GetDataProxyConfReq describes the HTTP request body when get data proxy conf.
+message GetDataProxyConfReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  string node_type = 3;
+  string token = 4;
+}
+
+// GetCheckListReq describes the HTTP request body when get check list.
+message GetCheckListReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  string node_type = 3;
+  string token = 4;
+}
