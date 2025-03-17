@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// not max limit in application business.
+	// not max limit in business.
 	// return all data in one request.
 	maxBusinessLimit = 0
 )

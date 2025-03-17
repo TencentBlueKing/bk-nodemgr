@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// not max limit in application networkarea.
+	// not max limit in networkarea.
 	// return all data in one request.
 	maxNetworkAreaLimit = 0
 )

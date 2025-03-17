@@ -17,7 +17,9 @@ import (
 )
 
 const (
-	maxAccessPointLimit = 1000
+	// not max limit in accesspoint.
+	// return all data in one request.
+	maxAccessPointLimit = 0
 )
 
 // ListAccessPoint lists accesspoints with page and conditions.

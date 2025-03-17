@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	// not max limit in application networkunit.
+	// not max limit in networkunit.
 	// return all data in one request.
 	maxNetworkUnitLimit = 0
 )

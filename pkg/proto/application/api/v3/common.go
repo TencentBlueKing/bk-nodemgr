@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package v3 defines the application v3 protocols
 package v3
 
 import (
