@@ -19,20 +19,18 @@ import (
 	"strings"
 )
 
-// GseConfigFieldRegex is the regex of gse config field.
-const GseConfigFieldRegex = `(["]?)__BK_GSE.*?__(["]?)`
+// ConfigFieldRegex is the regex of config field.
+const ConfigFieldRegex = `__BK_.*?__`
 
 // RenderConfig render config.
 func RenderConfig(template string, preSetting map[string]any, customSetting map[string]any) (string, error) {
-	re := regexp.MustCompile(GseConfigFieldRegex)
+	re := regexp.MustCompile(ConfigFieldRegex)
 	result := re.FindAllStringSubmatch(template, -1)
 
 	configStr := template
 
 	for _, item := range result {
 		key := item[0]
-		key = strings.TrimLeft(key, `"`)
-		key = strings.TrimRight(key, `"`)
 
 		value, ok := preSetting[key]
 		if !ok {
@@ -49,8 +47,6 @@ func RenderConfig(template string, preSetting map[string]any, customSetting map[
 			}
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
-		case reflect.String:
-			configStr = strings.ReplaceAll(configStr, item[0], fmt.Sprintf(`"%v"`, value))
 		default:
 			configStr = strings.ReplaceAll(configStr, item[0], fmt.Sprintf("%v", value))
 		}
