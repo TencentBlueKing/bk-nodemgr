@@ -18,7 +18,9 @@ import (
 )
 
 const (
-	maxNetworkUnitLimit = 1000
+	// not max limit in application networkunit.
+	// return all data in one request.
+	maxNetworkUnitLimit = 0
 )
 
 // CreateNetworkUnit creates a new network-unit.

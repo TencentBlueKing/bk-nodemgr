@@ -17,7 +17,9 @@ import (
 )
 
 const (
-	maxNetworkAreaLimit = 1000
+	// not max limit in application networkarea.
+	// return all data in one request.
+	maxNetworkAreaLimit = 0
 )
 
 // CreateNetworkArea creates a new network-area.

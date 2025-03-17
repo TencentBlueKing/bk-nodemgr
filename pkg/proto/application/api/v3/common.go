@@ -48,5 +48,9 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 		page.Limit = maxLimit
 	}
 
+	if maxLimit <= 0 {
+		page.Limit = 0
+	}
+
 	return page
 }

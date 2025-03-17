@@ -17,7 +17,9 @@ import (
 )
 
 const (
-	maxBusinessLimit = 1000
+	// not max limit in application business.
+	// return all data in one request.
+	maxBusinessLimit = 0
 )
 
 // ListBusiness list business with specified conditions.
