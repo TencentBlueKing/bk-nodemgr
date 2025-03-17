@@ -23,12 +23,31 @@ import (
 )
 
 func newDao(client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName), logger: logger}
+	d := &dao{client: client.Collection(TableName), logger: logger}
+	d.baseOrm = base.NewOrm[*OperInstData, OperInstData](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client  *mongo.Collection
+	logger  logger.Logger
+	baseOrm base.IOrm[*OperInstData, OperInstData]
+}
+
+// GetClient get client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get table name.
+func (d *dao) GetTableName() string {
+	return TableName
 }
 
 // upsert updates or inserts a operation_inst_data.
@@ -136,6 +155,7 @@ func (d *dao) updateField(ctx context.Context, filter bson.D, field string, valu
 }
 
 // findOne find one.
+// Deprecated: use get instead.
 func (d *dao) findOne(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
 	projection := bson.M{
 		"basic": true,
@@ -170,4 +190,8 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 	d.logger.Infof("successfully push, field(%v), value(%v), updated-count(%d)", field, value, result.MatchedCount)
 
 	return nil
+}
+
+func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
+	return d.baseOrm.Get(ctx, filter, fields...)
 }

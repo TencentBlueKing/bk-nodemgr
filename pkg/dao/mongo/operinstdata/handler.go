@@ -23,8 +23,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler ...
-type Handler interface {
+// IHandler this define the handler interface.
+type IHandler interface {
 	// Upsert updates or inserts an OperInstData.
 	Upsert(ctx context.Context, data *operengine.OperInstData) error
 
@@ -47,6 +47,9 @@ type Handler interface {
 	// GetActionInstData find one ActionInstData.
 	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*operengine.ActionInstData, error)
 
+	//GetActInstLifecycle get action inst data lifecycle.
+	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*operengine.ActInstLifeCycle, error)
+
 	// UpdateLifecycle updates or inserts an OperInstData's lifecycle.
 	UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error
 
@@ -65,7 +68,7 @@ type handler struct {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
 		dao: newDao(client, logger),
 	}
@@ -326,6 +329,46 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	return data, nil
+}
+
+// GetActInstLifecycle find one action inst data.
+func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
+	actionName string) (*operengine.ActInstLifeCycle, error) {
+
+	if ctx == nil {
+		return nil, errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("actionName is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	field := fmt.Sprintf("data.action_data.%s.life_cycle", actionName)
+	operInstData, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, err
+	}
+
+	actionInstData, ok := operInstData.ActionInstDataMap[actionName]
+	if !ok {
+		return nil, errors.New("action inst data not found")
+	}
+
+	lifecycle := convActInstLifeCycleToCommon(actionInstData.Lifecycle)
+
+	return lifecycle, nil
 }
 
 // FindOneWithoutActionData find operinstdata without action data.

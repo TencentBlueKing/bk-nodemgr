@@ -35,6 +35,12 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 	}
 }
 
+// IOrm this defines the orm interface.
+type IOrm[P Pointer[T], T any] interface {
+	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
+	Create(ctx context.Context, data P) error
+}
+
 // Orm this is a common orm to operate mongo db.
 type Orm[P Pointer[T], T any] struct {
 	dao Dao
