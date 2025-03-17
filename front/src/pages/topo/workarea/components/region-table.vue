@@ -140,9 +140,10 @@ const filterOption = reactive({
   checked: [] as string[],
 });
 
-const handleColumnFilter = ({ checked }: { checked: string[] }) => {
-  filterOption.checked = checked;
-  handleFilter(checked.map(item => parseInt(item)));
+const handleColumnFilter = (...args) => {
+  console.log(args)
+  // filterOption.checked = checked;
+  // handleFilter(checked.map(item => parseInt(item)));
 };
 
 // 改变includeConditions 重新请求table data

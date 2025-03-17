@@ -262,6 +262,7 @@ export interface TopoHostListReqExactConditions {
   node_version: string[];
   bk_agent_id: string[];
   bk_networkunit_id: number[];
+  node_generation: number[];
 }
 
 export interface TopoHostListReqFuzzyConditions {

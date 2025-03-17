@@ -22,8 +22,16 @@
         </SearchSelect>
       </template>
     </FlexRow>
-    <RegionTable ref="regionTableRef" @edit="handleEditWorkarea"></RegionTable>
-    <UpsertWorkarea v-model:is-show="showUpsertWorkarea" :is-create="isCreate"></UpsertWorkarea>
+    <RegionTable
+      ref="regionTableRef"
+      @edit="handleEditWorkarea"
+    />
+    <UpsertWorkarea
+      v-model:is-show="showUpsertWorkarea"
+      :is-create="isCreate"
+      @install-proxy="handleInstallProxy"
+    />
+    <InstallProxy v-bind:is-show="isInstallProxyShow" />
   </div>
 </template>
 
@@ -33,6 +41,8 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useDebounce } from '@vueuse/core';
+
+import InstallProxy from '../install-proxy/install-proxy.vue';
 
 import RegionTable from './components/region-table.vue';
 import UpsertWorkarea from './components/upsert-workarea.vue';
@@ -76,6 +86,10 @@ const searchSelectData = ref([
     multiple: true,
   },
 ]);
+const isInstallProxyShow = ref(false);
+const handleInstallProxy = () => {
+  isInstallProxyShow.value = true;
+};
 
 const regionTableRef = ref();
 const handleGetSelectData = async (type: string) => {

@@ -59,13 +59,14 @@
         <Button @click="isShow = false" class="w-[64px]">{{ $t('action.cancel') }}</Button>
       </template>
     </Dialog>
-    <GuideDialog v-model:is-show="isGuideShow"></GuideDialog>
+    <GuideDialog v-model:is-show="isGuideShow" @confirm="handleInstallProxy"></GuideDialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { Button, Dialog, Form, Input, Loading, Select } from 'bkui-vue';
-import { computed, PropType, reactive, ref, watch } from 'vue';
+import type { PropType } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import GuideDialog from './guide-dialog.vue';
@@ -84,7 +85,7 @@ const props = defineProps({
     type: Object as PropType<NetworkArea>,
   },
 });
-
+const emit = defineEmits(['install-proxy']);
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
@@ -163,6 +164,10 @@ const rules = ref({
   ],
 });
 
+const handleInstallProxy = () => {
+  emit('install-proxy');
+};
+
 const resetForm = () => {
   form.bk_cloud_vendor = '';
   form.bk_networkarea_name = '';
@@ -188,7 +193,7 @@ const handleConfirm = async () => {
 const initFormData = async () => {
   form.bk_cloud_vendor = props.curWorkareaData?.bk_cloud_vendor || '';
   form.bk_networkarea_name = props.curWorkareaData?.bk_networkarea_name || '';
-}
+};
 
 watch(isShow, (curShow) => {
   if (!curShow) {

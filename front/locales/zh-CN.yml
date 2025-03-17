@@ -134,6 +134,45 @@ topoManager:
     toggle:
       expand: 展开
       close: 收起
+  installProxy:
+    title: 安装 Proxy
+    tips: 安装Proxy需要开通一定的网络访问策略，完成Proxy信息填写后，可查看相应的安装指引
+    guide: 安装要求
+    form:
+      method: 安装方式
+      info: 安装信息
+      password: 密钥/密码
+      saveTime:
+        oneDay: 保存 {x} 天
+        longTermSave: 长期保存
+      os: 操作系统
+      port: 登录端口
+      account: 登录账号
+      business: 归属业务
+    installMethodList:
+      remote:
+        title: 普通远程安装
+        content: 线上表单填写，需要提供登录信息
+      excel:
+        title: Excel 导入远程安装
+        content: Excel 导入填写，需要提供登录信息
+      manual:
+        title: 手动安装
+        content: 无需提供登录信息，自行在服务器上执行给定命令完成安装
+    table:
+      hostIp: 主机 IP
+      ipv4: 内网 IPv4
+      ipv6: 内网 IPv6
+      hostProperties: 主机属性
+      os: 操作系统
+      loginInfo: 登录信息
+      loginIp: 登录 IP
+      authenticationMethod: 认证方式
+      password: 密码 / 密钥
+      transmittedInfo: 传输信息
+      tempFileDirectory: 临时文件目录
+      speedLimit: 传输限速 M/s
+      dataCompression: 数据压缩
   topo:
     title: 拓扑图
     toolbar:
@@ -154,6 +193,7 @@ action:
   save: 保存
   installProxy: 安装 Proxy
   installLater: 稍后安装
+  install: 安装
 table:
   empty: 暂无数据
   action: 操作
@@ -162,3 +202,7 @@ message:
     edit: 修改成功
     create: 新建成功
     delete: 删除成功
+  warn:
+    keepAtLeast: 至少保留 {x} 行
+validate:
+  required: 不能为空

@@ -114,6 +114,45 @@ topoManager:
     toggle:
       expand: expand
       close: retract
+  installProxy:
+    title: Install Proxy
+    tips: Installing a proxy requires opening a certain network access policy. After filling in the proxy information, you can view the corresponding installation instructions
+    guide: Install Requirements
+    form:
+      method: Installation Method
+      info: Installation Information
+      password: Key/Password
+      saveTime:
+        oneDay: Save for {x} days
+        longTermSave: Long term preservation
+      os: Operating System
+      port: Login Port
+      account: Login Account
+      business: Belonging Business
+    installMethodList:
+      remote:
+        title: Ordinary remote installation
+        content: Online form filling requires login information
+      excel:
+        title: Excel import remote installation
+        content: Import and fill in Excel, login information is required
+      manual:
+        title: Manual install
+        content: No need to provide login information, execute the given command on the server to complete the installation on your own
+    table:
+      hostIp: Host IP
+      ipv4: Internal IPv4 Network
+      ipv6: Internal IPv6 Network
+      hostProperties: Host Properties
+      os: Operating System
+      loginInfo: Login Information
+      loginIp: Login IP
+      authenticationMethod: Authentication Method
+      password: Password/Key
+      transmittedInfo: Transmitted Information
+      tempFileDirectory: Temporary File Directory
+      speedLimit: Transmission Speed Limit M/s
+      dataCompression: Data Compression
   topo:
     title: Topology Map
     toolbar:
@@ -134,6 +173,7 @@ action:
   save: Save
   installProxy: Install Proxy
   installLater: Install Later
+  install: Install
 table:
   empty: No data available at the moment
   action: action
@@ -142,3 +182,7 @@ message:
     edit: Modified successfully
     create: New created successfully
     delete: Delete successfully
+  warn:
+    keepAtLeast: Keep at least {x} rows
+validate:
+  required: Cannot be empty

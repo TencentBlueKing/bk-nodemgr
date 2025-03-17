@@ -37,7 +37,7 @@
               <template #left>
                 <div class="flex items-center">
                   <!-- 新建 -->
-                  <Button theme="primary" class="mr-[8px]">
+                  <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
                     <span>{{ $t('topoManager.workAreaDetail.button.installProxy') }}</span>
                   </Button>
                   <Button disabled class="mr-[8px]">
@@ -90,6 +90,7 @@
         @delete="handleAfterDelete"
       />
     </div>
+    <InstallProxy v-model:is-show="isShowInstallProxy" />
   </Loading>
 </template>
 
@@ -101,6 +102,7 @@ import { useRoute } from 'vue-router';
 
 import { useDebounce } from '@vueuse/core';
 
+import InstallProxy from '../install-proxy/install-proxy.vue';
 import UpsertWorkUnit from '../upsert-workunit/upsert-work-unit.vue';
 
 import AccessPoint from './components/access-point.vue';
@@ -152,6 +154,11 @@ const handleCopyChange = () => {
 
 };
 
+const isShowInstallProxy = ref(false);
+const handleInstallProxy = () => {
+  isShowInstallProxy.value = true;
+};
+
 const handleCreateWorkUnit = () => {
   isShow.value = true;
   isCreate.value = true;
@@ -167,8 +174,8 @@ const isShowDelete = ref(false);
 const curWorkarea = ref<NetworkArea>();
 const workUnitList = ref<NetworkUnit[]>([]);
 
-const curWorkUnit = computed(() => workUnitList.value.find(
-  unit => unit.bk_networkunit_id === active.value) as NetworkUnit);
+// eslint-disable-next-line max-len
+const curWorkUnit = computed(() => workUnitList.value.find(unit => unit.bk_networkunit_id === active.value) as NetworkUnit);
 
 const handleAfterDelete = async () => {
   try {
