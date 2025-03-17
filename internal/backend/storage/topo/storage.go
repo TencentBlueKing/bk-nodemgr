@@ -75,6 +75,9 @@ type Storage interface {
 	// DeleteManyNetworkUnit deletes networkunits.
 	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
 
+	// CountAccessPoint counts accesspoint by conditions.
+	CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error)
+
 	// ListAccessPoint lists accesspoint by page and conditions.
 	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)

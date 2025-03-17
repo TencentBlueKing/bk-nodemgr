@@ -268,7 +268,7 @@ message TopoHostListResp {
   Data data = 4;
 }
 
-// TopoEventListReq describes the HTTP request body when get host in topo
+// TopoEventListReq describes the HTTP request body when list event in topo
 // service.
 message TopoEventListReq {
   Page page = 1;
@@ -284,7 +284,7 @@ message TopoEventListReq {
   ExactConditions exact_include_conditions = 3;
 }
 
-// TopoEventListResp describes the HTTP response body when get host in topo
+// TopoEventListResp describes the HTTP response body when list event in topo
 // service.
 message TopoEventListResp {
   int32 code = 1;
@@ -294,6 +294,33 @@ message TopoEventListResp {
   message Data {
     int64 total = 1;
     repeated TopoEvent items = 2;
+  }
+  Data data = 4;
+}
+
+// TopoAccessPointListReq describes the HTTP request body when list accesspoint
+// in topo service.
+message TopoAccessPointListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkarea_id = 1;
+    repeated int64 accesspoint_id = 2;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoAccessPointListResp describes the HTTP response body when list
+// accesspoint in topo service.
+message TopoAccessPointListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated AccessPoint items = 2;
   }
   Data data = 4;
 }

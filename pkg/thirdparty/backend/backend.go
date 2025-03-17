@@ -485,3 +485,35 @@ func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *proto.Top
 
 	return resp, nil
 }
+
+func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *proto.TopoAccessPointListReq) (
+	*proto.TopoAccessPointListResp, error) {
+
+	resp := new(proto.TopoAccessPointListResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/accesspoint/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list accesspoint failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list accesspoint failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

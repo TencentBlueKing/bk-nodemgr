@@ -206,6 +206,7 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 
 // ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
 func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
+
 	items := make([]*NetworkUnitBrief, len(networkUnits))
 	for idx, networkUnit := range networkUnits {
 		item := newEmptyNetworkUnitBrief()
@@ -318,18 +319,9 @@ func convertAccesspointsToTypes(
 
 	data := make([]*types.AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
-		data[idx] = &types.AccessPoint{
-			TenantID:      tenantID,
-			NetworkAreaID: networkAreaID,
-			ID:            accessPoint.GetAccesspointId(),
-			Name:          accessPoint.GetAccesspointName(),
-		}
-
-		if endpoints := accessPoint.GetEndpoints(); endpoints != nil {
-			data[idx].Endpoints.Cluster = endpoints.GetCluster()
-			data[idx].Endpoints.File = endpoints.GetFile()
-			data[idx].Endpoints.Data = endpoints.GetData()
-		}
+		data[idx] = convertAccessPointToTypes(accessPoint)
+		data[idx].TenantID = tenantID
+		data[idx].NetworkAreaID = networkAreaID
 	}
 
 	return data
@@ -338,19 +330,7 @@ func convertAccesspointsToTypes(
 func convertAccesspointsFromTypes(accessPoints []*types.AccessPoint) []*AccessPoint {
 	data := make([]*AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
-		protoAccessPoint := newEmptyAccessPoint()
-
-		*protoAccessPoint.TenantId = accessPoint.TenantID
-		*protoAccessPoint.AccesspointId = accessPoint.ID
-		*protoAccessPoint.AccesspointName = accessPoint.Name
-		*protoAccessPoint.BkNetworkareaId = accessPoint.NetworkAreaID
-		protoAccessPoint.Endpoints = &AccessPoint_Endpoints{
-			Cluster: accessPoint.Endpoints.Cluster,
-			File:    accessPoint.Endpoints.File,
-			Data:    accessPoint.Endpoints.Data,
-		}
-
-		data[idx] = protoAccessPoint
+		data[idx] = convertAccessPointFromTypes(accessPoint)
 	}
 
 	return data

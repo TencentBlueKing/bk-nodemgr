@@ -166,8 +166,33 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// get accesspoints.
+	idMap := make(map[int64]bool, 0)
+	for _, networkUnit := range networkUnits {
+		for _, accessPointID := range networkUnit.AccessPoints {
+			idMap[accessPointID] = true
+		}
+	}
+	ids := make([]int64, len(idMap))
+	index := 0
+	for id := range idMap {
+		ids[index] = id
+		index++
+	}
+
+	accessPoints, _, err := h.backendHandler.ListAccessPoint(
+		sCtx, types.Page{Limit: len(ids)}, &types.AccessPointCondition{
+			Type: types.ConditionTypeExactInclude,
+			Exact: &types.AccessPointExactFields{
+				AccessPointID: ids,
+			}})
+	if err != nil {
+		h.logger.Errorf("failed to list networkunit, failed to list accesspoint. err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
 	resp := new(proto.TopoNetworkUnitListResp)
-	resp.ConvertNetworkUnitsFromTypes(num, networkUnits)
+	resp.ConvertNetworkUnitsFromTypes(num, networkUnits, accessPoints)
 
 	return resp.GetData(), nil
 }

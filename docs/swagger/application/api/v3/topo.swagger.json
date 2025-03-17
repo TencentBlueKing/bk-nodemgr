@@ -672,6 +672,10 @@
           "type": "string",
           "format": "int64"
         },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "bk_host_name": {
           "type": "string"
         },
@@ -695,6 +699,15 @@
         },
         "bk_os_type": {
           "type": "string"
+        },
+        "bk_networkarea_name": {
+          "type": "string"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_os_type_name": {
+          "type": "string"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."
@@ -713,10 +726,6 @@
         },
         "bk_agent_id": {
           "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
@@ -826,36 +835,6 @@
         }
       },
       "description": "NetworkUnit describes the network unit informations."
-    },
-    "v3NetworkUnitBrief": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "accesspoints": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
-        },
-        "links": {
-          "$ref": "#/definitions/v3Links"
-        }
-      },
-      "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
     },
     "v3NetworkUnitGraph": {
       "type": "object",
@@ -1769,7 +1748,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NetworkUnitBrief"
+            "$ref": "#/definitions/v3NetworkUnit"
           }
         }
       }
