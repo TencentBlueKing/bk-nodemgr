@@ -1,14 +1,14 @@
 .PHONY: tidy build test pre backend application front docker-build all clean doc tools
 
-# directories
-ROOT_DIR = $(CURDIR)
-OUTPUT_DIR = $(ROOT_DIR)/build/$(VERSION)
-
 # version
-BUILDTIME = $(shell date +%Y-%m-%dT%T%z)
-GITTAG    = $(shell git describe --tags --always)
-GITHASH   = $(shell git rev-parse --short HEAD)
-VERSION  ?= ${GITTAG}-$(shell date +%y.%m.%d)
+BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
+GITTAG    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0")
+GITHASH   := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+VERSION   ?= ${GITTAG}-$(shell date +%y.%m.%d)
+
+# directories
+ROOT_DIR   := $(CURDIR)
+OUTPUT_DIR := $(ROOT_DIR)/build/$(VERSION)
 
 # ldflags
 # output directory for release package and version for command line
@@ -16,7 +16,6 @@ LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/internal/version.VERSI
 	-X github.com/TencentBlueKing/bk-nodemgr/internal/version.BUILDTIME=${BUILDTIME} \
 	-X github.com/TencentBlueKing/bk-nodemgr/internal/version.GITHASH=${GITHASH} \
 	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
-
 
 # cmd
 MKDIR = mkdir -p
@@ -28,36 +27,54 @@ SH    = sh
 NPM   = pnpm
 
 default: all
+
 pre:
-	$(MKDIR) $(OUTPUT_DIR)
+	@$(MKDIR) $(OUTPUT_DIR)
 	go mod tidy
 
 backend: pre
+	@$(ECHO) "Building backend $(VERSION)..."
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-backend $(ROOT_DIR)/cmd/backend/main.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-backend"
 
 application: pre
+	@$(ECHO) "Building application $(VERSION)..."
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-application"
 
 file: pre
+	@$(ECHO) "Building file $(VERSION)..."
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-file $(ROOT_DIR)/cmd/file/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-file"
 
 front: pre
-	$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
-	$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
+	@$(ECHO) "Building frontend..."
+	@$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
+	@$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
+	@$(ECHO) "Built successfully: frontend"
 
 tools: pre
-	$(CD) $(ROOT_DIR)/tools && make platform-builds -e UPX_ENABLED=true
-	$(CP) -r $(ROOT_DIR)/tools/bin $(OUTPUT_DIR)/tools
+	@$(ECHO) "Building tools..."
+	@$(MAKE) -C $(ROOT_DIR)/tools platform-builds -e UPX_ENABLED=1
 
-docker-build: backend application file front
-	$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
-	$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
+	$(MKDIR) $(OUTPUT_DIR)/tools
+	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools
+	@$(ECHO) "Built successfully tools"
+
+docker-build: backend application file front tools
+	@$(ECHO) "Building docker images..."
+	@$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
+	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
+	@$(ECHO) "Built successfully docker images bk-nodeman:v${VERSION}"
 
 
 all: backend application file front tools
 
 clean:
-	$(RM) -rf build
+	@$(ECHO) "Cleaning build directory..."
+	@$(RM) -rf build
+	$(MAKE) -C $(ROOT_DIR)/tools clean
+	@$(ECHO) "Cleaned build directory"
 
 doc:
 	godoc -http=localhost:6060
