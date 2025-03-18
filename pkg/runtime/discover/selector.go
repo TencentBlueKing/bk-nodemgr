@@ -30,3 +30,8 @@ func (r *RandomSelector) Select(instances []Instance) (Instance, error) {
 
 	return instances[idx], nil
 }
+
+// NewRandomSelector creates a new random selector.
+func NewRandomSelector() *RandomSelector {
+	return &RandomSelector{}
+}

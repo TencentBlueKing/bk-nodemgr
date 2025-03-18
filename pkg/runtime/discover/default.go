@@ -30,7 +30,7 @@ type ProviderDefault struct {
 // NewProviderDefault creates a new default provider.
 func NewProviderDefault(selector Selector) *ProviderDefault {
 	if selector == nil {
-		selector = &RandomSelector{}
+		selector = NewRandomSelector()
 	}
 
 	return &ProviderDefault{
@@ -64,7 +64,7 @@ func (p *ProviderDefault) GetService(ctx context.Context, serviceName string, se
 	}
 
 	if selector == nil {
-		selector = &RandomSelector{}
+		selector = NewRandomSelector()
 	}
 
 	return selector.Select(instances)

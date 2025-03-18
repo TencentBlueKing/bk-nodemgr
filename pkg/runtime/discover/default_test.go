@@ -14,50 +14,97 @@ package discover
 import (
 	"context"
 	"reflect"
-	"sync"
+	"sort"
 	"testing"
 )
 
-func testProviderDefault() *ProviderDefault {
+func testProviderDefault(t *testing.T) *ProviderDefault {
 	provider := NewProviderDefault(&RandomSelector{})
 
-	provider.Register(context.Background(), "test", Instance{
-		ID: "1",
-	})
+	err := provider.Register(context.Background(), "test", []Instance{
+		{
+			ID:      "1",
+			Name:    "test1",
+			Address: "192.168.186.2",
+			Meta:    nil,
+		},
+		{
+			ID:      "2",
+			Name:    "test2",
+			Address: "192.168.186.3",
+			Meta:    nil,
+		},
+		{
+			ID:      "3",
+			Name:    "test3",
+			Address: "192.168.186.6",
+			Meta:    nil,
+		},
+	}...)
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return provider
 }
 
 // TestProviderDefault_GetAllService ...
 func TestProviderDefault_GetAllService(t *testing.T) {
-	type fields struct {
-		mutex      sync.RWMutex
-		services   map[string]map[string]Instance
-		watchChans map[string][]chan []Instance
-		done       chan struct{}
-		selector   Selector
-	}
 	type args struct {
 		in0         context.Context
 		serviceName string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    []Instance
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "test",
+			args: args{
+				in0:         context.Background(),
+				serviceName: "test",
+			},
+			want: []Instance{
+				{
+					ID:      "1",
+					Name:    "test1",
+					Address: "192.168.186.2",
+					Meta:    nil,
+				},
+				{
+					ID:      "2",
+					Name:    "test2",
+					Address: "192.168.186.3",
+					Meta:    nil,
+				},
+				{
+					ID:      "3",
+					Name:    "test3",
+					Address: "192.168.186.6",
+					Meta:    nil,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := testProviderDefault()
+			p := testProviderDefault(t)
 			got, err := p.GetAllService(tt.args.in0, tt.args.serviceName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllService() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
+			sort.Slice(got, func(i, j int) bool {
+				return got[i].ID < got[j].ID
+			})
+			sort.Slice(tt.want, func(i, j int) bool {
+				return tt.want[i].ID < tt.want[j].ID
+			})
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAllService() got = %v, want %v", got, tt.want)
 			}
@@ -65,44 +112,41 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 	}
 }
 
-func TestProviderDefault_GetAllService1(t *testing.T) {
-	type fields struct {
-		mutex      sync.RWMutex
-		services   map[string]map[string]Instance
-		watchChans map[string][]chan []Instance
-		done       chan struct{}
-		selector   Selector
-	}
+// TestProviderDefault_GetService ...
+func TestProviderDefault_GetService(t *testing.T) {
 	type args struct {
-		in0         context.Context
+		ctx         context.Context
 		serviceName string
+		selector    Selector
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
-		want    []Instance
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "normal",
+			args: args{
+				ctx:         context.Background(),
+				serviceName: "test",
+				selector:    &RandomSelector{},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &ProviderDefault{
-				mutex:      tt.fields.mutex,
-				services:   tt.fields.services,
-				watchChans: tt.fields.watchChans,
-				done:       tt.fields.done,
-				selector:   tt.fields.selector,
+			p := testProviderDefault(t)
+			got, err := p.GetService(tt.args.ctx, tt.args.serviceName, tt.args.selector)
+			if err != nil {
+				t.Logf("GetService() error = %v", err)
 			}
-			got, err := p.GetAllService(tt.args.in0, tt.args.serviceName)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAllService() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetService() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetAllService() got = %v, want %v", got, tt.want)
-			}
+
+			t.Logf("GetService() got = %v", got)
 		})
 	}
 }
