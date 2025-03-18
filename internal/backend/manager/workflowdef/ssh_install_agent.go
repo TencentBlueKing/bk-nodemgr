@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/criteria/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
@@ -51,15 +51,15 @@ type sshHostInfo struct {
 }
 
 type installerParams struct {
-	NodeType         gse.NodeType `json:"node_type"`
-	CallbackEndpoint string       `json:"callback_endpoint"`
-	DownloadEndpoint string       `json:"download_endpoint"`
-	PkgVersion       string       `json:"pkg_version"`
-	PkgGeneration    int          `json:"pkg_generation"`
-	InstallEnv       string       `json:"install_env"`
-	Token            string       `json:"token"`
-	TmpDir           string       `json:"tmp_dir"`
-	AdditionArgs     []string     `json:"addition_args"`
+	NodeType         types.NodeRole `json:"node_type"`
+	CallbackEndpoint string         `json:"callback_endpoint"`
+	DownloadEndpoint string         `json:"download_endpoint"`
+	PkgVersion       string         `json:"pkg_version"`
+	PkgGeneration    int            `json:"pkg_generation"`
+	InstallEnv       string         `json:"install_env"`
+	Token            string         `json:"token"`
+	TmpDir           string         `json:"tmp_dir"`
+	AdditionArgs     []string       `json:"addition_args"`
 }
 
 // InstallAgentBySSH ...
