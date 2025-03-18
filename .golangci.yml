@@ -586,6 +586,7 @@ linters-settings:
       - d Dao
       - s *storage
       - s *Storage
+      - p *ProviderDefault
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
