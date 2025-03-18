@@ -182,15 +182,18 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		index++
 	}
 
-	accessPoints, _, err := h.backendHandler.ListAccessPoint(
-		sCtx, types.Page{Limit: len(ids)}, &types.AccessPointCondition{
-			Type: types.ConditionTypeExactInclude,
-			Exact: &types.AccessPointExactFields{
-				AccessPointID: ids,
-			}})
-	if err != nil {
-		h.logger.Errorf("failed to list networkunit, failed to list accesspoint. err: %v", err)
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	accessPoints := make([]*types.AccessPoint, 0)
+	if len(ids) > 0 {
+		accessPoints, _, err = h.backendHandler.ListAccessPoint(
+			sCtx, types.Page{Limit: len(ids)}, &types.AccessPointCondition{
+				Type: types.ConditionTypeExactInclude,
+				Exact: &types.AccessPointExactFields{
+					AccessPointID: ids,
+				}})
+		if err != nil {
+			h.logger.Errorf("failed to list networkunit, failed to list accesspoint. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
 	}
 
 	resp := new(proto.TopoNetworkUnitListResp)

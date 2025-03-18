@@ -18,10 +18,6 @@ import (
 
 // Validate check body.
 func (x *TopoGraphGetReq) Validate() error {
-	if len(x.GetBkNetworkareaId()) == 0 {
-		return errors.New("bk_networkarea_id should not be empty")
-	}
-
 	return nil
 }
 
@@ -47,10 +43,6 @@ func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.Netw
 
 // Validate check body.
 func (x *TopoGraphNodeCountReq) Validate() error {
-	if len(x.GetBkNetworkunitId()) == 0 {
-		return errors.New("bk_networkunit_id should not be empty")
-	}
-
 	return nil
 }
 

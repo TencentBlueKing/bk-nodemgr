@@ -74,6 +74,18 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	}
 
 	networkUnitIDs := req.GetBkNetworkunitId()
+	if len(networkUnitIDs) == 0 {
+		networkUnits, _, err := h.backendHandler.ListNetworkUnit(sCtx, types.Page{}, nil)
+		if err != nil {
+			h.logger.Errorf("failed to count graph node, failed to list networkunit. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+
+		networkUnitIDs = make([]int64, len(networkUnits))
+		for idx, networkUnit := range networkUnits {
+			networkUnitIDs[idx] = networkUnit.ID
+		}
+	}
 
 	// init result map.
 	result := make(map[int64]*types.NetworkUnitInfo)
