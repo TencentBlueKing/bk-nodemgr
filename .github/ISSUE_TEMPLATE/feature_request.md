@@ -7,14 +7,6 @@ assignees: ''
 
 ---
 
----
-name: 功能请求
-about: 为这个项目提出一个想法
-title: '[FEATURE] '
-labels: 'enhancement'
-assignees: ''
----
-
 ## 问题背景
 <!-- 这个功能请求是否与某个问题相关? 请描述。 -->
 
