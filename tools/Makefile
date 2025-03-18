@@ -21,11 +21,16 @@ GO = go1.20.14
 
 .PHONY: all build clean test lint platform-builds build-matrix help
 
+pre:
+	go get golang.org/dl/go1.20.14@latest
+	go install golang.org/dl/go1.20.14@latest
+	go1.20.14 download
+
 # 默认目标
 all: clean test build
 
 # 构建本地平台的应用
-build: check-upx
+build: check-upx pre
 	@echo "Building $(APP_NAME) $(VERSION) for host platform..."
 	@mkdir -p $(OUTPUT_DIR)
 	@$(GO) build $(GO_FLAGS) $(LD_FLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) $(MAIN_PATH)
@@ -34,8 +39,8 @@ build: check-upx
 		make compress-binary BINARY=$(OUTPUT_DIR)/$(APP_NAME); \
 	fi
 
-# 跨平台构建所有组合（支持UPX压缩）
-platform-builds: check-upx
+# 跨平台构建所有组合
+platform-builds: check-upx pre
 	@echo "Building $(APP_NAME) $(VERSION) for all platforms..."
 	@mkdir -p $(OUTPUT_DIR)
 	@$(foreach os,$(OSES),\
@@ -57,7 +62,7 @@ platform-builds: check-upx
 	)
 
 # 压缩二进制文件
-build-matrix: check-upx
+build-matrix: check-upx pre
 	@if [ -z "$(GOOS)" ] || [ -z "$(GOARCH)" ]; then \
 		echo "Error: GOOS and GOARCH must be specified."; \
 		echo "Example: make build-matrix GOOS=linux GOARCH=amd64"; \
