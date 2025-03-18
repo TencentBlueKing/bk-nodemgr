@@ -92,7 +92,7 @@ func convNormalTypeToInt64(value interface{}) (int64, bool, error) {
 	case int8:
 		return int64(v), true, nil
 	case uint:
-		if v > math.MaxInt64 {
+		if v > math.MaxInt {
 			return 0, true, errors.New("value is overflow")
 		}
 
