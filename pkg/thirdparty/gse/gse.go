@@ -276,3 +276,109 @@ func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminat
 
 	return resp.Data, nil
 }
+
+func (c *cli) asyncUpgradeAgent(ctx context.Context, req *AsyncUpgradeAgentReq) (
+	*AsyncUpgradeAgentResp, error) {
+
+	resp := new(BaseBroker[*AsyncUpgradeAgentResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/admin/upgrade_agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("async upgrade agent failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+func (c *cli) getUpgradeAgentResult(ctx context.Context, req *AsyncGetUpgradeAgentResultReq) (
+	*AsyncGetUpgradeAgentResultResp, error) {
+
+	resp := new(BaseBroker[*AsyncGetUpgradeAgentResultResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/admin/get_upgrade_agent_result").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get upgrade agent result failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+func (c *cli) asyncUpgradeProxy(ctx context.Context, req *AsyncUpgradeProxyReq) (
+	*AsyncUpgradeProxyResp, error) {
+
+	resp := new(BaseBroker[*AsyncUpgradeProxyResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/admin/upgrade_proxy").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("async upgrade proxy failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+func (c *cli) getUpgradeProxyResult(ctx context.Context, req *AsyncGetUpgradeProxyResultReq) (
+	*AsyncGetUpgradeProxyResultResp, error) {
+
+	resp := new(BaseBroker[*AsyncGetUpgradeProxyResultResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/admin/get_upgrade_proxy_result").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get upgrade proxy result failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}

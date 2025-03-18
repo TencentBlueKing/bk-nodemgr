@@ -603,3 +603,82 @@ func Test_handler_QueryFileTransmissionResult(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_UpgradeAgent tests handler.UpgradeAgent.
+func Test_handler_UpgradeAgent(t *testing.T) {
+	type args struct {
+		upgradeAgentOptions *types.UpgradeAgentOptions
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "upgrade_agent_to_v2.1.6-beta.50",
+			args: args{
+				upgradeAgentOptions: &types.UpgradeAgentOptions{
+					TargetVersionAgentInfo: types.TargetVersionAgentInfo{
+						Generation: 2,
+						Version:    "v2.1.6-beta.50",
+						LinuxX8664: types.SystemArchitectureInfo{
+							Signature: "9873d95bf0719a22f60d06fb14da676e",
+							StoredDir: "/data/agent_package/ee/v2.1.6-beta.50/linux_x86_64",
+							Filename:  "gse_agent",
+							User:      "root",
+							BKAgentID: "0100005254004ad60716857089658482",
+						},
+						LinuxAarch64: types.SystemArchitectureInfo{
+							Signature: "cda11f85fbf50e4e6c5161c665f25346",
+							StoredDir: "/data/agent_package/ee/v2.1.6-beta.50/linux_aarch64",
+							Filename:  "gse_agent",
+							User:      "root",
+							BKAgentID: "0100005254004ad60716857089658482",
+						},
+						WindowsX8664: types.SystemArchitectureInfo{
+							Signature: "a308cd0247ffc257ad5689f3512d88a1",
+							StoredDir: "/data/agent_package/ee/v2.1.6-beta.50/windows_x86_64",
+							Filename:  "gse_agent.exe",
+							User:      "root",
+							BKAgentID: "0100005254004ad60716857089658482",
+						},
+						DarwinX8664: types.SystemArchitectureInfo{
+							Signature: "5271367ae3f1ada4366d712019df2904",
+							StoredDir: "/data/agent_package/ee/v2.1.6-beta.50/darwin_x86_64",
+							Filename:  "gse_agent",
+							User:      "root",
+							BKAgentID: "0100005254004ad60716857089658482",
+						},
+					},
+					AgentOperateDirectory: types.OperateDirectory{
+						LinuxX8664Dir:   "/usr/local/gse2_opbk/agent/bin",
+						LinuxAarch64Dir: "/usr/local/gse2_opbk/agent/bin",
+						WindowsX8664Dir: "c:/gse2_opbk/agent/bin",
+						DarwinX8664Dir:  "/usr/local/gse2_opbk/agent/bin",
+					},
+					CurrentVersion: "",
+					Timeout:        240 * time.Second,
+					AgentIDList: []string{
+						"010000525400b3b35616857089653812",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			taskID, err := h.UpgradeAgent(context.Background(), tt.args.upgradeAgentOptions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpgradeAgent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("upgrade-agent: %v", taskID)
+
+			getGlobalContext(t).tasks[tt.name] = taskID
+		})
+	}
+}

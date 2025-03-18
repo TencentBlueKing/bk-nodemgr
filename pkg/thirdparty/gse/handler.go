@@ -74,6 +74,11 @@ type Handler interface {
 	// @param endpoints given endpoint list.
 	// @return gse-task-id for this operation.
 	TerminateFileTransmission(ctx context.Context, taskID string, endpoints []*types.Endpoint) (string, error)
+
+	// UpgradeAgent upgrade agent to target version.
+	// @param opts given upgrade options.
+	// @return gse-task-id for this operation.
+	UpgradeAgent(ctx context.Context, opts *types.UpgradeAgentOptions) (string, error)
 }
 type handler struct {
 	cli *cli
@@ -397,4 +402,60 @@ func (h *handler) TerminateFileTransmission(ctx context.Context, taskID string, 
 	}
 
 	return resp.Result.TaskID, nil
+}
+
+func (h *handler) UpgradeAgent(ctx context.Context, opts *types.UpgradeAgentOptions) (
+	string, error) {
+
+	req := &AsyncUpgradeAgentReq{
+		TargetVersionAgentInfo: TargetVersionAgentInfo{
+			Generation: opts.TargetVersionAgentInfo.Generation,
+			Version:    opts.TargetVersionAgentInfo.Version,
+			LinuxX8664: SystemArchitectureInfo{
+				Signature: opts.TargetVersionAgentInfo.LinuxX8664.Signature,
+				StoredDir: opts.TargetVersionAgentInfo.LinuxX8664.StoredDir,
+				Filename:  opts.TargetVersionAgentInfo.LinuxX8664.Filename,
+				User:      opts.TargetVersionAgentInfo.LinuxX8664.User,
+				BKAgentID: opts.TargetVersionAgentInfo.LinuxX8664.BKAgentID,
+			},
+			LinuxAarch64: SystemArchitectureInfo{
+				Signature: opts.TargetVersionAgentInfo.LinuxAarch64.Signature,
+				StoredDir: opts.TargetVersionAgentInfo.LinuxAarch64.StoredDir,
+				Filename:  opts.TargetVersionAgentInfo.LinuxAarch64.Filename,
+				User:      opts.TargetVersionAgentInfo.LinuxAarch64.User,
+				BKAgentID: opts.TargetVersionAgentInfo.LinuxAarch64.BKAgentID,
+			},
+			WindowsX8664: SystemArchitectureInfo{
+				Signature: opts.TargetVersionAgentInfo.WindowsX8664.Signature,
+				StoredDir: opts.TargetVersionAgentInfo.WindowsX8664.StoredDir,
+				Filename:  opts.TargetVersionAgentInfo.WindowsX8664.Filename,
+				User:      opts.TargetVersionAgentInfo.WindowsX8664.User,
+				BKAgentID: opts.TargetVersionAgentInfo.WindowsX8664.BKAgentID,
+			},
+			DarwinX8664: SystemArchitectureInfo{
+				Signature: opts.TargetVersionAgentInfo.DarwinX8664.Signature,
+				StoredDir: opts.TargetVersionAgentInfo.DarwinX8664.StoredDir,
+				Filename:  opts.TargetVersionAgentInfo.DarwinX8664.Filename,
+				User:      opts.TargetVersionAgentInfo.DarwinX8664.User,
+				BKAgentID: opts.TargetVersionAgentInfo.DarwinX8664.BKAgentID,
+			},
+		},
+		AgentOperateDirectory: OperateDirectory{
+			LinuxX8664Dir:   opts.AgentOperateDirectory.LinuxX8664Dir,
+			LinuxAarch64Dir: opts.AgentOperateDirectory.LinuxAarch64Dir,
+			WindowsX8664Dir: opts.AgentOperateDirectory.WindowsX8664Dir,
+			DarwinX8664Dir:  opts.AgentOperateDirectory.DarwinX8664Dir,
+		},
+
+		CurrentVersion: opts.CurrentVersion,
+		Timeout:        uint(opts.Timeout.Seconds()),
+		AgentIDList:    opts.AgentIDList,
+	}
+
+	resp, err := h.cli.asyncUpgradeAgent(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.TaskID, nil
 }

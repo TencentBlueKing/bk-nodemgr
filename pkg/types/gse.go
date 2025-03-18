@@ -218,3 +218,65 @@ type TransferResult struct {
 	StartTime time.Time
 	EndTime   time.Time
 }
+
+// SystemArchitectureInfo represents the special system architecture information.
+type SystemArchitectureInfo struct {
+	Signature string `json:"signature"`
+	StoredDir string `json:"store_dir"`
+	Filename  string `json:"filename"`
+	User      string `json:"user"`
+	BKAgentID string `json:"bk_agent_id"`
+}
+
+// TargetVersionAgentInfo represents the  target version gse agent information.
+type TargetVersionAgentInfo struct {
+	Generation   uint                   `json:"generation"`
+	Version      string                 `json:"version"`
+	LinuxX8664   SystemArchitectureInfo `json:"linux_x86_64"`
+	LinuxAarch64 SystemArchitectureInfo `json:"linux_aarch64"`
+	WindowsX8664 SystemArchitectureInfo `json:"windows_x86_64"`
+	DarwinX8664  SystemArchitectureInfo `json:"darwin_x86_64"`
+}
+
+// TargetVersionProxyInfo represents the target version gse proxy information.
+type TargetVersionProxyInfo struct {
+	Generation uint                    `json:"generation"`
+	Version    string                  `json:"version"`
+	Agent      UpgradeProxyVersionInfo `json:"agent"`
+	Data       UpgradeProxyVersionInfo `json:"data"`
+	File       UpgradeProxyVersionInfo `json:"file"`
+}
+
+// OperateDirectory represents the gse operate directory.
+type OperateDirectory struct {
+	LinuxX8664Dir   string `json:"linux_x86_64_dir"`
+	LinuxAarch64Dir string `json:"linux_aarch64_dir"`
+	WindowsX8664Dir string `json:"windows_x86_64_dir"`
+	DarwinX8664Dir  string `json:"darwin_x86_64_dir"`
+}
+
+// UpgradeAgentOptions represents the gse upgrade agent option.
+type UpgradeAgentOptions struct {
+	TargetVersionAgentInfo TargetVersionAgentInfo `json:"target_version_agent_info"`
+	AgentOperateDirectory  OperateDirectory       `json:"operate_directory"`
+	CurrentVersion         string                 `json:"current_version"`
+	Timeout                time.Duration          `json:"timeout_seconds"`
+	AgentIDList            []string               `json:"agent_id_list"`
+}
+
+// UpgradeProxyAgentVersionInfo represents the gse upgrade proxy agent version information.
+type UpgradeProxyVersionInfo struct {
+	LinuxX8664   SystemArchitectureInfo `json:"linux_x86_64"`
+	LinuxAarch64 SystemArchitectureInfo `json:"linux_aarch64"`
+	WindowsX8664 SystemArchitectureInfo `json:"windows_x86_64"`
+	DarwinX8664  SystemArchitectureInfo `json:"darwin_x86_64"`
+}
+
+// UpgradeProxyOptions represents the gse upgrade proxy option.
+type UpgradeProxyOptions struct {
+	TargetVersionProxyInfo TargetVersionProxyInfo `json:"target_version_proxy_info"`
+	ProxyOperateDirectory  OperateDirectory       `json:"operate_directory"`
+	CurrentVersion         string                 `json:"current_version"`
+	Timeout                time.Duration          `json:"timeout_seconds"`
+	AgentIDList            []string               `json:"agent_id_list"`
+}

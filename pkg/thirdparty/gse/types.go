@@ -283,3 +283,177 @@ type AsyncTerminateTransferFileResp struct {
 		TaskID string `json:"task_id"`
 	} `json:"result"`
 }
+
+// SystemArchitectureInfo describes the special system architecture information.
+type SystemArchitectureInfo struct {
+	Signature string `json:"signature"`
+	StoredDir string `json:"store_dir"`
+	Filename  string `json:"filename"`
+	User      string `json:"user"`
+	BKAgentID string `json:"bk_agent_id"`
+}
+
+// TargetVersionAgentInfo describes the target version gse agent information.
+type TargetVersionAgentInfo struct {
+	Generation   uint                   `json:"generation"`
+	Version      string                 `json:"version"`
+	LinuxX8664   SystemArchitectureInfo `json:"linux_x86_64"`
+	LinuxAarch64 SystemArchitectureInfo `json:"linux_aarch64"`
+	WindowsX8664 SystemArchitectureInfo `json:"windows_x86_64"`
+	DarwinX8664  SystemArchitectureInfo `json:"darwin_x86_64"`
+}
+
+// TargetVersionProxyInfo describes the target version gse proxy information.
+type TargetVersionProxyInfo struct {
+	Generation uint                    `json:"generation"`
+	Version    string                  `json:"version"`
+	Agent      UpgradeProxyVersionInfo `json:"agent"`
+	Data       UpgradeProxyVersionInfo `json:"data"`
+	File       UpgradeProxyVersionInfo `json:"file"`
+}
+
+// OperateDirectory describes the gse operate directory.
+type OperateDirectory struct {
+	LinuxX8664Dir   string `json:"linux_x86_64_dir"`
+	LinuxAarch64Dir string `json:"linux_aarch64_dir"`
+	WindowsX8664Dir string `json:"windows_x86_64_dir"`
+	DarwinX8664Dir  string `json:"darwin_x86_64_dir"`
+}
+
+// UpgradeProxyAgentVersionInfo describes the gse upgrade proxy agent version information.
+type UpgradeProxyVersionInfo struct {
+	LinuxX8664   SystemArchitectureInfo `json:"linux_x86_64"`
+	LinuxAarch64 SystemArchitectureInfo `json:"linux_aarch64"`
+	WindowsX8664 SystemArchitectureInfo `json:"windows_x86_64"`
+	DarwinX8664  SystemArchitectureInfo `json:"darwin_x86_64"`
+}
+
+// BasicCountInfo describes the basic count information.
+type BasicCountInfo struct {
+	LinuxX8664AgentCount   uint `json:"linux_x86_64_agent_count"`
+	LinuxAarch64AgentCount uint `json:"linux_aarch64_agent_count"`
+	WindowsX8664AgentCount uint `json:"windows_x86_64_agent_count"`
+	DarwinX8664AgentCount  uint `json:"darwin_x86_64_agent_count"`
+	LinuxX8664BatchCount   uint `json:"linux_x86_64_batch_count"`
+	LinuxAarch64BatchCount uint `json:"linux_aarch64_batch_count"`
+	WindowsX8664BatchCount uint `json:"windows_x86_64_batch_count"`
+	DarwinX8664BatchCount  uint `json:"darwin_x86_64_batch_count"`
+}
+
+// AgentResult describes the agent result.
+type AgentResult struct {
+	State   int    `json:"state"`
+	Message string `json:"message"`
+}
+
+// StepResult describes the step result.
+type StepResult struct {
+	Index          int                    `json:"index"`
+	State          string                 `json:"state"`
+	Type           string                 `json:"type"`
+	StartTimestamp uint64                 `json:"start_timestamp"`
+	EndTimeStamp   uint64                 `json:"end_timestamp"`
+	TaskID         string                 `json:"task_id"`
+	AgentResult    map[string]AgentResult `json:"agent_result"`
+}
+
+// BatchResult describes the batch result.
+type BatchResult struct {
+	Index          int                    `json:"index"`
+	State          string                 `json:"state"`
+	Type           string                 `json:"type"`
+	StartTimestamp uint64                 `json:"start_timestamp"`
+	EndTimeStamp   uint64                 `json:"end_timestamp"`
+	AgentCount     uint                   `json:"agent_count"`
+	StepCount      uint                   `json:"step_count"`
+	AgentResult    map[string]AgentResult `json:"agent_result"`
+	StepResult     []StepResult           `json:"step_result"`
+}
+
+// AsyncUpgradeAgentReq describes the request data of upgrade_agent.
+type AsyncUpgradeAgentReq struct {
+	TargetVersionAgentInfo TargetVersionAgentInfo `json:"target_version_agent_info"`
+	AgentOperateDirectory  OperateDirectory       `json:"operate_directory"`
+	CurrentVersion         string                 `json:"current_version"`
+	Timeout                uint                   `json:"timeout_seconds"`
+	AgentIDList            []string               `json:"agent_id_list"`
+}
+
+// AsyncUpgradeAgentResp describes the response data of upgrade_agent.
+type AsyncUpgradeAgentResp struct {
+	TaskID string `json:"task_id"`
+}
+
+// AsyncTerminateUpgradeAgentReq describes the request data of terminate_upgrade_agent.
+type AsyncTerminateUpgradeAgentReq struct {
+	TaskID      string   `json:"task_id"`
+	AgentIDList []string `json:"agent_id_list"`
+}
+
+// AsyncTerminateUpgradeAgentResp describes the response data of terminate_upgrade_agent.
+type AsyncTerminateUpgradeAgentResp struct{}
+
+// AsyncUpgradeProxyReq describes the request data of get_upgrade_agent_result.
+type AsyncGetUpgradeAgentResultReq struct {
+	TaskID string `json:"task_id"`
+}
+
+// AsyncUpgradeProxyResp describes the response data of get_upgrade_agent_result.
+type AsyncGetUpgradeAgentResultResp struct {
+	State          string                 `json:"state"`
+	ServiceID      string                 `json:"service_id"`
+	CurrentVersion string                 `json:"current_version"`
+	TargetVersion  string                 `json:"target_version"`
+	Timeout        uint                   `json:"timeout_seconds"`
+	StartTimestamp uint64                 `json:"start_timestamp"`
+	EndTimeStamp   uint64                 `json:"end_timestamp"`
+	AgentCount     uint                   `json:"agent_count"`
+	BatchCount     uint                   `json:"batch_count"`
+	Info           BasicCountInfo         `json:"info"`
+	AgentResult    map[string]AgentResult `json:"agent_result"`
+	BatchResult    []BatchResult          `json:"batch_result"`
+}
+
+// AsyncUpgradeProxyReq describes the request data of upgrade_proxy.
+type AsyncUpgradeProxyReq struct {
+	TargetVersionProxyInfo TargetVersionProxyInfo `json:"target_version_proxy_info"`
+	ProxyOperateDirectory  OperateDirectory       `json:"operate_directory"`
+	CurrentVersion         string                 `json:"current_version"`
+	Timeout                uint                   `json:"timeout_seconds"`
+	AgentIDList            []string               `json:"agent_id_list"`
+}
+
+// AsyncUpgradeProxyResp describes the response data of upgrade_proxy.
+type AsyncUpgradeProxyResp struct {
+	TaskID string `json:"task_id"`
+}
+
+// AsyncTerminateUpgradeProxyReq describes the request data of terminate_upgrade_proxy.
+type AsyncTerminateUpgradeProxyReq struct {
+	TaskID      string   `json:"task_id"`
+	AgentIDList []string `json:"agent_id_list"`
+}
+
+// AsyncTerminateUpgradeProxyResp describes the response data of terminate_upgrade_proxy.
+type AsyncTerminateUpgradeProxyResp struct{}
+
+// AsyncGetUpgradeProxyResultReq describes the request data of get_upgrade_proxy_result.
+type AsyncGetUpgradeProxyResultReq struct {
+	TaskID string `json:"task_id"`
+}
+
+// AsyncGetUpgradeProxyResultResp describes the response data of get_upgrade_proxy_result.
+type AsyncGetUpgradeProxyResultResp struct {
+	State          string                 `json:"state"`
+	ServiceID      string                 `json:"service_id"`
+	CurrentVersion string                 `json:"current_version"`
+	TargetVersion  string                 `json:"target_version"`
+	Timeout        uint                   `json:"timeout_seconds"`
+	StartTimestamp uint64                 `json:"start_timestamp"`
+	EndTimeStamp   uint64                 `json:"end_timestamp"`
+	AgentCount     uint                   `json:"agent_count"`
+	BatchCount     uint                   `json:"batch_count"`
+	Info           BasicCountInfo         `json:"info"`
+	AgentResult    map[string]AgentResult `json:"agent_result"`
+	BatchResult    []BatchResult          `json:"batch_result"`
+}
