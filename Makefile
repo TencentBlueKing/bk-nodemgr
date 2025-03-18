@@ -45,11 +45,16 @@ front: pre
 	$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
 	$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
 
+tools: pre
+	$(CD) $(ROOT_DIR)/tools && make platform-builds -e UPX_ENABLED=true
+	$(CP) -r $(ROOT_DIR)/tools/bin $(OUTPUT_DIR)/tools
+
 docker-build: backend application file front
 	$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
 	$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
 
-all: backend application file front
+
+all: backend application file front tools
 
 clean:
 	$(RM) -rf build

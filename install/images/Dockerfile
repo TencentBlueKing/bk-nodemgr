@@ -22,6 +22,7 @@ RUN mkdir -p \
 COPY bk-nodeman-backend /bk-nodeman/bin/
 COPY bk-nodeman-application /bk-nodeman/bin/
 COPY bk-nodeman-file /bk-nodeman/bin/
+COPY tools/ /bk-nodeman/file/tools
 COPY dist/ /bk-nodeman/static/
 
 WORKDIR /bk-nodeman/bin
