@@ -23,71 +23,64 @@
 package workflowdef
 
 import (
-	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
 // NewActionActionName ...
 func NewActionActionName() operengine.ActionDef {
-	return &actionName{}
+	return &ActionName{}
 }
 
 // ActionNameParam ...
 type ActionNameParam struct {
 }
 
-// syncHostFromCMDB ...
-type actionName struct {
+// ActionName ...
+type ActionName struct {
 }
 
 // Name returns the name of the action.
-func (s *actionName) Name() string {
+func (action *ActionName) Name() string {
 	return ""
 }
 
 // Version returns the version of the action.
-func (s *actionName) Version() string {
+func (action *ActionName) Version() string {
 	return ""
 }
 
 // Description returns the description of the action.
-func (s *actionName) Description() string {
+func (action *ActionName) Description() string {
 	return ""
 }
 
 // Timeout returns the timeout of the action.
-func (s *actionName) Timeout() time.Duration {
+func (action *ActionName) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (s *actionName) Tags() []operengine.ActionTag {
+func (action *ActionName) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
-// MaxRetryCount this action creates a large number of synchronization tasks,
-// therefore does not allow the system to automatically retry.
-func (s *actionName) MaxRetryCount() uint {
+// MaxRetryCount returns the max retry count of the action.
+func (action *ActionName) MaxRetryCount() uint {
 	return 3
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (s *actionName) DelayFn() func() {
+func (action *ActionName) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (s *actionName) Do(ctx *operengine.ActionInstContext) error {
+func (action *ActionName) Do(ctx *operengine.ActionInstContext) error {
 	param := new(ActionNameParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

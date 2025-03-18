@@ -132,6 +132,11 @@ func testCapability(t *testing.T) *Capability {
 		HeaderSetter: testHeaderSetter{},
 	})
 
+	crypt, err := crypter.NewAESCrypter([]byte(os.Getenv("SSH_ENCRYPT_KEY")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	capability := &Capability{
 		TopoStorage:       topoStorage,
 		TrigEngineStorage: nil,
@@ -140,7 +145,7 @@ func testCapability(t *testing.T) *Capability {
 		CmdbHandler:       cmdbHandler,
 		Logger:            loggerDefault,
 		LockerFactory:     nil,
-		Crypter:           nil,
+		Crypter:           crypt,
 	}
 
 	return capability
