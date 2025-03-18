@@ -1,6 +1,3 @@
-# 跨平台Go应用构建Makefile
-# 简化版无彩色输出，适合所有终端环境
-
 # 基本项目信息
 APP_NAME := installer
 MAIN_PATH := ./cmd/installer/
@@ -20,6 +17,8 @@ OSES := linux darwin windows
 # 支持的架构
 ARCHES := amd64 arm64 arm
 
+GO = go1.20.14
+
 .PHONY: all build clean test lint platform-builds build-matrix help
 
 # 默认目标
@@ -29,7 +28,7 @@ all: clean test build
 build: check-upx
 	@echo "Building $(APP_NAME) $(VERSION) for host platform..."
 	@mkdir -p $(OUTPUT_DIR)
-	@go build $(GO_FLAGS) $(LD_FLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) $(MAIN_PATH)
+	@$(GO) build $(GO_FLAGS) $(LD_FLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) $(MAIN_PATH)
 	@echo "Build successful: $(OUTPUT_DIR)/$(APP_NAME)"
 	@if [ "$(UPX_ENABLED)" = "true" ]; then \
 		make compress-binary BINARY=$(OUTPUT_DIR)/$(APP_NAME); \
@@ -47,7 +46,7 @@ platform-builds: check-upx
 				echo "Building for $(os)/$(arch)..." && \
 				ext=$(if $(filter windows,$(os)),.exe,) && \
 				binary="$(OUTPUT_DIR)/$(APP_NAME)_$(os)_$(arch)$$ext" && \
-				GOOS=$(os) GOARCH=$(arch) go build $(GO_FLAGS) $(LD_FLAGS) \
+				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
 					-o "$$binary" $(MAIN_PATH) && \
 				echo "Built: $$binary" && \
 				if [ "$(UPX_ENABLED)" = "true" ]; then \
@@ -68,7 +67,7 @@ build-matrix: check-upx
 	@mkdir -p $(OUTPUT_DIR)
 	@ext=$(if $(filter windows,$(GOOS)),.exe,) && \
 	binary="$(OUTPUT_DIR)/$(APP_NAME)_$(GOOS)_$(GOARCH)$$ext" && \
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(GO_FLAGS) $(LD_FLAGS) \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
 		-o "$$binary" $(MAIN_PATH) && \
 	echo "Built: $$binary"
 	@if [ "$(UPX_ENABLED)" = "true" ]; then \
@@ -86,23 +85,23 @@ clean:
 test:
 	@echo "Running tests..."
 	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=$$(go env GOOS); \
-	GOARCH=$$(go env GOARCH); \
+	@GOOS=$$($(GO) env GOOS); \
+	GOARCH=$$($(GO) env GOARCH); \
 	if [ "$$GOOS" = "windows" ] && [ "$$GOARCH" = "386" ]; then \
 		echo "Race detector disabled on windows/386"; \
-		go test -coverprofile=$(OUTPUT_DIR)/coverage.out ./...; \
+		$(GO) test -coverprofile=$(OUTPUT_DIR)/coverage.out ./...; \
 	else \
-		go test -race -coverprofile=$(OUTPUT_DIR)/coverage.out ./...; \
+		$(GO) test -race -coverprofile=$(OUTPUT_DIR)/coverage.out ./...; \
 	fi
 	@if [ -f "$(OUTPUT_DIR)/coverage.out" ]; then \
-		go tool cover -func=$(OUTPUT_DIR)/coverage.out; \
+		$(GO) tool cover -func=$(OUTPUT_DIR)/coverage.out; \
 	fi
 	@echo "Tests passed"
 
 # 代码格式检查
 lint:
 	@echo "Checking code format..."
-	@gofmt -d -s .
+	@$(GO)fmt -d -s .
 	@echo "Code format check completed"
 
 # 帮助信息

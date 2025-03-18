@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application front docker-build all clean doc
+.PHONY: tidy build test pre backend application front docker-build all clean doc tools
 
 # directories
 ROOT_DIR = $(CURDIR)
