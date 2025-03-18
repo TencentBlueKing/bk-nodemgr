@@ -45,6 +45,6 @@ func (p *Page) Validate() error {
 func UnlimitedPage() Page {
 	return Page{
 		Offset: 0,
-		Limit:  math.MaxInt64,
+		Limit:  math.MaxInt32,
 	}
 }
