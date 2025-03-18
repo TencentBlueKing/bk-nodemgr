@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package v3 defines the application v3 protocols
 package v3
 
 import (
@@ -46,6 +47,10 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 
 	if page.Limit <= 0 || page.Limit > maxLimit {
 		page.Limit = maxLimit
+	}
+
+	if maxLimit <= 0 {
+		page.Limit = 0
 	}
 
 	return page

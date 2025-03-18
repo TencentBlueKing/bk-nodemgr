@@ -71,7 +71,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "TopoEventListReq describes the HTTP request body when get host in topo\nservice.",
+            "description": "TopoEventListReq describes the HTTP request body when list event in topo\nservice.",
             "in": "body",
             "required": true,
             "schema": {
@@ -588,6 +588,10 @@
           "type": "string",
           "format": "int64"
         },
+        "bk_networkunit_id": {
+          "type": "string",
+          "format": "int64"
+        },
         "bk_host_name": {
           "type": "string"
         },
@@ -629,10 +633,6 @@
         },
         "bk_agent_id": {
           "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
@@ -892,7 +892,7 @@
           "$ref": "#/definitions/v3TopoEventListReqExactConditions"
         }
       },
-      "description": "TopoEventListReq describes the HTTP request body when get host in topo\nservice."
+      "description": "TopoEventListReq describes the HTTP request body when list event in topo\nservice."
     },
     "v3TopoEventListReqExactConditions": {
       "type": "object",
@@ -949,7 +949,7 @@
           "$ref": "#/definitions/v3TopoEventListRespData"
         }
       },
-      "description": "TopoEventListResp describes the HTTP response body when get host in topo\nservice."
+      "description": "TopoEventListResp describes the HTTP response body when list event in topo\nservice."
     },
     "v3TopoEventListRespData": {
       "type": "object",

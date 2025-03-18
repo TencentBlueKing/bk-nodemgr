@@ -67,6 +67,28 @@ topoManager:
         failed: Replicating Failed
       delete:
         title: Are you sure you want to delete this' Workarea '?
+  workAreaDetail:
+    workUnitCount: Number of Work Unit
+    proxyQuantity: Number of Proxy
+    agentQuantity: Number of Agent
+    updatePerson: Update Person
+    updateTime: Update Time
+    upstream: Upstream access point
+    downstream: Downstream access point
+    expand: Expand
+    retract: Retract
+    button:
+      installProxy: Install Proxy
+      batch: Batch
+    searchSelect:
+      placeholder: Please enter internal IPv4, internal IPv6, AgentAD to search
+    table:
+      ipv4: Internal IPv4 network
+      ipv6: Intranet IPv6
+      proxyVersion: Proxy Version
+      proxyStatus: Proxy Status
+      action: Action
+      Reassembly: Reassembly
   topo:
     title: Topology Map
     toolbar:

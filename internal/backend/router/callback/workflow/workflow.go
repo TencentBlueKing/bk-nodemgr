@@ -13,7 +13,7 @@ package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/agent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -38,5 +38,5 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
 	// TODO: 设置权限封禁
-	agent.Load(h.rg, cap)
+	nodeinstall.Load(h.rg, cap)
 }

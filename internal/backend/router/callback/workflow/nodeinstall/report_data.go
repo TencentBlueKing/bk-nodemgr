@@ -8,37 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+package nodeinstall
 
-import "fmt"
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 
-// ReportLogReq ReportLog req.
-type ReportLogReq struct {
-	TaskID string `json:"task_id"`
-	Token  string `json:"token"`
-	Logs   []struct {
-		Timestamp string `json:"timestamp"`
-		Level     string `json:"level"`
-		Step      string `json:"step"`
-		Log       string `json:"log"`
-		Status    string `json:"status"`
-	} `json:"logs"`
-}
-
-// Validate ReportLogReq.
-func (req ReportLogReq) Validate() error {
-	if req.TaskID == "" {
-		return fmt.Errorf("task_id is empty")
+// ReportData ...
+func (h *handler) ReportData(cts *rest.Context) (interface{}, error) {
+	req := new(ReportDataReq)
+	if err := cts.BindJSON(req); err != nil {
+		return nil, err
 	}
 
-	if req.Token == "" {
-		return fmt.Errorf("token is empty")
+	if err := req.Validate(); err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	h.logger.Infof("ReportData req: %v", req)
 
-// ReportLogResp ReportLog resp.
-type ReportLogResp struct {
+	resp := new(ReportDataResp)
+
+	return resp, nil
 }

@@ -123,6 +123,14 @@ type Handler interface {
 	// @param condition the filter conditions.
 	// @return the topo-event count with filter.
 	CountTopoEvent(ctx context.Context, condition *types.TopoEventCondition) (int64, error)
+
+	// ListAccessPoint list access points by page and conditions.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the access-point list with page and the total count with filter.
+	ListAccessPoint(ctx context.Context, page types.Page, condition *types.AccessPointCondition) (
+		[]*types.AccessPoint, int64, error)
 }
 
 type handler struct {
@@ -501,4 +509,30 @@ func (h *handler) CountTopoEvent(ctx context.Context, condition *types.TopoEvent
 	}
 
 	return resp.GetData().GetTotal(), nil
+}
+
+// ListAccessPoint list access point within specified tenant in context.
+func (h *handler) ListAccessPoint(ctx context.Context, page types.Page, condition *types.AccessPointCondition) (
+	[]*types.AccessPoint, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &proto.TopoAccessPointListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listAccessPoint(ctx, tenantID, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, events := resp.ConvertAccessPointsToTypes()
+
+	return events, total, nil
 }

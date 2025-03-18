@@ -9,13 +9,13 @@
       </div>
       <!-- result text -->
       <div class="text-[20px] text-[#313238] text-center font-medium mt-[19px]">
-        {{ $t('topoManager.region.workarea.form.success') }}
+        {{ $t('topoManager.workArea.form.success') }}
       </div>
       <!-- tips -->
       <div
         class="w-[416px] h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
           text-[14px] mt-[16px] mb-[26px] pl-[16px] leading-[46px]">
-        {{ $t('topoManager.region.workarea.form.tips') }}
+        {{ $t('topoManager.workArea.form.tips') }}
       </div>
       <!-- footer -->
       <div class="flex justify-center">
@@ -32,7 +32,7 @@
       </div>
       <!-- result text -->
       <div class="text-[20px] text-[#313238] text-center font-medium mt-[19px]">
-        {{ $t('topoManager.region.workarea.form.failed') }}
+        {{ $t('topoManager.workArea.form.failed') }}
       </div>
       <!-- tips -->
       <div class="flex justify-center">

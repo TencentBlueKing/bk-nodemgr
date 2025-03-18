@@ -40,23 +40,23 @@ const subList = [
   },
   {
     id: 'workarea+ipv4',
-    name: `${t('topoManager.region.workarea.copy.workarea')}+IPv4`,
+    name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
   },
   {
     id: 'workarea+ipv6',
-    name: `${t('topoManager.region.workarea.copy.workarea')}+IPv6`,
+    name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
   },
 ];
 
 const list = [
   {
     id: 'select',
-    name: t('topoManager.region.workarea.copy.select'),
+    name: t('topoManager.workArea.copy.select'),
     children: subList,
   },
   {
     id: 'all',
-    name: t('topoManager.region.workarea.copy.selectAll'),
+    name: t('topoManager.workArea.copy.selectAll'),
     children: subList,
   },
 ];
@@ -104,13 +104,13 @@ const copyText = (value: string) => {
     copy(value);
     Message({
       theme: 'success',
-      message: t('topoManager.region.workarea.copy.success'),
+      message: t('topoManager.workArea.copy.success'),
     });
   } catch (error) {
     console.error(error);
     Message({
       theme: 'success',
-      message: t('topoManager.region.workarea.copy.failed'),
+      message: t('topoManager.workArea.copy.failed'),
     });
   }
 };

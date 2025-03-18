@@ -14,11 +14,14 @@ package sshx
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
+	"path"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -89,6 +92,9 @@ func (conf *Config) Validate() error {
 func (conf *Config) getAddr() string {
 	return fmt.Sprintf("%s:%d", conf.IP, conf.Port)
 }
+
+// DefaultTimeout is the default timeout for building the connection.
+const DefaultTimeout = 30 * time.Second
 
 // NewClient new a ssh client.
 // timeout is the timeout for building the connection。
@@ -169,6 +175,8 @@ func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 
 	output, err := session.CombinedOutput(cmd)
 	if err != nil {
+		err = fmt.Errorf("failed to run command, cmd(%s), output(%s), err: %w", cmd, string(output), err)
+
 		return "", err
 	}
 
@@ -178,4 +186,31 @@ func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 // Close close the ssh client.
 func (cli *Client) Close() error {
 	return cli.sshClient.Close()
+}
+
+// TransferFile transfer file.
+func (cli *Client) TransferFile(file io.ReadCloser, destPath string) error {
+	defer func() { _ = file.Close() }()
+
+	sftpClient, err := sftp.NewClient(cli.sshClient)
+	if err != nil {
+		return fmt.Errorf("failed to create sftp client, err: %w", err)
+	}
+
+	destDir := path.Dir(destPath)
+	if err := sftpClient.MkdirAll(destDir); err != nil {
+		return fmt.Errorf("failed to create dir, err: %w", err)
+	}
+
+	destFile, err := sftpClient.Create(destPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file, err: %w", err)
+	}
+	defer func() { _ = destFile.Close() }()
+
+	if _, err := io.Copy(destFile, file); err != nil {
+		return fmt.Errorf("failed to copy file, err: %w", err)
+	}
+
+	return nil
 }

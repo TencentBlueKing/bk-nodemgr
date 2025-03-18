@@ -619,6 +619,38 @@ func (s *storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...i
 	return s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...)
 }
 
+// CountAccessPoint counts accesspoint.
+func (s *storage) CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error) {
+	opts := make([]accesspoint.OptFn, 0)
+	for _, condition := range conditions {
+		switch condition.Type {
+		case types.ConditionTypeExactInclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					accesspoint.WithAccessPointID(condition.Exact.AccessPointID...),
+					accesspoint.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeExactExclude:
+			if condition.Exact != nil {
+				opts = append(opts,
+					accesspoint.WithoutAccessPointID(condition.Exact.AccessPointID...),
+					accesspoint.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
+				)
+			}
+
+		case types.ConditionTypeFuzzyInclude:
+		case types.ConditionTypeFuzzyExclude:
+
+		default:
+			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		}
+	}
+
+	return s.daoAccessPoint.Count(ctx, opts...)
+}
+
 // ListAccessPoint lists accesspoint.
 func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {

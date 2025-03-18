@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package v3 defines the backend v3 protocols
 package v3
 
 import (
@@ -44,12 +45,12 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 		page.Offset = 0
 	}
 
-	if page.Limit < 0 {
-		page.Limit = 0
+	if page.Limit <= 0 || page.Limit > maxLimit {
+		page.Limit = maxLimit
 	}
 
-	if page.Limit > maxLimit {
-		page.Limit = maxLimit
+	if maxLimit <= 0 {
+		page.Limit = 0
 	}
 
 	return page

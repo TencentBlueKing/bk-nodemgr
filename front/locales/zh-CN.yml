@@ -48,45 +48,66 @@ platform:
   pkgManager:
     name: 包管理
 topoManager:
-  region:
+  workArea:
     title: 管控区域
-    workarea:
-      search:
-        placeholder: 请输入 管控区名称、管控区ID、云服务商 搜索
-        workareaName: 管控区域名称
-        workareaId: 管控区域ID
-        vendor: 云服务商
-      form:
-        create: 新建管控区域
-        edit: 编辑管控区域
-        workareaName: 管控区域名称
-        vendor: 云服务商
-        tips: 创建完管控区后，仍需安装 Proxy 才能够正常使用
-        success: 管控区域创建成功
-        failed: 管控区域创建失败
-      formRule:
-        workareaName: 管控区域名称不能为空
-        vendor: 云服务商不能为空
-      table:
-        workareaName: 管控区域名称
-        workareaId: 管控区域ID
-        vendor: 云服务商
-        workUnitsCount: 管控单元数量
-        nodesCount: 节点数量
-      vendor:
-        tencent: 腾讯云
-        google: 谷歌云
-        huawei: 华为云
-        microsoft: 微软云
-        ali: 阿里云
-      copy:
-        workarea: 管控区域
-        select: 所选项的 Proxy IP
-        selectAll: 全部项的 Proxy IP
-        success: 复制成功
-        failed: 复制失败
-      delete:
-        title: 确认要删除该「管控区域」？
+    search:
+      placeholder: 请输入 管控区名称、管控区ID、云服务商 搜索
+      workareaName: 管控区域名称
+      workareaId: 管控区域ID
+      vendor: 云服务商
+    form:
+      create: 新建管控区域
+      edit: 编辑管控区域
+      workareaName: 管控区域名称
+      vendor: 云服务商
+      tips: 创建完管控区后，仍需安装 Proxy 才能够正常使用
+      success: 管控区域创建成功
+      failed: 管控区域创建失败
+    formRule:
+      workareaName: 管控区域名称不能为空
+      vendor: 云服务商不能为空
+    table:
+      workareaName: 管控区域名称
+      workareaId: 管控区域ID
+      vendor: 云服务商
+      workUnitsCount: 管控单元数量
+      nodesCount: 节点数量
+    vendor:
+      tencent: 腾讯云
+      google: 谷歌云
+      huawei: 华为云
+      microsoft: 微软云
+      ali: 阿里云
+    copy:
+      workarea: 管控区域
+      select: 所选项的 Proxy IP
+      selectAll: 全部项的 Proxy IP
+      success: 复制成功
+      failed: 复制失败
+    delete:
+      title: 确认要删除该「管控区域」？
+  workAreaDetail:
+    workUnitCount: 管控单元数量
+    proxyQuantity: Proxy 数量
+    agentQuantity: Agent 数量
+    updatePerson: 更新人
+    updateTime: 更新时间
+    upstream: 上游接入点
+    downstream: 下游接入点
+    expand: 展开
+    retract: 收起
+    button:
+      installProxy: 安装 Proxy
+      batch: 批量
+    searchSelect:
+      placeholder: 请输入 内网IPv4、内网IPv6、AgentID 搜索
+    table:
+      ipv4: 内网 IPv4
+      ipv6: 内网 IPv6
+      proxyVersion: Proxy 版本
+      proxyStatus: Proxy 状态
+      action: 操作
+      Reassembly: 重装
   topo:
     title: 拓扑图
     toolbar:

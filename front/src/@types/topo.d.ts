@@ -161,7 +161,7 @@ export interface TopoNetworkUnitListResp {
 
 export interface TopoNetworkUnitListRespData {
   total: number;
-  items: NetworkUnitBrief[];
+  items: NetworkUnit[];
 }
 
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit

@@ -9,6 +9,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.3.0
+	github.com/pkg/sftp v1.13.7
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/spf13/afero v1.12.0
@@ -59,6 +60,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/kr/fs v0.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

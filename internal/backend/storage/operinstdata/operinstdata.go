@@ -61,7 +61,7 @@ type storage struct {
 	base.Storage
 
 	// dao
-	operinstdataDao operinstdata.Handler
+	operinstdataDao operinstdata.IHandler
 	stopoperinstDao stopoperinst.Handler
 
 	// stop event subscriptions
@@ -378,6 +378,25 @@ func (s *storage) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	return s.operinstdataDao.GetActionInstData(ctx, operInstID, actionName)
+}
+
+// GetActInstLifecycle get action instance's lifecycle.
+func (s *storage) GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (
+	*operengine.ActInstLifeCycle, error) {
+
+	if ctx == nil {
+		return nil, base.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("actionName is empty")
+	}
+
+	return s.operinstdataDao.GetActInstLifecycle(ctx, operInstID, actionName)
 }
 
 // PushActInstMsgs push action instance msgs.

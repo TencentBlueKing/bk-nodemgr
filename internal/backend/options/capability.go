@@ -15,6 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -41,6 +42,9 @@ type Capability struct {
 
 	// OperStorage bk nodeman operation storage.
 	OperStorage operation.Storage
+
+	// NodeDeploymentStorage bk nodeman node deployment storage.
+	NodeDeploymentStorage nodedeployment.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.Handler

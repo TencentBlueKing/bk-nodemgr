@@ -10,13 +10,13 @@
       <Loading :loading="loading">
         <Form :model="form" form-type="vertical" :rules="rules" ref="formRef" :width="480">
           <Form.FormItem
-            :label="$t('topoManager.region.workarea.form.workareaName')"
+            :label="$t('topoManager.workArea.form.workareaName')"
             property="bkNetworkareaName"
             required>
             <Input class="w-[432px]" v-model="form.bkNetworkareaName" />
           </Form.FormItem>
           <Form.FormItem
-            :label="$t('topoManager.region.workarea.form.vendor')"
+            :label="$t('topoManager.workArea.form.vendor')"
             property="bkCloudVendor"
             required>
             <Select
@@ -76,7 +76,7 @@ const props = defineProps({
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
-const dialogTitle = computed(() => (props.isCreate ? t('topoManager.region.workarea.form.create') : t('topoManager.region.workarea.form.edit')));
+const dialogTitle = computed(() => (props.isCreate ? t('topoManager.workArea.form.create') : t('topoManager.workArea.form.edit')));
 
 const vendor = ref();
 const curVendor = computed(() => SelectOptions.value.find(item => item.id === vendor.value));
@@ -84,12 +84,12 @@ const curVendor = computed(() => SelectOptions.value.find(item => item.id === ve
 const isGuideShow = ref(false);
 
 const vendorMap = {
-  tencent: t('topoManager.region.workarea.vendor.tencent'),
-  google: t('topoManager.region.workarea.vendor.google'),
-  huawei: t('topoManager.region.workarea.vendor.huawei'),
-  microsoft: t('topoManager.region.workarea.vendor.microsoft'),
+  tencent: t('topoManager.workArea.vendor.tencent'),
+  google: t('topoManager.workArea.vendor.google'),
+  huawei: t('topoManager.workArea.vendor.huawei'),
+  microsoft: t('topoManager.workArea.vendor.microsoft'),
   aws: 'AWS',
-  ali: t('topoManager.region.workarea.vendor.ali'),
+  ali: t('topoManager.workArea.vendor.ali'),
 };
 
 const SelectOptions = ref([
@@ -140,14 +140,14 @@ const rules = ref({
   bkNetworkareaName: [
     {
       required: true,
-      message: t('topoManager.region.workarea.formRule.workareaName'),
+      message: t('topoManager.workArea.formRule.workareaName'),
       trigger: 'blur',
     },
   ],
   bkCloudVendor: [
     {
       required: true,
-      message: t('topoManager.region.workarea.formRule.vendor'),
+      message: t('topoManager.workArea.formRule.vendor'),
       trigger: 'blur',
     },
   ],

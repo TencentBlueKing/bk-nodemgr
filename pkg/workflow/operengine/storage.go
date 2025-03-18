@@ -36,6 +36,9 @@ type OperInstStorage interface {
 	// GetActionInstData will get the action_inst_data.
 	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*ActionInstData, error)
 
+	// GetActInstLifecycle will get the action_inst_data's lifecycle.
+	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*ActInstLifeCycle, error)
+
 	// UpdateActInstLifecycle will update the action_inst_data's lifecycle.
 	UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string, lifecycle *ActInstLifeCycle) error
 

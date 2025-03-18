@@ -668,3 +668,77 @@ func Test_handler_DeleteNetworkUnit(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_ListAccessPoint list access point.
+func Test_handler_ListAccessPoint(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx       context.Context
+		page      types.Page
+		condition *types.AccessPointCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "page",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				condition: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "condition",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+				condition: &types.AccessPointCondition{
+					Type: types.ConditionTypeExactInclude,
+					Exact: &types.AccessPointExactFields{
+						NetworkAreaID: []int64{0, 1, 2},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, total, err := h.ListAccessPoint(tt.args.ctx, tt.args.page, tt.args.condition)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListAccessPoint() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("accesspoints: %v", item)
+			}
+
+			t.Logf("total: %d", total)
+		})
+	}
+}

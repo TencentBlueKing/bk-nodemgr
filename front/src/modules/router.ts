@@ -12,6 +12,7 @@ import PluginManager from '@/pages/node/plugin.vue';
 import OperationRecord from '@/pages/topo/record.vue';
 import Topography from '@/pages/topo/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
+import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -100,6 +101,16 @@ const routes = setupLayouts([
               back: false,
               mainMenu: 'topoManager',
               title: '管控区域',
+            },
+          },
+          {
+            name: 'workareaDetail',
+            path: 'workarea-detail/:workarea',
+            component: WorkareaDetail,
+            meta: {
+              back: true,
+              mainMenu: 'topoManager',
+              title: '管控区域详情',
             },
           },
           {

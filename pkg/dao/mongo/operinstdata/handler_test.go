@@ -25,7 +25,7 @@ import (
 )
 
 // testClient ...
-func testClient(t *testing.T) Handler {
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -70,7 +70,7 @@ func Test_handler_FindOne(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				opts: []OptFn{
-					WithOperInstID("operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f"),
+					WithOperInstID("oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0"),
 				},
 			},
 			wantErr: false,
@@ -178,7 +178,7 @@ func Test_handler_FindOneActionInstData(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				operInstID: "oper-inst-f5517941-16aa-4d40-9faf-e044066a3492",
+				operInstID: "oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0",
 				actionName: "sync_biz_from_cmdb",
 			},
 			wantErr: false,
@@ -467,6 +467,44 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 			if err := h.UpdateActionInstContent(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.content); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActionInstContent() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+// Test_handler_GetActInstLifecycle ...
+func Test_handler_GetActInstLifecycle(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		operInstID string
+		actionName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0",
+				actionName: "sync_biz_from_cmdb",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetActInstLifecycle(tt.args.ctx, tt.args.operInstID, tt.args.actionName)
+			if err != nil {
+				t.Logf("GetActInstLifecycle() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
 		})
 	}
 }
