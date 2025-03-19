@@ -46,7 +46,8 @@ type BusinessInstanceTopo struct {
 	Children []*BusinessInstanceTopo
 }
 
-// BusinessInternalModule represents the module information of idle host, fault host, and recycle host under the business
+// BusinessInternalModule represents the module information of idle host, fault host,
+// and recycle host under the business.
 type BusinessInternalModule struct {
 	// belongs to
 	TenantID string

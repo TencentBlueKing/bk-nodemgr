@@ -245,6 +245,7 @@ func (svc *Service) Start() error {
 	return nil
 }
 
+// GracefulShutdown gracefully shuts down the application service.
 func (svc *Service) GracefulShutdown() error {
 	if svc.ctx == nil || svc.cancelFunc == nil {
 		return errors.New("service is not running")

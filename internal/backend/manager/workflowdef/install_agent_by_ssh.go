@@ -166,9 +166,7 @@ func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) error {
 
 	installerPath := path.Clean(path.Join(targetDir, toolName))
 	if err := client.TransferFile(reader, installerPath); err != nil {
-		err = fmt.Errorf("failed to transfer file, err: %w", err)
-
-		return err
+		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
 
 	// 6. make sure tool is executable

@@ -49,6 +49,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	return s, nil
 }
 
+// Storage this is the storage of nodedeployment.
 type Storage struct {
 	base.Storage
 
