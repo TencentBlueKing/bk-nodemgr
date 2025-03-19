@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -132,6 +133,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	svc.Cap.OperStorage, err = operation.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.NodeDeploymentStorage, err = nodedeployment.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}

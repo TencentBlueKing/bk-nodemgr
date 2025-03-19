@@ -77,6 +77,10 @@ func (c *Capability) Start(ctx context.Context) error {
 		return err
 	}
 
+	if err := c.NodeDeploymentStorage.Start(ctx); err != nil {
+		return err
+	}
+
 	if err := c.Manager.Start(ctx); err != nil {
 		return err
 	}
