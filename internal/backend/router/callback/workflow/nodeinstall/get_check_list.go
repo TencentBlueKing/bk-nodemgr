@@ -18,7 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetCheckList ...
+// GetCheckList get gse file proxy config.
 func (h *handler) GetCheckList(gCtx *gin.Context) {
 	req := new(proto.GetCheckListReq)
 	if err := gCtx.BindJSON(req); err != nil {
@@ -43,7 +43,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateGseCheckList, preSetting, customSetting)
+	conf, err := RenderConfig(DefaultTemplateNodeInstallerCheckList, preSetting, customSetting)
 	if err != nil {
 		h.logger.Errorf("render gse file proxy config failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
@@ -56,32 +56,9 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 	return
 }
 
-const DefaultTemplateGseCheckList = `{
-    "disk_requires": "__BK_GSE_DISK_REQUIRES__",
-	"port_policies": "__BK_GSE_PORT_POLICIES__",
-	"network_policies": "__BK_GSE_NETWORK_POLICIES__",
+// DefaultTemplateNodeInstallerCheckList  gse file proxy.
+const DefaultTemplateNodeInstallerCheckList = `{
+    "disk_requires": __BK_NODE_INSTALLER_DISK_REQUIRES__,
+	"port_policies": __BK_NODE_INSTALLER_PORT_POLICIES__,
+	"network_policies": __BK_NODE_INSTALLER_NETWORK_POLICIES__,
 }`
-
-func mockCheckList() map[string]any {
-	return map[string]any{
-		"disk_requires": []map[string]any{
-			{
-				"demand_mb": 300,
-				"dir_path":  "/usr/local/gse",
-			},
-		},
-		"port_policies": []map[string]any{
-			{
-				"port":    8009,
-				"network": "tcp",
-			},
-		},
-		"network_policies": []map[string]any{
-			{
-				"network": "tcp",
-				"port":    8006,
-				"host":    "10.0.0.1",
-			},
-		},
-	}
-}
