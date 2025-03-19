@@ -8,22 +8,25 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package base ...
-package base
+// Package nodedeployment ...
+package nodedeployment
 
-import "errors"
+const (
+	// FieldKeyToken the token field key
+	FieldKeyToken = "data.token"
 
-// ErrUpsertNilData this error indicates that the user inserted an empty block of data when inserting data.
-func ErrUpsertNilData() error {
-	return errors.New("upsert nil data")
-}
+	// FieldKeyInfo the info field key
+	FieldKeyInfo = "data.info"
 
-// ErrNilContent this error indicates that the user inserted an empty block of data when inserting data.
-func ErrNilContent() error {
-	return errors.New("ctx is nil")
-}
+	// FieldKeyCheckList the check list field key
+	FieldKeyCheckList = "data.check_list"
 
-// ErrEmptyUniqueKey this error indicates that the user inserted an empty block of data when inserting data.
-func ErrEmptyUniqueKey() error {
-	return errors.New("empty unique key")
-}
+	// FieldKeyAgentConf the agent conf field key
+	FieldKeyAgentConf = "data.agent_conf"
+
+	// FieldKeyDataProxyConf the data proxy conf field key
+	FieldKeyDataProxyConf = "data.data_proxy_conf"
+
+	// FieldKeyFileProxyConf the file proxy conf field key
+	FieldKeyFileProxyConf = "data.file_proxy_conf"
+)

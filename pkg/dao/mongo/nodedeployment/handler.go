@@ -25,7 +25,10 @@ import (
 type IHandler interface {
 	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
 	GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error)
-	GetPreSetting(ctx context.Context, Token string) (*types.NodePreSetting, error)
+	GetCheckList(ctx context.Context, Token string) (*types.NodeConf, error)
+	GetAgentConf(ctx context.Context, Token string) (*types.NodeConf, error)
+	GetDataProxyConf(ctx context.Context, Token string) (*types.NodeConf, error)
+	GetFileProxyConf(ctx context.Context, Token string) (*types.NodeConf, error)
 }
 
 // Handler this is a handler to operate node deployment table.
@@ -51,42 +54,19 @@ func (h *Handler) GetInfo(ctx context.Context, Token string) (*types.DeploymentI
 	}
 
 	filter := base.AliveFilter()
-	opt := base.WithStringValues("data.token", Token)
+	opt := base.WithStringValues(FieldKeyToken, Token)
 	filter = opt(filter)
 
-	field := fmt.Sprintf("data.deployment_info")
+	field := fmt.Sprintf(FieldKeyInfo)
 	data, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
 
-	return convertDeploymentInfoToTypes(data.DeploymentInfo)
+	return convertDeploymentInfoToTypes(data.Info)
 }
 
-// GetPreSetting get the node deployment presetting.
-func (h *Handler) GetPreSetting(ctx context.Context, Token string) (*types.NodePreSetting, error) {
-	if ctx == nil {
-		return nil, base.ErrInvalidContext()
-	}
-
-	if Token == "" {
-		return nil, base.ErrInvalidID()
-	}
-
-	filter := base.AliveFilter()
-	opt := base.WithStringValues("data.token", Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf("data.pre_setting")
-	data, err := h.dao.get(ctx, filter, field)
-	if err != nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return convertPreSettingToTypes(data.PreSetting)
-}
-
-func convertDeploymentInfoToTypes(info *DeploymentInfo) (*types.DeploymentInfo, error) {
+func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
 	}
@@ -95,21 +75,6 @@ func convertDeploymentInfoToTypes(info *DeploymentInfo) (*types.DeploymentInfo, 
 		OperInstID: info.OperInstID,
 		ActionName: info.ActionName,
 	}, nil
-}
-
-func convertPreSettingToTypes(data *PreSetting) (*types.NodePreSetting, error) {
-	if data == nil {
-		return nil, errors.New("pre setting is empty")
-	}
-
-	preSetting := &types.NodePreSetting{
-		CheckList:     data.CheckList,
-		AgentConf:     data.AgentConf,
-		DataProxyConf: data.DataProxyConf,
-		FileProxyConf: data.FileProxyConf,
-	}
-
-	return preSetting, nil
 }
 
 // Create create a new node deployment.
@@ -133,28 +98,150 @@ func (h *Handler) Create(ctx context.Context, nodeDeployment *types.NodeDeployme
 func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment, error) {
 	nodeDeployment := &NodeDeployment{
 		Token: data.Token,
-		DeploymentInfo: &DeploymentInfo{
-			OperInstID: data.DeploymentInfo.OperInstID,
-			ActionName: data.DeploymentInfo.ActionName,
+		Info: &Info{
+			OperInstID: data.Info.OperInstID,
+			ActionName: data.Info.ActionName,
 		},
-		PreSetting: &PreSetting{},
+		CheckList:     new(NodeConf),
+		AgentConf:     new(NodeConf),
+		DataProxyConf: new(NodeConf),
+		FileProxyConf: new(NodeConf),
 	}
 
 	var err error
-	if nodeDeployment.PreSetting, err = convertPreSettingFromTypes(data.NodePreSetting); err != nil {
-		return nil, fmt.Errorf("conver pre setting from types failed, err: %w", err)
+	nodeDeployment.CheckList, err = convertNodeConfFromTypes(data.CheckList)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeDeployment.AgentConf, err = convertNodeConfFromTypes(data.AgentConf)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeDeployment.DataProxyConf, err = convertNodeConfFromTypes(data.DataProxyConf)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeDeployment.FileProxyConf, err = convertNodeConfFromTypes(data.FileProxyConf)
+	if err != nil {
+		return nil, err
 	}
 
 	return nodeDeployment, nil
 }
 
-func convertPreSettingFromTypes(data *types.NodePreSetting) (*PreSetting, error) {
-	preSetting := &PreSetting{
-		CheckList:     data.CheckList,
-		AgentConf:     data.AgentConf,
-		DataProxyConf: data.DataProxyConf,
-		FileProxyConf: data.FileProxyConf,
+func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
+	if nodeConf == nil {
+		return nil, errors.New("node conf is nil")
 	}
 
-	return preSetting, nil
+	return &NodeConf{
+		PreSetting:    nodeConf.PreSetting,
+		CustomSetting: nodeConf.CustomSetting,
+	}, nil
+}
+
+// GetCheckList get a node deployment check list.
+func (h *Handler) GetCheckList(ctx context.Context, Token string) (*types.NodeConf, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if Token == "" {
+		return nil, base.ErrInvalidID()
+	}
+
+	filter := base.AliveFilter()
+	opt := base.WithStringValues(FieldKeyToken, Token)
+	filter = opt(filter)
+
+	field := fmt.Sprintf(FieldKeyCheckList)
+	data, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return convertNodeConfToTypes(data.CheckList)
+}
+
+func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
+	if nodeConf == nil {
+		return nil, errors.New("node conf is nil")
+	}
+
+	return &types.NodeConf{
+		PreSetting:    nodeConf.PreSetting,
+		CustomSetting: nodeConf.CustomSetting,
+	}, nil
+}
+
+// GetAgentConf get a node deployment agent conf.
+func (h *Handler) GetAgentConf(ctx context.Context, Token string) (*types.NodeConf, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if Token == "" {
+		return nil, base.ErrInvalidID()
+	}
+
+	filter := base.AliveFilter()
+	opt := base.WithStringValues(FieldKeyToken, Token)
+	filter = opt(filter)
+
+	field := fmt.Sprintf(FieldKeyAgentConf)
+	data, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return convertNodeConfToTypes(data.AgentConf)
+}
+
+// GetDataProxyConf get a node deployment data proxy conf.
+func (h *Handler) GetDataProxyConf(ctx context.Context, Token string) (*types.NodeConf, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if Token == "" {
+		return nil, base.ErrInvalidID()
+	}
+
+	filter := base.AliveFilter()
+	opt := base.WithStringValues(FieldKeyToken, Token)
+	filter = opt(filter)
+
+	field := fmt.Sprintf(FieldKeyDataProxyConf)
+	data, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return convertNodeConfToTypes(data.DataProxyConf)
+}
+
+// GetFileProxyConf get a node deployment file proxy conf.
+func (h *Handler) GetFileProxyConf(ctx context.Context, Token string) (*types.NodeConf, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if Token == "" {
+		return nil, base.ErrInvalidID()
+	}
+
+	filter := base.AliveFilter()
+	opt := base.WithStringValues(FieldKeyToken, Token)
+	filter = opt(filter)
+
+	field := fmt.Sprintf(FieldKeyFileProxyConf)
+	data, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return convertNodeConfToTypes(data.FileProxyConf)
 }

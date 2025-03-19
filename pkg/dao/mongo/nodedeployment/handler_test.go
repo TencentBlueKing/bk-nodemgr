@@ -52,44 +52,6 @@ func testClient(t *testing.T) IHandler {
 	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
 }
 
-// TestHandler_GetPreSetting ...
-func TestHandler_GetPreSetting(t *testing.T) {
-	type args struct {
-		ctx   context.Context
-		Token string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "test",
-			args: args{
-				ctx:   context.Background(),
-				Token: "123",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetPreSetting(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %+v", err)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPreSetting() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
-		})
-	}
-}
-
 // TestHandler_Create ...
 func TestHandler_Create(t *testing.T) {
 	type args struct {
@@ -107,23 +69,45 @@ func TestHandler_Create(t *testing.T) {
 				ctx: context.Background(),
 				nodeDeployment: &types.NodeDeployment{
 					Token: "123",
-					DeploymentInfo: &types.DeploymentInfo{
+					Info: &types.DeploymentInfo{
 						OperInstID: "123",
 						ActionName: "wait agent install",
 					},
-					NodePreSetting: &types.NodePreSetting{
-						CheckList: map[string]any{
-							"port": 8080,
+					CheckList: &types.NodeConf{
+						PreSetting: map[string]any{
+							"__BK_NODE_INSTALLER_DISK_REQUIRES__": []map[string]any{
+								{
+									"demand_mb": 300,
+									"dir_path":  "/usr/local",
+								},
+							},
+							"__BK_NODE_INSTALLER_PORT_POLICIES__": []map[string]any{
+								{
+									"network": "tcp",
+									"port":    8009,
+								},
+							},
+							"__BK_NODE_INSTALLER_NETWORK_POLICIES__": []map[string]any{
+								{
+									"host":    "10.0.0.1",
+									"network": "tcp",
+									"port":    8006,
+								},
+							},
 						},
-						AgentConf: map[string]any{
-							"port": 8081,
-						},
-						DataProxyConf: map[string]any{
-							"port": 8082,
-						},
-						FileProxyConf: map[string]any{
-							"port": 8083,
-						},
+						CustomSetting: map[string]any{},
+					},
+					AgentConf: &types.NodeConf{
+						PreSetting:    map[string]any{},
+						CustomSetting: map[string]any{},
+					},
+					DataProxyConf: &types.NodeConf{
+						PreSetting:    map[string]any{},
+						CustomSetting: map[string]any{},
+					},
+					FileProxyConf: &types.NodeConf{
+						PreSetting:    map[string]any{},
+						CustomSetting: map[string]any{},
 					},
 				},
 			},
@@ -142,7 +126,6 @@ func TestHandler_Create(t *testing.T) {
 
 // TestHandler_GetInfo ...
 func TestHandler_GetInfo(t *testing.T) {
-
 	type args struct {
 		ctx   context.Context
 		Token string
@@ -170,6 +153,157 @@ func TestHandler_GetInfo(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// TestHandler_GetCheckList ...
+func TestHandler_GetCheckList(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		Token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				Token: "123",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetCheckList(tt.args.ctx, tt.args.Token)
+			if err != nil {
+				t.Logf("err: %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetCheckList() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// TestHandler_GetAgentConf ...
+func TestHandler_GetAgentConf(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		Token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				Token: "123",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetAgentConf(tt.args.ctx, tt.args.Token)
+			if err != nil {
+				t.Logf("err: %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAgentConf() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+func TestHandler_GetDataProxyConf(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		Token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				Token: "123",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetDataProxyConf(tt.args.ctx, tt.args.Token)
+			if err != nil {
+				t.Logf("err: %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetDataProxyConf() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// TestHandler_GetFileProxyConf ...
+func TestHandler_GetFileProxyConf(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		Token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				Token: "123",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetFileProxyConf(tt.args.ctx, tt.args.Token)
+			if err != nil {
+				t.Logf("err: %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetFileProxyConf() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

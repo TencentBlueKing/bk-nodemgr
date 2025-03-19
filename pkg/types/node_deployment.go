@@ -12,9 +12,12 @@ package types
 
 // NodeDeployment this is the info for node deployment.
 type NodeDeployment struct {
-	Token          string
-	DeploymentInfo *DeploymentInfo
-	NodePreSetting *NodePreSetting
+	Token         string
+	Info          *DeploymentInfo
+	CheckList     *NodeConf
+	AgentConf     *NodeConf
+	DataProxyConf *NodeConf
+	FileProxyConf *NodeConf
 }
 
 // DeploymentInfo this is the info for node deployment.
@@ -23,10 +26,8 @@ type DeploymentInfo struct {
 	ActionName string
 }
 
-// NodePreSetting this is the pre setting for node deployment.
-type NodePreSetting struct {
-	CheckList     map[string]any
-	AgentConf     map[string]any
-	DataProxyConf map[string]any
-	FileProxyConf map[string]any
+// NodeConf this is the node conf for node deployment.
+type NodeConf struct {
+	PreSetting    map[string]any
+	CustomSetting map[string]any
 }

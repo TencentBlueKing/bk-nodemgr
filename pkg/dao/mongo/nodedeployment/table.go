@@ -18,23 +18,24 @@ const TableName = "node_deployment"
 // NodeDeployment represents the table of node deployment.
 // Token should be the unique key.
 type NodeDeployment struct {
-	Token          string          `json:"token" bson:"token"`
-	DeploymentInfo *DeploymentInfo `json:"deployment_info" bson:"deployment_info"`
-	PreSetting     *PreSetting     `json:"pre_setting" bson:"pre_setting"`
+	Token         string    `json:"token" bson:"token"`
+	Info          *Info     `json:"info" bson:"info"`
+	CheckList     *NodeConf `json:"check_list" bson:"check_list"`
+	AgentConf     *NodeConf `json:"agent_conf" bson:"agent_conf"`
+	DataProxyConf *NodeConf `json:"data_proxy_conf" bson:"data_proxy_conf"`
+	FileProxyConf *NodeConf `json:"file_proxy_conf" bson:"file_proxy_conf"`
 }
 
-// DeploymentInfo this is the info of this node deployment.
-type DeploymentInfo struct {
+// Info this is the info of this node deployment.
+type Info struct {
 	OperInstID string `json:"oper_inst_id" bson:"oper_inst_id"`
 	ActionName string `json:"action_name" bson:"action_name"`
 }
 
-// PreSetting this is the pre setting of this node deployment.
-type PreSetting struct {
-	CheckList     map[string]any `json:"check_list" bson:"check_list"`
-	AgentConf     map[string]any `json:"agent_conf" bson:"agent_conf"`
-	DataProxyConf map[string]any `json:"data_proxy_conf" bson:"data_proxy_conf"`
-	FileProxyConf map[string]any `json:"file_proxy_conf" bson:"file_proxy_conf"`
+// NodeConf this is the node conf for node deployment.
+type NodeConf struct {
+	PreSetting    map[string]any `json:"pre_setting" bson:"pre_setting"`
+	CustomSetting map[string]any `json:"custom_setting" bson:"custom_setting"`
 }
 
 // UniqueKey unique key of the table.
