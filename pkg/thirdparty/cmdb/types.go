@@ -538,3 +538,84 @@ type EnumOption struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+// HostAgentIDInfo describe the host agent id info define by cmdb.
+type HostAgentIDInfo struct {
+	BKHostID  int64  `json:"bk_host_id"`
+	BKAgentID string `json:"bk_agent_id"`
+}
+
+// BindHostAgentReq describe the request data of bind_host_agent.
+type BindHostAgentReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	List []*HostAgentIDInfo `json:"list"`
+}
+
+// BindHostAgentResp describe the response data of bind_host_agent.
+type BindHostAgentResp string
+
+// UnbindHostAgentReq describe the request data of unbind_host_agent.
+type UnbindHostAgentReq BindHostAgentReq
+
+// UnbindHostAgentResp describe the response data of unbind_host_agent.
+type UnbindHostAgentResp string
+
+// CreateHostInfo describe the host info to be created.
+type CreateHostInfo struct {
+	BKCloudID         int64  `json:"bk_cloud_id"`
+	BKHostInnerIP     string `json:"bk_host_innerip"`
+	BKHostInnerIPV6   string `json:"bk_host_innerip_v6"`
+	BKHostOuterIP     string `json:"bk_host_outerip"`
+	BKHostOuterIPV6   string `json:"bk_host_outerip_v6"`
+	BKOSType          string `json:"bk_os_type"`
+	BKCpuArchitecture string `json:"bk_cpu_architecture"`
+	BKAddressing      string `json:"bk_addressing,omitempty"`
+}
+
+// AddHostToBusinessIdleReq describe the request data of add_host_to_business_idle.
+type AddHostToBusinessIdleReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKBizID    int64             `json:"bk_biz_id"`
+	BKHostList []*CreateHostInfo `json:"bk_host_list"`
+}
+
+// AddHostToBusinessIdleResp describe the response data of add_host_to_business_idle.
+type AddHostToBusinessIdleResp struct {
+	BKHostIDs []int64 `json:"bk_host_ids"`
+}
+
+// PushHostIdentifierReq describe the request data of push_host_identifier.
+type PushHostIdentifierReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	BKHostIDs []int64 `json:"bk_host_ids"`
+}
+
+// PushHostIdentifierResp describe the response data of push_host_identifier.
+type PushHostIdentifierResp struct {
+	TaskID    string `json:"task_id"`
+	HostInfos []struct {
+		BKHostID       int64  `json:"bk_host_id"`
+		Identification string `json:"identification"`
+	} `json:"host_infos"`
+}
+
+// FindHostIdentifierPushResultReq describe the request data of find_host_identifier_push_result.
+type FindHostIdentifierPushResultReq struct {
+	// tenant id of this request.
+	TenantID string `json:"-"`
+
+	TaskID string `json:"task_id"`
+}
+
+// FindHostIdentifierPushResultResp describe the response data of find_host_identifier_push_result.
+type FindHostIdentifierPushResultResp struct {
+	SuccessList []int64 `json:"success_list"`
+	FailedList  []int64 `json:"failed_list"`
+	PendingList []int64 `json:"pending_list"`
+}

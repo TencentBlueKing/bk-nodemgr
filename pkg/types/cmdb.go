@@ -82,3 +82,51 @@ type OsType struct {
 	Key  string
 	Name string
 }
+
+// AddressingType represents an addressing type.
+type AddressingType string
+
+const (
+	// DynamicAddressing means the addressing type is dynamic.
+	DynamicAddressing AddressingType = "dynamic"
+
+	// StaticAddressing means the addressing type is static.
+	StaticAddressing AddressingType = "static"
+)
+
+// CreateHostInfo represents the host information to be created.
+type CreateHostInfo struct {
+	NetworkAreaID int64
+	InnerIP       string
+	InnerIPV6     string
+	OuterIP       string
+	OuterIPV6     string
+	OSType        string
+	Arch          string
+	Addressing    AddressingType
+}
+
+// HostAgentID represents the agent id of host.
+type HostAgentID struct {
+	HostID  int64
+	AgentID string
+}
+
+// HostIdentification represents the identification of host.
+type HostIdentification struct {
+	HostID         int64
+	Identification string
+}
+
+// PushHostIdentifierTaskInfo represents the result of push host identifier task.
+type PushHostIdentifierTaskInfo struct {
+	TaskID   string
+	HostInfo []*HostIdentification
+}
+
+// PushHostIdentifiersTaskResult represents the result of push identifiers.
+type PushHostIdentifiersTaskResult struct {
+	SuccessHostIDList []int64
+	FailedHostIDList  []int64
+	PendingHostIDList []int64
+}

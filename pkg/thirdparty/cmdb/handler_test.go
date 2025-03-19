@@ -492,3 +492,78 @@ func Test_handler_SearchOsType(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_CreateAndUpdateHost...
+func Test_handler_CreateAndUpdateHost(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+	type args struct {
+		ctx   context.Context
+		bizID int64
+		hosts []*types.CreateHostInfo
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+				hosts: []*types.CreateHostInfo{
+					{
+						InnerIP:       "1.1.1.2",
+						NetworkAreaID: 0,
+						OSType:        "1",
+						Arch:          "x86",
+						Addressing:    "static",
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+
+			created, err := h.AddHostToBusinessIdle(tt.args.ctx, tt.args.bizID, tt.args.hosts)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddHostToBusinessIdle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, hostID := range created {
+				t.Logf("index: %d, host: %#v", index, hostID)
+			}
+
+			var changeNetworkAreaID int64 = 3
+			err = h.UpdateHostNetworkAreaField(tt.args.ctx, created, tt.args.bizID, changeNetworkAreaID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateHostNetworkAreaField() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			hostAgentIDs := []*types.HostAgentID{
+				{
+					HostID:  created[0],
+					AgentID: "xxxxxxxxxxxxxxxxxxxxxxxxx",
+				},
+			}
+			err = h.BindHostAgent(tt.args.ctx, hostAgentIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("BindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			err = h.UnbindHostAgent(tt.args.ctx, hostAgentIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnbindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

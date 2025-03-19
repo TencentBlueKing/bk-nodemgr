@@ -369,3 +369,132 @@ func (c *cli) searchObjectAttribute(ctx context.Context, req *SearchObjectAttrib
 
 	return resp.Data, nil
 }
+
+// bindHostAgent bind host agent.
+func (c *cli) bindHostAgent(ctx context.Context, req *BindHostAgentReq) error {
+	resp := new(BaseBroker[*BindHostAgentResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/host/bind/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("bind host agent failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// unbindHostAgent bind host agent.
+func (c *cli) unbindHostAgent(ctx context.Context, req *UnbindHostAgentReq) error {
+	resp := new(BaseBroker[*UnbindHostAgentResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/host/unbind/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return fmt.Errorf("unbind host agent failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// addHostToBusiessIdle add host to business idle.
+func (c *cli) addHostToBusinessIdle(ctx context.Context, req *AddHostToBusinessIdleReq) (*AddHostToBusinessIdleResp,
+	error) {
+
+	resp := new(BaseBroker[*AddHostToBusinessIdleResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/hosts/add/business_idle").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("add host to business idle failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// pushHostIdentifier push host identifier.
+func (c *cli) pushHostIdentifier(ctx context.Context, req *PushHostIdentifierReq) (*PushHostIdentifierResp, error) {
+	resp := new(BaseBroker[*PushHostIdentifierResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/push/host_identifier").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("push host identifier failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// findHostIdentifierPushResult find host identifier push result.
+func (c *cli) findHostIdentifierPushResult(ctx context.Context, req *FindHostIdentifierPushResultReq) (
+	*FindHostIdentifierPushResultResp, error) {
+
+	resp := new(BaseBroker[*FindHostIdentifierPushResultResp])
+	header, err := c.getCommonHeader(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/event/find/host_identifier_push_result").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("find host identifier push result failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
