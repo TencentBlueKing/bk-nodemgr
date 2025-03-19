@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database, logger logger.Logger) *dao {
@@ -51,12 +51,20 @@ func (d *dao) GetTableName() string {
 	return TableName
 }
 
+// ExpireTimeSec is the expire time for the data in the database.
+const ExpireTimeSec = 7 * 24 * 60
+
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
 	indexes := []mongo.IndexModel{
 		{
 			Keys:    bson.D{{Key: FieldKeyToken, Value: 1}},
-			Options: new(options.IndexOptions).SetUnique(true),
+			Options: new(mongoOptions.IndexOptions).SetUnique(true),
+		},
+		{
+			Keys: bson.D{{Key: "data.expire_at", Value: 1}},
+			Options: mongoOptions.Index().
+				SetExpireAfterSeconds(ExpireTimeSec),
 		},
 	}
 
