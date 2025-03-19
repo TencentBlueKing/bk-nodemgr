@@ -126,7 +126,7 @@ func Test_handler_ListAgentInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAgentInfo(context.Background(), tt.args.agentIDList)
+			got, err := h.ListAgentInfo(context.Background(), tt.args.agentIDList...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAgentInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -167,7 +167,7 @@ func Test_handler_ListAgentState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAgentState(context.Background(), tt.args.agentIDList)
+			got, err := h.ListAgentState(context.Background(), tt.args.agentIDList...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAgentState() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -231,7 +231,7 @@ func Test_handler_ExecuteScript(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			taskID, err := h.ExecuteScript(context.Background(), tt.args.endpoints, tt.args.scriptContent, tt.args.timeout)
+			taskID, err := h.ExecuteScript(context.Background(), tt.args.scriptContent, tt.args.timeout, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExecuteScript() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -276,7 +276,7 @@ func Test_handler_TerminateScriptExecution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			termTaskID, err := h.TerminateScriptExecution(context.Background(), tt.args.taskID, tt.args.endpoints)
+			termTaskID, err := h.TerminateScriptExecution(context.Background(), tt.args.taskID, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TerminateScriptExecution() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -336,7 +336,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 			var err error
 
 			for attempt := 0; attempt < 5; attempt++ {
-				resp, err = h.QueryScriptExecutionResult(context.Background(), tt.args.taskID, tt.args.endpoints)
+				resp, err = h.QueryScriptExecutionResult(context.Background(), tt.args.taskID, tt.args.endpoints...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("QueryScriptExecutionResult() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -457,7 +457,7 @@ func Test_handler_TransferFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			taskID, err := h.TransferFile(context.Background(), tt.args.options, tt.args.details)
+			taskID, err := h.TransferFile(context.Background(), tt.args.options, tt.args.details...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TransferFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -496,7 +496,7 @@ func Test_handler_TerminateFileTransmission(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			_, err := h.TerminateFileTransmission(context.Background(), tt.args.taskID, tt.args.endpoints)
+			_, err := h.TerminateFileTransmission(context.Background(), tt.args.taskID, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TerminateFileTransmission() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -558,7 +558,7 @@ func Test_handler_QueryFileTransmissionResult(t *testing.T) {
 			var err error
 
 			for attempt := 0; attempt < 20; attempt++ {
-				resp, err = h.QueryFileTransmissionResult(context.Background(), tt.args.taskID, tt.args.endpoints)
+				resp, err = h.QueryFileTransmissionResult(context.Background(), tt.args.taskID, tt.args.endpoints...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("QueryFileTransmissionResult() error = %v, wantErr %v", err, tt.wantErr)
 					return
