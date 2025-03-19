@@ -25,10 +25,7 @@ import (
 type IHandler interface {
 	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
 	GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error)
-	GetCheckList(ctx context.Context, Token string) (*types.NodeConf, error)
-	GetAgentConf(ctx context.Context, Token string) (*types.NodeConf, error)
-	GetDataProxyConf(ctx context.Context, Token string) (*types.NodeConf, error)
-	GetFileProxyConf(ctx context.Context, Token string) (*types.NodeConf, error)
+	GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error)
 }
 
 // Handler this is a handler to operate node deployment table.
@@ -111,29 +108,11 @@ func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment
 			OperInstID: data.Info.OperInstID,
 			ActionName: data.Info.ActionName,
 		},
-		CheckList:     new(NodeConf),
-		AgentConf:     new(NodeConf),
-		DataProxyConf: new(NodeConf),
-		FileProxyConf: new(NodeConf),
+		NodeConf: new(NodeConf),
 	}
 
 	var err error
-	nodeDeployment.CheckList, err = convertNodeConfFromTypes(data.CheckList)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeDeployment.AgentConf, err = convertNodeConfFromTypes(data.AgentConf)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeDeployment.DataProxyConf, err = convertNodeConfFromTypes(data.DataProxyConf)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeDeployment.FileProxyConf, err = convertNodeConfFromTypes(data.FileProxyConf)
+	nodeDeployment.NodeConf, err = convertNodeConfFromTypes(data.NodeConf)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +131,8 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 	}, nil
 }
 
-// GetCheckList get a node deployment check list.
-func (h *Handler) GetCheckList(ctx context.Context, Token string) (*types.NodeConf, error) {
+// GetNodeConf get a node deployment node conf.
+func (h *Handler) GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -166,13 +145,13 @@ func (h *Handler) GetCheckList(ctx context.Context, Token string) (*types.NodeCo
 	opt := base.WithStringValues(FieldKeyToken, Token)
 	filter = opt(filter)
 
-	field := fmt.Sprintf(FieldKeyCheckList)
+	field := fmt.Sprintf(FieldKeyNodeConf)
 	data, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
 
-	return convertNodeConfToTypes(data.CheckList)
+	return convertNodeConfToTypes(data.NodeConf)
 }
 
 func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
@@ -184,73 +163,4 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 		PreSetting:    nodeConf.PreSetting,
 		CustomSetting: nodeConf.CustomSetting,
 	}, nil
-}
-
-// GetAgentConf get a node deployment agent conf.
-func (h *Handler) GetAgentConf(ctx context.Context, Token string) (*types.NodeConf, error) {
-	if ctx == nil {
-		return nil, base.ErrInvalidContext()
-	}
-
-	if Token == "" {
-		return nil, base.ErrInvalidID()
-	}
-
-	filter := base.AliveFilter()
-	opt := base.WithStringValues(FieldKeyToken, Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf(FieldKeyAgentConf)
-	data, err := h.dao.get(ctx, filter, field)
-	if err != nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return convertNodeConfToTypes(data.AgentConf)
-}
-
-// GetDataProxyConf get a node deployment data proxy conf.
-func (h *Handler) GetDataProxyConf(ctx context.Context, Token string) (*types.NodeConf, error) {
-	if ctx == nil {
-		return nil, base.ErrInvalidContext()
-	}
-
-	if Token == "" {
-		return nil, base.ErrInvalidID()
-	}
-
-	filter := base.AliveFilter()
-	opt := base.WithStringValues(FieldKeyToken, Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf(FieldKeyDataProxyConf)
-	data, err := h.dao.get(ctx, filter, field)
-	if err != nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return convertNodeConfToTypes(data.DataProxyConf)
-}
-
-// GetFileProxyConf get a node deployment file proxy conf.
-func (h *Handler) GetFileProxyConf(ctx context.Context, Token string) (*types.NodeConf, error) {
-	if ctx == nil {
-		return nil, base.ErrInvalidContext()
-	}
-
-	if Token == "" {
-		return nil, base.ErrInvalidID()
-	}
-
-	filter := base.AliveFilter()
-	opt := base.WithStringValues(FieldKeyToken, Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf(FieldKeyFileProxyConf)
-	data, err := h.dao.get(ctx, filter, field)
-	if err != nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return convertNodeConfToTypes(data.FileProxyConf)
 }

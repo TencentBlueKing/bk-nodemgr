@@ -15,21 +15,13 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines the storage interface.
 type IStorage interface {
 	base.Interface
 
-	// GetGseAgentSetting get gse agent setting.
-	GetGseAgentSetting(ctx context.Context, token string) (map[string]any, map[string]any, error)
-
-	// GetGseFileProxySetting get gse file proxy setting.
-	GetGseFileProxySetting(ctx context.Context, token string) (map[string]any, map[string]any, error)
-
-	// GetGseDataProxySetting get gse data proxy setting.
-	GetGseDataProxySetting(ctx context.Context, token string) (map[string]any, map[string]any, error)
-
-	// GetCheckListSetting get check list setting.
-	GetCheckListSetting(ctx context.Context, token string) (map[string]any, map[string]any, error)
+	// GetNodeConf get gse agent setting.
+	GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
 }

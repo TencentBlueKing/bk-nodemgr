@@ -18,12 +18,9 @@ const TableName = "node_deployment"
 // NodeDeployment represents the table of node deployment.
 // Token should be the unique key.
 type NodeDeployment struct {
-	Token         string    `json:"token" bson:"token"`
-	Info          *Info     `json:"info" bson:"info"`
-	CheckList     *NodeConf `json:"check_list" bson:"check_list"`
-	AgentConf     *NodeConf `json:"agent_conf" bson:"agent_conf"`
-	DataProxyConf *NodeConf `json:"data_proxy_conf" bson:"data_proxy_conf"`
-	FileProxyConf *NodeConf `json:"file_proxy_conf" bson:"file_proxy_conf"`
+	Token    string    `json:"token" bson:"token"`
+	Info     *Info     `json:"info" bson:"info"`
+	NodeConf *NodeConf `json:"node_conf" bson:"node_conf"`
 }
 
 // Info this is the info of this node deployment.

@@ -35,7 +35,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	preSetting, customSetting, err := h.nodeDeploymentStorage.GetGseDataProxySetting(gCtx, req.GetToken())
+	nodeConf, err := h.nodeDeploymentStorage.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse data proxy setting failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
@@ -43,7 +43,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateGseDataProxy, preSetting, customSetting)
+	conf, err := RenderConfig(DefaultTemplateGseDataProxy, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse data proxy config failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err.Error())

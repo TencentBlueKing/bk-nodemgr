@@ -17,13 +17,15 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // ConfigFieldRegex is the regex of config field.
 const ConfigFieldRegex = `__BK_.*?__`
 
 // RenderConfig render config.
-func RenderConfig(template string, preSetting map[string]any, customSetting map[string]any) (string, error) {
+func RenderConfig(template string, nodeConf *types.NodeConf) (string, error) {
 	re := regexp.MustCompile(ConfigFieldRegex)
 	result := re.FindAllStringSubmatch(template, -1)
 
@@ -32,9 +34,9 @@ func RenderConfig(template string, preSetting map[string]any, customSetting map[
 	for _, item := range result {
 		key := item[0]
 
-		value, ok := preSetting[key]
+		value, ok := nodeConf.PreSetting[key]
 		if !ok {
-			// TODO: 临时方案，后续需要支持是否设置默认值
+			// if not found, we ignore it.
 			continue
 		}
 
@@ -52,7 +54,7 @@ func RenderConfig(template string, preSetting map[string]any, customSetting map[
 		}
 	}
 
-	if customSetting == nil {
+	if nodeConf.CustomSetting == nil {
 		return configStr, nil
 	}
 
@@ -62,7 +64,7 @@ func RenderConfig(template string, preSetting map[string]any, customSetting map[
 	}
 
 	// append custom setting to config.
-	for key, value := range customSetting {
+	for key, value := range nodeConf.CustomSetting {
 		// don't override existed setting
 		if _, ok := config[key]; ok {
 			continue

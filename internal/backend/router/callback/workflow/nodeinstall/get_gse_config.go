@@ -35,7 +35,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		return
 	}
 
-	preSetting, customSetting, err := h.nodeDeploymentStorage.GetGseAgentSetting(gCtx, req.GetToken())
+	nodeConf, err := h.nodeDeploymentStorage.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse agent setting failed, err: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
@@ -43,7 +43,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateGseAgent, preSetting, customSetting)
+	conf, err := RenderConfig(DefaultTemplateGseAgent, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse agent config failed, err: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

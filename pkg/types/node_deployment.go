@@ -12,12 +12,9 @@ package types
 
 // NodeDeployment this is the info for node deployment.
 type NodeDeployment struct {
-	Token         string
-	Info          *DeploymentInfo
-	CheckList     *NodeConf
-	AgentConf     *NodeConf
-	DataProxyConf *NodeConf
-	FileProxyConf *NodeConf
+	Token    string
+	Info     *DeploymentInfo
+	NodeConf *NodeConf
 }
 
 // DeploymentInfo this is the info for node deployment.

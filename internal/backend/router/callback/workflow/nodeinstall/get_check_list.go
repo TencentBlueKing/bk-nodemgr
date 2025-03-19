@@ -35,7 +35,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 		return
 	}
 
-	preSetting, customSetting, err := h.nodeDeploymentStorage.GetGseFileProxySetting(gCtx, req.GetToken())
+	nodeConf, err := h.nodeDeploymentStorage.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse file proxy setting failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
@@ -43,7 +43,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateNodeInstallerCheckList, preSetting, customSetting)
+	conf, err := RenderConfig(DefaultTemplateNodeInstallerCheckList, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse file proxy config failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

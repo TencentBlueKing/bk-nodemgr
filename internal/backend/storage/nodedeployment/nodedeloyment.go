@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -48,7 +49,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	return s, nil
 }
 
-// Storage this is the storage of nodedeployment.
+// Storage this is a storage to operate node deployment table.
 type Storage struct {
 	base.Storage
 
@@ -70,74 +71,20 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// GetGseAgentSetting get gse agent setting.
-func (s *Storage) GetGseAgentSetting(ctx context.Context, token string) (map[string]any, map[string]any, error) {
+// GetNodeConf get gse node conf.
+func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
 	if ctx == nil {
-		return nil, nil, base.ErrNilContent()
+		return nil, base.ErrNilContent()
 	}
 
 	if token == "" {
-		return nil, nil, base.ErrEmptyUniqueKey()
+		return nil, base.ErrEmptyUniqueKey()
 	}
 
-	agentConf, err := s.nodeDeploymentDao.GetAgentConf(ctx, token)
+	nodeConf, err := s.nodeDeploymentDao.GetNodeConf(ctx, token)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return agentConf.PreSetting, agentConf.CustomSetting, nil
-}
-
-// GetGseFileProxySetting get gse file proxy setting.
-func (s *Storage) GetGseFileProxySetting(ctx context.Context, token string) (map[string]any, map[string]any, error) {
-	if ctx == nil {
-		return nil, nil, base.ErrNilContent()
-	}
-
-	if token == "" {
-		return nil, nil, base.ErrEmptyUniqueKey()
-	}
-
-	fileProxyConf, err := s.nodeDeploymentDao.GetFileProxyConf(ctx, token)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return fileProxyConf.PreSetting, fileProxyConf.CustomSetting, nil
-}
-
-// GetGseDataProxySetting get gse data proxy setting.
-func (s *Storage) GetGseDataProxySetting(ctx context.Context, token string) (map[string]any, map[string]any, error) {
-	if ctx == nil {
-		return nil, nil, base.ErrNilContent()
-	}
-
-	if token == "" {
-		return nil, nil, base.ErrEmptyUniqueKey()
-	}
-
-	dataProxyConf, err := s.nodeDeploymentDao.GetDataProxyConf(ctx, token)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return dataProxyConf.PreSetting, dataProxyConf.CustomSetting, nil
-}
-
-// GetCheckListSetting get check list setting.
-func (s *Storage) GetCheckListSetting(ctx context.Context, token string) (map[string]any, map[string]any, error) {
-	if ctx == nil {
-		return nil, nil, base.ErrNilContent()
-	}
-
-	if token == "" {
-		return nil, nil, base.ErrEmptyUniqueKey()
-	}
-
-	checkList, err := s.nodeDeploymentDao.GetCheckList(ctx, token)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return checkList.PreSetting, checkList.CustomSetting, nil
+	return nodeConf, nil
 }

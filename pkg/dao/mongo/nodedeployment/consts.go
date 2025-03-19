@@ -18,15 +18,6 @@ const (
 	// FieldKeyInfo the info field key
 	FieldKeyInfo = "data.info"
 
-	// FieldKeyCheckList the check list field key
-	FieldKeyCheckList = "data.check_list"
-
-	// FieldKeyAgentConf the agent conf field key
-	FieldKeyAgentConf = "data.agent_conf"
-
-	// FieldKeyDataProxyConf the data proxy conf field key
-	FieldKeyDataProxyConf = "data.data_proxy_conf"
-
-	// FieldKeyFileProxyConf the file proxy conf field key
-	FieldKeyFileProxyConf = "data.file_proxy_conf"
+	// FieldKeyNodeConf the node conf field key
+	FieldKeyNodeConf = "data.node_conf"
 )

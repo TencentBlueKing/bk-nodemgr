@@ -73,7 +73,7 @@ func TestHandler_Create(t *testing.T) {
 						OperInstID: "123",
 						ActionName: "wait agent install",
 					},
-					CheckList: &types.NodeConf{
+					NodeConf: &types.NodeConf{
 						PreSetting: map[string]any{
 							"__BK_NODE_INSTALLER_DISK_REQUIRES__": []map[string]any{
 								{
@@ -95,18 +95,6 @@ func TestHandler_Create(t *testing.T) {
 								},
 							},
 						},
-						CustomSetting: map[string]any{},
-					},
-					AgentConf: &types.NodeConf{
-						PreSetting:    map[string]any{},
-						CustomSetting: map[string]any{},
-					},
-					DataProxyConf: &types.NodeConf{
-						PreSetting:    map[string]any{},
-						CustomSetting: map[string]any{},
-					},
-					FileProxyConf: &types.NodeConf{
-						PreSetting:    map[string]any{},
 						CustomSetting: map[string]any{},
 					},
 				},
@@ -161,8 +149,8 @@ func TestHandler_GetInfo(t *testing.T) {
 	}
 }
 
-// TestHandler_GetCheckList ...
-func TestHandler_GetCheckList(t *testing.T) {
+// TestHandler_GetNodeConf ...
+func TestHandler_GetNodeConf(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		Token string
@@ -184,126 +172,13 @@ func TestHandler_GetCheckList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.GetCheckList(tt.args.ctx, tt.args.Token)
+			got, err := h.GetNodeConf(tt.args.ctx, tt.args.Token)
 			if err != nil {
 				t.Logf("err: %v", err)
 			}
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetCheckList() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
-		})
-	}
-}
-
-// TestHandler_GetAgentConf ...
-func TestHandler_GetAgentConf(t *testing.T) {
-	type args struct {
-		ctx   context.Context
-		Token string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   context.Background(),
-				Token: "123",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetAgentConf(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %v", err)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAgentConf() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
-		})
-	}
-}
-
-func TestHandler_GetDataProxyConf(t *testing.T) {
-	type args struct {
-		ctx   context.Context
-		Token string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   context.Background(),
-				Token: "123",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetDataProxyConf(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %v", err)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetDataProxyConf() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
-		})
-	}
-}
-
-// TestHandler_GetFileProxyConf ...
-func TestHandler_GetFileProxyConf(t *testing.T) {
-	type args struct {
-		ctx   context.Context
-		Token string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   context.Background(),
-				Token: "123",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetFileProxyConf(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %v", err)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFileProxyConf() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetNodeConf() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
