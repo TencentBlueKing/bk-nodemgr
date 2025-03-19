@@ -1,0 +1,85 @@
+name: Path-Specific Coverage Check
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  path-coverage-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v39
+
+      - name: Check config file exists
+        id: check-config
+        run: |
+          if [ -f ".github/coverage-config.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::Coverage config file not found at .github/coverage-config.json"
+          fi
+
+      - name: Path-specific coverage check
+        if: steps.check-config.outputs.exists == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // 读取配置文件
+            const configContent = fs.readFileSync('.github/coverage-config.json', 'utf8');
+            const config = JSON.parse(configContent);
+            
+            // 获取变更的文件
+            const changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}'.split(' ');
+            
+            // 检查每个文件是否匹配目标路径
+            const matchedPaths = [];
+            
+            changedFiles.forEach(file => {
+              config.paths.forEach(item => {
+                if (file.startsWith(item.path) && !matchedPaths.some(p => p.path === item.path)) {
+                  matchedPaths.push(item);
+                }
+              });
+            });
+            
+            if (matchedPaths.length > 0) {
+              // 生成评论内容
+              let commentBody = `${config.comment_template.header}\n\n`;
+            
+              // 添加表格标题
+              commentBody += `| 路径 | 描述 | 最低覆盖率要求 | 重要程度 |\n`;
+              commentBody += `| --- | --- | ---: | --- |\n`;
+            
+              // 添加每个路径的详细要求
+              matchedPaths.forEach(item => {
+                const importanceTag = item.critical 
+                  ? '🔴 必须满足' 
+                  : '🟡 建议满足';
+            
+                commentBody += `| \`${item.path}\` | ${item.description} | ${item.coverage}% | ${importanceTag} |\n`;
+              });
+            
+              commentBody += `\n${config.comment_template.footer}`;
+            
+              // 创建评论
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody
+              });
+            }

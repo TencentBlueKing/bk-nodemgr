@@ -1,0 +1,26 @@
+{
+  "paths": [
+    {
+      "path": "pkg/thirdparty",
+      "coverage": 60,
+      "critical": true,
+      "description": "第三方接口"
+    },
+    {
+      "path": "pkg/dao",
+      "coverage": 60,
+      "critical": true,
+      "description": "数据库访问"
+    },
+    {
+      "path": "pkg/runtime",
+      "coverage": 80,
+      "critical": true,
+      "description": "系统基本运行组件"
+    }
+  ],
+  "comment_template": {
+    "header": "## 检测到关键路径变更 🔍\n\n您的 PR 修改了以下关键路径的代码，请注意各路径的测试覆盖率要求：",
+    "footer": "### 请提供以下资料 ✅\n\n1. 各相关路径的测试覆盖率截图（可使用 `go test -coverprofile=coverage.out ./...` 生成覆盖率报告）\n2. 确认已运行相关集成测试\n\n> 💡 提示：对于标记为“必须满足”的路径，覆盖率必须达到要求才能合并 PR。"
+  }
+}
