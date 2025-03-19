@@ -571,6 +571,7 @@ linters-settings:
       - r Router
       - h *handler
       - h handler
+      - h *Handler
       - r *Request
       - r *Result
       - c *Config

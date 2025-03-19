@@ -22,8 +22,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// Handler is the interface for gse handler.
-type Handler interface {
+// IHandler is the interface for gse Handler.
+type IHandler interface {
 	// ListAgentInfo list agent detail information.
 	// @param agentIDList given agent id list.
 	// @return agentInfoList agent detail information list.
@@ -75,22 +75,24 @@ type Handler interface {
 	// @return gse-task-id for this operation.
 	TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (string, error)
 }
-type handler struct {
+
+// Handler this define the gse handler.
+type Handler struct {
 	cli *cli
 }
 
-// New initialize a new gse handler.
-func New(c *client.Capability, conf *Config) (Handler, error) {
+// New initialize a new gse Handler.
+func New(c *client.Capability, conf *Config) (*Handler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &handler{cli: cli}, nil
+	return &Handler{cli: cli}, nil
 }
 
 // ListAgentInfo list agent detail information.
-func (h *handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*types.AgentInfo, error) {
+func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*types.AgentInfo, error) {
 	req := ListAgentInfoReq{
 		AgentIDList: agentIDList,
 	}
@@ -130,7 +132,7 @@ func (h *handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 }
 
 // ListAgentState ...
-func (h *handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error) {
+func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error) {
 	if ctx == nil {
 		return nil, errors.New("context is nil")
 	}
@@ -163,7 +165,7 @@ func (h *handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 }
 
 // ExecuteScript ...
-func (h *handler) ExecuteScript(ctx context.Context, scriptContent string, timeout time.Duration,
+func (h *Handler) ExecuteScript(ctx context.Context, scriptContent string, timeout time.Duration,
 	endpoints ...*types.EndpointWithAuth) (string, error) {
 
 	if ctx == nil {
@@ -215,7 +217,7 @@ func (h *handler) ExecuteScript(ctx context.Context, scriptContent string, timeo
 }
 
 // QueryScriptExecutionResult ...
-func (h *handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
+func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 	endpoints ...*types.EndpointWithRestrict) ([]*types.ScriptResult, error) {
 
 	if ctx == nil {
@@ -273,7 +275,7 @@ func (h *handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 }
 
 // TerminateScriptExecution ...
-func (h *handler) TerminateScriptExecution(ctx context.Context, taskID string,
+func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
 	endpoints ...*types.Endpoint) (string, error) {
 
 	if ctx == nil {
@@ -305,7 +307,7 @@ func (h *handler) TerminateScriptExecution(ctx context.Context, taskID string,
 }
 
 // TransferFile ...
-func (h *handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
+func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 	transfers ...*types.TransferDetail) (string, error) {
 
 	if ctx == nil {
@@ -364,7 +366,7 @@ func (h *handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 }
 
 // QueryFileTransmissionResult ...
-func (h *handler) QueryFileTransmissionResult(ctx context.Context, taskID string,
+func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string,
 	endpoints ...*types.Endpoint) ([]*types.TransferResult, error) {
 
 	if ctx == nil {
@@ -424,7 +426,7 @@ func (h *handler) QueryFileTransmissionResult(ctx context.Context, taskID string
 }
 
 // TerminateFileTransmission ...
-func (h *handler) TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (
+func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (
 	string, error) {
 
 	if ctx == nil {

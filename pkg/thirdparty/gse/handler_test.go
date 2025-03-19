@@ -72,7 +72,7 @@ func getGlobalContext(t *testing.T) *testContext {
 	return tc
 }
 
-func testClient(t *testing.T) Handler {
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -103,7 +103,7 @@ func testClient(t *testing.T) Handler {
 	return h
 }
 
-// Test_handler_ListAgentInfo tests handler.ListAgentInfo.
+// Test_handler_ListAgentInfo tests Handler.ListAgentInfo.
 func Test_handler_ListAgentInfo(t *testing.T) {
 	type args struct {
 		agentIDList []string
@@ -144,7 +144,7 @@ func Test_handler_ListAgentInfo(t *testing.T) {
 	}
 }
 
-// Test_handler_ListAgentState tests handler.ListAgentState.
+// Test_handler_ListAgentState tests Handler.ListAgentState.
 func Test_handler_ListAgentState(t *testing.T) {
 	type args struct {
 		agentIDList []string
@@ -185,7 +185,7 @@ func Test_handler_ListAgentState(t *testing.T) {
 	}
 }
 
-// Test_handler_ExecuteScript tests handler.ExecuteScript.
+// Test_handler_ExecuteScript tests Handler.ExecuteScript.
 func Test_handler_ExecuteScript(t *testing.T) {
 	type args struct {
 		endpoints     []*types.EndpointWithAuth
@@ -244,7 +244,7 @@ func Test_handler_ExecuteScript(t *testing.T) {
 	}
 }
 
-// Test_handler_TerminateScriptExecution tests handler.TerminateScriptExecution.
+// Test_handler_TerminateScriptExecution tests Handler.TerminateScriptExecution.
 func Test_handler_TerminateScriptExecution(t *testing.T) {
 	type args struct {
 		taskID    string
@@ -287,7 +287,7 @@ func Test_handler_TerminateScriptExecution(t *testing.T) {
 	}
 }
 
-// Test_handler_QueryScriptExecutionResult tests handler.QueryScriptExecutionResult.
+// Test_handler_QueryScriptExecutionResult tests Handler.QueryScriptExecutionResult.
 func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 	type args struct {
 		taskID    string
@@ -374,7 +374,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 	}
 }
 
-// Test_handler_TransferFile tests handler.TransferFile.
+// Test_handler_TransferFile tests Handler.TransferFile.
 func Test_handler_TransferFile(t *testing.T) {
 	type args struct {
 		options *types.TransferOptions
@@ -470,7 +470,7 @@ func Test_handler_TransferFile(t *testing.T) {
 	}
 }
 
-// Test_handler_TerminateFileTransmission tests handler.TerminateFileTransmission.
+// Test_handler_TerminateFileTransmission tests Handler.TerminateFileTransmission.
 func Test_handler_TerminateFileTransmission(t *testing.T) {
 	type args struct {
 		taskID    string
@@ -507,7 +507,7 @@ func Test_handler_TerminateFileTransmission(t *testing.T) {
 	}
 }
 
-// Test_handler_QueryFileTransmissionResult tests handler.QueryFileTransmissionResult.
+// Test_handler_QueryFileTransmissionResult tests Handler.QueryFileTransmissionResult.
 func Test_handler_QueryFileTransmissionResult(t *testing.T) {
 	type args struct {
 		taskID    string
