@@ -22,6 +22,17 @@ type Business struct {
 	BizName string
 }
 
+// Addressing represents an addressing type.
+type Addressing string
+
+const (
+	// AddressingDynamic means the addressing type is dynamic.
+	AddressingDynamic Addressing = "dynamic"
+
+	// AddressingStatic means the addressing type is static.
+	AddressingStatic Addressing = "static"
+)
+
 // HostStatic represents a static host under a host.
 // static means it is synced from CMDB.
 // or sometimes it will be insert first into database in case of syncing latency.
@@ -31,14 +42,16 @@ type HostStatic struct {
 	NetworkAreaID int64
 
 	// host information.
-	HostName  string
-	DeptName  string
-	InnerIP   string
-	InnerIPV6 string
-	OuterIP   string
-	OuterIPV6 string
-	Mac       string
-	OSType    string
+	HostName   string
+	DeptName   string
+	InnerIP    string
+	InnerIPV6  string
+	OuterIP    string
+	OuterIPV6  string
+	Mac        string
+	OSType     string
+	Arch       string
+	Addressing Addressing
 
 	// synced types, do not use this for processing.
 	// just use it for comparing and checking.

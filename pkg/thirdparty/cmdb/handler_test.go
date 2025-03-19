@@ -499,7 +499,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		bizID int64
-		hosts []*types.CreateHostInfo
+		hosts []*types.Host
 	}
 
 	tests := []struct {
@@ -512,13 +512,15 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 			args: args{
 				ctx:   ctx,
 				bizID: 2,
-				hosts: []*types.CreateHostInfo{
+				hosts: []*types.Host{
 					{
-						InnerIP:       "1.1.1.2",
-						NetworkAreaID: 0,
-						OSType:        "1",
-						Arch:          "x86",
-						Addressing:    "static",
+						Static: &types.HostStatic{
+							InnerIP:       "1.1.1.2",
+							NetworkAreaID: 0,
+							OSType:        "1",
+							Arch:          "x86",
+							Addressing:    "static",
+						},
 					},
 				},
 			},
@@ -547,10 +549,12 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 				return
 			}
 
-			hostAgentIDs := []*types.HostAgentID{
+			hostAgentIDs := []*types.Host{
 				{
-					HostID:  created[0],
-					AgentID: "xxxxxxxxxxxxxxxxxxxxxxxxx",
+					HostID: created[0],
+					Dynamic: &types.HostDynamic{
+						AgentID: "xxxxxxxxxxxxxxxxxxxxxxxxx",
+					},
 				},
 			}
 			err = h.BindHostAgent(tt.args.ctx, hostAgentIDs)
