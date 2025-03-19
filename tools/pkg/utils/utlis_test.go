@@ -66,8 +66,7 @@ func TestCheckTCPPortOpen(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				//host:    "127.0.0.1",
-				host:    "11.153.71.226",
+				host:    "127.0.0.1",
 				port:    22,
 				timeout: time.Second,
 			},
