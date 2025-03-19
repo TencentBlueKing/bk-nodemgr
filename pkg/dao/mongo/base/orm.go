@@ -26,6 +26,7 @@ type Dao interface {
 	GetClient() *mongo.Collection
 	GetLogger() logger.Logger
 	GetTableName() string
+	GetIndexes() []mongo.IndexModel
 }
 
 // NewOrm this is a common orm to operate mongo db.
@@ -85,6 +86,25 @@ func (orm *Orm[P, T]) Create(ctx context.Context, data P) error {
 	}
 
 	orm.dao.GetLogger().Infof("successfully created %s, unique-key(%s)", orm.dao.GetTableName(), data.UniqueKey())
+
+	return nil
+}
+
+// EnsureIndexes this is a common operation for mongo db.
+func (orm *Orm[P, T]) EnsureIndexes() error {
+	indexes := orm.dao.GetIndexes()
+
+	if len(indexes) == 0 {
+		return nil
+	}
+
+	_, err := orm.dao.GetClient().Indexes().CreateMany(context.Background(), indexes)
+	if err != nil {
+		return err
+	}
+
+	orm.dao.GetLogger().Infof("successfully created required indexes, table(%s), indexes(%v)",
+		orm.dao.GetTableName(), indexes)
 
 	return nil
 }

@@ -33,14 +33,23 @@ type IHandler interface {
 
 // Handler this is a handler to operate node deployment table.
 type Handler struct {
-	dao *dao
+	dao    *dao
+	logger logger.Logger
 }
 
 // New new a handler.
 func New(client *mongo.Database, logger logger.Logger) *Handler {
-	return &Handler{
-		dao: newDao(client, logger),
+	h := &Handler{
+		dao:    newDao(client, logger),
+		logger: logger,
 	}
+
+	if err := h.dao.ensureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure nodedeloyment indexes, err: %v",
+			errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	return h
 }
 
 // GetInfo get a node deployment info.

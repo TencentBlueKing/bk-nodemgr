@@ -50,6 +50,11 @@ func (d *dao) GetTableName() string {
 	return TableName
 }
 
+// GetIndexes get indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	return nil
+}
+
 // upsert updates or inserts a operation_inst_data.
 func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
 	filter, upsert, opts := buildUpsertParams(data)

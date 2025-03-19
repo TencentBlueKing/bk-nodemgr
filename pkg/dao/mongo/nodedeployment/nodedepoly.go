@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database, logger logger.Logger) *dao {
@@ -50,10 +51,26 @@ func (d *dao) GetTableName() string {
 	return TableName
 }
 
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: FieldKeyToken, Value: 1}},
+			Options: new(options.IndexOptions).SetUnique(true),
+		},
+	}
+
+	return indexes
+}
+
 func (d *dao) create(ctx context.Context, nodeDeployment *NodeDeployment) error {
 	return d.baseOrm.Create(ctx, nodeDeployment)
 }
 
 func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*NodeDeployment, error) {
 	return d.baseOrm.Get(ctx, filter, fields...)
+}
+
+func (d *dao) ensureIndexes() error {
+	return d.baseOrm.EnsureIndexes()
 }
