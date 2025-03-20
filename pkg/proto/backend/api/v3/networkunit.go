@@ -30,6 +30,13 @@ func (x *TopoNetworkUnitCreateReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitCreateReq) AutoConvert() {
+	for _, accesspoint := range x.GetAccesspoints() {
+		accesspoint.autoConvert()
+	}
+}
+
 // ConvertAccssPointsToTypes convert accesspoint from proto to types.
 func (x *TopoNetworkUnitCreateReq) ConvertAccssPointsToTypes(
 	tenantID string,
@@ -70,6 +77,13 @@ func (x *TopoNetworkUnitUpdateReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitUpdateReq) AutoConvert() {
+	for _, accesspoint := range x.GetAccesspoints() {
+		accesspoint.autoConvert()
+	}
+}
+
 // ConvertAccssPointsToTypes convert access points from proto to types.
 func (x *TopoNetworkUnitUpdateReq) ConvertAccssPointsToTypes(
 	tenantID string,
@@ -108,6 +122,10 @@ func (x *TopoNetworkUnitGetReq) Validate() error {
 	}
 
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitGetReq) AutoConvert() {
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
@@ -154,6 +172,10 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 // Validate check body.
 func (x *TopoNetworkUnitListReq) Validate() error {
 	return validateTopoPage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
@@ -258,12 +280,28 @@ func (x *TopoNetworkUnitDeleteReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitDeleteReq) AutoConvert() {
+}
+
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
 func (x *TopoNetworkUnitDeleteResp) ConvertNetworkUnitFromTypes(networkUnitID int64) {
 	data := &TopoNetworkUnitDeleteResp_Data{BkNetworkunitId: new(int64)}
 	*data.BkNetworkunitId = networkUnitID
 
 	x.Data = data
+}
+
+func (ap *AccessPoint) autoConvert() {
+	if ap.AccesspointId == nil {
+		ap.AccesspointId = new(int64)
+		*ap.AccesspointId = -1
+	}
+
+	if ap.BkNetworkareaId == nil {
+		ap.BkNetworkareaId = new(int64)
+		*ap.BkNetworkareaId = -1
+	}
 }
 
 func newEmptyNetworkUnit() *NetworkUnit {

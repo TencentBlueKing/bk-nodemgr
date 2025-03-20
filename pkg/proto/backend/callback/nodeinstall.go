@@ -22,6 +22,10 @@ func (x *GetAgentConfReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *GetAgentConfReq) AutoConvert() {
+}
+
 // Validate check request body.
 func (x *GetDataProxyConfReq) Validate() error {
 	if x.Token == "" {
@@ -29,6 +33,10 @@ func (x *GetDataProxyConfReq) Validate() error {
 	}
 
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetDataProxyConfReq) AutoConvert() {
 }
 
 // Validate check request body.
@@ -40,6 +48,10 @@ func (x *GetFileProxyConfReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *GetFileProxyConfReq) AutoConvert() {
+}
+
 // Validate check request body.
 func (x *GetCheckListReq) Validate() error {
 	if x.Token == "" {
@@ -47,4 +59,8 @@ func (x *GetCheckListReq) Validate() error {
 	}
 
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetCheckListReq) AutoConvert() {
 }

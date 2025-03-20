@@ -87,6 +87,10 @@ func (req *syncCmdbHostReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (req *syncCmdbHostReq) AutoConvert() {
+}
+
 type syncCmdbNetworkAreaReq struct {
 	proto.SyncCmdbNetworkAreaReq
 }
@@ -94,4 +98,8 @@ type syncCmdbNetworkAreaReq struct {
 // Validate check body.
 func (req *syncCmdbNetworkAreaReq) Validate() error {
 	return nil
+}
+
+// AutoConvert auto convert.
+func (req *syncCmdbNetworkAreaReq) AutoConvert() {
 }

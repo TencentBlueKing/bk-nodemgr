@@ -30,6 +30,10 @@ func (x *TopoNetworkAreaCreateReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaCreateReq) AutoConvert() {
+}
+
 // ConvertNetworkAreaToTypes convert networkarea from proto types.
 func (x *TopoNetworkAreaCreateReq) ConvertNetworkAreaToTypes(tenantID string, networkAreaID int64) *types.NetworkArea {
 	return &types.NetworkArea{
@@ -65,6 +69,10 @@ func (x *TopoNetworkAreaUpdateReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaUpdateReq) AutoConvert() {
+}
+
 // ConvertNetworkAreaToTypes convert networkarea from proto to types.
 func (x *TopoNetworkAreaUpdateReq) ConvertNetworkAreaToTypes(tenantID string) *types.NetworkArea {
 	return &types.NetworkArea{
@@ -92,6 +100,10 @@ func (x *TopoNetworkAreaGetReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaGetReq) AutoConvert() {
+}
+
 // ConvertNetworkAreaFromTypes convert networkarea from types to proto.
 func (x *TopoNetworkAreaGetResp) ConvertNetworkAreaFromTypes(networkArea *types.NetworkArea) {
 	data := newEmptyNetworkArea()
@@ -106,6 +118,10 @@ func (x *TopoNetworkAreaGetResp) ConvertNetworkAreaFromTypes(networkArea *types.
 // Validate check body.
 func (x *TopoNetworkAreaListReq) Validate() error {
 	return validateTopoPage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
@@ -201,6 +217,10 @@ func (x *TopoNetworkAreaDeleteReq) Validate() error {
 	}
 
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaDeleteReq) AutoConvert() {
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.

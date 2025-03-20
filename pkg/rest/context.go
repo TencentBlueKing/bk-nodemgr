@@ -32,6 +32,9 @@ func (c *Context) BindJSON(body RequestBody) error {
 		return err
 	}
 
+	// auto convert some fields in request body.
+	body.AutoConvert()
+
 	return body.Validate()
 }
 
@@ -50,4 +53,7 @@ func (c *Context) GetContext() (context.Context, error) {
 type RequestBody interface {
 	// Validate validate request body.
 	Validate() error
+
+	// AutoConvert auto convert some fields in request body.
+	AutoConvert()
 }

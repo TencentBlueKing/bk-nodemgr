@@ -42,6 +42,10 @@ func (req ReportLogReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (req ReportLogReq) AutoConvert() {
+}
+
 // ReportLogResp the api of InstallLog's resp.
 type ReportLogResp struct {
 }
@@ -56,6 +60,10 @@ type ReportDataReq struct {
 // Validate ReportDataReq.
 func (req ReportDataReq) Validate() error {
 	return nil
+}
+
+// AutoConvert auto convert.
+func (req ReportDataReq) AutoConvert() {
 }
 
 // ReportDataResp the api of ReportData's resp.

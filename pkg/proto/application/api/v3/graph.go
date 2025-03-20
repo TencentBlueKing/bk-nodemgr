@@ -21,6 +21,10 @@ func (x *TopoGraphGetReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (x *TopoGraphGetReq) AutoConvert() {
+}
+
 // ConvertNetworkUnitsToTypes convert networkunits from types to proto.
 func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.NetworkUnit) {
 	unitItems := make([]*NetworkUnitGraph, len(networkUnits))
@@ -44,6 +48,10 @@ func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.Netw
 // Validate check body.
 func (x *TopoGraphNodeCountReq) Validate() error {
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoGraphNodeCountReq) AutoConvert() {
 }
 
 // ConvertNetworkUnitInfosFromTypes convert networkunitinfos from types to proto.

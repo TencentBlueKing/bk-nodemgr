@@ -591,13 +591,9 @@ func (s *storage) UpdateNetworkUnit(
 
 			return nil, err
 		}
-
 		accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
-		for idx, accessPointID := range accessPointIDs {
-			if idx > len(newAccessPoints) {
-				break
-			}
 
+		for idx, accessPointID := range createdAccessPointIDs {
 			newAccessPoints[idx].ID = accessPointID
 		}
 	}

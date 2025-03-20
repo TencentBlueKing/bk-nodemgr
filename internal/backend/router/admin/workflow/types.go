@@ -27,6 +27,10 @@ func (req *RetryOperationReq) Validate() error {
 	return nil
 }
 
+// AutoConvert auto convert.
+func (req *RetryOperationReq) AutoConvert() {
+}
+
 // RetryOperationResp ...
 type RetryOperationResp struct {
 }

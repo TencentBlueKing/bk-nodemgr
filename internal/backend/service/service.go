@@ -172,7 +172,6 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 func loadSystemInfo(conf *config.BackendService) {
 	system.SetEnv(conf.System.Env)
-	system.SetIP(conf.System.IPv4, conf.System.IPv6)
 }
 
 func (svc *Service) registerRestServer(conf *config.BackendService) {

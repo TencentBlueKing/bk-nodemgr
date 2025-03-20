@@ -22,6 +22,10 @@ func (x *TopoEventListReq) Validate() error {
 	return validateTopoPage(x.GetPage())
 }
 
+// AutoConvert auto convert.
+func (x *TopoEventListReq) AutoConvert() {
+}
+
 // ConvertPageToTypes convert page to types.
 func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
 	return generatePage(x.GetPage(), maxLimit)
