@@ -20,41 +20,14 @@ var deployEnv = struct {
 	env: "dev",
 }
 
-// SetEnv sets the deploy env
+// SetEnv sets the deploy env.
 func SetEnv(env string) {
 	deployEnv.Once.Do(func() {
 		deployEnv.env = env
 	})
 }
 
-// GetEnv gets the deploy env
+// GetEnv gets the deploy env.
 func GetEnv() string {
 	return deployEnv.env
-}
-
-var deployIp = struct {
-	sync.Once
-	ipv4 string
-	ipv6 string
-}{
-	ipv4: "127.0.0.1",
-	ipv6: "::1",
-}
-
-// SetIP sets the deployment ip.
-func SetIP(ipv4 string, ipv6 string) {
-	deployIp.Once.Do(func() {
-		deployIp.ipv4 = ipv4
-		deployIp.ipv6 = ipv6
-	})
-}
-
-// GetIPV4 gets the deployment ipv4.
-func GetIPV4() string {
-	return deployIp.ipv4
-}
-
-// GetIPV6 gets the deployment ipv6.
-func GetIPV6() string {
-	return deployIp.ipv6
 }

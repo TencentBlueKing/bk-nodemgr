@@ -17,6 +17,12 @@ data:
     tenantMode: {{ .Values.backend.config.tenantMode }}
 
     httpServer: {{ .Values.backend.config.httpServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__ 
+      advertiseIPV6: __ADVERTISE_IPV6__
+    
+    callbackServer: {{ .Values.backend.config.callbackServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__ 
+      advertiseIPV6: __ADVERTISE_IPV6__
 
     adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
 

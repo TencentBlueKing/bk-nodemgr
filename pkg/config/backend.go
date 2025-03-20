@@ -35,8 +35,8 @@ const (
 	defaultBackendLogLevel       = "INFO"
 	defaultBackendEncryptKey     = "1234567890123456"
 	defaultBackendSystemEnv      = "dev"
-	defaultBackendSystemIPv4     = "127.0.0.1"
-	defaultBackendSystemIPv6     = "::1"
+	defaultBackendAdvertiseIPv4  = "127.0.0.1"
+	defaultBackendAdvertiseIPv6  = "::1"
 )
 
 // BackendService the config of backend service.
@@ -61,16 +61,22 @@ func NewBackendService() *BackendService {
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
 		HTTPServer: HTTPServer{
-			BindIP: defaultBackendHTTPBindIP,
-			Port:   defaultBackendHTTPPort,
+			BindIP:        defaultBackendHTTPBindIP,
+			Port:          defaultBackendHTTPPort,
+			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
+			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: AdminServer{
 			BindIP: defaultBackendAdminBindIP,
 			Port:   defaultBackendAdminPort,
 		},
 		CallbackServer: CallbackServer{
-			BindIP: defaultBackendCallbackBindIP,
-			Port:   defaultBackendCallbackPort,
+			HTTPServer{
+				BindIP:        defaultBackendCallbackBindIP,
+				Port:          defaultBackendCallbackPort,
+				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
+				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
+			},
 		},
 		Log: Log{
 			Dir:       defaultBackendLogDir,
@@ -80,9 +86,7 @@ func NewBackendService() *BackendService {
 		},
 		EncryptKey: defaultBackendEncryptKey,
 		System: System{
-			Env:  defaultBackendSystemEnv,
-			IPv4: defaultBackendSystemIPv4,
-			IPv6: defaultBackendSystemIPv6,
+			Env: defaultBackendSystemEnv,
 		},
 	}
 }
