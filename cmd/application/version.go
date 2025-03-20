@@ -11,7 +11,7 @@
 package main
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/version"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/spf13/cobra"
 )
 
