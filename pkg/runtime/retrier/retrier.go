@@ -15,8 +15,8 @@ import (
 	"context"
 )
 
-// Retrier the interface for retrying.
-type Retrier interface {
+// IRetrier the interface for retrying.
+type IRetrier interface {
 	// Do define the retrying logic.
 	Do(ctx context.Context, fn func(attempt int) error) error
 }

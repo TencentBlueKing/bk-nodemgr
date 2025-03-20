@@ -50,14 +50,14 @@ func ExpoBackoffOptsDefault() ExpoBackoffOpts {
 	}
 }
 
-// expoBackoff the exponential backoff retryer.
-type expoBackoff struct {
+// ExpoBackoff the exponential backoff retryer.
+type ExpoBackoff struct {
 	opts ExpoBackoffOpts
 }
 
 // NewExpoBackoff new an exponential backoff retryer.
-func NewExpoBackoff(opts ExpoBackoffOpts) Retrier {
-	retrier := &expoBackoff{
+func NewExpoBackoff(opts ExpoBackoffOpts) *ExpoBackoff {
+	retrier := &ExpoBackoff{
 		opts: opts,
 	}
 
@@ -65,7 +65,7 @@ func NewExpoBackoff(opts ExpoBackoffOpts) Retrier {
 }
 
 // calculateDelay calculate the delay time
-func (e *expoBackoff) calculateDelay(attempt int) time.Duration {
+func (e *ExpoBackoff) calculateDelay(attempt int) time.Duration {
 	// cal base delay.
 	delay := float64(e.opts.BaseDelay) * math.Pow(2, float64(attempt))
 	if delay > float64(e.opts.MaxDelay) {
@@ -80,7 +80,7 @@ func (e *expoBackoff) calculateDelay(attempt int) time.Duration {
 }
 
 // Do do the fn.
-func (e *expoBackoff) Do(ctx context.Context, fn func(attempt int) error) error {
+func (e *ExpoBackoff) Do(ctx context.Context, fn func(attempt int) error) error {
 	var err error
 
 	for attempt := 0; attempt < e.opts.MaxRetries; attempt++ {
