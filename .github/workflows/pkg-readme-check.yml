@@ -3,8 +3,6 @@ name: Package README Check
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'pkg/**'
 
 jobs:
   check-pkg-readme:
