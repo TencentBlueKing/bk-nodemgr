@@ -2,7 +2,7 @@ name: Path-Specific Coverage Check
 
 on:
   pull_request_target:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   path-coverage-check:
@@ -12,14 +12,25 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Get changed files
+      - name: Get PR changed files
         id: changed-files
-        uses: tj-actions/changed-files@v39
+        run: |
+          # 使用GitHub API获取PR变更文件
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
+          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
+          echo "$CHANGED_FILES" > changed_files.txt
+          
+          # 调试输出
+          echo "PR编号: $PR_NUMBER"
+          echo "变更文件列表:"
+          cat changed_files.txt
 
       - name: Check config file exists
         id: check-config
@@ -38,48 +49,65 @@ jobs:
           script: |
             const fs = require('fs');
             
-            // 读取配置文件
-            const configContent = fs.readFileSync('.github/coverage-config.json', 'utf8');
-            const config = JSON.parse(configContent);
+            try {
+              // 读取配置文件
+              const configContent = fs.readFileSync('.github/coverage-config.json', 'utf8');
+              const config = JSON.parse(configContent);
             
-            // 获取变更的文件
-            const changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}'.split(' ');
+              // 读取变更文件列表
+              const changedFilesContent = fs.readFileSync('changed_files.txt', 'utf8');
+              const changedFiles = changedFilesContent.trim().split('\n').filter(file => file.trim() !== '');
             
-            // 检查每个文件是否匹配目标路径
-            const matchedPaths = [];
+              console.log('配置加载完成, 检测到变更文件数量:', changedFiles.length);
             
-            changedFiles.forEach(file => {
-              config.paths.forEach(item => {
-                if (file.startsWith(item.path) && !matchedPaths.some(p => p.path === item.path)) {
-                  matchedPaths.push(item);
-                }
-              });
-            });
+              // 检查每个文件是否匹配目标路径
+              const matchedPaths = [];
             
-            if (matchedPaths.length > 0) {
-              // 生成评论内容
-              let commentBody = `${config.comment_template.header}\n\n`;
+              if (changedFiles.length > 0) {
+                changedFiles.forEach(file => {
+                  config.paths.forEach(item => {
+                    if (file.startsWith(item.path) && !matchedPaths.some(p => p.path === item.path)) {
+                      console.log(`文件 ${file} 匹配路径配置 ${item.path}`);
+                      matchedPaths.push(item);
+                    }
+                  });
+                });
+              }
             
-              // 添加表格标题
-              commentBody += `| 路径 | 描述 | 最低覆盖率要求 | 重要程度 |\n`;
-              commentBody += `| --- | --- | ---: | --- |\n`;
+              console.log('匹配的路径数量:', matchedPaths.length);
             
-              // 添加每个路径的详细要求
-              matchedPaths.forEach(item => {
-                const importanceTag = item.critical 
-                  ? '🔴 必须满足' 
-                  : '🟡 建议满足';
+              if (matchedPaths.length > 0) {
+                // 生成评论内容
+                let commentBody = `${config.comment_template.header}\n\n`;
             
-                commentBody += `| \`${item.path}\` | ${item.description} | ${item.coverage}% | ${importanceTag} |\n`;
-              });
+                // 添加表格标题
+                commentBody += `| 路径 | 描述 | 最低覆盖率要求 | 重要程度 |\n`;
+                commentBody += `| --- | --- | ---: | --- |\n`;
             
-              commentBody += `\n${config.comment_template.footer}`;
+                // 添加每个路径的详细要求
+                matchedPaths.forEach(item => {
+                  const importanceTag = item.critical 
+                    ? '🔴 必须满足' 
+                    : '🟡 建议满足';
             
-              // 创建评论
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: commentBody
-              });
+                  commentBody += `| \`${item.path}\` | ${item.description} | ${item.coverage}% | ${importanceTag} |\n`;
+                });
+            
+                commentBody += `\n${config.comment_template.footer}`;
+            
+                // 创建评论
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: commentBody
+                });
+            
+                console.log('成功创建PR评论');
+              } else {
+                console.log('没有匹配的路径，跳过评论创建');
+              }
+            } catch (error) {
+              console.error('执行过程中发生错误:', error);
+              core.setFailed(`执行失败: ${error.message}`);
             }
