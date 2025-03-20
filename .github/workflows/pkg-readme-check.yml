@@ -12,94 +12,171 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 完整克隆，确保能访问所有提交历史
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
-      - name: Fetch all history and tags
+      - name: List repository content
         run: |
-          git fetch --prune --unshallow || true
-          git fetch origin +refs/heads/*:refs/remotes/origin/*
+          echo "工作目录内容:"
+          ls -la
+          echo "pkg目录内容:"
+          ls -la pkg || echo "pkg目录不存在"
+          echo "是否有pkg/version目录:"
+          ls -la pkg/version || echo "pkg/version目录不存在"
 
-      - name: Check for packages without README
-        id: check-readmes
+      - name: Get PR changed files
+        id: changed-files
         run: |
-          echo "检查PR: ${{ github.event.pull_request.number }}"
+          # 获取PR编号
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          echo "PR编号: $PR_NUMBER"
           
-          # 检查所有已变更的文件
-          git_files=$(git diff --name-only origin/${{ github.base_ref }} HEAD || git diff --name-only HEAD~1 HEAD)
-          echo "变更文件列表: $git_files"
+          # 使用GitHub API获取PR变更文件
+          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
+          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
+          echo "变更文件列表:"
+          echo "$CHANGED_FILES"
           
-          # 提取pkg目录
-          pkg_dirs=$(echo "$git_files" | grep "^pkg/" | awk -F/ '{print $1"/"$2}' | sort | uniq || echo "")
-          echo "发现pkg目录: $pkg_dirs"
+          # 过滤pkg目录文件
+          PKG_FILES=$(echo "$CHANGED_FILES" | grep "^pkg/" || echo "")
+          echo "pkg下的变更文件:"
+          echo "$PKG_FILES"
           
+          # 保存到环境变量
+          echo "PKG_FILES<<EOF" >> $GITHUB_ENV
+          echo "$PKG_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Check for missing README
+        id: check-readme
+        run: |
+          # 检查是否有pkg文件变更
+          if [ -z "${{ env.PKG_FILES }}" ]; then
+            echo "没有pkg目录的变更"
+            echo "HAS_MISSING=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          
+          # 定义缺少README的包列表
           MISSING_README=""
           
-          # 检查每个pkg目录是否有README.md
-          for dir in $pkg_dirs; do
-            if [ -d "$dir" ] && [ ! -f "$dir/README.md" ]; then
-              # 确认是包含.go文件的目录
-              if ls $dir/*.go 1> /dev/null 2>&1; then
-                MISSING_README="$MISSING_README $dir"
+          # 逐个处理变更文件
+          echo "${{ env.PKG_FILES }}" | while read -r file; do
+            if [ -z "$file" ]; then
+              continue
+            fi
+          
+            # 获取文件所在目录
+            dir=$(dirname "$file")
+            echo "检查文件: $file"
+            echo "所在目录: $dir"
+          
+            # 检查目录是否已处理过
+            if [[ "$MISSING_README" != *"$dir"* ]]; then
+              # 确认目录存在
+              if [ -d "$dir" ]; then
+                echo "- 目录存在"
+          
+                # 检查README.md
+                if [ ! -f "$dir/README.md" ]; then
+                  echo "- 目录中没有README.md"
+          
+                  # 检查Go文件 (使用多种方法)
+                  go_files=0
+                  if [ -n "$(ls "$dir"/*.go 2>/dev/null)" ]; then
+                    go_files=1
+                  elif [ -n "$(find "$dir" -maxdepth 1 -name "*.go" 2>/dev/null)" ]; then
+                    go_files=1
+                  elif [ -n "$(grep -l "\.go$" <(ls -la "$dir"))" ]; then
+                    go_files=1
+                  fi
+          
+                  if [ $go_files -eq 1 ]; then
+                    echo "- 这是一个Go包目录，需要README"
+                    MISSING_README="$MISSING_README $dir"
+                  else
+                    echo "- 不是Go包目录，跳过"
+                  fi
+                else
+                  echo "- 目录已有README.md"
+                fi
+              else
+                echo "- 警告: 目录 $dir 不存在"
+          
+                # 直接根据文件名判断是否为Go文件
+                if [[ "$file" == *.go ]]; then
+                  echo "- 变更文件是Go文件，将目录添加到缺少README列表"
+                  MISSING_README="$MISSING_README $dir"
+                fi
               fi
             fi
           done
           
-          # 设置环境变量
-          MISSING_README=$(echo $MISSING_README | xargs)
+          # 处理结果
+          MISSING_README=$(echo "$MISSING_README" | xargs)
           echo "缺少README的目录: $MISSING_README"
           
+          # 手动检查pkg/version目录 (特殊处理)
+          if echo "${{ env.PKG_FILES }}" | grep -q "pkg/version"; then
+            if [ ! -f "pkg/version/README.md" ]; then
+              echo "特殊检查: pkg/version 目录缺少README"
+              if [[ "$MISSING_README" != *"pkg/version"* ]]; then
+                MISSING_README="$MISSING_README pkg/version"
+              fi
+            fi
+          fi
+          
+          # 设置环境变量
           if [ -n "$MISSING_README" ]; then
             echo "HAS_MISSING=true" >> $GITHUB_ENV
             echo "MISSING_DIRS=$MISSING_README" >> $GITHUB_ENV
-            echo "has_missing=true" >> $GITHUB_OUTPUT
           else
             echo "HAS_MISSING=false" >> $GITHUB_ENV
-            echo "has_missing=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Debug info
-        run: |
-          echo "HAS_MISSING: ${{ env.HAS_MISSING }}"
-          echo "MISSING_DIRS: ${{ env.MISSING_DIRS }}"
-
-      - name: Generate comment body
-        if: env.HAS_MISSING == 'true'
-        id: generate-comment
-        run: |
-          # 将空格分隔的目录转换为Markdown列表
-          dirs="${{ env.MISSING_DIRS }}"
           
-          # 构建Markdown列表
-          dir_list=""
-          for dir in $dirs; do
-            dir_list="$dir_list- \`$dir\`\n"
+          # 直接检查并创建文件列表 (备用方法)
+          echo "直接提取目录并检查README:"
+          echo "${{ env.PKG_FILES }}" | awk -F/ '{print $1"/"$2}' | sort -u | while read -r pkg_dir; do
+            if [ -n "$pkg_dir" ]; then
+              if [ ! -f "$pkg_dir/README.md" ]; then
+                echo "- $pkg_dir (缺少README.md)"
+              fi
+            fi
+          done
+
+      - name: Generate comment
+        if: env.HAS_MISSING == 'true'
+        run: |
+          # 分隔符方法处理多行内容
+          echo 'COMMENT<<EOF' >> $GITHUB_ENV
+          echo '## 📝 包文档缺失提醒' >> $GITHUB_ENV
+          echo '' >> $GITHUB_ENV
+          echo '### 检测到以下包缺少README.md文件：' >> $GITHUB_ENV
+          echo '' >> $GITHUB_ENV
+          
+          # 逐行添加缺少README的目录
+          for dir in ${{ env.MISSING_DIRS }}; do
+            echo "- \`$dir\`" >> $GITHUB_ENV
           done
           
-          # 创建完整评论
-          comment="## 📝 包文档缺失提醒\n\n"
-          comment+="### 检测到以下包缺少README.md文件：\n\n"
-          comment+="$dir_list\n"
-          comment+="### 📋 操作指南\n\n"
-          comment+="1. 请参考模板文件 \`docs/design/pkg_readme_template.md\` 创建README.md\n"
-          comment+="2. 文档应包含：\n"
-          comment+="   - 包的功能概述\n"
-          comment+="   - 设计原理\n"
-          comment+="   - 使用示例\n"
-          comment+="   - 接口说明\n"
-          comment+="3. 完成后将README.md添加到相应的包目录中\n\n"
-          comment+="> 💡 **为什么需要README？**\n"
-          comment+="> 良好的文档能够提高代码可维护性和促进团队协作。"
-          
-          # 输出到GITHUB_ENV，处理多行内容
-          delimiter="EOF_COMMENT"
-          echo "COMMENT<<$delimiter" >> $GITHUB_ENV
-          echo -e "$comment" >> $GITHUB_ENV
-          echo "$delimiter" >> $GITHUB_ENV
-          
-          echo "评论内容已生成"
+          # 添加剩余内容
+          echo '' >> $GITHUB_ENV
+          echo '### 📋 操作指南' >> $GITHUB_ENV
+          echo '' >> $GITHUB_ENV
+          echo '1. 请参考模板文件 `docs/design/pkg_readme_template.md` 创建README.md' >> $GITHUB_ENV
+          echo '2. 文档应包含：' >> $GITHUB_ENV
+          echo '   - 包的功能概述' >> $GITHUB_ENV
+          echo '   - 设计原理' >> $GITHUB_ENV
+          echo '   - 使用示例' >> $GITHUB_ENV
+          echo '   - 接口说明' >> $GITHUB_ENV
+          echo '3. 完成后将README.md添加到相应的包目录中' >> $GITHUB_ENV
+          echo '' >> $GITHUB_ENV
+          echo '> 💡 **为什么需要README？**' >> $GITHUB_ENV
+          echo '> 良好的文档能够提高代码可维护性和促进团队协作。' >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Comment on PR
         if: env.HAS_MISSING == 'true'
