@@ -324,3 +324,23 @@ func (conf RunMode) Validate() error {
 		return fmt.Errorf("invalid run mode: %s", conf)
 	}
 }
+
+// System the info of deploy info.
+type System struct {
+	IPv4 string `yaml:"ipv4" usage:"ipv4 of system"`
+	IPv6 string `yaml:"ipv6" usage:"ipv6 of system"`
+	Env  string `yaml:"env" usage:"env of system"`
+}
+
+// Validate validates the config.
+func (conf System) Validate() error {
+	if conf.IPv4 == "" && conf.IPv6 == "" {
+		return errors.New("ipv4 and ipv6 is empty")
+	}
+
+	if conf.Env == "" {
+		return errors.New("env is empty")
+	}
+
+	return nil
+}

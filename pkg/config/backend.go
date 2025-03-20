@@ -34,6 +34,9 @@ const (
 	defaultBackendLogMaxSizeMB   = 200
 	defaultBackendLogLevel       = "INFO"
 	defaultBackendEncryptKey     = "1234567890123456"
+	defaultBackendSystemEnv      = "dev"
+	defaultBackendSystemIPv4     = "127.0.0.1"
+	defaultBackendSystemIPv6     = "::1"
 )
 
 // BackendService the config of backend service.
@@ -48,6 +51,7 @@ type BackendService struct {
 	Redis          Redis          `yaml:"redis" usage:"redis config of backend service"`
 	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of backend service"`
 	Log            Log            `yaml:"log" usage:"log config of backend service"`
+	System         System         `yaml:"system" usage:"system config of backend service"`
 	EncryptKey     string         `yaml:"encryptKey" usage:"encrypt key of backend service"`
 }
 
@@ -75,6 +79,11 @@ func NewBackendService() *BackendService {
 			Level:     defaultBackendLogLevel,
 		},
 		EncryptKey: defaultBackendEncryptKey,
+		System: System{
+			Env:  defaultBackendSystemEnv,
+			IPv4: defaultBackendSystemIPv4,
+			IPv6: defaultBackendSystemIPv6,
+		},
 	}
 }
 
