@@ -10,68 +10,6 @@
 
 package types
 
-import "time"
-
-// Module represents the module structure of cmdb
-type Module struct {
-	ModuleID          int64
-	ModuleName        string
-	SetID             int64
-	BakOperator       string
-	BizID             int64
-	ModuleType        string
-	ParentID          int64
-	HostApplyEnabled  bool
-	ServiceCategoryID int64
-	ServiceTemplateID int64
-	SetTemplateID     int64
-	SupplierAccount   string
-	CreatedBy         string
-	Operator          string
-	LastTime          time.Time
-	CreateTime        time.Time
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-}
-
-// BusinessInstanceTopo represents the topology of a business instance
-type BusinessInstanceTopo struct {
-	// belongs to
-	TenantID string
-
-	InstID   int64
-	InstName string
-	ObjID    string
-	ObjName  string
-	Children []*BusinessInstanceTopo
-}
-
-// BusinessInternalModule represents the module information of idle host, fault host,
-// and recycle host under the business.
-type BusinessInternalModule struct {
-	// belongs to
-	TenantID string
-
-	SetID   int64
-	SetName string
-	Module  []*Module
-}
-
-// TopoNode represents the topology node defined by CMDB
-type TopoNode struct {
-	ObjID    string
-	InstID   int64
-	InstName string
-}
-
-// TopoNodePath represents the topology node path defined by CMDB
-type TopoNodePath struct {
-	ObjID    string
-	InstID   int64
-	InstName string
-	Paths    [][]*TopoNode
-}
-
 // CloudVendor represents a cloud vendor option.
 type CloudVendor struct {
 	Key  string
@@ -82,4 +20,21 @@ type CloudVendor struct {
 type OsType struct {
 	Key  string
 	Name string
+}
+
+// DynamicGroup represents the dynamic group of cmdb.
+type DynamicGroup struct {
+	ID    string
+	BizID int64
+	ObjID string
+	Name  string
+}
+
+// ServiceTemplate represents a service template option.
+type ServiceTemplate struct {
+	ID                  int64
+	BizID               int64
+	ServiceTemplateName string
+	ServiceCategoryID   int64
+	HostApplyEnabled    bool
 }

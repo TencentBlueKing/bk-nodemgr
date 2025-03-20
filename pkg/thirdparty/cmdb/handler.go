@@ -2,6 +2,7 @@ package cmdb
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -33,19 +34,7 @@ type Handler interface {
 	DeleteNetworkArea(ctx context.Context, id int64) error
 
 	// UpdateHostNetworkAreaField update host network area field
-	UpdateHostNetworkAreaField(ctx context.Context, hostIDs []int64, bizID int64, networkAreaID int64) error
-
-	// SearchBizInstTopo search business instance topo
-	SearchBizInstTopo(ctx context.Context, bizID int64) ([]*types.BusinessInstanceTopo, error)
-
-	// GetBizInternalModule get biz internal module
-	GetBizInternalModule(ctx context.Context, bizID int64) (*types.BusinessInternalModule, error)
-
-	// FindTopoNodePaths find topo node paths
-	FindTopoNodePaths(ctx context.Context, bizID int64, topoNodes []*types.TopoNode) ([]*types.TopoNodePath, error)
-
-	// FindModuleBatch find module batch
-	FindModuleBatch(ctx context.Context, bizID int64, ids []int64, fields []string) ([]*types.Module, error)
+	UpdateHostNetworkAreaField(ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error
 
 	// SearchCloudVendor search cloud vendor
 	SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error)
@@ -63,11 +52,34 @@ type Handler interface {
 	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts []*types.Host) ([]int64, error)
 
 	// PushHostIdentifier push host identifier
-	PushHostIdentifier(ctx context.Context, hostIDs []int64) (taskID *string, err error)
+	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
 
 	// FindHostIdentifierPushResult find host identifier push result
 	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
 		pendingList []int64, err error)
+
+	// ListResourcePoolHosts list resource pool hosts
+	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
+
+	// ListHostsWithoutBusiness list hosts without business
+	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
+
+	// AddHostToResourcePool add host to resource pool
+	AddHostToResourcePool(ctx context.Context, hosts []*types.Host) (successHost []*types.Host,
+		failedIndexMsg []string, err error)
+
+	// SearchDynamicGroup search dynamic group
+	SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
+
+	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group
+	ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
+
+	// ListServiceTemplate list service template
+	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
+
+	// FindHostByServiceTemplate find host by service template
+	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
+		[]*types.Host, error)
 }
 
 type handler struct {
@@ -275,7 +287,7 @@ func (h *handler) DeleteNetworkArea(ctx context.Context, id int64) error {
 
 // UpdateHostNetworkAreaField update host network area field.
 func (h *handler) UpdateHostNetworkAreaField(
-	ctx context.Context, hostIDs []int64, bizID int64, networkAreaID int64) error {
+	ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
@@ -295,202 +307,6 @@ func (h *handler) UpdateHostNetworkAreaField(
 	}
 
 	return nil
-}
-
-// SearchBizInstTopo search business instance topo.
-func (h *handler) SearchBizInstTopo(ctx context.Context, bizID int64) ([]*types.BusinessInstanceTopo, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &SearchBizInstTopoReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
-	}
-
-	resp, err := h.cli.searchBizInstTopo(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var coverFunc func(*BizInstTopo) *types.BusinessInstanceTopo
-	coverFunc = func(src *BizInstTopo) (dst *types.BusinessInstanceTopo) {
-		if src == nil {
-			return nil
-		}
-
-		dst = &types.BusinessInstanceTopo{
-			InstID:   src.BKInstID,
-			InstName: src.BKInstName,
-			ObjID:    src.BKObjID,
-			ObjName:  src.BKObjName,
-		}
-
-		if len(src.Children) > 0 {
-			dst.Children = make([]*types.BusinessInstanceTopo, len(src.Children))
-			for i, child := range src.Children {
-				dst.Children[i] = coverFunc(child)
-			}
-		}
-
-		return
-	}
-
-	result := make([]*types.BusinessInstanceTopo, len(*resp))
-	for i, topo := range *resp {
-		result[i] = coverFunc(topo)
-	}
-
-	return result, nil
-}
-
-// GetBizInternalModule get biz internal module.
-func (h *handler) GetBizInternalModule(ctx context.Context, bizID int64) (*types.BusinessInternalModule, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &GetBizInternalModuleReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
-	}
-	resp, err := h.cli.getBizInternalModule(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	result := &types.BusinessInternalModule{
-		TenantID: tenantID,
-		SetID:    resp.BKSetID,
-		SetName:  resp.BKSetName,
-	}
-	result.Module = make([]*types.Module, len(resp.Module))
-	for i, module := range resp.Module {
-		result.Module[i] = &types.Module{
-			ModuleID:          module.BKModuleID,
-			ModuleName:        module.BKModuleName,
-			SetID:             module.BKSetID,
-			BakOperator:       module.BKBakOperator,
-			BizID:             module.BKBizID,
-			ModuleType:        module.BKModuleType,
-			ParentID:          module.BKParentID,
-			HostApplyEnabled:  module.HostApplyEnabled,
-			ServiceCategoryID: module.ServiceCategoryID,
-			ServiceTemplateID: module.ServiceTemplateID,
-			SetTemplateID:     module.SetTemplateID,
-			SupplierAccount:   module.BKSupplierAccount,
-			CreatedBy:         module.BKCreatedBy,
-			Operator:          module.Operator,
-			LastTime:          module.LastTime,
-			CreateTime:        module.CreateTime,
-			CreatedAt:         module.BKCreatedAt,
-			UpdatedAt:         module.BKUpdatedAt,
-		}
-	}
-
-	return result, nil
-}
-
-// FindTopoNodePaths find topo node paths.
-func (h *handler) FindTopoNodePaths(ctx context.Context, bizID int64, topoNodes []*types.TopoNode) (
-	[]*types.TopoNodePath, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	node := make([]*Node, len(topoNodes))
-	for i, topoNode := range topoNodes {
-		node[i] = &Node{
-			BKObjID:  topoNode.ObjID,
-			BKInstID: topoNode.InstID,
-		}
-	}
-	req := &FindTopoNodePathsReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
-		BKNodes:  node,
-	}
-
-	resp, err := h.cli.findTopoNodePaths(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*types.TopoNodePath, len(*resp))
-	for index, nodePath := range *resp {
-		result[index] = &types.TopoNodePath{
-			ObjID:    nodePath.BKObjID,
-			InstID:   nodePath.BKInstID,
-			InstName: nodePath.BKInstName,
-		}
-
-		if len(nodePath.BKPaths) > 0 {
-			result[index].Paths = make([][]*types.TopoNode, len(nodePath.BKPaths))
-			for i, path := range nodePath.BKPaths {
-				result[index].Paths[i] = make([]*types.TopoNode, len(path))
-				for j, node := range path {
-					result[index].Paths[i][j] = &types.TopoNode{
-						ObjID:    node.BKObjID,
-						InstID:   node.BKInstID,
-						InstName: node.BKInstName,
-					}
-				}
-			}
-		}
-	}
-
-	return result, nil
-}
-
-// FindModuleBatch find module batch.
-func (h *handler) FindModuleBatch(ctx context.Context, bizID int64, ids []int64, fields []string) (
-	[]*types.Module, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &FindModuleBatchReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
-		Fields:   fields,
-		BKIDs:    ids,
-	}
-	resp, err := h.cli.findModuleBatch(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*types.Module, len(*resp))
-	for index, module := range *resp {
-		result[index] = &types.Module{
-			ModuleID:          module.BKModuleID,
-			ModuleName:        module.BKModuleName,
-			SetID:             module.BKSetID,
-			BakOperator:       module.BKBakOperator,
-			BizID:             module.BKBizID,
-			ModuleType:        module.BKModuleType,
-			ParentID:          module.BKParentID,
-			HostApplyEnabled:  module.HostApplyEnabled,
-			ServiceCategoryID: module.ServiceCategoryID,
-			ServiceTemplateID: module.ServiceTemplateID,
-			SetTemplateID:     module.SetTemplateID,
-			SupplierAccount:   module.BKSupplierAccount,
-			CreatedBy:         module.BKCreatedBy,
-			Operator:          module.Operator,
-			LastTime:          module.LastTime,
-			CreateTime:        module.CreateTime,
-			CreatedAt:         module.BKCreatedAt,
-			UpdatedAt:         module.BKUpdatedAt,
-		}
-	}
-
-	return result, nil
 }
 
 // searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
@@ -557,7 +373,7 @@ func (h *handler) searchObjectAttributeEnumOption(ctx context.Context, objID str
 
 // SearchCloudVendor search cloud vendor.
 func (h *handler) SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error) {
-	result, err := h.searchObjectAttributeEnumOption(ctx, "plat", DefaultBusinessID, "bk_cloud_vendor")
+	result, err := h.searchObjectAttributeEnumOption(ctx, "plat", CCNoBusinessID, "bk_cloud_vendor")
 	if err != nil {
 		return nil, err
 	}
@@ -575,7 +391,7 @@ func (h *handler) SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, 
 
 // SearchOsType search ostype.
 func (h *handler) SearchOsType(ctx context.Context) ([]*types.OsType, error) {
-	result, err := h.searchObjectAttributeEnumOption(ctx, "host", DefaultBusinessID, "bk_os_type")
+	result, err := h.searchObjectAttributeEnumOption(ctx, "host", CCNoBusinessID, "bk_os_type")
 	if err != nil {
 		return nil, err
 	}
@@ -666,12 +482,13 @@ func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts 
 }
 
 // PushHostIdentifier push host identifier.
-func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs []int64) (
-	taskID *string, err error) {
+// nolint: nonamedreturns
+func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (
+	taskID string, err error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req := &PushHostIdentifierReq{
@@ -680,10 +497,10 @@ func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs []int64) (
 	}
 	resp, err := h.cli.pushHostIdentifier(ctx, req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &resp.TaskID, nil
+	return resp.TaskID, nil
 }
 
 // FindHostIdentifierPushResult find host identifier push result.
@@ -706,4 +523,336 @@ func (h *handler) FindHostIdentifierPushResult(ctx context.Context, taskID strin
 	}
 
 	return resp.SuccessList, resp.FailedList, resp.PendingList, nil
+}
+
+// ListResourcePoolHosts list resource pool hosts.
+func (h *handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ListResourcePoolHostsReq{
+		TenantID: tenantID,
+		Fields:   ccHostFields(),
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.listResourcePoolHosts(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx, host := range resp.Info {
+		hosts[idx] = &types.Host{
+			HostID:   host.BKHostID,
+			TenantID: tenantID,
+			Static: &types.HostStatic{
+				BizID:         CCResourcePoolBusinessID,
+				NetworkAreaID: host.BKCloudID,
+				HostName:      host.BKHostName,
+				DeptName:      host.DeptName,
+				InnerIP:       host.BKHostInnerIPV4,
+				InnerIPV6:     host.BKHostInnerIPV6,
+				OuterIP:       host.BKHostOuterIPV4,
+				OuterIPV6:     host.BKHostOuterIPV6,
+				Mac:           host.BKMac,
+				OSType:        host.BKOsType,
+				SyncedAgentID: host.BKAgentID,
+			},
+			Dynamic: types.NewBlankNodeDynamic(),
+		}
+		hosts[idx].Dynamic.AgentID = host.BKAgentID
+	}
+
+	return hosts, nil
+}
+
+// ListHostsWithoutBusiness list hosts without business.
+func (h *handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ListHostsWithoutBusinessReq{
+		TenantID: tenantID,
+		Fields:   ccHostFields(),
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.listHostsWithoutBusiness(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx, host := range resp.Info {
+		hosts[idx] = &types.Host{
+			HostID:   host.BKHostID,
+			TenantID: tenantID,
+			Static: &types.HostStatic{
+				NetworkAreaID: host.BKCloudID,
+				HostName:      host.BKHostName,
+				DeptName:      host.DeptName,
+				InnerIP:       host.BKHostInnerIPV4,
+				InnerIPV6:     host.BKHostInnerIPV6,
+				OuterIP:       host.BKHostOuterIPV4,
+				OuterIPV6:     host.BKHostOuterIPV6,
+				Mac:           host.BKMac,
+				OSType:        host.BKOsType,
+				SyncedAgentID: host.BKAgentID,
+			},
+			Dynamic: types.NewBlankNodeDynamic(),
+		}
+		hosts[idx].Dynamic.AgentID = host.BKAgentID
+	}
+
+	return hosts, nil
+}
+
+// AddHostToResourcePool add host to resource pool.
+// nolint: nonamedreturns
+func (h *handler) AddHostToResourcePool(ctx context.Context, hosts []*types.Host) (
+	successHost []*types.Host, failedIndexMsg []string, err error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req := &AddHostToResourcePoolReq{TenantID: tenantID}
+	for _, host := range hosts {
+		req.HostInfo = append(req.HostInfo, &CreateHostInfo{
+			BKCloudID:         host.Static.NetworkAreaID,
+			BKHostInnerIP:     host.Static.InnerIP,
+			BKHostInnerIPV6:   host.Static.InnerIPV6,
+			BKHostOuterIP:     host.Static.OuterIP,
+			BKHostOuterIPV6:   host.Static.OuterIPV6,
+			BKOSType:          host.Static.OSType,
+			BKCpuArchitecture: host.Static.Arch,
+			BKAddressing:      string(host.Static.Addressing),
+		})
+	}
+
+	resp, err := h.cli.addHostToResource(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	successHost = make([]*types.Host, len(resp.Success))
+	for index, host := range resp.Success {
+		successHost[index] = hosts[host.Index]
+		successHost[index].HostID = host.BKHostID
+	}
+
+	failedIndexMsg = make([]string, len(resp.Error))
+	for index, errmsg := range resp.Error {
+		failedIndexMsg[index] = fmt.Sprintf("host params index: %d, errmsg: %s", errmsg.Index, errmsg.ErrorMessage)
+	}
+
+	return successHost, failedIndexMsg, nil
+}
+
+// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
+func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string,
+	page types.Page) ([]*types.Host, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ExecuteDynamicGroupReq{
+		TenantID:       tenantID,
+		BKBizID:        bizID,
+		ID:             groupID,
+		Fields:         ccHostFields(),
+		DisableCounter: false,
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	var resp *ExecuteDynamicGroupResp
+	resp, err = h.cli.executeDynamicGroup(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*types.Host, len(resp.Info))
+	for index, host := range resp.Info {
+		jsonData, err := json.Marshal(host)
+		if err != nil {
+			return nil, err
+		}
+
+		var hostData HostInfo
+		err = json.Unmarshal(jsonData, &hostData)
+		if err != nil {
+			return nil, err
+		}
+
+		result[index] = &types.Host{
+			HostID:   hostData.BKHostID,
+			TenantID: tenantID,
+			Static: &types.HostStatic{
+				BizID:         bizID,
+				NetworkAreaID: hostData.BKCloudID,
+				HostName:      hostData.BKHostName,
+				DeptName:      hostData.DeptName,
+				InnerIP:       hostData.BKHostInnerIPV4,
+				InnerIPV6:     hostData.BKHostInnerIPV6,
+				OuterIP:       hostData.BKHostOuterIPV4,
+				OuterIPV6:     hostData.BKHostOuterIPV6,
+				Mac:           hostData.BKMac,
+				OSType:        hostData.BKOsType,
+				Arch:          hostData.BKCpuArchitecture,
+				Addressing:    types.Addressing(hostData.BKAddressing),
+			},
+			Dynamic: types.NewBlankNodeDynamic(),
+		}
+	}
+
+	return result, nil
+}
+
+// SearchDynamicGroup search dynamic group.
+func (h *handler) SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) (
+	[]*types.DynamicGroup, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &SearchDynamicGroupReq{
+		TenantID: tenantID,
+		BKBizID:  bizID,
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.searchDynamicGroup(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*types.DynamicGroup, len(resp.Info))
+	for index, group := range resp.Info {
+		result[index] = &types.DynamicGroup{
+			ID:    group.ID,
+			BizID: group.BKBizID,
+			ObjID: group.BKObjID,
+			Name:  group.Name,
+		}
+	}
+
+	return result, nil
+}
+
+// ListServiceTemplate list service template.
+func (h *handler) ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate,
+	error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ListServiceTemplateReq{
+		TenantID: tenantID,
+
+		BKBizID: bizID,
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.listServiceTemplate(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	serviceTemplates := make([]*types.ServiceTemplate, len(resp.Info))
+	for index, serviceTemplate := range resp.Info {
+		serviceTemplates[index] = &types.ServiceTemplate{
+			ID:                  serviceTemplate.ID,
+			BizID:               serviceTemplate.BKBizID,
+			ServiceTemplateName: serviceTemplate.ServiceTemplateName,
+			ServiceCategoryID:   serviceTemplate.ServiceCategoryID,
+			HostApplyEnabled:    serviceTemplate.HostApplyEnabled,
+		}
+	}
+
+	return serviceTemplates, nil
+}
+
+// FindHostByServiceTemplate find host by service template.
+func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page,
+	serviceTemplateIDs ...int64) ([]*types.Host, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &FindHostByServiceTemplateReq{
+		TenantID: tenantID,
+
+		BKBizID:              bizID,
+		BKServiceTemplateIDs: serviceTemplateIDs,
+		Fields:               ccHostFields(),
+		Page: Page{
+			Start: page.Offset,
+			Sort:  page.Sort,
+			Limit: page.Limit,
+		},
+	}
+
+	resp, err := h.cli.findHostByServiceTemplate(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*types.Host, len(resp.Info))
+	for index, host := range resp.Info {
+		result[index] = &types.Host{
+			HostID:   host.BKHostID,
+			TenantID: tenantID,
+			Static: &types.HostStatic{
+				BizID:         bizID,
+				NetworkAreaID: host.BKCloudID,
+				HostName:      host.BKHostName,
+				DeptName:      host.DeptName,
+				InnerIP:       host.BKHostInnerIPV4,
+				InnerIPV6:     host.BKHostInnerIPV6,
+				OuterIP:       host.BKHostOuterIPV4,
+				OuterIPV6:     host.BKHostOuterIPV6,
+				Mac:           host.BKMac,
+				OSType:        host.BKOsType,
+				Arch:          host.BKCpuArchitecture,
+				Addressing:    types.Addressing(host.BKAddressing),
+			},
+			Dynamic: types.NewBlankNodeDynamic(),
+		}
+	}
+
+	return result, nil
 }

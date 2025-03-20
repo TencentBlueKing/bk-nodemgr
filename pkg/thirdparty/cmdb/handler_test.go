@@ -252,7 +252,7 @@ func Test_handler_NetworkArea(t *testing.T) {
 				return
 			}
 			for _, netArea := range search {
-				t.Logf("SearchNetworkArea got: %+v", *netArea)
+				t.Logf("SearchNetworkArea got: %#v", *netArea)
 			}
 
 			err = h.DeleteNetworkArea(tt.args.ctx, created.ID)
@@ -261,162 +261,6 @@ func Test_handler_NetworkArea(t *testing.T) {
 				return
 			}
 			t.Logf("DeleteNetworkArea success")
-		})
-	}
-}
-
-// Test_handler_SearchBizInstTopo...
-func Test_handler_SearchBizInstTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
-
-	type args struct {
-		ctx   context.Context
-		bizID int64
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   ctx,
-				bizID: 2,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.SearchBizInstTopo(tt.args.ctx, tt.args.bizID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SearchBizInstTopo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			for _, topo := range got {
-				t.Logf("topo: %v", topo)
-			}
-		})
-	}
-}
-
-// Test_handler_GetBizInternalModule...
-func Test_handler_GetBizInternalModule(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
-
-	type args struct {
-		ctx   context.Context
-		bizID int64
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   ctx,
-				bizID: 2,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetBizInternalModule(tt.args.ctx, tt.args.bizID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetBizInternalModule() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", *got)
-		})
-	}
-}
-
-// Test_handler_FindTopoNodePaths...
-func Test_handler_FindTopoNodePaths(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
-
-	type args struct {
-		ctx   context.Context
-		bizID int64
-		node  []*types.TopoNode
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   ctx,
-				bizID: 2,
-				node:  []*types.TopoNode{},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.FindTopoNodePaths(tt.args.ctx, tt.args.bizID, tt.args.node)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FindTopoNodePaths() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			for index, path := range got {
-				t.Logf("index: %d, path: %+v", index, path)
-			}
-		})
-	}
-}
-
-// Test_handler_FindModuleBatch...
-func Test_handler_FindModuleBatch(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
-
-	type args struct {
-		ctx    context.Context
-		bizID  int64
-		ids    []int64
-		fields []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:    ctx,
-				bizID:  2,
-				ids:    []int64{1, 2, 3},
-				fields: []string{"bk_module_id", "bk_module_name"},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.FindModuleBatch(tt.args.ctx, tt.args.bizID, tt.args.ids, tt.args.fields)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FindModuleBatch() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			for index, module := range got {
-				t.Logf("index: %d, module: %+v", index, module)
-			}
 		})
 	}
 }
@@ -451,7 +295,7 @@ func Test_handler_SearchCloudVendor(t *testing.T) {
 			}
 
 			for index, attr := range got {
-				t.Logf("index: %d, attr: %+v", index, *attr)
+				t.Logf("index: %d, attr: %#v", index, *attr)
 			}
 		})
 	}
@@ -487,7 +331,7 @@ func Test_handler_SearchOsType(t *testing.T) {
 			}
 
 			for index, attr := range got {
-				t.Logf("index: %d, attr: %+v", index, *attr)
+				t.Logf("index: %d, attr: %#v", index, *attr)
 			}
 		})
 	}
@@ -515,7 +359,16 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 				hosts: []*types.Host{
 					{
 						Static: &types.HostStatic{
-							InnerIP:       "1.1.1.2",
+							InnerIP:       "1.1.1.3",
+							NetworkAreaID: 0,
+							OSType:        "1",
+							Arch:          "x86",
+							Addressing:    "static",
+						},
+					},
+					{
+						Static: &types.HostStatic{
+							InnerIP:       "1.1.1.4",
 							NetworkAreaID: 0,
 							OSType:        "1",
 							Arch:          "x86",
@@ -532,7 +385,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			created, err := h.AddHostToBusinessIdle(tt.args.ctx, tt.args.bizID, tt.args.hosts)
+			created, err := h.AddHostToBusinessIdle(tt.args.ctx, tt.args.bizID, tt.args.hosts[:1])
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddHostToBusinessIdle() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -540,6 +393,20 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 
 			for index, hostID := range created {
 				t.Logf("index: %d, host: %#v", index, hostID)
+			}
+
+			success, errmsg, err := h.AddHostToResourcePool(tt.args.ctx, tt.args.hosts[1:])
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddHostToResourcePool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, host := range success {
+				t.Logf("index: %d, host: %#v", index, host)
+			}
+
+			for index, msg := range errmsg {
+				t.Logf("index: %d, msg: %#v", index, msg)
 			}
 
 			var changeNetworkAreaID int64 = 3
@@ -567,6 +434,240 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnbindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+// Test_handler_ListResourcePoolHosts...
+func Test_handler_ListResourcePoolHosts(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx  context.Context
+		page types.Page
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+					Sort:   "",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListResourcePoolHosts(tt.args.ctx, tt.args.page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListResourcePoolHosts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, host := range got {
+				t.Logf("host: %#v", host)
+			}
+		})
+	}
+}
+
+func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx  context.Context
+		page types.Page
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListHostsWithoutBusiness(tt.args.ctx, tt.args.page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListHostsWithoutBusiness() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, host := range got {
+				t.Logf("host: %#v", host)
+			}
+		})
+	}
+}
+
+// Test_handler_DynamicGroup...
+func Test_handler_DynamicGroup(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx   context.Context
+		bizID int64
+		group *types.DynamicGroup
+		page  types.Page
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+				group: &types.DynamicGroup{
+					BizID: 2,
+					ObjID: "host",
+					Name:  "nodemgr_test",
+				},
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.SearchDynamicGroup(tt.args.ctx, tt.args.bizID, tt.args.page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchDynamicGroup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, group := range got {
+				t.Logf("index: %d, group: %#v", index, *group)
+
+				hosts, err := h.ExecuteHostDynamicGroup(tt.args.ctx, tt.args.bizID, group.ID, tt.args.page)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ExecuteDynamicGroup() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				for index, host := range hosts {
+					t.Logf("index: %d, host: %#v", index, *host)
+				}
+			}
+		})
+	}
+}
+
+// Test_handler_ListServiceTemplate...
+func Test_handler_ListServiceTemplate(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+
+	type args struct {
+		ctx   context.Context
+		bizID int64
+		page  types.Page
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				bizID: 2,
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+					Sort:   "",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListServiceTemplate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, serviceTemplate := range got {
+				t.Logf("index: %d, serviceTemplate: %#v", index, *serviceTemplate)
+			}
+		})
+	}
+}
+
+// Test_handler_FindHostByServiceTemplate...
+func Test_handler_FindHostByServiceTemplate(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+	type args struct {
+		ctx                context.Context
+		bizID              int64
+		serviceTemplateIDs []int64
+		page               types.Page
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:                ctx,
+				bizID:              2,
+				serviceTemplateIDs: []int64{1},
+				page: types.Page{
+					Offset: 0,
+					Limit:  500,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.FindHostByServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.serviceTemplateIDs,
+				tt.args.page)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindHostByServiceTemplate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, host := range got {
+				t.Logf("index: %d, host: %#v", index, *host)
 			}
 		})
 	}
