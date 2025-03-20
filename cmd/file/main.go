@@ -19,6 +19,7 @@ import (
 
 	machinerylog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/service"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/version"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -94,6 +95,9 @@ func main() {
 		Use:   "bk_nodeman_file",
 		Short: "bk-nodeman file server",
 		Long:  "bk-nodeman file server",
+		PreRun: func(_ *cobra.Command, _ []string) {
+			fmt.Println(version.GetStartInfo())
+		},
 		Run: func(_ *cobra.Command, _ []string) {
 			conf := config.NewFileService()
 			if err := conf.LoadFromFile(configPath); err != nil {
