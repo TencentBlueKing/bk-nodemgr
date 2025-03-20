@@ -39,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
@@ -84,6 +85,8 @@ const (
 
 // NewService creates a new backend service.
 func NewService(conf *config.BackendService) (*Service, error) {
+	loadSystemInfo(conf)
+
 	svc := &Service{
 		conf: conf,
 		Cap: &options.Capability{
@@ -165,6 +168,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	svc.registerRestServer(conf)
 
 	return svc, nil
+}
+
+func loadSystemInfo(conf *config.BackendService) {
+	system.SetEnv(conf.System.Env)
+	system.SetIP(conf.System.IPv4, conf.System.IPv6)
 }
 
 func (svc *Service) registerRestServer(conf *config.BackendService) {
