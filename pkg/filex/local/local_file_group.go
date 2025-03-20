@@ -204,6 +204,11 @@ func (group *LocalDir) Store(ctx context.Context, file iface.File, overwrite boo
 
 	defer lfile.Close()
 
+	return group.writeDataToFile(ctx, lfile, reader)
+}
+
+// writeDataToFile write data to local file.
+func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, reader io.ReadCloser) error {
 	// use bufio.NewWriter to improve performance.
 	writer := bufio.NewWriter(lfile)
 	defer writer.Flush()
