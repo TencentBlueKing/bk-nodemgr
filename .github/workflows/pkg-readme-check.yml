@@ -65,28 +65,46 @@ jobs:
           echo "HAS_MISSING: ${{ env.HAS_MISSING }}"
           echo "MISSING_DIRS: ${{ env.MISSING_DIRS }}"
 
+      - name: Generate comment body
+        if: env.HAS_MISSING == 'true'
+        id: generate-comment
+        run: |
+          # 将空格分隔的目录转换为Markdown列表
+          dirs="${{ env.MISSING_DIRS }}"
+          
+          # 构建Markdown列表
+          dir_list=""
+          for dir in $dirs; do
+            dir_list="$dir_list- \`$dir\`\n"
+          done
+          
+          # 创建完整评论
+          comment="## 📝 包文档缺失提醒\n\n"
+          comment+="### 检测到以下包缺少README.md文件：\n\n"
+          comment+="$dir_list\n"
+          comment+="### 📋 操作指南\n\n"
+          comment+="1. 请参考模板文件 \`docs/design/pkg_readme_template.md\` 创建README.md\n"
+          comment+="2. 文档应包含：\n"
+          comment+="   - 包的功能概述\n"
+          comment+="   - 设计原理\n"
+          comment+="   - 使用示例\n"
+          comment+="   - 接口说明\n"
+          comment+="3. 完成后将README.md添加到相应的包目录中\n\n"
+          comment+="> 💡 **为什么需要README？**\n"
+          comment+="> 良好的文档能够提高代码可维护性和促进团队协作。"
+          
+          # 输出到GITHUB_ENV，处理多行内容
+          delimiter="EOF_COMMENT"
+          echo "COMMENT<<$delimiter" >> $GITHUB_ENV
+          echo -e "$comment" >> $GITHUB_ENV
+          echo "$delimiter" >> $GITHUB_ENV
+          
+          echo "评论内容已生成"
+
       - name: Comment on PR
         if: env.HAS_MISSING == 'true'
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## 📝 包文档缺失提醒
-            
-            ### 检测到以下包缺少README.md文件：
-            
-            ${{ join(split(env.MISSING_DIRS, ' '), '\n- `') }}
-            
-            ### 📋 操作指南
-            
-            1. 请参考模板文件 `docs/design/pkg_readme_template.md` 创建README.md
-            2. 文档应包含：
-               - 包的功能概述
-               - 设计原理
-               - 使用示例
-               - 接口说明
-            3. 完成后将README.md添加到相应的包目录中
-            
-            > 💡 **为什么需要README？**
-            > 良好的文档能够提高代码可维护性和促进团队协作。
+          body: ${{ env.COMMENT }}
           token: ${{ secrets.GITHUB_TOKEN }}
