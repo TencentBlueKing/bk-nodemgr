@@ -1,0 +1,107 @@
+name: Package README Check
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'pkg/**'
+
+jobs:
+  check-pkg-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for packages without README
+        id: check-readmes
+        run: |
+          # 获取PR中的变更文件列表
+          PR_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          
+          # 初始化变量
+          MISSING_README_DIRS=""
+          
+          # 检测所有修改过的pkg目录
+          for FILE in $PR_FILES; do
+            if [[ $FILE == pkg/* ]]; then
+              PKG_DIR=$(dirname "$FILE")
+          
+              # 检查是否存在README.md文件
+              if [[ ! -f "$PKG_DIR/README.md" ]]; then
+                # 确保这是一个Go包目录 (至少包含一个.go文件)
+                if ls "$PKG_DIR"/*.go 1> /dev/null 2>&1; then
+                  MISSING_README_DIRS="${MISSING_README_DIRS}${PKG_DIR},"
+                fi
+              fi
+            fi
+          done
+          
+          # 移除末尾的逗号
+          MISSING_README_DIRS="${MISSING_README_DIRS%,}"
+          
+          # 将结果写入环境变量和输出变量
+          echo "MISSING_DIRS=${MISSING_README_DIRS}" >> $GITHUB_ENV
+          echo "DIRS_COUNT=$(echo $MISSING_README_DIRS | grep -o "," | wc -l)" >> $GITHUB_ENV
+          
+          if [ -n "$MISSING_README_DIRS" ]; then
+            echo "HAS_MISSING=true" >> $GITHUB_ENV
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+          else
+            echo "HAS_MISSING=false" >> $GITHUB_ENV
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "找到缺少README的目录: $MISSING_README_DIRS"
+          echo "目录数量: $DIRS_COUNT"
+          echo "是否有缺失: $HAS_MISSING"
+
+      # 直接判断环境变量
+      - name: Generate comment body
+        if: env.HAS_MISSING == 'true'
+        id: generate-comment
+        run: |
+          # 准备评论内容
+          IFS=',' read -r -a dirs <<< "$MISSING_DIRS"
+          
+          COMMENT="## 📝 包文档缺失提醒\n\n"
+          COMMENT+="### 检测到以下包缺少README.md文件：\n\n"
+          
+          for dir in "${dirs[@]}"; do
+            COMMENT+="- \`$dir\`\n"
+          done
+          
+          COMMENT+="\n### 📋 操作指南\n\n"
+          COMMENT+="1. 请参考模板文件 \`docs/design/pkg_readme_template.md\` 创建README.md\n"
+          COMMENT+="2. 文档应包含：\n"
+          COMMENT+="   - 包的功能概述\n"
+          COMMENT+="   - 设计原理\n"
+          COMMENT+="   - 使用示例\n"
+          COMMENT+="   - 接口说明\n"
+          COMMENT+="3. 完成后将README.md添加到相应的包目录中\n\n"
+          
+          COMMENT+="> 💡 **为什么需要README？**\n"
+          COMMENT+="> 良好的文档能够提高代码可维护性和促进团队协作。"
+          
+          # 将多行内容转为GitHub Actions可接受的格式
+          COMMENT="${COMMENT//'%'/'%25'}"
+          COMMENT="${COMMENT//$'\n'/'%0A'}"
+          COMMENT="${COMMENT//$'\r'/'%0D'}"
+          
+          echo "body=$COMMENT" >> $GITHUB_OUTPUT
+          echo "评论内容已生成"
+
+      # 使用一个专门的action来发表评论
+      - name: Create comment
+        if: env.HAS_MISSING == 'true'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.generate-comment.outputs.body }}
+          token: ${{ secrets.GITHUB_TOKEN }}
