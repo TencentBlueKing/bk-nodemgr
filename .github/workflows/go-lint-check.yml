@@ -2,9 +2,6 @@ name: Go Lint Check
 
 on:
   pull_request_target:
-    # 可以根据需要限定特定分支的 PR
-    # branches: [ main, master ]
-    # 可以根据需要限定仅当 Go 文件变更时触发
     paths:
       - '**.go'
       - 'go.mod'
@@ -13,9 +10,7 @@ on:
 
 permissions:
   contents: read
-  # 允许读取 PR 信息，用于"仅新问题"功能
   pull-requests: read
-  # 允许添加代码注释到 PR 中
   checks: write
 
 jobs:
@@ -23,20 +18,30 @@ jobs:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Check out PR source code
         uses: actions/checkout@v4
         with:
-          # 获取足够深度的历史记录以便进行比较
+          # 显式检出 PR 的源分支
+          ref: ${{ github.event.pull_request.head.sha }}
+          # 拉取完整历史以便比较
           fetch-depth: 0
+          # 对于分叉的PR可能需要此参数
+          # repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Fetch base branch for comparison
+        run: |
+          # 获取目标分支 (通常是 main/master)
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+          # 打印诊断信息
+          echo "PR head: $(git rev-parse HEAD)"
+          echo "Base branch: $(git rev-parse ${{ github.base_ref }})"
+          echo "Merge base: $(git merge-base ${{ github.base_ref }} HEAD)"
 
       - name: Run golangci-lint with config
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.64
-          verify: false
-          skip-cache: true
-          # 默认会自动使用项目根目录下的配置文件
           args: >
             --config=${{ github.workspace }}/.golangci.yml
             --timeout=5m
-            --issues-exit-code=0
+            --new-from-rev=origin/${{ github.base_ref }}
