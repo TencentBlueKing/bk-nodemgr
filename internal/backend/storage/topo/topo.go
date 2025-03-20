@@ -59,7 +59,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (St
 type storage struct {
 	base.Storage
 
-	daoBusiness business.Handler
+	daoBusiness business.IHandler
 
 	daoHost host.Handler
 

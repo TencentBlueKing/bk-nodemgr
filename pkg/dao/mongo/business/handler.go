@@ -24,8 +24,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Handler business handler interface.
-type Handler interface {
+// IHandler business Handler interface.
+type IHandler interface {
 	// ListAll list all business.
 	ListAll(ctx context.Context) ([]*types.Business, error)
 
@@ -39,7 +39,8 @@ type Handler interface {
 	UpsertMany(ctx context.Context, bizs ...*types.Business) error
 }
 
-type handler struct {
+// Handler business Handler.
+type Handler struct {
 	client *mongo.Database
 	logger logger.Logger
 	// daoMap stores dao's containing tenant information.
@@ -47,7 +48,7 @@ type handler struct {
 	daoMap sync.Map
 }
 
-func (h *handler) tenantDao(tenantID string) *dao {
+func (h *Handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao)
 	}
@@ -64,9 +65,9 @@ func (h *handler) tenantDao(tenantID string) *dao {
 	return d.(*dao)
 }
 
-// New create a new business handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
-	return &handler{
+// New create a new business Handler.
+func New(client *mongo.Database, logger logger.Logger) *Handler {
+	return &Handler{
 		client: client,
 		logger: logger,
 		daoMap: sync.Map{},
@@ -74,7 +75,7 @@ func New(client *mongo.Database, logger logger.Logger) Handler {
 }
 
 // ListAll list all business.
-func (h *handler) ListAll(ctx context.Context) ([]*types.Business, error) {
+func (h *Handler) ListAll(ctx context.Context) ([]*types.Business, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -98,7 +99,7 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Business, error) {
 }
 
 // Count counts business by opts.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return 0, err
@@ -113,7 +114,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 }
 
 // List list business by page and conditions.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	[]*types.Business, int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -157,7 +158,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 }
 
 // UpsertMany updates or inserts business.
-func (h *handler) UpsertMany(ctx context.Context, bizs ...*types.Business) error {
+func (h *Handler) UpsertMany(ctx context.Context, bizs ...*types.Business) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
