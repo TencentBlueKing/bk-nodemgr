@@ -12,55 +12,8 @@
 package config
 
 import (
+	"errors"
 	"fmt"
-	"os"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/envx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
-	"gopkg.in/yaml.v2"
-)
-
-const (
-	// backend service config default values.
-	defaultBackendRunMode        = RunModeRelease
-	defaultBackendTenantMode     = tenant.ModeSingle
-	defaultBackendHTTPBindIP     = "127.0.0.1"
-	defaultBackendHTTPPort       = 8000
-	defaultBackendAdminBindIP    = "127.0.0.1"
-	defaultBackendAdminPort      = 8001
-	defaultBackendCallbackBindIP = "127.0.0.1"
-	defaultBackendCallbackPort   = 8002
-	defaultBackendLogDir         = "/bk-nodeman/log/"
-	defaultBackendLogMaxNum      = 10
-	defaultBackendLogMaxSizeMB   = 200
-	defaultBackendLogLevel       = "INFO"
-
-	// application service config default values.
-	defaultApplicationRunMode       = RunModeRelease
-	defaultApplicationTenantMode    = tenant.ModeSingle
-	defaultApplicationAPIGwUser     = "admin"
-	defaultApplicationHTTPBindIP    = "127.0.0.1"
-	defaultApplicationHTTPPort      = 5000
-	defaultApplicationAdminBindIP   = "127.0.0.1"
-	defaultApplicationAdminPort     = 5001
-	defaultApplicationHTTPStaticDir = "/bk-nodeman/static/"
-	defaultApplicationLogDir        = "/bk-nodeman/log/"
-	defaultApplicationLogMaxNum     = 10
-	defaultApplicationLogMaxSizeMB  = 200
-	defaultApplicationLogLevel      = "INFO"
-	defaultEncryptKey               = "1234567890123456"
-
-	// file service config default values.
-	defaultFileRunMode      = RunModeRelease
-	defaultFileTenantMode   = tenant.ModeSingle
-	defaultFileHTTPBindIP   = "127.0.0.1"
-	defaultFileHTTPPort     = 6000
-	defaultFileAdminBindIP  = "127.0.0.1"
-	defaultFileAdminPort    = 6001
-	defaultFileLogDir       = "/bk-nodeman/log/"
-	defaultFileLogMaxNum    = 10
-	defaultFileLogMaxSizeMB = 200
-	defaultFileLogLevel     = "INFO"
 )
 
 // Etcd the config of etcd.
@@ -69,6 +22,27 @@ type Etcd struct {
 	Cert      string `yaml:"cert" usage:"cert file of etcd"`
 	Key       string `yaml:"key" usage:"key file for etcd"`
 	Ca        string `yaml:"ca" usage:"ca file for etcd"`
+}
+
+// Validate configures the config.
+func (conf Etcd) Validate() error {
+	if conf.Endpoints == "" {
+		return errors.New("endpoints of etcd is empty")
+	}
+
+	if conf.Cert == "" {
+		return errors.New("cert file of etcd is empty")
+	}
+
+	if conf.Key == "" {
+		return errors.New("key file of etcd is empty")
+	}
+
+	if conf.Ca == "" {
+		return errors.New("ca file of etcd is empty")
+	}
+
+	return nil
 }
 
 // Redis the config of redis.
@@ -81,6 +55,22 @@ type Redis struct {
 
 // Validate configures the config.
 func (conf Redis) Validate() error {
+	if conf.Host == "" {
+		return errors.New("host of redis is empty")
+	}
+
+	if conf.Port <= 0 {
+		return fmt.Errorf("port of redis must be greater than 0, port(%d)", conf.Port)
+	}
+
+	if conf.DB < 0 {
+		return fmt.Errorf("db of redis must be greater than or equal to 0, db(%d)", conf.DB)
+	}
+
+	if conf.Password == "" {
+		return errors.New("password of redis is empty")
+	}
+
 	return nil
 }
 
@@ -94,14 +84,83 @@ type MongoDB struct {
 	AuthMechanism string   `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
 }
 
+// Validate configures the config.
+func (conf MongoDB) Validate() error {
+	if len(conf.Hosts) == 0 {
+		return errors.New("hosts of mongodb is empty")
+	}
+
+	if conf.Username == "" {
+		return errors.New("username of mongodb is empty")
+	}
+
+	if conf.Password == "" {
+		return errors.New("password of mongodb is empty")
+	}
+
+	if conf.Database == "" {
+		return errors.New("database of mongodb is empty")
+	}
+
+	return nil
+}
+
+// LogLevel the log level of service.
+type LogLevel string
+
+const (
+	// LogLevelDebug debug level.
+	LogLevelDebug LogLevel = "DEBUG"
+
+	// LogLevelInfo info level.
+	LogLevelInfo LogLevel = "INFO"
+
+	// LogLevelWarn warn level.
+	LogLevelWarn LogLevel = "WARN"
+
+	// LogLevelError error level.
+	LogLevelError LogLevel = "ERROR"
+)
+
+// Validate validates the log level.
+func (logLevel LogLevel) Validate() error {
+	switch logLevel {
+	case LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError:
+		return nil
+	default:
+		return fmt.Errorf("invalid log level, level(%s)", logLevel)
+	}
+}
+
 // Log the config of log.
 type Log struct {
-	Dir          string `yaml:"dir" usage:"log dir of server"`
-	MaxSizeMB    int    `yaml:"maxSizeMB" usage:"max size in MBytes of single log file"`
-	MaxNum       int    `yaml:"maxNum" usage:"max number of log files"`
-	Level        string `yaml:"level" usage:"log level of server. DEBUG, INFO, WARN, ERROR"`
-	ToStdErr     bool   `yaml:"toStderr" usage:"log to stderr instead of files"`
-	AlsoToStdErr bool   `yaml:"alsoToStderr" usage:"log to stderr in addition to files"`
+	Dir          string   `yaml:"dir" usage:"log dir of server"`
+	MaxSizeMB    int      `yaml:"maxSizeMB" usage:"max size in MBytes of single log file"`
+	MaxNum       int      `yaml:"maxNum" usage:"max number of log files"`
+	Level        LogLevel `yaml:"level" usage:"log level of server. DEBUG, INFO, WARN, ERROR"`
+	ToStdErr     bool     `yaml:"toStderr" usage:"log to stderr instead of files"`
+	AlsoToStdErr bool     `yaml:"alsoToStderr" usage:"log to stderr in addition to files"`
+}
+
+// Validate validates the config.
+func (conf Log) Validate() error {
+	if conf.Dir == "" {
+		return errors.New("log dir is empty")
+	}
+
+	if conf.MaxSizeMB <= 0 {
+		return fmt.Errorf("max size of log file must be greater than 0, max-size(%d)", conf.MaxSizeMB)
+	}
+
+	if conf.MaxNum <= 0 {
+		return fmt.Errorf("max number of log files must be greater than 0, max-num(%d)", conf.MaxNum)
+	}
+
+	if err := conf.Level.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // HTTPServer the config of http service.
@@ -147,10 +206,48 @@ type APIGateway struct {
 	TLS TLSConfig `yaml:"tls" usage:"tls config of api-gateway"`
 }
 
+// Validate validates the config.
+func (conf APIGateway) Validate() error {
+	if len(conf.Endpoints) == 0 {
+		return errors.New("endpoints of api-gateway is empty")
+	}
+
+	if conf.AppCode == "" {
+		return errors.New("app code of api-gateway is empty")
+	}
+
+	if conf.AppSecret == "" {
+		return errors.New("app secret of api-gateway is empty")
+	}
+
+	if conf.AuthMode == "" {
+		return errors.New("auth mode of api-gateway is empty")
+	}
+
+	if err := conf.TLS.Validate(); err != nil {
+		return fmt.Errorf("tls config of api-gateway is invalid: %s", err)
+	}
+
+	return nil
+}
+
 // CMDB the config of cmdb.
 type CMDB struct {
 	SupplierAccount string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
 	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
+}
+
+// Validate validates the config.
+func (conf CMDB) Validate() error {
+	if conf.SupplierAccount == "" {
+		return errors.New("supplier account is empty")
+	}
+
+	if err := conf.APIGateway.Validate(); err != nil {
+		return fmt.Errorf("api-gateway config of cmdb is invalid: %s", err)
+	}
+
+	return nil
 }
 
 // TLSConfig defines tls related options.
@@ -166,6 +263,31 @@ type TLSConfig struct {
 	CAFile string `yaml:"caFile"`
 	// the password to decrypt the certificate
 	Password string `yaml:"password"`
+}
+
+// Validate validates the config.
+func (conf TLSConfig) Validate() error {
+	if conf.InsecureSkipVerify {
+		return nil
+	}
+
+	if conf.CertFile == "" {
+		return errors.New("cert file is empty")
+	}
+
+	if conf.KeyFile == "" {
+		return errors.New("key file is empty")
+	}
+
+	if conf.CAFile == "" {
+		return errors.New("ca file is empty")
+	}
+
+	if conf.Password == "" {
+		return errors.New("password is empty")
+	}
+
+	return nil
 }
 
 // Workflow the config of workflow.
@@ -193,272 +315,12 @@ const (
 	RunModeDebug RunMode = "debug"
 )
 
-// BackendService the config of backend service.
-type BackendService struct {
-	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
-	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	CMDB           CMDB           `yaml:"cmdb" usage:"cmdb config of backend service"`
-	Workflow       Workflow       `yaml:"workflow" usage:"workflow config of backend service"`
-	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of backend service"`
-	CallbackServer CallbackServer `yaml:"callbackServer" usage:"callback server config of backend service"`
-	Redis          Redis          `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log            Log            `yaml:"log" usage:"log config of backend service"`
-	EncryptKey     string         `yaml:"encryptKey" usage:"encrypt key of backend service"`
-}
-
-// NewBackendService generates a new BackendService with default values.
-func NewBackendService() *BackendService {
-	return &BackendService{
-		RunMode:    defaultBackendRunMode,
-		TenantMode: defaultBackendTenantMode,
-		HTTPServer: HTTPServer{
-			BindIP: defaultBackendHTTPBindIP,
-			Port:   defaultBackendHTTPPort,
-		},
-		AdminServer: AdminServer{
-			BindIP: defaultBackendAdminBindIP,
-			Port:   defaultBackendAdminPort,
-		},
-		CallbackServer: CallbackServer{
-			BindIP: defaultBackendCallbackBindIP,
-			Port:   defaultBackendCallbackPort,
-		},
-		Log: Log{
-			Dir:       defaultBackendLogDir,
-			MaxSizeMB: defaultBackendLogMaxSizeMB,
-			MaxNum:    defaultBackendLogMaxNum,
-			Level:     defaultBackendLogLevel,
-		},
-		EncryptKey: defaultEncryptKey,
-	}
-}
-
-// LoadFromFile loads config from file.
-func (b *BackendService) LoadFromFile(path string) error {
-	configContent, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	if err = yaml.Unmarshal(configContent, b); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Validate validates the config.
-func (b *BackendService) Validate() error {
-	if err := b.Workflow.Validate(); err != nil {
-		return err
+func (conf RunMode) Validate() error {
+	switch conf {
+	case RunModeRelease, RunModeDebug:
+		return nil
+	default:
+		return fmt.Errorf("invalid run mode: %s", conf)
 	}
-
-	return nil
-}
-
-// BackendGateway the config of backend gateway config.
-type BackendGateway struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of backend"`
-}
-
-// ApplicationService the config of application service.
-type ApplicationService struct {
-	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
-	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
-	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
-	AdminServer AdminServer    `yaml:"adminServer" usage:"admin server config of application service"`
-	Log         Log            `yaml:"log" usage:"log config of application service"`
-}
-
-// NewApplicationService generatea a new ApplicationService with default values.
-func NewApplicationService() *ApplicationService {
-	return &ApplicationService{
-		RunMode:    defaultApplicationRunMode,
-		TenantMode: defaultApplicationTenantMode,
-		HTTPServer: HTTPServer{
-			BindIP:    defaultApplicationHTTPBindIP,
-			Port:      defaultApplicationHTTPPort,
-			StaticDir: defaultApplicationHTTPStaticDir,
-		},
-		AdminServer: AdminServer{
-			BindIP: defaultApplicationAdminBindIP,
-			Port:   defaultApplicationAdminPort,
-		},
-		Log: Log{
-			Dir:       defaultApplicationLogDir,
-			MaxSizeMB: defaultApplicationLogMaxSizeMB,
-			MaxNum:    defaultApplicationLogMaxNum,
-			Level:     defaultApplicationLogLevel,
-		},
-	}
-}
-
-// Load loads config from file or environment variables.
-func (svc *ApplicationService) Load(filePath string) error {
-	// default options.
-	svc.RunMode = RunModeRelease
-
-	if filePath == "" {
-		return svc.LoadFromEnv()
-	}
-
-	return svc.LoadFromFile(filePath)
-}
-
-// LoadFromEnv loads config from environment variables.
-func (svc *ApplicationService) LoadFromEnv() error {
-	// run mode.
-	var runMode string
-	if envx.LoadString("NODEMAN_MODE", &runMode) {
-		svc.RunMode = RunMode(runMode)
-	}
-
-	// api_gateway.
-	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.Backend.AppCode); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("BKPAAS_APP_SECRET", &svc.Backend.AppSecret); err != nil {
-		return err
-	}
-	_ = envx.LoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
-	_ = envx.LoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
-	_ = envx.LoadString("NODEMAN_BACKEND_BK_TICKET", &svc.Backend.BkTicket)
-	_ = envx.LoadString("NODEMAN_BACKEND_BK_TOKEN", &svc.Backend.BkToken)
-	_ = envx.LoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
-	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
-		return err
-	}
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CERT", &svc.Backend.TLS.CertFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_KEY", &svc.Backend.TLS.KeyFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CA", &svc.Backend.TLS.CAFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_PASSWORD", &svc.Backend.TLS.Password)
-
-	// http_server.
-	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.HTTPServer.BindIP)
-	if _, err := envx.LoadInt("NODEMAN_HTTPSVR_PORT", &svc.HTTPServer.Port); err != nil {
-		return err
-	}
-
-	// log.
-	_ = envx.LoadString("NODEMAN_LOG_DIR", &svc.Log.Dir)
-	_ = envx.LoadString("NODEMAN_LOG_LEVEL", &svc.Log.Level)
-	if _, err := envx.LoadInt("NODEMAN_LOG_MAX_NUM", &svc.Log.MaxNum); err != nil {
-		return err
-	}
-	if _, err := envx.LoadInt("NODEMAN_LOG_MAX_SIZE_MB", &svc.Log.MaxSizeMB); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// LoadFromFile loads config from file.
-func (svc *ApplicationService) LoadFromFile(path string) error {
-	configContent, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	if err = yaml.Unmarshal(configContent, svc); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Validate validates the config.
-func (svc *ApplicationService) Validate() error {
-	// TODO: validate the config
-	return nil
-}
-
-// EnvGet read env, supports default value.
-func EnvGet(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-
-	return fallback
-}
-
-// EnvMustGet read env, panic if not set.
-func EnvMustGet(key string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-
-	panic(fmt.Sprintf("required environment variable %s unset", key))
-}
-
-// NewFileService generates a new FileService with default values.
-func NewFileService() *FileService {
-	return &FileService{
-		RunMode:    defaultFileRunMode,
-		TenantMode: defaultFileTenantMode,
-		HTTPServer: HTTPServer{
-			BindIP: defaultFileHTTPBindIP,
-			Port:   defaultFileHTTPPort,
-		},
-		AdminServer: AdminServer{
-			BindIP: defaultFileAdminBindIP,
-			Port:   defaultFileAdminPort,
-		},
-		Log: Log{
-			Dir:       defaultFileLogDir,
-			MaxSizeMB: defaultFileLogMaxSizeMB,
-			MaxNum:    defaultFileLogMaxNum,
-			Level:     defaultFileLogLevel,
-		},
-	}
-}
-
-// FileService the config of file service.
-type FileService struct {
-	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
-	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of file service"`
-	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of file service"`
-	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of file service"`
-	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of file service"`
-	Log            Log            `yaml:"log" usage:"log config of file service"`
-}
-
-// LoadFromFile loads config from file.
-func (b *FileService) LoadFromFile(path string) error {
-	configContent, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	if err = yaml.Unmarshal(configContent, b); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Validate validates the config.
-func (b *FileService) Validate() error {
-	if err := b.AgentFileGroup.Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// AgentFileGroup agent file group config.
-type AgentFileGroup struct {
-	FullPath string `yaml:"fullPath" usage:"full path of agent file group"`
-}
-
-// Validate validates the config.
-func (group *AgentFileGroup) Validate() error {
-	if group.FullPath == "" {
-		return fmt.Errorf("fullPath is empty")
-	}
-
-	return nil
 }

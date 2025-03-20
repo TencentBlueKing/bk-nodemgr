@@ -145,7 +145,7 @@ func (svc *Service) Start() error {
 	logConfig.LogDir = svc.conf.Log.Dir
 	logConfig.LogMaxSizeMB = svc.conf.Log.MaxSizeMB
 	logConfig.LogMaxNum = svc.conf.Log.MaxNum
-	logConfig.Level = svc.conf.Log.Level
+	logConfig.Level = string(svc.conf.Log.Level)
 	logConfig.ToStdErr = svc.conf.Log.ToStdErr
 	logConfig.AlsoToStdErr = svc.conf.Log.AlsoToStdErr
 	blog.InitLogs(logConfig)
