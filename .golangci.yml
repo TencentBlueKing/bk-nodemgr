@@ -245,7 +245,7 @@ issues:
   # much better don't allow issues in new code.
   #
   # Default: false
-  new: true
+  new: false
   # Show only new issues created after git revision `REV`.
   # Default: ""
   new-from-rev: master
