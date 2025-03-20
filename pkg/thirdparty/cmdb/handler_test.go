@@ -410,7 +410,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 			}
 
 			var changeNetworkAreaID int64 = 3
-			err = h.UpdateHostNetworkAreaField(tt.args.ctx, created, tt.args.bizID, changeNetworkAreaID)
+			err = h.UpdateHostNetworkAreaField(tt.args.ctx, tt.args.bizID, changeNetworkAreaID, created...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateHostNetworkAreaField() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -659,8 +659,8 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.FindHostByServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.serviceTemplateIDs,
-				tt.args.page)
+			got, err := h.FindHostByServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.page,
+				tt.args.serviceTemplateIDs...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindHostByServiceTemplate() error = %v, wantErr %v", err, tt.wantErr)
 				return
