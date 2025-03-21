@@ -611,7 +611,7 @@ linters-settings:
   interfacebloat:
     # The maximum number of methods allowed for an interface.
     # Default: 10
-    max: 15
+    max: 10
   cyclop:
     # The maximal code complexity to report.
     # Default: 10
