@@ -80,6 +80,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	return &types.DeploymentInfo{
 		OperInstID: info.OperInstID,
 		ActionName: info.ActionName,
+		HostID:     info.HostID,
 	}, nil
 }
 
@@ -107,6 +108,7 @@ func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment
 		Info: &Info{
 			OperInstID: data.Info.OperInstID,
 			ActionName: data.Info.ActionName,
+			HostID:     data.Info.HostID,
 		},
 		NodeConf: new(NodeConf),
 	}

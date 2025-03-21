@@ -72,6 +72,7 @@ func TestHandler_Create(t *testing.T) {
 					Info: &types.DeploymentInfo{
 						OperInstID: "123",
 						ActionName: "wait agent install",
+						HostID:     123,
 					},
 					NodeConf: &types.NodeConf{
 						PreSetting: map[string]any{

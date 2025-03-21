@@ -21,6 +21,7 @@ type NodeDeployment struct {
 type DeploymentInfo struct {
 	OperInstID string
 	ActionName string
+	HostID     int64
 }
 
 // NodeConf this is the node conf for node deployment.
