@@ -29,18 +29,6 @@ type Storage interface {
 	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
 		[]*types.Business, int64, error)
 
-	// UpsertManyHost updates or inserts host.
-	UpsertManyHost(ctx context.Context, host ...*types.Host) error
-
-	// UpsertManyHostStatic updates or inserts host statics.
-	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
-
-	// ListHost lists hosts by page and conditions.
-	ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
-
-	// CountHost counts hosts by conditions.
-	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
-
 	// ListNetworkArea lists networkarea by page and conditions.
 	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
@@ -91,4 +79,25 @@ type Storage interface {
 
 	// CreateManyTopoEvent creates multiple topo events.
 	CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error
+
+	// HostDao returns the host dao.
+	HostDao
+}
+
+// HostDao this interface defines the operations which is only for host.
+type HostDao interface {
+	// UpsertManyHost updates or inserts host.
+	UpsertManyHost(ctx context.Context, host ...*types.Host) error
+
+	// UpsertManyHostStatic updates or inserts host statics.
+	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
+
+	// UpdateManyHostDynamic updates host dynamic.
+	UpdateManyHostDynamic(ctx context.Context, host ...*types.Host) error
+
+	// ListHost lists hosts by page and conditions.
+	ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
+
+	// CountHost counts hosts by conditions.
+	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
 }
