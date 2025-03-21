@@ -27,6 +27,7 @@ type NodeDeployment struct {
 type Info struct {
 	OperInstID string `json:"oper_inst_id" bson:"oper_inst_id"`
 	ActionName string `json:"action_name" bson:"action_name"`
+	HostID     int64  `json:"host_id" bson:"host_id"`
 }
 
 // NodeConf this is the node conf for node deployment.
