@@ -109,6 +109,7 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 }
 
 // ListBusinesses lists businesses by page and conditions.
+// nolint: dupl
 func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
@@ -340,8 +341,8 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 	return s.daoHost.Count(ctx, opts...)
 }
 
-// nolint:cyclop
 // ListNetworkArea lists networkarea by page and conditions.
+// nolint: dupl,cyclop
 func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
@@ -405,6 +406,7 @@ func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...i
 }
 
 // ListNetworkUnit lists networkunit.
+// nolint: dupl
 func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
@@ -665,6 +667,7 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...types.Acce
 }
 
 // ListAccessPoint lists accesspoint.
+// nolint: dupl
 func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
