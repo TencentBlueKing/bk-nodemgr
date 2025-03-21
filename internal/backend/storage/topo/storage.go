@@ -22,29 +22,27 @@ import (
 type IStorage interface {
 	base.Interface
 
-	// UpsertManyBusiness updates or inserts a business.
-	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
+	IDaoNetworkArea
+	IDaoNetworkUnit
+	IDaoAccessPoint
+	IDaoHost
+}
 
-	// ListBusinesses lists businesses by page and conditions.
-	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
-		[]*types.Business, int64, error)
+// IDaoTopoEvent this interface defines the operations which is only for topo event.
+type IDaoTopoEvent interface {
+	// CountTopoEvent counts topo events by conditions.
+	CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error)
 
-	// ListNetworkArea lists networkarea by page and conditions.
-	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
-		[]*types.NetworkArea, int64, error)
+	// ListTopoEvent lists topo events by page and conditions.
+	ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+		[]*types.TopoEvent, int64, error)
 
-	// GetNetworkArea gets networkarea by id.
-	GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error)
+	// CreateManyTopoEvent creates multiple topo events.
+	CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error
+}
 
-	// UpsertManyNetworkArea updates or inserts networkarea.
-	UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error
-
-	// UpdateManyNetworkArea updates networkarea.
-	UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error
-
-	// DeleteManyNetworkArea deletes networkarea.
-	DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error
-
+// IDaoNetworkUnit this interface defines the operations which is only for network unit.
+type IDaoNetworkUnit interface {
 	// ListNetworkUnit lists networkunit by page and conditions.
 	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
@@ -62,30 +60,49 @@ type IStorage interface {
 
 	// DeleteManyNetworkUnit deletes networkunits.
 	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
+}
 
+// IDaoBusiness this interface defines the operations which is only for business.
+type IDaoBusiness interface {
+	// UpsertManyBusiness updates or inserts a business.
+	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
+
+	// ListBusinesses lists businesses by page and conditions.
+	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+		[]*types.Business, int64, error)
+}
+
+// IDaoNetworkArea this interface defines the operations which is only for network area.
+type IDaoNetworkArea interface {
+	// ListNetworkArea lists networkarea by page and conditions.
+	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
+		[]*types.NetworkArea, int64, error)
+
+	// GetNetworkArea gets networkarea by id.
+	GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error)
+
+	// UpsertManyNetworkArea updates or inserts networkarea.
+	UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error
+
+	// UpdateManyNetworkArea updates networkarea.
+	UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error
+
+	// DeleteManyNetworkArea deletes networkarea.
+	DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error
+}
+
+// IDaoAccessPoint this interface defines the operations which is only for accesspoint.
+type IDaoAccessPoint interface {
 	// CountAccessPoint counts accesspoint by conditions.
 	CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error)
 
 	// ListAccessPoint lists accesspoint by page and conditions.
 	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
-
-	// CountTopoEvent counts topo events by conditions.
-	CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error)
-
-	// ListTopoEvent lists topo events by page and conditions.
-	ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
-		[]*types.TopoEvent, int64, error)
-
-	// CreateManyTopoEvent creates multiple topo events.
-	CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error
-
-	// HostDao returns the host dao.
-	HostDao
 }
 
-// HostDao this interface defines the operations which is only for host.
-type HostDao interface {
+// IDaoHost this interface defines the operations which is only for host.
+type IDaoHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(ctx context.Context, host ...*types.Host) error
 
