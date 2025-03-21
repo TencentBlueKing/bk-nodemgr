@@ -3,6 +3,7 @@ package cmdb
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -43,7 +44,7 @@ type Handler interface {
 	SearchOsType(ctx context.Context) ([]*types.OsType, error)
 
 	// BindHostAgent bind host agent
-	BindHostAgent(ctx context.Context, hostAgentID []*types.Host) error
+	BindHostAgent(ctx context.Context, hostAgentID ...*types.Host) error
 
 	// UnbindHostAgent bind host agent
 	UnbindHostAgent(ctx context.Context, hostAgentID []*types.Host) error
@@ -408,10 +409,14 @@ func (h *handler) SearchOsType(ctx context.Context) ([]*types.OsType, error) {
 }
 
 // BindHostAgent bind host agent.
-func (h *handler) BindHostAgent(ctx context.Context, hostAgentID []*types.Host) error {
+func (h *handler) BindHostAgent(ctx context.Context, hostAgentID ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
+	}
+
+	if len(hostAgentID) == 0 {
+		return errors.New("host agent id list is empty")
 	}
 
 	req := &BindHostAgentReq{TenantID: tenantID}
