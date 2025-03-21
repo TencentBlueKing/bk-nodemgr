@@ -633,6 +633,10 @@
         },
         "bk_agent_id": {
           "type": "string"
+        },
+        "node_generation": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."

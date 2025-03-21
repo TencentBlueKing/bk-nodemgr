@@ -526,6 +526,10 @@ backend:
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
 
+    ## system: define the related settings of deployment environment.
+    system:
+      env: bk-dev
+
     ## defines the backend http server related settings.
     httpServer:
       bindIP: "0.0.0.0"

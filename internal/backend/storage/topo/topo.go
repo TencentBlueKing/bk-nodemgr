@@ -222,6 +222,7 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 					host.WithNodeRole(condition.Exact.NodeRole...),
 					host.WithNodeStatus(condition.Exact.NodeStatus...),
 					host.WithNodeVersion(condition.Exact.NodeVersion...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
 					host.WithAgentID(condition.Exact.AgentID...),
 				)
 			}

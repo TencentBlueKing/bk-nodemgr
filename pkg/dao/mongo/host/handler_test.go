@@ -182,8 +182,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 							OSType:        "centos",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "1.1.1",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "1.1.1",
+							NodeGeneration: 2,
 						},
 					},
 					{
@@ -197,8 +198,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 							OSType:        "centos",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "1.1.1",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "1.1.1",
+							NodeGeneration: 2,
 						},
 					},
 					{
@@ -212,8 +214,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 							OSType:        "centos",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleProxy,
-							NodeVersion: "1.1.2",
+							NodeRole:       types.NodeRoleProxy,
+							NodeVersion:    "1.1.2",
+							NodeGeneration: 2,
 						},
 					},
 				},
@@ -236,8 +239,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 							OSType:        "centos",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "1.1.1",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "1.1.1",
+							NodeGeneration: 2,
 						},
 					},
 				},
@@ -335,8 +339,9 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 							OSType:        "macos",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "wrong value",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "wrong value",
+							NodeGeneration: 2,
 						},
 					},
 				},
@@ -407,8 +412,9 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 						TenantID: "single",
 						Static:   nil,
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "1.1.1",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "1.1.1",
+							NodeGeneration: 2,
 						},
 					},
 				},
@@ -432,8 +438,9 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 							OSType:        "test",
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:    types.NodeRoleAgent,
-							NodeVersion: "1.1.2",
+							NodeRole:       types.NodeRoleAgent,
+							NodeVersion:    "1.1.2",
+							NodeGeneration: 2,
 						},
 					},
 				},

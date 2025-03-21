@@ -107,6 +107,7 @@ func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondit
 				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
 				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
 				NodeVersion:     condition.Exact.NodeVersion,
+				NodeGeneration:  condition.Exact.NodeGeneration,
 				BkAgentId:       condition.Exact.AgentID,
 			}
 		}
@@ -156,6 +157,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
+		*item.State.NodeGeneration = host.Dynamic.NodeGeneration
 		*item.State.BkAgentId = host.Dynamic.AgentID
 
 		items[idx] = item
@@ -202,11 +204,12 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			OSType:        info.GetBkOsType(),
 		}
 		host.Dynamic = &types.HostDynamic{
-			AgentID:       state.GetBkAgentId(),
-			NodeRole:      types.NodeRole(state.GetNodeRole()),
-			NodeStatus:    types.NodeStatus(state.GetNodeStatus()),
-			NodeVersion:   state.GetNodeVersion(),
-			NetworkUnitID: info.GetBkNetworkunitId(),
+			AgentID:        state.GetBkAgentId(),
+			NodeRole:       types.NodeRole(state.GetNodeRole()),
+			NodeStatus:     types.NodeStatus(state.GetNodeStatus()),
+			NodeVersion:    state.GetNodeVersion(),
+			NodeGeneration: state.GetNodeGeneration(),
+			NetworkUnitID:  info.GetBkNetworkunitId(),
 		}
 
 		result[idx] = host
@@ -236,10 +239,11 @@ func newEmptyHost() *Host {
 			BkOsTypeName:      new(string),
 		},
 		State: &HostState{
-			NodeRole:    new(string),
-			NodeStatus:  new(string),
-			NodeVersion: new(string),
-			BkAgentId:   new(string),
+			NodeRole:       new(string),
+			NodeStatus:     new(string),
+			NodeVersion:    new(string),
+			NodeGeneration: new(int64),
+			BkAgentId:      new(string),
 		},
 	}
 }

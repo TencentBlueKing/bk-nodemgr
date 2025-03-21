@@ -1254,6 +1254,13 @@
             "type": "string",
             "format": "int64"
           }
+        },
+        "node_generation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
         }
       }
     },

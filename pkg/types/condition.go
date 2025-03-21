@@ -58,15 +58,16 @@ type BusinessCondition struct {
 // HostExactFields defines the host exact fields.
 // support includes and excludes.
 type HostExactFields struct {
-	HostID        []int64
-	BizID         []int64
-	NetworkAreaID []int64
-	NetworkUnitID []int64
-	OSType        []string
-	NodeRole      []NodeRole
-	NodeStatus    []NodeStatus
-	NodeVersion   []string
-	AgentID       []string
+	HostID         []int64
+	BizID          []int64
+	NetworkAreaID  []int64
+	NetworkUnitID  []int64
+	OSType         []string
+	NodeRole       []NodeRole
+	NodeStatus     []NodeStatus
+	NodeVersion    []string
+	NodeGeneration []int64
+	AgentID        []string
 }
 
 // HostFuzzyFields defines the host fuzzy fields.

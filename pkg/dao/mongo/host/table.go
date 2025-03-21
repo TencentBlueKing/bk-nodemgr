@@ -39,11 +39,12 @@ type HostStatic struct {
 
 // HostDynamic represents a host dynamic information.
 type HostDynamic struct {
-	NodeRole      string `json:"node_role" bson:"node_role"`
-	NodeStatus    string `json:"node_status" bson:"node_status"`
-	NodeVersion   string `json:"node_version" bson:"node_version"`
-	AgentID       string `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID int64  `json:"networkunit_id" bson:"networkunit_id"`
+	NodeRole       string `json:"node_role" bson:"node_role"`
+	NodeStatus     string `json:"node_status" bson:"node_status"`
+	NodeVersion    string `json:"node_version" bson:"node_version"`
+	NodeGeneration int64  `json:"node_generation" bson:"node_generation"`
+	AgentID        string `json:"agent_id" bson:"agent_id"`
+	NetworkUnitID  int64  `json:"networkunit_id" bson:"networkunit_id"`
 }
 
 // Host represents a host.

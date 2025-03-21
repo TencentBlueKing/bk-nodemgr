@@ -173,6 +173,11 @@ func WithNodeVersion(versions ...string) OptFn {
 	return base.WithStringValues("data.dynamic.node_version", versions...)
 }
 
+// WithNodeGeneration filters by node generation.
+func WithNodeGeneration(generations ...int64) OptFn {
+	return base.WithInt64Values("data.dynamic.node_generation", generations...)
+}
+
 // WithoutNodeVersion filters by not contains node version.
 func WithoutNodeVersion(versions ...string) OptFn {
 	return base.WithoutStringValues("data.dynamic.node_version", versions...)
