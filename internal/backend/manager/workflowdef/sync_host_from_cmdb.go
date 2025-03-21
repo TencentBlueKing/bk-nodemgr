@@ -25,7 +25,7 @@ import (
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.Storage) operengine.ActionDef {
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.IStorage) operengine.ActionDef {
 	return &syncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
@@ -41,7 +41,7 @@ type SyncHostFromCMDBParam struct {
 // syncHostFromCMDB ...
 type syncHostFromCMDB struct {
 	cmdbHandler cmdb.Handler
-	topoStorage topo.Storage
+	topoStorage topo.IStorage
 }
 
 // Name ...

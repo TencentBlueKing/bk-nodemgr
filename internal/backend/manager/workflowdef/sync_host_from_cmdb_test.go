@@ -28,7 +28,7 @@ func Test_syncHostFromCMDB_Do(t *testing.T) {
 
 	type fields struct {
 		cmdbHandler cmdb.Handler
-		topoStorage topo.Storage
+		topoStorage topo.IStorage
 	}
 	type args struct {
 		ctx *operengine.ActionInstContext

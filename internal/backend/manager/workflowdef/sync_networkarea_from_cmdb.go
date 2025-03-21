@@ -24,7 +24,7 @@ import (
 )
 
 // NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.Storage) operengine.ActionDef {
+func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.IStorage) operengine.ActionDef {
 	return &syncNetworkAreaFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
@@ -39,7 +39,7 @@ type SyncNetworkAreaFromCMDBParam struct {
 // syncNetworkAreaFromCMDB defines the action.
 type syncNetworkAreaFromCMDB struct {
 	cmdbHandler cmdb.Handler
-	topoStorage topo.Storage
+	topoStorage topo.IStorage
 }
 
 // Name returns the name of the action.

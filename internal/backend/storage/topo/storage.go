@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Storage defines the storage interface.
-type Storage interface {
+// IStorage defines the storage interface.
+type IStorage interface {
 	base.Interface
 
 	// UpsertManyBusiness updates or inserts a business.

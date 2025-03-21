@@ -24,7 +24,7 @@ import (
 type handler struct {
 	rg          *gin.RouterGroup
 	manager     manager.Manager
-	storage     topo.Storage
+	storage     topo.IStorage
 	cmdbHandler cmdb.Handler
 	logger      logger.Logger
 }

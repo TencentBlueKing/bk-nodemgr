@@ -32,7 +32,7 @@ import (
 const StorageName = "topo"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IStorage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -55,7 +55,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (St
 	return s, nil
 }
 
-// storage implements the Storage interface.
+// storage implements the IStorage interface.
 type storage struct {
 	base.Storage
 
