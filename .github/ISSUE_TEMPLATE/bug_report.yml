@@ -1,0 +1,29 @@
+name: Bug 报告
+description: 提交一个缺陷报告
+title: "[Bug]: "
+labels: [ "bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写此缺陷报告！详细的问题描述有助于我们更快地定位和解决问题。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？
+      description: 请详细描述您遇到的问题，以及您期望的正常行为是什么
+      placeholder: 请详细描述您看到的问题现象...
+      value: "请描述问题的重现步骤：\n1. 进入页面...\n2. 点击...\n3. 滚动到...\n4. 出现错误..."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志输出
+      description: 请复制粘贴任何相关的日志输出。这将自动格式化为代码，无需添加反引号。
+      render: shell
+  - type: textarea
+    id: additional
+    attributes:
+      label: 附加信息
+      description: 请提供任何可能有助于解决问题的其他信息，如截图、视频等（可直接拖拽文件到此处）
