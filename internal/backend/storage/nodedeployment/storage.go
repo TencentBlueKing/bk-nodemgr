@@ -22,6 +22,14 @@ import (
 type IStorage interface {
 	base.Interface
 
+	IDaoNodeDeployment
+}
+
+// IDaoNodeDeployment defines the node deployment dao interface.
+type IDaoNodeDeployment interface {
 	// GetNodeConf get gse agent setting.
 	GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
+
+	// GetInfo get node deployment info.
+	GetInfo(ctx context.Context, token string) (*types.NodeDeployment, error)
 }
