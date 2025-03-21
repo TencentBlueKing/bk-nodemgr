@@ -37,6 +37,7 @@ type Polling struct {
 }
 
 // PollingOptsDefault default retry options.
+// nolint: mnd
 func PollingOptsDefault() PollingOpts {
 	return PollingOpts{
 		Timeout:  30 * time.Second,
@@ -55,7 +56,8 @@ func NewPolling(opts PollingOpts) *Polling {
 }
 
 // Do define the retrying logic.
-func (p Polling) Do(ctx context.Context, fn func(attempt int) error) error {
+// nolint: varnamelen
+func (p *Polling) Do(ctx context.Context, fn func(attempt int) error) error {
 	attempt := 0
 
 	timer := time.NewTimer(p.opts.Timeout)

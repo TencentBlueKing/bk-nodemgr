@@ -65,6 +65,7 @@ func NewExpoBackoff(opts ExpoBackoffOpts) *ExpoBackoff {
 }
 
 // calculateDelay calculate the delay time
+// nolint: varnamelen
 func (e *ExpoBackoff) calculateDelay(attempt int) time.Duration {
 	// cal base delay.
 	delay := float64(e.opts.BaseDelay) * math.Pow(2, float64(attempt))
@@ -80,6 +81,7 @@ func (e *ExpoBackoff) calculateDelay(attempt int) time.Duration {
 }
 
 // Do do the fn.
+// nolint: varnamelen
 func (e *ExpoBackoff) Do(ctx context.Context, fn func(attempt int) error) error {
 	var err error
 
