@@ -88,3 +88,21 @@ func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeCon
 
 	return nodeConf, nil
 }
+
+// GetInfo get node deployment info.
+func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
+	if ctx == nil {
+		return nil, base.ErrNilContent()
+	}
+
+	if token == "" {
+		return nil, base.ErrEmptyUniqueKey()
+	}
+
+	info, err := s.nodeDeploymentDao.GetInfo(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
