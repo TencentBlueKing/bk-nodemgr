@@ -165,9 +165,11 @@ func (conf Log) Validate() error {
 
 // HTTPServer the config of http service.
 type HTTPServer struct {
-	BindIP    string `yaml:"bindIP"`
-	Port      int    `yaml:"port"`
-	StaticDir string `yaml:"staticDir"`
+	BindIP        string `yaml:"bindIP"`
+	AdvertiseIPV4 string `yaml:"advertiseIPV4"`
+	AdvertiseIPV6 string `yaml:"advertiseIPV6"`
+	Port          int    `yaml:"port"`
+	StaticDir     string `yaml:"staticDir"`
 }
 
 // AdminServer the config of admin service.
@@ -179,9 +181,7 @@ type AdminServer struct {
 
 // CallbackServer the config of callback service.
 type CallbackServer struct {
-	BindIP    string `yaml:"bindIP"`
-	Port      int    `yaml:"port"`
-	StaticDir string `yaml:"staticDir"`
+	HTTPServer `yaml:",inline"`
 }
 
 // APIGateway the config of api-gateway.
@@ -327,17 +327,11 @@ func (conf RunMode) Validate() error {
 
 // System the info of deploy info.
 type System struct {
-	IPv4 string `yaml:"ipv4" usage:"ipv4 of system"`
-	IPv6 string `yaml:"ipv6" usage:"ipv6 of system"`
-	Env  string `yaml:"env" usage:"env of system"`
+	Env string `yaml:"env" usage:"env of system"`
 }
 
 // Validate validates the config.
 func (conf System) Validate() error {
-	if conf.IPv4 == "" && conf.IPv6 == "" {
-		return errors.New("ipv4 and ipv6 is empty")
-	}
-
 	if conf.Env == "" {
 		return errors.New("env is empty")
 	}

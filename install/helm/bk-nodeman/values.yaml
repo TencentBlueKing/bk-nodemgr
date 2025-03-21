@@ -497,7 +497,7 @@ backend:
   podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
-  hostNetwork: false
+  hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
@@ -535,6 +535,11 @@ backend:
     adminServer:
       bindIP: "0.0.0.0"
       port: 8001
+
+    ## defines the backend callback server related settings.
+    callbackServer:
+      bindIP: "0.0.0.0"
+      port: 8002
 
     ## defines the workflow related settings.
     workflow:
@@ -706,7 +711,7 @@ file:
   podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
-  hostNetwork: false
+  hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.

@@ -133,7 +133,7 @@ spec:
           volumeMounts:
             - name: nodeman-cert
               mountPath: {{ .Values.common.certPath }}
-            - name: {{ template "bk-nodeman.fullname" . }}-file-config
+            - name: nodeman-etc
               mountPath: {{ .Values.common.etcPath }}
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
@@ -181,6 +181,58 @@ spec:
             echo "check mongodb done"
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+        - name: {{ template "bk-nodeman.fullname" . }}-file-init
+          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          {{- else }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          {{- end }}
+          {{- else }}
+          image: {{ template "bk-nodeman.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command: ["sh", "-c"]
+          args:
+          - |
+            /bin/sh <<'EOF'
+
+            # for service api advertise ip, it may be ipv4 or ipv6 value which base on k8s node settings.
+            ADVERTISE_IP=${POD_IP}
+
+            # for agent schedule advertise ip, parsing ipv4 and ipv6 value which base on k8s node settings.
+            ips=$(echo "${POD_IPS}" | sed 's/,/ /g')
+            for ip in $ips; do
+              echo "$ip" | grep -q : 2>/dev/null
+              if [ $? -eq 0 ]; then
+                ADVERTISE_IPV6=$ip
+              else
+                ADVERTISE_IPV4=$ip
+              fi
+            done
+
+            # sed local config file.
+            cp /tmp/file_conf.yaml {{ .Values.common.etcPath }}/file_conf.yaml
+            sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/file_conf.yaml
+            sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/file_conf.yaml
+            
+            echo "local module init done"
+            EOF
+          env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_IPS
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIPs
+          volumeMounts:
+            - name: {{ template "bk-nodeman.fullname" . }}-file-config
+              mountPath: /tmp
+            - name: nodeman-etc
+              mountPath: {{ .Values.common.etcPath }}
+          resources: {{- toYaml .Values.initContainerResources | nindent 10 }}
       hostNetwork: {{ .Values.file.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:
@@ -190,4 +242,6 @@ spec:
       - name: {{ template "bk-nodeman.fullname" . }}-file-config
         configMap:
           name: {{ template "bk-nodeman.fullname" . }}-file-config
+      - name: nodeman-etc
+        emptyDir: {}
 {{- end }}
