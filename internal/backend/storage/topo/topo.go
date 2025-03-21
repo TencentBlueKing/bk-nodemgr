@@ -185,6 +185,23 @@ func (s *storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host
 	return nil
 }
 
+// UpdateManyHostDynamic updates host dynamics.
+func (s *storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) error {
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if len(hosts) == 0 {
+		return nil
+	}
+
+	if err := s.daoHost.UpdateDynamicMany(ctx, hosts...); err != nil {
+		return fmt.Errorf("failed to upsert host dynamics: %v", err)
+	}
+
+	return nil
+}
+
 // nolint:cyclop
 // ListHost lists hosts by page and conditions.
 func (s *storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
