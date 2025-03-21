@@ -23,7 +23,7 @@ import (
 )
 
 // NewActionGenAllBizHostSyncOper this action will create host sync operation for all business.
-func NewActionGenAllBizHostSyncOper(topoStorage topo.Storage, operMgr operengine.OperationMgr) operengine.ActionDef {
+func NewActionGenAllBizHostSyncOper(topoStorage topo.IStorage, operMgr operengine.OperationMgr) operengine.ActionDef {
 	return &genAllBizHostSyncOper{
 		topoStorage: topoStorage,
 		operMgr:     operMgr,
@@ -37,7 +37,7 @@ type GenAllBizHostSyncOperParam struct {
 
 // genAllBizHostSyncOper ...
 type genAllBizHostSyncOper struct {
-	topoStorage topo.Storage
+	topoStorage topo.IStorage
 	operMgr     operengine.OperationMgr
 }
 

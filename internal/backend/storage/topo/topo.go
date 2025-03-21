@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo provides topology storage for nodeman.
+// Package topo provides topology Storage for nodeman.
 package topo
 
 import (
@@ -32,12 +32,12 @@ import (
 const StorageName = "topo"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
 
-	s := &storage{
+	s := &Storage{
 		Storage: base.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
@@ -48,15 +48,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (St
 		base.WithStartFunc(s.initDao),
 		base.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new Storage failed, err: %v", err)
 		return nil, err
 	}
 
 	return s, nil
 }
 
-// storage implements the Storage interface.
-type storage struct {
+// Storage implements the IStorage interface.
+type Storage struct {
 	base.Storage
 
 	daoBusiness business.IHandler
@@ -72,7 +72,7 @@ type storage struct {
 	daoTopoEvent topoevent.Handler
 }
 
-func (s *storage) initDao() error {
+func (s *Storage) initDao() error {
 	s.daoBusiness = business.New(s.Database, s.Logger)
 	s.daoHost = host.New(s.Database, s.Logger)
 	s.daoNetworkArea = networkarea.New(s.Database, s.Logger)
@@ -83,7 +83,7 @@ func (s *storage) initDao() error {
 	return nil
 }
 
-func (s *storage) check() error {
+func (s *Storage) check() error {
 	if s.daoBusiness == nil {
 		return errors.New("dao business is nil")
 	}
@@ -92,7 +92,7 @@ func (s *storage) check() error {
 }
 
 // UpsertManyBusiness updates or inserts many business.
-func (s *storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error {
+func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -109,7 +109,7 @@ func (s *storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 }
 
 // ListBusinesses lists businesses by page and conditions.
-func (s *storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
 	opts := make([]business.OptFn, 0)
@@ -152,7 +152,7 @@ func (s *storage) ListBusinesses(ctx context.Context, page types.Page, condition
 }
 
 // UpsertManyHost upserts many hosts.
-func (s *storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -169,7 +169,7 @@ func (s *storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) erro
 }
 
 // UpsertManyHostStatic updates or inserts host statics.
-func (s *storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -186,7 +186,7 @@ func (s *storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host
 }
 
 // UpdateManyHostDynamic updates host dynamics.
-func (s *storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -204,7 +204,7 @@ func (s *storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 
 // nolint:cyclop
 // ListHost lists hosts by page and conditions.
-func (s *storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
+func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
 	[]*types.Host, int64, error) {
 
 	opts := make([]host.OptFn, 0)
@@ -274,7 +274,7 @@ func (s *storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 
 // nolint:cyclop
 // CountHost counts host by conditions.
-func (s *storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
+func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
@@ -342,7 +342,7 @@ func (s *storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 
 // nolint:cyclop
 // ListNetworkArea lists networkarea by page and conditions.
-func (s *storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
+func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
 	opts := make([]networkarea.OptFn, 0)
@@ -385,27 +385,27 @@ func (s *storage) ListNetworkArea(ctx context.Context, page types.Page, conditio
 }
 
 // GetNetworkArea gets networkarea by id.
-func (s *storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error) {
+func (s *Storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error) {
 	return s.daoNetworkArea.Get(ctx, networkAreaID)
 }
 
 // UpsertManyNetworkArea updates or inserts networkarea.
-func (s *storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error {
+func (s *Storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error {
 	return s.daoNetworkArea.UpsertMany(ctx, networkAreas...)
 }
 
 // UpdateManyNetworkArea updates networkarea.
-func (s *storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error {
+func (s *Storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error {
 	return s.daoNetworkArea.UpdateMany(ctx, networkArea...)
 }
 
 // DeleteManyNetworkArea deletes networkarea.
-func (s *storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error {
+func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error {
 	return s.daoNetworkArea.DeleteMany(ctx, networkAreaIDs...)
 }
 
 // ListNetworkUnit lists networkunit.
-func (s *storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
+func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
 	opts := make([]networkunit.OptFn, 0)
@@ -439,11 +439,11 @@ func (s *storage) ListNetworkUnit(ctx context.Context, page types.Page, conditio
 }
 
 // GetNetworkUnit gets networkunit by id.
-func (s *storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error) {
+func (s *Storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error) {
 	return s.daoNetworkUnit.Get(ctx, networkUnitID)
 }
 
-func (s *storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.NetworkUnit) error {
+func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.NetworkUnit) error {
 	upstreamNetworkUnitIDs := make([]int64, 0)
 	if networkUnit.Links.Cluster != nil {
 		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.Cluster.NetworkUnitID)
@@ -510,7 +510,7 @@ func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, 
 }
 
 // CreateNetworkUnit creates networkunit.
-func (s *storage) CreateNetworkUnit(
+func (s *Storage) CreateNetworkUnit(
 	ctx context.Context,
 	networkUnit *types.NetworkUnit,
 	accessPoints ...*types.AccessPoint) (int64, *AccessPointResult, error) {
@@ -559,7 +559,7 @@ func (s *storage) CreateNetworkUnit(
 }
 
 // UpdateNetworkUnit updates networkunit.
-func (s *storage) UpdateNetworkUnit(
+func (s *Storage) UpdateNetworkUnit(
 	ctx context.Context,
 	networkUnit *types.NetworkUnit,
 	accessPoints ...*types.AccessPoint) (*AccessPointResult, error) {
@@ -628,12 +628,12 @@ func (s *storage) UpdateNetworkUnit(
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
-func (s *storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error {
+func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error {
 	return s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...)
 }
 
 // CountAccessPoint counts accesspoint.
-func (s *storage) CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error) {
+func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error) {
 	opts := make([]accesspoint.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
@@ -665,7 +665,7 @@ func (s *storage) CountAccessPoint(ctx context.Context, conditions ...types.Acce
 }
 
 // ListAccessPoint lists accesspoint.
-func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
+func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
 	opts := make([]accesspoint.OptFn, 0)
@@ -699,7 +699,7 @@ func (s *storage) ListAccessPoint(ctx context.Context, page types.Page, conditio
 }
 
 // CountTopoEvent counts topo events.
-func (s *storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error) {
+func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error) {
 	opts := make([]topoevent.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
@@ -737,7 +737,7 @@ func (s *storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEv
 }
 
 // ListTopoEvent lists topo events.
-func (s *storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
 	[]*types.TopoEvent, int64, error) {
 
 	opts := make([]topoevent.OptFn, 0)
@@ -773,7 +773,7 @@ func (s *storage) ListTopoEvent(ctx context.Context, page types.Page, conditions
 }
 
 // CreateManyTopoEvent creates topo events.
-func (s *storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error {
+func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error {
 	return s.daoTopoEvent.CreateMany(ctx, events...)
 }
 

@@ -32,7 +32,7 @@ type Capability struct {
 	Manager manager.Manager
 
 	// TopoStorage bk nodeman topo storage.
-	TopoStorage topo.Storage
+	TopoStorage topo.IStorage
 
 	// TrigEngineStorage bk nodeman trigengine storage.
 	TrigEngineStorage trigengine.Storage

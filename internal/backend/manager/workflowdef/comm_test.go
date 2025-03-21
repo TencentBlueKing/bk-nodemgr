@@ -36,7 +36,7 @@ import (
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// TopoStorage bk nodeman topo storage.
-	TopoStorage topo.Storage
+	TopoStorage topo.IStorage
 
 	// TrigEngineStorage bk nodeman trigengine storage.
 	TrigEngineStorage trigengine.Storage

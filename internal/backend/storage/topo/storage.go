@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo provides topology storage interface.
+// Package topo provides topology Storage interface.
 package topo
 
 import (
@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Storage defines the storage interface.
-type Storage interface {
+// IStorage defines the Storage interface.
+type IStorage interface {
 	base.Interface
 
 	// UpsertManyBusiness updates or inserts a business.
