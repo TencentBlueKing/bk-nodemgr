@@ -1,0 +1,90 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package retrier ...
+package retrier
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+)
+
+// PollingOpts the options for retrying.
+type PollingOpts struct {
+	// Timeout is the timeout for the retry.
+	Timeout time.Duration
+
+	// Interval is the interval between retries.
+	Interval time.Duration
+
+	// Logger ...
+	Logger logger.Logger
+}
+
+// Polling the polling retryer.
+type Polling struct {
+	opts PollingOpts
+}
+
+// PollingOptsDefault default retry options.
+func PollingOptsDefault() PollingOpts {
+	return PollingOpts{
+		Timeout:  30 * time.Second,
+		Interval: 1 * time.Second,
+		Logger:   logger.LoggerDefault{},
+	}
+}
+
+// NewPolling new a polling retryer.
+func NewPolling(opts PollingOpts) *Polling {
+	retrier := &Polling{
+		opts: opts,
+	}
+
+	return retrier
+}
+
+// Do define the retrying logic.
+func (p Polling) Do(ctx context.Context, fn func(attempt int) error) error {
+	attempt := 0
+
+	timer := time.NewTimer(p.opts.Timeout)
+	defer timer.Stop()
+
+	ticker := time.NewTicker(p.opts.Interval)
+	defer ticker.Stop()
+
+	err := fn(attempt)
+	if err == nil {
+		return nil
+	}
+	p.opts.Logger.Warnf("retrying %d: %s", attempt, err.Error())
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timer.C:
+			return errors.New("reach max timeout")
+		case <-ticker.C:
+			attempt++
+			err := fn(attempt)
+			if err == nil {
+				return nil
+			}
+
+			p.opts.Logger.Warnf("fn failed, attempt(%d), retry-after(%vs), err: %v.",
+				attempt, p.opts.Interval.Seconds(), err)
+		}
+	}
+}
