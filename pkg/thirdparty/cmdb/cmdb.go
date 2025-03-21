@@ -34,6 +34,19 @@ type Config struct {
 	HeaderSetter    HeaderSetter
 }
 
+// Validate configures the config.
+func (conf *Config) Validate() error {
+	if conf.SupplierAccount == "" {
+		return fmt.Errorf("supplier account is empty")
+	}
+
+	if conf.HeaderSetter == nil {
+		return fmt.Errorf("header setter is nil")
+	}
+
+	return nil
+}
+
 // cli client for cmdb.
 type cli struct {
 	client rest.ClientInterface
@@ -44,6 +57,10 @@ type cli struct {
 func newClient(c *client.Capability, conf *Config) (*cli, error) {
 	restCli, err := rest.NewClient(c, "/api/v3")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
 
