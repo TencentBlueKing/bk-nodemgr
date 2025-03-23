@@ -21,18 +21,12 @@ import (
 type ProviderDefault struct {
 	mutex    sync.RWMutex
 	services map[ServiceName]map[string]Instance
-	selector Selector
 }
 
 // NewProviderDefault creates a new default provider.
-func NewProviderDefault(selector Selector) *ProviderDefault {
-	if selector == nil {
-		selector = NewRandomSelector()
-	}
-
+func NewProviderDefault() *ProviderDefault {
 	return &ProviderDefault{
 		services: make(map[ServiceName]map[string]Instance),
-		selector: selector,
 	}
 }
 
@@ -138,6 +132,10 @@ func (p *ProviderDefault) Deregister(serviceName ServiceName, instanceID string)
 	defer p.mutex.Unlock()
 
 	if _, exists := p.services[serviceName]; !exists {
+		return ErrNotRegistered()
+	}
+
+	if _, exists := p.services[serviceName][instanceID]; !exists {
 		return ErrNotRegistered()
 	}
 

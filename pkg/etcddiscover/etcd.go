@@ -175,8 +175,8 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 		return discover.ErrInvalidServiceName()
 	}
 
-	if instance.ID == "" {
-		return discover.ErrInvalidInstanceID()
+	if err := instance.Validate(); err != nil {
+		return err
 	}
 
 	lease, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
@@ -246,16 +246,16 @@ func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance 
 	}
 
 	holder := provider.getLocalInstanceHolder(serviceName)
-	instance, err := holder.get(instance.ID)
+	instanceOld, err := holder.get(instance.ID)
 	if err != nil {
 		return err
 	}
 
-	if instance.Meta == nil {
+	if instanceOld.Meta == nil {
 		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
 	}
 
-	leaseIDStr, ok := instance.Meta[metaKeyLeaseID]
+	leaseIDStr, ok := instanceOld.Meta[metaKeyLeaseID]
 	if !ok {
 		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
 	}
@@ -265,6 +265,9 @@ func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance 
 		return err
 	}
 
+	if instance.Meta == nil {
+		instance.Meta = make(map[string]string)
+	}
 	instance.Meta[metaKeyLeaseID] = leaseIDStr
 	content, err := json.Marshal(instance)
 	if err != nil {
@@ -322,7 +325,7 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 		return err
 	}
 
-	_, err = provider.etcdClient.Revoke(context.Background(), clientv3.LeaseID(leaseID))
+	_, err = provider.etcdClient.Revoke(provider.ctx, clientv3.LeaseID(leaseID))
 	if err != nil {
 		return err
 	}
@@ -432,7 +435,11 @@ func (provider *ProviderEtcd) keepListing() {
 }
 
 func (provider *ProviderEtcd) list(serviceName discover.ServiceName) {
-	resp, err := provider.etcdClient.Get(provider.ctx, provider.discoverPrefix, clientv3.WithPrefix())
+	resp, err := provider.etcdClient.Get(
+		provider.ctx,
+		filepath.Join(provider.discoverPrefix, string(serviceName)),
+		clientv3.WithPrefix(),
+	)
 	if err != nil {
 		provider.logger.Errorf("failed to list instances. service(%s), err: %s", serviceName, err)
 
@@ -512,17 +519,19 @@ func (holder *instanceHolder) upsert(instance discover.Instance) {
 	holder.instances[instance.ID] = instance
 }
 
-func (holder *instanceHolder) delete(id string) {
+func (holder *instanceHolder) delete(ids ...string) {
 	holder.mutex.Lock()
 	defer holder.mutex.Unlock()
 
-	delete(holder.instances, id)
+	for _, id := range ids {
+		delete(holder.instances, id)
+	}
 }
 
 func (holder *instanceHolder) deleteNotIn(ids []string) {
-	holder.mutex.Lock()
-	defer holder.mutex.Unlock()
+	needDeleteIDs := make([]string, 0)
 
+	holder.mutex.Lock()
 	for idInCache := range holder.instances {
 		found := false
 		for _, id := range ids {
@@ -534,9 +543,12 @@ func (holder *instanceHolder) deleteNotIn(ids []string) {
 		}
 
 		if !found {
-			holder.delete(idInCache)
+			needDeleteIDs = append(needDeleteIDs, idInCache)
 		}
 	}
+	holder.mutex.Unlock()
+
+	holder.delete(needDeleteIDs...)
 }
 
 func (holder *instanceHolder) all() []discover.Instance {
