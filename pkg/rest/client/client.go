@@ -17,7 +17,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 )
 
 const (

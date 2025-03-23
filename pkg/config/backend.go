@@ -48,6 +48,7 @@ type BackendService struct {
 	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of backend service"`
 	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of backend service"`
 	CallbackServer CallbackServer `yaml:"callbackServer" usage:"callback server config of backend service"`
+	Etcd           Etcd           `yaml:"etcd" usage:"etcd config of backend service"`
 	Redis          Redis          `yaml:"redis" usage:"redis config of backend service"`
 	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of backend service"`
 	Log            Log            `yaml:"log" usage:"log config of backend service"`

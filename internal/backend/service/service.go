@@ -32,13 +32,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -73,15 +75,10 @@ type Service struct {
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
 	Cap *options.Capability
+
+	// instance is the discover instance of the service.
+	instance discover.Instance
 }
-
-const (
-	// RouterNameHTTPServer defines the name of http server router.
-	RouterNameHTTPServer = "http-server"
-
-	// RouterNameAdminServer defines the name of admin server router.
-	RouterNameAdminServer = "admin-server"
-)
 
 // NewService creates a new backend service.
 func NewService(conf *config.BackendService) (*Service, error) {
@@ -92,6 +89,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
+		instance: discover.NewInstance("backend", nil),
 	}
 
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
@@ -102,6 +100,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
+		etcddiscover.WithLogger(svc.Cap.Logger),
+		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
+	)
 
 	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB)
 	if err != nil {
@@ -175,9 +178,14 @@ func loadSystemInfo(conf *config.BackendService) {
 }
 
 func (svc *Service) registerRestServer(conf *config.BackendService) {
-	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
-		loggerWriterAdaptor{},
-		nil,
+	httpServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameBackendBasic),
+			IP:        conf.HTTPServer.BindIP,
+			Port:      conf.HTTPServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
@@ -185,26 +193,44 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		withBasic(svc.Cap),
 	)
 	svc.servers = append(svc.servers, httpServer)
+	svc.instance.Update(discover.EndpointNameBackendBasic, discover.Endpoint{
+		IPV4: conf.HTTPServer.AdvertiseIPV4,
+		IPV6: conf.HTTPServer.AdvertiseIPV6,
+		Port: conf.HTTPServer.Port,
+	})
 
-	adminServer := rest.NewServer(svc.ctx, RouterNameAdminServer, conf.AdminServer.BindIP, conf.AdminServer.Port,
-		loggerWriterAdaptor{},
-		nil,
+	callbackServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameBackendCallback),
+			IP:        conf.CallbackServer.BindIP,
+			Port:      conf.CallbackServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
+		rest.WithPing(),
+		withCallback(svc.Cap),
+	)
+	svc.servers = append(svc.servers, callbackServer)
+	svc.instance.Update(discover.EndpointNameBackendCallback, discover.Endpoint{
+		IPV4: conf.CallbackServer.AdvertiseIPV4,
+		IPV6: conf.CallbackServer.AdvertiseIPV6,
+		Port: conf.CallbackServer.Port,
+	})
+
+	adminServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameBackendAdmin),
+			IP:        conf.AdminServer.BindIP,
+			Port:      conf.AdminServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withAdmin(svc.Cap),
 	)
-
 	svc.servers = append(svc.servers, adminServer)
-
-	callbackServer := rest.NewServer(svc.ctx, "callback", conf.CallbackServer.BindIP, conf.CallbackServer.Port,
-		loggerWriterAdaptor{},
-		nil,
-		rest.WithPing(),
-		withCallback(svc.Cap),
-	)
-
-	svc.servers = append(svc.servers, callbackServer)
 }
 
 func initRedis(conf *config.Redis) (*redis.Client, error) {
@@ -386,6 +412,12 @@ func (svc *Service) Start() error {
 			return nil
 		}
 		gp.Go(fn)
+	}
+
+	// after all servers brings up, register the instance into discover provider.
+	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameBackend, svc.instance); err != nil {
+		blog.Errorf("failed to register instance, err: %v", err)
+		return err
 	}
 
 	// wait until all servers stopped or application error.

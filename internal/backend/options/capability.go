@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -57,10 +58,17 @@ type Capability struct {
 
 	// Crypter ...
 	Crypter crypter.Crypter
+
+	// Discover provides discover handler.
+	DiscoverProvider discover.Provider
 }
 
 // Start ...
 func (c *Capability) Start(ctx context.Context) error {
+	if err := c.DiscoverProvider.Start(); err != nil {
+		return err
+	}
+
 	if err := c.TopoStorage.Start(ctx); err != nil {
 		return err
 	}

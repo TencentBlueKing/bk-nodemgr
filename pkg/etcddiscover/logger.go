@@ -8,34 +8,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package options provides the various capabilities the service supports.
-package options
+package etcddiscover
 
 import (
-	"context"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"log"
 )
 
-// Capability encapsulates the various capabilities the service supports.
-type Capability struct {
-	// Logger logger
-	Logger logger.Logger
-
-	// AgentFileGroup agent file group.
-	AgentFileGroup iface.FileGroup
-
-	// Discover provides discover handler.
-	DiscoverProvider discover.Provider
+// Logger logger in discover.
+type Logger interface {
+	Infof(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
 }
 
-// Start start the capability.
-func (c *Capability) Start(_ context.Context) error {
-	if err := c.DiscoverProvider.Start(); err != nil {
-		return err
-	}
+// defaultLogger default logger logs to stdout.
+type defaultLogger struct{}
 
-	return nil
+// Infof logs info messages.
+func (d defaultLogger) Infof(format string, args ...interface{}) {
+	log.Printf(format, args...)
+}
+
+// Errorf logs error messages.
+func (d defaultLogger) Errorf(format string, args ...interface{}) {
+	log.Printf(format, args...)
 }

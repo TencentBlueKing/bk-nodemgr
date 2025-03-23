@@ -22,8 +22,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -53,15 +55,10 @@ type Service struct {
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
 	Cap *options.Capability
+
+	// instance is the discover instance of the service.
+	instance discover.Instance
 }
-
-const (
-	// RouterNameHTTPServer defines the name of http server router.
-	RouterNameHTTPServer = "http-server"
-
-	// RouterNameAdminServer defines the name of admin server router.
-	RouterNameAdminServer = "admin-server"
-)
 
 // NewService creates a new file service.
 func NewService(conf *config.FileService) (*Service, error) {
@@ -70,6 +67,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
+		instance: discover.NewInstance("file", nil),
 	}
 
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
@@ -80,24 +78,43 @@ func NewService(conf *config.FileService) (*Service, error) {
 		return nil, errors.New("init agent file group failed")
 	}
 
-	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
-		loggerWriterAdaptor{},
-		nil,
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
+		etcddiscover.WithLogger(svc.Cap.Logger),
+		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
+	)
+
+	httpServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameFileBasic),
+			IP:        conf.HTTPServer.BindIP,
+			Port:      conf.HTTPServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withDownload(svc.Cap),
 	)
 	svc.servers = append(svc.servers, httpServer)
+	svc.instance.Update(discover.EndpointNameFileBasic, discover.Endpoint{
+		IPV4: conf.HTTPServer.AdvertiseIPV4,
+		IPV6: conf.HTTPServer.AdvertiseIPV6,
+		Port: conf.HTTPServer.Port,
+	})
 
-	adminServer := rest.NewServer(svc.ctx, RouterNameAdminServer, conf.AdminServer.BindIP, conf.AdminServer.Port,
-		loggerWriterAdaptor{},
-		nil,
+	adminServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameFileAdmin),
+			IP:        conf.AdminServer.BindIP,
+			Port:      conf.AdminServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 	)
-
 	svc.servers = append(svc.servers, adminServer)
 
 	return svc, nil
@@ -150,9 +167,13 @@ func (svc *Service) Start() error {
 	logConfig.AlsoToStdErr = svc.conf.Log.AlsoToStdErr
 	blog.InitLogs(logConfig)
 
+	if err := svc.Cap.Start(svc.ctx); err != nil {
+		return err
+	}
+
 	// start servers
 	gp := gopool.NewPool()
-	for idx, _ := range svc.servers {
+	for idx := range svc.servers {
 		server := svc.servers[idx]
 
 		// server start will block until server stop, so we need to run it in a goroutine.
@@ -166,6 +187,12 @@ func (svc *Service) Start() error {
 			return nil
 		}
 		gp.Go(fn)
+	}
+
+	// after all servers brings up, register the instance into discover provider.
+	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameFile, svc.instance); err != nil {
+		blog.Errorf("failed to register instance, err: %v", err)
+		return err
 	}
 
 	// wait until all servers stopped or application error.

@@ -26,8 +26,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
@@ -88,13 +89,19 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 }
 
 func (svc *Service) registerRestServer(conf *config.ApplicationService) {
-	httpServer := rest.NewServer(svc.ctx, RouterNameHTTPServer, conf.HTTPServer.BindIP, conf.HTTPServer.Port,
-		loggerWriter{},
-		rest.NewStaticOptions(conf.HTTPServer.StaticDir).
-			WithHTMLs("index.html").
-			WithDirs("assets").
-			WithDirs("images").
-			WithFiles("bk.svg", "favicon.png", "nodeman.png"),
+	httpServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameApplicationBasic),
+			IP:        conf.HTTPServer.BindIP,
+			Port:      conf.HTTPServer.Port,
+			LogWriter: loggerWriter{},
+			StaticOptions: rest.NewStaticOptions(conf.HTTPServer.StaticDir).
+				WithHTMLs("index.html").
+				WithDirs("assets").
+				WithDirs("images").
+				WithFiles("bk.svg", "favicon.png", "nodeman.png"),
+		},
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),

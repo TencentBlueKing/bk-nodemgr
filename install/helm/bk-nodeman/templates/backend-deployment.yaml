@@ -294,4 +294,6 @@ spec:
       - name: {{ template "bk-nodeman.fullname" . }}-backend-config
         configMap:
           name: {{ template "bk-nodeman.fullname" . }}-backend-config
+      - name: nodeman-etc
+        emptyDir: {}
 {{- end }}

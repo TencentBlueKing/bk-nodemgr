@@ -21,24 +21,51 @@ import (
 func testProviderDefault(t *testing.T) *ProviderDefault {
 	provider := NewProviderDefault(&RandomSelector{})
 
-	err := provider.Register(context.Background(), "test", []Instance{
+	err := provider.Register(ServiceNameBackend, []Instance{
 		{
-			ID:      "1",
-			Name:    "test1",
-			Address: "192.168.186.2",
-			Meta:    nil,
+			ID:   "1",
+			Name: "test1",
+			Endpoints: map[EndpointName]Endpoint{
+				EndpointNameBackendBasic: {
+					IPV4: "192.168.186.2",
+					Port: 8000,
+				},
+				EndpointNameBackendCallback: {
+					IPV4: "192.168.186.2",
+					Port: 8001,
+				},
+			},
+			Meta: nil,
 		},
 		{
-			ID:      "2",
-			Name:    "test2",
-			Address: "192.168.186.3",
-			Meta:    nil,
+			ID:   "2",
+			Name: "test2",
+			Endpoints: map[EndpointName]Endpoint{
+				EndpointNameBackendBasic: {
+					IPV4: "192.168.186.3",
+					Port: 8000,
+				},
+				EndpointNameBackendCallback: {
+					IPV4: "192.168.186.3",
+					Port: 8001,
+				},
+			},
+			Meta: nil,
 		},
 		{
-			ID:      "3",
-			Name:    "test3",
-			Address: "192.168.186.6",
-			Meta:    nil,
+			ID:   "3",
+			Name: "test3",
+			Endpoints: map[EndpointName]Endpoint{
+				EndpointNameBackendBasic: {
+					IPV4: "192.168.186.4",
+					Port: 8000,
+				},
+				EndpointNameBackendCallback: {
+					IPV4: "192.168.186.4",
+					Port: 8001,
+				},
+			},
+			Meta: nil,
 		},
 	}...)
 
@@ -49,11 +76,10 @@ func testProviderDefault(t *testing.T) *ProviderDefault {
 	return provider
 }
 
-// TestProviderDefault_GetAllService ...
+// TestProviderDefault_GetAllService test GetAllService.
 func TestProviderDefault_GetAllService(t *testing.T) {
 	type args struct {
-		in0         context.Context
-		serviceName string
+		serviceName ServiceName
 	}
 	tests := []struct {
 		name    string
@@ -64,27 +90,53 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				in0:         context.Background(),
-				serviceName: "test",
+				serviceName: ServiceNameBackend,
 			},
 			want: []Instance{
 				{
-					ID:      "1",
-					Name:    "test1",
-					Address: "192.168.186.2",
-					Meta:    nil,
+					ID:   "1",
+					Name: "test1",
+					Endpoints: map[EndpointName]Endpoint{
+						EndpointNameBackendBasic: {
+							IPV4: "192.168.186.2",
+							Port: 8000,
+						},
+						EndpointNameBackendCallback: {
+							IPV4: "192.168.186.2",
+							Port: 8001,
+						},
+					},
+					Meta: nil,
 				},
 				{
-					ID:      "2",
-					Name:    "test2",
-					Address: "192.168.186.3",
-					Meta:    nil,
+					ID:   "2",
+					Name: "test2",
+					Endpoints: map[EndpointName]Endpoint{
+						EndpointNameBackendBasic: {
+							IPV4: "192.168.186.3",
+							Port: 8000,
+						},
+						EndpointNameBackendCallback: {
+							IPV4: "192.168.186.3",
+							Port: 8001,
+						},
+					},
+					Meta: nil,
 				},
 				{
-					ID:      "3",
-					Name:    "test3",
-					Address: "192.168.186.6",
-					Meta:    nil,
+					ID:   "3",
+					Name: "test3",
+					Endpoints: map[EndpointName]Endpoint{
+						EndpointNameBackendBasic: {
+							IPV4: "192.168.186.4",
+							Port: 8000,
+						},
+						EndpointNameBackendCallback: {
+							IPV4: "192.168.186.4",
+							Port: 8001,
+						},
+					},
+					Meta: nil,
 				},
 			},
 		},
@@ -92,7 +144,7 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := testProviderDefault(t)
-			got, err := p.GetAllService(tt.args.in0, tt.args.serviceName)
+			got, err := p.GetAllService(tt.args.serviceName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -112,12 +164,79 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 	}
 }
 
-// TestProviderDefault_GetService ...
-func TestProviderDefault_GetService(t *testing.T) {
+// TestProviderDefault_GetAllEndpoint test GetAllEndpoint.
+func TestProviderDefault_GetAllEndpoint(t *testing.T) {
 	type args struct {
-		ctx         context.Context
-		serviceName string
-		selector    Selector
+		ctx          context.Context
+		serviceName  ServiceName
+		endpointName EndpointName
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []Endpoint
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:          context.Background(),
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendBasic,
+			},
+			want: []Endpoint{
+				{
+					IPV4: "192.168.186.2",
+					Port: 8000,
+				},
+				{
+					IPV4: "192.168.186.3",
+					Port: 8000,
+				},
+				{
+					IPV4: "192.168.186.4",
+					Port: 8000,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := testProviderDefault(t)
+			got, err := p.GetAllEndpoint(tt.args.serviceName, tt.args.endpointName)
+			if err != nil {
+				t.Logf("GetAllEndpoint() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAllEndpoint() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, wantEndpoint := range tt.want {
+				found := false
+				for _, gotEndpoint := range got {
+					if reflect.DeepEqual(wantEndpoint, gotEndpoint) {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					t.Errorf("GetAllEndpoint() want endpoint = %v, not found", wantEndpoint)
+				}
+			}
+			t.Logf("GetAllEndpoint() got = %v", got)
+		})
+	}
+}
+
+// TestProviderDefault_GetEndpoint test GetEndpoint.
+func TestProviderDefault_GetEndpoint(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		serviceName  ServiceName
+		endpointName EndpointName
 	}
 	tests := []struct {
 		name    string
@@ -127,26 +246,24 @@ func TestProviderDefault_GetService(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:         context.Background(),
-				serviceName: "test",
-				selector:    &RandomSelector{},
+				ctx:          context.Background(),
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
 			},
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := testProviderDefault(t)
-			got, err := p.GetService(tt.args.ctx, tt.args.serviceName, tt.args.selector)
-			if err != nil {
-				t.Logf("GetService() error = %v", err)
-			}
+			got, err := p.GetEndpoint(tt.args.serviceName, tt.args.endpointName, NewRandomSelector())
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetService() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			t.Logf("GetService() got = %v", got)
+			t.Logf("GetEndpoint() got = %v", got)
 		})
 	}
 }

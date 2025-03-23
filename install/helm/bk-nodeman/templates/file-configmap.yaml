@@ -26,6 +26,17 @@ data:
 
     log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 
+    etcd:
+      {{- if .Values.etcd.enabled }}
+      endpoints:
+        - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
+      {{- else }}
+      endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
+      ca: {{ .Values.externalEtcd.ca }}
+      cert: {{ .Values.externalEtcd.cert }}
+      key: {{ .Values.externalEtcd.key }}
+      {{- end}}
+
     mongodb:
       {{- if .Values.mongodb.enabled }}
       hosts:

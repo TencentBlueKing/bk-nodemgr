@@ -12,7 +12,6 @@
 package discover
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -20,19 +19,89 @@ import (
 
 // Provider this defines the interface of a complete service discovery provider.
 type Provider interface {
+	// Discover provides discovering interface.
 	Discover
-	Watcher
+
+	// Registry provides registry interface.
 	Registry
-	Close()
+
+	// Start starts the provider.
+	Start() error
+
+	// Stop stops the provider.
+	Stop() error
 }
 
+// EndpointName the name of endpoint.
+type EndpointName string
+
+const (
+	// EndpointNameBackendBasic the backend endpoint name.
+	EndpointNameBackendBasic EndpointName = "backend-basic"
+	// EndpointNameBackendAdmin the backend admin endpoint name.
+	EndpointNameBackendAdmin EndpointName = "backend-admin"
+	// EndpointNameBackendCallback the backend callback endpoint name.
+	EndpointNameBackendCallback EndpointName = "backend-callback"
+	// EndpointNameApplicationBasic the application basic endpoint name.
+	EndpointNameApplicationBasic EndpointName = "application-basic"
+	// EndpointNameApplicationAdmin the application admin endpoint name.
+	EndpointNameApplicationAdmin EndpointName = "application-admin"
+	// EndpointNameFileBasic the file basic endpoint name.
+	EndpointNameFileBasic EndpointName = "file-basic"
+	// EndpointNameFileAdmin the file admin endpoint name.
+	EndpointNameFileAdmin EndpointName = "file-admin"
+)
+
+// Endpoint defines the exported endpoint of service on discover.
+type Endpoint struct {
+	IPV4 string            `json:"ipv4"`
+	IPV6 string            `json:"ipv6"`
+	Port int               `json:"port"`
+	Nice int               `json:"nice"`
+	Meta map[string]string `json:"meta"`
+}
+
+// Validate validates the endpoint.
+func (ep *Endpoint) Validate() error {
+	if ep.IPV4 == "" && ep.IPV6 == "" {
+		return ErrInvalidServiceIP()
+	}
+	if ep.Port == 0 {
+		return ErrInvalidServiceIP()
+	}
+
+	return nil
+}
+
+// GetIPV4Address returns the ipv4 address of the service.
+func (ep *Endpoint) GetIPV4Address() string {
+	return fmt.Sprintf("%s:%d", ep.IPV4, ep.Port)
+}
+
+// GetIPV6Address returns the ipv6 address of the service.
+func (ep *Endpoint) GetIPV6Address() string {
+	return fmt.Sprintf("[%s]:%d", ep.IPV6, ep.Port)
+}
+
+// ServiceName the name of service to register.
+type ServiceName string
+
+const (
+	// ServiceNameBackend the backend service name.
+	ServiceNameBackend ServiceName = "backend"
+	// ServiceNameApplication the application service name.
+	ServiceNameApplication ServiceName = "application"
+	// ServiceNameFile the file service name.
+	ServiceNameFile ServiceName = "file"
+)
+
 // NewInstance creates a new instance.
-func NewInstance(name, address string, meta map[string]string) Instance {
+func NewInstance(name string, meta map[string]string) Instance {
 	inst := Instance{
-		ID:      fmt.Sprintf("%s-%s-%s", name, address, uuid.NewString()),
-		Name:    name,
-		Address: address,
-		Meta:    meta,
+		ID:        fmt.Sprintf("%s-%s", name, uuid.NewString()),
+		Name:      name,
+		Endpoints: make(map[EndpointName]Endpoint),
+		Meta:      meta,
 	}
 
 	return inst
@@ -40,10 +109,10 @@ func NewInstance(name, address string, meta map[string]string) Instance {
 
 // Instance this defines a service instance.
 type Instance struct {
-	ID      string
-	Name    string
-	Address string
-	Meta    map[string]string
+	ID        string                    `json:"id"`
+	Name      string                    `json:"name"`
+	Endpoints map[EndpointName]Endpoint `json:"endpoints"`
+	Meta      map[string]string         `json:"meta"`
 }
 
 // Validate validates the instance.
@@ -54,40 +123,48 @@ func (instance *Instance) Validate() error {
 	if instance.Name == "" {
 		return ErrInvalidInstanceName()
 	}
-	if instance.Address == "" {
-		return ErrInvalidInstanceAddress()
-	}
 
 	return nil
+}
+
+// Update updates the instance.
+func (instance *Instance) Update(endpointName EndpointName, endpoint Endpoint) *Instance {
+	if instance.Endpoints == nil {
+		instance.Endpoints = make(map[EndpointName]Endpoint)
+	}
+
+	instance.Endpoints[endpointName] = endpoint
+
+	return instance
 }
 
 // Discover this defines the interface of service discovery.
 type Discover interface {
 	// GetAllService get all specific service instances.
-	GetAllService(ctx context.Context, serviceName string) ([]Instance, error)
+	GetAllService(serviceName ServiceName) ([]Instance, error)
 
-	// GetService get one with the selector.
-	GetService(ctx context.Context, serviceName string, selector Selector) (Instance, error)
+	// GetAllEndpoint get all specific service endpoints.
+	GetAllEndpoint(serviceName ServiceName, endpointName EndpointName) ([]Endpoint, error)
+
+	// GetEndpoint get a specific service endpoint.
+	GetEndpoint(serviceName ServiceName, endpointName EndpointName, selector Selector) (
+		Endpoint, error)
 }
 
 // Registry this defines the interface of service registry.
 type Registry interface {
 	// Register registers a service instance.
-	Register(ctx context.Context, serviceName string, instance Instance) error
+	Register(serviceName ServiceName, instance Instance) error
+
+	// Update updates a service instance.
+	Update(serviceName ServiceName, instance Instance) error
 
 	// Deregister deregisters a service instance.
-	Deregister(ctx context.Context, serviceName string, instanceID string) error
+	Deregister(serviceName ServiceName, instanceID string) error
 }
 
-// Watcher this defines the interface of service watcher.
-type Watcher interface {
-	// Watch watches the changes of a service.
-	// this will return a channel that can get the all latest instances of the service.
-	Watch(ctx context.Context, serviceName string) (<-chan []Instance, error)
-}
-
-// Selector this defines the interface of a service instance selector.
+// Selector this defines the interface of a service endpoint selector.
 type Selector interface {
-	// Select selects a service instance from the given instances.
-	Select(instances []Instance) (Instance, error)
+	// Select selects a service endpoint from the given endpoints.
+	Select(endpoints []Endpoint) (Endpoint, error)
 }

@@ -18,6 +18,11 @@ func ErrServiceNotFound() error {
 	return errors.New("service not found")
 }
 
+// ErrEndpointNotFound this defines the error of endpoint not found.
+func ErrEndpointNotFound() error {
+	return errors.New("endpoint not found")
+}
+
 // ErrInvalidInstance this defines the error of invalid instance.
 func ErrInvalidInstance() error {
 	return errors.New("invalid instance")
@@ -38,7 +43,32 @@ func ErrInvalidInstanceName() error {
 	return errors.New("invalid instance name")
 }
 
-// ErrInvalidInstanceAddress this defines the error of invalid instance address.
-func ErrInvalidInstanceAddress() error {
-	return errors.New("invalid instance address")
+// ErrInvalidServiceName this defines the error of invalid service name.
+func ErrInvalidServiceName() error {
+	return errors.New("invalid service name")
+}
+
+// ErrInvalidServiceIP this defines the error of invalid service IP.
+func ErrInvalidServiceIP() error {
+	return errors.New("invalid service IP")
+}
+
+// ErrInvalidServicePort this defines the error of invalid service port.
+func ErrInvalidServicePort() error {
+	return errors.New("invalid service port")
+}
+
+// ErrInvalidSelector this defines the error of invalid selector.
+func ErrInvalidSelector() error {
+	return errors.New("invalid selector")
+}
+
+// ErrDiscoverNotStarted this defines the error of discover not started.
+func ErrDiscoverNotStarted() error {
+	return errors.New("discover not started")
+}
+
+// ErrDiscoverInternalError this defines the error of discover internal error.
+func ErrDiscoverInternalError() error {
+	return errors.New("discover internal error")
 }

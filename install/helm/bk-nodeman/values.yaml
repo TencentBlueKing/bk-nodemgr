@@ -328,6 +328,46 @@ common:
   ##
   certPath: "/bk-nodeman/cert"
 
+## etcd chart configuration
+## ref: https://github.com/bitnami/charts/blob/master/bitnami/etcd/values.yaml
+etcd:
+  enabled: true
+
+  ## Authentication parameters
+  ##
+  auth:
+    ## Role-based access control parameters
+    ## ref: https://etcd.io/docs/current/op-guide/authentication/
+    ##
+    rbac:
+      ## @param auth.rbac.create Switch to enable RBAC authentication
+      ##
+      create: false
+
+    ## Authentication token
+    ## ref: https://etcd.io/docs/latest/learning/design-auth-v3/#two-types-of-tokens-simple-and-jwt
+    ##
+    token:
+      ## @param auth.token.enabled Enables token authentication
+      ##
+      enabled: false
+
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+  ##
+  persistence:
+    enabled: false
+
+## If the etcd included in the chart is disabled, bk-nodeman will use below
+## parameters to connect to an external etcd service.
+externalEtcd:
+  endpoints:
+    - "127.0.0.1:2379"
+
+  ca: ""
+  cert: ""
+  key: ""
+
 ## Redis chart configuration
 ## ref: https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
 redis:

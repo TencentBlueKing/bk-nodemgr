@@ -11,27 +11,81 @@
 // Package discover ...
 package discover
 
-import "math/rand"
+import (
+	"math/rand"
+	"sort"
+	"sync"
+)
 
 // RandomSelector this defines the random selector.
 type RandomSelector struct{}
 
-// Select select one instance from the instances.
-func (r *RandomSelector) Select(instances []Instance) (Instance, error) {
-	length := len(instances)
+// Select select one instance from the endpoints.
+func (r *RandomSelector) Select(endpoints []Endpoint) (Endpoint, error) {
+	length := len(endpoints)
 
 	if length == 0 {
-		return Instance{}, ErrServiceNotFound()
+		return Endpoint{}, ErrEndpointNotFound()
 	}
 
 	// this just is a simple random selector.
 	// nolint: gosec
 	idx := rand.Intn(length)
 
-	return instances[idx], nil
+	return endpoints[idx], nil
 }
 
 // NewRandomSelector creates a new random selector.
 func NewRandomSelector() *RandomSelector {
 	return &RandomSelector{}
+}
+
+// RoundRobinSelector this defines the round robin selector.
+type RoundRobinSelector struct {
+	mutex  sync.Mutex
+	cursor int
+}
+
+// Select select one instance from the endpoints.
+func (r *RoundRobinSelector) Select(endpoints []Endpoint) (Endpoint, error) {
+	length := len(endpoints)
+
+	if length == 0 {
+		return Endpoint{}, ErrEndpointNotFound()
+	}
+
+	if length == 1 {
+		return endpoints[0], nil
+	}
+
+	sort.Slice(endpoints, func(i, j int) bool {
+		iAddr := endpoints[i].GetIPV4Address()
+		jAddr := endpoints[j].GetIPV4Address()
+
+		if iAddr == jAddr {
+			return endpoints[i].GetIPV6Address() < endpoints[j].GetIPV6Address()
+		}
+
+		return iAddr < jAddr
+	})
+
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.cursor >= length {
+		r.cursor = 0
+	}
+
+	idx := r.cursor
+
+	r.cursor++
+
+	return endpoints[idx], nil
+}
+
+// NewRoundRobinSelector creates a new round robin selector.
+func NewRoundRobinSelector() *RoundRobinSelector {
+	return &RoundRobinSelector{
+		cursor: 0,
+	}
 }

@@ -36,9 +36,7 @@ type Server struct {
 	rg  *gin.RouterGroup
 	ctx context.Context
 
-	ip   string
-	port int
-	name string
+	opts ServerOptions
 
 	metrics *metrics.Monitor
 }
@@ -117,18 +115,23 @@ func (opt *StaticOptions) WithHTMLs(relatives ...string) *StaticOptions {
 	return opt
 }
 
+// ServerOptions describes the server options.
+type ServerOptions struct {
+	Name          string
+	IP            string
+	Port          int
+	LogWriter     LogWriter
+	StaticOptions *StaticOptions
+}
+
 // NewServer creates a new restful API server.
 func NewServer(ctx context.Context,
-	name, ip string, port int,
-	logWriter LogWriter,
-	staticOpt *StaticOptions,
+	opts ServerOptions,
 	apiOptFns ...OptionFunc) *Server {
 
 	svr := &Server{
 		ctx:  ctx,
-		ip:   ip,
-		port: port,
-		name: name,
+		opts: opts,
 		engine: gin.New(func(engine *gin.Engine) {
 			engine.RedirectTrailingSlash = false
 			engine.RedirectFixedPath = false
@@ -136,17 +139,17 @@ func NewServer(ctx context.Context,
 	}
 
 	// Recover from panic
-	svr.engine.Use(gin.RecoveryWithWriter(logWriter.ErrorWriter()))
+	svr.engine.Use(gin.RecoveryWithWriter(opts.LogWriter.ErrorWriter()))
 
 	// Set log middleware
 	svr.engine.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output:    logWriter.InfoWriter(),
+		Output:    opts.LogWriter.InfoWriter(),
 		Formatter: customLogFormatter,
 		SkipPaths: []string{"/ping", "/healthz", "/metrics"},
 	}))
 
 	// Set metrics monitor.
-	svr.metrics = metrics.NewMonitor(name).
+	svr.metrics = metrics.NewMonitor(opts.Name).
 		WithSlowTime(1 * time.Second).
 		WithExcludePaths([]string{"/ping", "/healthz", "/metrics"}).
 		RegisterMiddleware(svr.engine).
@@ -158,17 +161,17 @@ func NewServer(ctx context.Context,
 	svr.rg.Use(MiddlewareContext())
 
 	// Set static settings.
-	if staticOpt != nil {
+	if opts.StaticOptions != nil {
 		// load html templates.
-		svr.engine.LoadHTMLFiles(staticOpt.htmls...)
+		svr.engine.LoadHTMLFiles(opts.StaticOptions.htmls...)
 
 		// load static dirs.
-		for _, item := range staticOpt.dirs {
+		for _, item := range opts.StaticOptions.dirs {
 			svr.engine.Static(item.relative, item.target)
 		}
 
 		// load static files.
-		for _, item := range staticOpt.files {
+		for _, item := range opts.StaticOptions.files {
 			svr.engine.StaticFile(item.relative, item.target)
 		}
 	}
@@ -205,7 +208,7 @@ func customLogFormatter(param gin.LogFormatterParams) string {
 
 // Start starts the router.
 func (svr *Server) Start() error {
-	addr := fmt.Sprintf("%s:%d", svr.ip, svr.port)
+	addr := fmt.Sprintf("%s:%d", svr.opts.IP, svr.opts.Port)
 	if err := svr.engine.Run(addr); err != nil {
 		return err
 	}
@@ -215,15 +218,15 @@ func (svr *Server) Start() error {
 
 // Name returns the router name.
 func (svr *Server) Name() string {
-	return svr.name
+	return svr.opts.Name
 }
 
 // IP returns the router ip.
 func (svr *Server) IP() string {
-	return svr.ip
+	return svr.opts.IP
 }
 
 // Port returns the router port.
 func (svr *Server) Port() int {
-	return svr.port
+	return svr.opts.Port
 }

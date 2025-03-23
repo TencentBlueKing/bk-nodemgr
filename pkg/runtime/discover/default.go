@@ -12,7 +12,6 @@
 package discover
 
 import (
-	"context"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -20,11 +19,9 @@ import (
 
 // ProviderDefault this defines the default service discovery provider.
 type ProviderDefault struct {
-	mutex      sync.RWMutex
-	services   map[string]map[string]Instance
-	watchChans map[string][]chan []Instance
-	done       chan struct{}
-	selector   Selector
+	mutex    sync.RWMutex
+	services map[ServiceName]map[string]Instance
+	selector Selector
 }
 
 // NewProviderDefault creates a new default provider.
@@ -34,15 +31,13 @@ func NewProviderDefault(selector Selector) *ProviderDefault {
 	}
 
 	return &ProviderDefault{
-		services:   make(map[string]map[string]Instance),
-		watchChans: make(map[string][]chan []Instance),
-		done:       make(chan struct{}),
-		selector:   selector,
+		services: make(map[ServiceName]map[string]Instance),
+		selector: selector,
 	}
 }
 
 // GetAllService get all specific service instances.
-func (p *ProviderDefault) GetAllService(_ context.Context, serviceName string) ([]Instance, error) {
+func (p *ProviderDefault) GetAllService(serviceName ServiceName) ([]Instance, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 
@@ -56,75 +51,52 @@ func (p *ProviderDefault) GetAllService(_ context.Context, serviceName string) (
 	return instances, nil
 }
 
-// GetService get one with the selector.
-func (p *ProviderDefault) GetService(ctx context.Context, serviceName string, selector Selector) (Instance, error) {
-	instances, err := p.GetAllService(ctx, serviceName)
+// GetAllEndpoint get all specific service endpoints.
+func (p *ProviderDefault) GetAllEndpoint(serviceName ServiceName, endpointName EndpointName) (
+	[]Endpoint, error) {
+
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+
+	instanceMap, ok := p.services[serviceName]
+	if !ok {
+		return nil, ErrServiceNotFound()
+	}
+
+	endpoints := make([]Endpoint, 0, len(instanceMap))
+
+	for _, instance := range instanceMap {
+		if endpoint, exists := instance.Endpoints[endpointName]; exists {
+			endpoints = append(endpoints, endpoint)
+		}
+	}
+
+	if len(endpoints) == 0 {
+		return nil, ErrEndpointNotFound()
+	}
+
+	return endpoints, nil
+}
+
+// GetEndpoint get a specific service endpoint.
+func (p *ProviderDefault) GetEndpoint(
+	serviceName ServiceName, endpointName EndpointName, selector Selector) (Endpoint, error) {
+
+	endpoints, err := p.GetAllEndpoint(serviceName, endpointName)
 	if err != nil {
-		return Instance{}, err
+		return Endpoint{}, err
 	}
 
-	if selector == nil {
-		selector = NewRandomSelector()
+	endpoint, err := selector.Select(endpoints)
+	if err != nil {
+		return Endpoint{}, err
 	}
 
-	return selector.Select(instances)
-}
-
-// Watch watches the changes of a service.
-// this will return a channel that can get the all latest instances of the service.
-func (p *ProviderDefault) Watch(ctx context.Context, serviceName string) (<-chan []Instance, error) {
-	p.mutex.Lock()
-
-	ch := make(chan []Instance, 1)
-
-	if _, exists := p.watchChans[serviceName]; !exists {
-		p.watchChans[serviceName] = make([]chan []Instance, 0)
-	}
-	p.watchChans[serviceName] = append(p.watchChans[serviceName], ch)
-
-	instances, err := p.getAllServiceNoLock(serviceName)
-	p.mutex.Unlock()
-
-	if err == nil && len(instances) > 0 {
-		select {
-		case ch <- instances:
-		default:
-		}
-	}
-
-	go func() {
-		select {
-		case <-ctx.Done():
-			p.removeWatchChan(serviceName, ch)
-		case <-p.done:
-			close(ch)
-		}
-	}()
-
-	return ch, nil
-}
-
-func (p *ProviderDefault) removeWatchChan(serviceName string, ch chan []Instance) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
-	chans, exists := p.watchChans[serviceName]
-	if !exists {
-		return
-	}
-
-	for i, watchCh := range chans {
-		if watchCh == ch {
-			p.watchChans[serviceName] = append(chans[:i], chans[i+1:]...)
-			close(ch)
-
-			break
-		}
-	}
+	return endpoint, nil
 }
 
 // Register registers a service instance.
-func (p *ProviderDefault) Register(_ context.Context, serviceName string, instances ...Instance) error {
+func (p *ProviderDefault) Register(serviceName ServiceName, instances ...Instance) error {
 	for _, instance := range instances {
 		if err := instance.Validate(); err != nil {
 			return err
@@ -141,26 +113,27 @@ func (p *ProviderDefault) Register(_ context.Context, serviceName string, instan
 		p.services[serviceName][instance.ID] = instance
 	}
 
-	newInstances, _ := p.getAllServiceNoLock(serviceName)
-	p.notifyWatchers(serviceName, newInstances)
 	p.mutex.Unlock()
 
 	return nil
 }
 
-func (p *ProviderDefault) getAllServiceNoLock(serviceName string) ([]Instance, error) {
-	instanceMap, ok := p.services[serviceName]
-	if !ok {
-		return nil, ErrServiceNotFound()
+// Update updates a service instance.
+func (p *ProviderDefault) Update(serviceName ServiceName, instance Instance) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	if _, exists := p.services[serviceName]; !exists {
+		return ErrNotRegistered()
 	}
 
-	instances := conv.MapToSlice(instanceMap)
+	p.services[serviceName][instance.ID] = instance
 
-	return instances, nil
+	return nil
 }
 
 // Deregister deregister a service instance.
-func (p *ProviderDefault) Deregister(_ context.Context, serviceName string, instanceID string) error {
+func (p *ProviderDefault) Deregister(serviceName ServiceName, instanceID string) error {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -170,30 +143,15 @@ func (p *ProviderDefault) Deregister(_ context.Context, serviceName string, inst
 
 	delete(p.services[serviceName], instanceID)
 
-	instances, _ := p.getAllServiceNoLock(serviceName)
-
-	p.notifyWatchers(serviceName, instances)
-
 	return nil
 }
 
-func (p *ProviderDefault) notifyWatchers(serviceName string, instances []Instance) {
-	chans, exists := p.watchChans[serviceName]
-	if !exists || len(chans) == 0 {
-		return
-	}
-
-	for _, ch := range chans {
-		select {
-		case ch <- instances:
-		default:
-		}
-	}
+// Start starts the provider.
+func (p *ProviderDefault) Start() error {
+	return nil
 }
 
-// Close closes the provider.
-func (p *ProviderDefault) Close() error {
-	close(p.done)
-
+// Stop stops the provider.
+func (p *ProviderDefault) Stop() error {
 	return nil
 }

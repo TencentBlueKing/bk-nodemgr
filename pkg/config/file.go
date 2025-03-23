@@ -60,6 +60,7 @@ func NewFileService() *FileService {
 type FileService struct {
 	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
 	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	Etcd           Etcd           `yaml:"etcd" usage:"etcd config of file service"`
 	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of file service"`
 	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of file service"`
