@@ -13,4 +13,4 @@
 
 ## 使用限制
 1. 不应包含第三方服务发现实现的逻辑和数据结构
-3. 当有一个新的服务或端口要添加时，应该在该包里声明ServiceName或EndpointName
+2. 当有一个新的服务或端口要添加时，应该在该包里声明ServiceName或EndpointName

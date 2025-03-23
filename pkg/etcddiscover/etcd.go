@@ -104,7 +104,7 @@ func WithDiscoverPathPrefix(prefix string) OptionFn {
 // Start starts the provider.
 func (provider *ProviderEtcd) Start() error {
 	tlsConf, err := provider.initTLS()
-	if err != nil {
+	if err != errNotTLS && err != nil {
 		return err
 	}
 
@@ -334,9 +334,11 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 	return nil
 }
 
+var errNotTLS = errors.New("not tls")
+
 func (provider *ProviderEtcd) initTLS() (*tls.Config, error) {
 	if provider.config.Ca == "" || provider.config.Cert == "" || provider.config.Key == "" {
-		return nil, nil
+		return nil, errNotTLS
 	}
 
 	tlsConf := &ssl.TLSConfig{

@@ -641,3 +641,6 @@ linters-settings:
       # Multiple packages can use an empty alias.
       - pkg: errors
         alias: ""
+      # Using `etcdv3` alias for `go.etcd.io/etcd/client/v3`
+      - pkg: go.etcd.io/etcd/client/v3
+        alias: clientv3
