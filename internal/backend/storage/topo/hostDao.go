@@ -96,8 +96,8 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 	return nil
 }
 
-// nolint:cyclop
 // ListHost lists hosts by page and conditions.
+// nolint:cyclop
 func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
 	[]*types.Host, int64, error) {
 
@@ -167,8 +167,8 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 	return s.daoHost.List(ctx, page, opts...)
 }
 
-// nolint:cyclop
 // CountHost counts host by conditions.
+// nolint:cyclop
 func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
