@@ -128,7 +128,7 @@ func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz
 		return err
 	}
 
-	msg := fmt.Sprintf("succefully create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
+	msg := fmt.Sprintf("successfully create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
 		biz.TenantID, biz.BizName, biz.BizID)
 	data.Log(msg)
 

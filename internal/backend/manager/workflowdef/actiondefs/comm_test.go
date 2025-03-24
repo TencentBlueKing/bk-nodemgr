@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package actiondefs
 
 import (
 	"context"
@@ -50,7 +49,7 @@ type Capability struct {
 	OperStorage operation.Storage
 
 	// NodeDeploymentStorage bk nodeman node deployment storage.
-	NodeDeploymentStorage nodedeployment.Storage
+	NodeDeploymentStorage nodedeployment.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.Handler
@@ -128,6 +127,15 @@ func testCapability(t *testing.T) *Capability {
 		t.Fatal(err)
 	}
 
+	deploymentStorage, err := nodedeployment.NewStorage(mongoClient, "bk_nodeman", loggerDefault)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = deploymentStorage.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+
 	cmdbHandler, err := cmdb.New(
 		&client.Capability{
 			Client:               httpClient,
@@ -137,8 +145,12 @@ func testCapability(t *testing.T) *Capability {
 			Logger:               loggerDefault,
 		},
 		&cmdb.Config{
-			HeaderSetter: testHeaderSetter{},
+			SupplierAccount: "0",
+			HeaderSetter:    testHeaderSetter{},
 		})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	gseHandler, err := gse.New(
 		&client.Capability{
@@ -158,15 +170,16 @@ func testCapability(t *testing.T) *Capability {
 	}
 
 	capability := &Capability{
-		TopoStorage:       topoStorage,
-		TrigEngineStorage: nil,
-		OperInstStorage:   operInstStorage,
-		OperStorage:       nil,
-		GseHandler:        gseHandler,
-		CmdbHandler:       cmdbHandler,
-		Logger:            loggerDefault,
-		LockerFactory:     nil,
-		Crypter:           crypt,
+		TopoStorage:           topoStorage,
+		TrigEngineStorage:     nil,
+		OperInstStorage:       operInstStorage,
+		OperStorage:           nil,
+		NodeDeploymentStorage: deploymentStorage,
+		CmdbHandler:           cmdbHandler,
+		GseHandler:            gseHandler,
+		Logger:                loggerDefault,
+		LockerFactory:         nil,
+		Crypter:               crypt,
 	}
 
 	return capability
