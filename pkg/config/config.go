@@ -19,6 +19,8 @@ import (
 // Etcd the config of etcd.
 type Etcd struct {
 	Endpoints []string `yaml:"endpoints" usage:"endpoints of etcd"`
+	Username  string   `yaml:"username" usage:"username of etcd"`
+	Password  string   `yaml:"password" usage:"password of etcd"`
 	Cert      string   `yaml:"cert" usage:"cert file of etcd"`
 	Key       string   `yaml:"key" usage:"key file for etcd"`
 	Ca        string   `yaml:"ca" usage:"ca file for etcd"`
