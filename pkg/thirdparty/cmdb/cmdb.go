@@ -13,6 +13,7 @@ package cmdb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -37,11 +38,11 @@ type Config struct {
 // Validate configures the config.
 func (conf *Config) Validate() error {
 	if conf.SupplierAccount == "" {
-		return fmt.Errorf("supplier account is empty")
+		return errors.New("supplier account is empty")
 	}
 
 	if conf.HeaderSetter == nil {
-		return fmt.Errorf("header setter is nil")
+		return errors.New("header setter is nil")
 	}
 
 	return nil
