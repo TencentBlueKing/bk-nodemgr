@@ -20,24 +20,25 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed } from 'vue';
+import { useMainStore } from '@/stores/main';
 
 const props = defineProps({
     needTypeList: {
         type: Array,
-        default: () => ['normal', 'excel_import', 'manual']
+        default: () => ['setup', 'import', 'manual']
     }
 });
-const emit = defineEmits(['update:activeType']);
+const mainStore = useMainStore();
 const installTypeConfig = [
     {
-        type: 'normal',
+        type: 'setup',
         name: '普通远程安装',
         icon: 'nc-monitor',
         desc: '线上表单填写，需要提供登录信息'
     },
     {
-        type: 'excel_import',
+        type: 'import',
         name: 'Excel 导入远程安装',
         icon: 'nc-excel',
         desc: 'Excel 导入填写， 需要提供登录信息'
@@ -50,10 +51,9 @@ const installTypeConfig = [
     }
 ];
 const installTypeList = computed(() => installTypeConfig.filter(item => props.needTypeList.includes(item.type)));
-const activeType = ref('normal');
+const activeType = computed(() => mainStore.agentSetupType);
 const handleClick = (type: string) => {
-    activeType.value = type;
-    emit('update:activeType', type);
+    mainStore.updateAgentSetupType(type);
 }
 </script>
 <style lang="postcss" scoped>

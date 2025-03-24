@@ -7,6 +7,7 @@ export const useMainStore = defineStore('mainStore', {
     businessList: [] as Business[], // 业务列表
     selectedBusinessId: [] as number[], // 当前业务id
     selectedBusinessName: [] as string[], // 当前业务名称
+    agentSetupType: 'setup' // 代理安装方式
   }),
   actions: {
     // 更新全局分页
@@ -18,12 +19,15 @@ export const useMainStore = defineStore('mainStore', {
       this.windowInnerHeight = height;
     },
     updateBusinessList(list: Business[]) {
-      console.log("🚀 ~ updateBusinessList ~ list:", list)
       this.businessList = list;
     },
+    
     updateCurBusiness(businessId: number[] = []) {
       this.selectedBusinessId = businessId;
       this.selectedBusinessName = businessId.map(id => this.businessList.find(item => item.bk_biz_id === id)?.bk_biz_name) as string[];
+    },
+    updateAgentSetupType(type: string) {
+      this.agentSetupType = type;
     },
   },
 });

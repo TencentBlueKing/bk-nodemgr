@@ -8,7 +8,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ChoosePkgDialog: typeof import('./components/choose-pkg-dialog.vue')['default']
     CopyIp: typeof import('./components/copy-ip.vue')['default']
     CopyIpDropdown: typeof import('./components/copy-ip-dropdown.vue')['default']
     FlexRow: typeof import('./components/flex-row.vue')['default']
@@ -18,5 +17,7 @@ declare module 'vue' {
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Validate: typeof import('./components/validate.vue')['default']
+    ValidateInput: typeof import('./components/validate-input.vue')['default']
   }
 }

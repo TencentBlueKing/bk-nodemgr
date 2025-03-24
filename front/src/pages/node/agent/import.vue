@@ -1,64 +1,53 @@
 <template>
-    <div class="setup">
-        <div class="tips">
-            <i class="nodeman-icon nc-tips"></i>
-            <div class="right-text">
-                <i18n-t keypath="platform.nodeMan.installAgentPage.tip1" tag="p" class="tip1">
-                    <span>{{ $t('platform.nodeMan.installAgentPage.tip1FirstSlotText') }}</span>
-                    <span>{{ $t('platform.nodeMan.installAgentPage.tip1SecondSlotText') }}</span>
+    <div class="setup pt-[24px] pb-[48px]">
+        <div class="mx-[24px] flex min-h-[56px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]">
+            <i class="nodeman-icon nc-tips pt-[2px] text-[#3A84FF]"></i>
+            <div class="text-[#4d4f56] text-[12px] leading-[20px] text-left">
+                <i18n-t keypath="platform.nodeMan.installAgentPage.tip1" tag="p">
+                    <span class="text-[#313238] font-bold">{{ $t('platform.nodeMan.installAgentPage.tip1FirstSlotText') }}</span>
+                    <span class="text-[#313238] font-bold">{{ $t('platform.nodeMan.installAgentPage.tip1SecondSlotText') }}</span>
                 </i18n-t>
-                <i18n-t keypath="platform.nodeMan.installAgentPage.tip2" tag="p" class="tip2">
-                    <span>{{ $t('platform.nodeMan.installAgentPage.tip2FirstSlotText') }}</span>
+                <i18n-t keypath="platform.nodeMan.installAgentPage.tip2" tag="p">
+                    <span class="text-[#313238] font-bold">{{ $t('platform.nodeMan.installAgentPage.tip2FirstSlotText') }}</span>
                     <Button text theme="primary" @click="handleShowPanel">{{
                         $t('platform.nodeMan.installAgentPage.tip2SecondSlotText') }}</Button>
                     <Button text theme="primary" @click="handleShowSetting">{{
                         $t('platform.nodeMan.installAgentPage.tip2ThirdSlotText') }}</Button>
                 </i18n-t>
-                <p>
-
-                </p>
             </div>
         </div>
-        <div class="installForm">
+        <div class="m-[24px]">
             <Form ref="formRef" :model="formData" :rules="rules">
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.type')" required>
-                    <install-type @update:active-type="updateInstallType"></install-type>
+                    <install-type :needTypeList="['setup', 'manual']"></install-type>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
-                    <installTable>
-                        <Upload :accept="'.xlsx'" :handle-res-code="handleRes" :select-change="handleSelectChange"
-                            :url="'https://jsonplaceholder.typicode.com/posts/'" :files="fileList" with-credentials
-                            @done="handleDone" @error="handleError" @progress="handleProgress" @success="handleSuccess"
-                            :before-upload="handleBeforeUpload">
-                            <template #tip>
-                                <div class="uploadTip">
-                                    <span>{{ $t('仅支持 .xlsx 类型文件，下载') }}</span>
-                                    <a :href="url" download="bk_nodeman_info.xlsx">
-                                        <Button text theme="primary">
-                                            {{ $t('模版文件') }}
-                                        </Button>
-                                    </a>
-                                </div>
-                            </template>
-                        </Upload>
-                    </installTable>
+                    <install-table ref="installTableRef" :data="tableData"></install-table>
                 </Form.FormItem>
             </Form>
         </div>
-        <div :class="['footer', { 'atBottom': isAtBottom }]" ref="footerRef">
-            <Button theme="primary">{{ $t('去安装') }}</Button>
-            <Button>{{ $t('取消') }}</Button>
+        <div :class="['h-[48px] w-full flex items-center pl-[174px]', { 'fixed bottom-[0] bg-[#fff] z-[100]': isAtBottom }]" ref="footerRef">
+            <Button class="w-[100px] mr-[8px]" theme="primary" @click="handlePreview">{{ $t('去安装') }}</Button>
+            <Button class="w-[88px]">{{ $t('取消') }}</Button>
         </div>
+        <preview v-model:is-show="previewData.isShow"></preview>
     </div>
 </template>
 <script lang="ts" setup>
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { Button, Form, Select, Input, Upload, Message } from 'bkui-vue';
 import { Table, TableColumn } from '@blueking/table';
-import { AngleDoubleDownLine, Done } from 'bkui-vue/lib/icon';
+import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
-import InstallTable from '@/components/install-table.vue';
+import { useMainStore } from '@/stores/main';
+import { computed } from 'vue';
+import { TopoService } from '@/api/modules/topo';
+import { useRoute } from 'vue-router';
+import Preview from './preview.vue';
 
+
+const route = useRoute();
+const mainStore = useMainStore();
 const showRightPanel = ref(false);
 const formData = ref({
     type: '',
@@ -67,9 +56,18 @@ const formData = ref({
     cloud_unit: '',
     info: [],
 });
+const previewData = reactive({
+    isShow: false,
+})
+const tableData = ref([
+  { ipv4: '', ipv6: '', os: '', loginIp: '', loginPort: '', loginUser: '', authMethod: '', password: '', action: '' },
+]);
 const rules = {};
 const isShow = ref(false);
 const isAtBottom = ref(false);
+// 安装方式
+const activeInstallType = computed(() => mainStore.agentSetupType);
+
 // 显示侧边栏安装策略
 const handleShowPanel = () => {
     showRightPanel.value = true;
@@ -78,52 +76,18 @@ const handleShowPanel = () => {
 const handleShowSetting = () => {
 
 }
-const activeInstallType = ref('normal');
-const updateInstallType = (type: string) => {
-    activeInstallType.value = type;
+
+const installTableRef = ref(null);
+const handlePreview = async () => {
+    if (installTableRef.value) {
+        const res = await installTableRef.value?.validate().catch(() => false);
+        if (res) {
+            previewData.isShow = true;
+        }
+    }
 }
-// Excel 导入
-let fileList = ref<File[]>([]);
-const url = `${window.location.origin}${import.meta.env.BK_SITE_URL}${import.meta.env.BK_API_PREFIX}api/excel/download`;
-const handleSuccess = (file: File, fileList: File[]) => {
-    console.log(file, fileList, 'handleSuccess');
-};
-const handleProgress = (event: Event, file: File, fileList: File[]) => {
-    console.log(event, file, fileList, 'handleProgress');
-};
-const handleError = (file: File, fileList: File[], error: { message: string }) => {
-    Message({
-        theme: 'error',
-        message: error.message
-    })
-};
-const handleDone = (curFileList: File[]) => {
-    console.log(fileList, 'handleDone');
-    fileList.value = [...curFileList]
-};
-const handleRes = (response: { id: number | string }) => {
-    console.log(response, 'handleRes');
-    if (response.id) {
-        return true;
-    }
-    return false;
-};
-const handleBeforeUpload = (file: File, fileList: File[]) => {
-    const whiteList = ['xlsx'];
-    let AllFiles = fileList.filter((v) => whiteList.includes(v.name.substring(file.name.lastIndexOf('.') + 1)));
-    if (AllFiles.length !== fileList.length) {
-        fileList.pop();
-        Message({
-            theme: 'warning',
-            message: '仅支持 .xlsx 类型文件'
-        });
-        return false;
-    }
-    return true;
-};
-const handleSelectChange = (event: Event) => {
-    console.log(event, 'change');
-};
+
+
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
     if (footerRef.value) {
@@ -140,7 +104,10 @@ const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(() => isShow.value, (val: boolean) => {
     checkIfAtBottom();
 });
-onMounted(() => {
+watch(() => activeInstallType.value, (val: string) => {
+    installTableRef.value?.clearAllValidate();
+});
+onMounted(async () => {
     if (footerRef.value) {
         window.addEventListener('resize', debouncedCheck);
         checkIfAtBottom();
@@ -152,88 +119,3 @@ onUnmounted(() => {
     }
 });
 </script>
-<style lang="postcss" scoped>
-.setup {
-    padding: 24px 0 48px 0;
-
-    .tips {
-        margin: 0 24px;
-        display: flex;
-        height: 56px;
-        background: #F0F8FF;
-        border: 1px solid #C5DAFF;
-        border-radius: 2px;
-        padding: 6px 9px;
-        gap: 9px;
-
-        .nc-tips {
-            padding-top: 2px;
-            color: #3A84FF;
-        }
-
-        .right-text {
-            color: #4d4f56;
-            font-size: 12px;
-            line-height: 20px;
-            text-align: left;
-
-            .tip1 {
-                span {
-                    font-weight: 700;
-                    color: #313238;
-                }
-            }
-
-            .tip2 {
-                span {
-                    font-weight: 700;
-                    color: #313238;
-                }
-            }
-        }
-    }
-
-    .installForm {
-        margin: 24px;
-
-        .content-basic {
-            width: 568px;
-        }
-
-        .bk-upload {
-            padding: 24px;
-
-            .uploadTip {
-                display: flex;
-                align-items: center;
-                gap: 3px;
-            }
-        }
-
-    }
-
-    .footer {
-        height: 48px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding-left: 174px;
-        z-index: 10;
-
-        .bk-button {
-            width: 88px;
-
-            &.bk-button-primary {
-                width: 100px;
-            }
-        }
-
-        &.atBottom {
-            position: fixed;
-            bottom: 0;
-            background: #fff;
-        }
-    }
-}
-</style>

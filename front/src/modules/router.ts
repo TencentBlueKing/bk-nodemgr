@@ -6,7 +6,8 @@ import NotFound from '@/pages/app/404.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
-import TaskHistory from '@/pages/node/history.vue';
+import TaskHistory from '@/pages/node/history/history.vue';
+import TaskDetail from '@/pages/node/history/task-detail.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
@@ -48,23 +49,12 @@ const routes = setupLayouts([
             },
           },
           {
-            name: 'agentImport',
-            path: 'import',
-            props: true,
-            component: AgentImport,
-            meta: {
-              title: 'Excel导入安装',
-              back: true,
-              mainMenu: 'nodeManager',
-            },
-          },
-          {
             name: 'agentEdit',
             path: 'edit',
             props: true,
             component: AgentImport,
             meta: {
-              title: '重装 Agent',
+              title: '安装/重装 Agent',
               back: true,
               mainMenu: 'nodeManager',
             },
@@ -82,6 +72,17 @@ const routes = setupLayouts([
             path: 'history',
             component: TaskHistory,
             meta: {
+              title: '任务历史',
+              back: false,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'taskDetail',
+            path: 'history/detail/:taskId',
+            component: TaskDetail,
+            meta: {
+              title: '任务详情',
               mainMenu: 'nodeManager',
             },
           },

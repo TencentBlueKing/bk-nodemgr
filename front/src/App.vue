@@ -38,7 +38,7 @@
         >{{ navBizShrinkText }}</div>
         <Select
           v-show="navToggle"
-          class="mx-[12px] bg-[#F0F1F5]"
+          class="mx-[12px]"
           v-model="business"
           @select="changeCurBusiness"
           multiple
@@ -55,7 +55,7 @@
           <Menu.Item v-for="subItem in item.children" :key="subItem.routeName" :need-icon="true"
             @click="handleChangeSubMenu(subItem)">
             <template #icon>
-              <i v-if="subItem.icon" :class="subItem.icon" />
+              <i v-if="subItem.icon" :class="subItem.icon" class="text-[#979BA5]" />
             </template>
             {{ $t(subItem.title) }}
           </Menu.Item>
@@ -177,3 +177,15 @@ onMounted(async () => {
   await getBusinessList();
 });
 </script>
+<style lang="postcss" scoped>
+.nm-menu-biz {
+  :deep(.bk-select-trigger) {
+    .bk-input {
+      border: none;
+    }
+    .bk-input--text {
+      background: #F0F1F5 !important;
+    }
+  }
+}
+</style>

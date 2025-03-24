@@ -31,11 +31,11 @@ const navList = [
             icon: 'nodeman-icon nc-state',
             title: i18n.global.t('platform.nodeMan.agentStatus'),
           },
-          {
-            routeName: 'plugin',
-            icon: 'nodeman-icon nc-plug-in',
-            title: i18n.global.t('platform.nodeMan.pluginManagement'),
-          },
+          // {
+          //   routeName: 'plugin',
+          //   icon: 'nodeman-icon nc-plug-in',
+          //   title: i18n.global.t('platform.nodeMan.pluginManagement'),
+          // },
         ],
       },
       {
