@@ -68,11 +68,18 @@ func TestHandler_Create(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				nodeDeployment: &types.NodeDeployment{
-					Token: "123",
+					Token: "666",
 					Info: &types.DeploymentInfo{
-						OperInstID: "123",
-						ActionName: "wait agent install",
-						HostID:     123,
+						OperInstID:     "123",
+						ActionName:     "wait agent install",
+						HostID:         315,
+						TenantID:       "single",
+						NodeRole:       "agent",
+						NodeStatus:     "running",
+						NodeVersion:    "v2.1.6-beta.55",
+						NodeGeneration: 2,
+						AgentID:        "02000000005254001bbe721742528553406b",
+						NetworkUnitID:  0,
 					},
 					NodeConf: &types.NodeConf{
 						PreSetting: map[string]any{

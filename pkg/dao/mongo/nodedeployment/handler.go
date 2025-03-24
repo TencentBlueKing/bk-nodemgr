@@ -78,9 +78,16 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		OperInstID: info.OperInstID,
-		ActionName: info.ActionName,
-		HostID:     info.HostID,
+		OperInstID:     info.OperInstID,
+		ActionName:     info.ActionName,
+		HostID:         info.HostID,
+		TenantID:       info.TenantID,
+		NodeRole:       types.NodeRole(info.NodeRole),
+		NodeStatus:     types.NodeStatus(info.NodeStatus),
+		NodeVersion:    info.NodeVersion,
+		NodeGeneration: info.NodeGeneration,
+		AgentID:        info.AgentID,
+		NetworkUnitID:  info.NetworkUnitID,
 	}, nil
 }
 
@@ -106,9 +113,16 @@ func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment
 	nodeDeployment := &NodeDeployment{
 		Token: data.Token,
 		Info: &Info{
-			OperInstID: data.Info.OperInstID,
-			ActionName: data.Info.ActionName,
-			HostID:     data.Info.HostID,
+			OperInstID:     data.Info.OperInstID,
+			ActionName:     data.Info.ActionName,
+			HostID:         data.Info.HostID,
+			TenantID:       data.Info.TenantID,
+			NodeRole:       string(data.Info.NodeRole),
+			NodeStatus:     string(data.Info.NodeStatus),
+			NodeVersion:    data.Info.NodeVersion,
+			NodeGeneration: data.Info.NodeGeneration,
+			AgentID:        data.Info.AgentID,
+			NetworkUnitID:  data.Info.NetworkUnitID,
 		},
 		NodeConf: new(NodeConf),
 	}

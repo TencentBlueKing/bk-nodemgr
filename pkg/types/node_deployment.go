@@ -19,9 +19,16 @@ type NodeDeployment struct {
 
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	OperInstID string
-	ActionName string
-	HostID     int64
+	OperInstID     string
+	ActionName     string
+	HostID         int64
+	TenantID       string
+	NodeRole       NodeRole
+	NodeStatus     NodeStatus
+	NodeVersion    string
+	NodeGeneration int64
+	AgentID        string
+	NetworkUnitID  int64
 }
 
 // NodeConf this is the node conf for node deployment.
