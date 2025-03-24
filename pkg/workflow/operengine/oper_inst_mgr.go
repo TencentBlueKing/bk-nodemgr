@@ -11,6 +11,7 @@
 // Package operengine ...
 package operengine
 
+// nolint: misspell,importas
 import (
 	"context"
 	"errors"
@@ -24,6 +25,7 @@ import (
 	brokerIface "github.com/RichardKnop/machinery/v2/brokers/iface"
 	redisBroker "github.com/RichardKnop/machinery/v2/brokers/redis"
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
+	machinerylog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/google/uuid"
@@ -159,6 +161,8 @@ func NewOperInstMgr(workerNum int, envFunc ServerOptionFn, storage OperInstStora
 	for _, opt := range opts {
 		opt(e)
 	}
+
+	machinerylog.Set(newLoggerAdaptor(e.logger))
 
 	return e, nil
 }

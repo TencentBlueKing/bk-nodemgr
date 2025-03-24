@@ -17,7 +17,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	machinerylog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/service"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -35,46 +34,6 @@ func init() {
 			os.Exit(1)
 		}
 	}
-
-	machinerylog.Set(logger{})
-}
-
-type logger struct{}
-
-func (l logger) Print(args ...interface{}) {
-	blog.Debug(args...)
-}
-
-func (l logger) Printf(s string, args ...interface{}) {
-	blog.Debugf(s, args...)
-}
-
-func (l logger) Println(args ...interface{}) {
-	blog.Debug(args...)
-}
-
-func (l logger) Fatal(args ...interface{}) {
-	blog.Error(args...)
-}
-
-func (l logger) Fatalf(s string, args ...interface{}) {
-	blog.Errorf(s, args...)
-}
-
-func (l logger) Fatalln(args ...interface{}) {
-	blog.Error(args...)
-}
-
-func (l logger) Panic(args ...interface{}) {
-	blog.Error(args...)
-}
-
-func (l logger) Panicf(s string, args ...interface{}) {
-	blog.Errorf(s, args...)
-}
-
-func (l logger) Panicln(args ...interface{}) {
-	blog.Error(args...)
 }
 
 // backend service entrypoint.
