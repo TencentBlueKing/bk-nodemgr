@@ -119,4 +119,7 @@ type IDaoHost interface {
 
 	// CountHost counts hosts by conditions.
 	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
+
+	// GetHostByID gets host by id.
+	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
 }
