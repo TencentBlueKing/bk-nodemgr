@@ -102,7 +102,7 @@ func WithDiscoverPathPrefix(prefix string) OptionFn {
 }
 
 // Start starts the provider.
-func (provider *ProviderEtcd) Start() error {
+func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	tlsConf, err := provider.initTLS()
 	if err != errNotTLS && err != nil {
 		return err
@@ -117,7 +117,7 @@ func (provider *ProviderEtcd) Start() error {
 		return err
 	}
 
-	provider.ctx, provider.cancel = context.WithCancel(context.Background())
+	provider.ctx, provider.cancel = context.WithCancel(ctx)
 
 	// start service watching.
 	provider.startWatching()

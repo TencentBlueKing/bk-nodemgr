@@ -12,6 +12,7 @@
 package discover
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ type Provider interface {
 	Registry
 
 	// Start starts the provider.
-	Start() error
+	Start(ctx context.Context) error
 
 	// Stop stops the provider.
 	Stop() error

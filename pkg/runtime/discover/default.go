@@ -12,6 +12,7 @@
 package discover
 
 import (
+	"context"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -145,7 +146,7 @@ func (p *ProviderDefault) Deregister(serviceName ServiceName, instanceID string)
 }
 
 // Start starts the provider.
-func (p *ProviderDefault) Start() error {
+func (p *ProviderDefault) Start(_ context.Context) error {
 	return nil
 }
 

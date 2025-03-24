@@ -65,7 +65,7 @@ type Capability struct {
 
 // Start ...
 func (c *Capability) Start(ctx context.Context) error {
-	if err := c.DiscoverProvider.Start(); err != nil {
+	if err := c.DiscoverProvider.Start(ctx); err != nil {
 		return err
 	}
 

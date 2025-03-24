@@ -11,6 +11,7 @@
 package etcddiscover
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"sort"
@@ -36,7 +37,7 @@ func testProviderEtcd(t *testing.T) *ProviderEtcd {
 			Endpoints: []string{os.Getenv("ETCD_ENDPOINT")},
 		})
 
-		if err := testProvider.Start(); err != nil {
+		if err := testProvider.Start(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 

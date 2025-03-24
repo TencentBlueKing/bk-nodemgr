@@ -32,8 +32,8 @@ type Capability struct {
 }
 
 // Start start the capability.
-func (c *Capability) Start(_ context.Context) error {
-	if err := c.DiscoverProvider.Start(); err != nil {
+func (c *Capability) Start(ctx context.Context) error {
+	if err := c.DiscoverProvider.Start(ctx); err != nil {
 		return err
 	}
 
