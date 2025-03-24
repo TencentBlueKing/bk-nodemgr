@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -40,7 +41,7 @@ const (
 // ProviderEtcd implements discover.Provider.
 type ProviderEtcd struct {
 	config *config.Etcd
-	logger Logger
+	logger logger.Logger
 
 	etcdClient     *clientv3.Client
 	discoverPrefix string
@@ -63,7 +64,7 @@ type ProviderEtcd struct {
 func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 	provider := &ProviderEtcd{
 		config:           config,
-		logger:           defaultLogger{},
+		logger:           logger.LoggerDefault{},
 		discoverPrefix:   defaultEtcdPrefix,
 		serviceWatchList: make([]discover.ServiceName, 0),
 		localInstances:   make(map[discover.ServiceName]*instanceHolder),
@@ -88,7 +89,7 @@ func WithWatch(services ...discover.ServiceName) OptionFn {
 }
 
 // WithLogger sets the logger.
-func WithLogger(logger Logger) OptionFn {
+func WithLogger(logger logger.Logger) OptionFn {
 	return func(provider *ProviderEtcd) {
 		provider.logger = logger
 	}
