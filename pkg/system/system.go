@@ -11,7 +11,10 @@
 // Package system ...
 package system
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 var deployEnv = struct {
 	sync.Once
@@ -30,4 +33,51 @@ func SetEnv(env string) {
 // GetEnv gets the deploy env.
 func GetEnv() string {
 	return deployEnv.env
+}
+
+// Edition defines the edition of the system.
+type Edition string
+
+const (
+	// EditionCE Community Edition.
+	EditionCE Edition = "ce"
+
+	// EditionEE Enterprise Edition.
+	EditionEE Edition = "ee"
+)
+
+// Validate Edition.
+func (edition Edition) Validate() error {
+	switch edition {
+	case EditionCE, EditionEE:
+		return nil
+	default:
+		return fmt.Errorf("invalid edition, edition(%s)", edition)
+	}
+}
+
+// nolint: gochecknoglobals
+var deployEdition = struct {
+	sync.Once
+	edition Edition
+}{
+	edition: "ce",
+}
+
+// SetEdition sets the deploy edition.
+func SetEdition(edition Edition) error {
+	if err := edition.Validate(); err != nil {
+		return err
+	}
+
+	deployEdition.Once.Do(func() {
+		deployEdition.edition = edition
+	})
+
+	return nil
+}
+
+// GetEdition gets the deploy edition.
+func GetEdition() Edition {
+	return deployEdition.edition
 }
