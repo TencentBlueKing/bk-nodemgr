@@ -10,3 +10,14 @@
 
 // Package nodedeployment ...
 package nodedeployment
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+)
+
+// OptFn option of find.
+type OptFn = base.OptFn
+
+func WithToken(token ...string) OptFn {
+	return base.WithStringValues(FieldKeyToken, token...)
+}

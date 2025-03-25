@@ -106,3 +106,24 @@ func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentI
 
 	return info, nil
 }
+
+// SetNodeConf set gse node conf.
+func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if token == "" {
+		return base.ErrEmptyUniqueKey()
+	}
+
+	if conf == nil {
+		return errors.New("node conf is nil")
+	}
+
+	if err := s.nodeDeploymentDao.SetNodeConf(ctx, token, conf); err != nil {
+		return err
+	}
+
+	return nil
+}

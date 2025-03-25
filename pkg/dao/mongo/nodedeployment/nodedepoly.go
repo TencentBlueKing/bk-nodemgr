@@ -79,6 +79,10 @@ func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*NodeDe
 	return d.baseOrm.Get(ctx, filter, fields...)
 }
 
+func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
+	return d.baseOrm.UpdateField(ctx, filter, field, value)
+}
+
 func (d *dao) ensureIndexes() error {
 	return d.baseOrm.EnsureIndexes()
 }

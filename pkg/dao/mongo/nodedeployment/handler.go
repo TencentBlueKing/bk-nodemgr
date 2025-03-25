@@ -13,7 +13,6 @@ package nodedeployment
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -26,6 +25,7 @@ type IHandler interface {
 	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
 	GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error)
 	GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error)
+	SetNodeConf(ctx context.Context, Token string, nodeConf *types.NodeConf) error
 }
 
 // Handler this is a handler to operate node deployment table.
@@ -60,11 +60,8 @@ func (h *Handler) GetInfo(ctx context.Context, Token string) (*types.DeploymentI
 	}
 
 	filter := base.AliveFilter()
-	opt := base.WithStringValues(FieldKeyToken, Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf(FieldKeyInfo)
-	data, err := h.dao.get(ctx, filter, field)
+	filter = WithToken(Token)(filter)
+	data, err := h.dao.get(ctx, filter, FieldKeyInfo)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -81,6 +78,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		OperInstID:     info.OperInstID,
 		ActionName:     info.ActionName,
 		HostID:         info.HostID,
+		OSType:         info.OSType,
 		TenantID:       info.TenantID,
 		NodeRole:       types.NodeRole(info.NodeRole),
 		NodeStatus:     types.NodeStatus(info.NodeStatus),
@@ -116,6 +114,7 @@ func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment
 			OperInstID:     data.Info.OperInstID,
 			ActionName:     data.Info.ActionName,
 			HostID:         data.Info.HostID,
+			OSType:         data.Info.OSType,
 			TenantID:       data.Info.TenantID,
 			NodeRole:       string(data.Info.NodeRole),
 			NodeStatus:     string(data.Info.NodeStatus),
@@ -158,11 +157,8 @@ func (h *Handler) GetNodeConf(ctx context.Context, Token string) (*types.NodeCon
 	}
 
 	filter := base.AliveFilter()
-	opt := base.WithStringValues(FieldKeyToken, Token)
-	filter = opt(filter)
-
-	field := fmt.Sprintf(FieldKeyNodeConf)
-	data, err := h.dao.get(ctx, filter, field)
+	filter = WithToken(Token)(filter)
+	data, err := h.dao.get(ctx, filter, FieldKeyNodeConf)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -179,4 +175,32 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 		PreSetting:    nodeConf.PreSetting,
 		CustomSetting: nodeConf.CustomSetting,
 	}, nil
+}
+
+// SetNodeConf set a node deployment node conf.
+func (h *Handler) SetNodeConf(ctx context.Context, Token string, nodeConf *types.NodeConf) error {
+	if ctx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if Token == "" {
+		return base.ErrInvalidID()
+	}
+
+	if nodeConf == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	data, err := convertNodeConfFromTypes(nodeConf)
+	if err != nil {
+		return err
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(Token)(filter)
+	if err := h.dao.updateField(ctx, filter, FieldKeyNodeConf, data); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -28,6 +28,7 @@ type Info struct {
 	OperInstID     string `json:"oper_inst_id" bson:"oper_inst_id"`
 	ActionName     string `json:"action_name" bson:"action_name"`
 	HostID         int64  `json:"host_id" bson:"host_id"`
+	OSType         string `json:"os_type" bson:"os_type"`
 	TenantID       string `json:"tenant_id" bson:"tenant_id"`
 	NodeRole       string `json:"node_role" bson:"node_role"`
 	NodeStatus     string `json:"node_status" bson:"node_status"`

@@ -22,6 +22,7 @@ type DeploymentInfo struct {
 	OperInstID     string
 	ActionName     string
 	HostID         int64
+	OSType         string
 	TenantID       string
 	NodeRole       NodeRole
 	NodeStatus     NodeStatus
