@@ -123,19 +123,19 @@ const form = reactive({
 // 安装方式列表
 const installMethodList = ref([
   {
-    icon: 'nodeman-icon nc-monitor',
+    icon: 'nodeman-icon nc-remote-install',
     title: t('topoManager.installProxy.installMethodList.remote.title'),
     content: t('topoManager.installProxy.installMethodList.remote.content'),
     value: 0,
   },
   {
-    icon: 'nodeman-icon nc-icon-control-fill',
+    icon: 'nodeman-icon nc-excel-2',
     title: t('topoManager.installProxy.installMethodList.excel.title'),
     content: t('topoManager.installProxy.installMethodList.excel.content'),
     value: 1,
   },
   {
-    icon: 'nodeman-icon nc-key',
+    icon: 'nodeman-icon nc-custom-install',
     title: t('topoManager.installProxy.installMethodList.manual.title'),
     content: t('topoManager.installProxy.installMethodList.manual.content'),
     value: 2,
