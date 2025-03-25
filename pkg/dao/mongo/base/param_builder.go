@@ -42,6 +42,7 @@ func BuildUpsertParam(data any) bson.D {
 }
 
 // BuildUpdateField build update field param.
+// Deprecated: use Orm.UpdateField instead.
 func BuildUpdateField(key string, value any) bson.D {
 	nowTime := time.Now()
 	update := bson.D{

@@ -14,6 +14,7 @@ package base
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,6 +41,7 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 type IOrm[P Pointer[T], T any] interface {
 	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
 	Create(ctx context.Context, data P) error
+	UpdateField(ctx context.Context, filter bson.D, field string, value any) error
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -98,6 +100,7 @@ func (orm *Orm[P, T]) EnsureIndexes() error {
 		return nil
 	}
 
+	// this is a common operation for mongo db, so we use background context.
 	_, err := orm.dao.GetClient().Indexes().CreateMany(context.Background(), indexes)
 	if err != nil {
 		return err
@@ -107,4 +110,35 @@ func (orm *Orm[P, T]) EnsureIndexes() error {
 		orm.dao.GetTableName(), indexes)
 
 	return nil
+}
+
+// UpdateField this is a common operation for mongo db.
+func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field string, value any) error {
+	update := orm.buildUpdateField(field, value)
+
+	result, err := orm.dao.GetClient().UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	orm.dao.GetLogger().Infof("successfully updated, field(%v), updated-count(%d)", field, result.MatchedCount)
+
+	return nil
+}
+
+// buildUpdateField build update field param.
+func (orm *Orm[P, T]) buildUpdateField(key string, value any) bson.D {
+	nowTime := time.Now()
+	update := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				"basic.is_deleted": false,
+				"basic.updated_at": nowTime,
+				key:                value,
+			},
+		},
+	}
+
+	return update
 }
