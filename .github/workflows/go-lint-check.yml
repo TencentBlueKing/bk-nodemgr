@@ -16,7 +16,7 @@ permissions:
 jobs:
   golangci-lint:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Check out PR source code
         uses: actions/checkout@v4
