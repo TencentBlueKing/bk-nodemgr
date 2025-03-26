@@ -8,9 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package actiondefs
-
-const (
-	// ActionNameBindAgentHostRel the name of BindAgentHostRel.
-	ActionNameBindAgentHostRel = "bind_agent_host_rel"
-)
+// Package nodeinstall this package provide node install workflow definition.
+package nodeinstall

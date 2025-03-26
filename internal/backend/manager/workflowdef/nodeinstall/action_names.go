@@ -8,5 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package actiondefs this package provide the action definitions for workflow engine.
-package actiondefs
+package nodeinstall
+
+const (
+	// ActionNameBindAgentHostRel the name of BindAgentHostRel.
+	ActionNameBindAgentHostRel = "bind_agent_host_rel"
+
+	// ActionNameRenderNodeInstallConfig the name of RenderNodeInstallConfig.
+	ActionNameRenderNodeInstallConfig = "render_node_install_config"
+
+	// ActionNamePushHostIdentifier the name of PushHostIdentifier.
+	ActionNamePushHostIdentifier = "push_host_identifier"
+)

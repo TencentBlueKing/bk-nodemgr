@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package nodeinstall
 
 import (
 	"fmt"
@@ -20,8 +19,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
@@ -51,7 +52,7 @@ type sshHostInfo struct {
 }
 
 type installerParams struct {
-	NodeType         types.NodeRole `json:"node_type"`
+	NodeRole         types.NodeRole `json:"node_role"`
 	CallbackEndpoint string         `json:"callback_endpoint"`
 	DownloadEndpoint string         `json:"download_endpoint"`
 	PkgVersion       string         `json:"pkg_version"`
@@ -67,6 +68,7 @@ type InstallAgentBySSH struct {
 	toolsGroup iface.FileGroup
 	crypter    crypter.Crypter
 	logger     logger.Logger
+	provider   discover.Provider
 }
 
 // Name returns the name of the action.
@@ -176,6 +178,22 @@ func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
+	randSelector := discover.NewRandomSelector()
+	downloadEndpoint, err := action.provider.GetEndpoint(discover.ServiceNameFile, discover.EndpointNameFileBasic, randSelector)
+	if err != nil {
+		return fmt.Errorf("failed to get file endpoint, err: %w", err)
+	}
+
+	callbackEndpoint, err := action.provider.GetEndpoint(discover.ServiceNameBackend, discover.EndpointNameBackendCallback, randSelector)
+	if err != nil {
+		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+	}
+
+	param.installerParams.CallbackEndpoint = callbackEndpoint.GetIPV4Address()
+	param.installerParams.DownloadEndpoint = downloadEndpoint.GetIPV4Address()
+
+	param.InstallEnv = system.GetEnv()
+
 	// 7. exec install command
 	installCmd := action.buildCMD(installerPath, param.installerParams, ctx.Data.OperInstID)
 
@@ -244,7 +262,7 @@ func (action *InstallAgentBySSH) detectInfo(ctx *operengine.ActionInstContext, c
 // nolint: perfsprint
 func (action *InstallAgentBySSH) buildCMD(installerPath string, param installerParams, operInstID string) string {
 	args := []string{
-		fmt.Sprintf("--node_type %s", param.NodeType),
+		fmt.Sprintf("--node_type %s", param.NodeRole),
 		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),
 		fmt.Sprintf("--download_endpoint %s", param.DownloadEndpoint),
 		fmt.Sprintf("--pkg_version %s", param.PkgVersion),
