@@ -61,7 +61,7 @@ var deployEdition = struct {
 	sync.Once
 	edition Edition
 }{
-	edition: "ce",
+	edition: EditionCE,
 }
 
 // SetEdition sets the deploy edition.
