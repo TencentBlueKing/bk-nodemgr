@@ -424,7 +424,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 					},
 				},
 			}
-			err = h.BindHostAgent(tt.args.ctx, hostAgentIDs)
+			err = h.BindHostAgent(tt.args.ctx, hostAgentIDs...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return

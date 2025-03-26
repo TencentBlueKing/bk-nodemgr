@@ -263,12 +263,16 @@ func convertHostFromTypes(host *types.Host) *Host {
 	dynamic := &HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &HostDynamic{
-			NodeRole:       string(host.Dynamic.NodeRole),
-			NodeStatus:     string(host.Dynamic.NodeStatus),
-			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: host.Dynamic.NodeGeneration,
-			AgentID:        host.Dynamic.AgentID,
-			NetworkUnitID:  host.Dynamic.NetworkUnitID,
+			NodeRole:         string(host.Dynamic.NodeRole),
+			NodeStatus:       string(host.Dynamic.NodeStatus),
+			NodeVersion:      host.Dynamic.NodeVersion,
+			NodeGeneration:   host.Dynamic.NodeGeneration,
+			AgentID:          host.Dynamic.AgentID,
+			NetworkUnitID:    host.Dynamic.NetworkUnitID,
+			Tag:              host.Dynamic.Tag,
+			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:    host.Dynamic.ProxyDataPort,
+			ProxyFilePort:    host.Dynamic.ProxyFilePort,
 		}
 	}
 
@@ -300,12 +304,16 @@ func convertHostToTypes(host *Host) *types.Host {
 	dynamic := &types.HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &types.HostDynamic{
-			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
-			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
-			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: host.Dynamic.NodeGeneration,
-			AgentID:        host.Dynamic.AgentID,
-			NetworkUnitID:  host.Dynamic.NetworkUnitID,
+			NodeRole:         types.NodeRole(host.Dynamic.NodeRole),
+			NodeStatus:       types.NodeStatus(host.Dynamic.NodeStatus),
+			NodeVersion:      host.Dynamic.NodeVersion,
+			NodeGeneration:   host.Dynamic.NodeGeneration,
+			AgentID:          host.Dynamic.AgentID,
+			NetworkUnitID:    host.Dynamic.NetworkUnitID,
+			Tag:              host.Dynamic.Tag,
+			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:    host.Dynamic.ProxyDataPort,
+			ProxyFilePort:    host.Dynamic.ProxyFilePort,
 		}
 	}
 

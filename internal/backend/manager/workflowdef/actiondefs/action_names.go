@@ -8,12 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package actiondefs
 
 const (
-	// CKey means the key of workflow content.
-
-	// CKeyTenantID define the key of tenant_id.
-	CKeyTenantID string = "tenant_id"
+	// ActionNameBindAgentHostRel the name of BindAgentHostRel.
+	ActionNameBindAgentHostRel = "bind_agent_host_rel"
 )

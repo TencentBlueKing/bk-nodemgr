@@ -44,6 +44,32 @@ const (
 	AgentStatusCodeUninit
 )
 
+// String returns the string representation of the AgentStatusCode.
+func (code AgentStatusCode) String() string {
+	switch code {
+	case AgentStatusCodeUnknown:
+		return "Unknown"
+	case AgentStatusCodeInit:
+		return "Init"
+	case AgentStatusCodeStarting:
+		return "Starting"
+	case AgentStatusCodeRunning:
+		return "Running"
+	case AgentStatusCodeDamaged:
+		return "Damaged"
+	case AgentStatusCodeBusy:
+		return "Busy"
+	case AgentStatusCodeUpgrade:
+		return "Upgrade"
+	case AgentStatusCodeStopping:
+		return "Stopping"
+	case AgentStatusCodeUninit:
+		return "Uninit"
+	}
+
+	return "Unknown"
+}
+
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
 	AgentID        string

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -35,7 +36,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncBizAndHost, triggerID, &operengine.OperInstParam{
 		Timeout: 1 * time.Minute,
 		InitContent: map[string]any{
-			workflowdef.CKeyTenantID: tenantID,
+			keys.CKeyTenantID: tenantID,
 		},
 	})
 	if err != nil {
@@ -63,7 +64,7 @@ func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
 	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncNetworkArea, triggerID, &operengine.OperInstParam{
 		Timeout: 1 * time.Minute,
 		InitContent: map[string]any{
-			workflowdef.CKeyTenantID: tenantID,
+			keys.CKeyTenantID: tenantID,
 		},
 	})
 	if err != nil {

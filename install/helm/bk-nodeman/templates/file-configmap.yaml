@@ -17,7 +17,7 @@ data:
     tenantMode: {{ .Values.file.config.tenantMode }}
 
     httpServer: {{ .Values.file.config.httpServer | toYaml | nindent 6 }}
-      advertiseIPV4: __ADVERTISE_IPV4__ 
+      advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
     adminServer: {{ .Values.file.config.adminServer | toYaml | nindent 6 }}
@@ -32,6 +32,8 @@ data:
         - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
       {{- else }}
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
+      username: {{ .Values.externalEtcd.username }}
+      password: {{ .Values.externalEtcd.password }}
       ca: {{ .Values.externalEtcd.ca }}
       cert: {{ .Values.externalEtcd.cert }}
       key: {{ .Values.externalEtcd.key }}

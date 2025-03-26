@@ -77,4 +77,5 @@ clean:
 	@$(ECHO) "Cleaned build directory"
 
 doc:
+	@$(ECHO) "Open http://localhost:6060 to view the documentation"
 	godoc -http=localhost:6060

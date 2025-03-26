@@ -111,6 +111,8 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 
 	provider.etcdClient, err = clientv3.New(clientv3.Config{
 		Endpoints:   provider.config.Endpoints,
+		Username:    provider.config.Username,
+		Password:    provider.config.Password,
 		DialTimeout: defaultEtcdDialTimeout,
 		TLS:         tlsConf,
 	})

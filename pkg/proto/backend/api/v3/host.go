@@ -218,10 +218,11 @@ func newEmptyHost() *Host {
 			BkOsType:        new(string),
 		},
 		State: &HostState{
-			NodeRole:    new(string),
-			NodeStatus:  new(string),
-			NodeVersion: new(string),
-			BkAgentId:   new(string),
+			NodeRole:       new(string),
+			NodeStatus:     new(string),
+			NodeVersion:    new(string),
+			NodeGeneration: new(int64),
+			BkAgentId:      new(string),
 		},
 	}
 }

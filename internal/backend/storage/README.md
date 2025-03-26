@@ -1,4 +1,11 @@
-## package 定位
+# storage
+
+## 接口规范
+- IStorage: 用于提供整个包的全部接口，主要在初始化时使用
+- IDaoxxx: 提供单个 Storage 下各数据表的单表数据访问能力
+- IDomainxxx: 提供针对业务领域的数据访问能力
+
+## 能力边界
 
 storage 层用于提供针对场景的数据能力：
 

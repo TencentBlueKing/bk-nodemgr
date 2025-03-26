@@ -27,6 +27,10 @@ export default class ResourceLayout extends BaseLayout {
   static readonly maxNodesPerArea = 2;
   static readonly singleWorkUnitWidth = 280;
   static readonly moreWorkUnitWidth = 520;
+  static readonly commonWorkAreaHeight = 792;
+  static readonly maxAreaCol = 2;
+  static readonly maxAreaRow = 4;
+  static readonly heightSegment = ResourceLayout.commonWorkAreaHeight / ResourceLayout.maxAreaRow;
 
   static readonly WORK_AREA_TYPE = NodeType.NET_WORK_AREA;
   static readonly WORK_UNIT_TYPE = NodeType.NET_WORK_UNIT;
@@ -136,16 +140,26 @@ export default class ResourceLayout extends BaseLayout {
     return count;
   }
 
+  private getAreaHeight(nodesInAreaCount: number) {
+    let height  = ResourceLayout.commonWorkAreaHeight;
+    const maxNodesInArea = ResourceLayout.maxAreaCol * ResourceLayout.maxAreaRow;
+    if (nodesInAreaCount > maxNodesInArea) {
+      height = Math.ceil(nodesInAreaCount / ResourceLayout.maxAreaCol) * ResourceLayout.heightSegment;
+    }
+    return height;
+  }
+
   private getAreasStyle(areas: NodeData[]) {
     let xPosition = 0;
     return areas.map((area) => {
       const currentAreaId = area.id as string;
-      const count = this.getCurrentAreaNodesMaxCount(currentAreaId);
+      const count = this.areasMap.get(currentAreaId)?.count as number;
       this.areasMap.set(currentAreaId, {
         count,
         xPosition,
       });
-      const curWidth = count === ResourceLayout.maxNodesPerArea
+      const curHeight = this.getAreaHeight(count);
+      const curWidth = count >= ResourceLayout.maxNodesPerArea
         ? ResourceLayout.moreWorkUnitWidth
         : ResourceLayout.singleWorkUnitWidth;
       const curX = xPosition;
@@ -156,6 +170,7 @@ export default class ResourceLayout extends BaseLayout {
           x: curX,
           y: 0,
           width: curWidth,
+          height: curHeight,
         },
       };
     });
@@ -217,6 +232,7 @@ export default class ResourceLayout extends BaseLayout {
         style: {
           x: xPosition,
           y: yPosition,
+          zIndex: 100,
         },
       };
     });

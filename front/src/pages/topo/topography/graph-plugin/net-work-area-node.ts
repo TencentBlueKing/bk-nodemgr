@@ -13,7 +13,6 @@ export default class NetworkAreaNode extends BaseNode {
   // 默认外层节点属性
   static defaultNodeStyle: Partial<RectStyleProps> = {
     fill: '#f5f7fa',
-    height: 792,
     zIndex: 0,
   };
 

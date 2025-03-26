@@ -33,7 +33,7 @@ type dao struct {
 	client  *mongo.Collection
 	logger  logger.Logger
 	counter counter.Handler
-	baseOrm *base.Orm[*NodeDeployment, NodeDeployment]
+	baseOrm base.IOrm[*NodeDeployment, NodeDeployment]
 }
 
 // GetClient get the dao's client.
@@ -77,6 +77,10 @@ func (d *dao) create(ctx context.Context, nodeDeployment *NodeDeployment) error 
 
 func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*NodeDeployment, error) {
 	return d.baseOrm.Get(ctx, filter, fields...)
+}
+
+func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
+	return d.baseOrm.UpdateField(ctx, filter, field, value)
 }
 
 func (d *dao) ensureIndexes() error {

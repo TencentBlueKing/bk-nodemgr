@@ -13,7 +13,6 @@ package host
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -24,85 +23,71 @@ import (
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName(tenantID)), logger: logger}
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.baseOrm = base.NewOrm[*Host, Host](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	baseOrm   base.IOrm[*Host, Host]
+}
+
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyHostID, Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: FieldKeyDynamicNetworkUnitID, Value: 1}},
+		},
+	}
+
+	return indexes
 }
 
 // nolint:contextcheck
 // ensureIndexes ensures the required indexes for the collection.
 func (d *dao) ensureIndexes() error {
-	var indexes []mongo.IndexModel
-
-	indexes = append(indexes, mongo.IndexModel{
-		Keys: bson.D{{Key: "data.host_id", Value: 1}},
-	})
-
-	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
-	if err != nil {
-		return err
-	}
-
-	d.logger.Infof("successfully created required indexes")
-
-	return nil
+	return d.baseOrm.EnsureIndexes()
 }
 
 // ListAll list all host.
 func (d *dao) listAll(ctx context.Context) ([]*Host, error) {
-	result, err := d.client.Find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
-	if err != nil {
-		return nil, err
-	}
-
-	hosts := make([]*Host, 0)
-	for result.Next(ctx) {
-		table := &TableHost{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode host, err %v", err)
-
-			continue
-		}
-		hosts = append(hosts, table.Data)
-	}
-
-	return hosts, nil
+	return d.baseOrm.List(ctx, base.AliveFilter(), nil)
 }
 
 func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	num, err := d.client.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	if num < 0 {
-		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
-	}
-
-	return num, nil
+	return d.baseOrm.Count(ctx, filter)
 }
 
 func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*Host, error) {
-	result, err := d.client.Find(ctx, filter, findOpt)
-	if err != nil {
-		return nil, err
-	}
-
-	hosts := make([]*Host, 0)
-	for result.Next(ctx) {
-		table := &TableHost{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode host, err %v", err)
-
-			continue
-		}
-		hosts = append(hosts, table.Data)
-	}
-
-	return hosts, nil
+	return d.baseOrm.List(ctx, filter, findOpt)
 }
 
 // upsertMany upsert many hosts.
@@ -169,7 +154,7 @@ func (d *dao) updateDynamicMany(ctx context.Context, hosts []*Host) error {
 func buildUpsertManyParams(hosts []*Host) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 	for _, host := range hosts {
-		filter := bson.D{{Key: "data.host_id", Value: host.HostID}}
+		filter := bson.D{{Key: FieldKeyHostID, Value: host.HostID}}
 
 		update := base.BuildUpsertParam(host)
 
@@ -183,7 +168,7 @@ func buildUpsertManyParams(hosts []*Host) []mongo.WriteModel {
 func buildUpsertStaticManyParams(hosts []*Host) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 	for _, host := range hosts {
-		filter := bson.D{{Key: "data.host_id", Value: host.HostID}}
+		filter := bson.D{{Key: FieldKeyHostID, Value: host.HostID}}
 
 		nowTime := time.Now()
 		update := bson.D{
@@ -214,7 +199,7 @@ func buildUpsertStaticManyParams(hosts []*Host) []mongo.WriteModel {
 func buildUpdateDynamicManyParams(hosts []*Host) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 	for _, host := range hosts {
-		filter := append(base.AliveFilter(), bson.E{Key: "data.host_id", Value: host.HostID})
+		filter := append(base.AliveFilter(), bson.E{Key: FieldKeyHostID, Value: host.HostID})
 
 		nowTime := time.Now()
 		update := bson.D{

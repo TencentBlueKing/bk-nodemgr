@@ -16,6 +16,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -27,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,8 +49,14 @@ type Capability struct {
 	// OperStorage bk nodeman operation storage.
 	OperStorage operation.Storage
 
+	// NodeDeploymentStorage bk nodeman node deployment storage.
+	NodeDeploymentStorage nodedeployment.Storage
+
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.Handler
+
+	// GseHandler gse handler.
+	GseHandler gse.IHandler
 
 	// Logger logger
 	Logger logger.Logger
@@ -120,17 +128,29 @@ func testCapability(t *testing.T) *Capability {
 		t.Fatal(err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
-		Logger:               loggerDefault,
-	}
+	cmdbHandler, err := cmdb.New(
+		&client.Capability{
+			Client:               httpClient,
+			Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_CMDB_ENDPOINT")}),
+			ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+			MetricOpts:           client.MetricOption{},
+			Logger:               loggerDefault,
+		},
+		&cmdb.Config{
+			HeaderSetter: testHeaderSetter{},
+		})
 
-	cmdbHandler, err := cmdb.New(clientCap, &cmdb.Config{
-		HeaderSetter: testHeaderSetter{},
-	})
+	gseHandler, err := gse.New(
+		&client.Capability{
+			Client:               httpClient,
+			Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_GSE_ENDPOINT")}),
+			ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+			MetricOpts:           client.MetricOption{},
+			Logger:               loggerDefault,
+		},
+		&gse.Config{
+			HeaderSetter: testHeaderSetter{},
+		})
 
 	crypt, err := crypter.NewAESCrypter([]byte(os.Getenv("SSH_ENCRYPT_KEY")))
 	if err != nil {
@@ -142,6 +162,7 @@ func testCapability(t *testing.T) *Capability {
 		TrigEngineStorage: nil,
 		OperInstStorage:   operInstStorage,
 		OperStorage:       nil,
+		GseHandler:        gseHandler,
 		CmdbHandler:       cmdbHandler,
 		Logger:            loggerDefault,
 		LockerFactory:     nil,

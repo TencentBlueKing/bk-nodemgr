@@ -4,7 +4,7 @@
       <template #left>
         <div class="flex items-center">
           <!-- 新建 -->
-          <Button theme="primary" class="mr-[8px]" @click="showUpsertWorkarea = true">
+          <Button theme="primary" class="mr-[8px]" @click="handleCreateWorkarea">
             <i class="nodeman-icon nc-plus-line mr-[4.5px]"></i>
             <span>{{ $t('action.create') }}</span>
           </Button>
@@ -22,8 +22,16 @@
         </SearchSelect>
       </template>
     </FlexRow>
-    <RegionTable ref="regionTableRef"></RegionTable>
-    <UpsertWorkarea v-model:is-show="showUpsertWorkarea"></UpsertWorkarea>
+    <RegionTable
+      ref="regionTableRef"
+      @edit="handleEditWorkarea"
+    />
+    <UpsertWorkarea
+      v-model:is-show="showUpsertWorkarea"
+      :is-create="isCreate"
+      @install-proxy="handleInstallProxy"
+    />
+    <InstallProxy v-bind:is-show="isInstallProxyShow" />
   </div>
 </template>
 
@@ -33,6 +41,8 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useDebounce } from '@vueuse/core';
+
+import InstallProxy from '../install-proxy/install-proxy.vue';
 
 import RegionTable from './components/region-table.vue';
 import UpsertWorkarea from './components/upsert-workarea.vue';
@@ -47,6 +57,19 @@ const showUpsertWorkarea = ref(false);
 // 搜索
 const searchKey = ref([]);
 const debounceSearch = useDebounce(searchKey, 300);
+const isCreate = ref(true);
+const curWorkareaData = ref();
+
+const handleCreateWorkarea = () => {
+  isCreate.value = true;
+  showUpsertWorkarea.value = true;
+};
+
+const handleEditWorkarea = (workareaData: NetworkArea) => {
+  isCreate.value = false;
+  curWorkareaData.value = workareaData;
+  showUpsertWorkarea.value = true;
+};
 
 const searchSelectData = ref([
   {
@@ -63,6 +86,10 @@ const searchSelectData = ref([
     multiple: true,
   },
 ]);
+const isInstallProxyShow = ref(false);
+const handleInstallProxy = () => {
+  isInstallProxyShow.value = true;
+};
 
 const regionTableRef = ref();
 const handleGetSelectData = async (type: string) => {
@@ -72,27 +99,13 @@ const handleGetSelectData = async (type: string) => {
     tableData = regionTableRef.value.tableRef.getVxeTableInstance().getCheckboxRecords();
   } else {
     // 获取全部行
-    tableData = await workareaStore.handleFetchAllWorkAreaList();
+    tableData = await workareaStore.handleGetAllWorkareaList();
   }
   return tableData;
 };
 
 watch(debounceSearch, (newVal) => {
-  console.log(newVal)
-  for (const o of newVal) {
-    const curValue = o.values[0].name;
-    switch (o.id) {
-      case 'workareaName':
-        workareaStore.includeConditions.bk_networkarea_name = [curValue];
-        break;
-      case 'workareaId':
-        workareaStore.includeConditions.bk_networkarea_name = [parseInt(curValue)];
-        break;
-      case 'vendor':
-        workareaStore.includeConditions.bk_networkarea_name = [parseInt(curValue)];
-        break;
-    }
-  }
+  // todo
 });
 
 </script>

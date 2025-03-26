@@ -20,42 +20,42 @@ type OptFn = base.OptFn
 
 // WithHostID filters by host-id.
 func WithHostID(hostIDs ...int64) OptFn {
-	return base.WithInt64Values("data.host_id", hostIDs...)
+	return base.WithInt64Values(FieldKeyHostID, hostIDs...)
 }
 
 // WithoutHostID filters by not contains host-id.
 func WithoutHostID(hostIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.host_id", hostIDs...)
+	return base.WithoutInt64Values(FieldKeyHostID, hostIDs...)
 }
 
 // WithBizID filters by biz-id.
 func WithBizID(bizIDs ...int64) OptFn {
-	return base.WithInt64Values("data.static.biz_id", bizIDs...)
+	return base.WithInt64Values(FieldKeyStaticBizID, bizIDs...)
 }
 
 // WithoutBizID filters by not contains biz-id.
 func WithoutBizID(bizIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.static.biz_id", bizIDs...)
+	return base.WithoutInt64Values(FieldKeyStaticBizID, bizIDs...)
 }
 
 // WithNetworkAreaID filters by network area id.
 func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithInt64Values("data.static.networkarea_id", networkAreaIDs...)
+	return base.WithInt64Values(FieldKeyStaticNetworkAreaID, networkAreaIDs...)
 }
 
 // WithoutNetworkAreaID filters by not contains network area id.
 func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.static.networkarea_id", networkAreaIDs...)
+	return base.WithoutInt64Values(FieldKeyStaticNetworkAreaID, networkAreaIDs...)
 }
 
 // WithNetworkUnitID filters by network unit id.
 func WithNetworkUnitID(networkUnitID ...int64) OptFn {
-	return base.WithInt64Values("data.dynamic.networkunit_id", networkUnitID...)
+	return base.WithInt64Values(FieldKeyDynamicNetworkUnitID, networkUnitID...)
 }
 
 // WithoutNetworkUnitID filters by not contains network unit id.
 func WithoutNetworkUnitID(networkUnitID ...int64) OptFn {
-	return base.WithoutInt64Values("data.dynamic.networkunit_id", networkUnitID...)
+	return base.WithoutInt64Values(FieldKeyDynamicNetworkUnitID, networkUnitID...)
 }
 
 // WithFuzzyHostName filters by host name.
@@ -115,7 +115,7 @@ func WithFuzzyOuterIPV6(outerIPV6s ...string) OptFn {
 
 // WithoutFuzzyOuterIPV6 filters by not contains outer ip.
 func WithoutFuzzyOuterIPV6(outerIPV6s ...string) OptFn {
-	return base.WithoutFuzzyValues("data.static.outer_ipv6", outerIPV6s...)
+	return base.WithoutFuzzyValues(FieldKeyStaticOuterIpv6, outerIPV6s...)
 }
 
 // WithOSType filters by os type.
@@ -135,7 +135,7 @@ func WithNodeRole(roles ...types.NodeRole) OptFn {
 		str[idx] = string(role)
 	}
 
-	return base.WithStringValues("data.dynamic.node_role", str...)
+	return base.WithStringValues(FieldKeyDynamicNodeRole, str...)
 }
 
 // WithoutNodeRole filters by not contains node role.
@@ -145,7 +145,7 @@ func WithoutNodeRole(roles ...types.NodeRole) OptFn {
 		str[idx] = string(role)
 	}
 
-	return base.WithoutStringValues("data.dynamic.node_role", str...)
+	return base.WithoutStringValues(FieldKeyDynamicNodeRole, str...)
 }
 
 // WithNodeStatus filters by node status.
@@ -155,7 +155,7 @@ func WithNodeStatus(statuses ...types.NodeStatus) OptFn {
 		str[idx] = string(status)
 	}
 
-	return base.WithStringValues("data.dynamic.node_status", str...)
+	return base.WithStringValues(FieldKeyDynamicNodeStatus, str...)
 }
 
 // WithoutNodeStatus filters by not contains node status.
@@ -165,30 +165,30 @@ func WithoutNodeStatus(statuses ...types.NodeStatus) OptFn {
 		str[idx] = string(status)
 	}
 
-	return base.WithoutStringValues("data.dynamic.node_status", str...)
+	return base.WithoutStringValues(FieldKeyDynamicNodeStatus, str...)
 }
 
 // WithNodeVersion filters by node version.
 func WithNodeVersion(versions ...string) OptFn {
-	return base.WithStringValues("data.dynamic.node_version", versions...)
+	return base.WithStringValues(FieldKeyDynamicNodeVersion, versions...)
 }
 
 // WithNodeGeneration filters by node generation.
 func WithNodeGeneration(generations ...int64) OptFn {
-	return base.WithInt64Values("data.dynamic.node_generation", generations...)
+	return base.WithInt64Values(FieldKeyDynamicNodeGeneration, generations...)
 }
 
 // WithoutNodeVersion filters by not contains node version.
 func WithoutNodeVersion(versions ...string) OptFn {
-	return base.WithoutStringValues("data.dynamic.node_version", versions...)
+	return base.WithoutStringValues(FieldKeyDynamicNodeVersion, versions...)
 }
 
 // WithAgentID filters by contains agent id.
 func WithAgentID(agentIDs ...string) OptFn {
-	return base.WithStringValues("data.dynamic.agent_id", agentIDs...)
+	return base.WithStringValues(FieldKeyDynamicAgentID, agentIDs...)
 }
 
 // WithoutAgentID filters by not contains agent id.
 func WithoutAgentID(agentIDs ...string) OptFn {
-	return base.WithoutStringValues("data.dynamic.agent_id", agentIDs...)
+	return base.WithoutStringValues(FieldKeyDynamicAgentID, agentIDs...)
 }

@@ -28,45 +28,44 @@ platform:
     history: History
     taskHistory: Task history
 topoManager:
-  region:
+  workArea:
     title: Workarea
-    workarea:
-      search:
-        placeholder: Please enter the name, ID, and cloud service provider search for the controlled area
-        workareaName: Workarea name
-        workareaId: Workarea ID
-        vendor: Vendor
-      form:
-        create: Create a new workarea
-        edit: Edit workarea
-        workareaName: Workarea name
-        vendor: Vendor
-        tips: After creating the workarea, it is still necessary to install a proxy in order to use it normally
-        success: Workarea created successfully
-        failed: Workarea creation failed
-      formRule:
-        workareaName: The name of the Workarea cannot be empty
-        vendor: Vendor name cannot be empty
-      table:
-        workareaName: Workarea name
-        workareaId: Workarea ID
-        vendor: Vendor
-        workUnitsCount: Number of workUnits
-        nodesCount: Number of nodes
-      vendor:
-        tencent: Tencent Cloud
-        google: Google Cloud
-        huawei: HuaWei Cloud
-        microsoft: Microsoft Cloud
-        ali: Alibaba Cloud
-      copy:
-        workarea: Workarea
-        select: The selected Proxy IP
-        selectAll: Proxy IP for all items
-        success: Replicating Success
-        failed: Replicating Failed
-      delete:
-        title: Are you sure you want to delete this' Workarea '?
+    search:
+      placeholder: Please enter the name, ID, and cloud service provider search for the controlled area
+      workareaName: Workarea name
+      workareaId: Workarea ID
+      vendor: Vendor
+    form:
+      create: Create a new workarea
+      edit: Edit workarea
+      workareaName: Workarea name
+      vendor: Vendor
+      tips: After creating the workarea, it is still necessary to install a proxy in order to use it normally
+      success: Workarea created successfully
+      failed: Workarea creation failed
+    formRule:
+      workareaName: The name of the Workarea cannot be empty
+      vendor: Vendor name cannot be empty
+    table:
+      workareaName: Workarea name
+      workareaId: Workarea ID
+      vendor: Vendor
+      workUnitsCount: Number of workUnits
+      nodesCount: Number of nodes
+    vendor:
+      tencent: Tencent Cloud
+      google: Google Cloud
+      huawei: HuaWei Cloud
+      microsoft: Microsoft Cloud
+      ali: Alibaba Cloud
+    copy:
+      workarea: Workarea
+      select: The selected Proxy IP
+      selectAll: Proxy IP for all items
+      success: Replicating Success
+      failed: Replicating Failed
+    delete:
+      title: Are you sure you want to delete this' Workarea '?
   workAreaDetail:
     workUnitCount: Number of Work Unit
     proxyQuantity: Number of Proxy
@@ -89,6 +88,71 @@ topoManager:
       proxyStatus: Proxy Status
       action: Action
       Reassembly: Reassembly
+  workUnit:
+    title:
+      create: Create Work Unit
+      edit: Edit Work Unit
+    form:
+      workUnitName: Name of Work Unit
+      upstream: Upstream access point
+      downstream: Downstream access point
+      senior: Senior
+      accessPointName: Access point name
+      createAccessPoint: Add new access point
+      deleteTips: Are you sure you want to delete this access point?
+      input: 
+        placeholder: Please enter IP:Port
+        validate: Format error, please enter IP:port
+    delete:
+      title: Are you sure to delete this Work Unit?
+      content: Work Unit
+      tips: After deletion, the proxy under the Work Unit will also be cleared. Please operate with caution!
+    empty: No Work Unit currently available
+    accessPoints:
+      upstream: Upstream access point
+      downstream: Downstream access point
+    toggle:
+      expand: expand
+      close: retract
+  installProxy:
+    title: Install Proxy
+    tips: Installing a proxy requires opening a certain network access policy. After filling in the proxy information, you can view the corresponding installation instructions
+    guide: Install Requirements
+    form:
+      method: Installation Method
+      info: Installation Information
+      password: Key/Password
+      saveTime:
+        oneDay: Save for {x} days
+        longTermSave: Long term preservation
+      os: Operating System
+      port: Login Port
+      account: Login Account
+      business: Belonging Business
+    installMethodList:
+      remote:
+        title: Ordinary remote installation
+        content: Online form filling requires login information
+      excel:
+        title: Excel import remote installation
+        content: Import and fill in Excel, login information is required
+      manual:
+        title: Manual install
+        content: No need to provide login information, execute the given command on the server to complete the installation on your own
+    table:
+      hostIp: Host IP
+      ipv4: Internal IPv4 Network
+      ipv6: Internal IPv6 Network
+      hostProperties: Host Properties
+      os: Operating System
+      loginInfo: Login Information
+      loginIp: Login IP
+      authenticationMethod: Authentication Method
+      password: Password/Key
+      transmittedInfo: Transmitted Information
+      tempFileDirectory: Temporary File Directory
+      speedLimit: Transmission Speed Limit M/s
+      dataCompression: Data Compression
   topo:
     title: Topology Map
     toolbar:
@@ -96,7 +160,7 @@ topoManager:
       center: Back To Center
       originalSize: Original Size
     select:
-      tips: 至少选择{count}个区域
+      tips: Select at least {count} workarea
   record:
     title: Operation Record
 action:
@@ -105,9 +169,20 @@ action:
   edit: Edit
   delete: Delete
   confirm: Confirm
-  cancel: 取消
+  cancel: Cancel
+  save: Save
   installProxy: Install Proxy
   installLater: Install Later
+  install: Install
 table:
   empty: No data available at the moment
   action: action
+message:
+  success:
+    edit: Modified successfully
+    create: New created successfully
+    delete: Delete successfully
+  warn:
+    keepAtLeast: Keep at least {x} rows
+validate:
+  required: Cannot be empty

@@ -143,12 +143,16 @@ const (
 // HostDynamic represents a dynamic host under a host.
 // dynamic means it is set by user.
 type HostDynamic struct {
-	NodeRole       NodeRole
-	NodeStatus     NodeStatus
-	NodeVersion    string
-	NodeGeneration int64
-	AgentID        string
-	NetworkUnitID  int64
+	NodeRole         NodeRole
+	NodeStatus       NodeStatus
+	NodeVersion      string
+	NodeGeneration   int64
+	AgentID          string
+	NetworkUnitID    int64
+	Tag              string
+	ProxyClusterPort int64
+	ProxyDataPort    int64
+	ProxyFilePort    int64
 }
 
 // NewBlankNodeDynamic returns a blank node dynamic.

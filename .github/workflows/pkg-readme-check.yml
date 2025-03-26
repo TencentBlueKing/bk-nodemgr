@@ -2,7 +2,7 @@ name: Package README Check
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   check-pkg-readme:
@@ -91,6 +91,23 @@ jobs:
             echo "HAS_MISSING=false" >> $GITHUB_ENV
           fi
 
+      - name: Find existing comments
+        id: find-comment
+        if: always()
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
+          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | contains("📝 包文档缺失提醒")) | .id')
+          
+          if [ -n "$BOT_COMMENTS" ]; then
+            echo "EXISTING_COMMENTS<<EOF" >> $GITHUB_ENV
+            echo "$BOT_COMMENTS" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_EXISTING_COMMENTS=true" >> $GITHUB_ENV
+          else
+            echo "HAS_EXISTING_COMMENTS=false" >> $GITHUB_ENV
+          fi
+
       - name: Generate comment
         if: env.HAS_MISSING == 'true'
         run: |
@@ -123,6 +140,18 @@ jobs:
           echo "> 💡 **为什么需要README？**" >> $GITHUB_ENV
           echo "> 良好的文档能够提高代码可维护性和促进团队协作。" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: Close outdated comments
+        if: env.HAS_EXISTING_COMMENTS == 'true' && env.HAS_MISSING == 'false'
+        run: |
+          echo "${{ env.EXISTING_COMMENTS }}" | while read comment_id; do
+            if [ -n "$comment_id" ]; then
+              COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"
+              curl -s -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" \
+                -d '{"body":"~~ 📝 包文档缺失提醒 ~~\n\n✅ **所有包文档问题已解决，感谢您的贡献！**"}' \
+                "$COMMENT_URL"
+            fi
+          done
 
       - name: Comment on PR
         if: env.HAS_MISSING == 'true'

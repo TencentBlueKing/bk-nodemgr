@@ -1,10 +1,10 @@
 <template>
   <Dialog :is-show="isShow" :width="480" @closed="isShow = false">
-    <div class="pt-[11px]" v-if="true">
+    <div class="pt-[11px]">
       <!-- icon -->
       <div class="flex justify-center">
-        <div class="w-[42px] h-[42px] rounded-[50px] bg-[#E5F6EA] text-center">
-          <i class="nodeman-icon nc-check-small text-[#3FC06D] text-[36px] leading-[42px]"></i>
+        <div class="w-[42px] h-[42px] rounded-[50px] bg-[#E5F6EA] flex items-center justify-center">
+          <i class="nodeman-icon nc-check-small text-[#3FC06D] text-[36px]"></i>
         </div>
       </div>
       <!-- result text -->
@@ -21,22 +21,6 @@
       <div class="flex justify-center">
         <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">{{ $t('action.installProxy') }}</Button>
         <Button class="text-[#63656E]" @click="handleInstallLater">{{ $t('action.installLater') }}</Button>
-      </div>
-    </div>
-    <div class="pt-[11px]" v-else>
-      <!-- icon -->
-      <div class="flex justify-center">
-        <div class="w-[42px] h-[42px] rounded-[50px] bg-[#E5F6EA] text-center">
-          <i class="nodeman-icon nc-delete text-[#EA3636] text-[36px] leading-[42px]"></i>
-        </div>
-      </div>
-      <!-- result text -->
-      <div class="text-[20px] text-[#313238] text-center font-medium mt-[19px]">
-        {{ $t('topoManager.workArea.form.failed') }}
-      </div>
-      <!-- tips -->
-      <div class="flex justify-center">
-        <Button theme="primary" @click="isShow = false">{{ $t('action.confirm') }}</Button>
       </div>
     </div>
     <template #footer></template>
@@ -62,10 +46,10 @@ const handleInstallLater = () => {
 </script>
 
 <style lang="less" scoped>
-::v-deep .bk-dialog-header {
+:deep(.bk-dialog-header) {
   display: none;
 }
-::v-deep .bk-dialog-footer {
+:deep(.bk-dialog-footer) {
   display: none;
 }
 </style>

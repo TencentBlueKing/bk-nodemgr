@@ -167,7 +167,7 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		}
 	}
 	uEvents := make([]*types.TopoEvent, len(accessPointResult.Updated))
-	for idx, accessPoint := range accessPointResult.Created {
+	for idx, accessPoint := range accessPointResult.Updated {
 		uEvents[idx] = &types.TopoEvent{
 			TenantID:        ctx.TenantID,
 			Type:            types.TopoEventAccessPointUpdate,

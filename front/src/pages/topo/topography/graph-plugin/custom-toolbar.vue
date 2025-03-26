@@ -63,7 +63,7 @@ const props = defineProps({
 const emit = defineEmits(['triggerTools']);
 type graphZoomRange = [number, number];
 const mapSize = ref(props.mapSize);
-const mapShow = ref(false);
+const mapShow = ref(true);
 const handleClickTool = (code: string) => {
   switch (code) {
     // 基于mapSize自动计算ratio

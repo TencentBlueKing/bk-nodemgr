@@ -28,6 +28,7 @@ type IStorage interface {
 	IDaoBusiness
 	IDaoHost
 	IDaoTopoEvent
+	IDomainGse
 }
 
 // IDaoTopoEvent this interface defines the operations which is only for topo event.
@@ -119,4 +120,14 @@ type IDaoHost interface {
 
 	// CountHost counts hosts by conditions.
 	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
+
+	// GetHostByID gets host by id.
+	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
+}
+
+// IDomainGse this interface defines the operations which is only for domain gse.
+type IDomainGse interface {
+	// GetAgentAccessEndpoints get agent access endpoints.
+	GetAgentAccessEndpoints(ctx context.Context, unitID int64) (clusterEndpoints []string, dataEndpoints []string,
+		fileEndpoints []string, err error)
 }

@@ -38,6 +38,8 @@ data:
         - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
       {{- else }}
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
+      username: {{ .Values.externalEtcd.username }}
+      password: {{ .Values.externalEtcd.password }}
       ca: {{ .Values.externalEtcd.ca }}
       cert: {{ .Values.externalEtcd.cert }}
       key: {{ .Values.externalEtcd.key }}
