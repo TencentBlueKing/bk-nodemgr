@@ -18,6 +18,7 @@ import (
 // OptFn option of find.
 type OptFn = base.OptFn
 
+// WithToken set token.
 func WithToken(token ...string) OptFn {
 	return base.WithStringValues(FieldKeyToken, token...)
 }
