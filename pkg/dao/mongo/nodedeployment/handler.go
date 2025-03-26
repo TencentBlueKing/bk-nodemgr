@@ -178,12 +178,12 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 }
 
 // SetNodeConf set a node deployment node conf.
-func (h *Handler) SetNodeConf(ctx context.Context, Token string, nodeConf *types.NodeConf) error {
+func (h *Handler) SetNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	if Token == "" {
+	if token == "" {
 		return base.ErrInvalidID()
 	}
 
@@ -197,7 +197,7 @@ func (h *Handler) SetNodeConf(ctx context.Context, Token string, nodeConf *types
 	}
 
 	filter := base.AliveFilter()
-	filter = WithToken(Token)(filter)
+	filter = WithToken(token)(filter)
 	if err := h.dao.updateField(ctx, filter, FieldKeyNodeConf, data); err != nil {
 		return err
 	}
