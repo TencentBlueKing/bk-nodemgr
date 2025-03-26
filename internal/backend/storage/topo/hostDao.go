@@ -236,9 +236,9 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 	return s.daoHost.Count(ctx, opts...)
 }
 
-// GetProxyEndpointsByUintID get proxy endpoints by unit id.
+// GetAgentAccessEndpoints get agent access endpoints by unit id.
 // nolint: nonamedreturns
-func (s *Storage) GetProxyEndpointsByUintID(ctx context.Context, unitID int64) (clusterEndpoints []string,
+func (s *Storage) GetAgentAccessEndpoints(ctx context.Context, unitID int64) (clusterEndpoints []string,
 	dataEndpoints []string, fileEndpoints []string, err error) {
 
 	if ctx == nil {
