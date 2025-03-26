@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
 
-import type { TopoNetworkAreaCreateReq, TopoNetworkAreaListReq } from '@/@types/topo';
+import type { TopoEventListReq, TopoNetworkAreaCreateReq, TopoNetworkAreaListReq } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
 
 export const useWorkareaStore = defineStore('workarea', () => {
@@ -85,7 +85,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
       allWorkareaList.value.set(area.bk_networkarea_id, area);
     }
   };
-
+  // 将所有管控单元 接入点存入Map
   const handleFetchAllWorkUnit = async () => {
     allWorkUnitList.value.clear();
     allAccessPointList.value.clear();
@@ -105,6 +105,12 @@ export const useWorkareaStore = defineStore('workarea', () => {
     }
   };
 
+  // 获取操作记录列表
+  const handleFetchRecordList = async (params: Partial<TopoEventListReq>) => {
+    const result = await TopoService.EventList(params);
+    return result;
+  };
+
   return {
     workareaList,
     loading,
@@ -119,5 +125,6 @@ export const useWorkareaStore = defineStore('workarea', () => {
     handleGetAllWorkareaList,
     handleFetchAllWorkarea,
     handleFetchAllWorkUnit,
+    handleFetchRecordList,
   };
 });

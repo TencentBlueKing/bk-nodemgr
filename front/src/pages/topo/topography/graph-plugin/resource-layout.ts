@@ -276,6 +276,8 @@ export default class ResourceLayout extends BaseLayout {
         }
 
         style.controlPoints = [[x, y]];
+        // 避免尾部箭头被proxy、agent标签遮挡，设置偏移量50
+        style.endArrowOffset = 50;
       }
 
       return {

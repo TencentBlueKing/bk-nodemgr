@@ -16,13 +16,21 @@
         show-all
         @change="handleSelectChange"
       >
-        <Select.Option
-          v-for="(item, index) in netWorkAreaList"
-          :id="item.bk_networkarea_id"
-          :key="index"
-          :name="item.bk_networkarea_name">
-
-        </Select.Option>
+        <Select.Group :label="$t('topoManager.topo.select.default')">
+          <Select.Option
+            :key="defaultNetWorkarea?.bk_networkarea_id"
+            :id="defaultNetWorkarea?.bk_networkarea_id"
+            :name="defaultNetWorkarea?.bk_networkarea_name">
+          </Select.Option>
+        </Select.Group>
+        <Select.Group :label="$t('topoManager.topo.select.other')">
+          <Select.Option
+            v-for="item in netWorkAreaList"
+            :key="item.bk_networkarea_id"
+            :id="item.bk_networkarea_id"
+            :name="item.bk_networkarea_name">
+          </Select.Option>
+        </Select.Group>
       </Select>
 
       <div id="nodemgr-g6-container"></div>
@@ -38,9 +46,10 @@ import { Loading, Select } from 'bkui-vue';
 import { throttle } from 'lodash';
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import type { EdgeData, GraphData, NodeData } from '@antv/g6';
-import { EdgeEvent, ExtensionCategory, Graph, register } from '@antv/g6';
+import { EdgeEvent, ExtensionCategory, Graph, NodeEvent, register } from '@antv/g6';
 
 import { NodeType } from './graph-plugin/config';
 import CustomToolbar from './graph-plugin/custom-toolbar.vue';
@@ -59,8 +68,11 @@ const {
   handleFetchTopoWorkGraphInfo,
 } = useTopoStore();
 const topoStore = useTopoStore();
+const router = useRouter();
+
 const regionList = useMinLengthRef(['all'] as Array<string | number>, t('topoManager.topo.select.tips', { count: 1 }));
 const netWorkAreaList = ref<Partial<NetworkArea>[]>([]);
+const defaultNetWorkarea = ref<Partial<NetworkArea>>();
 
 function handleSelectChange() {};
 
@@ -114,8 +126,9 @@ function handleInitTopo() {
       },
       {
         type: 'drag-canvas',
+        enable: true,
         key: 'drag-canvas',
-      }
+      },
     ],
     plugins: [
       {
@@ -149,14 +162,31 @@ function handleClickTool(code: string, value: number) {
   };
 }
 
-function handleHoverEdge(evt) {
+function handleHoverEdge(evt: Event) {
   const { target } = evt;
-  graph.setElementState(target.id, 'highlight');
+  graph.setElementState(target?.id, 'highlight');
 }
 
-function handleLeaveEdge(evt) {
+function handleLeaveEdge(evt: Event) {
   const { target } = evt;
-  graph.setElementState(target.id, '');
+  graph.setElementState(target?.id, '');
+}
+
+// 跳转到管控区域详情对应的管控单元
+function handleJumpToWorkareaDetail(evt: Event) {
+  const { target } = evt;
+  const nodeId = target?.id;
+  if (nodeId.includes(workUnitPrefix)) {
+    const workareaId = Number(target?.data.area.replace(workAreaPrefix, ''));
+    const workUnitId = Number(nodeId.replace(workUnitPrefix, ''));
+    router.push({
+      name: 'workareaDetail',
+      params: {
+        workarea: workareaId,
+        workUnit: workUnitId,
+      },
+    });
+  }
 }
 
 // graph插件注册
@@ -171,11 +201,20 @@ const initGraphData = async () => {
     handleFetchTopoWorkareaList(),
     handleFetchTopoWorkGraphNode(),
   ]);
-  // 初始化select option
-  netWorkAreaList.value = topoStore.allWorkareaList.map(item => ({
-    bk_networkarea_id: item.bk_networkarea_id,
-    bk_networkarea_name: item.bk_networkarea_name,
-  }));
+  // 初始化select option 不包含default area
+  netWorkAreaList.value = topoStore.allWorkareaList
+    .filter(item => item.bk_networkarea_id !== 0)
+    .map(item => ({
+      bk_networkarea_id: item.bk_networkarea_id,
+      bk_networkarea_name: item.bk_networkarea_name,
+    }));
+
+  // 获取默认区域信息
+  const defaultArea = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === 0);
+  defaultNetWorkarea.value = {
+    bk_networkarea_id: defaultArea!.bk_networkarea_id,
+    bk_networkarea_name: defaultArea!.bk_networkarea_name,
+  };
 
   // 初始化区域数据
   allAreaNodes = topoStore.allWorkareaList.map((item) => {
@@ -300,6 +339,8 @@ onMounted(async () => {
     // 为edges增加hover效果
     graph.on(EdgeEvent.POINTER_OVER, handleHoverEdge);
     graph.on(EdgeEvent.POINTER_OUT, handleLeaveEdge);
+    // 点击节点跳转
+    graph.on(NodeEvent.CLICK, handleJumpToWorkareaDetail);
   } catch (err) {
     console.error(err);
   } finally {

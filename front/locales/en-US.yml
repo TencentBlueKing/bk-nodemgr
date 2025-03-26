@@ -161,8 +161,26 @@ topoManager:
       originalSize: Original Size
     select:
       tips: Select at least {count} workarea
+      default: Default Workarea
+      other: Other Workarea
   record:
     title: Operation Record
+    searchPlaceholder:
+      date: "For example: from January 30, 2019 to January 30, 2019"
+      searchSelect: Please enter the name of the control area, control area ID, control unit, operation, and operator search
+    table:
+      workareaName: Workarea Name
+      workareaId: Workarea ID
+      workUnit: Work Unit
+      type: Operate
+      operator: Operator
+      operateTime: Operate Time
+    searchItems:
+      workareaName: Workarea Name
+      workareaId: Workarea ID
+      workUnit: Work Unit
+      type: Operate
+      operator: Operator
 action:
   create: Create
   copy: Copy

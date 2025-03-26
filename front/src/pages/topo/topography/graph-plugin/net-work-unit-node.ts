@@ -46,6 +46,7 @@ export default class NetWorkUnitNode extends BaseNode {
     height: 24,
     x: 20,
     y: 20,
+    cursor: 'pointer',
   };
   // 默认Logo文案样式
   static defaultLogoTextStyle: Omit<TextStyleProps, 'text'> = {
@@ -100,16 +101,6 @@ export default class NetWorkUnitNode extends BaseNode {
     return this.upsert('key', Rect, this.getKeyStyle(attr), container);
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  public render(attr: Required<IResourceNodeProps>, container: Group) {
-    const { agent, proxy } = this.data;
-    super.render(attr, container);
-    this.drawNodeCenterLogo(container);
-    this.drawNodeLabel(container);
-    this.drawNodeTag(container, 'primary', proxy);
-    this.drawNodeTag(container, 'warning', agent);
-  }
-
   private drawNodeCenterLogo(container: Group) {
     return this.upsert('logo', Image, {
       ...NetWorkUnitNode.defaultLogoStyle,
@@ -162,5 +153,15 @@ export default class NetWorkUnitNode extends BaseNode {
       len += Number(fontSize) * (letterAspectRatio[letter] || 1);
     }
     return len;
-  };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public render(attr: Required<IResourceNodeProps>, container: Group) {
+    const { agent, proxy } = this.data;
+    super.render(attr, container);
+    this.drawNodeCenterLogo(container);
+    this.drawNodeLabel(container);
+    this.drawNodeTag(container, 'primary', proxy);
+    this.drawNodeTag(container, 'warning', agent);
+  }
 }

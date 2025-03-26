@@ -193,11 +193,11 @@ const handleAfterDelete = async () => {
   }
 };
 
-const handleWorkUnitSave = () => {
+const handleWorkUnitSave = async () => {
   contentLoading.value = true;
   try {
     // 更新管控单元数据
-    handleFetchAllWorkUnit();
+    await handleFetchAllWorkUnit();
     workUnitList.value = workareaStore.allWorkUnitList.get(workAreaId) || [];
   } catch (err) {
     console.error(err);
@@ -227,8 +227,13 @@ const initData = async () => {
   // 初始化副标题
   const subTitle = `${curWorkarea.value?.bk_networkarea_name}-#${curWorkarea.value?.bk_networkarea_id}`;
   routeSubTitle.subTitle = subTitle;
-  // 初始化
-  active.value = workUnitList.value[0]?.bk_networkarea_id;
+
+  // 初始化 tab焦点
+  if (!route.params?.workUnit) {
+    active.value = workUnitList.value[0]?.bk_networkarea_id;
+  } else {
+    active.value = Number(route.params.workUnit);
+  }
 };
 
 onMounted(() => {

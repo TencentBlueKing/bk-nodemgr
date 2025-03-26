@@ -10,8 +10,8 @@
       @click="handleDeleteAccessPoint(index)">
     </i>
     <CreateAccessPoint
-      v-model:form="data[index]"
-      :ref="el => bindFormRef(el, index)">
+      :index="index"
+      v-model:data="data[index]">
     </CreateAccessPoint>
   </div>
   <div
@@ -28,7 +28,6 @@
 <script lang="ts" setup>
 import { InfoBox } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import CreateAccessPoint from './create-access-point.vue';
@@ -46,46 +45,22 @@ const initData: Omit<AccessPoint, 'accesspoint_id' | 'tenant_id'> = {
   },
 };
 
-const bindFormRef = (el, index: number) => {
-  if (el) {
-    formRefs.value[index] = el;
-  } else {
-    // 找到并移除对应的 null 引用
-    const idx = formRefs.value.findIndex(item => item === null);
-    if (idx > -1) {
-      formRefs.value.splice(idx, 1);
-    }
-  }
-};
-
 const handleDeleteAccessPoint = async (index: number) => {
   if (!isEqual(data.value[index], initData)) {
     InfoBox({
       title: t('topoManager.workUnit.form.deleteTips'),
       onConfirm: () => {
         data.value.splice(index, 1);
-        formRefs.value.splice(index, 1);
       },
       cancelText: t('action.cancel'),
     });
   } else {
     data.value.splice(index, 1);
-    formRefs.value.splice(index, 1);
   }
 };
 
 const handleCreateAccessPoint = () => {
   data.value.push(cloneDeep(initData));
 };
-
-const formRefs = ref<typeof CreateAccessPoint[] | null[]>([]);
-const validateForms = async () => {
-  const results = await Promise.all(formRefs.value.map(formRef => formRef?.validateForm()));
-  return results.every(result => result !== false);
-};
-
-defineExpose({
-  validateForms,
-});
 
 </script>

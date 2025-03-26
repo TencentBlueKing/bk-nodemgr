@@ -9,7 +9,7 @@ import AgentSetup from '@/pages/node/agent/setup.vue';
 import TaskHistory from '@/pages/node/history.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
-import OperationRecord from '@/pages/topo/record.vue';
+import OperationRecord from '@/pages/topo/record/record.vue';
 import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
@@ -106,7 +106,7 @@ const routes = setupLayouts([
           },
           {
             name: 'workareaDetail',
-            path: 'workarea-detail/:workarea',
+            path: 'workarea-detail/:workarea/:workUnit?',
             component: WorkareaDetail,
             meta: {
               back: true,

@@ -180,9 +180,27 @@ topoManager:
       center: 回中
       originalSize: 原始大小
     select:
-      tips: 至少选择{count}个区域
+      tips: 至少选择 {count} 个区域
+      default: 默认区域
+      other: 其他区域
   record:
     title: 操作记录
+    searchPlaceholder:
+      date: 如：2019-01-30 至 2019-01-30
+      searchSelect: 请输入 管控区名称、管控区ID、管控单元、操作、操作人 搜索
+    table:
+      workareaName: 管控区域名称
+      workareaId: 管控区域ID
+      workUnit: 管控单元
+      type: 操作
+      operator: 操作人
+      operateTime: 操作时间
+    searchItems:
+      workareaName: 管控区名称
+      workareaId: 管控区ID
+      workUnit: 管控单元
+      type: 操作
+      operator: 操作人
 action:
   create: 新建
   copy: 复制

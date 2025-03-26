@@ -5,7 +5,9 @@
     width="1290">
     <div class="py-[20px] px-[40px]">
       <!-- 提示 -->
-      <div class="flex items-center border-1 border-solid border-[#A3C5FD] bg-[#F0F5FF] h-[32px] w-[1200px] p-[8px]">
+      <!-- <div
+        class="flex items-center border-1 border-solid border-[#A3C5FD]
+          bg-[#F0F5FF] h-[32px] w-[1200px] p-[8px]">
         <i class="nodeman-icon nc-tips text-[#3A84FF] mr-[9px]"></i>
         <span class="mr-[8px] text-[#4D4F56] text-[12px]">
           {{ $t('topoManager.installProxy.tips') }}
@@ -13,7 +15,7 @@
         <Button text theme="primary" class="!text-[12px]">
           {{ $t('topoManager.installProxy.guide') }}
         </Button>
-      </div>
+      </div> -->
       <!-- form -->
       <Form :model="form" class="mt-[24px]">
         <Form.FormItem

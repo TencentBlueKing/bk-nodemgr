@@ -21,7 +21,7 @@
         <div>
           <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
             <div class="flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">Cluster :</div>
+              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
               <div class="flex items-center">
                 <span>{{ clusterData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -31,7 +31,7 @@
               </div>
             </div>
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">File :</div>
+              <div class="w-[45px] text-right mr-[8px]">file :</div>
               <div class="flex items-center">
                 <span>{{ fileData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -41,7 +41,7 @@
               </div>
             </div>
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">Data :</div>
+              <div class="w-[45px] text-right mr-[8px]">data :</div>
               <div class="flex items-center">
                 <span>{{ dataData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -84,7 +84,7 @@
         <div>
           <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
             <div class="flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">Cluster :</div>
+              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
               <div class="flex items-center">
                 <span>{{ clusterData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -94,7 +94,7 @@
               </div>
             </div>
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">File :</div>
+              <div class="w-[45px] text-right mr-[8px]">file :</div>
               <div class="flex items-center">
                 <span>{{ fileData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -104,7 +104,7 @@
               </div>
             </div>
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">Data :</div>
+              <div class="w-[45px] text-right mr-[8px]">data :</div>
               <div class="flex items-center">
                 <span>{{ dataData.workarea_name }}</span>
                 <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -126,15 +126,15 @@
             <span>{{ item.accesspoint_name }}</span>
             <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56] mt-[6px]">
               <div class="flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">Cluster :</div>
+                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
                 <span>{{ item.endpoints.cluster.join(' ;') }}</span>
               </div>
               <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">File :</div>
+                <div class="w-[45px] text-right mr-[8px]">file :</div>
                 <span>{{ item.endpoints.file.join(' ;') }}</span>
               </div>
               <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">Data :</div>
+                <div class="w-[45px] text-right mr-[8px]">data :</div>
                 <span>{{ item.endpoints.data.join(' ;') }}</span>
               </div>
             </div>

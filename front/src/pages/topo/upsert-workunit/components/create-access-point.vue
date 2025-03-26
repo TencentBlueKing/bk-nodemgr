@@ -1,96 +1,98 @@
 <template>
-  <Form :model="form" ref="formRef" :rules="rules">
+  <div>
     <!-- 接入点名称 -->
     <Form.FormItem
       :label="$t('topoManager.workUnit.form.accessPointName')"
-      property="accesspoint_name"
+      :property="`accesspoint_name.${index}`"
+      :rules="accessPointNameRule"
       label-width="120">
-      <Input v-model="form.accesspoint_name" class="w-[283px]" />
+      <Input v-model="data.accesspoint_name" class="w-[283px]" />
     </Form.FormItem>
-    <!-- Cluster -->
+    <!-- cluster -->
     <Form.FormItem
-      label="Cluster"
-      property="cluster"
+      label="cluster"
+      :property="`cluster.${index}`"
+      :rules="clusterRule"
       label-width="120">
-      <InputGroup v-model:values="form.endpoints.cluster" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.endpoints.cluster" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
-    <!-- File -->
+    <!-- file -->
     <Form.FormItem
-      label="File"
-      property="file"
+      label="file"
+      :property="`file.${index}`"
+      :rules="fileRule"
       label-width="120">
-      <InputGroup v-model:values="form.endpoints.file" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.endpoints.file" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
-    <!-- Data -->
+    <!-- data -->
     <Form.FormItem
-      label="Data"
-      property="data"
+      label="data"
+      :property="`data.${index}`"
+      :rules="dataRule"
       label-width="120"
       class="mb-0">
-      <InputGroup v-model:values="form.endpoints.data" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.endpoints.data" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
-  </Form>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { Form, Input } from 'bkui-vue';
-import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InputGroup from './input-group.vue';
 
-const form = defineModel<Omit<AccessPoint, 'accesspoint_id' | 'tenant_id'>>('form', { required: true });
+const data = defineModel<Omit<AccessPoint, 'accesspoint_id' | 'tenant_id'>>('data', { required: true });
+
+defineProps({
+  index: {
+    type: Number,
+    required: true,
+  },
+});
 
 const { t } = useI18n();
 
 const inputPlaceholder = t('topoManager.workUnit.form.input.placeholder');
-const rules = reactive({
-  accesspoint_name: [
-    {
-      required: true,
-      trigger: 'blur',
-    },
-  ],
-  cluster: [
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.cluster.every(item => item !== ''),
-    },
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.cluster.every(item => isInputValid(item)),
-      message: t('topoManager.workUnit.form.input.validate'),
-    },
-  ],
-  file: [
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.file.every(item => item !== ''),
-    },
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.file.every(item => isInputValid(item)),
-      message: t('topoManager.workUnit.form.input.validate'),
-    },
-  ],
-  data: [
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.data.every(item => item !== ''),
-    },
-    {
-      trigger: 'blur',
-      validator: () => form.value.endpoints.data.every(item => isInputValid(item)),
-      message: t('topoManager.workUnit.form.input.validate'),
-    },
-  ],
-});
 
-const formRef = ref();
-const validateForm = async () => {
-  const validate = await formRef.value?.validate().catch(() => false);
-  return validate;
-};
+// 接入点名称校验规则
+const accessPointNameRule = [{
+  trigger: 'blur',
+  validator: () => data.value.accesspoint_name !== '',
+}];
+
+// cluster校验规则
+const clusterRule = [{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.cluster.every(item => item !== ''),
+},
+{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.cluster.every(item => isInputValid(item)),
+  message: t('topoManager.workUnit.form.input.validate'),
+}];
+
+// file校验规则
+const fileRule = [{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.file.every(item => item !== ''),
+},
+{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.file.every(item => isInputValid(item)),
+  message: t('topoManager.workUnit.form.input.validate'),
+}];
+
+// data校验规则
+const dataRule = [{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.file.every(item => item !== ''),
+},
+{
+  trigger: 'blur',
+  validator: () => data.value.endpoints.file.every(item => isInputValid(item)),
+  message: t('topoManager.workUnit.form.input.validate'),
+}];
 
 const isInputValid = (value: string) => {
   if (!value) return false;
@@ -111,9 +113,5 @@ const isInputValid = (value: string) => {
   const [ip, port] = value.split(':');
   return validateIP(ip) && validatePort(port);
 };
-
-defineExpose({
-  validateForm,
-});
 
 </script>

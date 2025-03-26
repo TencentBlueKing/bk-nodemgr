@@ -25,21 +25,21 @@
         </Form.FormItem>
         <template v-if="isExpand">
           <Form.FormItem
-            label="Cluster"
+            label="cluster"
             property="cluster"
             label-width="130">
             <SelectGroup v-model:link="form.links.cluster">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
-            label="File"
+            label="file"
             property="file"
             label-width="130">
             <SelectGroup v-model:link="form.links.file">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
-            label="Data"
+            label="data"
             property="data"
             label-width="130">
             <SelectGroup
@@ -223,22 +223,8 @@ const saveLoading = ref(false);
 const handleConfirm = async () => {
   try {
     saveLoading.value = true;
-    // 校验开始
-    // 创建校验任务数组
-    const validateTasks = [
-      formRef.value?.validate().catch(() => false),  // 主表单校验
-    ];
-    // 如果是高级配置，添加接入点校验
-    if (isExpand.value) {
-      validateTasks.push(accessPointRef.value.validateForms());
-    }
-    // 执行所有校验
-    const validates = await Promise.all(validateTasks);
-    // 如果任一校验失败则返回
-    if (!validates.every(item => item !== false)) {
-      return;
-    }
-    // 校验结束
+    const validate = await formRef.value?.validate().catch(() => false);
+    if (!validate) return;
 
     // params配置
     const links = form.links as Links;
