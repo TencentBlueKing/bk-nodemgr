@@ -94,7 +94,7 @@ func (s *Storage) getAgentAccessEndpoints(
 		}
 	}
 
-	return conv.MapSetToSlice(clusterMap), conv.MapSetToSlice(fileMap), conv.MapSetToSlice(dataMap), nil
+	return conv.MapKeyToSlice(clusterMap), conv.MapKeyToSlice(fileMap), conv.MapKeyToSlice(dataMap), nil
 }
 
 // GetDataProxyEndpoints get data proxy endpoints by networkunit id.

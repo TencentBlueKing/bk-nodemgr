@@ -13,6 +13,7 @@ package topo
 import (
 	"context"
 	"reflect"
+	"slices"
 	"sync"
 	"testing"
 
@@ -146,19 +147,19 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 			}
 
 			for _, ep := range tt.wantClusterEp {
-				if !sliceContains(clusterEp, ep) {
+				if !slices.Contains(clusterEp, ep) {
 					t.Errorf("GetAgentV4AccessEndpoints() clusterEp = %v, want %v", clusterEp, tt.wantClusterEp)
 				}
 			}
 
 			for _, ep := range tt.wantFileEp {
-				if !sliceContains(fileEp, ep) {
+				if !slices.Contains(fileEp, ep) {
 					t.Errorf("GetAgentV4AccessEndpoints() fileEp = %v, want %v", fileEp, tt.wantFileEp)
 				}
 			}
 
 			for _, ep := range tt.wantDataEp {
-				if !sliceContains(dataEp, ep) {
+				if !slices.Contains(dataEp, ep) {
 					t.Errorf("GetAgentV4AccessEndpoints() dataEp = %v, want %v", dataEp, tt.wantDataEp)
 				}
 			}
@@ -216,14 +217,4 @@ func Test_storage_GetDataProxyEndpoints(t *testing.T) {
 			}
 		})
 	}
-}
-
-func sliceContains(l []string, s string) bool {
-	for _, v := range l {
-		if v == s {
-			return true
-		}
-	}
-
-	return false
 }

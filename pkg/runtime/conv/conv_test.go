@@ -860,7 +860,7 @@ func TestMapKeyToSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MapSetToSlice(tt.args.m)
+			got := MapKeyToSlice(tt.args.m)
 			sort.Slice(tt.want, func(i, j int) bool {
 				return tt.want[i] < tt.want[j]
 			})
