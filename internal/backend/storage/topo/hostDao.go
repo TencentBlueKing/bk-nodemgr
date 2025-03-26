@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
@@ -233,4 +234,42 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 	}
 
 	return s.daoHost.Count(ctx, opts...)
+}
+
+// GetProxyEndpointsByUintID get proxy endpoints by unit id.
+func (s *Storage) GetProxyEndpointsByUintID(ctx context.Context, unitID int64) (clusterEndpoints []string,
+	dataEndpoints []string, fileEndpoints []string, err error) {
+
+	if ctx == nil {
+		return nil, nil, nil, base.ErrNilContent()
+	}
+
+	if unitID < 0 {
+		return nil, nil, nil, errors.New("unit id should be equal or greater than 0")
+	}
+
+	hosts, count, err := s.daoHost.List(ctx, types.UnlimitedPage(),
+		host.WithNetworkUnitID(unitID),
+		host.WithNodeRole(types.NodeRoleProxy),
+	)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get host by unit id, unit-id(%d), err: %w", unitID, err)
+	}
+	if count == 0 {
+		return nil, nil, nil, fmt.Errorf("failed to get host by unit id, result count is 0, unit-id(%d)", unitID)
+	}
+
+	clusterEndpoints = make([]string, 0)
+	dataEndpoints = make([]string, 0)
+	fileEndpoints = make([]string, 0)
+	for idx, _ := range hosts {
+		innerIps := strings.Split(hosts[idx].Static.InnerIP, ",")
+		for _, ip := range innerIps {
+			clusterEndpoints = append(clusterEndpoints, fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyClusterPort))
+			dataEndpoints = append(dataEndpoints, fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyDataPort))
+			fileEndpoints = append(fileEndpoints, fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyFilePort))
+		}
+	}
+
+	return clusterEndpoints, dataEndpoints, fileEndpoints, nil
 }
