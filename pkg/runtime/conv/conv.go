@@ -370,3 +370,13 @@ func MapToSlice[T any](m map[string]T) []T {
 
 	return values
 }
+
+// MapSetToSlice convert map set to slice.
+func MapSetToSlice(m map[string]bool) []string {
+	values := make([]string, 0, len(m))
+	for key := range m {
+		values = append(values, key)
+	}
+
+	return values
+}

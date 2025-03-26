@@ -88,9 +88,9 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	}
 
 	// init result map.
-	result := make(map[int64]*types.NetworkUnitInfo)
+	result := make(map[int64]*proto.NetworkUnitInfo)
 	for _, networkUnitID := range networkUnitIDs {
-		result[networkUnitID] = &types.NetworkUnitInfo{Proxy: 0, Agent: 0}
+		result[networkUnitID] = &proto.NetworkUnitInfo{Proxy: 0, Agent: 0}
 	}
 
 	gp := gopool.NewPool()

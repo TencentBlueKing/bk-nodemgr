@@ -243,6 +243,8 @@ func convertNetworkUnitFromTypes(networkUnit *types.NetworkUnit) *NetworkUnit {
 			File:    convertLinksFromTypes(networkUnit.Links.File),
 			Data:    convertLinksFromTypes(networkUnit.Links.Data),
 		},
+		IsDirect:        networkUnit.IsDirect,
+		DirectEndpoints: convertEndpointsFromTypes(networkUnit.DirectEndpoints),
 	}
 }
 
@@ -257,12 +259,14 @@ func convertNetworkUnitToTypes(networkArea *NetworkUnit) *types.NetworkUnit {
 	}
 
 	return &types.NetworkUnit{
-		TenantID:      networkArea.TenantID,
-		ID:            networkArea.NetworkUnitID,
-		Name:          networkArea.NetworkUnitName,
-		NetworkAreaID: networkArea.NetworkAreaID,
-		AccessPoints:  networkArea.AccessPoints,
-		Links:         links,
+		TenantID:        networkArea.TenantID,
+		ID:              networkArea.NetworkUnitID,
+		Name:            networkArea.NetworkUnitName,
+		NetworkAreaID:   networkArea.NetworkAreaID,
+		AccessPoints:    networkArea.AccessPoints,
+		Links:           links,
+		IsDirect:        networkArea.IsDirect,
+		DirectEndpoints: convertEndpointsToTypes(networkArea.DirectEndpoints),
 	}
 }
 
@@ -287,5 +291,29 @@ func convertLinksToTypes(link *Link) *types.Link {
 		NetworkAreaID: link.NetworkAreaID,
 		NetworkUnitID: link.NetworkUnitID,
 		AccessPointID: link.AccessPointID,
+	}
+}
+
+func convertEndpointsFromTypes(endpoint *types.Endpoints) *Endpoints {
+	if endpoint == nil {
+		return nil
+	}
+
+	return &Endpoints{
+		Cluster: endpoint.Cluster,
+		File:    endpoint.File,
+		Data:    endpoint.Data,
+	}
+}
+
+func convertEndpointsToTypes(endpoint *Endpoints) *types.Endpoints {
+	if endpoint == nil {
+		return nil
+	}
+
+	return &types.Endpoints{
+		Cluster: endpoint.Cluster,
+		File:    endpoint.File,
+		Data:    endpoint.Data,
 	}
 }

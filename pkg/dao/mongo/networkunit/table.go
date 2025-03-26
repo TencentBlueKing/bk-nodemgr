@@ -28,9 +28,11 @@ type NetworkUnit struct {
 	NetworkUnitID   int64  `json:"networkunit_id" bson:"networkunit_id"`
 	NetworkUnitName string `json:"networkunit_name" bson:"networkunit_name"`
 
-	NetworkAreaID int64   `json:"networkarea_id" bson:"networkarea_id"`
-	AccessPoints  []int64 `json:"accesspoints" bson:"accesspoints"`
-	Links         *Links  `json:"links" bson:"links"`
+	NetworkAreaID   int64      `json:"networkarea_id" bson:"networkarea_id"`
+	AccessPoints    []int64    `json:"accesspoints" bson:"accesspoints"`
+	Links           *Links     `json:"links" bson:"links"`
+	IsDirect        bool       `json:"is_direct" bson:"is_direct"`
+	DirectEndpoints *Endpoints `json:"direct_endpoints" bson:"direct_endpoints"`
 }
 
 // Link represents link target.
@@ -45,6 +47,13 @@ type Links struct {
 	Cluster *Link `json:"cluster" bson:"cluster"`
 	File    *Link `json:"file" bson:"file"`
 	Data    *Link `json:"data" bson:"data"`
+}
+
+// Endpoints represents endpoints of direct.
+type Endpoints struct {
+	Cluster []string `json:"cluster" bson:"cluster"`
+	File    []string `json:"file" bson:"file"`
+	Data    []string `json:"data" bson:"data"`
 }
 
 // UniqueKey unique key of the table.

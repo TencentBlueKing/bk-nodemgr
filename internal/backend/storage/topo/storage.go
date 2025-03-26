@@ -127,7 +127,14 @@ type IDaoHost interface {
 
 // IDomainGse this interface defines the operations which is only for domain gse.
 type IDomainGse interface {
-	// GetAgentAccessEndpoints get agent access endpoints.
-	GetAgentAccessEndpoints(ctx context.Context, unitID int64) (clusterEndpoints []string, dataEndpoints []string,
-		fileEndpoints []string, err error)
+	// GetV4AgentAccessEndpoints get agent v4 access endpoints.
+	GetV4AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
+		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)
+
+	// GetV6AgentAccessEndpoints get agent v6 access endpoints.
+	GetV6AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
+		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)
+
+	// GetDataProxyEndpoints get data proxy endpoints.
+	GetDataProxyEndpoints(ctx context.Context, networkUnitID int64) ([]string, error)
 }

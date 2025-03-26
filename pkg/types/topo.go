@@ -209,6 +209,10 @@ type NetworkUnit struct {
 
 	// links link to upstreams.
 	Links Links
+
+	// direct unit links to gse server directly.
+	IsDirect        bool
+	DirectEndpoints *Endpoints
 }
 
 // TopoNameMapping represents id to name mapping.
@@ -307,12 +311,6 @@ type Endpoints struct {
 	Cluster []string
 	File    []string
 	Data    []string
-}
-
-// NetworkUnitInfo describes the informations in one networkunit.
-type NetworkUnitInfo struct {
-	Proxy int64
-	Agent int64
 }
 
 // TopoEventType represents the type of topology event.
