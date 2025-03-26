@@ -8,9 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package deployconstant provides constants and configuration for deployment.
 package deployconstant
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
@@ -24,42 +28,44 @@ type DeployConf struct {
 	GseEnvironDir string `json:"gse_environ_dir"`
 }
 
+// Validate checks if the deployment configuration is valid.
 func (conf DeployConf) Validate() error {
 	if conf.HostIDPath == "" {
-		return fmt.Errorf("host_id_path is empty")
+		return errors.New("host_id_path is empty")
 	}
 
 	if conf.GseDataIPC == "" {
-		return fmt.Errorf("gse_data_ipc is empty")
+		return errors.New("gse_data_ipc is empty")
 	}
 
 	if conf.GsePluginIPC == "" {
-		return fmt.Errorf("gse_plugin_ipc is empty")
+		return errors.New("gse_plugin_ipc is empty")
 	}
 
 	if conf.GseHomeDir == "" {
-		return fmt.Errorf("gse_home_dir is empty")
+		return errors.New("gse_home_dir is empty")
 	}
 
 	if conf.GseDataDir == "" {
-		return fmt.Errorf("gse_data_dir is empty")
+		return errors.New("gse_data_dir is empty")
 	}
 
 	if conf.GseRunDir == "" {
-		return fmt.Errorf("gse_run_dir is empty")
+		return errors.New("gse_run_dir is empty")
 	}
 
 	if conf.GseLogDir == "" {
-		return fmt.Errorf("gse_log_dir is empty")
+		return errors.New("gse_log_dir is empty")
 	}
 
 	if conf.GseEnvironDir == "" {
-		return fmt.Errorf("gse_environ_dir is empty")
+		return errors.New("gse_environ_dir is empty")
 	}
 
 	return nil
 }
 
+// nolint: gochecknoglobals
 var deployConfMap = make(map[string]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
