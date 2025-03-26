@@ -30,6 +30,7 @@ import (
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
@@ -75,6 +76,9 @@ type Service struct {
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
 	Cap *options.Capability
+
+	// watcher maintains all watcher in the service.
+	watcher *watcher.Watcher
 
 	// instance is the discover instance of the service.
 	instance discover.Instance
@@ -164,6 +168,15 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		},
 		Crypter: svc.Cap.Crypter,
 	}, blog.GlobalLogger{})
+	if err != nil {
+		return nil, err
+	}
+
+	svc.watcher, err = watcher.NewWatcher(watcher.Config{
+		CmdbHandler: svc.Cap.CmdbHandler,
+		TopoStorage: svc.Cap.TopoStorage,
+		Manager:     svc.Cap.Manager,
+	}, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -393,6 +406,11 @@ func (svc *Service) Start() error {
 	blog.InitLogs(logConfig)
 
 	if err := svc.Cap.Start(svc.ctx); err != nil {
+		return err
+	}
+
+	// start watcher right after all capabilities started.
+	if err := svc.watcher.Start(svc.ctx); err != nil {
 		return err
 	}
 
