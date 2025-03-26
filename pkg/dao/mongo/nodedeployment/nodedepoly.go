@@ -33,7 +33,7 @@ type dao struct {
 	client  *mongo.Collection
 	logger  logger.Logger
 	counter counter.Handler
-	baseOrm *base.Orm[*NodeDeployment, NodeDeployment]
+	baseOrm base.IOrm[*NodeDeployment, NodeDeployment]
 }
 
 // GetClient get the dao's client.
