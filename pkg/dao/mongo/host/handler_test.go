@@ -88,7 +88,16 @@ func prepareData(t *testing.T, ctx context.Context) {
 					HostName: "unknown-name",
 				},
 				Dynamic: &types.HostDynamic{
-					NodeRole: types.NodeRoleAgent,
+					NodeRole:         types.NodeRoleAgent,
+					NodeStatus:       types.NodeStatusRunning,
+					NodeVersion:      "v2.0.0",
+					NodeGeneration:   2,
+					AgentID:          "00011113330003",
+					NetworkUnitID:    1,
+					Tag:              "deprecated",
+					ProxyClusterPort: 33066,
+					ProxyDataPort:    33067,
+					ProxyFilePort:    33068,
 				},
 			},
 		)

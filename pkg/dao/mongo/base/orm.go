@@ -14,6 +14,7 @@ package base
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -39,9 +40,12 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 
 // IOrm this defines the orm interface.
 type IOrm[P Pointer[T], T any] interface {
+	EnsureIndexes() error
 	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
 	Create(ctx context.Context, data P) error
 	UpdateField(ctx context.Context, filter bson.D, field string, value any) error
+	Count(ctx context.Context, filter bson.D) (int64, error)
+	List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -141,4 +145,39 @@ func (orm *Orm[P, T]) buildUpdateField(key string, value any) bson.D {
 	}
 
 	return update
+}
+
+// Count this is a common operation for mongo db.
+func (orm *Orm[P, T]) Count(ctx context.Context, filter bson.D) (int64, error) {
+	num, err := orm.dao.GetClient().CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	if num < 0 {
+		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
+	}
+
+	return num, nil
+}
+
+// List this is a common operation for mongo db.
+func (orm *Orm[P, T]) List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error) {
+	result, err := orm.dao.GetClient().Find(ctx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]P, 0)
+	for result.Next(ctx) {
+		table := &TableBroker[P]{}
+		if err := result.Decode(table); err != nil {
+			orm.dao.GetLogger().Warnf("failed to decode %s, err %v", orm.dao.GetTableName(), err)
+
+			continue
+		}
+		hosts = append(hosts, table.Data)
+	}
+
+	return hosts, nil
 }
