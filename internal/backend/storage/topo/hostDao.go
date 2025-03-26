@@ -237,6 +237,7 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 }
 
 // GetProxyEndpointsByUintID get proxy endpoints by unit id.
+// nolint: nonamedreturns
 func (s *Storage) GetProxyEndpointsByUintID(ctx context.Context, unitID int64) (clusterEndpoints []string,
 	dataEndpoints []string, fileEndpoints []string, err error) {
 
@@ -262,7 +263,7 @@ func (s *Storage) GetProxyEndpointsByUintID(ctx context.Context, unitID int64) (
 	clusterEndpoints = make([]string, 0)
 	dataEndpoints = make([]string, 0)
 	fileEndpoints = make([]string, 0)
-	for idx, _ := range hosts {
+	for idx := range hosts {
 		innerIps := strings.Split(hosts[idx].Static.InnerIP, ",")
 		for _, ip := range innerIps {
 			clusterEndpoints = append(clusterEndpoints, fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyClusterPort))
