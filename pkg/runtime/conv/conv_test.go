@@ -835,6 +835,49 @@ func TestSliceUnique(t *testing.T) {
 	}
 }
 
+// MapToSlice map to slice.
+func TestMapToSlice(t *testing.T) {
+	type args struct {
+		m map[string]int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				m: map[string]int{
+					"a": 1,
+					"b": 2,
+					"c": 3,
+					"d": 4,
+				},
+			},
+			want:    []int{1, 2, 3, 4},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MapToSlice(tt.args.m)
+
+			sort.Slice(got, func(i, j int) bool {
+				return got[i] < got[j]
+			})
+			sort.Slice(tt.want, func(i, j int) bool {
+				return tt.want[i] < tt.want[j]
+			})
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MapToSlice() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
 // MapKeyToSlice map key to slice.
 func TestMapKeyToSlice(t *testing.T) {
 	type args struct {
