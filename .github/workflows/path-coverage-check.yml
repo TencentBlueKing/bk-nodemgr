@@ -26,7 +26,7 @@ jobs:
           FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
           CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
           echo "$CHANGED_FILES" > changed_files.txt
-          
+
           # 调试输出
           echo "PR编号: $PR_NUMBER"
           echo "变更文件列表:"
@@ -42,27 +42,50 @@ jobs:
             echo "::warning::Coverage config file not found at .github/coverage-config.json"
           fi
 
+      - name: Find existing comments
+        id: find-comment
+        if: steps.check-config.outputs.exists == 'true'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
+          
+          # 读取配置以获取评论标题
+          CONFIG=$(cat .github/coverage-config.json)
+          HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
+          
+          # 查找包含特定标题的评论
+          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r --arg header "$HEADER" '.[] | select(.body | startswith($header)) | .id')
+          
+          if [ -n "$BOT_COMMENTS" ]; then
+            echo "EXISTING_COMMENTS<<EOF" >> $GITHUB_ENV
+            echo "$BOT_COMMENTS" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_EXISTING_COMMENTS=true" >> $GITHUB_ENV
+          else
+            echo "HAS_EXISTING_COMMENTS=false" >> $GITHUB_ENV
+          fi
+
       - name: Path-specific coverage check
         if: steps.check-config.outputs.exists == 'true'
         uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
-            
+
             try {
               // 读取配置文件
               const configContent = fs.readFileSync('.github/coverage-config.json', 'utf8');
               const config = JSON.parse(configContent);
-            
+
               // 读取变更文件列表
               const changedFilesContent = fs.readFileSync('changed_files.txt', 'utf8');
               const changedFiles = changedFilesContent.trim().split('\n').filter(file => file.trim() !== '');
-            
+
               console.log('配置加载完成, 检测到变更文件数量:', changedFiles.length);
-            
+
               // 检查每个文件是否匹配目标路径
               const matchedPaths = [];
-            
+
               if (changedFiles.length > 0) {
                 changedFiles.forEach(file => {
                   config.paths.forEach(item => {
@@ -73,28 +96,31 @@ jobs:
                   });
                 });
               }
-            
+
               console.log('匹配的路径数量:', matchedPaths.length);
             
+              // 设置环境变量表示是否有匹配路径
+              core.exportVariable('HAS_MATCHED_PATHS', matchedPaths.length > 0 ? 'true' : 'false');
+
               if (matchedPaths.length > 0) {
                 // 生成评论内容
                 let commentBody = `${config.comment_template.header}\n\n`;
-            
+
                 // 添加表格标题
                 commentBody += `| 路径 | 描述 | 最低覆盖率要求 | 重要程度 |\n`;
                 commentBody += `| --- | --- | ---: | --- |\n`;
-            
+
                 // 添加每个路径的详细要求
                 matchedPaths.forEach(item => {
-                  const importanceTag = item.critical 
-                    ? '🔴 必须满足' 
+                  const importanceTag = item.critical
+                    ? '🔴 必须满足'
                     : '🟡 建议满足';
-            
+
                   commentBody += `| \`${item.path}\` | ${item.description} | ${item.coverage}% | ${importanceTag} |\n`;
                 });
-            
+
                 commentBody += `\n${config.comment_template.footer}`;
-            
+
                 // 创建评论
                 github.rest.issues.createComment({
                   issue_number: context.issue.number,
@@ -102,7 +128,7 @@ jobs:
                   repo: context.repo.repo,
                   body: commentBody
                 });
-            
+
                 console.log('成功创建PR评论');
               } else {
                 console.log('没有匹配的路径，跳过评论创建');
@@ -111,3 +137,19 @@ jobs:
               console.error('执行过程中发生错误:', error);
               core.setFailed(`执行失败: ${error.message}`);
             }
+
+      - name: Close outdated comments
+        if: env.HAS_EXISTING_COMMENTS == 'true' && env.HAS_MATCHED_PATHS == 'false'
+        run: |
+          # 读取配置以获取评论标题
+          CONFIG=$(cat .github/coverage-config.json)
+          HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
+          
+          echo "${{ env.EXISTING_COMMENTS }}" | while read comment_id; do
+            if [ -n "$comment_id" ]; then
+              COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"
+              curl -s -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" \
+                -d "{\"body\":\"~~ ${HEADER} ~~\\n\\n✅ **变更文件不再匹配覆盖率检查路径，关闭通知。**\"}" \
+                "$COMMENT_URL"
+            fi
+          done
