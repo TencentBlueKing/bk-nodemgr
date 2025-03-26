@@ -17,6 +17,12 @@
       "coverage": 80,
       "critical": true,
       "description": "系统基本运行组件"
+    },
+    {
+      "path": "internal/backend/storage",
+      "coverage": 60,
+      "critical": true,
+      "description": "storage"
     }
   ],
   "comment_template": {
