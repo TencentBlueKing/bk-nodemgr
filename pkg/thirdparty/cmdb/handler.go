@@ -861,3 +861,140 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 	return result, nil
 }
+
+// getHostResourceByWatch get host resource by watch.
+func (h *handler) getHostResourceByWatch(ctx context.Context, cursor string) ([]*HostEventInfo, string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: string(ResourceWatchResourceHost),
+		BKFields:   ccHostFields(),
+	}
+
+	resp, err := h.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*HostEventInfo, len(resp.BKEvents))
+	for index, hostEvent := range resp.BKEvents {
+		jsonData, err := json.Marshal(hostEvent)
+		if err != nil {
+			return nil, "", err
+		}
+
+		var hostData HostEventInfo
+		err = json.Unmarshal(jsonData, &hostData)
+		if err != nil {
+			return nil, "", err
+		}
+
+		newCursor = hostData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = &hostData
+	}
+
+	return result, newCursor, nil
+}
+
+// getHostRelationResourceByWatch get host relation resource by watch.
+func (h *handler) getHostRelationResourceByWatch(ctx context.Context, cursor string) (
+	[]*HostRelationEventInfo, string, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: string(ResourceWatchResourceHostRelation),
+	}
+
+	resp, err := h.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*HostRelationEventInfo, len(resp.BKEvents))
+	for index, relationEvent := range resp.BKEvents {
+		jsonData, err := json.Marshal(relationEvent)
+		if err != nil {
+			return nil, "", err
+		}
+
+		var relationData HostRelationEventInfo
+		err = json.Unmarshal(jsonData, &relationData)
+		if err != nil {
+			return nil, "", err
+		}
+
+		newCursor = relationData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = &relationData
+	}
+
+	return result, newCursor, nil
+}
+
+// getProcessResourceByWatch get process resource by watch.
+func (h *handler) getProcessResourceByWatch(ctx context.Context, cursor string) ([]*ProcessEventInfo, string,
+	error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: string(ResourceWatchResourceProcess),
+	}
+
+	resp, err := h.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*ProcessEventInfo, len(resp.BKEvents))
+	for index, processEvent := range resp.BKEvents {
+		jsonData, err := json.Marshal(processEvent)
+		if err != nil {
+			return nil, "", err
+		}
+
+		var processData ProcessEventInfo
+		err = json.Unmarshal(jsonData, &processData)
+		if err != nil {
+			return nil, "", err
+		}
+
+		newCursor = processData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = &processData
+	}
+
+	return result, newCursor, nil
+}
