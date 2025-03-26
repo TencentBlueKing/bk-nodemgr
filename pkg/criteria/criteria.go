@@ -8,4 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package criteria provides the criteria for the common concept.
 package criteria
