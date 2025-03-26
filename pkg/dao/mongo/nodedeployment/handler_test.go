@@ -194,3 +194,47 @@ func TestHandler_GetNodeConf(t *testing.T) {
 		})
 	}
 }
+
+// TestHandler_SetNodeConf ...
+func TestHandler_SetNodeConf(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		Token    string
+		nodeConf *types.NodeConf
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				Token: "666",
+				nodeConf: &types.NodeConf{
+					PreSetting: map[string]any{
+						"__BK_GSE_DATA_AGENT_TLS_CA_FILE__": "ca.crt",
+					},
+					CustomSetting: map[string]any{
+						"run_mode": "agent",
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.SetNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
+			if err != nil {
+				t.Logf("err: %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SetNodeConf() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
