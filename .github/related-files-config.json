@@ -9,10 +9,72 @@
       "id": "backend-config",
       "name": "backend 配置变更",
       "description": "更新 backend 的时候记得更新 helm 的配置",
-      "source_patterns": ["pkg/config/backend.go","pkg/config/config.go"],
+      "source_patterns": [
+        "pkg/config/backend.go",
+        "pkg/config/config.go"
+      ],
       "related_files": [
         "install/helm/bk-nodeman/values.yaml",
         "install/helm/bk-nodeman/templates/backend-configmap.yaml"
+      ]
+    },
+    {
+      "id": "application-config",
+      "name": "application 配置变更",
+      "description": "更新 application 的时候记得更新 helm 的配置",
+      "source_patterns": [
+        "pkg/config/application.go",
+        "pkg/config/config.go"
+      ],
+      "related_files": [
+        "install/helm/bk-nodeman/values.yaml",
+        "install/helm/bk-nodeman/templates/application-configmap.yaml"
+      ]
+    },
+    {
+      "id": "file-config",
+      "name": "file 配置变更",
+      "description": "更新 file 的时候记得更新 helm 的配置",
+      "source_patterns": [
+        "pkg/config/file.go",
+        "pkg/config/config.go"
+      ],
+      "related_files": [
+        "install/helm/bk-nodeman/values.yaml",
+        "install/helm/bk-nodeman/templates/file-configmap.yaml"
+      ]
+    },
+    {
+      "id": "backend-proto",
+      "name": "backend proto 变更",
+      "description": "更新 backend proto 的时候记得使用 make all 生成新的 proto 文件",
+      "source_patterns": [
+        "proto/backend/*.proto"
+      ],
+      "related_files": [
+        "pkg/proto/backend/"
+      ]
+    },
+    {
+      "id": "application-proto",
+      "name": "application proto 变更",
+      "description": "更新 application proto 的时候记得使用 make all 生成新的 proto 文件",
+      "source_patterns": [
+        "proto/application/*.proto"
+      ],
+      "related_files": [
+        "pkg/proto/application/"
+      ]
+    },
+    {
+      "id": "file-proto",
+      "name": "file proto 变更",
+      "description": "更新 file proto 的时候记得使用 make all 生成新的 proto 文件",
+      "source_patterns": [
+        "proto/file/*.proto"
+      ],
+      "related_files": [
+        "pkg/proto/file/"
       ]
     }
   ]
