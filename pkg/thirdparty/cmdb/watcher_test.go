@@ -24,10 +24,6 @@ func testWatcher(t *testing.T) IWatcher {
 		t.Fatalf("failed to create watcher: %v", err)
 	}
 
-	if err := watcher.Start(context.Background()); err != nil {
-		t.Fatalf("failed to start watcher: %v", err)
-	}
-
 	return watcher
 }
 
@@ -46,16 +42,58 @@ func TestWatcher_WatchHostRelation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := testWatcher(t)
 
-			got, err := w.WatchHostRelation()
+			hostRelation, err := w.WatchHostRelation()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WatchHostRelation() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
+			if err := w.Start(context.Background()); err != nil {
+				t.Errorf("start watcher error: %v", err)
+			}
+
 			for i := 0; i < 60; i++ {
 				select {
-				case event := <-got:
-					t.Logf("got event, event: %v", event)
+				case event := <-hostRelation:
+					t.Logf("hostRelation event, change-type(%s), detail(%v)", event.ChangeType, event.Detail)
+				default:
+					time.Sleep(1 * time.Second)
+				}
+			}
+		})
+	}
+}
+
+// TestWatcher_WatchHost tests the WatchHost method of the Watcher struct.
+func TestWatcher_WatchHost(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "normal",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := testWatcher(t)
+
+			host, err := w.WatchHost()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WatchHost() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err := w.Start(context.Background()); err != nil {
+				t.Errorf("start watcher error: %v", err)
+			}
+
+			for i := 0; i < 60; i++ {
+				select {
+				case event := <-host:
+					t.Logf("host event, change-type(%s), host-static(%+v)", event.ChangeType, event.Detail)
+
 				default:
 					time.Sleep(1 * time.Second)
 				}

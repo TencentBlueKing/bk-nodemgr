@@ -28,7 +28,7 @@ import (
 // Notice: need watch first, then start.
 type IWatcher interface {
 	// WatchHost watch resource host id.
-	WatchHost() (<-chan *types.ChangeEvent[*types.Host], error)
+	WatchHost() (<-chan *types.ChangeEvent[*types.HostStatic], error)
 
 	// WatchHostRelation watch resource host relation id.
 	WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel], error)
@@ -50,7 +50,7 @@ type Watcher struct {
 	resourceHost struct {
 		sync.Once
 		cursor  string
-		channel chan *types.ChangeEvent[*types.Host]
+		channel chan *types.ChangeEvent[*types.HostStatic]
 	}
 
 	resourceHostRel struct {
@@ -69,7 +69,7 @@ func NewWatcher(tenantID string, cli *cli, logger logger.Logger) *Watcher {
 		tenantID:  tenantID,
 	}
 
-	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.Host], resourceChanBuffer)
+	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.HostStatic], resourceChanBuffer)
 	w.resourceHostRel.channel = make(chan *types.ChangeEvent[*types.HostRel], resourceChanBuffer)
 
 	return w
@@ -79,7 +79,7 @@ func NewWatcher(tenantID string, cli *cli, logger logger.Logger) *Watcher {
 const resourceChanBuffer = 100
 
 // WatchHost watch resource host id.
-func (w *Watcher) WatchHost() (<-chan *types.ChangeEvent[*types.Host], error) {
+func (w *Watcher) WatchHost() (<-chan *types.ChangeEvent[*types.HostStatic], error) {
 	valid := false
 	w.resourceHost.Once.Do(func() {
 		valid = true
@@ -140,9 +140,9 @@ func (w *Watcher) Start(_ context.Context) error {
 				}
 
 				for _, event := range events {
-					w.resourceHost.channel <- &types.ChangeEvent[*types.Host]{
+					w.resourceHost.channel <- &types.ChangeEvent[*types.HostStatic]{
 						ChangeType: types.ChangeType(event.BKEventType),
-						Detail:     convHostInfoToTypes(w.tenantID, event.BKDetail),
+						Detail:     convHostInfoToTypes(w.tenantID, event.BKDetail).Static,
 					}
 				}
 
@@ -209,8 +209,8 @@ func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]
 	}
 
 	newCursor := ""
-	result := make([]*HostEventInfo, len(resp.BKEvents))
-	for index, hostEvent := range resp.BKEvents {
+	result := make([]*HostEventInfo, 0)
+	for _, hostEvent := range resp.BKEvents {
 		hostData := new(HostEventInfo)
 		if err := conv.MapToStruct(*hostEvent, hostData); err != nil {
 			return nil, "", err
@@ -222,7 +222,11 @@ func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]
 			break
 		}
 
-		result[index] = hostData
+		if hostData.BKDetail == nil {
+			continue
+		}
+
+		result = append(result, hostData)
 	}
 
 	return result, newCursor, nil
@@ -250,8 +254,8 @@ func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor str
 	}
 
 	newCursor := ""
-	result := make([]*HostRelationEventInfo, len(resp.BKEvents))
-	for index, relationEvent := range resp.BKEvents {
+	result := make([]*HostRelationEventInfo, 0)
+	for _, relationEvent := range resp.BKEvents {
 		relationData := new(HostRelationEventInfo)
 		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
 			return nil, "", err
@@ -263,7 +267,11 @@ func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor str
 			break
 		}
 
-		result[index] = relationData
+		if relationData.BKDetail == nil {
+			continue
+		}
+
+		result = append(result, relationData)
 	}
 
 	return result, newCursor, nil
@@ -292,7 +300,7 @@ func (w *Watcher) getProcessResourceByWatch(ctx context.Context, cursor string) 
 
 	newCursor := ""
 	result := make([]*ProcessEventInfo, len(resp.BKEvents))
-	for index, processEvent := range resp.BKEvents {
+	for _, processEvent := range resp.BKEvents {
 		processData := new(ProcessEventInfo)
 		if err := conv.MapToStruct(*processEvent, processData); err != nil {
 			return nil, "", err
@@ -304,7 +312,11 @@ func (w *Watcher) getProcessResourceByWatch(ctx context.Context, cursor string) 
 			break
 		}
 
-		result[index] = processData
+		if processData.BKDetail == nil {
+			continue
+		}
+
+		result = append(result, processData)
 	}
 
 	return result, newCursor, nil
