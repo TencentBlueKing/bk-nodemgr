@@ -134,6 +134,8 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
+// StaticsNetworkArea statics network-area.
+// nolint: funlen
 func (h *handler) StaticsNetworkArea(ctx *rest.Context) (interface{}, error) {
 	req := new(proto.TopoNetworkAreaStaticsReq)
 	if err := ctx.BindJSON(req); err != nil {
