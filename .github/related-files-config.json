@@ -1,0 +1,19 @@
+{
+  "comment_template": {
+    "header": "## 📋 相关文件检查",
+    "description": "此Pull Request修改了通常需要更改其他相关文件的文件。请检查是否需要同时更新以下文件：",
+    "footer": "⚠️ **提醒**：忽略这些建议可能导致不一致的行为或功能损坏。如果您认为这种情况下不需要更新这些文件，请在评论中解释原因。"
+  },
+  "rules": [
+    {
+      "id": "backend-config",
+      "name": "backend 配置变更",
+      "description": "更新 backend 的时候记得更新 helm 的配置",
+      "source_patterns": ["pkg/config/backend.go","pkg/config/config.go"],
+      "related_files": [
+        "install/helm/bk-nodeman/values.yaml",
+        "install/helm/bk-nodeman/templates/backend-configmap.yaml"
+      ]
+    }
+  ]
+}
