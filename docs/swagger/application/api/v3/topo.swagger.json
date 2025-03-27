@@ -321,6 +321,39 @@
         ]
       }
     },
+    "/api/v3/topo/networkarea/statics": {
+      "post": {
+        "operationId": "Topo_NetworkAreaStatics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaStaticsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkAreaStaticsReq describes the HTTP request body when query\nnetwork-area statics in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkAreaStaticsReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkarea/update": {
       "post": {
         "summary": "NetworkAreaUpdate provides updating an existing network-area by id.",
@@ -567,6 +600,27 @@
         }
       }
     },
+    "TopoNetworkAreaStaticsRespStaticsInfo": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "networkunit_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "proxy_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "agent_count": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -726,6 +780,10 @@
         },
         "bk_agent_id": {
           "type": "string"
+        },
+        "node_generation": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
@@ -1525,6 +1583,50 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3NetworkArea"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaStaticsReq": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoNetworkAreaStaticsReq describes the HTTP request body when query\nnetwork-area statics in topo service."
+    },
+    "v3TopoNetworkAreaStaticsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkAreaStaticsRespData"
+        }
+      },
+      "description": "TopoNetworkAreaStaticsResp describes the HTTP response body when query\nnetwork-area statics in topo service."
+    },
+    "v3TopoNetworkAreaStaticsRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TopoNetworkAreaStaticsRespStaticsInfo"
           }
         }
       }

@@ -63,6 +63,27 @@ message TopoNetworkAreaListResp {
   Data data = 4;
 }
 
+// TopoNetworkAreaStaticsReq describes the HTTP request body when query
+// network-area statics in topo service.
+message TopoNetworkAreaStaticsReq { repeated int64 bk_networkarea_id = 1; }
+
+// TopoNetworkAreaStaticsResp describes the HTTP response body when query
+// network-area statics in topo service.
+message TopoNetworkAreaStaticsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message StaticsInfo {
+    optional int64 bk_networkarea_id = 1;
+    optional int64 networkunit_count = 2;
+    optional int64 proxy_count = 3;
+    optional int64 agent_count = 4;
+  }
+  message Data { repeated StaticsInfo items = 1; }
+  Data data = 4;
+}
+
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
 // in topo service.
 message TopoNetworkAreaGetReq { int64 bk_networkarea_id = 1; }
@@ -297,9 +318,9 @@ message TopoGraphNodeCountResp {
   string request_id = 3;
 
   message NodeInfo {
-    int64 bk_networkunit_id = 1;
-    int64 proxy = 2;
-    int64 agent = 3;
+    optional int64 bk_networkunit_id = 1;
+    optional int64 proxy = 2;
+    optional int64 agent = 3;
   }
 
   message Data { repeated NodeInfo networkunits = 1; }
@@ -351,6 +372,14 @@ service Topo {
       returns (TopoNetworkAreaListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkarea/list"
+      body : "*"
+    };
+  }
+
+  rpc NetworkAreaStatics(TopoNetworkAreaStaticsReq)
+      returns (TopoNetworkAreaStaticsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkarea/statics"
       body : "*"
     };
   }

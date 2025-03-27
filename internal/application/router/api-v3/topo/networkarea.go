@@ -11,9 +11,15 @@
 package topo
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -124,6 +130,99 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	resp := new(proto.TopoNetworkAreaListResp)
 	resp.ConvertNetworkAreasFromTypes(num, networkAreas)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) StaticsNetworkArea(ctx *rest.Context) (interface{}, error) {
+	req := new(proto.TopoNetworkAreaStaticsReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.Errorf("failed to statics networkarea, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to statics networkarea, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	networkunits, _, err := h.backendHandler.ListNetworkUnit(
+		sCtx,
+		types.Page{Limit: 0},
+		req.ConvertNetworkUnitConditionToTypes(),
+	)
+	if err != nil {
+		h.logger.Errorf("failed to statics networkarea, failed to list networkunit. err: %v", err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// result is a map of networkareaID and networkareaStatics
+	result := make(map[int64]*proto.NetworkAreaStatics)
+	for _, networkunit := range networkunits {
+		if _, ok := result[networkunit.NetworkAreaID]; !ok {
+			result[networkunit.NetworkAreaID] = &proto.NetworkAreaStatics{
+				NetworkAreaID: networkunit.NetworkAreaID,
+			}
+		}
+		result[networkunit.NetworkAreaID].NetworkUnitCount++
+	}
+
+	gp := gopool.NewPool()
+	for _, networkAreaID := range req.GetBkNetworkareaId() {
+		id := networkAreaID
+		if _, ok := result[id]; !ok {
+			result[id] = &proto.NetworkAreaStatics{
+				NetworkAreaID: id,
+			}
+		}
+
+		// count agent.
+		gp.Go(func() error {
+			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
+				Type: types.ConditionTypeExactInclude,
+				Exact: &types.HostExactFields{
+					NetworkUnitID: []int64{id},
+					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
+				},
+			})
+			if err != nil {
+				return errors.Join(err, fmt.Errorf("failed to count agent, networkunit-id: %d", id))
+			}
+
+			result[id].AgentCount = num
+
+			return nil
+		})
+
+		// count proxy.
+		gp.Go(func() error {
+			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
+				Type: types.ConditionTypeExactInclude,
+				Exact: &types.HostExactFields{
+					NetworkUnitID: []int64{id},
+					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
+				},
+			})
+			if err != nil {
+				return errors.Join(err, fmt.Errorf("failed to count proxy, networkunit-id: %d", id))
+			}
+
+			result[id].ProxyCount = num
+
+			return nil
+		})
+	}
+
+	// wait until all servers stopped or application error.
+	if err := gp.Wait(); err != nil {
+		blog.Errorf("failed to statics networkarea, failed to count host: %v", err)
+
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(proto.TopoNetworkAreaStaticsResp)
+	resp.ConvertNetworkAreaStaticsFromResult(result)
 
 	return resp.GetData(), nil
 }

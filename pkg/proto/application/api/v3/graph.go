@@ -60,16 +60,22 @@ type NetworkUnitInfo struct {
 	Agent int64
 }
 
-// ConvertNetworkUnitInfosFromTypes convert networkunitinfos from types to proto.
-func (x *TopoGraphNodeCountResp) ConvertNetworkUnitInfosFromTypes(networkUnitInfos map[int64]*NetworkUnitInfo) {
+// ConvertNetworkUnitInfoResult convert networkunitinfos from result to proto.
+func (x *TopoGraphNodeCountResp) ConvertNetworkUnitInfoResult(networkUnitInfos map[int64]*NetworkUnitInfo) {
 	items := make([]*TopoGraphNodeCountResp_NodeInfo, len(networkUnitInfos))
 	idx := 0
 	for networkUnitID, networkUnitInfo := range networkUnitInfos {
-		items[idx] = &TopoGraphNodeCountResp_NodeInfo{
-			BkNetworkunitId: networkUnitID,
-			Proxy:           networkUnitInfo.Proxy,
-			Agent:           networkUnitInfo.Agent,
+		info := &TopoGraphNodeCountResp_NodeInfo{
+			BkNetworkunitId: new(int64),
+			Proxy:           new(int64),
+			Agent:           new(int64),
 		}
+
+		*info.BkNetworkunitId = networkUnitID
+		*info.Proxy = networkUnitInfo.Proxy
+		*info.Agent = networkUnitInfo.Agent
+
+		items[idx] = info
 		idx++
 	}
 

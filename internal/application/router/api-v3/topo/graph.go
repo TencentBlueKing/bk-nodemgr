@@ -142,7 +142,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	}
 
 	resp := new(proto.TopoGraphNodeCountResp)
-	resp.ConvertNetworkUnitInfosFromTypes(result)
+	resp.ConvertNetworkUnitInfoResult(result)
 
 	return resp.GetData(), nil
 }

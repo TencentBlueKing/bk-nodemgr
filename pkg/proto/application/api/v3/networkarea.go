@@ -210,6 +210,65 @@ func (x *TopoNetworkAreaListResp) ConvertNetworkAreasFromTypes(total int64, netw
 	}
 }
 
+// NetworkAreaStatics describes the networkarea statics.
+type NetworkAreaStatics struct {
+	NetworkAreaID    int64
+	NetworkUnitCount int64
+	AgentCount       int64
+	ProxyCount       int64
+}
+
+// Validate check body.
+func (x *TopoNetworkAreaStaticsReq) Validate() error {
+	if len(x.GetBkNetworkareaId()) == 0 {
+		return errors.New("bk_networkarea_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkAreaStaticsReq) AutoConvert() {
+}
+
+// ConvertNetworkUnitConditionToTypes convert networkunit condition to types.
+func (x *TopoNetworkAreaStaticsReq) ConvertNetworkUnitConditionToTypes() *types.NetworkUnitCondition {
+	condition := &types.NetworkUnitCondition{
+		Type: types.ConditionTypeExactInclude,
+		Exact: &types.NetworkUnitExactFields{
+			NetworkAreaID: x.GetBkNetworkareaId(),
+		},
+	}
+
+	return condition
+}
+
+// ConvertNetworkAreaStaticsFromResult convert networkarea statics from result.
+func (x *TopoNetworkAreaStaticsResp) ConvertNetworkAreaStaticsFromResult(result map[int64]*NetworkAreaStatics) {
+	items := make([]*TopoNetworkAreaStaticsResp_StaticsInfo, len(result))
+	idx := 0
+	for networkAreaID, networkAreaStatics := range result {
+		info := &TopoNetworkAreaStaticsResp_StaticsInfo{
+			BkNetworkareaId:  new(int64),
+			NetworkunitCount: new(int64),
+			ProxyCount:       new(int64),
+			AgentCount:       new(int64),
+		}
+
+		*info.BkNetworkareaId = networkAreaID
+		*info.NetworkunitCount = networkAreaStatics.NetworkUnitCount
+		*info.ProxyCount = networkAreaStatics.ProxyCount
+		*info.AgentCount = networkAreaStatics.AgentCount
+
+		items[idx] = info
+		idx++
+	}
+
+	x.Data = &TopoNetworkAreaStaticsResp_Data{
+		Items: items,
+	}
+}
+
 // Validate check body.
 func (x *TopoNetworkAreaDeleteReq) Validate() error {
 	if x.GetBkNetworkareaId() < 0 {
