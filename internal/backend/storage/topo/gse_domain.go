@@ -132,6 +132,10 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 		networkUnit.Links.File.AccessPointID,
 		networkUnit.Links.Data.AccessPointID,
 	))
+	if err != nil {
+		return nil, nil, nil,
+			fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d), err: %w", networkUnitID, err)
+	}
 
 	apList := types.AccessPointList(accesspoints)
 
