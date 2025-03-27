@@ -34,7 +34,7 @@ const (
 	defaultBackendLogMaxNum      = 10
 	defaultBackendLogMaxSizeMB   = 200
 	defaultBackendLogLevel       = "INFO"
-	defaultBackendEncryptKey     = "1234567890123456"
+	defaultBackendEncryptKey     = "1234567890abcdef"
 	defaultBackendSystemEnv      = "dev"
 	defaultBackendSystemEdition  = "ce"
 	defaultBackendAdvertiseIPv4  = "127.0.0.1"

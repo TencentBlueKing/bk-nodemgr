@@ -572,6 +572,9 @@ backend:
       env: bk-dev
       edition: ee
 
+    ## encryptKey: define the key used to encrypt the sensitive data.
+    encryptKey: "1234567890abcdef"
+
     ## defines the backend http server related settings.
     httpServer:
       bindIP: "0.0.0.0"
