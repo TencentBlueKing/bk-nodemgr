@@ -16,9 +16,7 @@ data:
 
     tenantMode: {{ .Values.backend.config.tenantMode }}
 
-    system:
-      env: {{ .Values.backend.config.system.env }}
-      edition: {{ .Values.backend.config.system.edition }}
+    system: {{ .Values.backend.config.system | toYaml | nindent 6 }}
 
     httpServer: {{ .Values.backend.config.httpServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__ 
@@ -80,3 +78,5 @@ data:
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
       {{- end }}
+
+    gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}

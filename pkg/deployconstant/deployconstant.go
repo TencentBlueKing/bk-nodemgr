@@ -18,18 +18,28 @@ import (
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
-	HostIDPath    string `json:"host_id_path"`
-	GseDataIPC    string `json:"gse_data_ipc"`
-	GsePluginIPC  string `json:"gse_plugin_ipc"`
-	GseHomeDir    string `json:"gse_home_dir"`
-	GseDataDir    string `json:"gse_data_dir"`
-	GseRunDir     string `json:"gse_run_dir"`
-	GseLogDir     string `json:"gse_log_dir"`
-	GseEnvironDir string `json:"gse_environ_dir"`
+	Generation    int64
+	OsType        string
+	HostIDPath    string
+	GseDataIPC    string
+	GsePluginIPC  string
+	GseHomeDir    string
+	GseDataDir    string
+	GseRunDir     string
+	GseLogDir     string
+	GseEnvironDir string
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf DeployConf) Validate() error {
+	if conf.Generation <= 0 {
+		return errors.New("generation is invalid")
+	}
+
+	if conf.OsType == "" {
+		return errors.New("os_type is empty")
+	}
+
 	if conf.HostIDPath == "" {
 		return errors.New("host_id_path is empty")
 	}
@@ -66,26 +76,36 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[string]DeployConf)
+var deployConfMap = make(map[int64]map[string]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(osType string) (DeployConf, error) {
-	if conf, ok := deployConfMap[osType]; ok {
-		return conf, nil
+func GetDeployConf(generation int64, osType string) (DeployConf, error) {
+	confMap, ok := deployConfMap[generation]
+	if !ok {
+		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
 	}
 
-	return DeployConf{}, fmt.Errorf("deploy conf not found for os type: %s", osType)
+	conf, ok := confMap[osType]
+	if !ok {
+		return DeployConf{}, fmt.Errorf("deploy conf not found for os type: %s", osType)
+	}
+
+	return conf, nil
 }
 
 // SetDeployConf sets the deployment configuration for the specified OS type.
 // this map only set once, if the osType already exists, it will not be set again.
-func SetDeployConf(osType string, conf DeployConf) error {
+func SetDeployConf(conf DeployConf) error {
 	if err := conf.Validate(); err != nil {
 		return fmt.Errorf("set deploy conf failed, err: %w", err)
 	}
 
-	if _, ok := deployConfMap[osType]; !ok {
-		deployConfMap[osType] = conf
+	if _, ok := deployConfMap[conf.Generation]; !ok {
+		deployConfMap[conf.Generation] = make(map[string]DeployConf)
+	}
+
+	if _, ok := deployConfMap[conf.Generation][conf.OsType]; !ok {
+		deployConfMap[conf.Generation][conf.OsType] = conf
 	}
 
 	return nil

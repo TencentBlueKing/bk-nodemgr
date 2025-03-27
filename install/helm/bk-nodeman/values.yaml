@@ -631,6 +631,31 @@ backend:
         # the password to decrypt the certificate.
         password: ""
 
+    gseDeployConfs:
+      - # defines the gse deploy related settings.
+        generation:  2
+        os_type: "linux"
+        host_id_path:  "/var/lib/gse2/host/hostid"
+        gse_data_ipc: "/var/run/gse2/ipc.state.report"
+        gse_plugin_ipc: "/var/run/gse2/ipc.state.message"
+        gse_home_dir: "/usr/local/gse2"
+        gse_data_dir: "/var/lib/gse2"
+        gse_run_dir: "/var/run/gse2"
+        gse_log_dir: "/var/log/gse2"
+        gse_environ_di: "/etc/sysconfig/gse2"
+      - # defines the gse deploy related settings.
+        generation: 2
+        os_type: "windows"
+        host_id_path: "c:\\gse2\\data\\host\\hostid"
+        gse_data_ipc: "27000"
+        gse_plugin_ipc: ""
+        gse_home_dir: "C:\\gse2"
+        gse_data_dir: "C:\\gse2\\data"
+        gse_run_dir: "C:\\gse2\\data"
+        gse_log_dir: "C:\\gse2\\log"
+        gse_environ_di: "C:\\Windows\\System32\\config\\gse\\gse2"
+
+
     ## defines the log related settings.
     log:
       dir: "/bk-nodeman/log"
