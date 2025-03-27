@@ -306,6 +306,20 @@ type AccessPoint struct {
 	Endpoints Endpoints
 }
 
+// AccessPointList represents a list of access points.
+type AccessPointList []*AccessPoint
+
+// Found finds an access point by id.
+func (apList AccessPointList) Found(id int64) (*AccessPoint, bool) {
+	for _, accessPoint := range apList {
+		if accessPoint.ID == id {
+			return accessPoint, true
+		}
+	}
+
+	return nil, false
+}
+
 // Endpoints represents endpoints of access point.
 type Endpoints struct {
 	Cluster []string

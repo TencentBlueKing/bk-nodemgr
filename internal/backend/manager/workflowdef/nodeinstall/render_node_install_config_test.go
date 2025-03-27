@@ -75,6 +75,7 @@ func TestRenderNodeInstallConfig_Do(t *testing.T) {
 			action := NewActionRenderNodeInstallConfig(
 				capability.NodeDeploymentStorage,
 				capability.TopoStorage,
+				capability.TopoStorage,
 				capability.Logger,
 			)
 			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {

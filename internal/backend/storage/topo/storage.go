@@ -135,6 +135,7 @@ type IDomainGse interface {
 	GetV6AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
 		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)
 
-	// GetDataProxyEndpoints get data proxy endpoints.
-	GetDataProxyEndpoints(ctx context.Context, networkUnitID int64) ([]string, error)
+	// GetProxyUpstreamAccessEndpoints get proxy upstream access endpoints.
+	GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
+		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)
 }

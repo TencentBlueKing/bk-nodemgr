@@ -167,8 +167,8 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 	}
 }
 
-// Test_storage_GetDataProxyEndpoints test get data proxy endpoints.
-func Test_storage_GetDataProxyEndpoints(t *testing.T) {
+// Test_storage_GetProxyUpstreamAccessEndpoints test get proxy upstream endpoints.
+func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	ctx, _ := tenant.SetID(context.Background(), "test")
 
@@ -179,10 +179,12 @@ func Test_storage_GetDataProxyEndpoints(t *testing.T) {
 		unitID int64
 	}
 	tests := []struct {
-		name       string
-		args       args
-		wantDataEp []string
-		wantErr    bool
+		name          string
+		args          args
+		wantClusterEp []string
+		wantFileEp    []string
+		wantDataEp    []string
+		wantErr       bool
 	}{
 		{
 			name: "direct",
@@ -198,18 +200,28 @@ func Test_storage_GetDataProxyEndpoints(t *testing.T) {
 				ctx:    ctx,
 				unitID: gsePrepareNormalUnitID,
 			},
-			wantDataEp: []string{"8.8.8.8"},
-			wantErr:    false,
+			wantClusterEp: []string{"5.5.5.5", "6.6.6.6"},
+			wantFileEp:    []string{"7.7.7.7"},
+			wantDataEp:    []string{"8.8.8.8"},
+			wantErr:       false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			dataEp, err := s.GetDataProxyEndpoints(tt.args.ctx, tt.args.unitID)
+			clusterEp, fileEp, dataEp, err := s.GetProxyUpstreamAccessEndpoints(tt.args.ctx, tt.args.unitID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAgentAccessEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if !reflect.DeepEqual(clusterEp, tt.wantClusterEp) {
+				t.Errorf("GetAgentAccessEndpoints() clusterEp = %v, want %v", clusterEp, tt.wantClusterEp)
+			}
+
+			if !reflect.DeepEqual(fileEp, tt.wantFileEp) {
+				t.Errorf("GetAgentAccessEndpoints() fileEp = %v, want %v", fileEp, tt.wantFileEp)
 			}
 
 			if !reflect.DeepEqual(dataEp, tt.wantDataEp) {

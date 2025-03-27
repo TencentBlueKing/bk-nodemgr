@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -97,34 +98,60 @@ func (s *Storage) getAgentAccessEndpoints(
 	return conv.MapKeyToSlice(clusterMap), conv.MapKeyToSlice(fileMap), conv.MapKeyToSlice(dataMap), nil
 }
 
-// GetDataProxyEndpoints get data proxy endpoints by networkunit id.
-func (s *Storage) GetDataProxyEndpoints(ctx context.Context, networkUnitID int64) ([]string, error) {
+// nolint: nonamedreturns
+func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
+	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
+
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, nil, nil, base.ErrNilContent()
 	}
 
 	if networkUnitID < 0 {
-		return nil, errors.New("network unit id should be equal or greater than 0")
+		return nil, nil, nil, errors.New("unit id should be equal or greater than 0")
 	}
 
 	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
+		return nil, nil, nil,
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
 	}
 
+	// direct unit return direct endpoints.
 	if networkUnit.IsDirect {
-		return nil, fmt.Errorf("networkunit-id(%d) is direct unit, can not have proxy", networkUnitID)
+		return nil, nil, nil,
+			fmt.Errorf("networkunit-id(%d) is direct unit, can not have proxy", networkUnitID)
 	}
 
-	if networkUnit.Links.Data == nil {
-		return nil, fmt.Errorf("networkunit-id(%d) links data is nil", networkUnitID)
+	if networkUnit.Links.Cluster == nil || networkUnit.Links.File == nil || networkUnit.Links.Data == nil {
+		return nil, nil, nil,
+			fmt.Errorf("networkunit-id(%d) links is invalid, cluster or file or data have empty upstreams", networkUnitID)
 	}
 
-	accessPoint, err := s.daoAccessPoint.Get(ctx, networkUnit.Links.Data.AccessPointID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get accesspoint by id, accesspoint-id(%d), err: %w",
-			networkUnit.Links.Data.AccessPointID, err)
+	accesspoints, _, err := s.daoAccessPoint.List(ctx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
+		networkUnit.Links.Cluster.AccessPointID,
+		networkUnit.Links.File.AccessPointID,
+		networkUnit.Links.Data.AccessPointID,
+	))
+
+	apList := types.AccessPointList(accesspoints)
+
+	if ap, ok := apList.Found(networkUnit.Links.Cluster.AccessPointID); ok {
+		clusterEndpoints = ap.Endpoints.Cluster
+	} else {
+		return nil, nil, nil, fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
 	}
 
-	return accessPoint.Endpoints.Data, nil
+	if ap, ok := apList.Found(networkUnit.Links.File.AccessPointID); ok {
+		fileEndpoints = ap.Endpoints.File
+	} else {
+		return nil, nil, nil, fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
+	}
+
+	if ap, ok := apList.Found(networkUnit.Links.Data.AccessPointID); ok {
+		dataEndpoints = ap.Endpoints.Data
+	} else {
+		return nil, nil, nil, fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
+	}
+
+	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
 }

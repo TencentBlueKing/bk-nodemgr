@@ -31,11 +31,15 @@ import (
 )
 
 // NewActionRenderNodeInstallConfig ...
-func NewActionRenderNodeInstallConfig(storage nodedeployment.IDaoNodeDeployment,
-	iDomainGseProxy topo.IDomainGse, logger logger.Logger) operengine.ActionDef {
+func NewActionRenderNodeInstallConfig(
+	storage nodedeployment.IDaoNodeDeployment,
+	iDaoHost topo.IDaoHost,
+	iDomainGseProxy topo.IDomainGse,
+	logger logger.Logger) operengine.ActionDef {
 
 	return &RenderNodeInstallConfig{
 		iDaoNodeDeployment: storage,
+		iDaoHost:           iDaoHost,
 		iDomainGseProxy:    iDomainGseProxy,
 		logger:             logger,
 	}
@@ -49,6 +53,7 @@ type RenderNodeInstallConfigParam struct {
 // RenderNodeInstallConfig ...
 type RenderNodeInstallConfig struct {
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
+	iDaoHost           topo.IDaoHost
 	iDomainGseProxy    topo.IDomainGse
 
 	logger logger.Logger
@@ -346,6 +351,15 @@ const (
 
 	// GseDataProxyEndpoints the config template key of gse data proxy endpoints.
 	GseDataProxyEndpoints = "__BK_GSE_DATA_PROXY_ENDPOINTS__"
+
+	// GseFileAgentAdvertiseIPV4 the config template key of gse file agent advertise ipv4.
+	GseFileAgentAdvertiseIPV4 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV4__"
+
+	// GseFileAgentAdvertiseIPV6 the config template key of gse file agent advertise ipv6.
+	GseFileAgentAdvertiseIPV6 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV6__"
+
+	// GseFileTopologyAdvertiseIP the config template key of gse file topology advertise ip.
+	GseFileTopologyAdvertiseIP = "__BK_GSE_FILE_TOPOLOGY_ADVERTISE_IP__"
 )
 
 // renderLogicSetting load logic setting to the config presetting.
@@ -358,14 +372,30 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 		return err
 	}
 
+	host, err := action.iDaoHost.GetHostByID(ctx, info.HostID)
+	if err != nil {
+		return err
+	}
+
 	deploymentConf, err := deployconstant.GetDeployConf(info.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("get deploy conf failed, err: %w", err)
 	}
 
+	advertiseIPV4 := strings.Split(host.Static.InnerIP, ",")[0]
+	advertiseIPV6 := strings.Split(host.Static.InnerIPV6, ",")[0]
+	advertiseIP := func() string {
+		if advertiseIPV4 != "" {
+			return advertiseIPV4
+		}
+
+		return advertiseIPV6
+	}()
+
 	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(info.NodeRole))
 	certDir := joinPath(osType, deploymentConf.GseHomeDir, "cert")
 	preSetting[GseHomeDirKey] = homeDir
+
 	// base setting
 	preSetting[GseAgentBaseTLSCAFile] = joinPath(osType, certDir, "gseca.crt")
 	preSetting[GseAgentBaseTLSCertFile] = joinPath(osType, certDir, "gse_agent.crt")
@@ -400,14 +430,23 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 		}
 	case types.NodeRoleProxy:
 		{
-			// TODO: support gse proxy access endpoints
+			preSetting[GseFileAgentAdvertiseIPV4] = advertiseIPV4
+			preSetting[GseFileAgentAdvertiseIPV6] = advertiseIPV6
+			preSetting[GseFileTopologyAdvertiseIP] = advertiseIP
 
-			dataProxys, err := action.iDomainGseProxy.GetDataProxyEndpoints(ctx, info.NetworkUnitID)
+			clusters, files, datas, err := action.iDomainGseProxy.GetProxyUpstreamAccessEndpoints(ctx, info.NetworkUnitID)
 			if err != nil {
-				return fmt.Errorf("get data proxy endpoints failed, err: %w", err)
+				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
 
-			preSetting[GseDataProxyEndpoints] = strings.Join(dataProxys, ",")
+			preSetting[GseAccessClusterEndpoints] = strings.Join(clusters, ",")
+			preSetting[GseAccessFileEndpoints] = advertiseIP
+			preSetting[GseAccessDataEndpoints] = advertiseIP
+
+			// TODO: save files upstreams for file-proxy links
+			_ = files
+
+			preSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 		}
 	default:
 		return fmt.Errorf("unsupported node role: %s", info.NodeRole)
