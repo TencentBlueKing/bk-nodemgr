@@ -1,0 +1,19 @@
+{
+  "comment_template": {
+    "header": "## 📝 基于路径的 PR 审查建议",
+    "description": "根据您修改的文件，以下是一些可能有帮助的代码审查建议：",
+    "footer": "这些建议是根据文件模式自动生成的。您可以在 PR 中处理它们或标记为'不适用'。",
+    "bot_marker": "REVIEW_SUGGESTIONS_BOT_COMMENT"
+  },
+  "suggestions": [
+    {
+      "id": "pkg-runtime-conv",
+      "category": "conv review 注意事项",
+      "file_patterns": ["pkg/runtime/conv/*.go"],
+      "description": "1. 注意边界条件：确保在转换数据时考虑到所有可能的边界条件，例如空值、极大或极小的值等。\n 2. 注意反射的性能：如果使用反射进行转换，注意性能开销，尤其是在大数据集上。\n 3. 注意类型安全：确保转换后的数据类型与预期一致，避免运行时错误。",
+      "code_example": "",
+      "language": "golang",
+      "docs_url": ""
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+name: Path-Based Review Suggestions
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review-suggestions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Get PR changed files
+        id: changed-files
+        run: |
+          # 使用 GitHub API 获取 PR 变更文件
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
+          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
+          echo "$CHANGED_FILES" > changed_files.txt
+
+          # 调试输出
+          echo "PR Number: $PR_NUMBER"
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Check config file exists
+        id: check-config
+        run: |
+          if [ -f ".github/review-suggestions-config.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::Review suggestions configuration not found, should be at .github/review-suggestions-config.json"
+          fi
+
+      - name: Find existing comments
+        id: find-comment
+        if: steps.check-config.outputs.exists == 'true'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
+          
+          # 读取配置以获取评论标识
+          CONFIG=$(cat .github/review-suggestions-config.json)
+          HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
+          BOT_COMMENT_MARKER=$(echo "$CONFIG" | jq -r '.comment_template.bot_marker')
+          
+          # 查找包含特定标识的评论
+          BOT_COMMENT_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r --arg marker "$BOT_COMMENT_MARKER" '.[] | select(.body | contains($marker)) | .id' | head -n 1)
+          
+          if [ -n "$BOT_COMMENT_ID" ]; then
+            echo "comment_id=$BOT_COMMENT_ID" >> $GITHUB_OUTPUT
+            echo "HAS_EXISTING_COMMENT=true" >> $GITHUB_ENV
+            echo "EXISTING_COMMENT_ID=$BOT_COMMENT_ID" >> $GITHUB_ENV
+          else
+            echo "HAS_EXISTING_COMMENT=false" >> $GITHUB_ENV
+          fi
+
+      - name: Path-based review suggestions
+        if: steps.check-config.outputs.exists == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              // 读取配置文件
+              const configContent = fs.readFileSync('.github/review-suggestions-config.json', 'utf8');
+              const config = JSON.parse(configContent);
+
+              // 读取变更文件列表
+              const changedFilesContent = fs.readFileSync('changed_files.txt', 'utf8');
+              const changedFiles = changedFilesContent.trim().split('\n').filter(file => file.trim() !== '');
+
+              console.log('配置加载完成，检测到变更文件数量:', changedFiles.length);
+
+              // 检查每个文件与审查模式的匹配情况并生成建议
+              const matchedSuggestions = [];
+            
+              if (changedFiles.length > 0) {
+                changedFiles.forEach(file => {
+                  config.suggestions.forEach(suggestion => {
+                    // 检查变更文件是否匹配任何模式
+                    const matchesPattern = suggestion.file_patterns.some(pattern => {
+                      // 支持glob模式或直接路径检查
+                      return file.match(new RegExp(pattern.replace(/\*/g, '.*')));
+                    });
+
+                    if (matchesPattern && !matchedSuggestions.some(s => s.id === suggestion.id)) {
+                      console.log(`文件 ${file} 匹配建议 "${suggestion.id}"`);
+                      matchedSuggestions.push({
+                        ...suggestion,
+                        matchedFile: file
+                      });
+                    }
+                  });
+                });
+              }
+
+              console.log('匹配的建议数量:', matchedSuggestions.length);
+            
+              // 设置环境变量表示是否有建议
+              core.exportVariable('HAS_SUGGESTIONS', matchedSuggestions.length > 0 ? 'true' : 'false');
+
+              // 处理现有评论
+              const hasExistingComment = process.env.HAS_EXISTING_COMMENT === 'true';
+              let existingComment = null;
+              let existingBody = '';
+              let existingSuggestionIds = [];
+            
+              if (hasExistingComment) {
+                try {
+                  const commentId = process.env.EXISTING_COMMENT_ID;
+            
+                  // 获取现有评论
+                  existingComment = await github.rest.issues.getComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: parseInt(commentId)
+                  });
+            
+                  existingBody = existingComment.data.body;
+            
+                  // 如果评论已被标记为全部完成，则不做任何修改
+                  if (existingBody.includes("✅ **所有审查建议都已处理!**") && 
+                      !matchedSuggestions.some(s => !existingBody.includes(`### ~~建议: ${s.id}~~`))) {
+                    console.log('所有建议已标记为处理完成，无需更新');
+                    return;
+                  }
+            
+                  // 提取评论中已有的建议ID
+                  const suggestionRegex = /<!-- ID: ([A-Za-z0-9_-]+) -->/g;
+                  let match;
+                  while ((match = suggestionRegex.exec(existingBody)) !== null) {
+                    existingSuggestionIds.push(match[1]);
+                  }
+            
+                  // 处理已存在的建议
+                  existingSuggestionIds.forEach(id => {
+                    // 如果建议在当前匹配中不存在，并且尚未标记为已完成，则标记它
+                    if (!matchedSuggestions.some(s => s.id === id) && 
+                        !existingBody.includes(`### ~~建议: ${id}~~`)) {
+                      existingBody = existingBody.replace(
+                        new RegExp(`### 建议: ${id}`, 'g'),
+                        `### ~~建议: ${id}~~ ✅`
+                      );
+                    }
+                  });
+            
+                } catch (error) {
+                  console.error('处理现有评论时出错:', error);
+                }
+              }
+            
+              // 生成评论内容
+              let commentBody = '';
+            
+              if (hasExistingComment) {
+                // 保留已解决的建议，添加新建议
+                commentBody = existingBody;
+            
+                // 添加新的建议（如果有的话）
+                if (matchedSuggestions.length > 0) {
+                  // 按分类分组添加新建议
+                  matchedSuggestions.forEach(suggestion => {
+                    // 如果建议已经存在于评论中，则跳过
+                    if (existingSuggestionIds.includes(suggestion.id)) {
+                      return;
+                    }
+            
+                    const category = suggestion.category || '通用';
+            
+                    // 检查分类是否已存在
+                    if (!commentBody.includes(`## ${category}`)) {
+                      // 在现有内容后，但在可能的页脚之前插入新的分类
+                      const footerMatch = commentBody.match(new RegExp(`\\n${config.comment_template.footer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+            
+                      if (footerMatch) {
+                        // 在页脚之前插入
+                        const insertPosition = footerMatch.index;
+                        commentBody = commentBody.substring(0, insertPosition) + 
+                                    `\n## ${category}\n\n` + 
+                                    commentBody.substring(insertPosition);
+                      } else {
+                        // 在末尾添加
+                        commentBody += `\n## ${category}\n\n`;
+                      }
+                    }
+            
+                    // 在分类下添加新建议
+                    const categoryMatch = commentBody.match(new RegExp(`## ${category}\\n\\n`));
+                    if (categoryMatch) {
+                      const insertPosition = categoryMatch.index + categoryMatch[0].length;
+                      const suggestionContent = 
+                        `### 建议: ${suggestion.id}\n` +
+                        `**对文件:** \`${suggestion.matchedFile}\`\n\n` +
+                        `${suggestion.description}\n\n` +
+                        (suggestion.code_example ? 
+                          `**示例:**\n\`\`\`${suggestion.language || ''}\n${suggestion.code_example}\n\`\`\`\n\n` : '') +
+                        (suggestion.docs_url ? 
+                          `📚 [文档](${suggestion.docs_url})\n\n` : '') +
+                        `<!-- ID: ${suggestion.id} -->\n\n`;
+            
+                      commentBody = commentBody.substring(0, insertPosition) + 
+                                  suggestionContent + 
+                                  commentBody.substring(insertPosition);
+                    }
+                  });
+                }
+            
+                // 检查是否所有建议都已处理
+                const hasActivePattern = /### 建议: [A-Za-z0-9_-]+(?!~~)/;
+                const allProcessed = !hasActivePattern.test(commentBody);
+            
+                if (allProcessed && commentBody.includes('<!-- ID:')) {
+                  const completionMessage = "\n\n✅ **所有审查建议都已处理!**";
+                  if (!commentBody.includes(completionMessage)) {
+                    // 在页脚之前添加完成信息
+                    const footerMatch = commentBody.match(new RegExp(`\\n${config.comment_template.footer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+            
+                    if (footerMatch) {
+                      const insertPosition = footerMatch.index;
+                      commentBody = commentBody.substring(0, insertPosition) + 
+                                  completionMessage + 
+                                  commentBody.substring(insertPosition);
+                    } else {
+                      commentBody += completionMessage;
+                    }
+                  }
+                }
+              } else {
+                // 创建新评论
+                commentBody = `${config.comment_template.header}\n\n`;
+                commentBody += config.comment_template.description + "\n\n";
+                commentBody += `<!-- ${config.comment_template.bot_marker} -->\n\n`;
+
+                // 按分类分组建议
+                const categorizedSuggestions = {};
+            
+                matchedSuggestions.forEach(suggestion => {
+                  const category = suggestion.category || '通用';
+                  if (!categorizedSuggestions[category]) {
+                    categorizedSuggestions[category] = [];
+                  }
+                  categorizedSuggestions[category].push(suggestion);
+                });
+            
+                // 按分类添加建议
+                for (const [category, suggestions] of Object.entries(categorizedSuggestions)) {
+                  commentBody += `## ${category}\n\n`;
+            
+                  suggestions.forEach(suggestion => {
+                    commentBody += `### 建议: ${suggestion.id}\n`;
+                    commentBody += `**对文件:** \`${suggestion.matchedFile}\`\n\n`;
+                    commentBody += `${suggestion.description}\n\n`;
+            
+                    if (suggestion.code_example) {
+                      commentBody += "**示例:**\n```" + (suggestion.language || '') + "\n";
+                      commentBody += suggestion.code_example + "\n```\n\n";
+                    }
+            
+                    if (suggestion.docs_url) {
+                      commentBody += `📚 [文档](${suggestion.docs_url})\n\n`;
+                    }
+            
+                    // 内部标记用于跟踪
+                    commentBody += `<!-- ID: ${suggestion.id} -->\n\n`;
+                  });
+                }
+
+                commentBody += `\n${config.comment_template.footer}`;
+              }
+            
+              // 更新或创建评论
+              if (hasExistingComment) {
+                // 更新现有评论
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: parseInt(process.env.EXISTING_COMMENT_ID),
+                  body: commentBody
+                });
+                console.log('成功更新 PR 评论');
+              } else if (matchedSuggestions.length > 0) {
+                // 创建新评论
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: commentBody
+                });
+                console.log('成功创建 PR 评论');
+              } else {
+                console.log('无需建议，跳过评论创建');
+              }
+            } catch (error) {
+              console.error('执行过程中发生错误:', error);
+              core.setFailed(`执行失败: ${error.message}`);
+            }
