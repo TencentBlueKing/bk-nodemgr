@@ -41,6 +41,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
@@ -110,7 +111,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
-	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB)
+	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +336,7 @@ func withCallback(capability *options.Capability) rest.OptionFunc {
 }
 
 // newCMDBHandler.
-func newCMDBHandler(conf config.CMDB) (cmdb.Handler, error) {
+func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.Handler, error) {
 	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
 	if err != nil {
@@ -346,7 +347,7 @@ func newCMDBHandler(conf config.CMDB) (cmdb.Handler, error) {
 	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
 		SupplierAccount: conf.SupplierAccount,
 		HeaderSetter:    apiGwHeaderSetter,
-	})
+	}, cmdb.WithLogger(logger))
 	if err != nil {
 		return nil, err
 	}

@@ -84,17 +84,37 @@ type Handler interface {
 }
 
 type handler struct {
-	cli *cli
+	cli    *cli
+	logger logger.Logger
+}
+
+// OptionFn ...
+type OptionFn func(*handler)
+
+// WithLogger this func will set the logger of the handler.
+func WithLogger(logger logger.Logger) OptionFn {
+	return func(s *handler) {
+		s.logger = logger
+	}
 }
 
 // New initialize a new cmdb handler.
-func New(c *client.Capability, conf *Config) (Handler, error) {
+func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &handler{cli: cli}, nil
+	h := &handler{
+		cli:    cli,
+		logger: logger.LoggerDefault{},
+	}
+
+	for _, opt := range opts {
+		opt(h)
+	}
+
+	return h, nil
 }
 
 // ListBizHosts list biz hosts.
