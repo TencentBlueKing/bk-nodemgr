@@ -570,6 +570,7 @@ backend:
     ## system: define the related settings of deployment environment.
     system:
       env: bk-dev
+      edition: ee
 
     ## defines the backend http server related settings.
     httpServer:

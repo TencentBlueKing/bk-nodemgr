@@ -35,6 +35,7 @@ const (
 	defaultBackendLogLevel       = "INFO"
 	defaultBackendEncryptKey     = "1234567890123456"
 	defaultBackendSystemEnv      = "dev"
+	defaultBackendSystemEdition  = "ce"
 	defaultBackendAdvertiseIPv4  = "127.0.0.1"
 	defaultBackendAdvertiseIPv6  = "::1"
 )
@@ -87,7 +88,8 @@ func NewBackendService() *BackendService {
 		},
 		EncryptKey: defaultBackendEncryptKey,
 		System: System{
-			Env: defaultBackendSystemEnv,
+			Env:     defaultBackendSystemEnv,
+			Edition: defaultBackendSystemEdition,
 		},
 	}
 }

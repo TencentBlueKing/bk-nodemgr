@@ -87,7 +87,9 @@ type Service struct {
 
 // NewService creates a new backend service.
 func NewService(conf *config.BackendService) (*Service, error) {
-	loadSystemInfo(conf)
+	if err := loadSystemInfo(conf); err != nil {
+		return nil, err
+	}
 
 	svc := &Service{
 		conf: conf,
@@ -187,8 +189,13 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	return svc, nil
 }
 
-func loadSystemInfo(conf *config.BackendService) {
+func loadSystemInfo(conf *config.BackendService) error {
 	system.SetEnv(conf.System.Env)
+	if err := system.SetEdition(system.Edition(conf.System.Edition)); err != nil {
+		return fmt.Errorf("failed to set edition, err: %w", err)
+	}
+
+	return nil
 }
 
 func (svc *Service) registerRestServer(conf *config.BackendService) {

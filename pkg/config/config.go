@@ -329,13 +329,18 @@ func (conf RunMode) Validate() error {
 
 // System the info of deploy info.
 type System struct {
-	Env string `yaml:"env" usage:"env of system"`
+	Env     string `yaml:"env" usage:"env of system"`
+	Edition string `yaml:"edition" usage:"edition of system"`
 }
 
 // Validate validates the config.
 func (conf System) Validate() error {
 	if conf.Env == "" {
 		return errors.New("env is empty")
+	}
+
+	if conf.Edition == "" {
+		return errors.New("edition is empty")
 	}
 
 	return nil
