@@ -142,7 +142,9 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 	return nil
 }
 
-func (action *RenderNodeInstallConfig) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf, info *types.DeploymentInfo) error {
+func (action *RenderNodeInstallConfig) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
+	info *types.DeploymentInfo) error {
+
 	if err := action.renderDefaultSetting(nodeConf.PreSetting, info.NodeRole); err != nil {
 		return fmt.Errorf("render default setting failed, err: %w", err)
 	}
@@ -384,22 +386,31 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 	preSetting[GseAgentBasePluginIPCKey] = deploymentConf.GsePluginIPC
 	preSetting[GseDataIPCKey] = deploymentConf.GseDataDir
 
-	clusters, files, datas, err := action.iDomainGseProxy.GetV4AgentAccessEndpoints(ctx, info.NetworkUnitID)
-	if err != nil {
-		return fmt.Errorf("get agent access endpoints failed, err: %w", err)
-	}
+	switch info.NodeRole {
+	case types.NodeRoleAgent:
+		{
+			clusters, files, datas, err := action.iDomainGseProxy.GetV4AgentAccessEndpoints(ctx, info.NetworkUnitID)
+			if err != nil {
+				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
+			}
 
-	preSetting[GseAccessClusterEndpoints] = strings.Join(clusters, ",")
-	preSetting[GseAccessDataEndpoints] = strings.Join(datas, ",")
-	preSetting[GseAccessFileEndpoints] = strings.Join(files, ",")
-
-	if info.NodeRole == types.NodeRoleProxy {
-		dataProxys, err := action.iDomainGseProxy.GetDataProxyEndpoints(ctx, info.NetworkUnitID)
-		if err != nil {
-			return fmt.Errorf("get data proxy endpoints failed, err: %w", err)
+			preSetting[GseAccessClusterEndpoints] = strings.Join(clusters, ",")
+			preSetting[GseAccessDataEndpoints] = strings.Join(datas, ",")
+			preSetting[GseAccessFileEndpoints] = strings.Join(files, ",")
 		}
+	case types.NodeRoleProxy:
+		{
+			// TODO: support gse proxy access endpoints
 
-		preSetting[GseDataProxyEndpoints] = strings.Join(dataProxys, ",")
+			dataProxys, err := action.iDomainGseProxy.GetDataProxyEndpoints(ctx, info.NetworkUnitID)
+			if err != nil {
+				return fmt.Errorf("get data proxy endpoints failed, err: %w", err)
+			}
+
+			preSetting[GseDataProxyEndpoints] = strings.Join(dataProxys, ",")
+		}
+	default:
+		return fmt.Errorf("unsupported node role: %s", info.NodeRole)
 	}
 
 	return nil
