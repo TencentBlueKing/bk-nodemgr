@@ -98,6 +98,7 @@ func (s *Storage) getAgentAccessEndpoints(
 	return conv.MapKeyToSlice(clusterMap), conv.MapKeyToSlice(fileMap), conv.MapKeyToSlice(dataMap), nil
 }
 
+// GetProxyUpstreamAccessEndpoints gets proxy upstream accesspoint.
 // nolint: nonamedreturns
 func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
