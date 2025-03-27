@@ -29,7 +29,7 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
-            const reviewers = ["ZouXingyu", "Lwxiang"];
+            const reviewers = ["ZouXingyu", "Lwxiang","Copilot"];
             const prAuthor = context.payload.pull_request.user.login; // 获取 PR 作者
             const prNumber = context.payload.pull_request.number;
 
