@@ -16,8 +16,11 @@ permissions:
 jobs:
   golangci-lint:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: go1.21.13
       - name: Check out PR source code
         uses: actions/checkout@v4
         with:

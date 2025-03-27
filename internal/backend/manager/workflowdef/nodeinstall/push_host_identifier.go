@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package actiondefs
+package nodeinstall
 
 import (
 	"errors"
@@ -52,7 +52,7 @@ type PushHostIdentifier struct {
 
 // Name returns the name of the action.
 func (action *PushHostIdentifier) Name() string {
-	return "push_host_identifier"
+	return ActionNamePushHostIdentifier
 }
 
 // Version returns the version of the action.

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package actiondefs
+package nodeinstall
 
 import (
 	"context"
@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// NewActionBindAgentHostRel ...
-func TestBindAgentHostRel_Do(t *testing.T) {
+// TestPushHostIdentifier_Name ...
+func TestPushHostIdentifier_Do(t *testing.T) {
 	capability := testCapability(t)
 
 	type args struct {
@@ -43,7 +43,7 @@ func TestBindAgentHostRel_Do(t *testing.T) {
 						Index:       0,
 						Messages:    nil,
 						Content: map[string]any{
-							keys.CKeyToken: "666",
+							keys.CKeyToken: "123",
 						},
 						PrivateData: nil,
 						Lifecycle:   nil,
@@ -55,11 +55,12 @@ func TestBindAgentHostRel_Do(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			action := NewActionBindAgentHostRel(
-				capability.CmdbHandler,
-				capability.TopoStorage,
-				capability.NodeDeploymentStorage,
-				capability.Logger)
+			action := &PushHostIdentifier{
+				gseClient:  capability.GseHandler,
+				cmdbClient: capability.CmdbHandler,
+				storage:    capability.NodeDeploymentStorage,
+				logger:     capability.Logger,
+			}
 			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
 			}
