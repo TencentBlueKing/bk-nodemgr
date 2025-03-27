@@ -8,18 +8,317 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package cmdb provides handlers to operate cmd api.
 package cmdb
 
+import (
+	"context"
+	"errors"
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// IWatcher defines the interface of watcher.
+// Notice: need watch first, then start.
+type IWatcher interface {
+	// WatchHost watch resource host id.
+	WatchHost() (<-chan *types.ChangeEvent[*types.Host], error)
+
+	// WatchHostRelation watch resource host relation id.
+	WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel], error)
+
+	// Start start the watcher.
+	Start(ctx context.Context) error
+}
+
+// Watcher implements the IWatcher interface.
+type Watcher struct {
+	scheduler scheduler.Scheduler
+	cli       *cli
+	logger    logger.Logger
+
+	tenantID string
+
+	done chan struct{}
+
+	resourceHost struct {
+		sync.Once
+		cursor  string
+		channel chan *types.ChangeEvent[*types.Host]
+	}
+
+	resourceHostRel struct {
+		sync.Once
+		cursor  string
+		channel chan *types.ChangeEvent[*types.HostRel]
+	}
+}
+
+// NewWatcher create a new watcher.
+func NewWatcher(tenantID string, cli *cli, logger logger.Logger) *Watcher {
+	w := &Watcher{
+		scheduler: scheduler.NewScheduler(scheduler.WithLogger(logger)),
+		logger:    logger,
+		cli:       cli,
+		tenantID:  tenantID,
+	}
+
+	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.Host], resourceChanBuffer)
+	w.resourceHostRel.channel = make(chan *types.ChangeEvent[*types.HostRel], resourceChanBuffer)
+
+	return w
+}
+
+// resourceChanBuffer is the buffer size of the channel.
+const resourceChanBuffer = 100
+
+// WatchHost watch resource host id.
+func (w *Watcher) WatchHost() (<-chan *types.ChangeEvent[*types.Host], error) {
+	valid := false
+	w.resourceHost.Once.Do(func() {
+		valid = true
+	})
+
+	if !valid {
+		return nil, errors.New("host watcher already be watched")
+	}
+
+	return w.resourceHost.channel, nil
+}
+
+// WatchHostRelation watch resource host relation id.
+func (w *Watcher) WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel], error) {
+	valid := false
+	w.resourceHostRel.Once.Do(func() {
+		valid = true
+	})
+
+	if !valid {
+		return nil, errors.New("host relation watcher already be watched")
+	}
+
+	return w.resourceHostRel.channel, nil
+}
+
+// Start start the watcher.
+// nolint: gocognit
+func (w *Watcher) Start(_ context.Context) error {
+	w.done = make(chan struct{})
+
+	registerHost, registerHostRel := true, true
+	w.resourceHost.Once.Do(func() {
+		registerHost = false
+	})
+	w.resourceHostRel.Once.Do(func() {
+		registerHostRel = false
+	})
+	if registerHost {
+		w.scheduler.RegisterTask(&scheduler.Task{
+			ID:       WatchResourceHost,
+			Interval: time.Second,
+			Timeout:  time.Minute,
+			Fn: func(ctx context.Context) error {
+				ctx, err := tenant.SetID(ctx, w.tenantID)
+				if err != nil {
+					return fmt.Errorf("set tenant id failed, err: %v", err)
+				}
+
+				events, cursor, err := w.getHostResourceByWatch(ctx, w.resourceHost.cursor)
+				if err != nil {
+					return fmt.Errorf("get host resource by watch failed, err: %v", err)
+				}
+
+				w.resourceHost.cursor = cursor
+				if len(events) == 0 {
+					return nil
+				}
+
+				for _, event := range events {
+					w.resourceHost.channel <- &types.ChangeEvent[*types.Host]{
+						ChangeType: types.ChangeType(event.BKEventType),
+						Detail:     convHostInfoToTypes(w.tenantID, event.BKDetail),
+					}
+				}
+
+				return nil
+			},
+		})
+	}
+
+	if registerHostRel {
+		w.scheduler.RegisterTask(&scheduler.Task{
+			ID:       WatchResourceHostRelation,
+			Interval: time.Second,
+			Timeout:  time.Minute,
+			Fn: func(ctx context.Context) error {
+				ctx, err := tenant.SetID(ctx, w.tenantID)
+				if err != nil {
+					return fmt.Errorf("set tenant id failed, err: %v", err)
+				}
+
+				events, cursor, err := w.getHostRelationResourceByWatch(ctx, w.resourceHostRel.cursor)
+				if err != nil {
+					return fmt.Errorf("get host relation resource by watch failed, err: %v", err)
+				}
+
+				w.resourceHostRel.cursor = cursor
+				if len(events) == 0 {
+					return nil
+				}
+
+				for _, event := range events {
+					w.resourceHostRel.channel <- &types.ChangeEvent[*types.HostRel]{
+						ChangeType: types.ChangeType(event.BKEventType),
+						Detail:     convHostTopoRelationToTypes(event.BKDetail),
+					}
+				}
+
+				return nil
+			},
+		})
+	}
+
+	w.scheduler.Start()
+
+	return nil
+}
+
+// getHostResourceByWatch get host resource by watch.
+func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]*HostEventInfo, string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: WatchResourceHost,
+		BKFields:   ccHostFields(),
+	}
+
+	resp, err := w.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*HostEventInfo, len(resp.BKEvents))
+	for index, hostEvent := range resp.BKEvents {
+		hostData := new(HostEventInfo)
+		if err := conv.MapToStruct(*hostEvent, hostData); err != nil {
+			return nil, "", err
+		}
+
+		newCursor = hostData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = hostData
+	}
+
+	return result, newCursor, nil
+}
+
+// getHostRelationResourceByWatch get host relation resource by watch.
+// nolint: dupl
+func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor string) (
+	[]*HostRelationEventInfo, string, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: WatchResourceHostRelation,
+	}
+
+	resp, err := w.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*HostRelationEventInfo, len(resp.BKEvents))
+	for index, relationEvent := range resp.BKEvents {
+		relationData := new(HostRelationEventInfo)
+		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
+			return nil, "", err
+		}
+
+		newCursor = relationData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = relationData
+	}
+
+	return result, newCursor, nil
+}
+
+// getProcessResourceByWatch get process resource by watch.
+// nolint: dupl,unused
+func (w *Watcher) getProcessResourceByWatch(ctx context.Context, cursor string) ([]*ProcessEventInfo, string,
+	error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: WatchResourceProcess,
+	}
+
+	resp, err := w.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newCursor := ""
+	result := make([]*ProcessEventInfo, len(resp.BKEvents))
+	for index, processEvent := range resp.BKEvents {
+		processData := new(ProcessEventInfo)
+		if err := conv.MapToStruct(*processEvent, processData); err != nil {
+			return nil, "", err
+		}
+
+		newCursor = processData.BKCursor
+
+		if !resp.BKWatched {
+			break
+		}
+
+		result[index] = processData
+	}
+
+	return result, newCursor, nil
+}
+
 const (
-	// ResourceWatchResourceHost describe the resource watch's resource host.
-	ResourceWatchResourceHost = "host"
+	// WatchResourceHost describe the resource watch's resource host.
+	WatchResourceHost = "host"
 
-	// ResourceWatchResourceHostRelation describe the resource watch's resource host relation.
-	ResourceWatchResourceHostRelation = "host_relation"
+	// WatchResourceHostRelation describe the resource watch's resource host relation.
+	WatchResourceHostRelation = "host_relation"
 
-	// ResourceWatchResourceProcess describe the resource watch's resource process.
-	ResourceWatchResourceProcess = "process"
+	// WatchResourceProcess describe the resource watch's resource process.
+	WatchResourceProcess = "process"
 )
 
 // ResourceWatchEventType represents the event type of watch event.
@@ -36,26 +335,19 @@ const (
 	ResourceWatchEventTypeDelete ResourceWatchEventType = "delete"
 )
 
-// HostEventInfo describe the host event info define by cmdb.
-type HostEventInfo struct {
-	BKCursor    string    `json:"bk_cursor,omitempty"`
-	BKResource  string    `json:"bk_resource"`
-	BKEventType string    `json:"bk_event_type,omitempty"`
-	BKDetail    *HostInfo `json:"bk_detail"`
+// EventInfo describe the event info define by cmdb.
+type EventInfo[T any] struct {
+	BKCursor    string `json:"bk_cursor,omitempty"`
+	BKResource  string `json:"bk_resource"`
+	BKEventType string `json:"bk_event_type,omitempty"`
+	BKDetail    T      `json:"bk_detail"`
 }
+
+// HostEventInfo describe the host event info define by cmdb.
+type HostEventInfo = EventInfo[*HostInfo]
 
 // HostRelationEventInfo describe the host relation event info define by cmdb.
-type HostRelationEventInfo struct {
-	BKCursor    string            `json:"bk_cursor,omitempty"`
-	BKResource  string            `json:"bk_resource"`
-	BKEventType string            `json:"bk_event_type,omitempty"`
-	BKDetail    *HostTopoRelation `json:"bk_detail"`
-}
+type HostRelationEventInfo = EventInfo[*HostTopoRelation]
 
 // ProcessEventInfo describe the host relation event info define by cmdb.
-type ProcessEventInfo struct {
-	BKCursor    string           `json:"bk_cursor,omitempty"`
-	BKResource  string           `json:"bk_resource"`
-	BKEventType string           `json:"bk_event_type,omitempty"`
-	BKDetail    *ProcessProperty `json:"bk_detail"`
-}
+type ProcessEventInfo = EventInfo[*ProcessProperty]

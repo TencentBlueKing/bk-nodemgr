@@ -585,6 +585,7 @@ linters-settings:
       - m *Manager
       - d *dao
       - d Dao
+      - w *Watcher
       - s *storage
       - s *Storage
       - p *ProviderDefault

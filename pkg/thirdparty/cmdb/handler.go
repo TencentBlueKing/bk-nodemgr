@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -81,6 +82,9 @@ type Handler interface {
 	// FindHostByServiceTemplate find host by service template
 	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
 		[]*types.Host, error)
+
+	// NewWatcher new watcher
+	NewWatcher(tenantID string) (IWatcher, error)
 }
 
 type handler struct {
@@ -882,139 +886,50 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 	return result, nil
 }
 
-// getHostResourceByWatch get host resource by watch.
-func (h *handler) getHostResourceByWatch(ctx context.Context, cursor string) ([]*HostEventInfo, string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, "", err
-	}
+// NewWatcher new watcher.
+func (h *handler) NewWatcher(tenantID string) (IWatcher, error) {
+	watcher := NewWatcher(tenantID, h.cli, h.logger)
 
-	req := &ResourceWatchReq{
-		TenantID:   tenantID,
-		BKCursor:   cursor,
-		BKResource: string(ResourceWatchResourceHost),
-		BKFields:   ccHostFields(),
-	}
-
-	resp, err := h.cli.resourceWatch(ctx, req)
-	if err != nil {
-		return nil, "", err
-	}
-
-	newCursor := ""
-	result := make([]*HostEventInfo, len(resp.BKEvents))
-	for index, hostEvent := range resp.BKEvents {
-		jsonData, err := json.Marshal(hostEvent)
-		if err != nil {
-			return nil, "", err
-		}
-
-		var hostData HostEventInfo
-		err = json.Unmarshal(jsonData, &hostData)
-		if err != nil {
-			return nil, "", err
-		}
-
-		newCursor = hostData.BKCursor
-
-		if !resp.BKWatched {
-			break
-		}
-
-		result[index] = &hostData
-	}
-
-	return result, newCursor, nil
+	return watcher, nil
 }
 
-// getHostRelationResourceByWatch get host relation resource by watch.
-func (h *handler) getHostRelationResourceByWatch(ctx context.Context, cursor string) (
-	[]*HostRelationEventInfo, string, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, "", err
+// convHostInfoToTypes convert host info to types.Host.
+func convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
+	data := &types.Host{
+		HostID:   hostInfo.BKHostID,
+		TenantID: tenantID,
+		Static: &types.HostStatic{
+			BizID:         hostInfo.BKBizID,
+			NetworkAreaID: hostInfo.BKCloudID,
+			HostName:      hostInfo.BKHostName,
+			DeptName:      hostInfo.DeptName,
+			InnerIP:       hostInfo.BKHostInnerIPV4,
+			InnerIPV6:     hostInfo.BKHostInnerIPV6,
+			OuterIP:       hostInfo.BKHostOuterIPV4,
+			OuterIPV6:     hostInfo.BKHostOuterIPV6,
+			Mac:           hostInfo.BKMac,
+			OSType:        hostInfo.BKOsType,
+			Arch:          hostInfo.BKCpuArchitecture,
+			Addressing:    types.Addressing(hostInfo.BKAddressing),
+			SyncedAgentID: hostInfo.BKAgentID,
+		},
+		Dynamic: types.NewBlankNodeDynamic(),
 	}
 
-	req := &ResourceWatchReq{
-		TenantID:   tenantID,
-		BKCursor:   cursor,
-		BKResource: string(ResourceWatchResourceHostRelation),
-	}
+	data.Dynamic.AgentID = hostInfo.BKAgentID
 
-	resp, err := h.cli.resourceWatch(ctx, req)
-	if err != nil {
-		return nil, "", err
-	}
-
-	newCursor := ""
-	result := make([]*HostRelationEventInfo, len(resp.BKEvents))
-	for index, relationEvent := range resp.BKEvents {
-		jsonData, err := json.Marshal(relationEvent)
-		if err != nil {
-			return nil, "", err
-		}
-
-		var relationData HostRelationEventInfo
-		err = json.Unmarshal(jsonData, &relationData)
-		if err != nil {
-			return nil, "", err
-		}
-
-		newCursor = relationData.BKCursor
-
-		if !resp.BKWatched {
-			break
-		}
-
-		result[index] = &relationData
-	}
-
-	return result, newCursor, nil
+	return data
 }
 
-// getProcessResourceByWatch get process resource by watch.
-func (h *handler) getProcessResourceByWatch(ctx context.Context, cursor string) ([]*ProcessEventInfo, string,
-	error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, "", err
+// convHostTopoRelationToTypes convert host topo relation to types.HostRel.
+func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.HostRel {
+	data := &types.HostRel{
+		HostID:          hostRel.BKHostID,
+		BizID:           hostRel.BKBizID,
+		ModuleID:        hostRel.BKModuleID,
+		SetID:           hostRel.BKSetID,
+		SupplierAccount: hostRel.BKSupplierAccount,
 	}
 
-	req := &ResourceWatchReq{
-		TenantID:   tenantID,
-		BKCursor:   cursor,
-		BKResource: string(ResourceWatchResourceProcess),
-	}
-
-	resp, err := h.cli.resourceWatch(ctx, req)
-	if err != nil {
-		return nil, "", err
-	}
-
-	newCursor := ""
-	result := make([]*ProcessEventInfo, len(resp.BKEvents))
-	for index, processEvent := range resp.BKEvents {
-		jsonData, err := json.Marshal(processEvent)
-		if err != nil {
-			return nil, "", err
-		}
-
-		var processData ProcessEventInfo
-		err = json.Unmarshal(jsonData, &processData)
-		if err != nil {
-			return nil, "", err
-		}
-
-		newCursor = processData.BKCursor
-
-		if !resp.BKWatched {
-			break
-		}
-
-		result[index] = &processData
-	}
-
-	return result, newCursor, nil
+	return data
 }

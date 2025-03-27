@@ -10,6 +10,10 @@
 
 package types
 
+import (
+	"fmt"
+)
+
 // CloudVendor represents a cloud vendor option.
 type CloudVendor struct {
 	Key  string
@@ -37,4 +41,49 @@ type ServiceTemplate struct {
 	ServiceTemplateName string
 	ServiceCategoryID   int64
 	HostApplyEnabled    bool
+}
+
+// HostRel represents the host relation of cmdb.
+type HostRel struct {
+	HostID          int64
+	BizID           int64
+	ModuleID        int64
+	SetID           int64
+	SupplierAccount string
+}
+
+// ChangeType represents the change type of cmdb.
+type ChangeType string
+
+const (
+	// ChangeTypeCreate represents the create change type.
+	ChangeTypeCreate ChangeType = "create"
+
+	// ChangeTypeDelete represents the delete change type.
+	ChangeTypeDelete ChangeType = "delete"
+)
+
+// Validate validates the change type.
+func (changeType ChangeType) Validate() error {
+	switch changeType {
+	case ChangeTypeCreate, ChangeTypeDelete:
+		return nil
+	default:
+		return fmt.Errorf("invalid change type, type(%s)", changeType)
+	}
+}
+
+// ChangeEvent represents the change event of cmdb.
+type ChangeEvent[T any] struct {
+	ChangeType ChangeType
+	Detail     T
+}
+
+// Validate validates the change event.
+func (e *ChangeEvent[T]) Validate() error {
+	if err := e.ChangeType.Validate(); err != nil {
+		return fmt.Errorf("invalid change type, err: %w", err)
+	}
+
+	return nil
 }

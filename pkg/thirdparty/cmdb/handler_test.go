@@ -57,7 +57,7 @@ func testClient(t *testing.T) Handler {
 	h, err := New(clientCap, &Config{
 		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
 		HeaderSetter:    testHeaderSetter{},
-	})
+	}, WithLogger(logger.LoggerDefault{}))
 	if err != nil {
 		t.Fatal(err)
 	}
