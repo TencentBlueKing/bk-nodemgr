@@ -81,7 +81,7 @@ func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(data *OperInstData) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update data by operation_inst_data_id.
-	filter := bson.D{{Key: "FieldOperInstID", Value: data.OperInstID}}
+	filter := bson.D{{Key: FieldOperInstID.String(), Value: data.OperInstID}}
 
 	// insert as creation or update data only.
 	update := base.BuildUpsertParam(data)
