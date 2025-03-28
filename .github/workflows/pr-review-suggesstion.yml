@@ -6,7 +6,7 @@ on:
 
 jobs:
   review-suggestions:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       pull-requests: write
