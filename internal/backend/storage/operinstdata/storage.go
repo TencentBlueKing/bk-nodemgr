@@ -20,4 +20,6 @@ import (
 type IStorage interface {
 	base.Interface
 	operengine.OperInstStorage
+
+	IDomainNodeInstall
 }
