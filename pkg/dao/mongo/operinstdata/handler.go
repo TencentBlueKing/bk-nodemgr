@@ -25,11 +25,7 @@ import (
 
 // IHandler this define the handler interface.
 type IHandler interface {
-	// Upsert updates or inserts an OperInstData.
-	Upsert(ctx context.Context, data *operengine.OperInstData) error
-
-	// FindOne find one OperInstData.
-	FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperInstData, error)
+	ICrud
 
 	// FindOneWithoutActionData find one OperInstData without action data.
 	FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operengine.OperInstData, error)
@@ -61,6 +57,18 @@ type IHandler interface {
 
 	// AddActInstPrivateData add action inst data private data.
 	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
+}
+
+// ICrud this define the crud interface.
+type ICrud interface {
+	// Upsert updates or inserts an OperInstData.
+	Upsert(ctx context.Context, data *operengine.OperInstData) error
+
+	// FindOne find one OperInstData.
+	FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperInstData, error)
+
+	// UpdateField updates a field of an OperInstData.
+	//UpdateField(ctx context.Context, field Field, value any, opts ...OptFn) error
 }
 
 type handler struct {
@@ -197,7 +205,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *oper
 		return err
 	}
 
-	filed := fmt.Sprintf("action_data.%s", actionInstData.Name)
+	filed := FieldKeyActionInstData(actionInstData.Name).String()
 	err = h.dao.updateField(ctx, filter, filed, data)
 	if err != nil {
 		return err
@@ -230,7 +238,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 		filter = opt(filter)
 	}
 
-	filed := fmt.Sprintf("action_data.%s.messages", actionName)
+	filed := FieldKeyActionInstMessages(actionName).String()
 	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
@@ -263,7 +271,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 		filter = opt(filter)
 	}
 
-	filed := fmt.Sprintf("action_data.%s.life_cycle", actionName)
+	filed := FieldKeyActionInstLifeCycle(actionName).String()
 	err := h.dao.updateField(ctx, filter, filed, convActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
@@ -438,7 +446,7 @@ func (h *handler) UpdateLifecycle(ctx context.Context, operInstID string, lifecy
 		filter = opt(filter)
 	}
 
-	err := h.dao.updateField(ctx, filter, "lifecycle", convLifecycleToDB(lifecycle))
+	err := h.dao.updateField(ctx, filter, FieldKeyLifeCycle.String(), convLifecycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -652,7 +660,7 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 	}
 
 	for k, v := range data {
-		field := fmt.Sprintf("action_data.%s.private_data.%s", actionName, k)
+		field := fmt.Sprintf("%s.%s", FieldKeyActInstPrivateData(actionName), k)
 		err := h.dao.updateField(ctx, filter, field, v)
 		if err != nil {
 			return err
@@ -691,7 +699,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 		return err
 	}
 
-	filed := fmt.Sprintf("action_data.%s.content", actionName)
+	filed := FieldKeyActionInstContent(actionName).String()
 	err = h.dao.updateField(ctx, filter, filed, string(bytes))
 	if err != nil {
 		return err

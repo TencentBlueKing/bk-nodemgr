@@ -42,6 +42,18 @@ const (
 	ActionInstStateUnknown ActionInstState = "unknown"
 )
 
+// Validate ActionInstState.
+func (state ActionInstState) Validate() error {
+	switch state {
+	case ActionInstStatePending, ActionInstStateRunning, ActionInstStateSuccess, ActionInstStateFailed,
+		ActionInstStateTimeout, ActionInstStateSkipped, ActionInstStateTerminated, ActionInstStateUnknown:
+
+		return nil
+	default:
+		return fmt.Errorf("invalid action state, state(%s)", state)
+	}
+}
+
 // OperInstState OperInst State.
 type OperInstState string
 

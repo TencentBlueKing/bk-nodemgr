@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// IStorage defines the storage interface.
+// IStorage defines the Storage interface.
 type IStorage interface {
 	base.Interface
 	operengine.OperInstStorage

@@ -33,12 +33,12 @@ import (
 const StorageName = "operinstdata"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IStorage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
 
-	s := &storage{
+	s := &Storage{
 		Storage: base.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
@@ -50,14 +50,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IS
 		base.WithStartFunc(s.startFn),
 		base.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new Storage failed, err: %v", err)
 		return nil, err
 	}
 
 	return s, nil
 }
 
-type storage struct {
+// Storage defines the storage interface for operinstdata.
+type Storage struct {
 	base.Storage
 
 	// dao
@@ -74,7 +75,7 @@ type storage struct {
 	sg singleflight.Group
 }
 
-func (s *storage) startFn() error {
+func (s *Storage) startFn() error {
 	s.operinstdataDao = operinstdata.New(s.Database, s.Logger)
 	s.stopoperinstDao = stopoperinst.New(s.Database, s.Logger)
 
@@ -86,7 +87,7 @@ func (s *storage) startFn() error {
 	return nil
 }
 
-func (s *storage) check() error {
+func (s *Storage) check() error {
 	if s.operinstdataDao == nil {
 		return errors.New("operation instance dao is nil")
 	}
@@ -94,7 +95,7 @@ func (s *storage) check() error {
 	return nil
 }
 
-func (s *storage) registerScheduler() {
+func (s *Storage) registerScheduler() {
 	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5))
 	s.Scheduler.RegisterTask(&scheduler.Task{
 		ID:       "sync stopping operation inst",
@@ -119,7 +120,7 @@ type StopEventSubscription struct {
 }
 
 // GetOperInstData get task data.
-func (s *storage) GetOperInstData(ctx context.Context, operInstID string) (*operengine.OperInstData, error) {
+func (s *Storage) GetOperInstData(ctx context.Context, operInstID string) (*operengine.OperInstData, error) {
 	if ctx == nil {
 		return nil, base.ErrNilContent()
 	}
@@ -137,7 +138,7 @@ func (s *storage) GetOperInstData(ctx context.Context, operInstID string) (*oper
 }
 
 // UpsertOperInstData update task data.
-func (s *storage) UpsertOperInstData(ctx context.Context, data *operengine.OperInstData) error {
+func (s *Storage) UpsertOperInstData(ctx context.Context, data *operengine.OperInstData) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -154,7 +155,7 @@ func (s *storage) UpsertOperInstData(ctx context.Context, data *operengine.OperI
 }
 
 // MarkOperInstStopping mark task stopping.
-func (s *storage) MarkOperInstStopping(ctx context.Context, operationInstID string) error {
+func (s *Storage) MarkOperInstStopping(ctx context.Context, operationInstID string) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -169,7 +170,7 @@ func (s *storage) MarkOperInstStopping(ctx context.Context, operationInstID stri
 }
 
 // WatchOperInstStopping watch operation instance stopping event.
-func (s *storage) WatchOperInstStopping(ctx context.Context, operInstID string) <-chan struct{} {
+func (s *Storage) WatchOperInstStopping(ctx context.Context, operInstID string) <-chan struct{} {
 	c := make(chan struct{}, 1)
 	subscription := &StopEventSubscription{
 		OperInstID: operInstID,
@@ -201,7 +202,7 @@ func (s *storage) WatchOperInstStopping(ctx context.Context, operInstID string) 
 }
 
 // syncStopOperInsts sync all stopping operation instances.
-func (s *storage) syncStopOperInsts(ctx context.Context) error {
+func (s *Storage) syncStopOperInsts(ctx context.Context) error {
 	stopInstIDs, err := s.stopoperinstDao.FindAll(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to find all stopping operation instances: %v", err)
@@ -227,7 +228,7 @@ func (s *storage) syncStopOperInsts(ctx context.Context) error {
 }
 
 // checkNotifyStopping check and notify the stopping event.
-func (s *storage) checkNotifyStopping(ctx context.Context) error {
+func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 	_, err, _ := s.sg.Do("checkNotifyStopping", func() (interface{}, error) {
 		err := s.processStoppingEvents(ctx)
 		if err != nil {
@@ -244,7 +245,7 @@ func (s *storage) checkNotifyStopping(ctx context.Context) error {
 }
 
 // TODO: 此处有坑，需要重新测试
-func (s *storage) processStoppingEvents(ctx context.Context) error {
+func (s *Storage) processStoppingEvents(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -270,7 +271,7 @@ type notifyItem struct {
 }
 
 // getNotifications get the notifications.
-func (s *storage) getNotifications() []notifyItem {
+func (s *Storage) getNotifications() []notifyItem {
 	s.stopEventSubsMapMutex.Lock()
 	defer s.stopEventSubsMapMutex.Unlock()
 	s.stopOperInstsMutex.Lock()
@@ -290,7 +291,7 @@ func (s *storage) getNotifications() []notifyItem {
 	return notifications
 }
 
-func (s *storage) removeSubscription(key string) {
+func (s *Storage) removeSubscription(key string) {
 	s.stopEventSubsMapMutex.Lock()
 	defer s.stopEventSubsMapMutex.Unlock()
 
@@ -298,7 +299,7 @@ func (s *storage) removeSubscription(key string) {
 }
 
 // UpdateActInstLifecycle update operation instance's action instance lifecycle.
-func (s *storage) UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string,
+func (s *Storage) UpdateActInstLifecycle(ctx context.Context, operInstID string, actionName string,
 	lifecycle *operengine.ActInstLifeCycle) error {
 
 	if ctx == nil {
@@ -325,7 +326,7 @@ func (s *storage) UpdateActInstLifecycle(ctx context.Context, operInstID string,
 }
 
 // UpdateLifecycle update operation instance's lifecycle.
-func (s *storage) UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error {
+func (s *Storage) UpdateLifecycle(ctx context.Context, operInstID string, lifecycle *operengine.Lifecycle) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -342,7 +343,7 @@ func (s *storage) UpdateLifecycle(ctx context.Context, operInstID string, lifecy
 }
 
 // GetOperInstDataWithoutActionData find one operation instance data.
-func (s *storage) GetOperInstDataWithoutActionData(ctx context.Context, operInstID string,
+func (s *Storage) GetOperInstDataWithoutActionData(ctx context.Context, operInstID string,
 ) (*operengine.OperInstData, error) {
 
 	if ctx == nil {
@@ -362,7 +363,7 @@ func (s *storage) GetOperInstDataWithoutActionData(ctx context.Context, operInst
 }
 
 // GetActionInstData find one action instance data.
-func (s *storage) GetActionInstData(ctx context.Context, operInstID string,
+func (s *Storage) GetActionInstData(ctx context.Context, operInstID string,
 	actionName string) (*operengine.ActionInstData, error) {
 
 	if ctx == nil {
@@ -381,7 +382,7 @@ func (s *storage) GetActionInstData(ctx context.Context, operInstID string,
 }
 
 // GetActInstLifecycle get action instance's lifecycle.
-func (s *storage) GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (
+func (s *Storage) GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (
 	*operengine.ActInstLifeCycle, error) {
 
 	if ctx == nil {
@@ -400,7 +401,7 @@ func (s *storage) GetActInstLifecycle(ctx context.Context, operInstID string, ac
 }
 
 // PushActInstMsgs push action instance msgs.
-func (s *storage) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
+func (s *Storage) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
 	msgs ...operengine.Message) error {
 
 	if ctx == nil {
@@ -429,7 +430,7 @@ func (s *storage) PushActInstMsgs(ctx context.Context, operInstID string, action
 }
 
 // UpdateActionInstContent update action instance content.
-func (s *storage) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
+func (s *Storage) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
 	content map[string]any) error {
 
 	if ctx == nil {

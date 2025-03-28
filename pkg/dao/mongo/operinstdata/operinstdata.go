@@ -82,7 +82,7 @@ func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(data *OperInstData) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update data by operation_inst_data_id.
-	filter := bson.D{{Key: "data.oper_inst_id", Value: data.OperInstID}}
+	filter := bson.D{{Key: "FieldOperInstID", Value: data.OperInstID}}
 
 	// insert as creation or update data only.
 	update := base.BuildUpsertParam(data)
@@ -148,15 +148,7 @@ func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, fields ...st
 
 // updateField update field.
 func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
-	update := base.BuildUpdateField(field, value)
-	result, err := d.client.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	d.logger.Infof("successfully updated, field(%v), updated-count(%d)", field, result.MatchedCount)
-
-	return nil
+	return d.baseOrm.UpdateField(ctx, filter, field, value)
 }
 
 // findOne find one.
