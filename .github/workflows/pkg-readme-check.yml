@@ -100,6 +100,9 @@ jobs:
           BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | contains("📝 包文档缺失提醒")) | .id')
           
           if [ -n "$BOT_COMMENTS" ]; then
+            # 获取第一个评论ID
+            FIRST_COMMENT_ID=$(echo "$BOT_COMMENTS" | head -n 1)
+            echo "FIRST_COMMENT_ID=$FIRST_COMMENT_ID" >> $GITHUB_ENV
             echo "EXISTING_COMMENTS<<EOF" >> $GITHUB_ENV
             echo "$BOT_COMMENTS" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
@@ -153,10 +156,30 @@ jobs:
             fi
           done
 
-      - name: Comment on PR
-        if: env.HAS_MISSING == 'true'
+      - name: Delete extra comments
+        if: env.HAS_EXISTING_COMMENTS == 'true' && env.HAS_MISSING == 'true'
+        run: |
+          # 删除除第一个评论外的所有其他评论
+          echo "${{ env.EXISTING_COMMENTS }}" | tail -n +2 | while read comment_id; do
+            if [ -n "$comment_id" ]; then
+              COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"
+              curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "$COMMENT_URL"
+              echo "删除了评论 ID: $comment_id"
+            fi
+          done
+
+      - name: Comment on PR (create new)
+        if: env.HAS_MISSING == 'true' && env.HAS_EXISTING_COMMENTS == 'false'
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ env.COMMENT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR (update existing)
+        if: env.HAS_MISSING == 'true' && env.HAS_EXISTING_COMMENTS == 'true'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ env.FIRST_COMMENT_ID }}
           body: ${{ env.COMMENT }}
           token: ${{ secrets.GITHUB_TOKEN }}
