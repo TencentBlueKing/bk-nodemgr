@@ -112,7 +112,7 @@ func (h *handler) UpdateLifecycle(ctx context.Context, operInstID string, lifecy
 		filter = opt(filter)
 	}
 
-	err := h.dao.updateField(ctx, filter, FieldKeyLifeCycle.String(), convLifecycleToDB(lifecycle))
+	err := h.dao.updateField(ctx, filter, FieldKeyLifeCycle, convLifecycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}

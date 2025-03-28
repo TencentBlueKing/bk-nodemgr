@@ -10,61 +10,40 @@
 
 package operinstdata
 
-import "fmt"
-
-// Field is the field name in the oper inst data.
-type Field string
-
-// String returns the string representation of the field.
-func (field Field) String() string {
-	return string(field)
-}
-
-// Validate checks if the field is valid.
-func (field Field) Validate() error {
-	switch field {
-	case FieldOperInstID:
-		return nil
-
-	default:
-		return fmt.Errorf("invalid field, field(%s)", field)
-	}
-}
-
 const (
-	// FieldOperInstID is the field name for oper inst id.
-	FieldOperInstID Field = "data.oper_inst_id"
+	// FieldKeyOperInstID is the field name for oper inst id.
+	FieldKeyOperInstID = "data.oper_inst_id"
 
 	// FieldKeyLifeCycle is the field name for life cycle.
-	FieldKeyLifeCycle Field = "data.life_cycle"
+	FieldKeyLifeCycle = "data.life_cycle"
 )
 
 // FieldKeyActionInstState is the field name for action instance state.
-func FieldKeyActionInstState(actionName string) Field {
-	return Field("data.action_data." + actionName + ".life_cycle.state")
+func FieldKeyActionInstState(actionName string) string {
+	return "data.action_data." + actionName + ".life_cycle.state"
 }
 
 // FieldKeyActInstPrivateData is the field name for action instance private data.
-func FieldKeyActInstPrivateData(actionName string) Field {
-	return Field("data.action_data." + actionName + ".private_data")
+func FieldKeyActInstPrivateData(actionName string) string {
+	return "data.action_data." + actionName + ".private_data"
 }
 
 // FieldKeyActionInstLifeCycle is the field name for action instance life cycle.
-func FieldKeyActionInstLifeCycle(actionName string) Field {
-	return Field("data.action_data." + actionName + ".life_cycle")
+func FieldKeyActionInstLifeCycle(actionName string) string {
+	return "data.action_data." + actionName + ".life_cycle"
 }
 
 // FieldKeyActionInstMessages is the field name for action instance messages.
-func FieldKeyActionInstMessages(actionName string) Field {
-	return Field("data.action_data." + actionName + ".messages")
+func FieldKeyActionInstMessages(actionName string) string {
+	return "data.action_data." + actionName + ".messages"
 }
 
 // FieldKeyActionInstContent is the field name for action instance content.
-func FieldKeyActionInstContent(actionName string) Field {
-	return Field("data.action_data." + actionName + ".content")
+func FieldKeyActionInstContent(actionName string) string {
+	return "data.action_data." + actionName + ".content"
 }
 
 // FieldKeyActionInstData is the field name for action instance data.
-func FieldKeyActionInstData(actionName string) Field {
-	return Field("data.action_data." + actionName)
+func FieldKeyActionInstData(actionName string) string {
+	return "data.action_data." + actionName
 }

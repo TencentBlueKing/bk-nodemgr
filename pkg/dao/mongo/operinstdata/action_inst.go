@@ -76,7 +76,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 		filter = opt(filter)
 	}
 
-	filed := FieldKeyActionInstMessages(actionName).String()
+	filed := FieldKeyActionInstMessages(actionName)
 	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 		return err
 	}
 
-	filed := FieldKeyActionInstContent(actionName).String()
+	filed := FieldKeyActionInstContent(actionName)
 	err = h.dao.updateField(ctx, filter, filed, string(bytes))
 	if err != nil {
 		return err
@@ -224,7 +224,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *oper
 		return err
 	}
 
-	filed := FieldKeyActionInstData(actionInstData.Name).String()
+	filed := FieldKeyActionInstData(actionInstData.Name)
 	err = h.dao.updateField(ctx, filter, filed, data)
 	if err != nil {
 		return err
@@ -257,7 +257,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 		filter = opt(filter)
 	}
 
-	filed := FieldKeyActionInstLifeCycle(actionName).String()
+	filed := FieldKeyActionInstLifeCycle(actionName)
 	err := h.dao.updateField(ctx, filter, filed, convActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
@@ -290,7 +290,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		filter = opt(filter)
 	}
 
-	field := FieldKeyActionInstData(actionName).String()
+	field := FieldKeyActionInstData(actionName)
 	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err
@@ -349,7 +349,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 		filter = opt(filter)
 	}
 
-	field := FieldKeyActionInstLifeCycle(actionName).String()
+	field := FieldKeyActionInstLifeCycle(actionName)
 	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err
@@ -387,7 +387,7 @@ func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string,
 
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstID)(filter)
-	field := FieldKeyActionInstState(actionName).String()
+	field := FieldKeyActionInstState(actionName)
 	err := h.dao.updateField(ctx, filter, field, status)
 	if err != nil {
 		return err

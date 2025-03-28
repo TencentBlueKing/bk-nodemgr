@@ -51,7 +51,14 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	return nil
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: FieldKeyOperInstID, Value: 1}},
+			Options: new(mongoOptions.IndexOptions).SetUnique(true),
+		},
+	}
+
+	return indexes
 }
 
 // upsert updates or inserts a operation_inst_data.
@@ -81,7 +88,7 @@ func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(data *OperInstData) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update data by operation_inst_data_id.
-	filter := bson.D{{Key: FieldOperInstID.String(), Value: data.OperInstID}}
+	filter := bson.D{{Key: FieldKeyOperInstID, Value: data.OperInstID}}
 
 	// insert as creation or update data only.
 	update := base.BuildUpsertParam(data)
