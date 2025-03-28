@@ -30,7 +30,7 @@ type Config struct {
 	LockerFactory locker.MutexFactory
 
 	OperStorage     operation.Storage
-	OperInstStorage operinstdataStorage.Storage
+	OperInstStorage operinstdataStorage.IStorage
 
 	Crypter crypter.Crypter
 

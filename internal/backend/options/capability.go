@@ -39,7 +39,7 @@ type Capability struct {
 	TrigEngineStorage trigengine.Storage
 
 	// OperInstStorage bk nodeman operation_inst storage.
-	OperInstStorage operinstdataStorage.Storage
+	OperInstStorage operinstdataStorage.IStorage
 
 	// OperStorage bk nodeman operation storage.
 	OperStorage operation.Storage

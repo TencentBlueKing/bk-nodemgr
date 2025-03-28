@@ -25,7 +25,7 @@ import (
 )
 
 // testClient ...
-func testClient(t *testing.T) Storage {
+func testClient(t *testing.T) IStorage {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)

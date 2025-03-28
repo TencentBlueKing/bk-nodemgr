@@ -33,7 +33,7 @@ import (
 const StorageName = "operinstdata"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IStorage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
