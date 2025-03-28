@@ -98,7 +98,7 @@ jobs:
               }
 
               console.log('匹配的路径数量:', matchedPaths.length);
-            
+
               // 设置环境变量表示是否有匹配路径
               core.exportVariable('HAS_MATCHED_PATHS', matchedPaths.length > 0 ? 'true' : 'false');
 
@@ -121,15 +121,49 @@ jobs:
 
                 commentBody += `\n${config.comment_template.footer}`;
 
-                // 创建评论
-                github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: commentBody
-                });
+                // 检查是否有现有评论
+                const hasExistingComments = process.env.HAS_EXISTING_COMMENTS === 'true';
 
-                console.log('成功创建PR评论');
+                if (hasExistingComments) {
+                  // 更新第一个现有评论
+                  const existingComments = process.env.EXISTING_COMMENTS.trim().split('\n');
+                  const firstCommentId = existingComments[0];
+
+                  if (firstCommentId) {
+                    await github.rest.issues.updateComment({
+                      comment_id: parseInt(firstCommentId),
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      body: commentBody
+                    });
+
+                    console.log(`已更新现有评论 ID: ${firstCommentId}`);
+
+                    // 删除其他多余的评论(如果有)
+                    if (existingComments.length > 1) {
+                      for (let i = 1; i < existingComments.length; i++) {
+                        const commentId = existingComments[i];
+                        if (commentId) {
+                          await github.rest.issues.deleteComment({
+                            comment_id: parseInt(commentId),
+                            owner: context.repo.owner,
+                            repo: context.repo.repo
+                          });
+                          console.log(`已删除多余评论 ID: ${commentId}`);
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  // 创建新评论
+                  await github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: commentBody
+                  });
+                  console.log('成功创建PR评论');
+                }
               } else {
                 console.log('没有匹配的路径，跳过评论创建');
               }
@@ -137,7 +171,6 @@ jobs:
               console.error('执行过程中发生错误:', error);
               core.setFailed(`执行失败: ${error.message}`);
             }
-
       - name: Close outdated comments
         if: env.HAS_EXISTING_COMMENTS == 'true' && env.HAS_MATCHED_PATHS == 'false'
         run: |
