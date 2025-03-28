@@ -33,6 +33,7 @@ type IDomainNodeInstall interface {
 // UpdateOperInstActionStatus update the oper inst action status.
 func (s *Storage) UpdateOperInstActionStatus(ctx context.Context, operInstID string, actionName string,
 	status operengine.ActionInstState) error {
+
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
