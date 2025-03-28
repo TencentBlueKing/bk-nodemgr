@@ -290,8 +290,8 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		filter = opt(filter)
 	}
 
-	field := fmt.Sprintf("action_data.%s", actionName)
-	operInstData, err := h.dao.findOne(ctx, filter, field)
+	field := FieldKeyActionInstData(actionName).String()
+	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 		filter = opt(filter)
 	}
 
-	field := fmt.Sprintf("data.action_data.%s.life_cycle", actionName)
+	field := FieldKeyActionInstLifeCycle(actionName).String()
 	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err

@@ -13,7 +13,6 @@ package operinstdata
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -149,31 +148,6 @@ func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, fields ...st
 // updateField update field.
 func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
 	return d.baseOrm.UpdateField(ctx, filter, field, value)
-}
-
-// findOne find one.
-// Deprecated: use get instead.
-func (d *dao) findOne(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
-	projection := bson.M{
-		"basic": true,
-	}
-	for _, field := range fields {
-		projection[fmt.Sprintf("data.%s", field)] = true
-	}
-
-	findOptions := mongoOptions.FindOne().SetProjection(projection)
-	result := d.client.FindOne(ctx, filter, findOptions)
-
-	table := &TableOperInstData{}
-	if err := result.Decode(table); err != nil {
-		d.logger.Warnf("failed to decode operinstdata, err %v", err)
-	}
-
-	if table.Data == nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return table.Data, nil
 }
 
 // pushField push field.
