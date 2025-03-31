@@ -35,6 +35,9 @@ type HostStatic struct {
 	OuterIPV6     string `json:"outer_ipv6" bson:"outer_ipv6"`
 	Mac           string `json:"mac" bson:"mac"`
 	OSType        string `json:"os_type" bson:"os_type"`
+	Arch          string `json:"arch" bson:"arch"`
+	Addressing    string `json:"addressing" bson:"addressing"`
+	SyncedAgentID string `json:"synced_agent_id" bson:"synced_agent_id"`
 }
 
 // HostDynamic represents a host dynamic information.

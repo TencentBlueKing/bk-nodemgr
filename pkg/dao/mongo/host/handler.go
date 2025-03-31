@@ -247,8 +247,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 	static := &HostStatic{}
 	if host.Static != nil {
 		static = &HostStatic{
-			NetworkAreaID: host.Static.NetworkAreaID,
 			BizID:         host.Static.BizID,
+			NetworkAreaID: host.Static.NetworkAreaID,
 			HostName:      host.Static.HostName,
 			DeptName:      host.Static.DeptName,
 			InnerIP:       host.Static.InnerIP,
@@ -257,6 +257,9 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OuterIPV6:     host.Static.OuterIPV6,
 			Mac:           host.Static.Mac,
 			OSType:        host.Static.OSType,
+			Arch:          host.Static.Arch,
+			Addressing:    string(host.Static.Addressing),
+			SyncedAgentID: host.Static.SyncedAgentID,
 		}
 	}
 
@@ -298,6 +301,9 @@ func convertHostToTypes(host *Host) *types.Host {
 			OuterIPV6:     host.Static.OuterIPV6,
 			Mac:           host.Static.Mac,
 			OSType:        host.Static.OSType,
+			Arch:          host.Static.Arch,
+			Addressing:    types.Addressing(host.Static.Addressing),
+			SyncedAgentID: host.Static.SyncedAgentID,
 		}
 	}
 
