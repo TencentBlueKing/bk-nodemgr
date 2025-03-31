@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -28,7 +28,7 @@ const (
 
 // CreateNetworkArea creates a new network-area.
 func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaCreateReq)
+	req := new(protoBackend.TopoNetworkAreaCreateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -68,7 +68,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	h.logger.Infof("successfully created networkarea. networkarea-id(%d)", networkArea.ID)
 
-	resp := new(proto.TopoNetworkAreaCreateResp)
+	resp := new(protoBackend.TopoNetworkAreaCreateResp)
 	resp.ConvertNetworkAreaFromTypes(networkArea.ID)
 
 	return resp.GetData(), nil
@@ -76,7 +76,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // UpdateNetworkArea updates an existing network-area.
 func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaUpdateReq)
+	req := new(protoBackend.TopoNetworkAreaUpdateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to update networkarea, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -110,7 +110,7 @@ func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	h.logger.Infof("successfully updated networkarea. networkarea-id(%d)", networkArea.ID)
 
-	resp := new(proto.TopoNetworkAreaUpdateResp)
+	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
 	resp.ConvertNetworkAreaFromTypes(req.GetBkNetworkareaId())
 
 	return resp.GetData(), nil
@@ -118,7 +118,7 @@ func (h *handler) UpdateNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // GetNetworkArea gets an existing network-area.
 func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaGetReq)
+	req := new(protoBackend.TopoNetworkAreaGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkarea, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -136,7 +136,7 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoNetworkAreaGetResp)
+	resp := new(protoBackend.TopoNetworkAreaGetResp)
 	resp.ConvertNetworkAreaFromTypes(networkArea)
 
 	return resp.GetData(), nil
@@ -144,7 +144,7 @@ func (h *handler) GetNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkArea lists network-area.
 func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaListReq)
+	req := new(protoBackend.TopoNetworkAreaListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkarea, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -165,7 +165,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoNetworkAreaListResp)
+	resp := new(protoBackend.TopoNetworkAreaListResp)
 	resp.ConvertNetworkAreasFromTypes(num, networkAreas)
 
 	return resp.GetData(), nil
@@ -173,7 +173,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // DeleteNetworkArea deletes an existing network-area.
 func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkAreaDeleteReq)
+	req := new(protoBackend.TopoNetworkAreaDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkarea, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -214,7 +214,7 @@ func (h *handler) DeleteNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	h.logger.Infof("successfully deleted networkarea. networkarea-id(%d)", networkAreaID)
 
-	resp := new(proto.TopoNetworkAreaDeleteResp)
+	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkareaId())
 
 	return resp.GetData(), nil

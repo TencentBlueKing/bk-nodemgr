@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
@@ -70,10 +70,10 @@ func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	return header, nil
 }
 
-func (c *cli) listBusiness(ctx context.Context, tenantID string, req *proto.TopoBusinessListReq) (
-	*proto.TopoBusinessListResp_Data, error) {
+func (c *cli) listBusiness(ctx context.Context, tenantID string, req *protoBackend.TopoBusinessListReq) (
+	*protoBackend.TopoBusinessListResp_Data, error) {
 
-	resp := new(proto.TopoBusinessListResp)
+	resp := new(protoBackend.TopoBusinessListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -103,10 +103,10 @@ func (c *cli) listBusiness(ctx context.Context, tenantID string, req *proto.Topo
 	return data, nil
 }
 
-func (c *cli) listHost(ctx context.Context, tenantID string, req *proto.TopoHostListReq) (
-	*proto.TopoHostListResp, error) {
+func (c *cli) listHost(ctx context.Context, tenantID string, req *protoBackend.TopoHostListReq) (
+	*protoBackend.TopoHostListResp, error) {
 
-	resp := new(proto.TopoHostListResp)
+	resp := new(protoBackend.TopoHostListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -135,10 +135,10 @@ func (c *cli) listHost(ctx context.Context, tenantID string, req *proto.TopoHost
 	return resp, nil
 }
 
-func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaCreateReq) (
-	*proto.TopoNetworkAreaCreateResp, error) {
+func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaCreateReq) (
+	*protoBackend.TopoNetworkAreaCreateResp, error) {
 
-	resp := new(proto.TopoNetworkAreaCreateResp)
+	resp := new(protoBackend.TopoNetworkAreaCreateResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -167,10 +167,10 @@ func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaUpdateReq) (
-	*proto.TopoNetworkAreaUpdateResp, error) {
+func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaUpdateReq) (
+	*protoBackend.TopoNetworkAreaUpdateResp, error) {
 
-	resp := new(proto.TopoNetworkAreaUpdateResp)
+	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -199,10 +199,10 @@ func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaListReq) (
-	*proto.TopoNetworkAreaListResp_Data, error) {
+func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaListReq) (
+	*protoBackend.TopoNetworkAreaListResp_Data, error) {
 
-	resp := new(proto.TopoNetworkAreaListResp)
+	resp := new(protoBackend.TopoNetworkAreaListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -232,10 +232,10 @@ func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *proto.T
 	return data, nil
 }
 
-func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaGetReq) (
-	*proto.TopoNetworkAreaGetResp, error) {
+func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaGetReq) (
+	*protoBackend.TopoNetworkAreaGetResp, error) {
 
-	resp := new(proto.TopoNetworkAreaGetResp)
+	resp := new(protoBackend.TopoNetworkAreaGetResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -264,10 +264,10 @@ func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *proto.To
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *proto.TopoNetworkAreaDeleteReq) (
-	*proto.TopoNetworkAreaDeleteResp, error) {
+func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaDeleteReq) (
+	*protoBackend.TopoNetworkAreaDeleteResp, error) {
 
-	resp := new(proto.TopoNetworkAreaDeleteResp)
+	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -296,10 +296,10 @@ func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitCreateReq) (
-	*proto.TopoNetworkUnitCreateResp, error) {
+func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitCreateReq) (
+	*protoBackend.TopoNetworkUnitCreateResp, error) {
 
-	resp := new(proto.TopoNetworkUnitCreateResp)
+	resp := new(protoBackend.TopoNetworkUnitCreateResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -328,10 +328,10 @@ func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitUpdateReq) (
-	*proto.TopoNetworkUnitUpdateResp, error) {
+func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitUpdateReq) (
+	*protoBackend.TopoNetworkUnitUpdateResp, error) {
 
-	resp := new(proto.TopoNetworkUnitUpdateResp)
+	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -360,10 +360,10 @@ func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitGetReq) (
-	*proto.TopoNetworkUnitGetResp, error) {
+func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitGetReq) (
+	*protoBackend.TopoNetworkUnitGetResp, error) {
 
-	resp := new(proto.TopoNetworkUnitGetResp)
+	resp := new(protoBackend.TopoNetworkUnitGetResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -392,10 +392,10 @@ func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *proto.To
 	return resp, nil
 }
 
-func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitListReq) (
-	*proto.TopoNetworkUnitListResp, error) {
+func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitListReq) (
+	*protoBackend.TopoNetworkUnitListResp, error) {
 
-	resp := new(proto.TopoNetworkUnitListResp)
+	resp := new(protoBackend.TopoNetworkUnitListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -424,10 +424,10 @@ func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *proto.T
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto.TopoNetworkUnitDeleteReq) (
-	*proto.TopoNetworkUnitDeleteResp, error) {
+func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitDeleteReq) (
+	*protoBackend.TopoNetworkUnitDeleteResp, error) {
 
-	resp := new(proto.TopoNetworkUnitDeleteResp)
+	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -456,10 +456,10 @@ func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *proto.TopoEventListReq) (
-	*proto.TopoEventListResp, error) {
+func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *protoBackend.TopoEventListReq) (
+	*protoBackend.TopoEventListResp, error) {
 
-	resp := new(proto.TopoEventListResp)
+	resp := new(protoBackend.TopoEventListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -488,10 +488,10 @@ func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *proto.Top
 	return resp, nil
 }
 
-func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *proto.TopoAccessPointListReq) (
-	*proto.TopoAccessPointListResp, error) {
+func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *protoBackend.TopoAccessPointListReq) (
+	*protoBackend.TopoAccessPointListResp, error) {
 
-	resp := new(proto.TopoAccessPointListResp)
+	resp := new(protoBackend.TopoAccessPointListResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
@@ -520,10 +520,10 @@ func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *proto.T
 	return resp, nil
 }
 
-func (c *cli) getConstant(ctx context.Context, tenantID string, req *proto.TopoConstantGetReq) (
-	*proto.TopoConstantGetResp, error) {
+func (c *cli) getConstant(ctx context.Context, tenantID string, req *protoBackend.TopoConstantGetReq) (
+	*protoBackend.TopoConstantGetResp, error) {
 
-	resp := new(proto.TopoConstantGetResp)
+	resp := new(protoBackend.TopoConstantGetResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err

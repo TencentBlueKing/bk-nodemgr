@@ -11,15 +11,15 @@
 package backend
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // CodeOK defines the success code.
 const CodeOK = 0
 
-func convertPage(page types.Page) *proto.Page {
-	return &proto.Page{
+func convertPage(page types.Page) *protoBackend.Page {
+	return &protoBackend.Page{
 		Offset: int32(page.Offset),
 		Limit:  int32(page.Limit),
 	}

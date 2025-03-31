@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
@@ -25,7 +25,7 @@ import (
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
 func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.SyncCmdbHostReq)
+	req := new(protoBackend.SyncCmdbHostReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
@@ -44,7 +44,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	resp := &proto.SyncCmdbHostResp_Data{
+	resp := &protoBackend.SyncCmdbHostResp_Data{
 		WorkflowId: triggerID,
 	}
 
@@ -53,7 +53,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
 func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.SyncCmdbNetworkAreaReq)
+	req := new(protoBackend.SyncCmdbNetworkAreaReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
@@ -72,7 +72,7 @@ func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	resp := &proto.SyncCmdbNetworkAreaResp_Data{
+	resp := &protoBackend.SyncCmdbNetworkAreaResp_Data{
 		WorkflowId: triggerID,
 	}
 

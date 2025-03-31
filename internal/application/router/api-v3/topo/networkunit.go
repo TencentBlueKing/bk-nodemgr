@@ -11,7 +11,7 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -25,7 +25,7 @@ const (
 
 // CreateNetworkUnit creates a new network-unit.
 func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitCreateReq)
+	req := new(protoApplication.TopoNetworkUnitCreateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to create networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -61,7 +61,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := new(proto.TopoNetworkUnitCreateResp)
+	resp := new(protoApplication.TopoNetworkUnitCreateResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnitID)
 
 	return resp.GetData(), nil
@@ -69,7 +69,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // UpdateNetworkUnit updates networkunit.
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitUpdateReq)
+	req := new(protoApplication.TopoNetworkUnitUpdateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to update networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -105,7 +105,7 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := new(proto.TopoNetworkUnitUpdateResp)
+	resp := new(protoApplication.TopoNetworkUnitUpdateResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
 	return resp.GetData(), nil
@@ -113,7 +113,7 @@ func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // GetNetworkUnit gets an existing networkunit.
 func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitGetReq)
+	req := new(protoApplication.TopoNetworkUnitGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -139,7 +139,7 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		idx++
 	}
 
-	resp := new(proto.TopoNetworkUnitGetResp)
+	resp := new(protoApplication.TopoNetworkUnitGetResp)
 	resp.ConvertNetworkUnitFromTypes(networkUnit, accessPoints)
 
 	return resp.GetData(), nil
@@ -147,7 +147,7 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // ListNetworkUnit lists network units.
 func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitListReq)
+	req := new(protoApplication.TopoNetworkUnitListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -196,7 +196,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		}
 	}
 
-	resp := new(proto.TopoNetworkUnitListResp)
+	resp := new(protoApplication.TopoNetworkUnitListResp)
 	resp.ConvertNetworkUnitsFromTypes(num, networkUnits, accessPoints)
 
 	return resp.GetData(), nil
@@ -204,7 +204,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoNetworkUnitDeleteReq)
+	req := new(protoApplication.TopoNetworkUnitDeleteReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to delete networkunit, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -221,7 +221,7 @@ func (h *handler) DeleteNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoNetworkUnitDeleteResp)
+	resp := new(protoApplication.TopoNetworkUnitDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
 
 	return resp.GetData(), nil

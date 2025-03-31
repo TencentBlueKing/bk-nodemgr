@@ -13,7 +13,7 @@ package backend
 import (
 	"context"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -21,6 +21,9 @@ import (
 
 // Handler is interface for nodeman backend handler.
 type Handler interface {
+	IHandlerNetworkArea
+	IHandlerNetworkUnit
+
 	// ListBusiness list business within specified tenant in context.
 	// @param ctx context, contains tenant-id.
 	// @param page describes the page info when listing.
@@ -42,6 +45,37 @@ type Handler interface {
 	// @return the host count with filter.
 	CountHost(ctx context.Context, condition *types.HostCondition) (int64, error)
 
+	// ListTopoEvent list topo events by page and conditions.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the topo-event list with page and the total count with filter.
+	ListTopoEvent(ctx context.Context, page types.Page, condition *types.TopoEventCondition) (
+		[]*types.TopoEvent, int64, error)
+
+	// CountTopoEvent count topo events by condition.
+	// @param ctx context, contains tenant-id.
+	// @param condition the filter conditions.
+	// @return the topo-event count with filter.
+	CountTopoEvent(ctx context.Context, condition *types.TopoEventCondition) (int64, error)
+
+	// ListAccessPoint list access points by page and conditions.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the access-point list with page and the total count with filter.
+	ListAccessPoint(ctx context.Context, page types.Page, condition *types.AccessPointCondition) (
+		[]*types.AccessPoint, int64, error)
+
+	// GetConstant get constant by fields.
+	// @param ctx context, contains tenant-id.
+	// @param fields describes the fields to get.
+	// @return the constant result.
+	GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error)
+}
+
+// IHandlerNetworkArea defines the network area handler.
+type IHandlerNetworkArea interface {
 	// CreateNetworkArea create network area within specified tenant in context.
 	// @param ctx context, contains tenant-id.
 	// @param networkArea the network area to create.
@@ -73,7 +107,10 @@ type Handler interface {
 	// @param networkAreaID the network area id.
 	// @return the network-area.
 	GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error)
+}
 
+// IHandlerNetworkUnit defines the network unit handler.
+type IHandlerNetworkUnit interface {
 	// CreateNetworkUnit create network unit within specified tenant in context.
 	// @param ctx context, contains tenant-id.
 	// @param networkUnit the network unit to create.
@@ -108,34 +145,6 @@ type Handler interface {
 	// @param networkUnitID the network unit id.
 	// @return the network-unit id.
 	DeleteNetworkUnit(ctx context.Context, networkUnitID int64) error
-
-	// ListTopoEvent list topo events by page and conditions.
-	// @param ctx context, contains tenant-id.
-	// @param page describes the page info when listing.
-	// @param condition the filter conditions.
-	// @return the topo-event list with page and the total count with filter.
-	ListTopoEvent(ctx context.Context, page types.Page, condition *types.TopoEventCondition) (
-		[]*types.TopoEvent, int64, error)
-
-	// CountTopoEvent count topo events by condition.
-	// @param ctx context, contains tenant-id.
-	// @param condition the filter conditions.
-	// @return the topo-event count with filter.
-	CountTopoEvent(ctx context.Context, condition *types.TopoEventCondition) (int64, error)
-
-	// ListAccessPoint list access points by page and conditions.
-	// @param ctx context, contains tenant-id.
-	// @param page describes the page info when listing.
-	// @param condition the filter conditions.
-	// @return the access-point list with page and the total count with filter.
-	ListAccessPoint(ctx context.Context, page types.Page, condition *types.AccessPointCondition) (
-		[]*types.AccessPoint, int64, error)
-
-	// GetConstant get constant by fields.
-	// @param ctx context, contains tenant-id.
-	// @param fields describes the fields to get.
-	// @return the constant result.
-	GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error)
 }
 
 type handler struct {
@@ -161,7 +170,7 @@ func (h *handler) ListBusiness(ctx context.Context, page types.Page, condition *
 		return nil, 0, err
 	}
 
-	req := &proto.TopoBusinessListReq{
+	req := &protoBackend.TopoBusinessListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -196,7 +205,7 @@ func (h *handler) ListHost(ctx context.Context, page types.Page, condition *type
 		return nil, 0, err
 	}
 
-	req := &proto.TopoHostListReq{
+	req := &protoBackend.TopoHostListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -220,7 +229,7 @@ func (h *handler) CountHost(ctx context.Context, condition *types.HostCondition)
 		return 0, err
 	}
 
-	req := &proto.TopoHostListReq{
+	req := &protoBackend.TopoHostListReq{
 		OnlyCount: true,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -242,7 +251,7 @@ func (h *handler) CreateNetworkArea(ctx context.Context, networkArea *types.Netw
 		return 0, err
 	}
 
-	req := &proto.TopoNetworkAreaCreateReq{
+	req := &protoBackend.TopoNetworkAreaCreateReq{
 		BkNetworkareaName: networkArea.Name,
 		BkCloudVendor:     networkArea.CloudVendor,
 	}
@@ -262,7 +271,7 @@ func (h *handler) UpdateNetworkArea(ctx context.Context, networkArea *types.Netw
 		return err
 	}
 
-	req := &proto.TopoNetworkAreaUpdateReq{
+	req := &protoBackend.TopoNetworkAreaUpdateReq{
 		BkNetworkareaId:   networkArea.ID,
 		BkNetworkareaName: networkArea.Name,
 		BkCloudVendor:     networkArea.CloudVendor,
@@ -285,7 +294,7 @@ func (h *handler) ListNetworkArea(ctx context.Context, page types.Page, conditio
 		return nil, 0, err
 	}
 
-	req := &proto.TopoNetworkAreaListReq{
+	req := &protoBackend.TopoNetworkAreaListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -318,7 +327,7 @@ func (h *handler) GetNetworkArea(ctx context.Context, networkAreaID int64) (*typ
 		return nil, err
 	}
 
-	req := &proto.TopoNetworkAreaGetReq{
+	req := &protoBackend.TopoNetworkAreaGetReq{
 		BkNetworkareaId: networkAreaID,
 	}
 
@@ -342,7 +351,7 @@ func (h *handler) DeleteNetworkArea(ctx context.Context, networkAreaID int64) er
 		return err
 	}
 
-	req := &proto.TopoNetworkAreaDeleteReq{
+	req := &protoBackend.TopoNetworkAreaDeleteReq{
 		BkNetworkareaId: networkAreaID,
 	}
 
@@ -355,15 +364,15 @@ func (h *handler) DeleteNetworkArea(ctx context.Context, networkAreaID int64) er
 }
 
 // CreateNetworkUnit creates a new networkunit.
-func (h *handler) CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
-	int64, error) {
+func (h *handler) CreateNetworkUnit(
+	ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return -1, err
 	}
 
-	req := &proto.TopoNetworkUnitCreateReq{
+	req := &protoBackend.TopoNetworkUnitCreateReq{
 		BkNetworkunitName: networkUnit.Name,
 		BkNetworkareaId:   networkUnit.NetworkAreaID,
 	}
@@ -378,14 +387,15 @@ func (h *handler) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	return resp.GetData().GetBkNetworkunitId(), nil
 }
 
-func (h *handler) UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error {
+func (h *handler) UpdateNetworkUnit(
+	ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
-	req := &proto.TopoNetworkUnitUpdateReq{
+	req := &protoBackend.TopoNetworkUnitUpdateReq{
 		BkNetworkunitId:   networkUnit.ID,
 		BkNetworkunitName: networkUnit.Name,
 		BkNetworkareaId:   networkUnit.NetworkAreaID,
@@ -410,7 +420,7 @@ func (h *handler) GetNetworkUnit(ctx context.Context, networkUnitID int64) (
 		return nil, nil, err
 	}
 
-	req := &proto.TopoNetworkUnitGetReq{
+	req := &protoBackend.TopoNetworkUnitGetReq{
 		BkNetworkunitId: networkUnitID,
 	}
 
@@ -420,6 +430,7 @@ func (h *handler) GetNetworkUnit(ctx context.Context, networkUnitID int64) (
 	}
 
 	networkUnit, accessPoints := resp.ConvertNetworkUnitToTypes()
+
 	return networkUnit, accessPoints, nil
 }
 
@@ -432,7 +443,7 @@ func (h *handler) ListNetworkUnit(ctx context.Context, page types.Page, conditio
 		return nil, 0, err
 	}
 
-	req := &proto.TopoNetworkUnitListReq{
+	req := &protoBackend.TopoNetworkUnitListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -456,7 +467,7 @@ func (h *handler) DeleteNetworkUnit(ctx context.Context, networkUnitID int64) er
 		return err
 	}
 
-	req := &proto.TopoNetworkUnitDeleteReq{
+	req := &protoBackend.TopoNetworkUnitDeleteReq{
 		BkNetworkunitId: networkUnitID,
 	}
 
@@ -477,7 +488,7 @@ func (h *handler) ListTopoEvent(ctx context.Context, page types.Page, condition 
 		return nil, 0, err
 	}
 
-	req := &proto.TopoEventListReq{
+	req := &protoBackend.TopoEventListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -501,7 +512,7 @@ func (h *handler) CountTopoEvent(ctx context.Context, condition *types.TopoEvent
 		return 0, err
 	}
 
-	req := &proto.TopoEventListReq{
+	req := &protoBackend.TopoEventListReq{
 		OnlyCount: true,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -525,7 +536,7 @@ func (h *handler) ListAccessPoint(ctx context.Context, page types.Page, conditio
 		return nil, 0, err
 	}
 
-	req := &proto.TopoAccessPointListReq{
+	req := &protoBackend.TopoAccessPointListReq{
 		Page: convertPage(page),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -549,7 +560,7 @@ func (h *handler) GetConstant(ctx context.Context, fields types.TopoConstantFiel
 		return nil, err
 	}
 
-	req := &proto.TopoConstantGetReq{}
+	req := &protoBackend.TopoConstantGetReq{}
 	if err := req.ConvertFieldsFromTypes(fields); err != nil {
 		return nil, err
 	}

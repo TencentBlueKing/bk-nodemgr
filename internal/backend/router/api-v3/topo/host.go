@@ -11,7 +11,7 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
@@ -22,7 +22,7 @@ const (
 
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoHostListReq)
+	req := new(protoBackend.TopoHostListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -44,7 +44,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 		}
 
-		resp := new(proto.TopoHostListResp)
+		resp := new(protoBackend.TopoHostListResp)
 		resp.ConvertHostsFromTypes(num, nil)
 
 		return resp.GetData(), nil
@@ -59,7 +59,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoHostListResp)
+	resp := new(protoBackend.TopoHostListResp)
 	resp.ConvertHostsFromTypes(num, hosts)
 
 	return resp.GetData(), nil

@@ -11,14 +11,14 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
 // GetConstant get constant values.
 func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoConstantGetReq)
+	req := new(protoApplication.TopoConstantGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get constant, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -36,7 +36,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	return &proto.TopoConstantGetResp_Data{
+	return &protoApplication.TopoConstantGetResp_Data{
 		BkCloudVendor: result.CloudVendor,
 		BkOsType:      result.OSType,
 	}, nil

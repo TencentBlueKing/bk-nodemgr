@@ -647,8 +647,8 @@ linters-settings:
         alias: clientv3
       # protocols
       - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-        alias: proto
+        alias: protoApplication
       - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-        alias: proto
+        alias: protoBackend
       - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-        alias: proto
+        alias: protoFile

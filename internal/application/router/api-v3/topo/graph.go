@@ -20,12 +20,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 )
 
 // GetGraph gets a graph descriptions.
 func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoGraphGetReq)
+	req := new(protoApplication.TopoGraphGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to get graph, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -53,7 +53,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 	}
 
 	// generates links.
-	resp := new(proto.TopoGraphGetResp)
+	resp := new(protoApplication.TopoGraphGetResp)
 	resp.ConvertNetworkUnitsToTypes(networkUnits)
 
 	return resp.GetData(), nil
@@ -61,7 +61,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 
 // CountGraphNode counts graph nodes.
 func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoGraphNodeCountReq)
+	req := new(protoApplication.TopoGraphNodeCountReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to count graph node, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -88,9 +88,9 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	}
 
 	// init result map.
-	result := make(map[int64]*proto.NetworkUnitInfo)
+	result := make(map[int64]*protoApplication.NetworkUnitInfo)
 	for _, networkUnitID := range networkUnitIDs {
-		result[networkUnitID] = &proto.NetworkUnitInfo{Proxy: 0, Agent: 0}
+		result[networkUnitID] = &protoApplication.NetworkUnitInfo{Proxy: 0, Agent: 0}
 	}
 
 	gp := gopool.NewPool()
@@ -141,7 +141,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	resp := new(proto.TopoGraphNodeCountResp)
+	resp := new(protoApplication.TopoGraphNodeCountResp)
 	resp.ConvertNetworkUnitInfoResult(result)
 
 	return resp.GetData(), nil

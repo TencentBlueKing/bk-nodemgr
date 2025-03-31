@@ -11,7 +11,7 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
@@ -24,7 +24,7 @@ const (
 
 // ListAccessPoint lists accesspoints with page and conditions.
 func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoAccessPointListReq)
+	req := new(protoBackend.TopoAccessPointListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list accesspoint, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -46,7 +46,7 @@ func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 		}
 
-		resp := new(proto.TopoAccessPointListResp)
+		resp := new(protoBackend.TopoAccessPointListResp)
 		resp.ConvertAccessPointsFromTypes(num, nil)
 
 		return resp.GetData(), nil
@@ -61,7 +61,7 @@ func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	resp := new(proto.TopoAccessPointListResp)
+	resp := new(protoBackend.TopoAccessPointListResp)
 	resp.ConvertAccessPointsFromTypes(num, accesspoints)
 
 	return resp.GetData(), nil

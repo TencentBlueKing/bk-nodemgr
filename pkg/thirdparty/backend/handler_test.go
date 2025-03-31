@@ -757,6 +757,14 @@ func Test_hander_GetConstant(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name: "invalid ctx",
+			args: args{
+				ctx:    nil,
+				fields: types.TopoConstantFields{},
+			},
+			wantErr: true,
+		},
+		{
 			name: "base",
 			args: args{
 				ctx: ctx,

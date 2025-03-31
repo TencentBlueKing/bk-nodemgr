@@ -14,13 +14,13 @@ package nodeinstall
 import (
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
 // GetAgentConfig ...
 func (h *handler) GetAgentConfig(gCtx *gin.Context) {
-	req := new(proto.GetAgentConfReq)
+	req := new(protoBackend.GetAgentConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse agent config failed, err: %v", err)
 		gCtx.JSON(http.StatusBadRequest, err)

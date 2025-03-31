@@ -13,7 +13,7 @@ package topo
 import (
 	"context"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -26,7 +26,7 @@ const (
 
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoHostListReq)
+	req := new(protoApplication.TopoHostListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -48,7 +48,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 		}
 
-		resp := new(proto.TopoHostListResp)
+		resp := new(protoApplication.TopoHostListResp)
 		resp.ConvertHostsFromTypes(num, nil, types.TopoNameMapping{})
 
 		return resp.GetData(), nil
@@ -75,7 +75,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	})
 	_ = gp.Wait()
 
-	resp := new(proto.TopoHostListResp)
+	resp := new(protoApplication.TopoHostListResp)
 	resp.ConvertHostsFromTypes(num, hosts, mapping)
 
 	return resp.GetData(), nil

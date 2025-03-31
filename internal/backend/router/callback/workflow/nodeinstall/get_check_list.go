@@ -14,13 +14,13 @@ package nodeinstall
 import (
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
 // GetCheckList get gse file proxy config.
 func (h *handler) GetCheckList(gCtx *gin.Context) {
-	req := new(proto.GetCheckListReq)
+	req := new(protoBackend.GetCheckListReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse file proxy config failed, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)

@@ -11,7 +11,7 @@
 package topo
 
 import (
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
@@ -24,7 +24,7 @@ const (
 
 // ListBusiness list business with specified conditions.
 func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
-	req := new(proto.TopoBusinessListReq)
+	req := new(protoApplication.TopoBusinessListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Errorf("failed to list business, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -45,7 +45,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	resp := new(proto.TopoBusinessListResp)
+	resp := new(protoApplication.TopoBusinessListResp)
 	resp.ConvertBusinessFromTypes(num, bizs)
 
 	return resp.GetData(), nil
