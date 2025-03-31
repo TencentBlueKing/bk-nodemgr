@@ -190,8 +190,8 @@ func WithAgentID(agentIDs ...string) OptFn {
 	return base.WithStringValues(FieldKeyDynamicAgentID, agentIDs...)
 }
 
-// WithAddressing filters by contains addressing.
-func WithAddressing(addressings ...types.Addressing) OptFn {
+// WithStaticAddressing filters by contains addressing.
+func WithStaticAddressing(addressings ...types.Addressing) OptFn {
 	strs := make([]string, len(addressings))
 	for idx, addressing := range addressings {
 		strs[idx] = string(addressing)
@@ -200,11 +200,11 @@ func WithAddressing(addressings ...types.Addressing) OptFn {
 	return base.WithStringValues(FieldKeyStaticAddressing, strs...)
 }
 
-// WithInnerIP filters by inner ip.
-func WithInnerIP(ips ...string) OptFn {
+// WithStaticInnerIP filters by contains inner ip.
+func WithStaticInnerIP(ips ...string) OptFn {
 	regexs := make([]string, len(ips))
 	for idx, ip := range ips {
-		regexs[idx] = fmt.Sprintf("^%s$", ip)
+		regexs[idx] = fmt.Sprintf("(^|,)%s($|,)", ip)
 	}
 
 	return base.WithRegexMatch(FieldKeyStaticInnerIP, regexs...)
