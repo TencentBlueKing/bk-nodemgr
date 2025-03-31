@@ -25,7 +25,7 @@ import (
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
 func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
-	req := new(syncCmdbHostReq)
+	req := new(proto.SyncCmdbHostReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
@@ -53,7 +53,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
 func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
-	req := new(syncCmdbNetworkAreaReq)
+	req := new(proto.SyncCmdbNetworkAreaReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
@@ -79,28 +79,7 @@ func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-type syncCmdbHostReq struct {
-	proto.SyncCmdbHostReq
-}
-
-// Validate check body.
-func (req *syncCmdbHostReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (req *syncCmdbHostReq) AutoConvert() {
-}
-
-type syncCmdbNetworkAreaReq struct {
-	proto.SyncCmdbNetworkAreaReq
-}
-
-// Validate check body.
-func (req *syncCmdbNetworkAreaReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (req *syncCmdbNetworkAreaReq) AutoConvert() {
+// SyncConstants start an operation to sync constants from cmdb.
+func (h *handler) SyncConstants(ctx *rest.Context) (interface{}, error) {
+	return nil, nil
 }

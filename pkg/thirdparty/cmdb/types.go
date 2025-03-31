@@ -107,7 +107,7 @@ type HostInfo struct {
 	// 域名名称
 	Domain string `json:"domain"`
 	// 操作系统名称
-	BKOsName string `json:"bk_os_name"`
+	BKOSName string `json:"bk_os_name"`
 	// 带外管理卡名称
 	SrvOutBandManageType string `json:"srv_out_band_manage_type"`
 	// 套餐计费起始时间
@@ -149,7 +149,7 @@ type HostInfo struct {
 	// 设备类型ID
 	SvrDeviceTypeID int64 `json:"svr_device_type_id"`
 	// 操作系统版本
-	BKOsVersion string `json:"bk_os_version"`
+	BKOSVersion string `json:"bk_os_version"`
 	// 小组名称
 	GroupName string `json:"group_name"`
 	// 设备类型
@@ -183,7 +183,7 @@ type HostInfo struct {
 	// 云厂商
 	BKCloudVendor string `json:"bk_cloud_vendor"`
 	// 操作系统类型
-	BKOsType string `json:"bk_os_type"`
+	BKOSType string `json:"bk_os_type"`
 	// 逻辑区域ID
 	LogicDomainID string `json:"logic_domain_id"`
 	// SCM设备类型
@@ -235,7 +235,7 @@ type HostInfo struct {
 	// CPU型号
 	BKCpuModule string `json:"bk_cpu_module"`
 	// 操作系统位数
-	BKOsBit string `json:"bk_os_bit"`
+	BKOSBit string `json:"bk_os_bit"`
 	// 内网Mac 地址
 	BKMac string `json:"bk_mac"`
 	// 内存容量

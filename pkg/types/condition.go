@@ -182,3 +182,9 @@ type TopoEventCondition struct {
 	// will be used when condition type is in fuzzy mode.
 	Fuzzy *TopoEventFuzzyFields
 }
+
+// TopoConstantFields defines the topo constant fields.
+type TopoConstantFields struct {
+	CloudVendor bool
+	OSType      bool
+}

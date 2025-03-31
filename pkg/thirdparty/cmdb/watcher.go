@@ -40,7 +40,7 @@ type IWatcher interface {
 // Watcher implements the IWatcher interface.
 type Watcher struct {
 	scheduler scheduler.Scheduler
-	cli       *cli
+	handler   *handler
 	logger    logger.Logger
 
 	tenantID string
@@ -61,11 +61,11 @@ type Watcher struct {
 }
 
 // NewWatcher create a new watcher.
-func NewWatcher(tenantID string, cli *cli, logger logger.Logger) *Watcher {
+func NewWatcher(tenantID string, handler *handler, logger logger.Logger) *Watcher {
 	w := &Watcher{
 		scheduler: scheduler.NewScheduler(scheduler.WithLogger(logger)),
 		logger:    logger,
-		cli:       cli,
+		handler:   handler,
 		tenantID:  tenantID,
 	}
 
@@ -142,7 +142,7 @@ func (w *Watcher) Start(_ context.Context) error {
 				for _, event := range events {
 					w.resourceHost.channel <- &types.ChangeEvent[*types.HostStatic]{
 						ChangeType: types.ChangeType(event.BKEventType),
-						Detail:     convHostInfoToTypes(w.tenantID, event.BKDetail).Static,
+						Detail:     w.handler.convHostInfoToTypes(w.tenantID, event.BKDetail).Static,
 					}
 				}
 
@@ -203,7 +203,7 @@ func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]
 		BKFields:   ccHostFields(),
 	}
 
-	resp, err := w.cli.resourceWatch(ctx, req)
+	resp, err := w.handler.cli.resourceWatch(ctx, req)
 	if err != nil {
 		return nil, "", err
 	}
@@ -248,7 +248,7 @@ func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor str
 		BKResource: WatchResourceHostRelation,
 	}
 
-	resp, err := w.cli.resourceWatch(ctx, req)
+	resp, err := w.handler.cli.resourceWatch(ctx, req)
 	if err != nil {
 		return nil, "", err
 	}
@@ -293,7 +293,7 @@ func (w *Watcher) getProcessResourceByWatch(ctx context.Context, cursor string) 
 		BKResource: WatchResourceProcess,
 	}
 
-	resp, err := w.cli.resourceWatch(ctx, req)
+	resp, err := w.handler.cli.resourceWatch(ctx, req)
 	if err != nil {
 		return nil, "", err
 	}

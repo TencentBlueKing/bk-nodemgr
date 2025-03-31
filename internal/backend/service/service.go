@@ -404,15 +404,6 @@ func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
 func (svc *Service) Start() error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	logConfig := blog.NewLogConfig()
-	logConfig.LogDir = svc.conf.Log.Dir
-	logConfig.LogMaxSizeMB = svc.conf.Log.MaxSizeMB
-	logConfig.LogMaxNum = svc.conf.Log.MaxNum
-	logConfig.Level = string(svc.conf.Log.Level)
-	logConfig.ToStdErr = svc.conf.Log.ToStdErr
-	logConfig.AlsoToStdErr = svc.conf.Log.AlsoToStdErr
-	blog.InitLogs(logConfig)
-
 	if err := svc.Cap.Start(svc.ctx); err != nil {
 		return err
 	}

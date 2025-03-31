@@ -1,0 +1,227 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package cmdb
+
+import (
+	"context"
+	"fmt"
+	"sync"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+)
+
+type enumResourceKeeper interface {
+	getValue(key string) string
+	getKey(value string) string
+	update(ctx context.Context) error
+	values() []string
+}
+
+func newCloudVendorKeeper(cli *cli) *enumResourceKeeperDefault {
+	return &enumResourceKeeperDefault{
+		cli:         cli,
+		objectID:    "plat",
+		attributeID: "bk_cloud_vendor",
+		mapping:     make(map[string]string),
+	}
+}
+
+func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
+	return &enumOSTypeKeeper{
+		enumResourceKeeperDefault: enumResourceKeeperDefault{
+			cli:          cli,
+			objectID:     "host",
+			attributeID:  "bk_os_type",
+			mapping:      make(map[string]string),
+			unknownValue: criteria.OSUnknown,
+		},
+		osTypeMapping: make(map[string]string),
+	}
+}
+
+type enumOSTypeKeeper struct {
+	enumResourceKeeperDefault
+
+	// osTypeMapping is a map of platform-normalized OS to cmdb os type name.
+	osTypeMapping map[string]string
+	mutex         sync.RWMutex
+}
+
+func (keeper *enumOSTypeKeeper) getValue(key string) string {
+	value, err := platform.NormalizeOS(keeper.enumResourceKeeperDefault.getValue(key))
+	if err != nil {
+		return keeper.enumResourceKeeperDefault.unknownValue
+	}
+
+	return value
+}
+
+func (keeper *enumOSTypeKeeper) getKey(value string) string {
+	keeper.mutex.RLock()
+	osTypeName, ok := keeper.osTypeMapping[value]
+	if !ok {
+		keeper.mutex.RUnlock()
+		return keeper.unknownKey
+	}
+	keeper.mutex.RUnlock()
+
+	return keeper.enumResourceKeeperDefault.getKey(osTypeName)
+}
+
+func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
+	if err := keeper.enumResourceKeeperDefault.update(ctx); err != nil {
+		return err
+	}
+
+	keeper.enumResourceKeeperDefault.mutex.RLock()
+	values := conv.MapToSlice(keeper.enumResourceKeeperDefault.mapping)
+	keeper.enumResourceKeeperDefault.mutex.RUnlock()
+
+	keeper.mutex.Lock()
+	for _, v := range values {
+		normalizedOS, err := platform.NormalizeOS(v)
+		if err != nil {
+			continue
+		}
+
+		keeper.osTypeMapping[normalizedOS] = v
+	}
+	keeper.mutex.Unlock()
+
+	return nil
+}
+
+// enumResourceKeeperDefault provides cmdb enum resource in object attributes auto query and keep.
+type enumResourceKeeperDefault struct {
+	cli          *cli
+	objectID     string
+	attributeID  string
+	unknownKey   string
+	unknownValue string
+
+	mutex   sync.RWMutex
+	mapping map[string]string
+}
+
+func (keeper *enumResourceKeeperDefault) getValue(key string) string {
+	keeper.mutex.RLock()
+	defer keeper.mutex.RUnlock()
+
+	value, ok := keeper.mapping[key]
+	if ok {
+		return value
+	}
+
+	return keeper.unknownValue
+}
+
+func (keeper *enumResourceKeeperDefault) getKey(value string) string {
+	keeper.mutex.RLock()
+	defer keeper.mutex.RUnlock()
+
+	for k, v := range keeper.mapping {
+		if v == value {
+			return k
+		}
+	}
+
+	return keeper.unknownKey
+}
+
+func (keeper *enumResourceKeeperDefault) update(ctx context.Context) error {
+	result, err := keeper.searchObjectAttributeEnumOption(
+		ctx, keeper.objectID, CCNoBusinessID, keeper.attributeID)
+	if err != nil {
+		return err
+	}
+
+	keeper.mutex.Lock()
+	defer keeper.mutex.Unlock()
+
+	keeper.mapping = make(map[string]string)
+	for _, option := range result {
+		keeper.mapping[option.Key] = option.Value
+	}
+
+	return nil
+}
+
+func (keeper *enumResourceKeeperDefault) values() []string {
+	keeper.mutex.RLock()
+	defer keeper.mutex.RUnlock()
+
+	return conv.MapToSlice(keeper.mapping)
+}
+
+// searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
+func (keeper *enumResourceKeeperDefault) searchObjectAttributeEnumOption(
+	ctx context.Context, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &SearchObjectAttributeReq{
+		TenantID: tenantID,
+		BKObjID:  objID,
+		BKBizID:  bizID,
+	}
+
+	resp, err := keeper.cli.searchObjectAttribute(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*EnumOption
+	for _, objAttribute := range *resp {
+		if objAttribute.BKPropertyID != objAttrID {
+			continue
+		}
+
+		options, ok := objAttribute.Option.([]any)
+		if !ok {
+			return nil, fmt.Errorf("try to convert type to []any failed, bk_property_id(%s), option(%v)", objAttrID,
+				objAttribute.Option)
+		}
+
+		result = make([]*EnumOption, len(options))
+		for index, option := range options {
+			mapOption, ok := option.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to map[string]any failed, bk_property_id(%s), option(%v)",
+					objAttrID, option)
+			}
+
+			key, ok := mapOption["id"].(string)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[id](%v)",
+					objAttrID, mapOption["id"])
+			}
+
+			name, ok := mapOption["name"].(string)
+			if !ok {
+				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[name](%v)",
+					objAttrID, mapOption["name"])
+			}
+
+			result[index] = &EnumOption{
+				Key:   key,
+				Value: name,
+			}
+		}
+	}
+
+	return result, nil
+}

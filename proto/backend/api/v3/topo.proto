@@ -326,6 +326,27 @@ message TopoAccessPointListResp {
   Data data = 4;
 }
 
+// TopoConstantGetReq describes the HTTP request body when get constant in topo
+// service.
+message TopoConstantGetReq {
+  bool bk_cloud_vendor = 1;
+  bool bk_os_type = 2;
+}
+
+// TopoConstantGetResp describes the HTTP response body when get constant in
+// topo service.
+message TopoConstantGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated string bk_cloud_vendor = 1;
+    repeated string bk_os_type = 2;
+  }
+  Data data = 4;
+}
+
 // topo service.
 service Topo {
   // BusinessList provides business listing.
@@ -436,6 +457,14 @@ service Topo {
   rpc EventList(TopoEventListReq) returns (TopoEventListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/event/list"
+      body : "*"
+    };
+  }
+
+  // ConstantGet provides getting a constant.
+  rpc ConstantGet(TopoConstantGetReq) returns (TopoConstantGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/constant/get"
       body : "*"
     };
   }

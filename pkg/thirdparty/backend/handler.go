@@ -131,6 +131,12 @@ type Handler interface {
 	// @return the access-point list with page and the total count with filter.
 	ListAccessPoint(ctx context.Context, page types.Page, condition *types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
+
+	// GetConstant get constant by fields.
+	// @param ctx context, contains tenant-id.
+	// @param fields discribes the fields to get.
+	// @return the constant result.
+	GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error)
 }
 
 type handler struct {
@@ -535,4 +541,25 @@ func (h *handler) ListAccessPoint(ctx context.Context, page types.Page, conditio
 	total, events := resp.ConvertAccessPointsToTypes()
 
 	return events, total, nil
+}
+
+// GetConstant get constant by fields.
+func (h *handler) GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &proto.TopoConstantGetReq{}
+	if err := req.ConvertFieldsFromTypes(fields); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.getConstant(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertConstantToTypes(), nil
 }

@@ -84,6 +84,16 @@ func main() {
 
 			fmt.Printf("tenant mode: %s\n", conf.TenantMode)
 
+			// init log.
+			logConfig := blog.NewLogConfig()
+			logConfig.LogDir = conf.Log.Dir
+			logConfig.LogMaxSizeMB = conf.Log.MaxSizeMB
+			logConfig.LogMaxNum = conf.Log.MaxNum
+			logConfig.Level = string(conf.Log.Level)
+			logConfig.ToStdErr = conf.Log.ToStdErr
+			logConfig.AlsoToStdErr = conf.Log.AlsoToStdErr
+			blog.InitLogs(logConfig)
+
 			svc, err := service.NewService(conf)
 			if err != nil {
 				fmt.Printf("failed to create service: %v\n", err)

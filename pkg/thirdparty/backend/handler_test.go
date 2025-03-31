@@ -742,3 +742,43 @@ func Test_handler_ListAccessPoint(t *testing.T) {
 		})
 	}
 }
+
+// Test_hander_GetConstant get constant
+func Test_hander_GetConstant(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	type args struct {
+		ctx    context.Context
+		fields types.TopoConstantFields
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				fields: types.TopoConstantFields{
+					CloudVendor: true,
+					OSType:      true,
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetConstant(tt.args.ctx, tt.args.fields)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetConstant() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}

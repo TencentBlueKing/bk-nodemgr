@@ -14,14 +14,14 @@ import (
 	"fmt"
 )
 
-// CloudVendor represents a cloud vendor option.
-type CloudVendor struct {
+// CCCloudVendor represents a cloud vendor option.
+type CCCloudVendor struct {
 	Key  string
 	Name string
 }
 
-// OsType represents a os type option.
-type OsType struct {
+// CCOsType represents a os type option.
+type CCOsType struct {
 	Key  string
 	Name string
 }

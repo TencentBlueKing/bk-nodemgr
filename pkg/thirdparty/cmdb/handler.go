@@ -1,3 +1,13 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package cmdb
 
 import (
@@ -5,9 +15,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -17,32 +29,29 @@ import (
 
 // Handler the handler of cmdb.
 type Handler interface {
-	// ListBizHosts list biz hosts
+	// ListBizHosts list biz hosts.
 	ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error)
 
-	// SearchBusiness search business
+	// SearchBusiness search business.
 	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
 
-	// SearchNetworkArea search network area
+	// SearchNetworkArea search network area.
 	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
 
-	// CreateNetworkArea create network area
+	// CreateNetworkArea create network area.
 	CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
 
-	// UpdateNetworkArea update network area
+	// UpdateNetworkArea update network area.
 	UpdateNetworkArea(ctx context.Context, id int64, networkAreaName string, cloudVendor string) error
 
-	// DeleteNetworkArea delete network area
+	// DeleteNetworkArea delete network area.
 	DeleteNetworkArea(ctx context.Context, id int64) error
 
-	// UpdateHostNetworkAreaField update host network area field
+	// UpdateHostNetworkAreaField update host network area field.
 	UpdateHostNetworkAreaField(ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error
 
-	// SearchCloudVendor search cloud vendor
-	SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error)
-
-	// SearchOsType search os type
-	SearchOsType(ctx context.Context) ([]*types.OsType, error)
+	// GetCloudVendors get cloud vendors.
+	GetCloudVendors(ctx context.Context) ([]string, error)
 
 	// BindHostAgent bind host agent
 	BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
@@ -53,37 +62,37 @@ type Handler interface {
 	// AddHostToBusinessIdle add host to business idle
 	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
 
-	// PushHostIdentifier push host identifier
+	// PushHostIdentifier push host identifier.
 	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
 
-	// FindHostIdentifierPushResult find host identifier push result
+	// FindHostIdentifierPushResult find host identifier push result.
 	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
 		pendingList []int64, err error)
 
-	// ListResourcePoolHosts list resource pool hosts
+	// ListResourcePoolHosts list resource pool hosts.
 	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
 
-	// ListHostsWithoutBusiness list hosts without business
+	// ListHostsWithoutBusiness list hosts without business.
 	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
 
 	// AddHostToResourcePool add host to resource pool
 	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
 		failedIndexMsg []string, err error)
 
-	// SearchDynamicGroup search dynamic group
+	// SearchDynamicGroup search dynamic group.
 	SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
 
-	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group
+	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
 	ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
 
-	// ListServiceTemplate list service template
+	// ListServiceTemplate list service template.
 	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
 
-	// FindHostByServiceTemplate find host by service template
+	// FindHostByServiceTemplate find host by service template.
 	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
 		[]*types.Host, error)
 
-	// NewWatcher new watcher
+	// NewWatcher new watcher.
 	NewWatcher(tenantID string) (IWatcher, error)
 
 	// CheckBizHostByIP check biz host by ip
@@ -93,7 +102,17 @@ type Handler interface {
 type handler struct {
 	cli    *cli
 	logger logger.Logger
+
+	scheduler scheduler.Scheduler
+
+	cloudVendorKeeper enumResourceKeeper
+	osTypeKeeper      enumResourceKeeper
 }
+
+const (
+	enumResourceSyncInterval = 30 * time.Minute
+	enumResourceSyncTimeout  = 30 * time.Second
+)
 
 // OptionFn ...
 type OptionFn func(*handler)
@@ -115,13 +134,49 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) 
 	h := &handler{
 		cli:    cli,
 		logger: logger.LoggerDefault{},
+
+		cloudVendorKeeper: newCloudVendorKeeper(cli),
+		osTypeKeeper:      newOSTypeKeeper(cli),
 	}
+	h.initEnumKeepers()
 
 	for _, opt := range opts {
 		opt(h)
 	}
 
 	return h, nil
+}
+
+func (h *handler) initEnumKeepers() {
+	h.scheduler = scheduler.NewScheduler()
+
+	h.scheduler.RegisterTask(&scheduler.Task{
+		ID:       "sync_cloud_vendor",
+		Interval: enumResourceSyncInterval,
+		Timeout:  enumResourceSyncTimeout,
+		Fn: func(ctx context.Context) error {
+			return h.cloudVendorKeeper.update(ctx)
+		},
+	})
+
+	h.scheduler.RegisterTask(&scheduler.Task{
+		ID:       "sync_os_type",
+		Interval: enumResourceSyncInterval,
+		Timeout:  enumResourceSyncTimeout,
+		Fn: func(ctx context.Context) error {
+			return h.osTypeKeeper.update(ctx)
+		},
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
+	defer cancel()
+
+	if err := h.cloudVendorKeeper.update(ctx); err != nil {
+		h.logger.Warnf("failed to sync cloud vendor, err: %v", err)
+	}
+	if err := h.osTypeKeeper.update(ctx); err != nil {
+		h.logger.Warnf("failed to sync os type, err: %v", err)
+	}
 }
 
 // ListBizHosts list biz hosts.
@@ -148,24 +203,7 @@ func (h *handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = &types.Host{
-			HostID:   host.BKHostID,
-			TenantID: tenantID,
-			Static: &types.HostStatic{
-				BizID:         bizID,
-				NetworkAreaID: host.BKCloudID,
-				HostName:      host.BKHostName,
-				DeptName:      host.DeptName,
-				InnerIP:       host.BKHostInnerIPV4,
-				InnerIPV6:     host.BKHostInnerIPV6,
-				OuterIP:       host.BKHostOuterIPV4,
-				OuterIPV6:     host.BKHostOuterIPV6,
-				Mac:           host.BKMac,
-				OSType:        host.BKOsType,
-				SyncedAgentID: host.BKAgentID,
-			},
-			Dynamic: types.NewBlankNodeDynamic(),
-		}
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
 	}
 
 	return hosts, nil
@@ -227,13 +265,8 @@ func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*ty
 	}
 
 	netAreas := make([]*types.NetworkArea, len(resp.Info))
-	for idx, netArea := range resp.Info {
-		netAreas[idx] = &types.NetworkArea{
-			TenantID:    tenantID,
-			ID:          netArea.BKCloudID,
-			Name:        netArea.BKCloudName,
-			CloudVendor: netArea.BKCloudVendor,
-		}
+	for idx, networkarea := range resp.Info {
+		netAreas[idx] = h.convCloudAreaToTypes(tenantID, networkarea)
 	}
 
 	return netAreas, nil
@@ -251,7 +284,7 @@ func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string,
 	req := &CreateCloudAreaReq{
 		TenantID:      tenantID,
 		BKCloudName:   networkAreaName,
-		BKCloudVendor: cloudVendor,
+		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
 	resp, err := h.cli.createCloudArea(ctx, req)
@@ -282,7 +315,7 @@ func (h *handler) UpdateNetworkArea(
 		TenantID:      tenantID,
 		BKCloudID:     id,
 		BKCloudName:   networkAreaName,
-		BKCloudVendor: cloudVendor,
+		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
 	err = h.cli.updateCloudArea(ctx, req)
@@ -337,102 +370,9 @@ func (h *handler) UpdateHostNetworkAreaField(
 	return nil
 }
 
-// searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
-func (h *handler) searchObjectAttributeEnumOption(ctx context.Context, objID string, bizID int64, objAttrID string) (
-	[]*EnumOption, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &SearchObjectAttributeReq{
-		TenantID: tenantID,
-		BKObjID:  objID,
-		BKBizID:  bizID,
-	}
-
-	resp, err := h.cli.searchObjectAttribute(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []*EnumOption
-	for _, objAttribute := range *resp {
-		if objAttribute.BKPropertyID != objAttrID {
-			continue
-		}
-
-		options, ok := objAttribute.Option.([]any)
-		if !ok {
-			return nil, fmt.Errorf("try to convert type to []any failed, bk_property_id(%s), option(%v)", objAttrID,
-				objAttribute.Option)
-		}
-
-		result = make([]*EnumOption, len(options))
-		for index, option := range options {
-			mapOption, ok := option.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf("try to convert type to map[string]any failed, bk_property_id(%s), option(%v)",
-					objAttrID, option)
-			}
-
-			key, ok := mapOption["id"].(string)
-			if !ok {
-				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[id](%v)",
-					objAttrID, mapOption["id"])
-			}
-
-			name, ok := mapOption["name"].(string)
-			if !ok {
-				return nil, fmt.Errorf("try to convert type to string failed, bk_property_id(%s), option[name](%v)",
-					objAttrID, mapOption["name"])
-			}
-
-			result[index] = &EnumOption{
-				Key:   key,
-				Value: name,
-			}
-		}
-	}
-
-	return result, nil
-}
-
-// SearchCloudVendor search cloud vendor.
-func (h *handler) SearchCloudVendor(ctx context.Context) ([]*types.CloudVendor, error) {
-	result, err := h.searchObjectAttributeEnumOption(ctx, "plat", CCNoBusinessID, "bk_cloud_vendor")
-	if err != nil {
-		return nil, err
-	}
-
-	cloudVendors := make([]*types.CloudVendor, len(result))
-	for idx, vendor := range result {
-		cloudVendors[idx] = &types.CloudVendor{
-			Key:  vendor.Key,
-			Name: vendor.Value,
-		}
-	}
-
-	return cloudVendors, nil
-}
-
-// SearchOsType search ostype.
-func (h *handler) SearchOsType(ctx context.Context) ([]*types.OsType, error) {
-	result, err := h.searchObjectAttributeEnumOption(ctx, "host", CCNoBusinessID, "bk_os_type")
-	if err != nil {
-		return nil, err
-	}
-
-	osTypes := make([]*types.OsType, len(result))
-	for idx, osType := range result {
-		osTypes[idx] = &types.OsType{
-			Key:  osType.Key,
-			Name: osType.Value,
-		}
-	}
-
-	return osTypes, nil
+// GetCloudVendors get cloud vendors.
+func (h *handler) GetCloudVendors(_ context.Context) ([]string, error) {
+	return h.cloudVendorKeeper.values(), nil
 }
 
 // BindHostAgent bind host agent.
@@ -502,16 +442,7 @@ func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts 
 
 	req := &AddHostToBusinessIdleReq{TenantID: tenantID, BKBizID: bizID}
 	for _, host := range hosts {
-		req.BKHostList = append(req.BKHostList, &CreateHostInfo{
-			BKCloudID:         host.Static.NetworkAreaID,
-			BKHostInnerIP:     host.Static.InnerIP,
-			BKHostInnerIPV6:   host.Static.InnerIPV6,
-			BKHostOuterIP:     host.Static.OuterIP,
-			BKHostOuterIPV6:   host.Static.OuterIPV6,
-			BKOSType:          host.Static.OSType,
-			BKCpuArchitecture: host.Static.Arch,
-			BKAddressing:      string(host.Static.Addressing),
-		})
+		req.BKHostList = append(req.BKHostList, h.convCreateHostInfoFromTypes(host))
 	}
 	resp, err := h.cli.addHostToBusinessIdle(ctx, req)
 	if err != nil {
@@ -588,25 +519,7 @@ func (h *handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = &types.Host{
-			HostID:   host.BKHostID,
-			TenantID: tenantID,
-			Static: &types.HostStatic{
-				BizID:         CCResourcePoolBusinessID,
-				NetworkAreaID: host.BKCloudID,
-				HostName:      host.BKHostName,
-				DeptName:      host.DeptName,
-				InnerIP:       host.BKHostInnerIPV4,
-				InnerIPV6:     host.BKHostInnerIPV6,
-				OuterIP:       host.BKHostOuterIPV4,
-				OuterIPV6:     host.BKHostOuterIPV6,
-				Mac:           host.BKMac,
-				OSType:        host.BKOsType,
-				SyncedAgentID: host.BKAgentID,
-			},
-			Dynamic: types.NewBlankNodeDynamic(),
-		}
-		hosts[idx].Dynamic.AgentID = host.BKAgentID
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
 	}
 
 	return hosts, nil
@@ -636,24 +549,7 @@ func (h *handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = &types.Host{
-			HostID:   host.BKHostID,
-			TenantID: tenantID,
-			Static: &types.HostStatic{
-				NetworkAreaID: host.BKCloudID,
-				HostName:      host.BKHostName,
-				DeptName:      host.DeptName,
-				InnerIP:       host.BKHostInnerIPV4,
-				InnerIPV6:     host.BKHostInnerIPV6,
-				OuterIP:       host.BKHostOuterIPV4,
-				OuterIPV6:     host.BKHostOuterIPV6,
-				Mac:           host.BKMac,
-				OSType:        host.BKOsType,
-				SyncedAgentID: host.BKAgentID,
-			},
-			Dynamic: types.NewBlankNodeDynamic(),
-		}
-		hosts[idx].Dynamic.AgentID = host.BKAgentID
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
 	}
 
 	return hosts, nil
@@ -671,16 +567,7 @@ func (h *handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Hos
 
 	req := &AddHostToResourcePoolReq{TenantID: tenantID}
 	for _, host := range hosts {
-		req.HostInfo = append(req.HostInfo, &CreateHostInfo{
-			BKCloudID:         host.Static.NetworkAreaID,
-			BKHostInnerIP:     host.Static.InnerIP,
-			BKHostInnerIPV6:   host.Static.InnerIPV6,
-			BKHostOuterIP:     host.Static.OuterIP,
-			BKHostOuterIPV6:   host.Static.OuterIPV6,
-			BKOSType:          host.Static.OSType,
-			BKCpuArchitecture: host.Static.Arch,
-			BKAddressing:      string(host.Static.Addressing),
-		})
+		req.HostInfo = append(req.HostInfo, h.convCreateHostInfoFromTypes(host))
 	}
 
 	resp, err := h.cli.addHostToResource(ctx, req)
@@ -743,26 +630,7 @@ func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 			return nil, err
 		}
 
-		result[index] = &types.Host{
-			HostID:   hostData.BKHostID,
-			TenantID: tenantID,
-			Static: &types.HostStatic{
-				BizID:         bizID,
-				NetworkAreaID: hostData.BKCloudID,
-				HostName:      hostData.BKHostName,
-				DeptName:      hostData.DeptName,
-				InnerIP:       hostData.BKHostInnerIPV4,
-				InnerIPV6:     hostData.BKHostInnerIPV6,
-				OuterIP:       hostData.BKHostOuterIPV4,
-				OuterIPV6:     hostData.BKHostOuterIPV6,
-				Mac:           hostData.BKMac,
-				OSType:        hostData.BKOsType,
-				Arch:          hostData.BKCpuArchitecture,
-				Addressing:    types.Addressing(hostData.BKAddressing),
-				SyncedAgentID: hostData.BKAgentID,
-			},
-			Dynamic: types.NewBlankNodeDynamic(),
-		}
+		result[index] = h.convHostInfoToTypes(tenantID, &hostData)
 	}
 
 	return result, nil
@@ -873,26 +741,7 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 	result := make([]*types.Host, len(resp.Info))
 	for index, host := range resp.Info {
-		result[index] = &types.Host{
-			HostID:   host.BKHostID,
-			TenantID: tenantID,
-			Static: &types.HostStatic{
-				BizID:         bizID,
-				NetworkAreaID: host.BKCloudID,
-				HostName:      host.BKHostName,
-				DeptName:      host.DeptName,
-				InnerIP:       host.BKHostInnerIPV4,
-				InnerIPV6:     host.BKHostInnerIPV6,
-				OuterIP:       host.BKHostOuterIPV4,
-				OuterIPV6:     host.BKHostOuterIPV6,
-				Mac:           host.BKMac,
-				OSType:        host.BKOsType,
-				Arch:          host.BKCpuArchitecture,
-				Addressing:    types.Addressing(host.BKAddressing),
-				SyncedAgentID: host.BKAgentID,
-			},
-			Dynamic: types.NewBlankNodeDynamic(),
-		}
+		result[index] = h.convHostInfoToTypes(tenantID, host)
 	}
 
 	return result, nil
@@ -900,13 +749,13 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 // NewWatcher new watcher.
 func (h *handler) NewWatcher(tenantID string) (IWatcher, error) {
-	watcher := NewWatcher(tenantID, h.cli, h.logger)
+	watcher := NewWatcher(tenantID, h, h.logger)
 
 	return watcher, nil
 }
 
 // convHostInfoToTypes convert host info to types.Host.
-func convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
+func (h *handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
 	data := &types.Host{
 		HostID:   hostInfo.BKHostID,
 		TenantID: tenantID,
@@ -920,7 +769,7 @@ func convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
 			OuterIP:       hostInfo.BKHostOuterIPV4,
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
 			Mac:           hostInfo.BKMac,
-			OSType:        hostInfo.BKOsType,
+			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
 			Arch:          hostInfo.BKCpuArchitecture,
 			Addressing:    types.Addressing(hostInfo.BKAddressing),
 			SyncedAgentID: hostInfo.BKAgentID,
@@ -928,9 +777,29 @@ func convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
 		Dynamic: types.NewBlankNodeDynamic(),
 	}
 
-	data.Dynamic.AgentID = hostInfo.BKAgentID
-
 	return data
+}
+
+func (h *handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo {
+	return &CreateHostInfo{
+		BKCloudID:         host.Static.NetworkAreaID,
+		BKHostInnerIP:     host.Static.InnerIP,
+		BKHostInnerIPV6:   host.Static.InnerIPV6,
+		BKHostOuterIP:     host.Static.OuterIP,
+		BKHostOuterIPV6:   host.Static.OuterIPV6,
+		BKOSType:          h.osTypeKeeper.getKey(host.Static.OSType),
+		BKCpuArchitecture: host.Static.Arch,
+		BKAddressing:      string(host.Static.Addressing),
+	}
+}
+
+func (h *handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *types.NetworkArea {
+	return &types.NetworkArea{
+		TenantID:    tenantID,
+		ID:          cloudArea.BKCloudID,
+		Name:        cloudArea.BKCloudName,
+		CloudVendor: h.cloudVendorKeeper.getValue(cloudArea.BKCloudVendor),
+	}
 }
 
 // convHostTopoRelationToTypes convert host topo relation to types.HostRel.

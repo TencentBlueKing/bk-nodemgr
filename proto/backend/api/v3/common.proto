@@ -122,3 +122,8 @@ message TopoEvent {
   optional int64 operate_time = 9;
   optional string operator = 10;
 }
+
+message CloudVendor {
+  optional string bk_cloud_vendor = 1;
+  optional string bk_cloud_vendor_name = 2;
+}

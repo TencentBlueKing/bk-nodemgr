@@ -61,4 +61,7 @@ const (
 
 	// OSZos this defines the os type of zos.
 	OSZos = "zos"
+
+	// OSUnknown this defines the os type of unknown.
+	OSUnknown = "unknown"
 )

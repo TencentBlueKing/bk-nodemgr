@@ -65,4 +65,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// topo event apis.
 	h.rg.POST("/event/list", rest.RestHandlerFunc(h.ListEvent))
+
+	// constant apis.
+	h.rg.POST("/constant/get", rest.RestHandlerFunc(h.GetConstant))
 }

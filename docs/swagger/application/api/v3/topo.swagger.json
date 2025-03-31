@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/topo/constant/get": {
+      "post": {
+        "summary": "ConstantGet provides getting a constant.",
+        "operationId": "Topo_ConstantGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoConstantGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoConstantGetReq describes the HTTP request body when get constant in topo\nservice.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoConstantGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/event/list": {
       "post": {
         "summary": "EventList provides event listing.",
@@ -1007,6 +1041,54 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Business"
+          }
+        }
+      }
+    },
+    "v3TopoConstantGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_cloud_vendor": {
+          "type": "boolean"
+        },
+        "bk_os_type": {
+          "type": "boolean"
+        }
+      },
+      "description": "TopoConstantGetReq describes the HTTP request body when get constant in topo\nservice."
+    },
+    "v3TopoConstantGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoConstantGetRespData"
+        }
+      },
+      "description": "TopoConstantGetResp describes the HTTP response body when get constant in\ntopo service."
+    },
+    "v3TopoConstantGetRespData": {
+      "type": "object",
+      "properties": {
+        "bk_cloud_vendor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }

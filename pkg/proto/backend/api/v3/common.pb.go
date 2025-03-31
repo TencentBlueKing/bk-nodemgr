@@ -980,6 +980,58 @@ func (x *TopoEvent) GetOperator() string {
 	return ""
 }
 
+type CloudVendor struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	BkCloudVendor     *string                `protobuf:"bytes,1,opt,name=bk_cloud_vendor,json=bkCloudVendor,proto3,oneof" json:"bk_cloud_vendor"`
+	BkCloudVendorName *string                `protobuf:"bytes,2,opt,name=bk_cloud_vendor_name,json=bkCloudVendorName,proto3,oneof" json:"bk_cloud_vendor_name"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *CloudVendor) Reset() {
+	*x = CloudVendor{}
+	mi := &file_common_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloudVendor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloudVendor) ProtoMessage() {}
+
+func (x *CloudVendor) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloudVendor.ProtoReflect.Descriptor instead.
+func (*CloudVendor) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CloudVendor) GetBkCloudVendor() string {
+	if x != nil && x.BkCloudVendor != nil {
+		return *x.BkCloudVendor
+	}
+	return ""
+}
+
+func (x *CloudVendor) GetBkCloudVendorName() string {
+	if x != nil && x.BkCloudVendorName != nil {
+		return *x.BkCloudVendorName
+	}
+	return ""
+}
+
 type AccessPoint_Endpoints struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Cluster       []string               `protobuf:"bytes,1,rep,name=cluster,proto3" json:"cluster"`
@@ -991,7 +1043,7 @@ type AccessPoint_Endpoints struct {
 
 func (x *AccessPoint_Endpoints) Reset() {
 	*x = AccessPoint_Endpoints{}
-	mi := &file_common_proto_msgTypes[12]
+	mi := &file_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1003,7 +1055,7 @@ func (x *AccessPoint_Endpoints) String() string {
 func (*AccessPoint_Endpoints) ProtoMessage() {}
 
 func (x *AccessPoint_Endpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[12]
+	mi := &file_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1279,7 +1331,17 @@ var file_common_proto_rawDesc = string([]byte{
 	0x0a, 0x11, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x5f, 0x6e,
 	0x61, 0x6d, 0x65, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x65, 0x5f,
 	0x74, 0x69, 0x6d, 0x65, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x6f,
-	0x72, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x72, 0x22, 0x9d, 0x01, 0x0a, 0x0b, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x56, 0x65, 0x6e, 0x64, 0x6f,
+	0x72, 0x12, 0x2b, 0x0a, 0x0f, 0x62, 0x6b, 0x5f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x76, 0x65,
+	0x6e, 0x64, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0d, 0x62, 0x6b,
+	0x43, 0x6c, 0x6f, 0x75, 0x64, 0x56, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x88, 0x01, 0x01, 0x12, 0x34,
+	0x0a, 0x14, 0x62, 0x6b, 0x5f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x76, 0x65, 0x6e, 0x64, 0x6f,
+	0x72, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x11,
+	0x62, 0x6b, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x56, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x4e, 0x61, 0x6d,
+	0x65, 0x88, 0x01, 0x01, 0x42, 0x12, 0x0a, 0x10, 0x5f, 0x62, 0x6b, 0x5f, 0x63, 0x6c, 0x6f, 0x75,
+	0x64, 0x5f, 0x76, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x42, 0x17, 0x0a, 0x15, 0x5f, 0x62, 0x6b, 0x5f,
+	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x76, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x5f, 0x6e, 0x61, 0x6d,
+	0x65, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
 	0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f,
 	0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
@@ -1298,7 +1360,7 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_common_proto_goTypes = []any{
 	(*Page)(nil),                  // 0: v3.Page
 	(*Business)(nil),              // 1: v3.Business
@@ -1312,13 +1374,14 @@ var file_common_proto_goTypes = []any{
 	(*HostInfo)(nil),              // 9: v3.HostInfo
 	(*Host)(nil),                  // 10: v3.Host
 	(*TopoEvent)(nil),             // 11: v3.TopoEvent
-	(*AccessPoint_Endpoints)(nil), // 12: v3.AccessPoint.Endpoints
+	(*CloudVendor)(nil),           // 12: v3.CloudVendor
+	(*AccessPoint_Endpoints)(nil), // 13: v3.AccessPoint.Endpoints
 }
 var file_common_proto_depIdxs = []int32{
 	3,  // 0: v3.Links.cluster:type_name -> v3.Link
 	3,  // 1: v3.Links.file:type_name -> v3.Link
 	3,  // 2: v3.Links.data:type_name -> v3.Link
-	12, // 3: v3.AccessPoint.endpoints:type_name -> v3.AccessPoint.Endpoints
+	13, // 3: v3.AccessPoint.endpoints:type_name -> v3.AccessPoint.Endpoints
 	5,  // 4: v3.NetworkUnit.accesspoints:type_name -> v3.AccessPoint
 	4,  // 5: v3.NetworkUnit.links:type_name -> v3.Links
 	4,  // 6: v3.NetworkUnitBrief.links:type_name -> v3.Links
@@ -1345,13 +1408,14 @@ func file_common_proto_init() {
 	file_common_proto_msgTypes[9].OneofWrappers = []any{}
 	file_common_proto_msgTypes[10].OneofWrappers = []any{}
 	file_common_proto_msgTypes[11].OneofWrappers = []any{}
+	file_common_proto_msgTypes[12].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/sync/cmdb/constants": {
+      "post": {
+        "summary": "SyncCmdbConstants provides syncing cmdb constants.",
+        "operationId": "Sync_SyncCmdbConstants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbConstantsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\nconstants.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncCmdbConstantsReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
     "/api/v3/sync/cmdb/host": {
       "post": {
         "summary": "SyncCmdbHost provides syncing cmdb host.",
@@ -111,6 +145,37 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v3SyncCmdbConstantsReq": {
+      "type": "object",
+      "description": "SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\nconstants."
+    },
+    "v3SyncCmdbConstantsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncCmdbConstantsRespData"
+        }
+      },
+      "description": "SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\nconstants."
+    },
+    "v3SyncCmdbConstantsRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     },
