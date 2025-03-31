@@ -24,7 +24,7 @@ func (x *TopoConstantGetReq) AutoConvert() {
 // ConvertFieldsToTypes convert fields from proto to types.
 func (x *TopoConstantGetReq) ConvertFieldsToTypes() types.TopoConstantFields {
 	return types.TopoConstantFields{
-		CloudVendor: x.GetBkCloudVendor(),
-		OSType:      x.GetBkOsType(),
+		CloudVendor: x.GetCloudVendor(),
+		OSType:      x.GetOsType(),
 	}
 }

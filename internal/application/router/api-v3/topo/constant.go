@@ -37,7 +37,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 	}
 
 	return &protoApplication.TopoConstantGetResp_Data{
-		BkCloudVendor: result.CloudVendor,
-		BkOsType:      result.OSType,
+		CloudVendor: result.CloudVendor,
+		OsType:      result.OSType,
 	}, nil
 }

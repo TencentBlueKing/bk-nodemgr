@@ -34,7 +34,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 	cloudVendors := make([]string, 0)
 	osTypes := make([]string, 0)
 
-	if req.GetBkCloudVendor() {
+	if req.GetCloudVendor() {
 		var err error
 		cloudVendors, err = h.cmdbHandler.GetCloudVendors(sCtx)
 		if err != nil {
@@ -43,12 +43,12 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 		}
 	}
 
-	if req.GetBkOsType() {
+	if req.GetOsType() {
 		osTypes = []string{criteria.OSLinux, criteria.OSWindows, criteria.OSDarwin}
 	}
 
 	return &protoBackend.TopoConstantGetResp_Data{
-		BkCloudVendor: cloudVendors,
-		BkOsType:      osTypes,
+		CloudVendor: cloudVendors,
+		OsType:      osTypes,
 	}, nil
 }

@@ -40,7 +40,7 @@ func (h *handler) CreateNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	networkArea, err := h.cmdbHandler.CreateNetworkArea(sCtx, req.GetBkNetworkareaName(), req.GetBkCloudVendor())
+	networkArea, err := h.cmdbHandler.CreateNetworkArea(sCtx, req.GetBkNetworkareaName(), req.GetCloudVendor())
 	if err != nil {
 		h.logger.Errorf("failed to create networkarea, failed to create networkarea via cmdb. err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)

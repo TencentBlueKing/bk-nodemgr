@@ -41,7 +41,7 @@ message TopoNetworkAreaListReq {
 
   message ExactConditions {
     repeated int64 bk_networkarea_id = 1;
-    repeated string bk_cloud_vendor = 2;
+    repeated string cloud_vendor = 2;
   }
   ExactConditions exact_include_conditions = 3;
 
@@ -101,7 +101,7 @@ message TopoNetworkAreaGetResp {
 // network-area in topo service.
 message TopoNetworkAreaCreateReq {
   string bk_networkarea_name = 1;
-  string bk_cloud_vendor = 2;
+  string cloud_vendor = 2;
 }
 
 // TopoNetworkAreaCreateResp describes the HTTP response body when create
@@ -120,7 +120,7 @@ message TopoNetworkAreaCreateResp {
 message TopoNetworkAreaUpdateReq {
   int64 bk_networkarea_id = 1;
   string bk_networkarea_name = 2;
-  string bk_cloud_vendor = 3;
+  string cloud_vendor = 3;
 }
 
 // TopoNetworkAreaUpdateResp describes the HTTP response body when update
@@ -255,7 +255,7 @@ message TopoHostListReq {
     repeated int64 bk_host_id = 1;
     repeated int64 bk_biz_id = 2;
     repeated int64 bk_networkarea_id = 3;
-    repeated string bk_os_type = 4;
+    repeated string os_type = 4;
     repeated string node_role = 5;
     repeated string node_status = 6;
     repeated string node_version = 7;
@@ -360,8 +360,8 @@ message TopoEventListResp {
 // TopoConstantGetReq describes the HTTP request body when get constant in topo
 // service.
 message TopoConstantGetReq {
-  bool bk_cloud_vendor = 1;
-  bool bk_os_type = 2;
+  bool cloud_vendor = 1;
+  bool os_type = 2;
 }
 
 // TopoConstantGetResp describes the HTTP response body when get constant in
@@ -372,8 +372,8 @@ message TopoConstantGetResp {
   string request_id = 3;
 
   message Data {
-    repeated string bk_cloud_vendor = 1;
-    repeated string bk_os_type = 2;
+    repeated string cloud_vendor = 1;
+    repeated string os_type = 2;
   }
   Data data = 4;
 }

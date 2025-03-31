@@ -28,18 +28,23 @@ type enumResourceKeeper interface {
 	values() []string
 }
 
-func newCloudVendorKeeper(cli *cli) *enumResourceKeeperDefault {
-	return &enumResourceKeeperDefault{
-		cli:         cli,
-		objectID:    "plat",
-		attributeID: "bk_cloud_vendor",
-		mapping:     make(map[string]string),
-	}
+func newCloudVendorKeeper(cli *cli) *enumCloudVendorKeeper {
+	return &enumCloudVendorKeeper{
+		enumBasicKeeper: enumBasicKeeper{
+			cli:         cli,
+			objectID:    "plat",
+			attributeID: "bk_cloud_vendor",
+			mapping:     make(map[string]string),
+		}}
+}
+
+type enumCloudVendorKeeper struct {
+	enumBasicKeeper
 }
 
 func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
 	return &enumOSTypeKeeper{
-		enumResourceKeeperDefault: enumResourceKeeperDefault{
+		enumBasicKeeper: enumBasicKeeper{
 			cli:          cli,
 			objectID:     "host",
 			attributeID:  "bk_os_type",
@@ -51,44 +56,44 @@ func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
 }
 
 type enumOSTypeKeeper struct {
-	enumResourceKeeperDefault
+	enumBasicKeeper
 
 	// osTypeMapping is a map of platform-normalized OS to cmdb os type name.
-	osTypeMapping map[string]string
-	mutex         sync.RWMutex
+	osTypeMapping      map[string]string
+	osTypeMappingMutex sync.RWMutex
 }
 
 func (keeper *enumOSTypeKeeper) getValue(key string) string {
-	value, err := platform.NormalizeOS(keeper.enumResourceKeeperDefault.getValue(key))
+	value, err := platform.NormalizeOS(keeper.enumBasicKeeper.getValue(key))
 	if err != nil {
-		return keeper.enumResourceKeeperDefault.unknownValue
+		return keeper.enumBasicKeeper.unknownValue
 	}
 
 	return value
 }
 
 func (keeper *enumOSTypeKeeper) getKey(value string) string {
-	keeper.mutex.RLock()
+	keeper.osTypeMappingMutex.RLock()
 	osTypeName, ok := keeper.osTypeMapping[value]
 	if !ok {
-		keeper.mutex.RUnlock()
+		keeper.osTypeMappingMutex.RUnlock()
 		return keeper.unknownKey
 	}
-	keeper.mutex.RUnlock()
+	keeper.osTypeMappingMutex.RUnlock()
 
-	return keeper.enumResourceKeeperDefault.getKey(osTypeName)
+	return keeper.enumBasicKeeper.getKey(osTypeName)
 }
 
 func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
-	if err := keeper.enumResourceKeeperDefault.update(ctx); err != nil {
+	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
 		return err
 	}
 
-	keeper.enumResourceKeeperDefault.mutex.RLock()
-	values := conv.MapToSlice(keeper.enumResourceKeeperDefault.mapping)
-	keeper.enumResourceKeeperDefault.mutex.RUnlock()
+	keeper.enumBasicKeeper.mutex.RLock()
+	values := conv.MapToSlice(keeper.enumBasicKeeper.mapping)
+	keeper.enumBasicKeeper.mutex.RUnlock()
 
-	keeper.mutex.Lock()
+	keeper.osTypeMappingMutex.Lock()
 	for _, v := range values {
 		normalizedOS, err := platform.NormalizeOS(v)
 		if err != nil {
@@ -97,13 +102,13 @@ func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
 
 		keeper.osTypeMapping[normalizedOS] = v
 	}
-	keeper.mutex.Unlock()
+	keeper.osTypeMappingMutex.Unlock()
 
 	return nil
 }
 
-// enumResourceKeeperDefault provides cmdb enum resource in object attributes auto query and keep.
-type enumResourceKeeperDefault struct {
+// enumBasicKeeper provides cmdb enum resource in object attributes auto query and keep.
+type enumBasicKeeper struct {
 	cli          *cli
 	objectID     string
 	attributeID  string
@@ -114,7 +119,7 @@ type enumResourceKeeperDefault struct {
 	mapping map[string]string
 }
 
-func (keeper *enumResourceKeeperDefault) getValue(key string) string {
+func (keeper *enumBasicKeeper) getValue(key string) string {
 	keeper.mutex.RLock()
 	defer keeper.mutex.RUnlock()
 
@@ -126,7 +131,7 @@ func (keeper *enumResourceKeeperDefault) getValue(key string) string {
 	return keeper.unknownValue
 }
 
-func (keeper *enumResourceKeeperDefault) getKey(value string) string {
+func (keeper *enumBasicKeeper) getKey(value string) string {
 	keeper.mutex.RLock()
 	defer keeper.mutex.RUnlock()
 
@@ -139,7 +144,7 @@ func (keeper *enumResourceKeeperDefault) getKey(value string) string {
 	return keeper.unknownKey
 }
 
-func (keeper *enumResourceKeeperDefault) update(ctx context.Context) error {
+func (keeper *enumBasicKeeper) update(ctx context.Context) error {
 	result, err := keeper.searchObjectAttributeEnumOption(
 		ctx, keeper.objectID, CCNoBusinessID, keeper.attributeID)
 	if err != nil {
@@ -157,7 +162,7 @@ func (keeper *enumResourceKeeperDefault) update(ctx context.Context) error {
 	return nil
 }
 
-func (keeper *enumResourceKeeperDefault) values() []string {
+func (keeper *enumBasicKeeper) values() []string {
 	keeper.mutex.RLock()
 	defer keeper.mutex.RUnlock()
 
@@ -165,7 +170,7 @@ func (keeper *enumResourceKeeperDefault) values() []string {
 }
 
 // searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
-func (keeper *enumResourceKeeperDefault) searchObjectAttributeEnumOption(
+func (keeper *enumBasicKeeper) searchObjectAttributeEnumOption(
 	ctx context.Context, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
 
 	tenantID, err := tenant.GetID(ctx)

@@ -23,8 +23,8 @@ func (x *TopoConstantGetReq) AutoConvert() {
 
 // ConvertFieldsFromTypes convert fields from types to proto.
 func (x *TopoConstantGetReq) ConvertFieldsFromTypes(fields types.TopoConstantFields) error {
-	x.BkCloudVendor = fields.CloudVendor
-	x.BkOsType = fields.OSType
+	x.CloudVendor = fields.CloudVendor
+	x.OsType = fields.OSType
 
 	return nil
 }
@@ -36,7 +36,7 @@ func (x *TopoConstantGetResp) ConvertConstantToTypes() *types.TopoConstant {
 	}
 
 	return &types.TopoConstant{
-		CloudVendor: x.GetData().GetBkCloudVendor(),
-		OSType:      x.GetData().GetBkOsType(),
+		CloudVendor: x.GetData().GetCloudVendor(),
+		OSType:      x.GetData().GetOsType(),
 	}
 }

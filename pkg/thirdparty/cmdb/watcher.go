@@ -61,10 +61,10 @@ type Watcher struct {
 }
 
 // NewWatcher create a new watcher.
-func NewWatcher(tenantID string, handler *handler, logger logger.Logger) *Watcher {
+func NewWatcher(tenantID string, handler *handler) *Watcher {
 	w := &Watcher{
-		scheduler: scheduler.NewScheduler(scheduler.WithLogger(logger)),
-		logger:    logger,
+		scheduler: scheduler.NewScheduler(scheduler.WithLogger(handler.logger)),
+		logger:    handler.logger,
 		handler:   handler,
 		tenantID:  tenantID,
 	}

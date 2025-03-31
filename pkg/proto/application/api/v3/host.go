@@ -42,7 +42,7 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
 			BizID:         exactCond.GetBkBizId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
-			OSType:        exactCond.GetBkOsType(),
+			OSType:        exactCond.GetOsType(),
 			NodeRole: func(source []string) []types.NodeRole {
 				target := make([]types.NodeRole, len(source))
 				for idx, s := range source {
@@ -103,7 +103,7 @@ func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondit
 				BkBizId:         condition.Exact.BizID,
 				BkNetworkareaId: condition.Exact.NetworkAreaID,
 				BkNetworkunitId: condition.Exact.NetworkUnitID,
-				BkOsType:        condition.Exact.OSType,
+				OsType:          condition.Exact.OSType,
 				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
 				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
 				NodeVersion:     condition.Exact.NodeVersion,
@@ -151,8 +151,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.BkHostOuterip = host.Static.OuterIP
 		*item.Info.BkHostOuteripV6 = host.Static.OuterIPV6
 		*item.Info.BkMac = host.Static.Mac
-		*item.Info.BkOsType = host.Static.OSType
-		*item.Info.BkOsTypeName = mapping.GetOsTypeName(host.Static.OSType)
+		*item.Info.OsType = host.Static.OSType
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
@@ -201,7 +200,7 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			OuterIP:       info.GetBkHostOuterip(),
 			OuterIPV6:     info.GetBkHostOuteripV6(),
 			Mac:           info.GetBkMac(),
-			OSType:        info.GetBkOsType(),
+			OSType:        info.GetOsType(),
 		}
 		host.Dynamic = &types.HostDynamic{
 			AgentID:        state.GetBkAgentId(),
@@ -235,8 +234,7 @@ func newEmptyHost() *Host {
 			BkHostOuterip:     new(string),
 			BkHostOuteripV6:   new(string),
 			BkMac:             new(string),
-			BkOsType:          new(string),
-			BkOsTypeName:      new(string),
+			OsType:            new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

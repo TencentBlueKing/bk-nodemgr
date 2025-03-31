@@ -253,7 +253,7 @@ func (h *handler) CreateNetworkArea(ctx context.Context, networkArea *types.Netw
 
 	req := &protoBackend.TopoNetworkAreaCreateReq{
 		BkNetworkareaName: networkArea.Name,
-		BkCloudVendor:     networkArea.CloudVendor,
+		CloudVendor:       networkArea.CloudVendor,
 	}
 
 	resp, err := h.cli.createNetworkArea(ctx, tenantID, req)
@@ -274,7 +274,7 @@ func (h *handler) UpdateNetworkArea(ctx context.Context, networkArea *types.Netw
 	req := &protoBackend.TopoNetworkAreaUpdateReq{
 		BkNetworkareaId:   networkArea.ID,
 		BkNetworkareaName: networkArea.Name,
-		BkCloudVendor:     networkArea.CloudVendor,
+		CloudVendor:       networkArea.CloudVendor,
 	}
 
 	_, err = h.cli.updateNetworkArea(ctx, tenantID, req)
@@ -313,7 +313,7 @@ func (h *handler) ListNetworkArea(ctx context.Context, page types.Page, conditio
 			TenantID:    item.GetTenantId(),
 			ID:          item.GetBkNetworkareaId(),
 			Name:        item.GetBkNetworkareaName(),
-			CloudVendor: item.GetBkCloudVendor(),
+			CloudVendor: item.GetCloudVendor(),
 		}
 	}
 
@@ -340,7 +340,7 @@ func (h *handler) GetNetworkArea(ctx context.Context, networkAreaID int64) (*typ
 		TenantID:    resp.GetData().GetTenantId(),
 		ID:          resp.GetData().GetBkNetworkareaId(),
 		Name:        resp.GetData().GetBkNetworkareaName(),
-		CloudVendor: resp.GetData().GetBkCloudVendor(),
+		CloudVendor: resp.GetData().GetCloudVendor(),
 	}, nil
 }
 

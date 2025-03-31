@@ -23,8 +23,8 @@ func (x *TopoNetworkAreaCreateReq) Validate() error {
 		return errors.New("bk_networkarea_name is required")
 	}
 
-	if x.GetBkCloudVendor() == "" {
-		return errors.New("bk_cloud_vendor is required")
+	if x.GetCloudVendor() == "" {
+		return errors.New("cloud_vendor is required")
 	}
 
 	return nil
@@ -40,7 +40,7 @@ func (x *TopoNetworkAreaCreateReq) ConvertNetworkAreaToTypes(tenantID string, ne
 		TenantID:    tenantID,
 		ID:          networkAreaID,
 		Name:        x.GetBkNetworkareaName(),
-		CloudVendor: x.GetBkCloudVendor(),
+		CloudVendor: x.GetCloudVendor(),
 	}
 }
 
@@ -62,8 +62,8 @@ func (x *TopoNetworkAreaUpdateReq) Validate() error {
 		return errors.New("bk_networkarea_name is required")
 	}
 
-	if x.GetBkCloudVendor() == "" {
-		return errors.New("bk_cloud_vendor is required")
+	if x.GetCloudVendor() == "" {
+		return errors.New("cloud_vendor is required")
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (x *TopoNetworkAreaUpdateReq) ConvertNetworkAreaToTypes(tenantID string) *t
 		TenantID:    tenantID,
 		ID:          x.GetBkNetworkareaId(),
 		Name:        x.GetBkNetworkareaName(),
-		CloudVendor: x.GetBkCloudVendor(),
+		CloudVendor: x.GetCloudVendor(),
 	}
 }
 
@@ -110,7 +110,7 @@ func (x *TopoNetworkAreaGetResp) ConvertNetworkAreaFromTypes(networkArea *types.
 	*data.TenantId = networkArea.TenantID
 	*data.BkNetworkareaId = networkArea.ID
 	*data.BkNetworkareaName = networkArea.Name
-	*data.BkCloudVendor = networkArea.CloudVendor
+	*data.CloudVendor = networkArea.CloudVendor
 
 	x.Data = data
 }
@@ -138,7 +138,7 @@ func (x *TopoNetworkAreaListReq) ConvertConditionsToTypes() *types.NetworkAreaCo
 		}
 		conditions.Exact = &types.NetworkAreaExactFields{
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-			CloudVendor:   exactCond.GetBkCloudVendor(),
+			CloudVendor:   exactCond.GetCloudVendor(),
 		}
 
 		return conditions
@@ -173,7 +173,7 @@ func (x *TopoNetworkAreaListReq) ConvertConditionsFromTypes(condition *types.Net
 		if condition.Exact != nil {
 			x.ExactIncludeConditions = &TopoNetworkAreaListReq_ExactConditions{
 				BkNetworkareaId: condition.Exact.NetworkAreaID,
-				BkCloudVendor:   condition.Exact.CloudVendor,
+				CloudVendor:     condition.Exact.CloudVendor,
 			}
 		}
 
@@ -199,7 +199,7 @@ func (x *TopoNetworkAreaListResp) ConvertNetworkAreasFromTypes(total int64, netw
 		*item.TenantId = networkArea.TenantID
 		*item.BkNetworkareaId = networkArea.ID
 		*item.BkNetworkareaName = networkArea.Name
-		*item.BkCloudVendor = networkArea.CloudVendor
+		*item.CloudVendor = networkArea.CloudVendor
 
 		items[idx] = item
 	}
@@ -295,6 +295,6 @@ func newEmptyNetworkArea() *NetworkArea {
 		TenantId:          new(string),
 		BkNetworkareaId:   new(int64),
 		BkNetworkareaName: new(string),
-		BkCloudVendor:     new(string),
+		CloudVendor:       new(string),
 	}
 }

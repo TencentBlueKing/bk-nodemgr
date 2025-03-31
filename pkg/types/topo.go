@@ -264,19 +264,6 @@ func (tnm *TopoNameMapping) GetAccessPointName(id int64) string {
 	return ""
 }
 
-// GetOsTypeName gets the name of an os type.
-func (tnm *TopoNameMapping) GetOsTypeName(osType string) string {
-	if tnm.OsType == nil {
-		return ""
-	}
-
-	if name, ok := tnm.OsType[osType]; ok {
-		return name
-	}
-
-	return ""
-}
-
 // Links represents links.
 type Links struct {
 	Cluster *Link

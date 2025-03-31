@@ -20,7 +20,7 @@ message NetworkArea {
   optional string tenant_id = 1;
   optional int64 bk_networkarea_id = 2;
   optional string bk_networkarea_name = 3;
-  optional string bk_cloud_vendor = 4;
+  optional string cloud_vendor = 4;
 }
 
 // Link describes the network unit link points target.
@@ -96,7 +96,7 @@ message HostInfo {
   optional string bk_host_outerip = 8;
   optional string bk_host_outerip_v6 = 9;
   optional string bk_mac = 10;
-  optional string bk_os_type = 11;
+  optional string os_type = 11;
 }
 
 // Host describes the host informations.
@@ -121,9 +121,4 @@ message TopoEvent {
   optional string accesspoint_name = 8;
   optional int64 operate_time = 9;
   optional string operator = 10;
-}
-
-message CloudVendor {
-  optional string bk_cloud_vendor = 1;
-  optional string bk_cloud_vendor_name = 2;
 }

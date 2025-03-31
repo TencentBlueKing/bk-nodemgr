@@ -749,7 +749,7 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 // NewWatcher new watcher.
 func (h *handler) NewWatcher(tenantID string) (IWatcher, error) {
-	watcher := NewWatcher(tenantID, h, h.logger)
+	watcher := NewWatcher(tenantID, h)
 
 	return watcher, nil
 }

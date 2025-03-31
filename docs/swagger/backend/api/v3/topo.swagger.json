@@ -647,7 +647,7 @@
         "bk_mac": {
           "type": "string"
         },
-        "bk_os_type": {
+        "os_type": {
           "type": "string"
         }
       },
@@ -721,7 +721,7 @@
         "bk_networkarea_name": {
           "type": "string"
         },
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "string"
         }
       },
@@ -880,10 +880,10 @@
     "v3TopoConstantGetReq": {
       "type": "object",
       "properties": {
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "boolean"
         },
-        "bk_os_type": {
+        "os_type": {
           "type": "boolean"
         }
       },
@@ -911,13 +911,13 @@
     "v3TopoConstantGetRespData": {
       "type": "object",
       "properties": {
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "bk_os_type": {
+        "os_type": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1095,7 +1095,7 @@
             "format": "int64"
           }
         },
-        "bk_os_type": {
+        "os_type": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1223,7 +1223,7 @@
         "bk_networkarea_name": {
           "type": "string"
         },
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "string"
         }
       },
@@ -1352,7 +1352,7 @@
             "format": "int64"
           }
         },
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1416,7 +1416,7 @@
         "bk_networkarea_name": {
           "type": "string"
         },
-        "bk_cloud_vendor": {
+        "cloud_vendor": {
           "type": "string"
         }
       },
