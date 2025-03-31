@@ -30,6 +30,10 @@ type DeploymentInfo struct {
 	NodeGeneration int64
 	AgentID        string
 	NetworkUnitID  int64
+	BizID          int64
+	NetworkAreaID  int64
+	InnerIP        string
+	Addressing     Addressing
 }
 
 // NodeConf this is the node conf for node deployment.
