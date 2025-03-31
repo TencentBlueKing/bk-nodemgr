@@ -26,6 +26,7 @@ type IHandler interface {
 	GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error)
 	GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error)
 	SetNodeConf(ctx context.Context, Token string, nodeConf *types.NodeConf) error
+	UpdateInfo(ctx context.Context, Token string, info *types.DeploymentInfo) error
 }
 
 // Handler this is a handler to operate node deployment table.
@@ -86,6 +87,10 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		NodeGeneration: info.NodeGeneration,
 		AgentID:        info.AgentID,
 		NetworkUnitID:  info.NetworkUnitID,
+		NetworkAreaID:  info.NetworkAreaID,
+		BizID:          info.BizID,
+		InnerIP:        info.InnerIP,
+		Addressing:     types.Addressing(info.Addressing),
 	}, nil
 }
 
@@ -111,17 +116,22 @@ func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment
 	nodeDeployment := &NodeDeployment{
 		Token: data.Token,
 		Info: &Info{
-			OperInstID:     data.Info.OperInstID,
-			ActionName:     data.Info.ActionName,
-			HostID:         data.Info.HostID,
+			OperInstID: data.Info.OperInstID,
+			ActionName: data.Info.ActionName,
+			HostID:     data.Info.HostID,
+			TenantID:   data.Info.TenantID,
+
 			OSType:         data.Info.OSType,
-			TenantID:       data.Info.TenantID,
 			NodeRole:       string(data.Info.NodeRole),
 			NodeStatus:     string(data.Info.NodeStatus),
 			NodeVersion:    data.Info.NodeVersion,
 			NodeGeneration: data.Info.NodeGeneration,
 			AgentID:        data.Info.AgentID,
 			NetworkUnitID:  data.Info.NetworkUnitID,
+			NetworkAreaID:  data.Info.NetworkAreaID,
+			BizID:          data.Info.BizID,
+			InnerIP:        data.Info.InnerIP,
+			Addressing:     string(data.Info.Addressing),
 		},
 		NodeConf: new(NodeConf),
 	}
@@ -203,4 +213,54 @@ func (h *Handler) SetNodeConf(ctx context.Context, token string, nodeConf *types
 	}
 
 	return nil
+}
+
+// UpdateInfo update a node deployment info.
+func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+	if ctx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return base.ErrInvalidID()
+	}
+
+	if info == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	data, err := convertDeploymentInfoFromTypes(info)
+	if err != nil {
+		return err
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	if err := h.dao.updateField(ctx, filter, FieldKeyInfo, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
+	data := &Info{
+		OperInstID:     info.OperInstID,
+		ActionName:     info.ActionName,
+		HostID:         info.HostID,
+		OSType:         info.OSType,
+		TenantID:       info.TenantID,
+		NodeRole:       string(info.NodeRole),
+		NodeStatus:     string(info.NodeStatus),
+		NodeVersion:    info.NodeVersion,
+		NodeGeneration: info.NodeGeneration,
+		AgentID:        info.AgentID,
+		NetworkUnitID:  info.NetworkUnitID,
+		NetworkAreaID:  info.NetworkAreaID,
+		BizID:          info.BizID,
+		InnerIP:        info.InnerIP,
+		Addressing:     string(info.Addressing),
+	}
+
+	return data, nil
 }

@@ -36,6 +36,10 @@ type Info struct {
 	NodeGeneration int64  `json:"node_generation" bson:"node_generation"`
 	AgentID        string `json:"agent_id" bson:"agent_id"`
 	NetworkUnitID  int64  `json:"network_unit_id" bson:"network_unit_id"`
+	NetworkAreaID  int64  `json:"network_area_id" bson:"network_area_id"`
+	BizID          int64  `json:"biz_id" bson:"biz_id"`
+	InnerIP        string `json:"inner_ip" bson:"inner_ip"`
+	Addressing     string `json:"addressing" bson:"addressing"`
 }
 
 // NodeConf this is the node conf for node deployment.

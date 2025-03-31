@@ -127,3 +127,24 @@ func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.Nod
 
 	return nil
 }
+
+// UpdateInfo update node deployment info.
+func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if token == "" {
+		return base.ErrEmptyUniqueKey()
+	}
+
+	if info == nil {
+		return errors.New("node deployment info is nil")
+	}
+
+	if err := s.nodeDeploymentDao.UpdateInfo(ctx, token, info); err != nil {
+		return err
+	}
+
+	return nil
+}

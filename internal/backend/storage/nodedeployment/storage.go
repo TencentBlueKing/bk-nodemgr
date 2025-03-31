@@ -35,4 +35,7 @@ type IDaoNodeDeployment interface {
 
 	// GetInfo get node deployment info.
 	GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
+
+	// UpdateInfo update node deployment info.
+	UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
 }
