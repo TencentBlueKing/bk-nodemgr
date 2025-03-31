@@ -100,6 +100,25 @@ func prepareData(t *testing.T, ctx context.Context) {
 					ProxyFilePort:    33068,
 				},
 			},
+			&types.Host{
+				TenantID: tenantID,
+				HostID:   90003,
+				Static: &types.HostStatic{
+					BizID:         0,
+					NetworkAreaID: 0,
+					HostName:      "unknown-name",
+					DeptName:      "",
+					InnerIP:       "192.168.132.114,172.133.122.143",
+					InnerIPV6:     "",
+					OuterIP:       "",
+					OuterIPV6:     "",
+					Mac:           "",
+					OSType:        "",
+					Arch:          "",
+					Addressing:    types.AddressingDynamic,
+					SyncedAgentID: "",
+				},
+			},
 		)
 		if err != nil {
 			t.Errorf("prepareData() error = %v", err)
@@ -566,6 +585,29 @@ func Test_handler_List(t *testing.T) {
 			},
 			optFn:     []OptFn{WithFuzzyHostName("hostname")},
 			wantTotal: 2,
+			wantNum:   1,
+			wantErr:   false,
+		},
+		{
+			name: "filter by contains static inner ip",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:     []OptFn{WithStaticInnerIP("172.133.122.143")},
+			wantTotal: 1,
+			wantNum:   1,
+			wantErr:   false,
+		},
+		{
+			name: "filter by contains static addressing",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+				Sort:   "",
+			},
+			optFn:     []OptFn{WithStaticAddressing(types.AddressingDynamic)},
+			wantTotal: 1,
 			wantNum:   1,
 			wantErr:   false,
 		},
