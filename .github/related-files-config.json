@@ -76,6 +76,15 @@
       "related_files": [
         "pkg/proto/file/"
       ]
+    },
+    {
+      "id": "mongo-table",
+      "name": "dao/mongo 表变更",
+      "description": "更新 dao/mongo 的表结构的时候记得更新 types 的表结构",
+      "source_patterns": ["pkg/dao/mongo/*/table.go"],
+      "related_files": [
+        "pkg/types/"
+      ]
     }
   ]
 }
