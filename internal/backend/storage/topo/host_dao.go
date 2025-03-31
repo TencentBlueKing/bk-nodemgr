@@ -117,6 +117,9 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 					host.WithNodeVersion(condition.Exact.NodeVersion...),
 					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
 					host.WithAgentID(condition.Exact.AgentID...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
+					host.WithStaticAddressing(condition.Exact.Addressing...),
+					host.WithStaticInnerIP(condition.Exact.InnerIP...),
 				)
 			}
 
@@ -132,6 +135,9 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
 					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
 					host.WithoutAgentID(condition.Exact.AgentID...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
+					host.WithStaticAddressing(condition.Exact.Addressing...),
+					host.WithStaticInnerIP(condition.Exact.InnerIP...),
 				)
 			}
 
@@ -183,6 +189,9 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 					host.WithOSType(condition.Exact.OSType...),
 					host.WithNodeRole(condition.Exact.NodeRole...),
 					host.WithNodeStatus(condition.Exact.NodeStatus...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
+					host.WithStaticAddressing(condition.Exact.Addressing...),
+					host.WithStaticInnerIP(condition.Exact.InnerIP...),
 					host.WithNodeVersion(condition.Exact.NodeVersion...),
 					host.WithAgentID(condition.Exact.AgentID...),
 				)
@@ -200,6 +209,9 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
 					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
 					host.WithoutAgentID(condition.Exact.AgentID...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
+					host.WithStaticAddressing(condition.Exact.Addressing...),
+					host.WithStaticInnerIP(condition.Exact.InnerIP...),
 				)
 			}
 

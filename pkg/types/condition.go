@@ -68,6 +68,8 @@ type HostExactFields struct {
 	NodeVersion    []string
 	NodeGeneration []int64
 	AgentID        []string
+	InnerIP        []string
+	Addressing     []Addressing
 }
 
 // HostFuzzyFields defines the host fuzzy fields.
