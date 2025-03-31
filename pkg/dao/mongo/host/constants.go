@@ -49,6 +49,6 @@ const (
 	// FieldKeyStaticOuterIpv6 the static outer ipv6 field key.
 	FieldKeyStaticOuterIpv6 = "data.static.outer_ipv6"
 
-	// FieldKeyStaticAddressing the dynamic addressing field key.
+	// FieldKeyStaticAddressing the static addressing field key.
 	FieldKeyStaticAddressing = "data.static.addressing"
 )
