@@ -45,11 +45,10 @@ type ServiceTemplate struct {
 
 // HostRel represents the host relation of cmdb.
 type HostRel struct {
-	HostID          int64
-	BizID           int64
-	ModuleID        int64
-	SetID           int64
-	SupplierAccount string
+	HostID   int64
+	BizID    int64
+	ModuleID int64
+	SetID    int64
 }
 
 // ChangeType represents the change type of cmdb.

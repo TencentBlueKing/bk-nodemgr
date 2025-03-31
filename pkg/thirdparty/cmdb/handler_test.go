@@ -385,7 +385,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			created, err := h.AddHostToBusinessIdle(tt.args.ctx, tt.args.bizID, tt.args.hosts[:1])
+			created, err := h.AddHostToBusinessIdle(tt.args.ctx, tt.args.bizID, tt.args.hosts[:1]...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddHostToBusinessIdle() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -395,7 +395,18 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 				t.Logf("index: %d, host: %#v", index, hostID)
 			}
 
-			success, errmsg, err := h.AddHostToResourcePool(tt.args.ctx, tt.args.hosts[1:])
+			exist, err := h.CheckBizHostByIP(tt.args.ctx, tt.args.bizID, tt.args.hosts[0].Static.NetworkAreaID,
+				tt.args.hosts[0].Static.InnerIP)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CheckBizHostByIP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if exist {
+				t.Logf("CheckBizHostByIP success")
+			}
+
+			success, errmsg, err := h.AddHostToResourcePool(tt.args.ctx, tt.args.hosts[1:]...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddHostToResourcePool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -416,7 +427,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 				return
 			}
 
-			hostAgentIDs := []*types.Host{
+			hosts := []*types.Host{
 				{
 					HostID: created[0],
 					Dynamic: &types.HostDynamic{
@@ -424,13 +435,13 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 					},
 				},
 			}
-			err = h.BindHostAgent(tt.args.ctx, hostAgentIDs...)
+			err = h.BindHostAgent(tt.args.ctx, hosts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			err = h.UnbindHostAgent(tt.args.ctx, hostAgentIDs)
+			err = h.UnbindHostAgent(tt.args.ctx, hosts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnbindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return

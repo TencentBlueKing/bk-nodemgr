@@ -33,7 +33,6 @@ func ccHostFields() []string {
 		"operator",
 		"bk_bak_operator",
 		"bk_isp_name",
-		"bk_biz_id",
 		"bk_province_name",
 		"bk_state",
 		"bk_state_name",
@@ -307,6 +306,12 @@ func (resp *BaseBroker[T]) IsFailed() error {
 	return nil
 }
 
+// HostPropertyFilter describe the host property filter.
+type HostPropertyFilter struct {
+	Condition string            `json:"condition"`
+	Rules     []*FieldCondition `json:"rules"`
+}
+
 // ListBizHostsReq describe the request data of list_biz_hosts.
 type ListBizHostsReq struct {
 	// tenant id of this request.
@@ -320,6 +325,9 @@ type ListBizHostsReq struct {
 
 	// expected response fields.
 	Fields []string `json:"fields"`
+
+	// host property filter.
+	HostPropertyFilter *HostPropertyFilter `json:"host_property_filter,omitempty"`
 }
 
 // ListBizHostsResp describe the response data of list_biz_hosts.

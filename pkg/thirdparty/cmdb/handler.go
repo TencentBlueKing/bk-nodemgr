@@ -45,13 +45,13 @@ type Handler interface {
 	SearchOsType(ctx context.Context) ([]*types.OsType, error)
 
 	// BindHostAgent bind host agent
-	BindHostAgent(ctx context.Context, hostAgentID ...*types.Host) error
+	BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
 
 	// UnbindHostAgent bind host agent
-	UnbindHostAgent(ctx context.Context, hostAgentID []*types.Host) error
+	UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
 
 	// AddHostToBusinessIdle add host to business idle
-	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts []*types.Host) ([]int64, error)
+	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
 
 	// PushHostIdentifier push host identifier
 	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
@@ -67,7 +67,7 @@ type Handler interface {
 	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
 
 	// AddHostToResourcePool add host to resource pool
-	AddHostToResourcePool(ctx context.Context, hosts []*types.Host) (successHost []*types.Host,
+	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
 		failedIndexMsg []string, err error)
 
 	// SearchDynamicGroup search dynamic group
@@ -85,6 +85,9 @@ type Handler interface {
 
 	// NewWatcher new watcher
 	NewWatcher(tenantID string) (IWatcher, error)
+
+	// CheckBizHostByIP check biz host by ip
+	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
 }
 
 type handler struct {
@@ -433,21 +436,21 @@ func (h *handler) SearchOsType(ctx context.Context) ([]*types.OsType, error) {
 }
 
 // BindHostAgent bind host agent.
-func (h *handler) BindHostAgent(ctx context.Context, hostAgentID ...*types.Host) error {
+func (h *handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
-	if len(hostAgentID) == 0 {
-		return errors.New("host agent id list is empty")
+	if len(hostInfo) == 0 {
+		return errors.New("host info list is empty")
 	}
 
 	req := &BindHostAgentReq{TenantID: tenantID}
-	for _, hostAgent := range hostAgentID {
+	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
-			BKHostID:  hostAgent.HostID,
-			BKAgentID: hostAgent.Dynamic.AgentID,
+			BKHostID:  host.HostID,
+			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
 	err = h.cli.bindHostAgent(ctx, req)
@@ -459,17 +462,21 @@ func (h *handler) BindHostAgent(ctx context.Context, hostAgentID ...*types.Host)
 }
 
 // UnbindHostAgent bind host agent.
-func (h *handler) UnbindHostAgent(ctx context.Context, hostAgentID []*types.Host) error {
+func (h *handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
+	if len(hostInfo) == 0 {
+		return errors.New("host info list is empty")
+	}
+
 	req := &UnbindHostAgentReq{TenantID: tenantID}
-	for _, hostAgent := range hostAgentID {
+	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
-			BKHostID:  hostAgent.HostID,
-			BKAgentID: hostAgent.Dynamic.AgentID,
+			BKHostID:  host.HostID,
+			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
 	err = h.cli.unbindHostAgent(ctx, req)
@@ -481,12 +488,16 @@ func (h *handler) UnbindHostAgent(ctx context.Context, hostAgentID []*types.Host
 }
 
 // AddHostToBusinessIdle add host to business idle.
-func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts []*types.Host) (
+func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) (
 	[]int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(hosts) == 0 {
+		return nil, errors.New("host list is empty")
 	}
 
 	req := &AddHostToBusinessIdleReq{TenantID: tenantID, BKBizID: bizID}
@@ -512,9 +523,7 @@ func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts 
 
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
-func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (
-	taskID string, err error) {
-
+func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -533,6 +542,7 @@ func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (
 }
 
 // FindHostIdentifierPushResult find host identifier push result.
+// nolint: nonamedreturns
 func (h *handler) FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
@@ -651,8 +661,8 @@ func (h *handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 // AddHostToResourcePool add host to resource pool.
 // nolint: nonamedreturns
-func (h *handler) AddHostToResourcePool(ctx context.Context, hosts []*types.Host) (
-	successHost []*types.Host, failedIndexMsg []string, err error) {
+func (h *handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+	failedIndexMsg []string, err error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
@@ -693,8 +703,8 @@ func (h *handler) AddHostToResourcePool(ctx context.Context, hosts []*types.Host
 }
 
 // ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string,
-	page types.Page) ([]*types.Host, error) {
+func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) (
+	[]*types.Host, error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
@@ -749,6 +759,7 @@ func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 				OSType:        hostData.BKOsType,
 				Arch:          hostData.BKCpuArchitecture,
 				Addressing:    types.Addressing(hostData.BKAddressing),
+				SyncedAgentID: hostData.BKAgentID,
 			},
 			Dynamic: types.NewBlankNodeDynamic(),
 		}
@@ -878,6 +889,7 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 				OSType:        host.BKOsType,
 				Arch:          host.BKCpuArchitecture,
 				Addressing:    types.Addressing(host.BKAddressing),
+				SyncedAgentID: host.BKAgentID,
 			},
 			Dynamic: types.NewBlankNodeDynamic(),
 		}
@@ -924,12 +936,54 @@ func convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
 // convHostTopoRelationToTypes convert host topo relation to types.HostRel.
 func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.HostRel {
 	data := &types.HostRel{
-		HostID:          hostRel.BKHostID,
-		BizID:           hostRel.BKBizID,
-		ModuleID:        hostRel.BKModuleID,
-		SetID:           hostRel.BKSetID,
-		SupplierAccount: hostRel.BKSupplierAccount,
+		HostID:   hostRel.BKHostID,
+		BizID:    hostRel.BKBizID,
+		ModuleID: hostRel.BKModuleID,
+		SetID:    hostRel.BKSetID,
 	}
 
 	return data
+}
+
+// CheckBizHostByIP check biz host by ip.
+func (h *handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	req := &ListBizHostsReq{
+		TenantID: tenantID,
+		BKBizID:  bizID,
+		Page: Page{
+			Start: 0,
+			Limit: 1,
+		},
+		Fields: ccHostFields(),
+	}
+
+	req.HostPropertyFilter = new(HostPropertyFilter)
+	req.HostPropertyFilter.Condition = "AND"
+	req.HostPropertyFilter.Rules = make([]*FieldCondition, 0)
+	req.HostPropertyFilter.Rules = append(req.HostPropertyFilter.Rules, &FieldCondition{
+		Field:    "bk_host_innerip",
+		Operator: "equal",
+		Value:    ip,
+	})
+	req.HostPropertyFilter.Rules = append(req.HostPropertyFilter.Rules, &FieldCondition{
+		Field:    "bk_cloud_id",
+		Operator: "equal",
+		Value:    cloudID,
+	})
+
+	resp, err := h.cli.listBizHosts(ctx, req)
+	if err != nil {
+		return false, err
+	}
+
+	if len(resp.Info) == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
