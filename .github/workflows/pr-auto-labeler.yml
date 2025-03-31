@@ -30,23 +30,8 @@ jobs:
             echo "配置文件已找到，正在加载..."
             echo "config=$(cat $CONFIG_FILE)" >> $GITHUB_OUTPUT
           else
-            echo "配置文件不存在，使用默认配置"
-            # 默认配置
-            DEFAULT_CONFIG='{
-              "directoryMappings": [
-                {"pattern": "src/frontend/", "label": "frontend"},
-                {"pattern": "src/backend/", "label": "backend"},
-                {"pattern": "docs/", "label": "documentation"},
-                {"pattern": "tests/", "label": "testing"}
-              ],
-              "titleMappings": [
-                {"pattern": "feat:", "label": "feature"},
-                {"pattern": "fix:", "label": "bug"},
-                {"pattern": "docs:", "label": "documentation"},
-                {"pattern": "chore:", "label": "maintenance"}
-              ]
-            }'
-            echo "config=$DEFAULT_CONFIG" >> $GITHUB_OUTPUT
+            echo "配置文件不存在,请检查路径: $CONFIG_FILE"
+            exit 1
           fi
 
       - name: Label PR based on title and changed files path.
