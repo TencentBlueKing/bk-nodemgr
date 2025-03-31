@@ -105,8 +105,8 @@ type handler struct {
 
 	scheduler scheduler.Scheduler
 
-	cloudVendorKeeper enumResourceKeeper
-	osTypeKeeper      enumResourceKeeper
+	cloudVendorKeeper iEnumResourceKeeper
+	osTypeKeeper      iEnumResourceKeeper
 }
 
 const (

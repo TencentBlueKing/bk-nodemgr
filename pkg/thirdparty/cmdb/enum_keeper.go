@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 )
 
-type enumResourceKeeper interface {
+type iEnumResourceKeeper interface {
 	getValue(key string) string
 	getKey(value string) string
 	update(ctx context.Context) error
