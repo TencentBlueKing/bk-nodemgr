@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package backend provides handlers to operate nodeman backend api.
 // nolint:dupl
 package backend
 

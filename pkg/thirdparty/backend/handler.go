@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package backend provides handlers to operate nodeman backend api.
 package backend
 
 import (
@@ -134,7 +133,7 @@ type Handler interface {
 
 	// GetConstant get constant by fields.
 	// @param ctx context, contains tenant-id.
-	// @param fields discribes the fields to get.
+	// @param fields describes the fields to get.
 	// @return the constant result.
 	GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error)
 }
@@ -545,7 +544,6 @@ func (h *handler) ListAccessPoint(ctx context.Context, page types.Page, conditio
 
 // GetConstant get constant by fields.
 func (h *handler) GetConstant(ctx context.Context, fields types.TopoConstantFields) (*types.TopoConstant, error) {
-
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
