@@ -141,13 +141,13 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		findOpt.SetLimit(int64(page.Limit))
 	}
 
-	bizs, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	hosts, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	data := make([]*types.Host, len(bizs))
-	for idx, host := range bizs {
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
 		data[idx] = convertHostToTypes(host)
 	}
 
