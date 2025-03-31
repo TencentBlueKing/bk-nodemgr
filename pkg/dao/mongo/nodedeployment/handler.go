@@ -229,13 +229,9 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 		return base.ErrEmptyParamData()
 	}
 
-	data, err := convertDeploymentInfoFromTypes(info)
-	if err != nil {
-		return err
-	}
-
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
+	data := convertDeploymentInfoFromTypes(info)
 	if err := h.dao.updateField(ctx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
@@ -243,7 +239,7 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 	return nil
 }
 
-func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
+func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) *Info {
 	data := &Info{
 		OperInstID:     info.OperInstID,
 		ActionName:     info.ActionName,
@@ -262,5 +258,5 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		Addressing:     string(info.Addressing),
 	}
 
-	return data, nil
+	return data
 }
