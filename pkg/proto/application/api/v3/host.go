@@ -59,8 +59,9 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
 
 				return target
 			}(exactCond.GetNodeStatus()),
-			NodeVersion: exactCond.GetNodeVersion(),
-			AgentID:     exactCond.GetBkAgentId(),
+			NodeVersion:    exactCond.GetNodeVersion(),
+			NodeGeneration: exactCond.GetNodeGeneration(),
+			AgentID:        exactCond.GetBkAgentId(),
 		}
 
 		return conditions

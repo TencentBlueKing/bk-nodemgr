@@ -38,15 +38,16 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() types.HostCondition {
 			Type: types.ConditionTypeExactInclude,
 		}
 		conditions.Exact = &types.HostExactFields{
-			HostID:        exactCond.GetBkHostId(),
-			BizID:         exactCond.GetBkBizId(),
-			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-			NetworkUnitID: exactCond.GetBkNetworkunitId(),
-			OSType:        exactCond.GetOsType(),
-			NodeRole:      types.StringListToNodeRoleList(exactCond.GetNodeRole()),
-			NodeStatus:    types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
-			NodeVersion:   exactCond.GetNodeVersion(),
-			AgentID:       exactCond.GetBkAgentId(),
+			HostID:         exactCond.GetBkHostId(),
+			BizID:          exactCond.GetBkBizId(),
+			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
+			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
+			OSType:         exactCond.GetOsType(),
+			NodeRole:       types.StringListToNodeRoleList(exactCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
+			NodeVersion:    exactCond.GetNodeVersion(),
+			NodeGeneration: exactCond.GetNodeGeneration(),
+			AgentID:        exactCond.GetBkAgentId(),
 		}
 
 		return conditions
