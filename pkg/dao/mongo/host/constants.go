@@ -37,6 +37,18 @@ const (
 	// FieldKeyDynamicNetworkUnitID the dynamic network unit id field key.
 	FieldKeyDynamicNetworkUnitID = "data.dynamic.networkunit_id"
 
+	// FieldKeyStaticInnerIP the static inner ip field key.
+	FieldKeyStaticInnerIP = "data.static.inner_ip"
+
+	// FieldKeyStaticInnerIPV6 the static inner ipv6 field key.
+	FieldKeyStaticInnerIPV6 = "data.static.inner_ipv6"
+
+	// FieldKeyStaticOuterIP the static outer ip field key.
+	FieldKeyStaticOuterIP = "data.static.outer_ip"
+
 	// FieldKeyStaticOuterIpv6 the static outer ipv6 field key.
 	FieldKeyStaticOuterIpv6 = "data.static.outer_ipv6"
+
+	// FieldKeyStaticAddressing the dynamic addressing field key.
+	FieldKeyStaticAddressing = "data.static.addressing"
 )

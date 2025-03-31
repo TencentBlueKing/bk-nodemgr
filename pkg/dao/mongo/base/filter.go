@@ -124,3 +124,26 @@ func WithoutFuzzyValues(key string, values ...string) OptFn {
 		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": "(" + strings.Join(values, "|") + ")"}}})
 	}
 }
+
+// WithRegexMatch filters by regex match.
+func WithRegexMatch(key string, patterns ...string) OptFn {
+	if len(patterns) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(patterns) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: bson.M{"$regex": patterns[0]}})
+		}
+	}
+
+	orConditions := make([]bson.M, len(patterns))
+	for i, pattern := range patterns {
+		orConditions[i] = bson.M{key: bson.M{"$regex": pattern}}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: "$or", Value: orConditions})
+	}
+}

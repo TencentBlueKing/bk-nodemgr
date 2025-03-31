@@ -11,6 +11,8 @@
 package host
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -80,37 +82,37 @@ func WithoutFuzzyDeptName(deptNames ...string) OptFn {
 
 // WithFuzzyInnerIP filters by inner ip.
 func WithFuzzyInnerIP(innerIPs ...string) OptFn {
-	return base.WithFuzzyValues("data.static.inner_ip", innerIPs...)
+	return base.WithFuzzyValues(FieldKeyStaticInnerIP, innerIPs...)
 }
 
 // WithoutFuzzyInnerIP filters by not contains inner ip.
 func WithoutFuzzyInnerIP(innerIPs ...string) OptFn {
-	return base.WithoutFuzzyValues("data.static.inner_ip", innerIPs...)
+	return base.WithoutFuzzyValues(FieldKeyStaticInnerIP, innerIPs...)
 }
 
 // WithFuzzyInnerIPV6 filters by inner ipv6.
 func WithFuzzyInnerIPV6(innerIPV6s ...string) OptFn {
-	return base.WithFuzzyValues("data.static.inner_ipv6", innerIPV6s...)
+	return base.WithFuzzyValues(FieldKeyStaticInnerIPV6, innerIPV6s...)
 }
 
 // WithoutFuzzyInnerIPV6 filters by not contains inner ip.
 func WithoutFuzzyInnerIPV6(innerIPV6s ...string) OptFn {
-	return base.WithoutFuzzyValues("data.static.inner_ipv6", innerIPV6s...)
+	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPV6, innerIPV6s...)
 }
 
 // WithFuzzyOuterIP filters by outer ip.
 func WithFuzzyOuterIP(outerIps ...string) OptFn {
-	return base.WithFuzzyValues("data.static.outer_ip", outerIps...)
+	return base.WithFuzzyValues(FieldKeyStaticOuterIP, outerIps...)
 }
 
 // WithoutFuzzyOuterIP filters by not contains outer ip.
 func WithoutFuzzyOuterIP(outerIps ...string) OptFn {
-	return base.WithoutFuzzyValues("data.static.outer_ip", outerIps...)
+	return base.WithoutFuzzyValues(FieldKeyStaticOuterIP, outerIps...)
 }
 
 // WithFuzzyOuterIPV6 filters by outer ip.
 func WithFuzzyOuterIPV6(outerIPV6s ...string) OptFn {
-	return base.WithFuzzyValues("data.static.outer_ipv6", outerIPV6s...)
+	return base.WithFuzzyValues(FieldKeyStaticOuterIpv6, outerIPV6s...)
 }
 
 // WithoutFuzzyOuterIPV6 filters by not contains outer ip.
@@ -186,6 +188,26 @@ func WithoutNodeVersion(versions ...string) OptFn {
 // WithAgentID filters by contains agent id.
 func WithAgentID(agentIDs ...string) OptFn {
 	return base.WithStringValues(FieldKeyDynamicAgentID, agentIDs...)
+}
+
+// WithAddressing filters by contains addressing.
+func WithAddressing(addressings ...types.Addressing) OptFn {
+	strs := make([]string, len(addressings))
+	for idx, addressing := range addressings {
+		strs[idx] = string(addressing)
+	}
+
+	return base.WithStringValues(FieldKeyStaticAddressing, strs...)
+}
+
+// WithInnerIP filters by inner ip.
+func WithInnerIP(ips ...string) OptFn {
+	regexs := make([]string, len(ips))
+	for idx, ip := range ips {
+		regexs[idx] = fmt.Sprintf("^%s$", ip)
+	}
+
+	return base.WithRegexMatch(FieldKeyStaticInnerIP, regexs...)
 }
 
 // WithoutAgentID filters by not contains agent id.
