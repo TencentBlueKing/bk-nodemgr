@@ -78,8 +78,3 @@ func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 	return resp, nil
 }
-
-// SyncConstants start an operation to sync constants from cmdb.
-func (h *handler) SyncConstants(ctx *rest.Context) (interface{}, error) {
-	return nil, nil
-}

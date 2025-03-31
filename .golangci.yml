@@ -645,3 +645,10 @@ linters-settings:
       # Using `etcdv3` alias for `go.etcd.io/etcd/client/v3`
       - pkg: go.etcd.io/etcd/client/v3
         alias: clientv3
+      # protocols
+      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+        alias: proto
+      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+        alias: proto
+      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
+        alias: proto

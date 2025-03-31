@@ -9,6 +9,7 @@
  */
 
 // Package gse provides handlers to operate gse API.
+// nolint:dupl
 package gse
 
 import (

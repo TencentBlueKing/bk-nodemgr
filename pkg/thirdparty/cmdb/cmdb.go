@@ -9,6 +9,7 @@
  */
 
 // Package cmdb provides handlers to operate cmd api.
+// nolint:dupl
 package cmdb
 
 import (
