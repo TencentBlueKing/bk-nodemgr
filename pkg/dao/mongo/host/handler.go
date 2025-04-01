@@ -59,7 +59,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.ensureIndexes(); err != nil {
+	if err := newDaoClient.EnsureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure host indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
@@ -86,7 +86,7 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
 		return nil, err
 	}
 
-	hosts, err := h.tenantDao(tenantID).listAll(ctx)
+	hosts, err := h.tenantDao(tenantID).List(ctx, base.AliveFilter(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).count(ctx, filter)
+	return h.tenantDao(tenantID).Count(ctx, filter)
 }
 
 // List list host by page and conditions.
@@ -128,7 +128,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -141,7 +141,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		findOpt.SetLimit(int64(page.Limit))
 	}
 
-	hosts, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	hosts, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -611,6 +611,15 @@ func Test_handler_List(t *testing.T) {
 			wantNum:   1,
 			wantErr:   false,
 		},
+		{
+			name: "filter by dynamic proxy tag",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:     []OptFn{WithDynamicProxyTag(types.ProxyTagDisable)},
+			wantTotal: 1,
+		},
 	}
 
 	for _, tt := range tests {

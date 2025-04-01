@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
@@ -30,7 +29,7 @@ func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao 
 		tableName: tableName,
 	}
 
-	d.baseOrm = base.NewOrm[*Host, Host](d)
+	d.IOrm = base.NewOrm[*Host, Host](d)
 
 	return d
 }
@@ -39,7 +38,7 @@ type dao struct {
 	client    *mongo.Collection
 	tableName string
 	logger    logger.Logger
-	baseOrm   base.IOrm[*Host, Host]
+	base.IOrm[*Host, Host]
 }
 
 // GetClient get the dao's client.
@@ -69,25 +68,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	}
 
 	return indexes
-}
-
-// nolint:contextcheck
-// ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes() error {
-	return d.baseOrm.EnsureIndexes()
-}
-
-// ListAll list all host.
-func (d *dao) listAll(ctx context.Context) ([]*Host, error) {
-	return d.baseOrm.List(ctx, base.AliveFilter(), nil)
-}
-
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	return d.baseOrm.Count(ctx, filter)
-}
-
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*Host, error) {
-	return d.baseOrm.List(ctx, filter, findOpt)
 }
 
 // upsertMany upsert many hosts.
