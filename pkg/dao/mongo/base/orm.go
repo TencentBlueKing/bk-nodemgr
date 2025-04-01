@@ -43,6 +43,7 @@ type IOrm[P Pointer[T], T any] interface {
 	EnsureIndexes() error
 	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
 	Create(ctx context.Context, data P) error
+	CreateMany(ctx context.Context, datas []P) error
 	UpdateField(ctx context.Context, filter bson.D, field string, value any) error
 	Count(ctx context.Context, filter bson.D) (int64, error)
 	List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
@@ -79,6 +80,34 @@ func (orm *Orm[P, T]) Get(ctx context.Context, filter bson.D, fields ...string) 
 	}
 
 	return table.Data, nil
+}
+
+// CreateMany this is a common operation for mongo db.
+func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
+	if len(datas) == 0 {
+		return nil
+	}
+
+	timeNow := time.Now()
+	tablse := make([]interface{}, 0, len(datas))
+	for idx, _ := range datas {
+		tablse = append(tablse, &TableBroker[P]{
+			BasicInfo: BasicInfo{
+				IsDeleted: false,
+				CreatedAt: timeNow,
+			},
+			Data: datas[idx],
+		})
+	}
+
+	result, err := orm.dao.GetClient().InsertMany(ctx, tablse, nil)
+	if err != nil {
+		return err
+	}
+
+	orm.dao.GetLogger().Infof("successfully created %s, count(%d)", orm.dao.GetTableName(), len(result.InsertedIDs))
+
+	return nil
 }
 
 // Create this is a common operation for mongo db.
