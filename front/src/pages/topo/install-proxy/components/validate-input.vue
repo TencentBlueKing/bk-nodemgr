@@ -9,6 +9,7 @@
           class="nodeman-icon nc-remind-fill text-[#ea3636]"
           v-bk-tooltips="{
             content: $t('validate.required'),
+            placement: 'right',
           }"></i>
       </div>
     </template>

@@ -51,13 +51,22 @@ topoManager:
       workareaId: Workarea ID
       vendor: Vendor
       workUnitsCount: Number of workUnits
-      nodesCount: Number of nodes
+      proxyCount: Number of Proxy
+      agentCount: Number of Agent
     vendor:
-      tencent: Tencent Cloud
-      google: Google Cloud
-      huawei: HuaWei Cloud
-      microsoft: Microsoft Cloud
-      ali: Alibaba Cloud
+      AWS: AWS
+      Tencent: Tencent Cloud
+      Google: Google Cloud
+      Azure: Azure
+      Enterprise: Enterprise Private Cloud
+      Alibaba: Alibaba Cloud
+      ECloud: ECloud
+      MOS: MOS
+      KS: KSyun
+      Baidu: Baidu Cloud
+      Huawei: Huawei Cloud
+      Capital: Capital Cloud
+      TencentPrivate: Tencent Private Cloud
     copy:
       workarea: Workarea
       select: The selected Proxy IP
@@ -88,6 +97,20 @@ topoManager:
       proxyStatus: Proxy Status
       action: Action
       Reassembly: Reassembly
+    dropdown:
+      upgrade: Upgrade
+      unload: Unload
+      overload: Overload Configuration
+      restart: Restart
+    dialogTitle:
+      upgrade: Are you sure to upgrade to the latest version?
+      unload: Are you sure to uninstall the current proxy?
+      overload: Confirm overloaded configuration?
+      restart: Are you sure to restart the current proxy?
+    dialogTips:
+      unload: After uninstallation, it will not be able to be restored. Please proceed with caution
+    dialogContent: 
+      ipv4: Internal IPv4 network
   workUnit:
     title:
       create: Create Work Unit
@@ -153,6 +176,11 @@ topoManager:
       tempFileDirectory: Temporary File Directory
       speedLimit: Transmission Speed Limit M/s
       dataCompression: Data Compression
+    batchEdit:
+      loginIp: Batch edit login IP
+      password: Batch Edit Passwords/Keys
+      directory: Batch edit temporary file directory
+      zip: Batch editing data compression
   topo:
     title: Topology Map
     toolbar:
@@ -187,11 +215,13 @@ action:
   edit: Edit
   delete: Delete
   confirm: Confirm
+  confirm1: Confirm
   cancel: Cancel
   save: Save
   installProxy: Install Proxy
   installLater: Install Later
   install: Install
+  unload: Unload
 table:
   empty: No data available at the moment
   action: action
@@ -203,4 +233,4 @@ message:
   warn:
     keepAtLeast: Keep at least {x} rows
 validate:
-  required: Cannot be empty
+  required: Required

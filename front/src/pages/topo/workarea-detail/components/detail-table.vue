@@ -78,9 +78,7 @@
             <Button theme="primary" text class="mr-[12px]">
               {{ $t('topoManager.workAreaDetail.table.Reassembly') }}
             </Button>
-            <Button text>
-              <i class="nodeman-icon nc-more"></i>
-            </Button>
+            <MoreAction :ipv4="row.ipv4"></MoreAction>
           </div>
         </template>
       </TableColumn>
@@ -94,8 +92,11 @@ import { reactive, ref } from 'vue';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import MoreAction from './more-action.vue';
+
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+
 
 const list = ref([
   {
@@ -176,4 +177,5 @@ const proxyStatusFilter = reactive({
   ],
   checked: [],
 });
+
 </script>

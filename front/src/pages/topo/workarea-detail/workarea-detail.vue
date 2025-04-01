@@ -96,11 +96,10 @@
 
 <script lang="ts" setup>
 import { Button, Divider, Exception, Loading, SearchSelect, Tab } from 'bkui-vue';
+import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
-
-import { useDebounce } from '@vueuse/core';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
 import UpsertWorkUnit from '../upsert-workunit/upsert-work-unit.vue';
@@ -127,26 +126,25 @@ const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 
 // 搜索
-const searchKey = ref([]);
-const debounceSearch = useDebounce(searchKey, 300);
+const searchKey = ref<ISearchValue[]>([]);
 
 const isShow = ref(false);
 const isCreate = ref(false);
 const active  = ref();
 const contentLoading = ref(false);
 
-const searchSelectData = ref([
+const searchSelectData = ref<ISearchItem[]>([
   {
     name: t('topoManager.workAreaDetail.table.ipv4'),
-    id: 1,
+    id: '1',
   },
   {
     name: t('topoManager.workAreaDetail.table.ipv6'),
-    id: 2,
+    id: '2',
   },
   {
     name: 'AgentID',
-    id: 3,
+    id: '3',
   },
 ]);
 

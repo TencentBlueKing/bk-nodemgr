@@ -1,9 +1,9 @@
 <template>
-  <Loading :loading="workareaStore.loading">
+  <Loading :loading="loading">
     <Table
       class="mt-[16px] w-full"
       ref="tableRef"
-      :data="workareaStore.workareaList"
+      :data="tableData"
       :empty-text="$t('table.empty')"
       :pagination="workareaStore.pagination"
       :sort-config="sortConfig"
@@ -28,7 +28,7 @@
         :label="$t('topoManager.workArea.table.workareaId')"
         field="bk_networkarea_id"
         show-overflow="tooltip"
-        :min-width="280">
+        :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
             {{ row.bk_networkarea_id ? `#${row.bk_networkarea_id}` : '--' }}
@@ -37,37 +37,53 @@
       </TableColumn>
       <TableColumn
         :label="$t('topoManager.workArea.table.vendor')"
-        field="bk_cloud_vendor"
+        field="cloud_vendor"
         show-overflow="tooltip"
         :filter="filterOption"
-        :min-width="280">
+        :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
-            {{ row.bk_cloud_vendor || '--' }}
+            {{ props.vendorList[row.cloud_vendor] ?
+              $t(
+                vendorMap[props.vendorList[row.cloud_vendor]]?.label
+              ) : '--'
+            }}
           </span>
         </template>
       </TableColumn>
       <TableColumn
         :label="$t('topoManager.workArea.table.workUnitsCount')"
-        field="areaCount"
+        field="networkunit_count"
         show-overflow="tooltip"
         sortable
         :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
-            {{ row.areaCount || '--' }}
+            {{ !isNaN(row.networkunit_count) ? row.networkunit_count : '--' }}
           </span>
         </template>
       </TableColumn>
       <TableColumn
-        :label="$t('topoManager.workArea.table.nodesCount')"
-        field="unitCount"
+        :label="$t('topoManager.workArea.table.proxyCount')"
+        field="proxy_count"
         show-overflow="tooltip"
         sortable
-        :min-width="130">
+        :min-width="180">
         <template #default="{ row }">
           <span class="!text-[12px]">
-            {{ row.unitCount || '--' }}
+            {{ !isNaN(row.proxy_count) ? row.proxy_count : '--' }}
+          </span>
+        </template>
+      </TableColumn>
+      <TableColumn
+        :label="$t('topoManager.workArea.table.agentCount')"
+        field="agent_count"
+        show-overflow="tooltip"
+        sortable
+        :min-width="180">
+        <template #default="{ row }">
+          <span class="!text-[12px]">
+            {{ !isNaN(row.agent_count) ? row.agent_count : '--' }}
           </span>
         </template>
       </TableColumn>
@@ -93,18 +109,28 @@
 
 <script lang="ts" setup>
 import { Button, InfoBox, Loading } from 'bkui-vue';
-import { onMounted, reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import { vendorMap } from '../vendorMap';
+
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
+
+interface IProps {
+  list: INetWorkArea[],
+  vendorList: string[]
+}
+const props = defineProps<IProps>();
 
 const emit = defineEmits(['edit']);
 
+const tableData = ref(props.list);
 const { t } = useI18n();
 const router = useRouter();
 const workareaStore = useWorkareaStore();
@@ -115,41 +141,39 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_networkarea_name',
     'bk_networkarea_id',
-    'bk_cloud_vendor',
-    'areaCount',
-    'unitCount',
+    'cloud_vendor',
+    'networkunit_count',
+    'proxy_count',
+    'agent_count',
     'action',
   ],
   disabled: ['action'],
 });
 
 // table filter逻辑
-const vendorMap = {
-  tencent: t('topoManager.workArea.vendor.tencent'),
-  google: t('topoManager.workArea.vendor.google'),
-  huawei: t('topoManager.workArea.vendor.huawei'),
-  microsoft: t('topoManager.workArea.vendor.microsoft'),
-  aws: 'AWS',
-  ali: t('topoManager.workArea.vendor.ali'),
-};
-const filterOption = reactive({
-  list: Object.entries(vendorMap).map(item => ({
-    value: item[0],
-    text: item[1],
-  })),
-  checked: [] as string[],
+const filterOption = reactive<{
+  list: {
+    value: any
+    text: string
+  }[],
+  checked: string[]
+}>({
+  list: [],
+  checked: [],
 });
-
-const handleColumnFilter = (...args) => {
-  console.log(args)
-  // filterOption.checked = checked;
-  // handleFilter(checked.map(item => parseInt(item)));
+const loading = ref(true);
+const handleColumnFilter = ({ checked }: { checked: string[] }) => {
+  filterOption.checked = checked;
+  handleFilter(checked);
 };
 
 // 改变includeConditions 重新请求table data
-const handleFilter = (currentChecked: number[]) => {
-  workareaStore.includeConditions.bk_cloud_vendor = currentChecked;
-  workareaStore.handleFetchWorkareaList();
+const handleFilter = (currentChecked: string[]) => {
+  if (currentChecked.length === 0) {
+    tableData.value = props.list;
+    return;
+  }
+  tableData.value = tableData.value.filter(item => currentChecked.includes(parseInt(item.cloud_vendor)));
 };
 
 // table height逻辑
@@ -183,9 +207,18 @@ const handleDeleteWorkarea = (bk_networkarea_id: number) => {
   });
 };
 
-onMounted(() => {
-  workareaStore.handleFetchWorkareaList();
+watch(() => props.vendorList, () => {
+  filterOption.list = props.vendorList.map((item, index) => ({
+    value: index,
+    text: t(vendorMap[item]?.label || ''),
+  }));
 });
+
+watch(() => props.list, () => {
+  loading.value = true;
+  tableData.value = props.list;
+  loading.value = false;
+}, { immediate: true });
 
 const tableRef = ref();
 defineExpose({
