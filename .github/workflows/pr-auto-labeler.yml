@@ -19,7 +19,7 @@ jobs:
 
       - name: Get PR changed files
         id: changed-files
-        uses: tj-actions/changed-files@v42
+        uses: tj-actions/changed-files@v46.0.1
 
       - name: Load configuration
         id: load-config
