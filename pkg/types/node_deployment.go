@@ -19,21 +19,24 @@ type NodeDeployment struct {
 
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	OperInstID     string
-	ActionName     string
-	HostID         int64
-	OSType         string
-	TenantID       string
-	NodeRole       NodeRole
-	NodeStatus     NodeStatus
-	NodeVersion    string
-	NodeGeneration int64
-	AgentID        string
-	NetworkUnitID  int64
-	BizID          int64
-	NetworkAreaID  int64
-	InnerIP        string
-	Addressing     Addressing
+	OperInstID       string
+	ActionName       string
+	HostID           int64
+	OSType           string
+	TenantID         string
+	NodeRole         NodeRole
+	NodeStatus       NodeStatus
+	NodeVersion      string
+	NodeGeneration   int64
+	AgentID          string
+	NetworkUnitID    int64
+	BizID            int64
+	NetworkAreaID    int64
+	InnerIP          string
+	Addressing       Addressing
+	ProxyClusterPort int64
+	ProxyDataPort    int64
+	ProxyFilePort    int64
 }
 
 // NodeConf this is the node conf for node deployment.

@@ -76,21 +76,24 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		OperInstID:     info.OperInstID,
-		ActionName:     info.ActionName,
-		HostID:         info.HostID,
-		OSType:         info.OSType,
-		TenantID:       info.TenantID,
-		NodeRole:       types.NodeRole(info.NodeRole),
-		NodeStatus:     types.NodeStatus(info.NodeStatus),
-		NodeVersion:    info.NodeVersion,
-		NodeGeneration: info.NodeGeneration,
-		AgentID:        info.AgentID,
-		NetworkUnitID:  info.NetworkUnitID,
-		NetworkAreaID:  info.NetworkAreaID,
-		BizID:          info.BizID,
-		InnerIP:        info.InnerIP,
-		Addressing:     types.Addressing(info.Addressing),
+		OperInstID:       info.OperInstID,
+		ActionName:       info.ActionName,
+		HostID:           info.HostID,
+		OSType:           info.OSType,
+		TenantID:         info.TenantID,
+		NodeRole:         types.NodeRole(info.NodeRole),
+		NodeStatus:       types.NodeStatus(info.NodeStatus),
+		NodeVersion:      info.NodeVersion,
+		NodeGeneration:   info.NodeGeneration,
+		AgentID:          info.AgentID,
+		NetworkUnitID:    info.NetworkUnitID,
+		BizID:            info.BizID,
+		NetworkAreaID:    info.NetworkAreaID,
+		InnerIP:          info.InnerIP,
+		Addressing:       types.Addressing(info.Addressing),
+		ProxyClusterPort: info.ProxyClusterPort,
+		ProxyDataPort:    info.ProxyDataPort,
+		ProxyFilePort:    info.ProxyFilePort,
 	}, nil
 }
 
@@ -114,29 +117,18 @@ func (h *Handler) Create(ctx context.Context, nodeDeployment *types.NodeDeployme
 
 func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*Data, error) {
 	nodeDeployment := &Data{
-		Token: data.Token,
-		Info: &Info{
-			OperInstID: data.Info.OperInstID,
-			ActionName: data.Info.ActionName,
-			HostID:     data.Info.HostID,
-			TenantID:   data.Info.TenantID,
-
-			OSType:         data.Info.OSType,
-			NodeRole:       string(data.Info.NodeRole),
-			NodeStatus:     string(data.Info.NodeStatus),
-			NodeVersion:    data.Info.NodeVersion,
-			NodeGeneration: data.Info.NodeGeneration,
-			AgentID:        data.Info.AgentID,
-			NetworkUnitID:  data.Info.NetworkUnitID,
-			NetworkAreaID:  data.Info.NetworkAreaID,
-			BizID:          data.Info.BizID,
-			InnerIP:        data.Info.InnerIP,
-			Addressing:     string(data.Info.Addressing),
-		},
+		Token:    data.Token,
+		Info:     new(Info),
 		NodeConf: new(NodeConf),
 	}
 
 	var err error
+
+	nodeDeployment.Info, err = convertDeploymentInfoFromTypes(data.Info)
+	if err != nil {
+		return nil, err
+	}
+
 	nodeDeployment.NodeConf, err = convertNodeConfFromTypes(data.NodeConf)
 	if err != nil {
 		return nil, err
@@ -231,7 +223,11 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data := convertDeploymentInfoFromTypes(info)
+	data, err := convertDeploymentInfoFromTypes(info)
+	if err != nil {
+		return err
+	}
+
 	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
@@ -239,24 +235,31 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 	return nil
 }
 
-func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) *Info {
-	data := &Info{
-		OperInstID:     info.OperInstID,
-		ActionName:     info.ActionName,
-		HostID:         info.HostID,
-		OSType:         info.OSType,
-		TenantID:       info.TenantID,
-		NodeRole:       string(info.NodeRole),
-		NodeStatus:     string(info.NodeStatus),
-		NodeVersion:    info.NodeVersion,
-		NodeGeneration: info.NodeGeneration,
-		AgentID:        info.AgentID,
-		NetworkUnitID:  info.NetworkUnitID,
-		NetworkAreaID:  info.NetworkAreaID,
-		BizID:          info.BizID,
-		InnerIP:        info.InnerIP,
-		Addressing:     string(info.Addressing),
+func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
+	if info == nil {
+		return nil, errors.New("info is nil")
 	}
 
-	return data
+	data := &Info{
+		OperInstID:       info.OperInstID,
+		ActionName:       info.ActionName,
+		HostID:           info.HostID,
+		OSType:           info.OSType,
+		TenantID:         info.TenantID,
+		NodeRole:         string(info.NodeRole),
+		NodeStatus:       string(info.NodeStatus),
+		NodeVersion:      info.NodeVersion,
+		NodeGeneration:   info.NodeGeneration,
+		AgentID:          info.AgentID,
+		NetworkUnitID:    info.NetworkUnitID,
+		NetworkAreaID:    info.NetworkAreaID,
+		BizID:            info.BizID,
+		InnerIP:          info.InnerIP,
+		Addressing:       string(info.Addressing),
+		ProxyClusterPort: info.ProxyClusterPort,
+		ProxyDataPort:    info.ProxyDataPort,
+		ProxyFilePort:    info.ProxyFilePort,
+	}
+
+	return data, nil
 }
