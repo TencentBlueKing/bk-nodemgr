@@ -67,4 +67,7 @@ const (
 
 	// CPUArchWasm this defines the cpu arch of wasm.
 	CPUArchWasm = "wasm"
+
+	// CPUArchUnknown this defines the cpu arch of unknown.
+	CPUArchUnknown = "unknown"
 )
