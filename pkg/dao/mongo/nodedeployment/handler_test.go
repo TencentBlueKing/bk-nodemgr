@@ -8,52 +8,150 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package nodedeployment ...
 package nodedeployment
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mongodaotest"
+	"github.com/stretchr/testify/suite"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// testClient ...
-func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := context.Background()
-	mongoClient, err := mongo.Connect(
-		ctx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
-			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+// TestSuite ...
+type TestSuite struct {
+	mongodaotest.TestSuite[*Data, Data]
+	Handler IHandler
 }
 
-// TestHandler_Create ...
-func TestHandler_Create(t *testing.T) {
+// TestAll is the entry point for all tests in this package.
+func TestAll(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	testSuit := new(TestSuite)
+	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.Logger) {
+		testSuit.Dao = newDao(client, logger)
+		testSuit.Handler = New(client, logger)
+		testSuit.TestDatas = prepareTestData()
+	})
+
+	suite.Run(t, testSuit)
+}
+
+func prepareTestData() []*Data {
+	testDatas := []*Data{
+		{
+			Token: "token123456",
+			Info: &Info{
+				OperInstID:       "inst-001",
+				ActionName:       "wait_agent_install",
+				HostID:           52296,
+				OSType:           "linux",
+				TenantID:         "single",
+				NodeRole:         "agent",
+				NodeStatus:       "running",
+				NodeVersion:      "v2.1.6-beta.55",
+				NodeGeneration:   2,
+				AgentID:          "02000000005254001bbe721742528553406b",
+				NetworkUnitID:    0,
+				NetworkAreaID:    0,
+				BizID:            12,
+				InnerIP:          "192.168.1.10",
+				Addressing:       "static",
+				ProxyClusterPort: 0,
+				ProxyDataPort:    0,
+				ProxyFilePort:    0,
+			},
+			NodeConf: &NodeConf{
+				PreSetting: map[string]any{
+					"maxConnections": int64(1000),
+					"timeout":        int64(30),
+					"retries":        int64(3),
+				},
+				CustomSetting: map[string]any{
+					"city_id":  "info",
+					"run_mode": "agent",
+					"cloud_id": int64(0),
+					"zone_id":  "1",
+				},
+			},
+		},
+		{
+			Token: "token789012",
+			Info: &Info{
+				OperInstID:     "inst-002",
+				ActionName:     "update",
+				HostID:         67890,
+				OSType:         "windows",
+				TenantID:       "tenant-def",
+				NodeRole:       "agent",
+				NodeStatus:     "initializing",
+				NodeVersion:    "v1.0.2",
+				NodeGeneration: 2,
+				AgentID:        "agent-002",
+				NetworkUnitID:  101,
+				NetworkAreaID:  201,
+				BizID:          301,
+				InnerIP:        "192.168.1.11",
+				Addressing:     "dhcp",
+			},
+			NodeConf: &NodeConf{
+				PreSetting: map[string]any{
+					"maxConnections": 500,
+					"timeout":        60,
+					"bufferSize":     4096,
+				},
+				CustomSetting: map[string]any{
+					"logLevel":       "debug",
+					"enableMetrics":  false,
+					"securityPolicy": "strict",
+				},
+			},
+		},
+		{
+			Token: "token345678",
+			Info: &Info{
+				OperInstID:     "inst-003",
+				ActionName:     "restart",
+				HostID:         24680,
+				OSType:         "macos",
+				TenantID:       "tenant-ghi",
+				NodeRole:       "agent",
+				NodeStatus:     "degraded",
+				NodeVersion:    "v1.1.0",
+				NodeGeneration: 3,
+				AgentID:        "agent-003",
+				NetworkUnitID:  102,
+				NetworkAreaID:  202,
+				BizID:          302,
+				InnerIP:        "192.168.1.12",
+				Addressing:     "static",
+			},
+			NodeConf: &NodeConf{
+				PreSetting: map[string]any{
+					"maxConnections":   2000,
+					"keepAlive":        true,
+					"compressionLevel": 5,
+				},
+				CustomSetting: map[string]any{
+					"backupEnabled":  true,
+					"backupInterval": "6h",
+					"storageQuota":   "10GB",
+				},
+			},
+		},
+	}
+
+	return testDatas
+}
+
+// TestCreate tests the Create method of the handler.
+func (testSuit *TestSuite) TestCreate() {
 	type args struct {
 		ctx            context.Context
 		nodeDeployment *types.NodeDeployment
@@ -111,17 +209,19 @@ func TestHandler_Create(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			if err := h.Create(tt.args.ctx, tt.args.nodeDeployment); (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
+		testSuit.Run(tt.name, func() {
+			err := testSuit.Handler.Create(tt.args.ctx, tt.args.nodeDeployment)
+			if !tt.wantErr {
+				testSuit.NoErrorf(err, "Create() error = %v", err)
 			}
+
+			testSuit.T().Logf("err: %v", err)
 		})
 	}
 }
 
 // TestHandler_GetInfo ...
-func TestHandler_GetInfo(t *testing.T) {
+func (testSuit *TestSuite) TestHandler_GetInfo() {
 	type args struct {
 		ctx   context.Context
 		Token string
@@ -129,36 +229,51 @@ func TestHandler_GetInfo(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		want    *types.DeploymentInfo
 		wantErr bool
 	}{
 		{
 			name: "normal",
 			args: args{
 				ctx:   context.Background(),
-				Token: "123",
+				Token: "token123456",
+			},
+			want: &types.DeploymentInfo{
+				OperInstID:     "inst-001",
+				ActionName:     "wait_agent_install",
+				HostID:         52296,
+				OSType:         "linux",
+				TenantID:       "single",
+				NodeRole:       "agent",
+				NodeStatus:     "running",
+				NodeVersion:    "v2.1.6-beta.55",
+				NodeGeneration: 2,
+				AgentID:        "02000000005254001bbe721742528553406b",
+				NetworkUnitID:  0,
+				NetworkAreaID:  0,
+				BizID:          12,
+				InnerIP:        "192.168.1.10",
+				Addressing:     "static",
 			},
 			wantErr: false,
 		}}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetInfo(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %v", err)
+		testSuit.Run(tt.name, func() {
+			got, err := testSuit.Handler.GetInfo(tt.args.ctx, tt.args.Token)
+			if !tt.wantErr {
+				testSuit.Require().NoError(err, "GetInfo() error = %v", err)
+			} else {
+				testSuit.Require().Error(err, "GetInfo() error = %v", err)
 			}
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
+			testSuit.Assert().Equal(got, tt.want, "GetInfo() got = %v, want %v", got, tt.want)
+			testSuit.T().Logf("got: %+v", got)
 		})
 	}
 }
 
 // TestHandler_GetNodeConf ...
-func TestHandler_GetNodeConf(t *testing.T) {
+func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 	type args struct {
 		ctx   context.Context
 		Token string
@@ -166,37 +281,48 @@ func TestHandler_GetNodeConf(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		want    *types.NodeConf
 		wantErr bool
 	}{
 		{
 			name: "normal",
 			args: args{
 				ctx:   context.Background(),
-				Token: "123",
+				Token: "token123456",
+			},
+			want: &types.NodeConf{
+				PreSetting: map[string]any{
+					"maxConnections": int64(1000),
+					"timeout":        int64(30),
+					"retries":        int64(3),
+				},
+				CustomSetting: map[string]any{
+					"city_id":  "info",
+					"run_mode": "agent",
+					"cloud_id": int64(0),
+					"zone_id":  "1",
+				},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.GetNodeConf(tt.args.ctx, tt.args.Token)
-			if err != nil {
-				t.Logf("err: %v", err)
+		testSuit.Run(tt.name, func() {
+			got, err := testSuit.Handler.GetNodeConf(tt.args.ctx, tt.args.Token)
+			if tt.wantErr {
+				testSuit.Require().Error(err, "GetNodeConf() error = %v", err)
+			} else {
+				testSuit.Require().NoError(err, "GetNodeConf() error = %v", err)
 			}
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetNodeConf() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %+v", got)
+			testSuit.Assert().Equal(got, tt.want, "GetNodeConf() got = %v, want %v", got, tt.want)
+			testSuit.T().Logf("got: %+v", got)
 		})
 	}
 }
 
 // TestHandler_SetNodeConf ...
-func TestHandler_SetNodeConf(t *testing.T) {
+func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 	type args struct {
 		ctx      context.Context
 		Token    string
@@ -211,7 +337,7 @@ func TestHandler_SetNodeConf(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx:   context.Background(),
-				Token: "666",
+				Token: "token345678",
 				nodeConf: &types.NodeConf{
 					PreSetting: map[string]any{
 						"__BK_GSE_DATA_AGENT_TLS_CA_FILE__": "ca.crt",
@@ -225,16 +351,79 @@ func TestHandler_SetNodeConf(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			err := h.SetNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
-			if err != nil {
-				t.Logf("err: %v", err)
+		testSuit.Run(tt.name, func() {
+			err := testSuit.Handler.SetNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
+			if !tt.wantErr {
+				testSuit.NoError(err, "SetNodeConf() error = %v", err)
+			} else {
+				testSuit.Error(err, "SetNodeConf() error = %v", err)
+			}
+			testSuit.T().Logf("err: %v", err)
+
+			// Verify that the nodeConf was updated correctly
+			got, err := testSuit.Handler.GetNodeConf(tt.args.ctx, tt.args.Token)
+			testSuit.NoError(err, "GetNodeConf() error = %v", err)
+			testSuit.Assert().Equal(got, tt.args.nodeConf, "GetNodeConf() got = %v, want %v", got, tt.args.nodeConf)
+
+			testSuit.T().Logf("got: %+v", got)
+		})
+	}
+}
+
+// TestHandler_UpdateInfo ...
+func (testSuit *TestSuite) TestHandler_UpdateInfo() {
+	type args struct {
+		ctx   context.Context
+		token string
+		info  *types.DeploymentInfo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:   context.Background(),
+				token: "token345678",
+				info: &types.DeploymentInfo{
+					OperInstID:     "inst-003",
+					ActionName:     "restart",
+					HostID:         24680,
+					OSType:         "macos",
+					TenantID:       "tenant-ghi",
+					NodeRole:       "agent",
+					NodeStatus:     "degraded",
+					NodeVersion:    "v1.1.0",
+					NodeGeneration: 2,
+					AgentID:        "agent-003",
+					NetworkUnitID:  102,
+					NetworkAreaID:  202,
+					BizID:          302,
+					InnerIP:        "192.168.1.12",
+					Addressing:     "static",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		testSuit.Run(tt.name, func() {
+			err := testSuit.Handler.UpdateInfo(tt.args.ctx, tt.args.token, tt.args.info)
+			if !tt.wantErr {
+				testSuit.NoError(err, "UpdateInfo() error = %v", err)
+			} else {
+				testSuit.Error(err, "UpdateInfo() error = %v", err)
 			}
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SetNodeConf() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			testSuit.T().Logf("err: %v", err)
+
+			// Verify that the info was updated correctly
+			got, err := testSuit.Handler.GetInfo(tt.args.ctx, tt.args.token)
+			testSuit.NoError(err, "GetInfo() error = %v", err)
+			testSuit.Assert().Equal(got, tt.args.info, "GetInfo() got = %v, want %v", got, tt.args.info)
+			testSuit.T().Logf("got: %+v", got)
 		})
 	}
 }
