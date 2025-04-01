@@ -168,17 +168,23 @@ const (
 // HostDynamic represents a dynamic host under a host.
 // dynamic means it is set by user.
 type HostDynamic struct {
-	NodeRole            NodeRole
-	NodeStatus          NodeStatus
-	NodeVersion         string
-	NodeGeneration      int64
-	AgentID             string
-	NetworkUnitID       int64
+	NodeRole       NodeRole
+	NodeStatus     NodeStatus
+	NodeVersion    string
+	NodeGeneration int64
+	AgentID        string
+	NetworkUnitID  int64
+
+	// ProxyAccessDisabled This means that there will be no new proxy access connection establishment for this node.
+	// ! This setting does not affect the established connections.
 	ProxyAccessDisabled bool
-	ProxyTags           []ProxyTag
-	ProxyClusterPort    int64
-	ProxyDataPort       int64
-	ProxyFilePort       int64
+
+	// ProxyTags represents the tags of this proxy.
+	// ! Please make sure to use these tags on a whitelist basis.
+	ProxyTags        []ProxyTag
+	ProxyClusterPort int64
+	ProxyDataPort    int64
+	ProxyFilePort    int64
 }
 
 // ProxyTag represents a proxy tag.
