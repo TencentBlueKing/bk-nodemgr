@@ -1,14 +1,38 @@
 {
   "directoryMappings": [
-    {"pattern": ".github/", "label": "kind/ci"},
-    {"pattern": "front/", "label": "module/font"},
-    {"pattern": "internal/backend/", "label": "module/backend"}
+    {
+      "pattern": ".github/",
+      "label": "kind/ci"
+    },
+    {
+      "pattern": "front/",
+      "label": "module/front"
+    },
+    {
+      "pattern": "internal/backend/",
+      "label": "module/backend"
+    }
   ],
   "titleMappings": [
-    {"pattern": "feat:", "label": "kind/feature"},
-    {"pattern": "fix:", "label": "kind/bug"},
-    {"pattern": "docs:", "label": "kind/documentation"},
-    {"pattern": "style:", "label": "kind/style"},
-    {"pattern": "ci:", "label": "kind/ci"}
+    {
+      "pattern": "feat:",
+      "label": "kind/feature"
+    },
+    {
+      "pattern": "fix:",
+      "label": "kind/bug"
+    },
+    {
+      "pattern": "docs:",
+      "label": "kind/documentation"
+    },
+    {
+      "pattern": "style:",
+      "label": "kind/style"
+    },
+    {
+      "pattern": "ci:",
+      "label": "kind/ci"
+    }
   ]
 }
