@@ -107,6 +107,7 @@ type handler struct {
 
 	cloudVendorKeeper iEnumResourceKeeper
 	osTypeKeeper      iEnumResourceKeeper
+	cpuArchKeeper     iEnumResourceKeeper
 }
 
 const (
@@ -137,6 +138,7 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) 
 
 		cloudVendorKeeper: newCloudVendorKeeper(cli),
 		osTypeKeeper:      newOSTypeKeeper(cli),
+		cpuArchKeeper:     newCPUArchKeeper(cli),
 	}
 	h.initEnumKeepers()
 
@@ -168,6 +170,15 @@ func (h *handler) initEnumKeepers() {
 		},
 	})
 
+	h.scheduler.RegisterTask(&scheduler.Task{
+		ID:       "sync_cpu_arch",
+		Interval: enumResourceSyncInterval,
+		Timeout:  enumResourceSyncTimeout,
+		Fn: func(ctx context.Context) error {
+			return h.cpuArchKeeper.update(ctx)
+		},
+	})
+
 	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
@@ -176,6 +187,9 @@ func (h *handler) initEnumKeepers() {
 	}
 	if err := h.osTypeKeeper.update(ctx); err != nil {
 		h.logger.Warnf("failed to sync os type, err: %v", err)
+	}
+	if err := h.cpuArchKeeper.update(ctx); err != nil {
+		h.logger.Warnf("failed to sync cpu arch, err: %v", err)
 	}
 }
 
@@ -770,7 +784,7 @@ func (h *handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *type
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
 			Mac:           hostInfo.BKMac,
 			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
-			Arch:          hostInfo.BKCpuArchitecture,
+			Arch:          h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),
 			Addressing:    types.Addressing(hostInfo.BKAddressing),
 			SyncedAgentID: hostInfo.BKAgentID,
 		},
@@ -788,7 +802,7 @@ func (h *handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo 
 		BKHostOuterIP:     host.Static.OuterIP,
 		BKHostOuterIPV6:   host.Static.OuterIPV6,
 		BKOSType:          h.osTypeKeeper.getKey(host.Static.OSType),
-		BKCpuArchitecture: host.Static.Arch,
+		BKCpuArchitecture: h.cpuArchKeeper.getKey(host.Static.Arch),
 		BKAddressing:      string(host.Static.Addressing),
 	}
 }

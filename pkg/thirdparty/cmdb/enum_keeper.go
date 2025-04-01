@@ -42,6 +42,71 @@ type enumCloudVendorKeeper struct {
 	enumBasicKeeper
 }
 
+func newCPUArchKeeper(cli *cli) *enumCPUArchKeeper {
+	return &enumCPUArchKeeper{
+		enumBasicKeeper: enumBasicKeeper{
+			cli:          cli,
+			objectID:     "host",
+			attributeID:  "bk_cpu_architecture",
+			mapping:      make(map[string]string),
+			unknownValue: criteria.CPUArchUnknown,
+		},
+		cpuArchMapping: make(map[string]string),
+	}
+}
+
+type enumCPUArchKeeper struct {
+	enumBasicKeeper
+
+	// cpuArchMapping is a map of platform-normalized cpu arch to cmdb cpu arch name.
+	cpuArchMapping      map[string]string
+	cpuArchMappingMutex sync.RWMutex
+}
+
+func (keeper *enumCPUArchKeeper) getValue(key string) string {
+	value, err := platform.NormalizeArch(keeper.enumBasicKeeper.getValue(key))
+	if err != nil {
+		return keeper.enumBasicKeeper.unknownValue
+	}
+
+	return value
+}
+
+func (keeper *enumCPUArchKeeper) getKey(value string) string {
+	keeper.cpuArchMappingMutex.RLock()
+	cpuArchName, ok := keeper.cpuArchMapping[value]
+	if !ok {
+		keeper.cpuArchMappingMutex.RUnlock()
+		return keeper.unknownKey
+	}
+	keeper.cpuArchMappingMutex.RUnlock()
+
+	return keeper.enumBasicKeeper.getKey(cpuArchName)
+}
+
+func (keeper *enumCPUArchKeeper) update(ctx context.Context) error {
+	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
+		return err
+	}
+
+	keeper.enumBasicKeeper.mutex.RLock()
+	values := conv.MapToSlice(keeper.enumBasicKeeper.mapping)
+	keeper.enumBasicKeeper.mutex.RUnlock()
+
+	keeper.cpuArchMappingMutex.Lock()
+	for _, v := range values {
+		normalizeArch, err := platform.NormalizeArch(v)
+		if err != nil {
+			continue
+		}
+
+		keeper.cpuArchMapping[normalizeArch] = v
+	}
+	keeper.cpuArchMappingMutex.Unlock()
+
+	return nil
+}
+
 func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
 	return &enumOSTypeKeeper{
 		enumBasicKeeper: enumBasicKeeper{
