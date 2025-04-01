@@ -15,9 +15,9 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 // TableName node deployment table name.
 const TableName = "node_deployment"
 
-// NodeDeployment represents the table of node deployment.
+// Data represents the table of node deployment.
 // Token should be the unique key.
-type NodeDeployment struct {
+type Data struct {
 	Token    string    `json:"token" bson:"token"`
 	Info     *Info     `json:"info" bson:"info"`
 	NodeConf *NodeConf `json:"node_conf" bson:"node_conf"`
@@ -49,9 +49,9 @@ type NodeConf struct {
 }
 
 // UniqueKey unique key of the table.
-func (deploy *NodeDeployment) UniqueKey() string {
+func (deploy *Data) UniqueKey() string {
 	return deploy.Token
 }
 
-// TableNodeDeployment represent the complete db structures of node deployment.
-type TableNodeDeployment base.TableBroker[*NodeDeployment]
+// Table represent the complete db structures of node deployment.
+type Table base.TableBroker[*Data]

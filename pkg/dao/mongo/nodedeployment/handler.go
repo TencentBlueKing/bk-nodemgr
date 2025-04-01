@@ -42,7 +42,7 @@ func New(client *mongo.Database, logger logger.Logger) *Handler {
 		logger: logger,
 	}
 
-	if err := h.dao.ensureIndexes(); err != nil {
+	if err := h.dao.EnsureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure nodedeloyment indexes, err: %v",
 			errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
@@ -62,7 +62,7 @@ func (h *Handler) GetInfo(ctx context.Context, Token string) (*types.DeploymentI
 
 	filter := base.AliveFilter()
 	filter = WithToken(Token)(filter)
-	data, err := h.dao.get(ctx, filter, FieldKeyInfo)
+	data, err := h.dao.Get(ctx, filter, FieldKeyInfo)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -109,11 +109,11 @@ func (h *Handler) Create(ctx context.Context, nodeDeployment *types.NodeDeployme
 		return err
 	}
 
-	return h.dao.create(ctx, data)
+	return h.dao.Create(ctx, data)
 }
 
-func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*NodeDeployment, error) {
-	nodeDeployment := &NodeDeployment{
+func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*Data, error) {
+	nodeDeployment := &Data{
 		Token: data.Token,
 		Info: &Info{
 			OperInstID: data.Info.OperInstID,
@@ -168,7 +168,7 @@ func (h *Handler) GetNodeConf(ctx context.Context, Token string) (*types.NodeCon
 
 	filter := base.AliveFilter()
 	filter = WithToken(Token)(filter)
-	data, err := h.dao.get(ctx, filter, FieldKeyNodeConf)
+	data, err := h.dao.Get(ctx, filter, FieldKeyNodeConf)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -208,7 +208,7 @@ func (h *Handler) SetNodeConf(ctx context.Context, token string, nodeConf *types
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	if err := h.dao.updateField(ctx, filter, FieldKeyNodeConf, data); err != nil {
+	if err := h.dao.UpdateField(ctx, filter, FieldKeyNodeConf, data); err != nil {
 		return err
 	}
 
@@ -232,7 +232,7 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
 	data := convertDeploymentInfoFromTypes(info)
-	if err := h.dao.updateField(ctx, filter, FieldKeyInfo, data); err != nil {
+	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
 

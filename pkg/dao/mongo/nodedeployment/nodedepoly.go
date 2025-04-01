@@ -12,8 +12,6 @@
 package nodedeployment
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -24,7 +22,7 @@ import (
 
 func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	d := &dao{client: client.Collection(TableName), logger: logger}
-	d.baseOrm = base.NewOrm[*NodeDeployment, NodeDeployment](d)
+	d.IOrm = base.NewOrm[*Data, Data](d)
 
 	return d
 }
@@ -33,7 +31,7 @@ type dao struct {
 	client  *mongo.Collection
 	logger  logger.Logger
 	counter counter.Handler
-	baseOrm base.IOrm[*NodeDeployment, NodeDeployment]
+	base.IOrm[*Data, Data]
 }
 
 // GetClient get the dao's client.
@@ -69,20 +67,4 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	}
 
 	return indexes
-}
-
-func (d *dao) create(ctx context.Context, nodeDeployment *NodeDeployment) error {
-	return d.baseOrm.Create(ctx, nodeDeployment)
-}
-
-func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*NodeDeployment, error) {
-	return d.baseOrm.Get(ctx, filter, fields...)
-}
-
-func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
-	return d.baseOrm.UpdateField(ctx, filter, field, value)
-}
-
-func (d *dao) ensureIndexes() error {
-	return d.baseOrm.EnsureIndexes()
 }
