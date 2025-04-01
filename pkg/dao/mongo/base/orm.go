@@ -89,9 +89,9 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
 	}
 
 	timeNow := time.Now()
-	tablse := make([]interface{}, 0, len(datas))
+	tables := make([]interface{}, 0, len(datas))
 	for idx := range datas {
-		tablse = append(tablse, &TableBroker[P]{
+		tables = append(tables, &TableBroker[P]{
 			BasicInfo: BasicInfo{
 				IsDeleted: false,
 				CreatedAt: timeNow,
@@ -100,7 +100,7 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
 		})
 	}
 
-	result, err := orm.dao.GetClient().InsertMany(ctx, tablse, nil)
+	result, err := orm.dao.GetClient().InsertMany(ctx, tables, nil)
 	if err != nil {
 		return err
 	}
