@@ -266,13 +266,21 @@ func convertHostFromTypes(host *types.Host) *Host {
 	dynamic := &HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &HostDynamic{
-			NodeRole:         string(host.Dynamic.NodeRole),
-			NodeStatus:       string(host.Dynamic.NodeStatus),
-			NodeVersion:      host.Dynamic.NodeVersion,
-			NodeGeneration:   host.Dynamic.NodeGeneration,
-			AgentID:          host.Dynamic.AgentID,
-			NetworkUnitID:    host.Dynamic.NetworkUnitID,
-			ProxyTag:         string(host.Dynamic.ProxyTag),
+			NodeRole:       string(host.Dynamic.NodeRole),
+			NodeStatus:     string(host.Dynamic.NodeStatus),
+			NodeVersion:    host.Dynamic.NodeVersion,
+			NodeGeneration: host.Dynamic.NodeGeneration,
+			AgentID:        host.Dynamic.AgentID,
+			NetworkUnitID:  host.Dynamic.NetworkUnitID,
+			ProxyTags: func() []string {
+				tags := make([]string, len(host.Dynamic.ProxyTags))
+				for idx := range host.Dynamic.ProxyTags {
+					tags[idx] = string(host.Dynamic.ProxyTags[idx])
+				}
+
+				return tags
+			}(),
+			ProxyEnabled:     host.Dynamic.ProxyEnabled,
 			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
 			ProxyDataPort:    host.Dynamic.ProxyDataPort,
 			ProxyFilePort:    host.Dynamic.ProxyFilePort,
@@ -310,13 +318,21 @@ func convertHostToTypes(host *Host) *types.Host {
 	dynamic := &types.HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &types.HostDynamic{
-			NodeRole:         types.NodeRole(host.Dynamic.NodeRole),
-			NodeStatus:       types.NodeStatus(host.Dynamic.NodeStatus),
-			NodeVersion:      host.Dynamic.NodeVersion,
-			NodeGeneration:   host.Dynamic.NodeGeneration,
-			AgentID:          host.Dynamic.AgentID,
-			NetworkUnitID:    host.Dynamic.NetworkUnitID,
-			ProxyTag:         types.ProxyTag(host.Dynamic.ProxyTag),
+			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
+			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
+			NodeVersion:    host.Dynamic.NodeVersion,
+			NodeGeneration: host.Dynamic.NodeGeneration,
+			AgentID:        host.Dynamic.AgentID,
+			NetworkUnitID:  host.Dynamic.NetworkUnitID,
+			ProxyTags: func() []types.ProxyTag {
+				tags := make([]types.ProxyTag, len(host.Dynamic.ProxyTags))
+				for idx := range host.Dynamic.ProxyTags {
+					tags[idx] = types.ProxyTag(host.Dynamic.ProxyTags[idx])
+				}
+
+				return tags
+			}(),
+			ProxyEnabled:     host.Dynamic.ProxyEnabled,
 			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
 			ProxyDataPort:    host.Dynamic.ProxyDataPort,
 			ProxyFilePort:    host.Dynamic.ProxyFilePort,

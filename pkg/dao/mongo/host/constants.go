@@ -52,6 +52,6 @@ const (
 	// FieldKeyStaticAddressing the static addressing field key.
 	FieldKeyStaticAddressing = "data.static.addressing"
 
-	// FieldKeyDynamicProxyTag the dynamic proxy tag field key.
-	FieldKeyDynamicProxyTag = "data.dynamic.proxy_tag"
+	// FieldKeyDynamicProxyTags the dynamic proxy tag field key.
+	FieldKeyDynamicProxyTags = "data.dynamic.proxy_tags"
 )

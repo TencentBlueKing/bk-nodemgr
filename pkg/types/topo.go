@@ -174,7 +174,8 @@ type HostDynamic struct {
 	NodeGeneration   int64
 	AgentID          string
 	NetworkUnitID    int64
-	ProxyTag         ProxyTag
+	ProxyEnabled     bool
+	ProxyTags        []ProxyTag
 	ProxyClusterPort int64
 	ProxyDataPort    int64
 	ProxyFilePort    int64
@@ -184,17 +185,14 @@ type HostDynamic struct {
 type ProxyTag string
 
 const (
-	// ProxyTagEnabled means the proxy tag is enabled.
-	ProxyTagEnabled ProxyTag = "enabled"
-
-	// ProxyTagDisabled means the proxy tag is disabled.
-	ProxyTagDisabled ProxyTag = "disabled"
+	// ProxyTagDedicatedInstaller means this node is a dedicated installer.
+	ProxyTagDedicatedInstaller = "dedicated_installer"
 )
 
 // Validate validates the proxy tag.
 func (tag ProxyTag) Validate() error {
 	switch tag {
-	case ProxyTagEnabled, ProxyTagDisabled:
+	case ProxyTagDedicatedInstaller:
 		return nil
 	default:
 		return errors.New("invalid proxy tag")

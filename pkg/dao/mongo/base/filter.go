@@ -28,6 +28,7 @@ func AliveFilter() bson.D {
 type OptFn func(f bson.D) bson.D
 
 // WithInt64Values filters by int64 value.
+// Deprecated: use WithValues instead.
 func WithInt64Values(key string, values ...int64) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
@@ -46,6 +47,7 @@ func WithInt64Values(key string, values ...int64) OptFn {
 }
 
 // WithoutInt64Values filters by not contains int64 value.
+// Deprecated: use WithoutInt64Values instead.
 func WithoutInt64Values(key string, values ...int64) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
@@ -64,6 +66,7 @@ func WithoutInt64Values(key string, values ...int64) OptFn {
 }
 
 // WithStringValues filters by string value.
+// Deprecated: use WithStringValues instead.
 func WithStringValues(key string, values ...string) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
@@ -81,7 +84,44 @@ func WithStringValues(key string, values ...string) OptFn {
 	}
 }
 
+// WithValues filters by bool value.
+func WithValues[T bool | string | int64](key string, values ...T) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: values[0]})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$in": values}})
+	}
+}
+
+// WithoutValues filters by not contains bool value.
+func WithoutValues[T bool | string | int64](key string, values ...T) OptFn {
+	if len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(values) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: key, Value: bson.M{"$ne": values[0]}})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$nin": values}})
+	}
+}
+
 // WithoutStringValues filters by not contains string value.
+// Deprecated: use WithoutStringValues instead.
 func WithoutStringValues(key string, values ...string) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {

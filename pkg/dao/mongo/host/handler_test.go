@@ -94,7 +94,8 @@ func prepareData(t *testing.T, ctx context.Context) {
 					NodeGeneration:   2,
 					AgentID:          "00011113330003",
 					NetworkUnitID:    1,
-					ProxyTag:         types.ProxyTagDisabled,
+					ProxyTags:        []types.ProxyTag{types.ProxyTagDedicatedInstaller},
+					ProxyEnabled:     true,
 					ProxyClusterPort: 33066,
 					ProxyDataPort:    33067,
 					ProxyFilePort:    33068,
@@ -617,7 +618,7 @@ func Test_handler_List(t *testing.T) {
 				Offset: 0,
 				Limit:  1,
 			},
-			optFn:     []OptFn{WithDynamicProxyTag(types.ProxyTagDisabled)},
+			optFn:     []OptFn{WithDynamicProxyTags(types.ProxyTagDedicatedInstaller)},
 			wantTotal: 1,
 		},
 	}
