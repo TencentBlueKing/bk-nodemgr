@@ -191,6 +191,16 @@ const (
 	ProxyTagDisable ProxyTag = "disabled"
 )
 
+// Validate validates the proxy tag.
+func (tag ProxyTag) Validate() error {
+	switch tag {
+	case ProxyTagEnable, ProxyTagDisable:
+		return nil
+	default:
+		return errors.New("invalid proxy tag")
+	}
+}
+
 // NewBlankNodeDynamic returns a blank node dynamic.
 func NewBlankNodeDynamic() *HostDynamic {
 	return &HostDynamic{
