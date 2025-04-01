@@ -94,7 +94,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 					NodeGeneration:   2,
 					AgentID:          "00011113330003",
 					NetworkUnitID:    1,
-					ProxyTag:         "deprecated",
+					ProxyTag:         types.ProxyTagDisable,
 					ProxyClusterPort: 33066,
 					ProxyDataPort:    33067,
 					ProxyFilePort:    33068,
