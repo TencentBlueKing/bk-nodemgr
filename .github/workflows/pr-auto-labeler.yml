@@ -1,91 +1,24 @@
-name: PR Auto Labeler
-
+name: "PR Auto Labeler"
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
 
 jobs:
-  auto-label:
-    runs-on: self-hosted
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+  labeler:
     permissions:
       contents: read
       pull-requests: write
-
+    runs-on: self-hosted
     steps:
       - name: Checkout PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Get PR changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v46.0.1
-
-      - name: Load configuration
-        id: load-config
-        run: |
-          # 检查配置文件是否存在
-          CONFIG_FILE=".github/pr-labels.json"
-          if [ -f "$CONFIG_FILE" ]; then
-            echo "配置文件已找到，正在加载..."
-            # 使用base64编码避免特殊字符问题
-            echo "CONFIG_EXISTS=true" >> $GITHUB_ENV
-            echo "CONFIG_BASE64=$(base64 -w 0 "$CONFIG_FILE")" >> $GITHUB_ENV
-          else
-            echo "配置文件不存在，请检查路径: $CONFIG_FILE"
-            echo "CONFIG_EXISTS=false" >> $GITHUB_ENV
-            exit 1
-          fi
-
-      - name: Label PR based on title and changed files path.
-        if: env.CONFIG_EXISTS == 'true'
-        run: |
-          # 解码配置
-          echo '${{ env.CONFIG_BASE64 }}' | base64 -d > pr_config.json
-          
-          # 解析配置
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          
-          # 初始化标签数组
-          declare -a labels=()
-          
-          # 根据PR标题添加标签
-          title_mappings=$(jq -r '.titleMappings | length' pr_config.json)
-          for (( i=0; i<$title_mappings; i++ )); do
-            pattern=$(jq -r ".titleMappings[$i].pattern" pr_config.json)
-            label=$(jq -r ".titleMappings[$i].label" pr_config.json)
-          
-            if [[ "$PR_TITLE" == *"$pattern"* ]]; then
-              echo "PR标题匹配模式: $pattern，添加标签: $label"
-              labels+=("$label")
-            fi
-          done
-          
-          # 根据变更文件目录添加标签
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            # 遍历所有配置的目录匹配规则
-            dir_mappings=$(jq -r '.directoryMappings | length' pr_config.json)
-            for (( i=0; i<$dir_mappings; i++ )); do
-              pattern=$(jq -r ".directoryMappings[$i].pattern" pr_config.json)
-              label=$(jq -r ".directoryMappings[$i].label" pr_config.json)
-          
-              if [[ $file == *"$pattern"* ]]; then
-                echo "文件 $file 匹配模式: $pattern，添加标签: $label"
-                labels+=("$label")
-              fi
-            done
-          done
-          
-          # 删除重复标签
-          unique_labels=($(echo "${labels[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
-          
-          # 使用GitHub CLI添加标签
-          for label in "${unique_labels[@]}"; do
-            echo "添加标签: $label"
-            gh pr edit ${{ github.event.pull_request.number }} --add-label "$label"
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Label PR
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: true

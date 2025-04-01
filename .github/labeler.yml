@@ -1,0 +1,11 @@
+kind/ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**/*'
+
+module/front:
+  - changed-files:
+      - any-glob-to-any-file: 'front/**/*'
+
+module/backend:
+  - changed-files:
+      - any-glob-to-any-file: 'internal/backend/**/*'
