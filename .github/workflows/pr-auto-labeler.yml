@@ -28,26 +28,30 @@ jobs:
           CONFIG_FILE=".github/pr-labels.json"
           if [ -f "$CONFIG_FILE" ]; then
             echo "配置文件已找到，正在加载..."
-            echo "config=$(cat $CONFIG_FILE)" >> $GITHUB_OUTPUT
+            echo "CONFIG<<EOF" >> $GITHUB_ENV
+            cat $CONFIG_FILE >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "CONFIG_EXISTS=true" >> $GITHUB_ENV
           else
             echo "配置文件不存在,请检查路径: $CONFIG_FILE"
+            echo "CONFIG_EXISTS=false" >> $GITHUB_ENV
             exit 1
           fi
 
       - name: Label PR based on title and changed files path.
+        if: env.CONFIG_EXISTS == 'true'
         run: |
           # 解析配置
-          CONFIG='${{ steps.load-config.outputs.config }}'
           PR_TITLE="${{ github.event.pull_request.title }}"
           
           # 初始化标签数组
           declare -a labels=()
           
           # 根据PR标题添加标签
-          title_mappings=$(echo "$CONFIG" | jq -r '.titleMappings | length')
+          title_mappings=$(echo '${{ env.CONFIG }}' | jq -r '.titleMappings | length')
           for (( i=0; i<$title_mappings; i++ )); do
-            pattern=$(echo "$CONFIG" | jq -r ".titleMappings[$i].pattern")
-            label=$(echo "$CONFIG" | jq -r ".titleMappings[$i].label")
+            pattern=$(echo '${{ env.CONFIG }}' | jq -r ".titleMappings[$i].pattern")
+            label=$(echo '${{ env.CONFIG }}' | jq -r ".titleMappings[$i].label")
           
             if [[ "$PR_TITLE" == *"$pattern"* ]]; then
               echo "PR标题匹配模式: $pattern，添加标签: $label"
@@ -58,10 +62,10 @@ jobs:
           # 根据变更文件目录添加标签
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             # 遍历所有配置的目录匹配规则
-            dir_mappings=$(echo "$CONFIG" | jq -r '.directoryMappings | length')
+            dir_mappings=$(echo '${{ env.CONFIG }}' | jq -r '.directoryMappings | length')
             for (( i=0; i<$dir_mappings; i++ )); do
-              pattern=$(echo "$CONFIG" | jq -r ".directoryMappings[$i].pattern")
-              label=$(echo "$CONFIG" | jq -r ".directoryMappings[$i].label")
+              pattern=$(echo '${{ env.CONFIG }}' | jq -r ".directoryMappings[$i].pattern")
+              label=$(echo '${{ env.CONFIG }}' | jq -r ".directoryMappings[$i].label")
           
               if [[ $file == *"$pattern"* ]]; then
                 echo "文件 $file 匹配模式: $pattern，添加标签: $label"
