@@ -90,7 +90,7 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
 
 	timeNow := time.Now()
 	tablse := make([]interface{}, 0, len(datas))
-	for idx, _ := range datas {
+	for idx := range datas {
 		tablse = append(tablse, &TableBroker[P]{
 			BasicInfo: BasicInfo{
 				IsDeleted: false,
