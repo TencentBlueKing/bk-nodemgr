@@ -32,7 +32,7 @@ jobs:
           if [ -f "$CONFIG_FILE" ]; then
             echo "配置文件已找到，正在加载..."
             echo "CONFIG<<EOF" >> $GITHUB_ENV
-            cat $CONFIG_FILE >> $GITHUB_ENV
+            cat "$CONFIG_FILE" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
             echo "CONFIG_EXISTS=true" >> $GITHUB_ENV
           else
