@@ -13,7 +13,6 @@ package mongodaotest
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -42,7 +41,7 @@ func (suit *TestSuite[P, T]) SetupSuite() {
 	suit.InitMongo(context.Background(), &mongotest.Config{
 		MongoImage:    "mongo:latest",
 		DatabaseName:  "bknodemgr",
-		ContainerName: fmt.Sprintf("mongo_test_%s", "bknodemgr"),
+		ContainerName: "mongo_test_bknodemgr",
 	})
 
 	suit.initFn(suit.GetDatabase(), suit.logger)

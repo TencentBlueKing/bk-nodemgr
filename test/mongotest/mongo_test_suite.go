@@ -117,7 +117,7 @@ func (suit *TestSuite) setupMongoContainer(config *Config) {
 	host, err := mongoC.Host(suit.ctx)
 	suit.Require().NoError(err)
 
-	mongoURI := fmt.Sprintf("mongodb://%s:%s", host, mappedPort.Port())
+	mongoURI := fmt.Sprintf("mongodb://%s:%s", host, mappedPort.Port()) // nolint: nosprintfhostport
 	suit.setupMongoClient(mongoURI)
 }
 
