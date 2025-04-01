@@ -74,7 +74,7 @@ type Config struct {
 // DefaultConfig returns the default configuration for the MongoDB test container.
 func DefaultConfig() *Config {
 	return &Config{
-		MongoImage:    "mongo:4.4",
+		MongoImage:    "mongo:6.0.10",
 		DatabaseName:  fmt.Sprintf("testdb_%d", time.Now().UnixNano()),
 		ContainerName: fmt.Sprintf("mongo_test_%d", time.Now().UnixNano()),
 	}
