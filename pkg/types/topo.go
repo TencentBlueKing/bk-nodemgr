@@ -12,7 +12,10 @@
 // Everything from API or Database should be converted into types in this package before using.
 package types
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // Business represents a business under a tenant.
 type Business struct {
@@ -64,6 +67,16 @@ type HostStatic struct {
 // NodeRole represents a node role.
 type NodeRole string
 
+// Validate validates the node role.
+func (nodeRole NodeRole) Validate() error {
+	switch nodeRole {
+	case NodeRoleBlank, NodeRoleAgent, NodeRoleProxy:
+		return nil
+	default:
+		return errors.New("invalid node role")
+	}
+}
+
 // NodeRoleListToStringList converts a node role list to a string list.
 func NodeRoleListToStringList(nodeRoleList []NodeRole) []string {
 	data := make([]string, len(nodeRoleList))
@@ -97,6 +110,17 @@ const (
 
 // NodeStatus represents a node status when node role is not blank.
 type NodeStatus string
+
+// Validate validates the node status.
+func (nodeStatus NodeStatus) Validate() error {
+	switch nodeStatus {
+	case NodeStatusUnknown, NodeStatusInit, NodeStatusRunning,
+		NodeStatusDamaged, NodeStatusBusy, NodeStatusUpgrading, NodeStatusOffline:
+		return nil
+	default:
+		return errors.New("invalid node status")
+	}
+}
 
 // NodeStatusListToStringList converts a node status list to a string list.
 func NodeStatusListToStringList(nodeStatusList []NodeStatus) []string {
