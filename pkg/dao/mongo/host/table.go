@@ -48,7 +48,7 @@ type HostDynamic struct {
 	NodeGeneration   int64  `json:"node_generation" bson:"node_generation"`
 	AgentID          string `json:"agent_id" bson:"agent_id"`
 	NetworkUnitID    int64  `json:"networkunit_id" bson:"networkunit_id"`
-	Tag              string `json:"tag" bson:"tag"`
+	ProxyTag         string `json:"proxy_tag" bson:"proxy_tag"`
 	ProxyClusterPort int64  `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort    int64  `json:"proxy_data_port" bson:"proxy_data_port"`
 	ProxyFilePort    int64  `json:"proxy_file_port" bson:"proxy_file_port"`

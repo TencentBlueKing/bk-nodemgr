@@ -170,6 +170,16 @@ func WithoutNodeStatus(statuses ...types.NodeStatus) OptFn {
 	return base.WithoutStringValues(FieldKeyDynamicNodeStatus, str...)
 }
 
+// WithProxyTag filters by proxy tag.
+func WithProxyTag(tags ...types.ProxyTag) OptFn {
+	str := make([]string, len(tags))
+	for idx, tag := range tags {
+		str[idx] = string(tag)
+	}
+
+	return base.WithStringValues(FieldKeyDynamicProxyTag, str...)
+}
+
 // WithNodeVersion filters by node version.
 func WithNodeVersion(versions ...string) OptFn {
 	return base.WithStringValues(FieldKeyDynamicNodeVersion, versions...)

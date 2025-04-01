@@ -150,11 +150,22 @@ type HostDynamic struct {
 	NodeGeneration   int64
 	AgentID          string
 	NetworkUnitID    int64
-	Tag              string
+	ProxyTag         ProxyTag
 	ProxyClusterPort int64
 	ProxyDataPort    int64
 	ProxyFilePort    int64
 }
+
+// ProxyTag represents a proxy tag.
+type ProxyTag string
+
+const (
+	// ProxyTagEnable means the proxy tag is enabled.
+	ProxyTagEnable ProxyTag = "enabled"
+
+	// ProxyTagDisable means the proxy tag is disabled.
+	ProxyTagDisable ProxyTag = "disabled"
+)
 
 // NewBlankNodeDynamic returns a blank node dynamic.
 func NewBlankNodeDynamic() *HostDynamic {
