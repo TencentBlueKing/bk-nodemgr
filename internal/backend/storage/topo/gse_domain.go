@@ -74,6 +74,7 @@ func (s *Storage) getAgentAccessEndpoints(
 		host.WithNetworkUnitID(networkUnitID),
 		host.WithNodeRole(types.NodeRoleProxy),
 		host.WithNodeStatus(types.NodeStatusRunning),
+		host.WithDynamicProxyAccessDisabled(false),
 	)
 	if err != nil {
 		return nil, nil, nil,

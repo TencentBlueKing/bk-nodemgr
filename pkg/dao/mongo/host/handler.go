@@ -280,10 +280,10 @@ func convertHostFromTypes(host *types.Host) *Host {
 
 				return tags
 			}(),
-			ProxyEnabled:     host.Dynamic.ProxyEnabled,
-			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:    host.Dynamic.ProxyDataPort,
-			ProxyFilePort:    host.Dynamic.ProxyFilePort,
+			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
+			ProxyClusterPort:    host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:       host.Dynamic.ProxyDataPort,
+			ProxyFilePort:       host.Dynamic.ProxyFilePort,
 		}
 	}
 
@@ -332,10 +332,10 @@ func convertHostToTypes(host *Host) *types.Host {
 
 				return tags
 			}(),
-			ProxyEnabled:     host.Dynamic.ProxyEnabled,
-			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:    host.Dynamic.ProxyDataPort,
-			ProxyFilePort:    host.Dynamic.ProxyFilePort,
+			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
+			ProxyClusterPort:    host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:       host.Dynamic.ProxyDataPort,
+			ProxyFilePort:       host.Dynamic.ProxyFilePort,
 		}
 	}
 

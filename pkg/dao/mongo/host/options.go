@@ -177,12 +177,12 @@ func WithDynamicProxyTags(tags ...types.ProxyTag) OptFn {
 		str[idx] = string(tag)
 	}
 
-	return base.WithStringValues(FieldKeyDynamicProxyTags, str...)
+	return base.WithValues(FieldKeyDynamicProxyTags, str...)
 }
 
-// WithoutDynamicProxyEnabled filters by not contains proxy enabled.
-func WithoutDynamicProxyEnabled(bools ...bool) OptFn {
-	return base.WithValues(FieldKeyDynamicProxyEnabled, bools...)
+// WithDynamicProxyAccessDisabled filters by not contains proxy access disabled.
+func WithDynamicProxyAccessDisabled(bools ...bool) OptFn {
+	return base.WithValues(FieldKeyDynamicProxyAccessDisabled, bools...)
 }
 
 // WithNodeVersion filters by node version.

@@ -54,4 +54,7 @@ const (
 
 	// FieldKeyDynamicProxyTags the dynamic proxy tag field key.
 	FieldKeyDynamicProxyTags = "data.dynamic.proxy_tags"
+
+	// FieldKeyDynamicProxyAccessDisabled the dynamic proxy access disabled field key.
+	FieldKeyDynamicProxyAccessDisabled = "data.dynamic.proxy_access_disabled"
 )
