@@ -24,6 +24,8 @@
     </FlexRow>
     <RegionTable
       ref="regionTableRef"
+      :list="tableData"
+      :vendor-list="workareaStore.vendorList"
       @edit="handleEditWorkarea"
     />
     <UpsertWorkarea
@@ -37,60 +39,44 @@
 
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
-import { ref, watch } from 'vue';
+import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
+import { onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-import { useDebounce } from '@vueuse/core';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
 
 import RegionTable from './components/region-table.vue';
 import UpsertWorkarea from './components/upsert-workarea.vue';
+import { vendorMap } from './vendorMap';
 
 import CopyIp from '@/components/copy-ip.vue';
+import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
+// 新增/修改 workarea dialog
 const showUpsertWorkarea = ref(false);
-// 搜索
-const searchKey = ref([]);
-const debounceSearch = useDebounce(searchKey, 300);
 const isCreate = ref(true);
 const curWorkareaData = ref();
-
 const handleCreateWorkarea = () => {
   isCreate.value = true;
   showUpsertWorkarea.value = true;
 };
-
 const handleEditWorkarea = (workareaData: NetworkArea) => {
   isCreate.value = false;
   curWorkareaData.value = workareaData;
   showUpsertWorkarea.value = true;
 };
 
-const searchSelectData = ref([
-  {
-    name: t('topoManager.workArea.search.workareaName'),
-    id: 'workareaName',
-  },
-  {
-    name: t('topoManager.workArea.search.workareaId'),
-    id: 'workareaId',
-  },
-  {
-    name: t('topoManager.workArea.search.vendor'),
-    id: 'vendor',
-    multiple: true,
-  },
-]);
+// 安装 proxy dialog
 const isInstallProxyShow = ref(false);
 const handleInstallProxy = () => {
   isInstallProxyShow.value = true;
 };
 
+// 复制
 const regionTableRef = ref();
 const handleGetSelectData = async (type: string) => {
   let tableData = [];
@@ -104,8 +90,70 @@ const handleGetSelectData = async (type: string) => {
   return tableData;
 };
 
-watch(debounceSearch, (newVal) => {
-  // todo
+// 表格数据
+const tableData = ref<INetWorkArea[]>([]);
+
+// 下拉搜索框value、list
+const searchKey = ref<ISearchValue[]>([]);
+const searchSelectData = ref<ISearchItem[]>([]);
+// 初始化searchSelect checkbox options
+const initSearchData = () => {
+  searchSelectData.value = [
+    {
+      name: t('topoManager.workArea.search.workareaName'),
+      id: 'workareaName',
+      multiple: true,
+      children: workareaStore.workareaList.map(item => ({
+        id: item.bk_networkarea_name,
+        name: item.bk_networkarea_name,
+      })),
+    },
+    {
+      name: t('topoManager.workArea.search.workareaId'),
+      id: 'workareaId',
+      multiple: true,
+      children: workareaStore.workareaList.map(item => ({
+        id: String(item.bk_networkarea_id),
+        name: String(item.bk_networkarea_id),
+      })),
+    },
+    {
+      name: t('topoManager.workArea.search.vendor'),
+      id: 'vendor',
+      multiple: true,
+      children: workareaStore.vendorList.map((item, id) => ({
+        id: String(id),
+        name: t(String(vendorMap[item]?.label || '')),
+      })),
+    },
+  ];
+};
+// 前端过滤数据
+watch(searchKey, (newVal) => {
+  let data: INetWorkArea[] = workareaStore.workareaList;
+  for (const item of newVal) {
+    switch (item.id) {
+      case 'workareaName':
+        data = data.filter(area => item.values?.find(o => o.id === area.bk_networkarea_name));
+        break;
+      case 'workareaId':
+        data = data.filter(area => item.values?.find(o => o.id === String(area.bk_networkarea_id)));
+        break;
+      case 'vendor':
+        data = data.filter(area => item.values?.find(o => o.id === area.cloud_vendor));
+        break;
+    }
+  }
+  tableData.value = data;
+});
+
+onMounted(async () => {
+  await Promise.all([
+    workareaStore.handleGetAllWorkareaList(),
+    workareaStore.handleFetchVendorAndOs(),
+  ]);
+  tableData.value = workareaStore.workareaList;
+  initSearchData();
 });
 
 </script>

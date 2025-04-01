@@ -16,13 +16,13 @@
           </Form.FormItem>
           <Form.FormItem
             :label="$t('topoManager.workArea.form.vendor')"
-            property="bk_cloud_vendor"
+            property="cloud_vendor"
             required>
             <Select
-              v-model="form.bk_cloud_vendor"
+              v-model="form.cloud_vendor"
               :filterable="false"
             >
-              <template #prefix v-if="form.bk_cloud_vendor">
+              <template #prefix v-if="form.cloud_vendor">
                 <div class="flex items-center">
                   <img
                     class="h-[18px] w-[18px] rounded-[50px] p-[2px] ml-[8px]"
@@ -69,6 +69,8 @@ import type { PropType } from 'vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { vendorMap } from '../vendorMap';
+
 import GuideDialog from './guide-dialog.vue';
 
 import type { TopoNetworkAreaCreateReq } from '@/@types/topo';
@@ -90,62 +92,26 @@ const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
 const dialogTitle = computed(() => (props.isCreate ? t('topoManager.workArea.form.create') : t('topoManager.workArea.form.edit')));
-
 const isGuideShow = ref(false);
 
-const vendorMap = {
-  tencent: t('topoManager.workArea.vendor.tencent'),
-  google: t('topoManager.workArea.vendor.google'),
-  huawei: t('topoManager.workArea.vendor.huawei'),
-  microsoft: t('topoManager.workArea.vendor.microsoft'),
-  aws: 'AWS',
-  ali: t('topoManager.workArea.vendor.ali'),
-};
+// 云服务商下拉选项列表
+const SelectOptions = computed(() => workareaStore.vendorList.map((item, id) => {
+  const curItem = vendorMap[item];
+  return {
+    id,
+    icon: curItem.icon,
+    class: curItem?.class,
+    label: t(curItem?.label),
+  };
+}));
 
-const SelectOptions = ref([
-  {
-    id: 'tencent',
-    icon: '/images/tencent-cloud.svg',
-    class: 'bg-[#DAE9FD]',
-    label: vendorMap.tencent,
-  },
-  {
-    id: 'google',
-    icon: '/images/google-cloud.svg',
-    class: 'bg-[#DAF5C8]',
-    label: vendorMap.google,
-  },
-  {
-    id: 'huawei',
-    icon: '/images/huawei-cloud.svg',
-    class: 'bg-[#FFDDDD]',
-    label: vendorMap.huawei,
-  },
-  {
-    id: 'microsoft',
-    icon: '/images/azure.svg',
-    class: 'bg-[#D8F4F5]',
-    label: vendorMap.microsoft,
-  },
-  {
-    id: 'aws',
-    icon: '/images/aws-cloud.svg',
-    class: 'bg-[#FFF2C9]',
-    label: vendorMap.aws,
-  },
-  {
-    id: 'ali',
-    icon: '/images/ali-cloud.svg',
-    class: 'bg-[#FFE0BF]',
-    label: vendorMap.ali,
-  },
-]);
-const formRef = ref();
+// 根据当前cloud_vendor从vendorMap获取对应class, icon
+const curVendor = computed(() => SelectOptions.value.find(item => (item.id).toString() === form.cloud_vendor));
+
 const form = reactive<TopoNetworkAreaCreateReq>({
   bk_networkarea_name: '',
-  bk_cloud_vendor: '',
+  cloud_vendor: '',
 });
-const curVendor = computed(() => SelectOptions.value.find(item => item.id === form.bk_cloud_vendor));
 
 const rules = ref({
   bk_networkarea_name: [
@@ -155,7 +121,7 @@ const rules = ref({
       trigger: 'blur',
     },
   ],
-  bk_cloud_vendor: [
+  cloud_vendor: [
     {
       required: true,
       message: t('topoManager.workArea.formRule.vendor'),
@@ -168,11 +134,9 @@ const handleInstallProxy = () => {
   emit('install-proxy');
 };
 
-const resetForm = () => {
-  form.bk_cloud_vendor = '';
-  form.bk_networkarea_name = '';
-};
+const formRef = ref();
 const loading = ref(false);
+// 新建 workarea
 const handleConfirm = async () => {
   try {
     const result = await formRef.value.validate();
@@ -189,9 +153,14 @@ const handleConfirm = async () => {
     loading.value = false;
   }
 };
-
+// 清空form
+const resetForm = () => {
+  form.cloud_vendor = '';
+  form.bk_networkarea_name = '';
+};
+// edit时初始化form数据
 const initFormData = async () => {
-  form.bk_cloud_vendor = props.curWorkareaData?.bk_cloud_vendor || '';
+  form.cloud_vendor = props.curWorkareaData?.cloud_vendor || '';
   form.bk_networkarea_name = props.curWorkareaData?.bk_networkarea_name || '';
 };
 

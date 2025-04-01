@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 
 /**
  *  @param {number}  timezone -12 - 12
@@ -38,3 +39,6 @@ export function filterTimeFormat(date: string | Date, fmt = 'YYYY-mm-dd HH:MM:SS
   return time;
 }
 
+export function getTimeStamp(date: string | Date) {
+  return dayjs(date).unix();
+};

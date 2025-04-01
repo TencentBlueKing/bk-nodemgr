@@ -17,7 +17,7 @@ interface NetworkArea {
   tenant_id: string;
   bk_networkarea_id: number;
   bk_networkarea_name: string;
-  bk_cloud_vendor: string;
+  cloud_vendor: string;
 }
 
 // Link describes the network unit link points target.
@@ -93,10 +93,9 @@ interface HostInfo {
   bk_host_outerip: string;
   bk_host_outerip_v6: string;
   bk_mac: string;
-  bk_os_type: string;
+  os_type: string;
   bk_networkarea_name: string;
   bk_networkunit_name: string;
-  bk_os_type_name: string;
 }
 
 // Host describes the host informations.
@@ -138,5 +137,11 @@ interface TopoEvent {
   accesspoint_name: string;
   operate_time: number;
   operator: string;
+}
+
+// TimeRange describes the time range.
+interface TimeRange {
+  start_timestamp_sec: number;
+  end_timestamp_sec: number;
 }
 

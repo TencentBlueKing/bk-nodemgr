@@ -79,8 +79,15 @@
         </Form.FormItem>
 
         <div class="flex mt-[32px] ml-[90px]">
-          <Button theme="primary" class="mr-[8px]" @click="handleConfirm">
-            {{ $t('action.install') }}
+          <Button theme="primary" class="mr-[8px] w-[120px]" @click="handleConfirm">
+            <span>
+              {{ $t('action.install') }}
+            </span>
+            <span
+              class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px]
+              text-[#3a84ff] text-[12px] h-[16px] leading-[16px]">
+              {{ form.data.length }}
+            </span>
           </Button>
           <Button @click="handleClose">
             {{ $t('action.cancel') }}

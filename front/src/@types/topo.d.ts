@@ -41,7 +41,7 @@ export interface TopoNetworkAreaListReq {
 
 export interface TopoNetworkAreaListReqExactConditions {
   bk_networkarea_id: number[];
-  bk_cloud_vendor: string[];
+  cloud_vendor: string[];
 }
 
 export interface TopoNetworkAreaListReqFuzzyConditions {
@@ -60,6 +60,32 @@ export interface TopoNetworkAreaListResp {
 export interface TopoNetworkAreaListRespData {
   total: number;
   items: NetworkArea[];
+}
+
+// TopoNetworkAreaStaticsReq describes the HTTP request body when query
+// network-area statics in topo service.
+export interface TopoNetworkAreaStaticsReq {
+  bk_networkarea_id: number[];
+}
+
+// TopoNetworkAreaStaticsResp describes the HTTP response body when query
+// network-area statics in topo service.
+export interface TopoNetworkAreaStaticsResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoNetworkAreaStaticsRespData;
+}
+
+export interface TopoNetworkAreaStaticsRespStaticsInfo {
+  bk_networkarea_id: number;
+  networkunit_count: number;
+  proxy_count: number;
+  agent_count: number;
+}
+
+export interface TopoNetworkAreaStaticsRespData {
+  items: StaticsInfo[];
 }
 
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
@@ -81,7 +107,7 @@ export interface TopoNetworkAreaGetResp {
 // network-area in topo service.
 export interface TopoNetworkAreaCreateReq {
   bk_networkarea_name: string;
-  bk_cloud_vendor: string;
+  cloud_vendor: string;
 }
 
 // TopoNetworkAreaCreateResp describes the HTTP response body when create
@@ -102,7 +128,7 @@ export interface TopoNetworkAreaCreateRespData {
 export interface TopoNetworkAreaUpdateReq {
   bk_networkarea_id: number;
   bk_networkarea_name: string;
-  bk_cloud_vendor: string;
+  cloud_vendor: string;
 }
 
 // TopoNetworkAreaUpdateResp describes the HTTP response body when update
@@ -243,20 +269,12 @@ export interface TopoNetworkUnitDeleteRespData {
   bk_networkunit_id: number;
 }
 
-// TopoHostListReq describes the HTTP request body when list host in topo
-// service.
-export interface TopoHostListReq {
-  page: Page;
-  only_count: boolean;
-  exact_include_conditions: TopoHostListReqExactConditions;
-  fuzzy_include_conditions: TopoHostListReqFuzzyConditions;
-}
-
-export interface TopoHostListReqExactConditions {
+// TopoHostExactConditions describes host exact conditions.
+export interface TopoHostExactConditions {
   bk_host_id: number[];
   bk_biz_id: number[];
   bk_networkarea_id: number[];
-  bk_os_type: string[];
+  os_type: string[];
   node_role: string[];
   node_status: string[];
   node_version: string[];
@@ -265,13 +283,23 @@ export interface TopoHostListReqExactConditions {
   node_generation: number[];
 }
 
-export interface TopoHostListReqFuzzyConditions {
+// TopoHostFuzzyConditions describes host fuzzy conditions.
+export interface TopoHostFuzzyConditions {
   bk_host_name: string[];
   dept_name: string[];
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
   bk_host_outerip: string[];
   bk_host_outerip_v6: string[];
+}
+
+// TopoHostListReq describes the HTTP request body when list host in topo
+// service.
+export interface TopoHostListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
 }
 
 // TopoHostListResp describes the HTTP response body when list host in topo
@@ -286,6 +314,34 @@ export interface TopoHostListResp {
 export interface TopoHostListRespData {
   total: number;
   items: Host[];
+}
+
+// TopoHostDistinctReq describes the HTTP request body when distinct host in
+// topp service.
+export interface TopoHostDistinctReq {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+}
+
+// TopoHostDistinctResp describes the HTTP response body when distinct host in
+// topp service.
+export interface TopoHostDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoHostDistinctRespData;
+}
+
+export interface TopoHostDistinctRespData {
+  node_role: string[];
+  node_status: string[];
+  node_version: string[];
+  dept_name: string[];
+  os_type: string[];
+  arch: string[];
+  addressing: string[];
+  bk_networkarea_id: number[];
+  bk_networkunit_id: number[];
 }
 
 // TopoGraphGetReq describes the HTTP request body when get graph in topo
@@ -331,20 +387,29 @@ export interface TopoGraphNodeCountRespData {
   networkunits: NodeInfo[];
 }
 
-// TopoEventListReq describes the HTTP request body when get host in topo
-// service.
-export interface TopoEventListReq {
-  page: Page;
-  only_count: boolean;
-  exact_include_conditions: TopoEventListReqExactConditions;
-}
-
-export interface TopoEventListReqExactConditions {
+// TopoEventExactConditions describes the conditions when list event
+export interface TopoEventExactConditions {
   bk_networkarea_id: number[];
   bk_networkunit_id: number[];
   accesspoint_id: number[];
   type: string[];
   operator: string[];
+}
+
+// TopoEventFuzzyConditions describes the conditions when list event
+export interface TopoEventFuzzyConditions {
+  bk_networkarea_name: string[];
+  bk_networkunit_name: string[];
+}
+
+// TopoEventListReq describes the HTTP request body when get host in topo
+// service.
+export interface TopoEventListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoEventExactConditions;
+  fuzzy_include_conditions: TopoEventFuzzyConditions;
+  operate_time_range: TimeRange;
 }
 
 // TopoEventListResp describes the HTTP response body when get host in topo
@@ -359,5 +424,51 @@ export interface TopoEventListResp {
 export interface TopoEventListRespData {
   total: number;
   items: TopoEvent[];
+}
+
+// TopoEventDistinctReq describes the HTTP request body when distinct topoevent
+// in topo service.
+export interface TopoEventDistinctReq {
+  exact_include_conditions: TopoEventExactConditions;
+  fuzzy_include_conditions: TopoEventFuzzyConditions;
+  operate_time_range: TimeRange;
+}
+
+// TopoEventDistinctResp describes the HTTP response body when distinct
+// topoevent in topo service.
+export interface TopoEventDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoEventDistinctRespData;
+}
+
+export interface TopoEventDistinctRespData {
+  bk_networkarea_id: number[];
+  bk_networkunit_id: number[];
+  accesspoint_id: number[];
+  type: string[];
+  operator: string[];
+}
+
+// TopoConstantGetReq describes the HTTP request body when get constant in topo
+// service.
+export interface TopoConstantGetReq {
+  cloud_vendor: boolean;
+  os_type: boolean;
+}
+
+// TopoConstantGetResp describes the HTTP response body when get constant in
+// topo service.
+export interface TopoConstantGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: TopoConstantGetRespData;
+}
+
+export interface TopoConstantGetRespData {
+  cloud_vendor: string[];
+  os_type: string[];
 }
 

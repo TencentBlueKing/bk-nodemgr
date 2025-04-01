@@ -1,14 +1,20 @@
+import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
 
-import type { TopoEventListReq, TopoNetworkAreaCreateReq, TopoNetworkAreaListReq } from '@/@types/topo';
+import type { TopoEventListReq, TopoNetworkAreaCreateReq, TopoNetworkAreaListReq, TopoNetworkAreaStaticsRespStaticsInfo } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
 
+export type INetWorkArea = NetworkArea & TopoNetworkAreaStaticsRespStaticsInfo;
+
 export const useWorkareaStore = defineStore('workarea', () => {
-  const workareaList = ref<NetworkArea[]>([]);
+  const workareaList = ref<INetWorkArea[]>([]);
   const allWorkareaList = ref<Map<number, NetworkArea>>(new Map());
   const allWorkUnitList = ref<Map<number, NetworkUnit[]>>(new Map());
   const allAccessPointList = ref<Map<number, AccessPoint[]>>(new Map());
+
+  const vendorList = ref<string[]>([]);
+  const osTypeList = ref<string[]>([]);
   // const all
   const loading = ref(false);
   const pagination = reactive({ count: 0, limit: 50, current: 1 });
@@ -29,20 +35,24 @@ export const useWorkareaStore = defineStore('workarea', () => {
   // 获取管控区域列表
   const handleFetchWorkareaList = async () => {
     loading.value = true;
-    const result = await TopoService.NetworkAreaList({
-      page: {
-        // todo
-        // 接口文档示例 offset为0，了解下前端是否需要-1
-        offset: pagination.current - 1,
-        limit: pagination.limit,
-      },
-      onlyCount: false,
-      includeConditions,
-    })
-      .catch(() => {})
-      .finally(() => loading.value = false);
-    workareaList.value = result?.items || [];
-    pagination.count = result?.total || 0;
+    try {
+      const result = await TopoService.NetworkAreaList({
+        page: {
+          // todo
+          // 接口文档示例 offset为0，了解下前端是否需要-1
+          offset: pagination.current - 1,
+          limit: pagination.limit,
+        },
+        onlyCount: false,
+        includeConditions,
+      });
+      workareaList.value = result?.items as INetWorkArea[] || [];
+      pagination.count = result?.total || 0;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loading.value = false;
+    }
   };
 
   const handleDeleteWorkarea = async (bk_networkarea_id: number) => {
@@ -66,8 +76,20 @@ export const useWorkareaStore = defineStore('workarea', () => {
       },
     };
     const result = await TopoService.NetworkAreaList(params).catch(() => {});
-    const list = result?.items || [];
-    return list || [];
+    workareaList.value = result?.items as INetWorkArea[] || [];
+    pagination.count = result?.total || 0;
+
+    const workareaIds = workareaList.value.map(item => item.bk_networkarea_id);
+    const countData =  await handleFetchWorkareaInfoCount(workareaIds);
+    const lookup = keyBy(countData, 'bk_networkarea_id');
+    for (const item of workareaList.value) {
+      const match = lookup[item.bk_networkarea_id];
+      if (match) {
+        item.networkunit_count = match.networkunit_count;
+        item.proxy_count = match.proxy_count;
+        item.agent_count = match.agent_count;
+      }
+    }
   };
 
   // 将所有管控区域存入Map
@@ -111,6 +133,21 @@ export const useWorkareaStore = defineStore('workarea', () => {
     return result;
   };
 
+  // 获取管控区域列表中 管控单元数量及节点数量
+  const handleFetchWorkareaInfoCount = async (bk_networkarea_id: number[]) => {
+    const result = await TopoService.NetworkAreaStatics({ bk_networkarea_id });
+    return result?.items || [];
+  };
+
+  const handleFetchVendorAndOs = async () => {
+    const result = await TopoService.ConstantGet({
+      cloud_vendor: true,
+      os_type: true,
+    });
+    vendorList.value = result?.cloud_vendor || [];
+    osTypeList.value = result?.os_type || [];
+  };
+
   return {
     workareaList,
     loading,
@@ -119,6 +156,8 @@ export const useWorkareaStore = defineStore('workarea', () => {
     allWorkareaList,
     allWorkUnitList,
     allAccessPointList,
+    vendorList,
+    osTypeList,
     handleCreateWorkarea,
     handleDeleteWorkarea,
     handleFetchWorkareaList,
@@ -126,5 +165,6 @@ export const useWorkareaStore = defineStore('workarea', () => {
     handleFetchAllWorkarea,
     handleFetchAllWorkUnit,
     handleFetchRecordList,
+    handleFetchVendorAndOs,
   };
 });

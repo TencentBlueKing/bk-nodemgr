@@ -6,6 +6,7 @@
         <div class="flex items-center">
           <DatePicker
             type="daterange"
+            v-model="operateTime"
             :placeholder="$t('topoManager.record.searchPlaceholder.date')"
             class="mr-[8px]"
           >
@@ -88,14 +89,14 @@
 
 <script lang="ts" setup>
 import { DatePicker, Loading, SearchSelect } from 'bkui-vue';
+import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { Table, TableColumn } from '@blueking/table';
-import { useDebounce } from '@vueuse/core';
 
-import type { TopoEventListReqExactConditions } from '@/@types/topo';
-import { filterTimeFormat } from '@/common/util';
+import type { TopoEventExactConditions, TopoEventFuzzyConditions } from '@/@types/topo';
+import { filterTimeFormat, getTimeStamp } from '@/common/util';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import { useWorkareaStore } from '@/stores/workarea';
@@ -107,14 +108,12 @@ const {
   handleFetchAllWorkUnit,
 } = useWorkareaStore();
 const workareaStore = useWorkareaStore();
-const searchSelectValue = ref([]);
-const debounceSearch = useDebounce(searchSelectValue, 300);
+const searchSelectValue = ref<ISearchValue[]>([]);
 const loading = ref(false);
 
 const allWorkareaList = computed(() => Array.from(workareaStore.allWorkareaList.values()));
-const allWorkUnitList = computed(() => Array.from(workareaStore.allWorkUnitList.values()).flat());
 
-const searchSelectData = ref([]);
+const searchSelectData = ref<ISearchItem[]>([]);
 
 // 待优化 各影响table最大高度的元素的高度
 const tableOffset = 200;
@@ -135,30 +134,58 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 });
 
 const list = ref<TopoEvent[]>([]);
+const operateTime = ref([]);
 
-const extraData = computed(() => {
-  const exact_include_conditions: Omit<TopoEventListReqExactConditions, 'accesspoint_id'> = {
+const exactData = computed(() => {
+  const exact_include_conditions: Omit<TopoEventExactConditions, 'accesspoint_id'> = {
     bk_networkarea_id: [],
     bk_networkunit_id: [],
     type: [],
     operator: [],
   };
-  for (const item of Object.values(debounceSearch.value)) {
+  for (const item of searchSelectValue.value) {
     switch (item.id) {
-      case 'workareaName':
-        break;
       case 'workareaId':
-        exact_include_conditions.bk_networkarea_id = item.values.map(item => Number(item.id));
-        break;
-      case 'workUnit':
+        exact_include_conditions.bk_networkarea_id = item.values?.map(item => Number(item.id)) || [];
         break;
       case 'type':
+        exact_include_conditions.type = item.values?.map(item => item.id) as string[];
         break;
       case 'actionPerson':
+        exact_include_conditions.operator = item.values?.map(item => item.id) as string[];
         break;
     }
   }
-  return exact_include_conditions as TopoEventListReqExactConditions;
+  return exact_include_conditions as TopoEventExactConditions;
+});
+
+const fuzzyData = computed(() => {
+  const fuzzy_include_conditions: TopoEventFuzzyConditions = {
+    bk_networkarea_name: [],
+    bk_networkunit_name: [],
+  };
+  for (const item of searchSelectValue.value) {
+    switch (item.id) {
+      case 'workareaName':
+        fuzzy_include_conditions.bk_networkarea_name.push(item?.values?.[0]?.name || '');
+        break;
+      case 'workUnit':
+        fuzzy_include_conditions.bk_networkunit_name.push(item?.values?.[0]?.name || '');
+        break;
+    }
+  }
+  return fuzzy_include_conditions;
+});
+
+const operateTimeRange = computed(() => {
+  if (operateTime.value.length !== 0 && operateTime.value.every(item => item !== '')) {
+    const operate_time_range: TimeRange = {
+      start_timestamp_sec: getTimeStamp(operateTime.value[0]),
+      end_timestamp_sec: getTimeStamp(operateTime.value[1]),
+    };
+    return operate_time_range;
+  }
+  return null as unknown as TimeRange;
 });
 
 const fetchRecordList = async () => {
@@ -169,7 +196,9 @@ const fetchRecordList = async () => {
         offset: pagination.current - 1,
         limit: pagination.limit,
       },
-      exact_include_conditions: extraData.value,
+      exact_include_conditions: exactData.value,
+      fuzzy_include_conditions: fuzzyData.value,
+      operate_time_range: operateTimeRange.value,
     };
     const res = await handleFetchRecordList(params);
     pagination.count = res.total || 0;
@@ -191,11 +220,7 @@ const initSearchList = async () => {
     {
       name: t('topoManager.record.searchItems.workareaName'),
       id: 'workareaName',
-      multiple: true,
-      children: allWorkareaList.value.map(item => ({
-        id: item.bk_networkarea_name,
-        name: item.bk_networkarea_name,
-      })),
+      multiple: false,
     },
     {
       name: t('topoManager.record.searchItems.workareaId'),
@@ -209,11 +234,7 @@ const initSearchList = async () => {
     {
       name: t('topoManager.record.searchItems.workUnit'),
       id: 'workUnit',
-      multiple: true,
-      children: allWorkUnitList.value.map(item => ({
-        id: item.bk_networkunit_name,
-        name: item.bk_networkunit_name,
-      })),
+      multiple: false,
     },
     {
       name: t('topoManager.record.searchItems.type'),
@@ -228,7 +249,7 @@ const initSearchList = async () => {
   ];
 };
 
-watch(extraData, fetchRecordList);
+watch([exactData, fuzzyData, operateTime], fetchRecordList);
 
 onMounted(() => {
   fetchRecordList();
