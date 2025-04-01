@@ -642,7 +642,7 @@ linters-settings:
       # Multiple packages can use an empty alias.
       - pkg: errors
         alias: ""
-      # Using `etcdv3` alias for `go.etcd.io/etcd/client/v3`
+      # Using `clientv3` alias for `go.etcd.io/etcd/client/v3`
       - pkg: go.etcd.io/etcd/client/v3
         alias: clientv3
       # protocols
@@ -652,3 +652,6 @@ linters-settings:
         alias: protoBackend
       - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
         alias: protoFile
+      # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
+      - pkg: github.com/testcontainers/testcontainers-go
+        alias: "tc"
