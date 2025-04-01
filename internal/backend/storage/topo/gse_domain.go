@@ -73,6 +73,8 @@ func (s *Storage) getAgentAccessEndpoints(
 	hosts, count, err := s.daoHost.List(ctx, types.UnlimitedPage(),
 		host.WithNetworkUnitID(networkUnitID),
 		host.WithNodeRole(types.NodeRoleProxy),
+		host.WithNodeStatus(types.NodeStatusRunning),
+		host.WithProxyTag(types.ProxyTagEnable),
 	)
 	if err != nil {
 		return nil, nil, nil,
