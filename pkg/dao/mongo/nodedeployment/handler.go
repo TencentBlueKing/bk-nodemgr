@@ -29,13 +29,13 @@ type IHandler interface {
 	UpdateInfo(ctx context.Context, Token string, info *types.DeploymentInfo) error
 }
 
-// Handler this is a handler to operate node deployment table.
+// Handler this is a Handler to operate node deployment table.
 type Handler struct {
 	dao    *dao
 	logger logger.Logger
 }
 
-// New new a handler.
+// New new a Handler.
 func New(client *mongo.Database, logger logger.Logger) *Handler {
 	h := &Handler{
 		dao:    newDao(client, logger),
