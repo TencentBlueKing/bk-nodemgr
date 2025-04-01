@@ -31,12 +31,11 @@ jobs:
           CONFIG_FILE=".github/pr-labels.json"
           if [ -f "$CONFIG_FILE" ]; then
             echo "配置文件已找到，正在加载..."
-            echo "CONFIG<<EOF" >> $GITHUB_ENV
-            cat "$CONFIG_FILE" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            # 使用base64编码避免特殊字符问题
             echo "CONFIG_EXISTS=true" >> $GITHUB_ENV
+            echo "CONFIG_BASE64=$(base64 -w 0 "$CONFIG_FILE")" >> $GITHUB_ENV
           else
-            echo "配置文件不存在,请检查路径: $CONFIG_FILE"
+            echo "配置文件不存在，请检查路径: $CONFIG_FILE"
             echo "CONFIG_EXISTS=false" >> $GITHUB_ENV
             exit 1
           fi
@@ -44,6 +43,9 @@ jobs:
       - name: Label PR based on title and changed files path.
         if: env.CONFIG_EXISTS == 'true'
         run: |
+          # 解码配置
+          echo '${{ env.CONFIG_BASE64 }}' | base64 -d > pr_config.json
+          
           # 解析配置
           PR_TITLE="${{ github.event.pull_request.title }}"
           
@@ -51,10 +53,10 @@ jobs:
           declare -a labels=()
           
           # 根据PR标题添加标签
-          title_mappings=$(echo '${{ env.CONFIG }}' | jq -r '.titleMappings | length')
+          title_mappings=$(jq -r '.titleMappings | length' pr_config.json)
           for (( i=0; i<$title_mappings; i++ )); do
-            pattern=$(echo '${{ env.CONFIG }}' | jq -r ".titleMappings[$i].pattern")
-            label=$(echo '${{ env.CONFIG }}' | jq -r ".titleMappings[$i].label")
+            pattern=$(jq -r ".titleMappings[$i].pattern" pr_config.json)
+            label=$(jq -r ".titleMappings[$i].label" pr_config.json)
           
             if [[ "$PR_TITLE" == *"$pattern"* ]]; then
               echo "PR标题匹配模式: $pattern，添加标签: $label"
@@ -65,10 +67,10 @@ jobs:
           # 根据变更文件目录添加标签
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             # 遍历所有配置的目录匹配规则
-            dir_mappings=$(echo '${{ env.CONFIG }}' | jq -r '.directoryMappings | length')
+            dir_mappings=$(jq -r '.directoryMappings | length' pr_config.json)
             for (( i=0; i<$dir_mappings; i++ )); do
-              pattern=$(echo '${{ env.CONFIG }}' | jq -r ".directoryMappings[$i].pattern")
-              label=$(echo '${{ env.CONFIG }}' | jq -r ".directoryMappings[$i].label")
+              pattern=$(jq -r ".directoryMappings[$i].pattern" pr_config.json)
+              label=$(jq -r ".directoryMappings[$i].label" pr_config.json)
           
               if [[ $file == *"$pattern"* ]]; then
                 echo "文件 $file 匹配模式: $pattern，添加标签: $label"
@@ -80,7 +82,7 @@ jobs:
           # 删除重复标签
           unique_labels=($(echo "${labels[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
           
-          # 构建GitHub CLI命令添加标签
+          # 使用GitHub CLI添加标签
           for label in "${unique_labels[@]}"; do
             echo "添加标签: $label"
             gh pr edit ${{ github.event.pull_request.number }} --add-label "$label"
