@@ -42,7 +42,7 @@ func (suit *TestSuite[P, T]) SetupSuite() {
 	suit.InitMongo(context.Background(), &mongotest.Config{
 		MongoImage:    "mongo:latest",
 		DatabaseName:  "bknodemgr",
-		ContainerName: fmt.Sprintf("mongo_test_%suit", "bknodemgr"),
+		ContainerName: fmt.Sprintf("mongo_test_%s", "bknodemgr"),
 	})
 
 	suit.initFn(suit.GetDatabase(), suit.logger)
