@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -52,7 +51,9 @@ func (suit *TestSuite) InitMongo(ctx context.Context, testConfig *Config) {
 	}
 	suit.dbName = testConfig.DatabaseName
 
-	if strings.ToLower(os.Getenv("SKIP_CONTAINERS")) == "true" {
+	if _, exist := os.LookupEnv("SKIP_CONTAINERS"); exist {
+		suit.T().Log("SKIP_CONTAINERS is set, skipping container setup")
+
 		mongoURI := os.Getenv("TEST_MONGO_URI")
 		if mongoURI == "" {
 			suit.T().Fatal("TEST_MONGO_URI environment variable must be set when SKIP_CONTAINERS=true")
