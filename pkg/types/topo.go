@@ -184,17 +184,17 @@ type HostDynamic struct {
 type ProxyTag string
 
 const (
-	// ProxyTagEnable means the proxy tag is enabled.
-	ProxyTagEnable ProxyTag = "enabled"
+	// ProxyTagEnabled means the proxy tag is enabled.
+	ProxyTagEnabled ProxyTag = "enabled"
 
-	// ProxyTagDisable means the proxy tag is disabled.
-	ProxyTagDisable ProxyTag = "disabled"
+	// ProxyTagDisabled means the proxy tag is disabled.
+	ProxyTagDisabled ProxyTag = "disabled"
 )
 
 // Validate validates the proxy tag.
 func (tag ProxyTag) Validate() error {
 	switch tag {
-	case ProxyTagEnable, ProxyTagDisable:
+	case ProxyTagEnabled, ProxyTagDisabled:
 		return nil
 	default:
 		return errors.New("invalid proxy tag")
