@@ -102,7 +102,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 			},
 			&types.Host{
 				TenantID: tenantID,
-				HostID:   90003,
+				HostID:   90004,
 				Static: &types.HostStatic{
 					BizID:         0,
 					NetworkAreaID: 0,
