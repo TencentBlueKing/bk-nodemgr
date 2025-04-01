@@ -7,6 +7,9 @@ on:
 jobs:
   check-reviews:
     runs-on: self-hosted
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
 
     steps:
       # Step 1: Checkout the repository

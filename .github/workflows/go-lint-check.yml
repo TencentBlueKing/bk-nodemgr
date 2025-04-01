@@ -17,6 +17,9 @@ jobs:
   golangci-lint:
     name: golangci-lint
     runs-on: self-hosted
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - uses: actions/setup-go@v5
         with:
