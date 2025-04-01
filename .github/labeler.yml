@@ -2,6 +2,17 @@ kind/ci:
   - changed-files:
       - any-glob-to-any-file: '.github/**/*'
 
+kind/documentation:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/**/*'
+      - any-glob-to-any-file: 'README.md'
+      - any-glob-to-any-file: 'proto/**/*'
+
+kind/core:
+  - changed-files:
+      - any-glob-to-any-file: 'install/**/*'
+      - any-glob-to-any-file: 'Makefile'
+
 module/front:
   - changed-files:
       - any-glob-to-any-file: 'front/**/*'
@@ -9,3 +20,12 @@ module/front:
 module/backend:
   - changed-files:
       - any-glob-to-any-file: 'internal/backend/**/*'
+      - any-glob-to-any-file: 'proto/backend/**/*'
+
+module/pkg:
+  - changed-files:
+      - any-glob-to-any-file: 'pkg/**/*'
+
+module/runtime:
+  - changed-files:
+      - any-glob-to-any-file: 'pkg/runtime/**/*'
