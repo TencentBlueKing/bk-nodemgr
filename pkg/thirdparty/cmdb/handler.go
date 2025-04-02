@@ -29,12 +29,82 @@ import (
 
 // IHandler the Handler of cmdb.
 type IHandler interface {
+	// ListServiceTemplate list service template.
+	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
+
+	// NewWatcher new watcher.
+	NewWatcher(tenantID string) (IWatcher, error)
+
+	IEnum
+	IBiz
+	IHost
+	IHostIdentifier
+	INetworkArea
+	IBindHostAgent
+	IUnbindHostAgent
+	IUpdateHostNetworkAreaField
+	IDynamicGroup
+}
+
+// IDynamicGroup this interface is used to edit dynamic group.
+type IDynamicGroup interface {
+	// SearchDynamicGroup search dynamic group.
+	SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
+
+	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
+	ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
+}
+
+// IBiz this interface is used to edit biz info.
+type IBiz interface {
+	// SearchBusiness search business.
+	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
+}
+
+// IEnum this interface is used to get enum resource.
+type IEnum interface {
+	// GetCloudVendors get cloud vendors.
+	GetCloudVendors(ctx context.Context) ([]string, error)
+}
+
+// IHostIdentifier host identifier.
+type IHostIdentifier interface {
+	// PushHostIdentifier push host identifier.
+	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
+
+	// FindHostIdentifierPushResult find host identifier push result.
+	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
+		pendingList []int64, err error)
+
+	// ListResourcePoolHosts list resource pool hosts.
+	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
+
+	// AddHostToResourcePool add host to resource pool
+	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+		failedIndexMsg []string, err error)
+
+	// AddHostToBusinessIdle add host to business idle
+	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
+}
+
+// IHost this interface is used to edit host info.
+type IHost interface {
 	// ListBizHosts list biz hosts.
 	ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error)
 
-	// SearchBusiness search business.
-	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
+	// ListHostsWithoutBusiness list hosts without business.
+	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
 
+	// FindHostByServiceTemplate find host by service template.
+	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
+		[]*types.Host, error)
+
+	// CheckBizHostByIP check biz host by ip
+	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
+}
+
+// INetworkArea this interface is used to edit network area.
+type INetworkArea interface {
 	// SearchNetworkArea search network area.
 	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
 
@@ -46,57 +116,22 @@ type IHandler interface {
 
 	// DeleteNetworkArea delete network area.
 	DeleteNetworkArea(ctx context.Context, id int64) error
+}
 
+// IBindHostAgent this interface is used to bind host agent.
+type IBindHostAgent interface {
+	BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
+}
+
+// IUnbindHostAgent this interface is used to unbind host agent.
+type IUnbindHostAgent interface {
+	UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
+}
+
+// IUpdateHostNetworkAreaField this interface is used to update host network area field.
+type IUpdateHostNetworkAreaField interface {
 	// UpdateHostNetworkAreaField update host network area field.
 	UpdateHostNetworkAreaField(ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error
-
-	// GetCloudVendors get cloud vendors.
-	GetCloudVendors(ctx context.Context) ([]string, error)
-
-	// BindHostAgent bind host agent
-	BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
-
-	// UnbindHostAgent bind host agent
-	UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
-
-	// AddHostToBusinessIdle add host to business idle
-	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
-
-	// PushHostIdentifier push host identifier.
-	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
-
-	// FindHostIdentifierPushResult find host identifier push result.
-	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
-		pendingList []int64, err error)
-
-	// ListResourcePoolHosts list resource pool hosts.
-	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
-
-	// ListHostsWithoutBusiness list hosts without business.
-	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
-
-	// AddHostToResourcePool add host to resource pool
-	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
-		failedIndexMsg []string, err error)
-
-	// SearchDynamicGroup search dynamic group.
-	SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
-
-	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-	ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
-
-	// ListServiceTemplate list service template.
-	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
-
-	// FindHostByServiceTemplate find host by service template.
-	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
-		[]*types.Host, error)
-
-	// NewWatcher new watcher.
-	NewWatcher(tenantID string) (IWatcher, error)
-
-	// CheckBizHostByIP check biz host by ip
-	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
 }
 
 // Handler the Handler of cmdb.

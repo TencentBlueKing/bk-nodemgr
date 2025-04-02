@@ -365,13 +365,13 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 			}
 			err = h.BindHostAgent(tt.args.ctx, hosts...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("BindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("IBindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			err = h.UnbindHostAgent(tt.args.ctx, hosts...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UnbindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("IUnbindHostAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
