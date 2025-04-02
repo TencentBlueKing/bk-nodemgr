@@ -80,7 +80,7 @@ func (action *UpsertHost) Tags() []operengine.ActionTag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (action *UpsertHost) MaxRetryCount() uint {
-	return 3
+	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.

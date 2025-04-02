@@ -153,5 +153,6 @@ func (action *BindAgentHostRel) checkHostExist(ctx context.Context, info *types.
 	if daoHost == nil {
 		return fmt.Errorf("host not found, host-id(%d)", info.HostID)
 	}
+
 	return nil
 }

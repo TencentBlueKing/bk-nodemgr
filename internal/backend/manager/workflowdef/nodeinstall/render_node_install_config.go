@@ -41,7 +41,7 @@ func NewActionRenderNodeInstallConfig(
 	return &RenderNodeInstallConfig{
 		iDaoNodeDeployment: storage,
 		iDaoHost:           iDaoHost,
-		iDomainGseProxy:    iDomainGseProxy,
+		IDomainGse:         iDomainGseProxy,
 		logger:             logger,
 	}
 }
@@ -55,7 +55,7 @@ type RenderNodeInstallConfigParam struct {
 type RenderNodeInstallConfig struct {
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	iDaoHost           topo.IDaoHost
-	iDomainGseProxy    topo.IDomainGse
+	topo.IDomainGse
 
 	logger logger.Logger
 }
@@ -425,7 +425,7 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := action.iDomainGseProxy.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := action.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
@@ -440,7 +440,7 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 			preSetting[GseFileAgentAdvertiseIPV6] = advertiseIPV6
 			preSetting[GseFileTopologyAdvertiseIP] = advertiseIP
 
-			clusters, files, datas, err := action.iDomainGseProxy.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := action.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
