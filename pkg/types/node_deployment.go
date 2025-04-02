@@ -30,6 +30,7 @@ type DeploymentInfo struct {
 }
 
 // Validate this is the validate for node deployment.
+// nolint: gocognit
 func (info DeploymentInfo) Validate() error {
 	if info.OperInstID == "" {
 		return errors.New("oper_inst_id shouldn't not be empty")
@@ -81,6 +82,7 @@ func (info DeploymentInfo) Validate() error {
 		return errors.New("addressing shouldn't not be empty")
 	}
 
+	// nolint: nestif
 	if info.Dynamic.NodeRole == NodeRoleProxy {
 		if info.Dynamic.ProxyClusterPort > 0 {
 			return errors.New("proxy_cluster_port should be 0")
@@ -93,15 +95,15 @@ func (info DeploymentInfo) Validate() error {
 		}
 	} else {
 		if info.Dynamic.ProxyClusterPort != 0 {
-			return fmt.Errorf("node_role is not proxy, proxy_cluster_port should be 0")
+			return errors.New("node_role is not proxy, proxy_cluster_port should be 0")
 		}
 
 		if info.Dynamic.ProxyDataPort != 0 {
-			return fmt.Errorf("node_role is not proxy, proxy_data_port should be 0")
+			return errors.New("node_role is not proxy, proxy_data_port should be 0")
 		}
 
 		if info.Dynamic.ProxyFilePort != 0 {
-			return fmt.Errorf("node_role is not proxy, proxy_file_port should be 0")
+			return errors.New("node_role is not proxy, proxy_file_port should be 0")
 		}
 	}
 
