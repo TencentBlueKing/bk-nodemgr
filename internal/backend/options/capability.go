@@ -48,7 +48,7 @@ type Capability struct {
 	NodeDeploymentStorage nodedeployment.IStorage
 
 	// CmdbHandler cmdb handler.
-	CmdbHandler cmdb.Handler
+	CmdbHandler cmdb.IHandler
 
 	// Logger logger
 	Logger logger.Logger

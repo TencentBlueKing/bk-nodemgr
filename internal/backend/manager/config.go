@@ -24,7 +24,7 @@ import (
 
 // Config defines the config of manager.
 type Config struct {
-	CmdbHandler cmdb.Handler
+	CmdbHandler cmdb.IHandler
 	TopoStorage topoStorage.IStorage
 
 	LockerFactory locker.MutexFactory

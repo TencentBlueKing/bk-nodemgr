@@ -27,8 +27,8 @@ import (
 // This document is responsible for processing the conversion of original requests and responses
 // from the third-party system and the internal data of the nodeman system.
 
-// Handler the handler of cmdb.
-type Handler interface {
+// IHandler the Handler of cmdb.
+type IHandler interface {
 	// ListBizHosts list biz hosts.
 	ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error)
 
@@ -99,7 +99,8 @@ type Handler interface {
 	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
 }
 
-type handler struct {
+// Handler the Handler of cmdb.
+type Handler struct {
 	cli    *cli
 	logger logger.Logger
 
@@ -116,23 +117,23 @@ const (
 )
 
 // OptionFn ...
-type OptionFn func(*handler)
+type OptionFn func(*Handler)
 
-// WithLogger this func will set the logger of the handler.
+// WithLogger this func will set the logger of the Handler.
 func WithLogger(logger logger.Logger) OptionFn {
-	return func(s *handler) {
+	return func(s *Handler) {
 		s.logger = logger
 	}
 }
 
-// New initialize a new cmdb handler.
-func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) {
+// New initialize a new cmdb Handler.
+func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	h := &handler{
+	h := &Handler{
 		cli:    cli,
 		logger: logger.LoggerDefault{},
 
@@ -149,7 +150,7 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) 
 	return h, nil
 }
 
-func (h *handler) initEnumKeepers() {
+func (h *Handler) initEnumKeepers() {
 	h.scheduler = scheduler.NewScheduler()
 
 	h.scheduler.RegisterTask(&scheduler.Task{
@@ -194,7 +195,7 @@ func (h *handler) initEnumKeepers() {
 }
 
 // ListBizHosts list biz hosts.
-func (h *handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error) {
+func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -224,7 +225,7 @@ func (h *handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 }
 
 // SearchBusiness search business.
-func (h *handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error) {
+func (h *Handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -258,7 +259,7 @@ func (h *handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types
 }
 
 // SearchNetworkArea search network area.
-func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error) {
+func (h *Handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -287,7 +288,7 @@ func (h *handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*ty
 }
 
 // CreateNetworkArea create network area.
-func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (
+func (h *Handler) CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (
 	*types.NetworkArea, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -317,7 +318,7 @@ func (h *handler) CreateNetworkArea(ctx context.Context, networkAreaName string,
 }
 
 // UpdateNetworkArea update network area.
-func (h *handler) UpdateNetworkArea(
+func (h *Handler) UpdateNetworkArea(
 	ctx context.Context, id int64, networkAreaName string, cloudVendor string) error {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -341,7 +342,7 @@ func (h *handler) UpdateNetworkArea(
 }
 
 // DeleteNetworkArea delete network area.
-func (h *handler) DeleteNetworkArea(ctx context.Context, id int64) error {
+func (h *Handler) DeleteNetworkArea(ctx context.Context, id int64) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -361,7 +362,7 @@ func (h *handler) DeleteNetworkArea(ctx context.Context, id int64) error {
 }
 
 // UpdateHostNetworkAreaField update host network area field.
-func (h *handler) UpdateHostNetworkAreaField(
+func (h *Handler) UpdateHostNetworkAreaField(
 	ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -385,12 +386,12 @@ func (h *handler) UpdateHostNetworkAreaField(
 }
 
 // GetCloudVendors get cloud vendors.
-func (h *handler) GetCloudVendors(_ context.Context) ([]string, error) {
+func (h *Handler) GetCloudVendors(_ context.Context) ([]string, error) {
 	return h.cloudVendorKeeper.values(), nil
 }
 
 // BindHostAgent bind host agent.
-func (h *handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
+func (h *Handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -416,7 +417,7 @@ func (h *handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) er
 }
 
 // UnbindHostAgent bind host agent.
-func (h *handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
+func (h *Handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -442,7 +443,7 @@ func (h *handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) 
 }
 
 // AddHostToBusinessIdle add host to business idle.
-func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) (
+func (h *Handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) (
 	[]int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -468,7 +469,7 @@ func (h *handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts 
 
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
-func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error) {
+func (h *Handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -488,7 +489,7 @@ func (h *handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (tas
 
 // FindHostIdentifierPushResult find host identifier push result.
 // nolint: nonamedreturns
-func (h *handler) FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64,
+func (h *Handler) FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -510,7 +511,7 @@ func (h *handler) FindHostIdentifierPushResult(ctx context.Context, taskID strin
 }
 
 // ListResourcePoolHosts list resource pool hosts.
-func (h *handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error) {
+func (h *Handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -540,7 +541,7 @@ func (h *handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([
 }
 
 // ListHostsWithoutBusiness list hosts without business.
-func (h *handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error) {
+func (h *Handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -571,7 +572,7 @@ func (h *handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 // AddHostToResourcePool add host to resource pool.
 // nolint: nonamedreturns
-func (h *handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+func (h *Handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
 	failedIndexMsg []string, err error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -604,7 +605,7 @@ func (h *handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Hos
 }
 
 // ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) (
+func (h *Handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) (
 	[]*types.Host, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -651,7 +652,7 @@ func (h *handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 }
 
 // SearchDynamicGroup search dynamic group.
-func (h *handler) SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) (
+func (h *Handler) SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) (
 	[]*types.DynamicGroup, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -688,7 +689,7 @@ func (h *handler) SearchDynamicGroup(ctx context.Context, bizID int64, page type
 }
 
 // ListServiceTemplate list service template.
-func (h *handler) ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate,
+func (h *Handler) ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate,
 	error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -727,7 +728,7 @@ func (h *handler) ListServiceTemplate(ctx context.Context, bizID int64, page typ
 }
 
 // FindHostByServiceTemplate find host by service template.
-func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page,
+func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page,
 	serviceTemplateIDs ...int64) ([]*types.Host, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -762,14 +763,14 @@ func (h *handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 }
 
 // NewWatcher new watcher.
-func (h *handler) NewWatcher(tenantID string) (IWatcher, error) {
+func (h *Handler) NewWatcher(tenantID string) (IWatcher, error) {
 	watcher := NewWatcher(tenantID, h)
 
 	return watcher, nil
 }
 
 // convHostInfoToTypes convert host info to types.Host.
-func (h *handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
+func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
 	data := &types.Host{
 		HostID:   hostInfo.BKHostID,
 		TenantID: tenantID,
@@ -794,7 +795,7 @@ func (h *handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *type
 	return data
 }
 
-func (h *handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo {
+func (h *Handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo {
 	return &CreateHostInfo{
 		BKCloudID:         host.Static.NetworkAreaID,
 		BKHostInnerIP:     host.Static.InnerIP,
@@ -807,7 +808,7 @@ func (h *handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo 
 	}
 }
 
-func (h *handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *types.NetworkArea {
+func (h *Handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *types.NetworkArea {
 	return &types.NetworkArea{
 		TenantID:    tenantID,
 		ID:          cloudArea.BKCloudID,
@@ -829,7 +830,7 @@ func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.HostRel {
 }
 
 // CheckBizHostByIP check biz host by ip.
-func (h *handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error) {
+func (h *Handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return false, err

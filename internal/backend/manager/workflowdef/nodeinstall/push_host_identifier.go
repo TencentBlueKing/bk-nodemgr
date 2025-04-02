@@ -26,7 +26,7 @@ import (
 )
 
 // NewActionPushHostIdentifier ...
-func NewActionPushHostIdentifier(gseClient gse.IHandler, cmdbClient cmdb.Handler,
+func NewActionPushHostIdentifier(gseClient gse.IHandler, cmdbClient cmdb.IHandler,
 	storage nodedeployment.IStorage, logger logger.Logger) *PushHostIdentifier {
 
 	return &PushHostIdentifier{
@@ -45,7 +45,7 @@ type PushHostIdentifierParam struct {
 // PushHostIdentifier ...
 type PushHostIdentifier struct {
 	gseClient  gse.IHandler
-	cmdbClient cmdb.Handler
+	cmdbClient cmdb.IHandler
 	storage    nodedeployment.IStorage
 	logger     logger.Logger
 }

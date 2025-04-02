@@ -25,7 +25,7 @@ type handler struct {
 	rg          *gin.RouterGroup
 	manager     manager.Manager
 	storage     topo.IStorage
-	cmdbHandler cmdb.Handler
+	cmdbHandler cmdb.IHandler
 	logger      logger.Logger
 }
 

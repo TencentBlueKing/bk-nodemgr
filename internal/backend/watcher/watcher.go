@@ -22,7 +22,7 @@ import (
 
 // Config defines the configuration of watcher.
 type Config struct {
-	CmdbHandler cmdb.Handler
+	CmdbHandler cmdb.IHandler
 	TopoStorage topo.IStorage
 	Manager     manager.Manager
 }

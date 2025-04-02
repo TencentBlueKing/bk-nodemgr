@@ -26,7 +26,7 @@ import (
 )
 
 // NewActionBindAgentHostRel ...
-func NewActionBindAgentHostRel(cmdbHandler cmdb.Handler, hostDao topo.IDaoHost,
+func NewActionBindAgentHostRel(cmdbHandler cmdb.IHandler, hostDao topo.IDaoHost,
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) *BindAgentHostRel {
 
 	return &BindAgentHostRel{
@@ -44,7 +44,7 @@ type BindAgentHostRelParam struct {
 
 // BindAgentHostRel ...
 type BindAgentHostRel struct {
-	cmdbHandler       cmdb.Handler
+	cmdbHandler       cmdb.IHandler
 	hostDao           topo.IDaoHost
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment
 	logger            logger.Logger

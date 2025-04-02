@@ -27,7 +27,7 @@ import (
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.Handler, topoStorage topo.IStorage,
+func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topo.IStorage,
 	logger logger.Logger) operengine.ActionDef {
 
 	return &syncBusinessFromCMDB{
@@ -44,7 +44,7 @@ type SyncBizFromCMDBParam struct {
 
 // syncBusinessFromCMDB sync business info from cmdb.
 type syncBusinessFromCMDB struct {
-	cmdbHandler cmdb.Handler
+	cmdbHandler cmdb.IHandler
 	topoStorage topo.IStorage
 	logger      logger.Logger
 }

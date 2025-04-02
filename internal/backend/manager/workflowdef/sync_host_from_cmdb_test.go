@@ -27,7 +27,7 @@ func Test_syncHostFromCMDB_Do(t *testing.T) {
 	ctx, _ := tenant.SetID(context.Background(), "bk_nodeman")
 
 	type fields struct {
-		cmdbHandler cmdb.Handler
+		cmdbHandler cmdb.IHandler
 		topoStorage topo.IStorage
 	}
 	type args struct {

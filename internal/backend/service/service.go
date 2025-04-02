@@ -343,7 +343,7 @@ func withCallback(capability *options.Capability) rest.OptionFunc {
 }
 
 // newCMDBHandler.
-func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.Handler, error) {
+func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, error) {
 	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
 	if err != nil {

@@ -40,7 +40,7 @@ type IWatcher interface {
 // Watcher implements the IWatcher interface.
 type Watcher struct {
 	scheduler scheduler.Scheduler
-	handler   *handler
+	handler   *Handler
 	logger    logger.Logger
 
 	tenantID string
@@ -61,7 +61,7 @@ type Watcher struct {
 }
 
 // NewWatcher create a new watcher.
-func NewWatcher(tenantID string, handler *handler) *Watcher {
+func NewWatcher(tenantID string, handler *Handler) *Watcher {
 	w := &Watcher{
 		scheduler: scheduler.NewScheduler(scheduler.WithLogger(handler.logger)),
 		logger:    handler.logger,

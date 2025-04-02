@@ -53,7 +53,7 @@ type Capability struct {
 	NodeDeploymentStorage nodedeployment.Storage
 
 	// CmdbHandler cmdb handler.
-	CmdbHandler cmdb.Handler
+	CmdbHandler cmdb.IHandler
 
 	// GseHandler gse handler.
 	GseHandler gse.IHandler
