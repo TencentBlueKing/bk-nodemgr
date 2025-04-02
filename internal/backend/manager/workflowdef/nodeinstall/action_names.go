@@ -19,4 +19,7 @@ const (
 
 	// ActionNamePushHostIdentifier the name of PushHostIdentifier.
 	ActionNamePushHostIdentifier = "push_host_identifier"
+
+	// ActionNameUpsertHost the name of UpsertHost.
+	ActionNameUpsertHost = "upsert_host"
 )
