@@ -28,6 +28,7 @@ import (
 // from the third-party system and the internal data of the nodeman system.
 
 // IHandler the Handler of cmdb.
+// nolint: interfacebloat
 type IHandler interface {
 	// ListServiceTemplate list service template.
 	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
