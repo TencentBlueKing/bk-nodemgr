@@ -14,6 +14,15 @@
       "code_example": "",
       "language": "golang",
       "docs_url": ""
+    },
+    {
+      "id": "pkg-thirdparty-cmdb",
+      "category": "thirdparty review 注意事项",
+      "file_patterns": ["pkg/thirdparty/**/*.go"],
+      "description": "请关注下列要点：\n1. 概念隔离：不要直接将 CMDB 中的概念引入到业务逻辑中，保持概念的清晰和隔离。\n 2. 类型隔离： 注意入参和出参只能接受标准类型和`pkg/types`中的类型，避免使用其他类型。",
+      "code_example": "",
+      "language": "golang",
+      "docs_url": ""
     }
   ]
 }
