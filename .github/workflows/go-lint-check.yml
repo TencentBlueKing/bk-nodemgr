@@ -10,7 +10,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write  # 升级为 write 权限以允许添加审查
+  pull-requests: write
   checks: write
 
 jobs:
@@ -67,5 +67,6 @@ jobs:
               owner,
               repo,
               pull_number,
+              body: '### ❌ Lint 检查失败\n\nGolangCI-Lint 发现了一些问题，请修复这些 lint 警告后再次提交。\n\n详情请查看 [Lint 检查日志](https://github.com/'+owner+'/'+repo+'/actions/runs/'+context.runId+')',
               event: 'REQUEST_CHANGES'
             });
