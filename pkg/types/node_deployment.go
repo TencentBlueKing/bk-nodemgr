@@ -30,7 +30,7 @@ type DeploymentInfo struct {
 }
 
 // Validate this is the validate for node deployment.
-// nolint: gocognit
+// nolint: gocognit,gocyclo,cyclop
 func (info DeploymentInfo) Validate() error {
 	if info.OperInstID == "" {
 		return errors.New("oper_inst_id shouldn't not be empty")
