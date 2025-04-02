@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
@@ -109,15 +110,20 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 		return err
 	}
 
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	if err != nil {
+		return err
+	}
+
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := action.iDaoNodeDeployment.GetNodeConf(ctx.Ctx, param.Token)
+	nodeConf, err := action.iDaoNodeDeployment.GetNodeConf(tenantCtx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.renderPreSetting(ctx.Ctx, nodeConf, info); err != nil {
+		if err := action.renderPreSetting(tenantCtx, nodeConf, &info.Host); err != nil {
 			return fmt.Errorf("render pre setting failed, err: %w", err)
 		}
 
@@ -140,7 +146,7 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := action.iDaoNodeDeployment.SetNodeConf(ctx.Ctx, param.Token, nodeConf); err != nil {
+	if err := action.iDaoNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
@@ -148,13 +154,13 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 }
 
 func (action *RenderNodeInstallConfig) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
-	info *types.DeploymentInfo) error {
+	host *types.Host) error {
 
-	if err := action.renderDefaultSetting(nodeConf.PreSetting, info.NodeRole); err != nil {
+	if err := action.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
 		return fmt.Errorf("render default setting failed, err: %w", err)
 	}
 
-	if err := action.renderLogicSetting(ctx, nodeConf.PreSetting, info); err != nil {
+	if err := action.renderLogicSetting(ctx, nodeConf.PreSetting, host); err != nil {
 		return fmt.Errorf("render logic setting failed, err: %w", err)
 	}
 
@@ -365,19 +371,19 @@ const (
 // renderLogicSetting load logic setting to the config presetting.
 // nolint: nonamedreturns
 func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, preSetting map[string]any,
-	info *types.DeploymentInfo) (err error) {
+	host *types.Host) (err error) {
 
-	osType, err := platform.NormalizeOS(info.OSType)
+	osType, err := platform.NormalizeOS(host.Static.OSType)
 	if err != nil {
 		return err
 	}
 
-	host, err := action.iDaoHost.GetHostByID(ctx, info.HostID)
-	if err != nil {
+	// this is a special case, when the deployment is reverted, the host id is not in the host table.
+	if err := action.checkHostExist(ctx, host.HostID); err != nil {
 		return err
 	}
 
-	deploymentConf, err := deployconstant.GetDeployConf(info.NodeGeneration, osType)
+	deploymentConf, err := deployconstant.GetDeployConf(host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("get deploy conf failed, err: %w", err)
 	}
@@ -392,7 +398,7 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 		return advertiseIPV6
 	}()
 
-	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(info.NodeRole))
+	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(host.Dynamic.NodeRole))
 	certDir := joinPath(osType, deploymentConf.GseHomeDir, "cert")
 	preSetting[GseHomeDirKey] = homeDir
 
@@ -416,10 +422,10 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 	preSetting[GseAgentBasePluginIPCKey] = deploymentConf.GsePluginIPC
 	preSetting[GseDataIPCKey] = deploymentConf.GseDataDir
 
-	switch info.NodeRole {
+	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := action.iDomainGseProxy.GetV4AgentAccessEndpoints(ctx, info.NetworkUnitID)
+			clusters, files, datas, err := action.iDomainGseProxy.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
@@ -434,7 +440,7 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 			preSetting[GseFileAgentAdvertiseIPV6] = advertiseIPV6
 			preSetting[GseFileTopologyAdvertiseIP] = advertiseIP
 
-			clusters, files, datas, err := action.iDomainGseProxy.GetProxyUpstreamAccessEndpoints(ctx, info.NetworkUnitID)
+			clusters, files, datas, err := action.iDomainGseProxy.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
@@ -449,7 +455,7 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 			preSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 		}
 	default:
-		return fmt.Errorf("unsupported node role: %s", info.NodeRole)
+		return fmt.Errorf("unsupported node role: %s", host.Dynamic.NodeRole)
 	}
 
 	return nil
@@ -515,6 +521,18 @@ func (action *RenderNodeInstallConfig) renderCustomSetting(conf *types.NodeConf,
 	}
 
 	// TODO: Rendering strategy logic
+
+	return nil
+}
+func (action *RenderNodeInstallConfig) checkHostExist(ctx context.Context, hostID int64) error {
+	host, err := action.iDaoHost.GetHostByID(ctx, hostID)
+	if err != nil {
+		return fmt.Errorf("get host info failed, err: %w", err)
+	}
+
+	if host == nil {
+		return fmt.Errorf("host not found, host-id(%d)", hostID)
+	}
 
 	return nil
 }

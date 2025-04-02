@@ -76,24 +76,38 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		OperInstID:       info.OperInstID,
-		ActionName:       info.ActionName,
-		HostID:           info.HostID,
-		OSType:           info.OSType,
-		TenantID:         info.TenantID,
-		NodeRole:         types.NodeRole(info.NodeRole),
-		NodeStatus:       types.NodeStatus(info.NodeStatus),
-		NodeVersion:      info.NodeVersion,
-		NodeGeneration:   info.NodeGeneration,
-		AgentID:          info.AgentID,
-		NetworkUnitID:    info.NetworkUnitID,
-		BizID:            info.BizID,
-		NetworkAreaID:    info.NetworkAreaID,
-		InnerIP:          info.InnerIP,
-		Addressing:       types.Addressing(info.Addressing),
-		ProxyClusterPort: info.ProxyClusterPort,
-		ProxyDataPort:    info.ProxyDataPort,
-		ProxyFilePort:    info.ProxyFilePort,
+		OperInstID: info.OperInstID,
+		ActionName: info.ActionName,
+		Host: types.Host{
+			HostID:   info.HostID,
+			TenantID: info.TenantID,
+			Static: &types.HostStatic{
+				BizID:         info.BizID,
+				NetworkAreaID: info.NetworkAreaID,
+				InnerIP:       info.InnerIP,
+				OSType:        info.OSType,
+				Addressing:    types.Addressing(info.Addressing),
+			},
+			Dynamic: &types.HostDynamic{
+				NodeRole:       types.NodeRole(info.NodeRole),
+				NodeStatus:     types.NodeStatus(info.NodeStatus),
+				NodeVersion:    info.NodeVersion,
+				NodeGeneration: info.NodeGeneration,
+				AgentID:        info.AgentID,
+				NetworkUnitID:  info.NetworkUnitID,
+				ProxyTags: func() []types.ProxyTag {
+					tags := make([]types.ProxyTag, len(info.ProxyTags))
+					for i, tag := range info.ProxyTags {
+						tags[i] = types.ProxyTag(tag)
+					}
+
+					return tags
+				}(),
+				ProxyClusterPort: info.ProxyClusterPort,
+				ProxyDataPort:    info.ProxyDataPort,
+				ProxyFilePort:    info.ProxyFilePort,
+			},
+		},
 	}, nil
 }
 
@@ -241,24 +255,32 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 	}
 
 	data := &Info{
-		OperInstID:       info.OperInstID,
-		ActionName:       info.ActionName,
-		HostID:           info.HostID,
-		OSType:           info.OSType,
-		TenantID:         info.TenantID,
-		NodeRole:         string(info.NodeRole),
-		NodeStatus:       string(info.NodeStatus),
-		NodeVersion:      info.NodeVersion,
-		NodeGeneration:   info.NodeGeneration,
-		AgentID:          info.AgentID,
-		NetworkUnitID:    info.NetworkUnitID,
-		NetworkAreaID:    info.NetworkAreaID,
-		BizID:            info.BizID,
-		InnerIP:          info.InnerIP,
-		Addressing:       string(info.Addressing),
-		ProxyClusterPort: info.ProxyClusterPort,
-		ProxyDataPort:    info.ProxyDataPort,
-		ProxyFilePort:    info.ProxyFilePort,
+		OperInstID:     info.OperInstID,
+		ActionName:     info.ActionName,
+		HostID:         info.Host.HostID,
+		OSType:         info.Host.Static.OSType,
+		TenantID:       info.Host.TenantID,
+		NodeRole:       string(info.Host.Dynamic.NodeRole),
+		NodeStatus:     string(info.Host.Dynamic.NodeStatus),
+		NodeVersion:    info.Host.Dynamic.NodeVersion,
+		NodeGeneration: info.Host.Dynamic.NodeGeneration,
+		AgentID:        info.Host.Dynamic.AgentID,
+		NetworkUnitID:  info.Host.Dynamic.NetworkUnitID,
+		NetworkAreaID:  info.Host.Static.NetworkAreaID,
+		BizID:          info.Host.Static.BizID,
+		InnerIP:        info.Host.Static.InnerIP,
+		Addressing:     string(info.Host.Static.Addressing),
+		ProxyTags: func() []string {
+			tags := make([]string, len(info.Host.Dynamic.ProxyTags))
+			for i, tag := range info.Host.Dynamic.ProxyTags {
+				tags[i] = string(tag)
+			}
+
+			return tags
+		}(),
+		ProxyClusterPort: info.Host.Dynamic.ProxyClusterPort,
+		ProxyDataPort:    info.Host.Dynamic.ProxyDataPort,
+		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
 	}
 
 	return data, nil

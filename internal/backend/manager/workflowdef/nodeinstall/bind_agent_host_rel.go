@@ -11,6 +11,7 @@
 package nodeinstall
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,11 +27,11 @@ import (
 )
 
 // NewActionBindAgentHostRel ...
-func NewActionBindAgentHostRel(cmdbHandler cmdb.IHandler, hostDao topo.IDaoHost,
+func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topo.IDaoHost,
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) *BindAgentHostRel {
 
 	return &BindAgentHostRel{
-		cmdbHandler:       cmdbHandler,
+		IBindHostAgent:    bindHostAgent,
 		hostDao:           hostDao,
 		nodeDeploymentDao: nodeDeploymentDao,
 		logger:            logger,
@@ -44,7 +45,7 @@ type BindAgentHostRelParam struct {
 
 // BindAgentHostRel ...
 type BindAgentHostRel struct {
-	cmdbHandler       cmdb.IHandler
+	cmdb.IBindHostAgent
 	hostDao           topo.IDaoHost
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment
 	logger            logger.Logger
@@ -105,39 +106,30 @@ func (action *BindAgentHostRel) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	host, err := action.hostDao.GetHostByID(tenantCtx, info.HostID)
-	if err != nil {
-		return fmt.Errorf("get host info failed, err: %w", err)
-	}
-
-	host.Dynamic = &types.HostDynamic{
-		NodeRole:       info.NodeRole,
-		NodeStatus:     info.NodeStatus,
-		NodeVersion:    info.NodeVersion,
-		NodeGeneration: info.NodeGeneration,
-		AgentID:        info.AgentID,
-		NetworkUnitID:  info.NetworkUnitID,
+	// this is a special case, when the deployment is reverted, the host id is not in the host table.
+	if err := action.checkHostExist(tenantCtx, info); err != nil {
+		return err
 	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.cmdbHandler.BindHostAgent(tenantCtx, host); err != nil {
+		if err := action.BindHostAgent(tenantCtx, &info.Host); err != nil {
 			return err
 		}
 
 		action.logger.Infof("successfully bind host agent relation to cmdb, host-id(%d), agent-id(%s)",
-			host.HostID, host.Dynamic.AgentID)
+			info.HostID, info.Dynamic.AgentID)
 
 		return nil
 	})
 
 	gp.Go(func() error {
-		if err := action.hostDao.UpdateManyHostDynamic(tenantCtx, host); err != nil {
+		if err := action.hostDao.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
 			return err
 		}
 
 		action.logger.Infof("successfully bind host agent relation to db, host-id(%d), agent-id(%s)",
-			host.HostID, host.Dynamic.AgentID)
+			info.HostID, info.Dynamic.AgentID)
 
 		return nil
 	})
@@ -146,8 +138,20 @@ func (action *BindAgentHostRel) Do(ctx *operengine.ActionInstContext) error {
 		return fmt.Errorf("bind host agent relation failed, err: %w", err)
 	}
 
-	ctx.Data.Log(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", host.HostID,
-		host.Dynamic.AgentID))
+	ctx.Data.Log(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.HostID,
+		info.Dynamic.AgentID))
 
+	return nil
+}
+
+func (action *BindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
+	daoHost, err := action.hostDao.GetHostByID(ctx, info.HostID)
+	if err != nil {
+		return fmt.Errorf("get host info failed, err: %w", err)
+	}
+
+	if daoHost == nil {
+		return fmt.Errorf("host not found, host-id(%d)", info.HostID)
+	}
 	return nil
 }

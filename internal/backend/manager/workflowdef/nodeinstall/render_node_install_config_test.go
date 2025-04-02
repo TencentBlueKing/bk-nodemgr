@@ -18,27 +18,40 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/test/basetest"
 )
 
-func TestRenderNodeInstallConfig_Do(t *testing.T) {
-	capability := testCapability(t)
+// TestRenderNodeInstallConfig is a test suite for the RenderNodeInstallConfig action
+type TestSuite struct {
+	basetest.TestSuit
+	capability *Capability
+}
 
-	err := deployconstant.SetDeployConf(deployconstant.DeployConf{
-		Generation:    2,
-		OsType:        criteria.OSWindows,
-		HostIDPath:    "/var/lib/gse/host",
-		GseDataIPC:    "/usr/local/gse2/agent/data/ipc.state.report",
-		GsePluginIPC:  "/usr/local/gse2/agent/lib/ipc.state.message",
-		GseHomeDir:    "/usr/local/gse2",
-		GseDataDir:    "/var/lib/gse2",
-		GseRunDir:     "/var/run/gse2",
-		GseLogDir:     "/var/log/gse2",
-		GseEnvironDir: "/etc/sysconfig/gse/gse2",
+// testCapability initializes the capability for the test suite
+func TestAll(t *testing.T) {
+	suit := new(TestSuite)
+	suit.AddSetupSuiteFunc(func() {
+		suit.capability = testCapability(t)
+
+		err := deployconstant.SetDeployConf(deployconstant.DeployConf{
+			Generation:    2,
+			OsType:        criteria.OSLinux,
+			HostIDPath:    "/var/lib/gse/host",
+			GseDataIPC:    "/usr/local/gse2/agent/data/ipc.state.report",
+			GsePluginIPC:  "/usr/local/gse2/agent/lib/ipc.state.message",
+			GseHomeDir:    "/usr/local/gse2",
+			GseDataDir:    "/var/lib/gse2",
+			GseRunDir:     "/var/run/gse2",
+			GseLogDir:     "/var/log/gse2",
+			GseEnvironDir: "/etc/sysconfig/gse/gse2",
+		})
+		suit.Require().NoError(err, "failed to set deploy conf")
 	})
-	if err != nil {
-		t.Fatalf("failed to set deploy conf: %v", err)
-	}
 
+	basetest.RunTests(t, suit)
+}
+
+func (suite *TestSuite) TestRenderNodeInstallConfig_Do() {
 	type args struct {
 		ctx *operengine.ActionInstContext
 	}
@@ -71,16 +84,17 @@ func TestRenderNodeInstallConfig_Do(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.Run(tt.name, func() {
 			action := NewActionRenderNodeInstallConfig(
-				capability.NodeDeploymentStorage,
-				capability.TopoStorage,
-				capability.TopoStorage,
-				capability.Logger,
+				suite.capability.NodeDeploymentStorage,
+				suite.capability.TopoStorage,
+				suite.capability.TopoStorage,
+				suite.capability.Logger,
 			)
-			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
-				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := action.Do(tt.args.ctx)
+			suite.Require().NoError(err, "failed to execute action")
+
+			suite.T().Logf("action result: %v", tt.args.ctx.Data.Content)
 		})
 	}
 }

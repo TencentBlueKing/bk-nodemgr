@@ -10,6 +10,11 @@
 
 package types
 
+import (
+	"errors"
+	"fmt"
+)
+
 // NodeDeployment this is the info for node deployment.
 type NodeDeployment struct {
 	Token    string
@@ -19,24 +24,88 @@ type NodeDeployment struct {
 
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	OperInstID       string
-	ActionName       string
-	HostID           int64
-	OSType           string
-	TenantID         string
-	NodeRole         NodeRole
-	NodeStatus       NodeStatus
-	NodeVersion      string
-	NodeGeneration   int64
-	AgentID          string
-	NetworkUnitID    int64
-	BizID            int64
-	NetworkAreaID    int64
-	InnerIP          string
-	Addressing       Addressing
-	ProxyClusterPort int64
-	ProxyDataPort    int64
-	ProxyFilePort    int64
+	OperInstID string
+	ActionName string
+	Host
+}
+
+// Validate this is the validate for node deployment.
+func (info DeploymentInfo) Validate() error {
+	if info.OperInstID == "" {
+		return errors.New("oper_inst_id shouldn't not be empty")
+	}
+
+	if info.ActionName == "" {
+		return errors.New("action_name shouldn't not be empty")
+	}
+
+	if info.Host.HostID < 0 {
+		return errors.New("host_id should be equal or greater than 0")
+	}
+
+	if info.Host.Static.OSType == "" {
+		return errors.New("os_type shouldn't not be empty")
+	}
+
+	if info.TenantID == "" {
+		return errors.New("tenant_id shouldn't not be empty")
+	}
+
+	if err := info.Host.Dynamic.NodeRole.Validate(); err != nil {
+		return fmt.Errorf("node_role validate failed, err: %w", err)
+	}
+
+	if err := info.Host.Dynamic.NodeStatus.Validate(); err != nil {
+		return fmt.Errorf("node_status validate failed, err: %w", err)
+	}
+
+	if info.Dynamic.NodeVersion == "" {
+		return errors.New("node_version shouldn't not be empty")
+	}
+	if info.Dynamic.NodeGeneration != 1 && info.Dynamic.NodeGeneration != 2 {
+		return errors.New("node_generation should be 1 or 2")
+	}
+	if info.Dynamic.NetworkUnitID < 0 {
+		return errors.New("network_unit_id should be equal or greater than 0")
+	}
+	if info.Static.BizID < 0 {
+		return errors.New("biz_id should be equal or greater than 0")
+	}
+	if info.Static.NetworkAreaID < 0 {
+		return errors.New("network_area_id should be equal or greater than 0")
+	}
+	if info.Static.InnerIP == "" {
+		return errors.New("inner_ip shouldn't not be empty")
+	}
+	if info.Static.Addressing == "" {
+		return errors.New("addressing shouldn't not be empty")
+	}
+
+	if info.Dynamic.NodeRole == NodeRoleProxy {
+		if info.Dynamic.ProxyClusterPort > 0 {
+			return errors.New("proxy_cluster_port should be 0")
+		}
+		if info.Dynamic.ProxyDataPort > 0 {
+			return errors.New("proxy_data_port should be 0")
+		}
+		if info.Dynamic.ProxyFilePort > 0 {
+			return errors.New("proxy_file_port should be 0")
+		}
+	} else {
+		if info.Dynamic.ProxyClusterPort != 0 {
+			return fmt.Errorf("node_role is not proxy, proxy_cluster_port should be 0")
+		}
+
+		if info.Dynamic.ProxyDataPort != 0 {
+			return fmt.Errorf("node_role is not proxy, proxy_data_port should be 0")
+		}
+
+		if info.Dynamic.ProxyFilePort != 0 {
+			return fmt.Errorf("node_role is not proxy, proxy_file_port should be 0")
+		}
+	}
+
+	return nil
 }
 
 // NodeConf this is the node conf for node deployment.

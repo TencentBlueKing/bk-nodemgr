@@ -105,7 +105,7 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	states, err := action.gseClient.ListAgentState(tCtx, info.AgentID)
+	states, err := action.gseClient.ListAgentState(tCtx, info.Dynamic.AgentID)
 	if err != nil {
 		return err
 	}
