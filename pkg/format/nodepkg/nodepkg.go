@@ -8,9 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package nodepkg provides functions to format package names for different node roles and generations.
 package nodepkg
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -37,15 +39,15 @@ func FormatPkgName(
 	}
 
 	if version == "" {
-		return "", fmt.Errorf("format pkg name failed, version is empty")
+		return "", errors.New("format pkg name failed, version is empty")
 	}
 
 	if osType == "" {
-		return "", fmt.Errorf("format pkg name failed, os_type is empty")
+		return "", errors.New("format pkg name failed, os_type is empty")
 	}
 
 	if cpuArch == "" {
-		return "", fmt.Errorf("format pkg name failed, cpu_arch is empty")
+		return "", errors.New("format pkg name failed, cpu_arch is empty")
 	}
 
 	pkgName := fmt.Sprintf(
