@@ -13,8 +13,11 @@ package topoevent
 import (
 	"context"
 	"os"
+	"reflect"
+	"sort"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -25,7 +28,7 @@ import (
 )
 
 // testClient ...
-func testClient(t *testing.T) Handler {
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -68,6 +71,8 @@ func prepareData(t *testing.T, ctx context.Context) {
 				Type:            types.TopoEventNetworkAreaCreate,
 				NetworkAreaID:   10001,
 				NetworkAreaName: "default",
+				Operator:        "admin",
+				OperateTime:     time.Date(2024, 3, 1, 0, 0, 0, 0, time.Local),
 			},
 			&types.TopoEvent{
 				TenantID:        tenantID,
@@ -76,6 +81,8 @@ func prepareData(t *testing.T, ctx context.Context) {
 				NetworkAreaName: "default",
 				NetworkUnitID:   10001,
 				NetworkUnitName: "test-network-unit",
+				Operator:        "admin",
+				OperateTime:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.Local),
 			},
 			&types.TopoEvent{
 				TenantID:        tenantID,
@@ -86,6 +93,20 @@ func prepareData(t *testing.T, ctx context.Context) {
 				NetworkUnitName: "test-network-unit",
 				AccessPointID:   10001,
 				AccessPointName: "test-access-point",
+				Operator:        "admin",
+				OperateTime:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.Local),
+			},
+			&types.TopoEvent{
+				TenantID:        tenantID,
+				Type:            types.TopoEventAccessPointDelete,
+				NetworkAreaID:   10001,
+				NetworkAreaName: "default",
+				NetworkUnitID:   10001,
+				NetworkUnitName: "test-network-unit",
+				AccessPointID:   10002,
+				AccessPointName: "test-access-point-2",
+				Operator:        "user",
+				OperateTime:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.Local),
 			},
 		)
 		if err != nil {
@@ -170,6 +191,21 @@ func Test_handler_List(t *testing.T) {
 			wantNum:   1,
 			wantErr:   false,
 		},
+		{
+			name: "filter with time range",
+			ctx:  ctx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn: []OptFn{WithOperateTimeRange(types.TimeRange{
+				StartTime: time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+				EndTime:   time.Date(2024, 5, 1, 0, 0, 0, 0, time.Local),
+			})},
+			wantTotal: -1,
+			wantNum:   1,
+			wantErr:   false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -195,6 +231,233 @@ func Test_handler_List(t *testing.T) {
 
 			for _, v := range got {
 				t.Logf("List() got = %v", v)
+			}
+		})
+	}
+}
+
+// Test_handler_Count tests the count with filter.
+func Test_handler_Count(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	tests := []struct {
+		name    string
+		ctx     context.Context
+		optFn   []OptFn
+		wantErr bool
+	}{
+		{
+			name:    "nil ctx",
+			ctx:     nil,
+			optFn:   nil,
+			wantErr: true,
+		},
+		{
+			name:    "normal",
+			ctx:     ctx,
+			optFn:   nil,
+			wantErr: false,
+		},
+		{
+			name:    "filter by networkarea id",
+			ctx:     ctx,
+			optFn:   []OptFn{WithNetworkAreaID(10001)},
+			wantErr: false,
+		},
+		{
+			name:    "filter by networkunit id",
+			ctx:     ctx,
+			optFn:   []OptFn{WithNetworkUnitID(10001)},
+			wantErr: false,
+		},
+		{
+			name:    "filter by accesspoint id",
+			ctx:     ctx,
+			optFn:   []OptFn{WithAccessPointID(10001)},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.Count(tt.ctx, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("List() total = %d", got)
+		})
+	}
+}
+
+// Test_handler_DistinctType tests the distinct with type field.
+func Test_handler_DistinctType(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx   context.Context
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []types.TopoEventType
+		wantErr    bool
+	}{
+		{
+			name: "invalid ctx",
+			args: args{
+				ctx:   nil,
+				optFn: []OptFn{},
+			},
+			wantResult: nil,
+			wantErr:    true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				optFn: []OptFn{},
+			},
+			wantResult: []types.TopoEventType{types.TopoEventNetworkAreaCreate, types.TopoEventNetworkUnitUpdate, types.TopoEventAccessPointDelete},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctType(tt.args.ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
+			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctType() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+		})
+	}
+}
+
+// Test_handler_DistinctAccessPoint tests the distinct with accesspoint-id field.
+func Test_handler_DistinctAccessPointID(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx   context.Context
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []int64
+		wantErr    bool
+	}{
+		{
+			name: "invalid ctx",
+			args: args{
+				ctx:   nil,
+				optFn: []OptFn{},
+			},
+			wantResult: nil,
+			wantErr:    true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				optFn: []OptFn{WithType(types.TopoEventAccessPointDelete)},
+			},
+			wantResult: []int64{10001, 10002},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctAccessPointID(tt.args.ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctAccessPointID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
+			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctAccessPointID() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+		})
+	}
+}
+
+// Test_handler_DistinctOperator tests the distinct with operator field.
+func Test_handler_DistinctOperator(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx   context.Context
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []string
+		wantErr    bool
+	}{
+		{
+			name: "invalid ctx",
+			args: args{
+				ctx:   nil,
+				optFn: []OptFn{},
+			},
+			wantResult: nil,
+			wantErr:    true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:   ctx,
+				optFn: []OptFn{},
+			},
+			wantResult: []string{"admin", "user"},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctOperator(tt.args.ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctOperator() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
+			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctOperator() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
 		})
 	}

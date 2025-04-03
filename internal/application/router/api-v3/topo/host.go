@@ -156,3 +156,32 @@ func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Ho
 
 	return nil
 }
+
+// DistinctHost get distinct host fields.
+func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
+	req := new(protoApplication.TopoHostDistinctReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.Errorf("failed to distinct host, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to distinct host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	result, err := h.backendHandler.DistinctHost(
+		sCtx,
+		types.NewHostDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		h.logger.Errorf("failed to distinct host. failed to distinct host fields: %v", err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoApplication.TopoHostDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}

@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
@@ -128,6 +129,20 @@ func (d *dao) updateDynamicMany(ctx context.Context, hosts []*Host) error {
 	}
 
 	return nil
+}
+
+// distinctString distinct string field.
+func (d *dao) distinctString(
+	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
+
+	return d.DistinctString(ctx, key, filter, distinctOpt)
+}
+
+// distinctInt64 distinct int64 field.
+func (d *dao) distinctInt64(
+	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
+
+	return d.DistinctInt64(ctx, key, filter, distinctOpt)
 }
 
 // buildUpsertManyParams build upsert many params.

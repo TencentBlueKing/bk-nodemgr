@@ -32,87 +32,18 @@ func (x *TopoHostListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoHostListReq) ConvertConditionsToTypes() types.HostCondition {
-	// exact conditions.
-	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
-		conditions := types.HostCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.HostExactFields{
-			HostID:         exactCond.GetBkHostId(),
-			BizID:          exactCond.GetBkBizId(),
-			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
-			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
-			OSType:         exactCond.GetOsType(),
-			NodeRole:       types.StringListToNodeRoleList(exactCond.GetNodeRole()),
-			NodeStatus:     types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
-			NodeVersion:    exactCond.GetNodeVersion(),
-			NodeGeneration: exactCond.GetNodeGeneration(),
-			AgentID:        exactCond.GetBkAgentId(),
-		}
-
-		return conditions
-	}
-
-	// fuzzy conditions.
-	if fuzzyCond := x.GetFuzzyIncludeConditions(); fuzzyCond != nil {
-		conditions := types.HostCondition{
-			Type: types.ConditionTypeFuzzyInclude,
-		}
-		conditions.Fuzzy = &types.HostFuzzyFields{
-			HostName:  fuzzyCond.GetBkHostName(),
-			DeptName:  fuzzyCond.GetDeptName(),
-			InnerIP:   fuzzyCond.GetBkHostInnerip(),
-			InnerIPV6: fuzzyCond.GetBkHostInneripV6(),
-			OuterIP:   fuzzyCond.GetBkHostOuterip(),
-			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
-		}
-
-		return conditions
-	}
-
-	// default empty conditions.
-	return types.HostCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
 }
 
 // ConvertConditionsFromTypes convert types to proto.
 func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	if condition == nil {
-		return nil
+	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
 	}
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			x.ExactIncludeConditions = &TopoHostListReq_ExactConditions{
-				BkHostId:        condition.Exact.HostID,
-				BkBizId:         condition.Exact.BizID,
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-				BkNetworkunitId: condition.Exact.NetworkUnitID,
-				OsType:          condition.Exact.OSType,
-				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
-				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
-				NodeVersion:     condition.Exact.NodeVersion,
-				BkAgentId:       condition.Exact.AgentID,
-			}
-		}
-
-	case types.ConditionTypeFuzzyInclude:
-		if condition.Fuzzy != nil {
-			x.FuzzyIncludeConditions = &TopoHostListReq_FuzzyConditions{
-				BkHostName:      condition.Fuzzy.HostName,
-				DeptName:        condition.Fuzzy.DeptName,
-				BkHostInnerip:   condition.Fuzzy.InnerIP,
-				BkHostInneripV6: condition.Fuzzy.InnerIPV6,
-				BkHostOuterip:   condition.Fuzzy.OuterIP,
-				BkHostOuteripV6: condition.Fuzzy.OuterIPV6,
-			}
-		}
-
-	default:
-		return fmt.Errorf("unknown condition type: %s", condition.Type)
-	}
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
 
 	return nil
 }
@@ -201,6 +132,72 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 	return data.GetTotal(), result
 }
 
+// Validate validates the request.
+func (x *TopoHostDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert automatically converts the request to types.
+func (x *TopoHostDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts the request to types.
+func (x *TopoHostDistinctReq) ConvertConditionsToTypes() types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionsFromTypes converts the request to types.
+func (x *TopoHostDistinctReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
+	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertResultFromTypes converts the result from types.
+func (x *TopoHostDistinctResp) ConvertResultFromTypes(result *types.HostDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &TopoHostDistinctResp_Data{
+		NodeRole:        formatRespSlice(types.NodeRoleListToStringList(result.NodeRole)),
+		NodeStatus:      formatRespSlice(types.NodeStatusListToStringList(result.NodeStatus)),
+		NodeVersion:     formatRespSlice(result.NodeVersion),
+		DeptName:        formatRespSlice(result.DeptName),
+		OsType:          formatRespSlice(result.OSType),
+		Arch:            formatRespSlice(result.Arch),
+		Addressing:      formatRespSlice(result.Addressing),
+		BkNetworkareaId: formatRespSlice(result.NetworkAreaID),
+		BkNetworkunitId: formatRespSlice(result.NetworkUnitID),
+	}
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult {
+	if x.GetData() == nil {
+		return &types.HostDistinctResult{}
+	}
+
+	data := x.GetData()
+	return &types.HostDistinctResult{
+		NodeRole:      types.StringListToNodeRoleList(data.GetNodeRole()),
+		NodeStatus:    types.StringListToNodeStatusList(data.GetNodeStatus()),
+		NodeVersion:   data.GetNodeVersion(),
+		DeptName:      data.GetDeptName(),
+		OSType:        data.GetOsType(),
+		Arch:          data.GetArch(),
+		Addressing:    data.GetAddressing(),
+		NetworkAreaID: data.GetBkNetworkareaId(),
+		NetworkUnitID: data.GetBkNetworkunitId(),
+	}
+}
+
 func newEmptyHost() *Host {
 	return &Host{
 		TenantId: new(string),
@@ -226,4 +223,97 @@ func newEmptyHost() *Host {
 			BkAgentId:      new(string),
 		},
 	}
+}
+
+func convertHostConditionsToTypes(
+	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions) types.HostCondition {
+
+	// exact conditions.
+	if exactCond != nil {
+		conditions := types.HostCondition{
+			Type: types.ConditionTypeExactInclude,
+		}
+		conditions.Exact = &types.HostExactFields{
+			HostID:         exactCond.GetBkHostId(),
+			BizID:          exactCond.GetBkBizId(),
+			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
+			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
+			OSType:         exactCond.GetOsType(),
+			NodeRole:       types.StringListToNodeRoleList(exactCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
+			NodeVersion:    exactCond.GetNodeVersion(),
+			NodeGeneration: exactCond.GetNodeGeneration(),
+			AgentID:        exactCond.GetBkAgentId(),
+		}
+
+		return conditions
+	}
+
+	// fuzzy conditions.
+	if fuzzyCond != nil {
+		conditions := types.HostCondition{
+			Type: types.ConditionTypeFuzzyInclude,
+		}
+		conditions.Fuzzy = &types.HostFuzzyFields{
+			HostName:  fuzzyCond.GetBkHostName(),
+			DeptName:  fuzzyCond.GetDeptName(),
+			InnerIP:   fuzzyCond.GetBkHostInnerip(),
+			InnerIPV6: fuzzyCond.GetBkHostInneripV6(),
+			OuterIP:   fuzzyCond.GetBkHostOuterip(),
+			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
+		}
+
+		return conditions
+	}
+
+	// default empty conditions.
+	return types.HostCondition{
+		Type: types.ConditionTypeExactInclude,
+	}
+}
+
+func convertHostConditionsFromTypes(
+	condition *types.HostCondition) (*TopoHostExactConditions, *TopoHostFuzzyConditions, error) {
+
+	if condition == nil {
+		return nil, nil, nil
+	}
+
+	var exactCond *TopoHostExactConditions
+	var fuzzyCond *TopoHostFuzzyConditions
+
+	switch condition.Type {
+	case types.ConditionTypeExactInclude:
+		if condition.Exact != nil {
+			exactCond = &TopoHostExactConditions{
+				BkHostId:        condition.Exact.HostID,
+				BkBizId:         condition.Exact.BizID,
+				BkNetworkareaId: condition.Exact.NetworkAreaID,
+				BkNetworkunitId: condition.Exact.NetworkUnitID,
+				OsType:          condition.Exact.OSType,
+				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
+				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
+				NodeVersion:     condition.Exact.NodeVersion,
+				NodeGeneration:  condition.Exact.NodeGeneration,
+				BkAgentId:       condition.Exact.AgentID,
+			}
+		}
+
+	case types.ConditionTypeFuzzyInclude:
+		if condition.Fuzzy != nil {
+			fuzzyCond = &TopoHostFuzzyConditions{
+				BkHostName:      condition.Fuzzy.HostName,
+				DeptName:        condition.Fuzzy.DeptName,
+				BkHostInnerip:   condition.Fuzzy.InnerIP,
+				BkHostInneripV6: condition.Fuzzy.InnerIPV6,
+				BkHostOuterip:   condition.Fuzzy.OuterIP,
+				BkHostOuteripV6: condition.Fuzzy.OuterIPV6,
+			}
+		}
+
+	default:
+		return nil, nil, fmt.Errorf("unknown condition type: %s", condition.Type)
+	}
+
+	return exactCond, fuzzyCond, nil
 }

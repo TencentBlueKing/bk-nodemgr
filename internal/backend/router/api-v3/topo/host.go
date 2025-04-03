@@ -14,6 +14,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -61,6 +62,35 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 
 	resp := new(protoBackend.TopoHostListResp)
 	resp.ConvertHostsFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
+// DistinctHost get distinct host fields.
+func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
+	req := new(protoBackend.TopoHostDistinctReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.Errorf("failed to distinct host, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to distinct host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	result, err := h.storage.DistinctHost(
+		sCtx,
+		types.NewHostDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		h.logger.Errorf("failed to distinct host. failed to distinct host fields: %v", err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoHostDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

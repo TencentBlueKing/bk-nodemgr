@@ -61,7 +61,7 @@ type Storage struct {
 
 	daoBusiness business.IHandler
 
-	daoHost host.Handler
+	daoHost host.IHandler
 
 	daoNetworkArea networkarea.Handler
 
@@ -69,7 +69,7 @@ type Storage struct {
 
 	daoAccessPoint accesspoint.Handler
 
-	daoTopoEvent topoevent.Handler
+	daoTopoEvent topoevent.IHandler
 }
 
 func (s *Storage) initDao() error {
@@ -510,85 +510,6 @@ func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditio
 	}
 
 	return s.daoAccessPoint.List(ctx, page, opts...)
-}
-
-// CountTopoEvent counts topo events.
-func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error) {
-	opts := make([]topoevent.OptFn, 0)
-	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithAccessPointID(condition.Exact.AccessPointID...),
-					topoevent.WithType(condition.Exact.Type...),
-					topoevent.WithOperator(condition.Exact.Operator...),
-				)
-			}
-
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithoutAccessPointID(condition.Exact.AccessPointID...),
-					topoevent.WithoutType(condition.Exact.Type...),
-					topoevent.WithoutOperator(condition.Exact.Operator...),
-				)
-			}
-
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
-
-		default:
-			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
-		}
-	}
-
-	return s.daoTopoEvent.Count(ctx, opts...)
-}
-
-// ListTopoEvent lists topo events.
-func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
-	[]*types.TopoEvent, int64, error) {
-
-	opts := make([]topoevent.OptFn, 0)
-	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithAccessPointID(condition.Exact.AccessPointID...),
-				)
-			}
-
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithoutAccessPointID(condition.Exact.AccessPointID...),
-				)
-			}
-
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
-
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
-		}
-	}
-
-	return s.daoTopoEvent.List(ctx, page, opts...)
-}
-
-// CreateManyTopoEvent creates topo events.
-func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error {
-	return s.daoTopoEvent.CreateMany(ctx, events...)
 }
 
 // AccessPointResult describes the accesspoint result in networkunit handlers.

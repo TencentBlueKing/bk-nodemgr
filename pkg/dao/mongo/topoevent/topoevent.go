@@ -24,12 +24,52 @@ import (
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName(tenantID)), logger: logger}
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.IOrm = base.NewOrm[*TopoEvent, TopoEvent](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	base.IOrm[*TopoEvent, TopoEvent]
+}
+
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyType, Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: FieldKeyNetworkAreaID, Value: 1}},
+		},
+	}
+
+	return indexes
 }
 
 // nolint:contextcheck
@@ -91,4 +131,18 @@ func (d *dao) createMany(ctx context.Context, events []*TopoEvent) error {
 	}
 
 	return nil
+}
+
+// distinctString distinct string field.
+func (d *dao) distinctString(
+	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
+
+	return d.DistinctString(ctx, key, filter, distinctOpt)
+}
+
+// distinctInt64 distinct int64 field.
+func (d *dao) distinctInt64(
+	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
+
+	return d.DistinctInt64(ctx, key, filter, distinctOpt)
 }

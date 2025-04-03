@@ -10,6 +10,8 @@
 
 package types
 
+import "time"
+
 // Condition defines the generic condition settings.
 type Condition struct {
 }
@@ -30,6 +32,12 @@ const (
 	// ConditionTypeFuzzyExclude means this condition should be matched excluding given values in a fuzzy mode.
 	ConditionTypeFuzzyExclude ConditionType = "fuzzy_exclude"
 )
+
+// TimeRange defines the time range.
+type TimeRange struct {
+	StartTime time.Time
+	EndTime   time.Time
+}
 
 // BusinessExactFields defines the business exact fields.
 // support includes and excludes.
@@ -177,6 +185,9 @@ type TopoEventFuzzyFields struct {
 // TopoEventCondition defines the topo event condition.
 type TopoEventCondition struct {
 	Type ConditionType
+
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange TimeRange
 
 	// will be used when condition type is in exact mode.
 	Exact *TopoEventExactFields

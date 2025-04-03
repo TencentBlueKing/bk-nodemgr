@@ -399,8 +399,8 @@ func TopoEventTypeListToStringList(eventTypeList []TopoEventType) []string {
 	return data
 }
 
-// TopoEventTypeToNodeRoleList converts a string list to a topoevent type list.
-func TopoEventTypeToNodeRoleList(stringList []string) []TopoEventType {
+// StringListToTopoEventTypeList converts a string list to a topoevent type list.
+func StringListToTopoEventTypeList(stringList []string) []TopoEventType {
 	data := make([]TopoEventType, len(stringList))
 	for idx, eventType := range stringList {
 		data[idx] = TopoEventType(eventType)

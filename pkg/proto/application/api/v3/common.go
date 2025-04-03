@@ -13,6 +13,8 @@ package v3
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -54,4 +56,34 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 	}
 
 	return page
+}
+
+// formatRespSlice formats the response slice.
+func formatRespSlice[T bool | string | int64](values []T) []T {
+	if values == nil {
+		return make([]T, 0)
+	}
+
+	return values
+}
+
+// validateTimeRange validates the time range.
+func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
+	// no limit.
+	if maxDuration <= 0 {
+		return nil
+	}
+
+	if timeRange == nil {
+		return nil
+	}
+
+	timeDuration := time.Unix(timeRange.GetEndTimestampSec(), 0).
+		Sub(time.Unix(timeRange.GetStartTimestampSec(), 0))
+
+	if timeDuration > maxDuration {
+		return fmt.Errorf("time range %s is too long, max allowed is %s", timeDuration.String(), maxDuration.String())
+	}
+
+	return nil
 }

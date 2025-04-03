@@ -42,6 +42,11 @@ type IDaoTopoEvent interface {
 
 	// CreateManyTopoEvent creates multiple topo events.
 	CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error
+
+	// DistinctTopoEvent distincts topoevent fields.
+	DistinctTopoEvent(
+		ctx context.Context, request types.TopoEventDistinctRequest, conditions ...types.TopoEventCondition) (
+		*types.TopoEventDistinctResult, error)
 }
 
 // IDaoNetworkUnit this interface defines the operations which is only for network unit.
@@ -123,6 +128,10 @@ type IDaoHost interface {
 
 	// GetHostByID gets host by id.
 	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
+
+	// DistinctHost distincts host fields.
+	DistinctHost(ctx context.Context, request types.HostDistinctRequest, conditions ...types.HostCondition) (
+		*types.HostDistinctResult, error)
 }
 
 // IDomainGse this interface defines the operations which is only for domain gse.

@@ -43,6 +43,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// host apis.
 	h.rg.POST("/host/list", rest.RestHandlerFunc(h.ListHost))
+	h.rg.POST("/host/distinct", rest.RestHandlerFunc(h.DistinctHost))
 
 	// networkarea apis.
 	h.rg.POST("/networkarea/list", rest.RestHandlerFunc(h.ListNetworkArea))
@@ -65,6 +66,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// topo event apis.
 	h.rg.POST("/event/list", rest.RestHandlerFunc(h.ListEvent))
+	h.rg.POST("/event/distinct", rest.RestHandlerFunc(h.DistinctEvent))
 
 	// constant apis.
 	h.rg.POST("/constant/get", rest.RestHandlerFunc(h.GetConstant))
