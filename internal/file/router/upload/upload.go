@@ -42,5 +42,4 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/agent", rest.RestHandlerFunc(h.Agent))
 	h.rg.POST("/proxy", rest.RestHandlerFunc(h.Proxy))
-	//h.rg.POST("/gse_pkg", h.GsePkg)
 }
