@@ -22,6 +22,7 @@ func NewStepDownloadFiles() *cobra.Command {
 		downloadEndpoint string
 		version          int
 		tag              string
+		token            string
 		callBackEndPoint string
 	)
 	stepCmd := &cobra.Command{
@@ -42,6 +43,10 @@ func NewStepDownloadFiles() *cobra.Command {
 			}
 
 			if err := SetCallbackEndPoint(callBackEndPoint); err != nil {
+				return err
+			}
+
+			if err := SetToken(token); err != nil {
 				return err
 			}
 
@@ -78,6 +83,8 @@ func NewStepDownloadFiles() *cobra.Command {
 		StringVar(&tag, CmdFlagPkgVersion, "", "this gse node version tag which will be installed")
 	stepCmd.Flags().
 		StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
+	stepCmd.Flags().
+		StringVar(&token, CmdFlagToken, "", "token")
 
 	_ = stepCmd.MarkPersistentFlagRequired(CmdFlagPkgVersion)
 	_ = stepCmd.MarkPersistentFlagRequired(CmdFlagCallbackEndpoint)
