@@ -14,7 +14,6 @@ import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -67,6 +66,7 @@ func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
 }
 
 // DistinctEvent distincts events with conditions.
+// nolint: dupl
 func (h *handler) DistinctEvent(ctx *rest.Context) (interface{}, error) {
 	req := new(protoApplication.TopoEventDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {
@@ -82,7 +82,6 @@ func (h *handler) DistinctEvent(ctx *rest.Context) (interface{}, error) {
 
 	result, err := h.backendHandler.DistinctTopoEvent(
 		sCtx,
-		types.NewTopoEventDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.Errorf("failed to distinct topoevent. failed to distinct host fields: %v", err)

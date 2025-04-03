@@ -58,6 +58,7 @@ func (c *genAllBizHostSyncOper) Description() string {
 }
 
 // Timeout returns the timeout of the action.
+
 func (c *genAllBizHostSyncOper) Timeout() time.Duration {
 	return time.Second * 10 // nolint: mnd
 }
@@ -113,7 +114,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz *types.Business) error {
 	operation := newOperSyncHostFromCMDB(data.TriggerID)
 	err := c.operMgr.ExecuteOperation(operation, &operengine.OperInstParam{
-		Timeout: time.Minute * 1,
+		Timeout: time.Minute * 1, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
 			BizID:    biz.BizID,
 			TenantID: biz.TenantID,

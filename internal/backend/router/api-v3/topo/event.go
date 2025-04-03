@@ -67,6 +67,7 @@ func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
 }
 
 // DistinctEvent distincts events with conditions.
+// nolint: dupl
 func (h *handler) DistinctEvent(ctx *rest.Context) (interface{}, error) {
 	req := new(protoBackend.TopoEventDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {

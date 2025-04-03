@@ -26,5 +26,6 @@ const (
 	// FieldKeyOperator the operator field key.
 	FieldKeyOperator = "data.operator"
 
+	// FieldKeyOperateTime the operate time field key.
 	FieldKeyOperateTime = "data.operate_time"
 )

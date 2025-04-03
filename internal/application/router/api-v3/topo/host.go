@@ -173,7 +173,6 @@ func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
 
 	result, err := h.backendHandler.DistinctHost(
 		sCtx,
-		types.NewHostDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.Errorf("failed to distinct host. failed to distinct host fields: %v", err)
