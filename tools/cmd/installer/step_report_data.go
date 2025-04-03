@@ -10,3 +10,59 @@
 
 // Package main ...
 package main
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
+	"github.com/spf13/cobra"
+)
+
+// NewStepReportData new a step for report data.
+func NewStepReportData() *cobra.Command {
+	var (
+		callBackEndPoint string
+		token            string
+		agentID          string
+	)
+
+	stepCmd := &cobra.Command{
+		Use:   "step_reportdata",
+		Short: "report data",
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if err := SetToken(token); err != nil {
+				return fmt.Errorf("set token failed, err: %v", err)
+			}
+
+			if err := SetCallbackEndPoint(callBackEndPoint); err != nil {
+				return fmt.Errorf("set callback endpoint failed, err: %v", err)
+			}
+
+			if err := SetNodeAgentID(agentID); err != nil {
+				return fmt.Errorf("set node agent id failed, err: %v", err)
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			step := datareporter.NewStep(datareporter.StepArgs{
+				Token:            GetToken(),
+				AgentID:          GetNodeAgentID(),
+				CallbackEndpoint: GetCallBackEndpoint(),
+			})
+
+			err := step.Run(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+
+	stepCmd.Flags().StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
+	stepCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
+	stepCmd.Flags().StringVar(&agentID, CmdFlagAgentID, "", "agent id")
+
+	return stepCmd
+}

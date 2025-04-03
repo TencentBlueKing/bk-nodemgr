@@ -33,8 +33,6 @@ const maxBulkLogSize = 100
 
 // ReportLogsArgs report logs args.
 type ReportLogsArgs struct {
-	OperInstID string
-
 	// Token the token for report log.
 	Token string
 
@@ -53,7 +51,6 @@ type ReportLogsArgs struct {
 
 // Reporter report logs.
 type Reporter struct {
-	operInstID       string
 	token            string
 	reader           io.ReadCloser
 	mu               sync.Mutex
@@ -64,10 +61,6 @@ type Reporter struct {
 
 // Validate ReportLogsArgs.
 func (reporter *Reporter) Validate() error {
-	if reporter.operInstID == "" {
-		return errors.New("oper_inst_id is empty")
-	}
-
 	if reporter.token == "" {
 		return errors.New("token is empty")
 	}
@@ -82,7 +75,6 @@ func (reporter *Reporter) Validate() error {
 // NewReporter new reporter.
 func NewReporter(args ReportLogsArgs) *Reporter {
 	reporter := &Reporter{
-		operInstID:       args.OperInstID,
 		token:            args.Token,
 		reader:           args.Reader,
 		logRptCnt:        args.LogRptCnt,
@@ -143,9 +135,8 @@ func (reporter *Reporter) ReportLogs(ctx context.Context) (uint, error) {
 	splitLog := splitIntoN(logEntries, len(logEntries)/maxBulkLogSize-1)
 	for _, entries := range splitLog {
 		req := &ReportLogReq{
-			OperInstID: reporter.operInstID,
-			Token:      reporter.token,
-			Logs:       entries,
+			Token: reporter.token,
+			Logs:  entries,
 		}
 
 		if err := bulkReportLogs(ctx, backoff, reporter.callbackEndpoint, req); err != nil {
@@ -236,9 +227,8 @@ func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, callbackEndpoi
 
 // ReportLogReq report log request.
 type ReportLogReq struct {
-	OperInstID string      `json:"oper_inst_id"`
-	Token      string      `json:"token"`
-	Logs       []*LogEntry `json:"logs"`
+	Token string      `json:"token"`
+	Logs  []*LogEntry `json:"logs"`
 }
 
 // LogEntry log entry.

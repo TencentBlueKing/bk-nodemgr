@@ -28,7 +28,6 @@ import (
 
 // Step report data step.
 type Step struct {
-	operInstID       string
 	token            string
 	agentID          string
 	callbackEndpoint string
@@ -36,7 +35,6 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	OperInstID       string
 	Token            string
 	AgentID          string
 	CallbackEndpoint string
@@ -45,7 +43,6 @@ type StepArgs struct {
 // NewStep new a step to report data.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
-		operInstID:       args.OperInstID,
 		token:            args.Token,
 		agentID:          args.AgentID,
 		callbackEndpoint: args.CallbackEndpoint,
@@ -58,9 +55,8 @@ func NewStep(args StepArgs) *Step {
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepReportData, constant.StateStart, "start report data")
 	req := &ReportDataReq{
-		OperInstID: step.operInstID,
-		Token:      step.token,
-		AgentID:    step.agentID,
+		Token:   step.token,
+		AgentID: step.agentID,
 	}
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -86,9 +82,8 @@ const reportDataTimeout = 3 * time.Second
 
 // ReportDataReq report log req.
 type ReportDataReq struct {
-	OperInstID string `json:"oper_inst_id"`
-	Token      string `json:"token"`
-	AgentID    string `json:"agent_id"`
+	Token   string `json:"token"`
+	AgentID string `json:"agent_id"`
 }
 
 // ReportData report data.

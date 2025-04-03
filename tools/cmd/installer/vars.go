@@ -284,35 +284,6 @@ func SetPreCheckFilePath(filePath string) error {
 }
 
 // nolint: gochecknoglobals
-var operInstID = struct {
-	sync.Once
-	instID string
-}{}
-
-// GetOperInstID get oper inst id.
-func GetOperInstID() string {
-	return operInstID.instID
-}
-
-// SetOperInstID set oper inst id.
-func SetOperInstID(instID string) error {
-	var err error
-	operInstID.Do(func() {
-		if instID == "" {
-			err = errors.New("oper inst id is empty")
-			return
-		}
-
-		operInstID.instID = instID
-	})
-	if err != nil {
-		return fmt.Errorf("set oper inst id failed, err: %w", err)
-	}
-
-	return nil
-}
-
-// nolint: gochecknoglobals
 var token = struct {
 	sync.Once
 	token string

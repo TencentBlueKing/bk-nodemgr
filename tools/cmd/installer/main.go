@@ -70,6 +70,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewStepStartNode())
 	rootCmd.AddCommand(NewCheckDeploy())
 	rootCmd.AddCommand(NewStepReinstall())
+	rootCmd.AddCommand(NewStepReportData())
 
 	return rootCmd
 }
@@ -167,7 +168,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 		gsePrefix         string
 		installEnv        string
 		token             string
-		operInstID        string
 		reinstall         bool
 		reRegisterAgentID bool
 	)
@@ -204,10 +204,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 			return fmt.Errorf("set token failed, err: %v", err)
 		}
 
-		if err := SetOperInstID(operInstID); err != nil {
-			return fmt.Errorf("set oper inst id failed, err: %v", err)
-		}
-
 		return nil
 	}
 
@@ -222,7 +218,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 		}()
 
 		reporter := logreporter.NewReporter(logreporter.ReportLogsArgs{
-			OperInstID:       GetOperInstID(),
 			Token:            GetToken(),
 			Reader:           logFile,
 			LogRptCnt:        0,
@@ -308,8 +303,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 		if err := SetNodeAgentID(agentID); err != nil {
 			return fmt.Errorf("set node agent id failed, err: %v", err)
 		}
+
 		reportDataStep := datareporter.NewStep(datareporter.StepArgs{
-			OperInstID:       GetOperInstID(),
 			Token:            GetToken(),
 			AgentID:          GetNodeAgentID(),
 			CallbackEndpoint: GetCallBackEndpoint(),
@@ -347,7 +342,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 		"this is the gse pkg generation which will be installed")
 	rootCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
 	rootCmd.Flags().StringVar(&pkgVersion, CmdFlagPkgVersion, "", "this gse node pkg version which will be installed")
-	rootCmd.Flags().StringVar(&operInstID, CmdFlagOperInstID, "", "oper inst id")
 	rootCmd.Flags().StringVar(&gsePrefix, CmdFlagGsePrefix, CmdDefaultGsePrefix(), "gse prefix")
 	rootCmd.Flags().BoolVar(&reinstall, CmdFlagReinstall, false, "reinstall")
 	rootCmd.Flags().BoolVar(&reRegisterAgentID, CmdFlagReRegisterAgentID, false, "re register agent id")
@@ -357,5 +351,4 @@ func registerRootVars(rootCmd *cobra.Command) {
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
 	_ = rootCmd.MarkFlagRequired(CmdFlagInstallEnv)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
-	_ = rootCmd.MarkFlagRequired(CmdFlagOperInstID)
 }

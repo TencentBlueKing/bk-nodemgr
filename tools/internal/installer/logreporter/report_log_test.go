@@ -34,7 +34,6 @@ func TestReporter_ReportLogs(t *testing.T) {
 	file, _ := os.Open(os.Getenv("NODEMGR_LOG_FILE"))
 
 	type fields struct {
-		operInstID       string
 		token            string
 		reader           io.ReadCloser
 		logRptCnt        uint
@@ -53,7 +52,6 @@ func TestReporter_ReportLogs(t *testing.T) {
 		{
 			name: "normal",
 			fields: fields{
-				operInstID:       os.Getenv("BK_NODEMGR_OPER_INST_ID"),
 				token:            os.Getenv("BK_NODEMGR_TOKEN"),
 				reader:           file,
 				logRptCnt:        0,
@@ -69,7 +67,6 @@ func TestReporter_ReportLogs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reporter := NewReporter(ReportLogsArgs{
-				OperInstID:       tt.fields.operInstID,
 				Token:            tt.fields.token,
 				Reader:           tt.fields.reader,
 				LogRptCnt:        tt.fields.logRptCnt,

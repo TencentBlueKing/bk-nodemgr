@@ -46,12 +46,12 @@ const (
 	CmdFlagSetupDirPath = "setup_dir_path"
 	// CmdFlagToken this flag is used to specify the token.
 	CmdFlagToken = "token"
-	// CmdFlagOperInstID this flag is used to specify the operation instance id.
-	CmdFlagOperInstID = "oper_inst_id"
 	// CmdFlagReinstall this flag is used to specify the reinstall.
 	CmdFlagReinstall = "reinstall"
 	// CmdFlagReRegisterAgentID this flag is used to specify the reinstall.
 	CmdFlagReRegisterAgentID = "re_register_agent_id"
+	// CmdFlagAgentID this flag is used to specify the agent id.
+	CmdFlagAgentID = "agent_id"
 )
 
 const (
