@@ -58,14 +58,15 @@ func NewFileService() *FileService {
 
 // FileService the config of file service.
 type FileService struct {
-	RunMode        RunMode        `yaml:"runMode" usage:"run mode of service"`
-	TenantMode     tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	Etcd           Etcd           `yaml:"etcd" usage:"etcd config of file service"`
-	HTTPServer     HTTPServer     `yaml:"httpServer" usage:"http server config of file service"`
-	AdminServer    AdminServer    `yaml:"adminServer" usage:"admin server config of file service"`
-	AgentFileGroup AgentFileGroup `yaml:"agentFileGroup" usage:"agent file group config of file service"`
-	MongoDB        MongoDB        `yaml:"mongodb" usage:"mongodb config of file service"`
-	Log            Log            `yaml:"log" usage:"log config of file service"`
+	RunMode        RunMode     `yaml:"runMode" usage:"run mode of service"`
+	TenantMode     tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
+	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
+	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
+	AdminServer    AdminServer `yaml:"adminServer" usage:"admin server config of file service"`
+	AgentFileGroup FileGroup   `yaml:"agentFileGroup" usage:"agent file group config of file service"`
+	ProxyFileGroup FileGroup   `yaml:"proxyFileGroup" usage:"proxy file group config of file service"`
+	MongoDB        MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
+	Log            Log         `yaml:"log" usage:"log config of file service"`
 }
 
 // LoadFromFile loads config from file.
@@ -94,16 +95,20 @@ func (svc *FileService) Validate() error {
 		return err
 	}
 
+	if err := svc.ProxyFileGroup.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// AgentFileGroup agent file group config.
-type AgentFileGroup struct {
+// FileGroup file group config.
+type FileGroup struct {
 	FullPath string `yaml:"fullPath" usage:"full path of agent file group"`
 }
 
 // Validate validates the config.
-func (group *AgentFileGroup) Validate() error {
+func (group *FileGroup) Validate() error {
 	if group.FullPath == "" {
 		return errors.New("fullPath is empty")
 	}

@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
@@ -78,6 +79,11 @@ func NewService(conf *config.FileService) (*Service, error) {
 		return nil, errors.New("init agent file group failed")
 	}
 
+	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
+	if err != nil {
+		return nil, errors.New("init proxy file group failed")
+	}
+
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
 		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
@@ -114,6 +120,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		rest.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
+		withUpload(svc.Cap),
 	)
 	svc.servers = append(svc.servers, adminServer)
 
@@ -151,6 +158,13 @@ func withMetrics(_ *options.Capability) rest.OptionFunc {
 func withDownload(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		download.Load(rg, capability)
+	}
+}
+
+// withUpload load upload.
+func withUpload(capability *options.Capability) rest.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		upload.Load(rg, capability)
 	}
 }
 

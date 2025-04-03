@@ -139,12 +139,13 @@ func (group *LocalDir) AllFiles() []iface.File {
 }
 
 // Store the func will store a file into the file group.
-func (group *LocalDir) Store(ctx context.Context, file iface.File, overwrite bool) error {
+func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if file == nil {
+	if reader == nil {
 		return errors.New("file cannot be nil")
 	}
 
@@ -163,12 +164,11 @@ func (group *LocalDir) Store(ctx context.Context, file iface.File, overwrite boo
 		group.logger.Infof("successfully create dir, path(%s)", group.fullPath)
 	}
 
-	fileInfo := file.Info()
 	if err != nil {
 		return fmt.Errorf("get file info failed, err: %w", err)
 	}
 
-	fileFullPath := filepath.Join(group.fullPath, fileInfo.Name)
+	fileFullPath := filepath.Join(group.fullPath, info.Name)
 
 	// check file exist or not.
 	if !overwrite {
@@ -189,11 +189,6 @@ func (group *LocalDir) Store(ctx context.Context, file iface.File, overwrite boo
 		defer flock.Unlock()
 	}
 
-	reader, err := file.Content()
-	if err != nil {
-		return fmt.Errorf("get file content failed, err: %w", err)
-	}
-
 	defer reader.Close()
 
 	// create file
@@ -204,7 +199,18 @@ func (group *LocalDir) Store(ctx context.Context, file iface.File, overwrite boo
 
 	defer lfile.Close()
 
-	return group.writeDataToFile(ctx, lfile, reader)
+	if err := group.writeDataToFile(ctx, lfile, reader); err != nil {
+		return fmt.Errorf("write file content failed: %w", err)
+	}
+
+	localFile, err := NewLocalFile(fileFullPath)
+	if err != nil {
+		return fmt.Errorf("create local file failed, err: %w", err)
+	}
+
+	group.fileMap[info.Name] = localFile
+
+	return nil
 }
 
 // writeDataToFile write data to local file.

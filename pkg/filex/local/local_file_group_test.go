@@ -62,7 +62,7 @@ func TestNewLocalDir(t *testing.T) {
 				t.Logf("fullPath: %s", dir.fullPath)
 
 				for _, file := range dir.fileMap {
-					t.Logf("file: %s", file.name)
+					t.Logf("file: %s", file.Name())
 				}
 
 				t.Log("\n")

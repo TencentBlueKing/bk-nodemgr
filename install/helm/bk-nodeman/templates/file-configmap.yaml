@@ -24,6 +24,8 @@ data:
 
     agentFileGroup: {{ .Values.file.config.agentFileGroup | toYaml | nindent 6 }}
 
+    proxyFileGroup: {{ .Values.file.config.proxyFileGroup | toYaml | nindent 6 }}
+
     log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 
     etcd:

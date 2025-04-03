@@ -827,6 +827,9 @@ file:
     agentFileGroup:
       fullPath: "/bk-nodeman/file/agent"
 
+    proxyFileGroup:
+      fullPath: "/bk-nodeman/file/proxy"
+
     ## defines the log related settings.
     log:
       dir: "/bk-nodeman/log"

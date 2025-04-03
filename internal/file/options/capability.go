@@ -27,6 +27,9 @@ type Capability struct {
 	// AgentFileGroup agent file group.
 	AgentFileGroup iface.FileGroup
 
+	// ProxyFileGroup proxy file group.
+	ProxyFileGroup iface.FileGroup
+
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
 }

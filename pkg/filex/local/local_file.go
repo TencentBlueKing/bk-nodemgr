@@ -56,8 +56,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 	}
 
 	file := &LocalFile{
-		name: fileName,
-		info: &iface.FileInfo{
+		info: iface.FileInfo{
 			Name:         fileName,
 			Size:         stat.Size(),
 			Md5:          md5Str,
@@ -102,8 +101,7 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 
 // LocalFile represents a local file.
 type LocalFile struct {
-	name     string
-	info     *iface.FileInfo
+	info     iface.FileInfo
 	fullPath string
 }
 
@@ -128,7 +126,7 @@ func (f *LocalFile) Content() (io.ReadCloser, error) {
 }
 
 // Info returns LocalFile info.
-func (f *LocalFile) Info() *iface.FileInfo {
+func (f *LocalFile) Info() iface.FileInfo {
 	return f.info
 }
 
@@ -139,5 +137,5 @@ func (f *LocalFile) FileObject() iface.FileObject {
 
 // Name returns LocalFile name.
 func (f *LocalFile) Name() string {
-	return f.name
+	return f.info.Name
 }

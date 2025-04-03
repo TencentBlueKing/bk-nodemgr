@@ -31,22 +31,18 @@ type FileGroup interface {
 	AllFiles() []File
 
 	// Store the func will store a file into the file group.
-	Store(ctx context.Context, file File, overwrite bool) error
+	Store(ctx context.Context, info FileInfo, reader io.ReadCloser, overwrite bool) error
 }
 
 // File file interface.
 type File interface {
-	// Name the name of file.
-	Name() string
-
 	// FileObject the file object.
 	FileObject() FileObject
 
-	// Content the content of file.
-	Content() (io.ReadCloser, error)
+	FileContent
 
 	// Info the info of file.
-	Info() *FileInfo
+	Info() FileInfo
 }
 
 // FileInfo file info.
@@ -65,6 +61,11 @@ type FileInfo struct {
 
 	// ExtendFields the extend fields of file.
 	ExtendFields map[string]string
+}
+
+// FileContent the content of file.
+type FileContent interface {
+	Content() (io.ReadCloser, error)
 }
 
 // FileObject define this file is local file or remote file.

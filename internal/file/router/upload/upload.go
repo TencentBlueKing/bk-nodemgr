@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package download is the file download router.
-package download
+// Package upload provides the upload file router.
+package upload
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
@@ -29,7 +29,7 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:             rg.Group("/download"),
+		rg:             rg.Group("/upload"),
 		agentFileGroup: opt.AgentFileGroup,
 		proxyFileGroup: opt.ProxyFileGroup,
 		logger:         opt.Logger,
@@ -40,6 +40,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/agent", rest.FileHandler(h.Agent))
-	h.rg.POST("/proxy", rest.FileHandler(h.Proxy))
+	h.rg.POST("/agent", rest.RestHandlerFunc(h.Agent))
+	h.rg.POST("/proxy", rest.RestHandlerFunc(h.Proxy))
+	//h.rg.POST("/gse_pkg", h.GsePkg)
 }
