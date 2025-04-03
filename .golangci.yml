@@ -21,8 +21,6 @@ linters:
     - decorder
     # Go linter that checks if package imports are in a list of acceptable packages.
     - dogsled
-    # Tool for code clone detection.
-    - dupl
     # Checks for duplicate words in the source code.
     - dupword
     # Check for two durations multiplied together.
@@ -147,7 +145,6 @@ issues:
       linters:
         - gocyclo
         - errcheck
-        - dupl
         - gosec
     # Run some linter only for test files by excluding its issues for everything else.
     - path-except: _test\.go
