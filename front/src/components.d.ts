@@ -17,6 +17,7 @@ declare module 'vue' {
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Settings: typeof import('./components/settings.vue')['default']
     Validate: typeof import('./components/validate.vue')['default']
     ValidateInput: typeof import('./components/validate-input.vue')['default']
   }

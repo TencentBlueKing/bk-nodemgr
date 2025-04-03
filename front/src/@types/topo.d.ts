@@ -396,19 +396,12 @@ export interface TopoEventExactConditions {
   operator: string[];
 }
 
-// TopoEventFuzzyConditions describes the conditions when list event
-export interface TopoEventFuzzyConditions {
-  bk_networkarea_name: string[];
-  bk_networkunit_name: string[];
-}
-
 // TopoEventListReq describes the HTTP request body when get host in topo
 // service.
 export interface TopoEventListReq {
   page: Page;
   only_count: boolean;
   exact_include_conditions: TopoEventExactConditions;
-  fuzzy_include_conditions: TopoEventFuzzyConditions;
   operate_time_range: TimeRange;
 }
 
@@ -430,7 +423,6 @@ export interface TopoEventListRespData {
 // in topo service.
 export interface TopoEventDistinctReq {
   exact_include_conditions: TopoEventExactConditions;
-  fuzzy_include_conditions: TopoEventFuzzyConditions;
   operate_time_range: TimeRange;
 }
 

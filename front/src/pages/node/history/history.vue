@@ -2,6 +2,7 @@
   <div class="p-[24px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
+        <Checkbox v-model="hideAutoTask">隐藏自动部署任务</Checkbox>
         <DatePicker
           v-model="dateValue"
           :shortcut-selected-index="1"
@@ -10,11 +11,10 @@
           type="datetimerange"
           use-shortcut-text
           @change="dateChange" />
-        <Checkbox v-model="hideAutoTask">隐藏自动部署任务</Checkbox>
       </div>
-      <div class="flex gap-[8px]">
-        <SearchSelect class="w-[480px]" ref="searchSelect" :data="searchSelectData" v-model="searchSelectValue" :uniqueSelect="true"
-          :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')" @update:modelValue="handleSearchSelectChange">
+      <div class="flex-1 ml-[8px]">
+        <SearchSelect ref="searchSelect" :data="searchSelectData" v-model="searchSelectValue" :uniqueSelect="true"
+          :placeholder="'搜索 任务ID、执行人、任务类型、操作类型、部署策略、执行状态 搜索'" @update:modelValue="handleSearchSelectChange">
         </SearchSelect>
       </div>
     </section>
@@ -35,11 +35,11 @@
             <Button text theme="primary" @click="handleTaskDetail(row.bk_task_id)">{{ row.bk_task_id }}</Button>
           </template>
         </TableColumn>
-        <TableColumn field="bk_bussiness" :title="t('业务')" width="150"></TableColumn>
-        <TableColumn field="bk_task_type" :title="t('任务类型')" :filter="taskFilterOption"></TableColumn>
         <TableColumn field="bk_operate_type" :title="t('操作类型')" :filter="operateFilterOption"></TableColumn>
+        <TableColumn field="bk_task_type" :title="t('任务类型')" :filter="taskFilterOption"></TableColumn>
+        <TableColumn field="bk_bussiness" :title="t('业务')" width="150"></TableColumn>
         <TableColumn field="bk_policy_name" :title="t('部署策略')"></TableColumn>
-        <TableColumn field="created_by" :title="t('执行者')" :filter="createdFilterOption"></TableColumn>
+        <TableColumn field="created_by" :title="t('执行人')" :filter="createdFilterOption"></TableColumn>
         <TableColumn field="start_time" :title="t('执行时间')">
           <template #default={row}>
             <span>{{ timeFormatter(row.start_time) }}</span>

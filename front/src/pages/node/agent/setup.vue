@@ -73,7 +73,7 @@
                     <install-table ref="installTableRef" :data="tableData"></install-table>
                 </Form.FormItem>
                 <Form.FormItem>
-                    <Button text theme="primary" class="text-[14px]" @click="isShow = !isShow">
+                    <Button text theme="primary" class="text-[14px]" @click="isShow = !isShow" disabled>
                         <span class="mr-[8.5px]">高级选项</span>
                         <angle-double-down-line :class="{ 'transform rotate-180': isShow }" />
                     </Button>
@@ -182,7 +182,6 @@ const getNetworkAreaList = async () => {
             items: [],
         }
     });
-    console.log("🚀 ~ getNetworkAreaList ~ res:", res.items)
     networkAreaList.value = res.items;
 }
 
@@ -204,7 +203,6 @@ const getNetworkUnitList = async () => {
             items: [],
         }
     });
-    console.log("🚀 ~ getNetworkAreaList ~ res:", res.items)
     networkUnitList.value = res.items;
 }
 // 显示侧边栏安装策略

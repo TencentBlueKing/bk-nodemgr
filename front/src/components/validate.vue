@@ -1,5 +1,5 @@
 <template>
-    <div :class="[{ 'relative': isError }, type]" @focusin="handleFocus" @focusout="handleBlur">
+    <div :class="[{ 'validate': isError }, type]" @focusin="handleFocus" @focusout="handleBlur">
         <slot :is-error="isError"></slot>
         <template v-if="isError">
             <span
@@ -135,10 +135,12 @@ export default defineComponent({
 });
 </script>
 <style lang="postcss" scoped>
-::v-deep .bk-input,
-::v-deep .bk-tag-input-trigger,
-::v-deep .tag-list .text {
-    border-color: #ff5656 !important;
-    color: #ff5656 !important;
+.validate {
+    position: relative;
+    
+    &::v-deep(.bk-input) {
+        border-color: #ff5656 !important;
+        color: #ff5656 !important;
+    }
 }
 </style>

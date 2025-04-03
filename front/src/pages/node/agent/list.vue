@@ -40,8 +40,15 @@
           :remote-method="topoRemotehandler"
           ref="topoSelect"
           :placeholder="$t('业务拓扑')"/>
-        <SearchSelect class="w-[480px]" ref="searchSelect" :data="searchSelectData" v-model="searchSelectValue" :uniqueSelect="true"
-          :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')" @update:modelValue="handleSearchSelectChange">
+        <SearchSelect
+          class="w-[480px] z-99"
+          ref="searchSelect"
+          mul
+          :data="searchSelectData"
+          v-model="searchSelectValue"
+          :uniqueSelect="true"
+          :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')"
+          @update:modelValue="handleSearchSelectChange">
         </SearchSelect>
       </div>
     </section>
@@ -58,6 +65,7 @@
         @setting-change="handleSettingChange"
         @checkbox-change="handleSelectChange"
         @checkbox-all="handleSelectAllChange"
+        @column-filter="handleFilter"
       >
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
@@ -68,10 +76,10 @@
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="areaFilterOption"
         ></TableColumn>
-        <TableColumn field="bk_networkunit_id" :title="t('platform.nodeMan.bk_cloud_unit')" :filter="unitFilterOption"></TableColumn>
-        <TableColumn field="bk_os_type_name" :title="t('platform.nodeMan.os_type')" :filter="osFilterOption"></TableColumn>
-        <TableColumn field="node_version" :title="t('platform.nodeMan.agent_version')" :filter="versionFilterOption"></TableColumn>
-        <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150" :filter="statusFilterOption">
+        <TableColumn field="bk_networkunit_id" :title="t('platform.nodeMan.bk_cloud_unit')" :filter="filterOptionSource.bk_networkunit_id"></TableColumn>
+        <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')" :filter="filterOptionSource.os_type"></TableColumn>
+        <TableColumn field="node_version" :title="t('platform.nodeMan.agent_version')" :filter="filterOptionSource.node_version"></TableColumn>
+        <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150" :filter="filterOptionSource.node_status">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.node_status">
               <span :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"></span>
@@ -109,6 +117,11 @@
   </div>
 </template>
 <script setup lang="ts">
+interface FilterOption {
+  list: { text: string, value: string }[];
+  checked: string[];
+  filterScope: string;
+}
 import { ref, reactive, computed, onMounted, shallowRef } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 import { useI18n } from 'vue-i18n';
@@ -120,11 +133,14 @@ import { useMainStore } from '@/stores/main';
 import { WorkflowService } from '@/api/modules/workflow';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
+import { TopoHostDistinctRespData } from '@/@types/topo';
+import { watch } from 'vue';
 
 const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
 const tableData = ref<Host[]>([]);
+const agentList = ref<Host[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 // 分页
 const {
@@ -138,23 +154,44 @@ const topo = ref([]);
 const topoBizFilterList = computed(() => mainStore.businessList);
 const topoRemotehandler = () => {}
 // 搜索
-const searchSelectValue = ref([]);
+const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  const params: Record<string, string[]> = {};
+  // 给筛选器添加选中值
   data.forEach(item => {
-    params[item.id] = item.values.map(item => item.id);
-  });
-  await TopoService.HostList({
-    page: {
-      limit: 0
-    },
-  }).catch((err) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
     }
-  });
+  })
+}
+const hostDistinct = ref<TopoHostDistinctRespData | null>();
+// 筛选
+const getHostDistinct = async () => {
+  const params: Record<string, string[]> = {};
+  const res = await TopoService.HostDistinct(params).catch(() => null);
+  if (res) {
+    hostDistinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      const curUniqueValues = res[key] || [];
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = curUniqueValues.filter((item: any) => item !== '').map((value: any) => ({text: value, value: value}))
+      }
+    });
+  }
+}
+const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
+  if (field === 'bk_networkarea_name') {
+    if (checked.length){
+      tableData.value = agentList.value.filter((item: any) => checked.includes(item[field]));
+    } else {
+      tableData.value = agentList.value;
+    }
+  } else {
+    const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
+    index > -1 && searchSelectValue.value.splice(index, 1);
+    if (checked.length){
+      searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => ({id: item, name: item}))})
+    }
+  }
 }
 // 批量操作
 const operate = [
@@ -217,20 +254,29 @@ const handleInstall = () => {
 
 // 搜索
 const getUniqueChildren = (prop: string) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
+  const uniqueValues = Array.from(new Set(agentList.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
     name: String(value),
   }))
 }
+const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(prop: K) => {
+  const uniqueValues = hostDistinct.value?.[prop] || [];
+  return uniqueValues.filter((item: any) => item !== '').map((value: any) => ({
+    id: value,
+    name: String(value),
+  }))
+}
 const searchSelectData = computed(() => [
-  {id: 'ip', name: 'IP'},
-  {id: 'bk_agent_id', name: 'Agent ID'},
-  {id: 'bk_networkarea_name', name: '管控区域', children: getUniqueChildren('bk_networkarea_name')},
-  {id: 'bk_networkunit_id', name: '管控单元', children: getUniqueChildren('bk_networkunit_id')},
-  {id: 'bk_os_type_name', name: '操作系统', children: getUniqueChildren('bk_os_type_name')},
-  {id: 'node_version', name: 'Agent版本', children: getUniqueChildren('node_version')},
-  {id: 'node_status', name: 'Agent 状态', children: getUniqueChildren('node_status')},
+  {id: 'bk_host_innerip', name: t('platform.nodeMan.inner_ip'), multiple: true},
+  {id: 'bk_host_innerip_v6', name: t('platform.nodeMan.inner_ipv6'), multiple: true},
+  {id: 'bk_networkarea_id', name: '管控区域ID:IP', children: getUniqueChildrenFrom('bk_networkarea_id'), multiple: true},
+  {id: 'bk_agent_id', name: 'Agent ID', multiple: true},
+  // {id: 'bk_networkarea_name', name: '管控区域', children: getUniqueChildren('bk_networkarea_name')},
+  {id: 'bk_networkunit_id', name: '管控单元', children: getUniqueChildrenFrom('bk_networkunit_id'), multiple: true},
+  {id: 'os_type', name: '操作系统', children: getUniqueChildrenFrom('os_type'), multiple: true},
+  {id: 'node_version', name: 'Agent版本', children: getUniqueChildrenFrom('node_version'), multiple: true},
+  {id: 'node_status', name: 'Agent 状态', children: getUniqueChildrenFrom('node_status'), multiple: true},
 ]);
 
 // 表格
@@ -242,29 +288,52 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'bk_networkarea_name',
     'bk_networkarea_id',
     'bk_networkunit_id',
-    'bk_os_type_name',
+    'os_type',
     'node_version',
     'node_status',
     'action',
   ],
   disabled: ['action'],
 });
-const filterOptionConfig = (prop: string) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return {
-    list: uniqueValues.map(value => ({
+
+const areaFilterOption = reactive({
+  list: computed(() =>
+    Array.from(new Set(agentList.value.map((item: any) => item['bk_networkarea_name'])
+    .filter((item: any) => item !== '')))
+    .map(value => ({
       text: value,
       value: value
-    })),
-    checked: [] as string[],
+    }))),
+  checked: [] as string[],
+  filterScope: 'all',
+});
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  bk_networkarea_id: {
+    list: [],
+    checked: [],
     filterScope: 'all',
-  }
-}
-const areaFilterOption = computed(() => filterOptionConfig('bk_networkarea_name'));
-const unitFilterOption = computed(() => filterOptionConfig('bk_networkunit_id'));
-const osFilterOption = computed(() => filterOptionConfig('bk_os_type_name'));
-const versionFilterOption = computed(() => filterOptionConfig('node_version'));
-const statusFilterOption = computed(() => filterOptionConfig('node_status'));
+  },
+  bk_networkunit_id: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  os_type: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  node_version: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  node_status: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+})
 
 const triggerHandler = (type: string, setupType: string = 'setup') => {
   switch (type) {
@@ -399,7 +468,6 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
       }))
     };
     const result = await WorkflowService.AgentUpgrade(params);
-    console.log("🚀 ~ operateJob ~ result:", result)
     loading.value = false;
     if (result.workflow_id) {
       router.push({ name: 'taskDetail', params: { taskId: result.workflow_id, routerBackName: 'taskList' } });
@@ -443,14 +511,27 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
     },
   });
 }
+const fuzzyKeys = new Set([
+  'bk_host_innerip',
+  'bk_host_innerip_v6',
+  'bk_host_name',
+  'dept_name'
+]);
 const getParams = () => {
   const params = {
     page: {
+      offset: 0,
       limit: 0,
     },
-    exact_include_conditions: [],
-    fuzzy_include_conditions: []
+    exact_include_conditions: {} as Record<string, string[]>,
+    fuzzy_include_conditions: {} as Record<string, string[]>,
   };
+  searchSelectValue.value.forEach((item: any) => {
+    const target = fuzzyKeys.has(item.id)
+      ? params.fuzzy_include_conditions
+      : params.exact_include_conditions;
+    target[item.id] = item.values.map((value: any) => value.id);
+  });
   return params;
 }
 const getAgentList = async () => {
@@ -467,11 +548,15 @@ const getAgentList = async () => {
     ...item.info,
     ...item,
   }));
-  console.log("🚀 ~ tableData.value=res.items.map ~ tableData.value:", tableData.value)
+  agentList.value = tableData.value;
   loading.value = false;
 }
+watch(searchSelectValue, async () => {
+  await getAgentList();
+},{deep: true});
 onMounted(async () => {
   await getAgentList();
+  await getHostDistinct();
 });
 </script>
 <style scoped lang="postcss">
