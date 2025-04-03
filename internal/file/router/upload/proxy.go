@@ -31,6 +31,11 @@ func (h *handler) Proxy(rCtx *rest.Context) (interface{}, error) {
 	}
 
 	file, err := fileHeader.Open()
+	if err != nil {
+		h.logger.Error("open file failed", err)
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 
 	tenantCtx, err := rCtx.GetContext()
 	if err != nil {
