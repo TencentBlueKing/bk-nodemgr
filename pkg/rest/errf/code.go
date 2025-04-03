@@ -11,8 +11,6 @@
 // Package errf provides blueking error code.
 package errf
 
-import "net/http"
-
 // NOTE: 错误码规则
 // 38号段 + 5位错误码共7位
 // 注意：
@@ -79,36 +77,3 @@ const (
 	// ThirdpartyRequestFailed means request thirdparty service failed.
 	ThirdpartyRequestFailed Code = 3800012
 )
-
-var (
-	codeHttpStatus = map[Code]int{
-		// retain status code.
-		OK:               http.StatusOK,
-		PermissionDenied: http.StatusForbidden,
-		MaxErrCode:       http.StatusInternalServerError,
-
-		// custom status code.
-		InvalidParameter:        http.StatusBadRequest,
-		TooManyRequest:          http.StatusTooManyRequests,
-		RecordNotFound:          http.StatusNotFound,
-		DecodeRequestFailed:     http.StatusBadRequest,
-		UnHealthy:               http.StatusServiceUnavailable,
-		Aborted:                 http.StatusInternalServerError,
-		Unauthorized:            http.StatusUnauthorized,
-		PartialFailed:           http.StatusInternalServerError,
-		DBExecCmdFailed:         http.StatusInternalServerError,
-		InvalidCache:            http.StatusInternalServerError,
-		InvalidFileResource:     http.StatusInternalServerError,
-		ThirdpartyRequestFailed: http.StatusInternalServerError,
-	}
-)
-
-// HttpStatusCode returns the http status code.
-func (code Code) HttpStatusCode() int {
-	httpStatus, ok := codeHttpStatus[code]
-	if !ok {
-		return http.StatusInternalServerError
-	}
-
-	return httpStatus
-}

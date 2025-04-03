@@ -13,6 +13,8 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
+	"mime/multipart"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/gin-gonic/gin"
@@ -36,6 +38,21 @@ func (c *Context) BindJSON(body RequestBody) error {
 	body.AutoConvert()
 
 	return body.Validate()
+}
+
+// ParseFileForm bind file form.
+func (c *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error) {
+	metaData := c.gCtx.PostForm("metadata")
+	if err := json.Unmarshal([]byte(metaData), body); err != nil {
+		return nil, err
+	}
+
+	file, err := c.gCtx.FormFile("file")
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }
 
 // Param parse the param from url.
