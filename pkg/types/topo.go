@@ -165,13 +165,34 @@ const (
 	NodeStatusOffline NodeStatus = "offline"
 )
 
+// NodeGeneration represents a node generation.
+type NodeGeneration int64
+
+const (
+	// NodeGeneration1 means this node is the first generation.
+	NodeGeneration1 NodeGeneration = 1
+
+	// NodeGeneration2 means this node is the second generation.
+	NodeGeneration2 NodeGeneration = 2
+)
+
+// Validate validates the node generation.
+func (nodeGeneration NodeGeneration) Validate() error {
+	switch nodeGeneration {
+	case NodeGeneration1, NodeGeneration2:
+		return nil
+	default:
+		return errors.New("invalid node generation")
+	}
+}
+
 // HostDynamic represents a dynamic host under a host.
 // dynamic means it is set by user.
 type HostDynamic struct {
 	NodeRole       NodeRole
 	NodeStatus     NodeStatus
 	NodeVersion    string
-	NodeGeneration int64
+	NodeGeneration NodeGeneration
 	AgentID        string
 	NetworkUnitID  int64
 

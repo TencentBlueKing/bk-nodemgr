@@ -14,11 +14,13 @@ package deployconstant
 import (
 	"errors"
 	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
-	Generation    int64
+	Generation    types.NodeGeneration
 	OsType        string
 	HostIDPath    string
 	GseDataIPC    string
@@ -32,8 +34,8 @@ type DeployConf struct {
 
 // Validate checks if the deployment configuration is valid.
 func (conf DeployConf) Validate() error {
-	if conf.Generation <= 0 {
-		return errors.New("generation is invalid")
+	if err := conf.Generation.Validate(); err != nil {
+		return fmt.Errorf("invalid generation, err: %w", err)
 	}
 
 	if conf.OsType == "" {
@@ -76,10 +78,10 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[int64]map[string]DeployConf)
+var deployConfMap = make(map[types.NodeGeneration]map[string]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(generation int64, osType string) (DeployConf, error) {
+func GetDeployConf(generation types.NodeGeneration, osType string) (DeployConf, error) {
 	confMap, ok := deployConfMap[generation]
 	if !ok {
 		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)

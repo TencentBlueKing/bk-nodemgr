@@ -157,7 +157,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
-		*item.State.NodeGeneration = host.Dynamic.NodeGeneration
+		*item.State.NodeGeneration = int64(host.Dynamic.NodeGeneration)
 		*item.State.BkAgentId = host.Dynamic.AgentID
 
 		items[idx] = item
@@ -208,7 +208,7 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NodeRole:       types.NodeRole(state.GetNodeRole()),
 			NodeStatus:     types.NodeStatus(state.GetNodeStatus()),
 			NodeVersion:    state.GetNodeVersion(),
-			NodeGeneration: state.GetNodeGeneration(),
+			NodeGeneration: types.NodeGeneration(state.GetNodeGeneration()),
 			NetworkUnitID:  info.GetBkNetworkunitId(),
 		}
 

@@ -269,7 +269,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			NodeRole:       string(host.Dynamic.NodeRole),
 			NodeStatus:     string(host.Dynamic.NodeStatus),
 			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: host.Dynamic.NodeGeneration,
+			NodeGeneration: int64(host.Dynamic.NodeGeneration),
 			AgentID:        host.Dynamic.AgentID,
 			NetworkUnitID:  host.Dynamic.NetworkUnitID,
 			ProxyTags: func() []string {
@@ -321,7 +321,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
 			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
 			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: host.Dynamic.NodeGeneration,
+			NodeGeneration: types.NodeGeneration(host.Dynamic.NodeGeneration),
 			AgentID:        host.Dynamic.AgentID,
 			NetworkUnitID:  host.Dynamic.NetworkUnitID,
 			ProxyTags: func() []types.ProxyTag {

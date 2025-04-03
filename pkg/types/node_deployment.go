@@ -63,8 +63,8 @@ func (info DeploymentInfo) Validate() error {
 	if info.Dynamic.NodeVersion == "" {
 		return errors.New("node_version shouldn't not be empty")
 	}
-	if info.Dynamic.NodeGeneration != 1 && info.Dynamic.NodeGeneration != 2 {
-		return errors.New("node_generation should be 1 or 2")
+	if err := info.Dynamic.NodeGeneration.Validate(); err != nil {
+		return fmt.Errorf("node_generation validate failed, err: %w", err)
 	}
 	if info.Dynamic.NetworkUnitID < 0 {
 		return errors.New("network_unit_id should be equal or greater than 0")
