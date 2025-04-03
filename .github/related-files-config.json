@@ -85,6 +85,17 @@
       "related_files": [
         "pkg/types/"
       ]
+    },
+    {
+      "id": "rest-errf",
+      "name": "新增 rest/errf 错误码",
+      "description": "修改错误码的时候记得要修改三处文件",
+      "source_patterns": ["pkg/rest/errf/*.go"],
+      "related_files": [
+        "pkg/rest/errf/code.go",
+        "pkg/rest/errf/error.go",
+        "pkg/rest/errf/http_status.go"
+      ]
     }
   ]
 }
