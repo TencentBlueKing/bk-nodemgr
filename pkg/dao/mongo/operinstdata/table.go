@@ -57,7 +57,7 @@ type OperInstData struct {
 	ParentOperationID string                     `json:"parent_operation_id" bson:"parent_operation_id"`
 	Timeout           time.Duration              `json:"timeout" bson:"timeout"`
 	InitContent       string                     `json:"init_content" bson:"init_content"`
-	Lifecycle         *Lifecycle                 `json:"lifecycle" bson:"lifecycle"`
+	Lifecycle         *Lifecycle                 `json:"life_cycle" bson:"life_cycle"`
 }
 
 // Lifecycle is the lifecycle of an operation instance.

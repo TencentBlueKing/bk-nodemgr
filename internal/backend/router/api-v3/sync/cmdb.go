@@ -34,7 +34,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 	tenantID := ctx.TenantID
 
 	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncBizAndHost, triggerID, &operengine.OperInstParam{
-		Timeout: 1 * time.Minute,
+		Timeout: 10 * time.Minute,
 		InitContent: map[string]any{
 			keys.CKeyTenantID: tenantID,
 		},

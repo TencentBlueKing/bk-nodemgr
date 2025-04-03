@@ -478,7 +478,8 @@ func (mgr *operInstMgr) executeAndWatchAction(ctx context.Context, actionDef Act
 	defer actionCancel()
 
 	startAt := operInstData.Lifecycle.StartedAt
-	operInstCtx, cancel := context.WithDeadline(ctx, startAt.Add(operInstData.Timeout))
+	endAt := startAt.Add(operInstData.Timeout)
+	operInstCtx, cancel := context.WithDeadline(ctx, endAt)
 	defer cancel()
 
 	// watch storage for stopping event.
@@ -584,6 +585,7 @@ func (mgr *operInstMgr) getActionInitContent(actionInstData *ActionInstData, ope
 	// first action
 	if actionInstData.Index == 0 {
 		actionInstData.Content = operInstData.InitContent
+		operInstData.Lifecycle.State = OperInstStateRunning
 		operInstData.Lifecycle.StartedAt = actionInstData.Lifecycle.StartedAt
 
 		if err := mgr.storage.UpdateLifecycle(mgr.ctx, operInstData.OperInstID, operInstData.Lifecycle); err != nil {
@@ -716,8 +718,8 @@ func (mgr *operInstMgr) callActionDefWithRetry(actionInstCtx *ActionInstContext,
 		doErr = actionDef.Do(actionInstCtx)
 
 		if doErr != nil {
-			mgr.logger.Errorf("failed to do action, action-name(%s), retry-num(%d), err: %v",
-				actionInstCtx.Data.Name, retryNum, doErr)
+			mgr.logger.Errorf("failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
+				actionInstCtx.Data.OperInstID, actionInstCtx.Data.Name, retryNum, doErr)
 			actionInstCtx.Data.Log(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 

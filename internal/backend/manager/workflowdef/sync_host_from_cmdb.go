@@ -61,7 +61,7 @@ func (s *syncHostFromCMDB) Description() string {
 
 // Timeout ...
 func (s *syncHostFromCMDB) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags ...
