@@ -39,14 +39,14 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	osType, err := platform.NormalizeOS(req.OsType)
+	osType, err := platform.NormalizeOS(req.GetOsType())
 	if err != nil {
 		h.logger.Error("normalize os type failed", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	cpuArch, err := platform.NormalizeArch(req.CpuArch)
+	cpuArch, err := platform.NormalizeArch(req.GetCpuArch())
 	if err != nil {
 		h.logger.Error("normalize cpu arch failed", err)
 
@@ -55,8 +55,8 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 
 	pkgName, err := nodepkg.FormatPkgName(
 		types.NodeRoleAgent,
-		types.NodeGeneration(req.Generation),
-		req.Version,
+		types.NodeGeneration(req.GetGeneration()),
+		req.GetVersion(),
 		cpuArch,
 		osType,
 	)
@@ -72,7 +72,7 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 			Name: pkgName,
 		},
 		file,
-		req.Overwrite); err != nil {
+		req.GetOverwrite()); err != nil {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
