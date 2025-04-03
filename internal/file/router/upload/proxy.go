@@ -14,7 +14,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
+	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -22,7 +22,7 @@ import (
 
 // Proxy download proxy package.
 func (h *handler) Proxy(rCtx *rest.Context) (interface{}, error) {
-	req := new(proto.UploadProxyReq)
+	req := new(protoFile.UploadProxyReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		h.logger.Error("parse file form failed", err)
@@ -83,7 +83,7 @@ func (h *handler) Proxy(rCtx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	resp := &proto.UploadProxyResp{
+	resp := &protoFile.UploadProxyResp{
 		Name: localFile.Info().Name,
 		Size: localFile.Info().Size,
 		Md5:  localFile.Info().Md5,
