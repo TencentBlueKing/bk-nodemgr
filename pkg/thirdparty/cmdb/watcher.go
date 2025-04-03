@@ -233,7 +233,7 @@ func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]
 }
 
 // getHostRelationResourceByWatch get host relation resource by watch.
-// nolint: dupl
+
 func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor string) (
 	[]*HostRelationEventInfo, string, error) {
 
@@ -278,7 +278,7 @@ func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor str
 }
 
 // getProcessResourceByWatch get process resource by watch.
-// nolint: dupl,unused
+// nolint: unused
 func (w *Watcher) getProcessResourceByWatch(ctx context.Context, cursor string) ([]*ProcessEventInfo, string,
 	error) {
 
