@@ -14,10 +14,42 @@ const (
 	// FieldKeyHostID the host id field key.
 	FieldKeyHostID = "data.host_id"
 
+	// Static fields.
+
 	// FieldKeyStaticBizID the static biz id field key.
 	FieldKeyStaticBizID = "data.static.biz_id"
-	// FieldKeyStaticNetworkAreaID the static network area id field key.
+
+	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"
+
+	// FieldKeyStaticInnerIP the static inner ip field key.
+	FieldKeyStaticInnerIP = "data.static.inner_ip"
+
+	// FieldKeyStaticInnerIPV6 the static inner ipv6 field key.
+	FieldKeyStaticInnerIPV6 = "data.static.inner_ipv6"
+
+	// FieldKeyStaticOuterIP the static outer ip field key.
+	FieldKeyStaticOuterIP = "data.static.outer_ip"
+
+	// FieldKeyStaticOuterIpv6 the static outer ipv6 field key.
+	FieldKeyStaticOuterIpv6 = "data.static.outer_ipv6"
+
+	// FieldKeyStaticAddressing the static addressing field key.
+	FieldKeyStaticAddressing = "data.static.addressing"
+
+	// FieldKeyStaticDeptName the static dept name field key.
+	FieldKeyStaticDeptName = "data.static.dept_name"
+
+	// FieldKeyStaticOSType the static os type field key.
+	FieldKeyStaticOSType = "data.static.os_type"
+
+	// FieldKeyStaticArch the static arch field key.
+	FieldKeyStaticArch = "data.static.arch"
+
+	// FieldKeyStaticHostName the static hostname field key.
+	FieldKeyStaticHostName = "data.static.host_name"
+
+	// Dynamic fields.
 
 	// FieldKeyDynamicNodeRole the dynamic node role field key.
 	FieldKeyDynamicNodeRole = "data.dynamic.node_role"
@@ -34,23 +66,8 @@ const (
 	// FieldKeyDynamicAgentID the dynamic agent id field key.
 	FieldKeyDynamicAgentID = "data.dynamic.agent_id"
 
-	// FieldKeyDynamicNetworkUnitID the dynamic network unit id field key.
+	// FieldKeyDynamicNetworkUnitID the dynamic networkunit id field key.
 	FieldKeyDynamicNetworkUnitID = "data.dynamic.networkunit_id"
-
-	// FieldKeyStaticInnerIP the static inner ip field key.
-	FieldKeyStaticInnerIP = "data.static.inner_ip"
-
-	// FieldKeyStaticInnerIPV6 the static inner ipv6 field key.
-	FieldKeyStaticInnerIPV6 = "data.static.inner_ipv6"
-
-	// FieldKeyStaticOuterIP the static outer ip field key.
-	FieldKeyStaticOuterIP = "data.static.outer_ip"
-
-	// FieldKeyStaticOuterIpv6 the static outer ipv6 field key.
-	FieldKeyStaticOuterIpv6 = "data.static.outer_ipv6"
-
-	// FieldKeyStaticAddressing the static addressing field key.
-	FieldKeyStaticAddressing = "data.static.addressing"
 
 	// FieldKeyDynamicProxyTags the dynamic proxy tag field key.
 	FieldKeyDynamicProxyTags = "data.dynamic.proxy_tags"

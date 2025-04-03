@@ -13,6 +13,7 @@ package base
 
 import (
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -117,6 +118,13 @@ func WithoutValues[T bool | string | int64](key string, values ...T) OptFn {
 
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{Key: key, Value: bson.M{"$nin": values}})
+	}
+}
+
+// WithTimeRange filters by time range.
+func WithTimeRange(key string, startTime, endTime time.Time) OptFn {
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$gte": startTime, "$lte": endTime}})
 	}
 }
 

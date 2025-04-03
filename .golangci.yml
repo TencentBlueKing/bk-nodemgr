@@ -646,12 +646,15 @@ linters-settings:
       - pkg: go.etcd.io/etcd/client/v3
         alias: clientv3
       # protocols
-      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3
         alias: protoApplication
-      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3
         alias: protoBackend
-      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3
         alias: protoFile
       # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
       - pkg: github.com/testcontainers/testcontainers-go
-        alias: "tc"
+        alias: tc
+      # Using `mongoOptions` alias for `go.mongodb.org/mongo-driver/mongo/options`
+      - pkg: go.mongodb.org/mongo-driver/mongo/options
+        alias: mongoOptions

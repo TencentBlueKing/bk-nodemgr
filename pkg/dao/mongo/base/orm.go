@@ -25,9 +25,16 @@ import (
 
 // Dao this is a common dao to dao some common crud.
 type Dao interface {
+	// GetClient get the mongo client.
 	GetClient() *mongo.Collection
+
+	// GetLogger get the logger.
 	GetLogger() logger.Logger
+
+	// GetTableName get the table name.
 	GetTableName() string
+
+	// GetIndexes get the indexes.
 	GetIndexes() []mongo.IndexModel
 }
 
@@ -40,13 +47,34 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 
 // IOrm this defines the orm interface.
 type IOrm[P Pointer[T], T any] interface {
+	// EnsureIndexes ensure the indexes of given table.
 	EnsureIndexes() error
+
+	// Get single data by given filter.
 	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
+
+	// Create single data.
 	Create(ctx context.Context, data P) error
+
+	// CreateMany create multiple data.
 	CreateMany(ctx context.Context, datas []P) error
+
+	// UpdateField update single field of given data.
 	UpdateField(ctx context.Context, filter bson.D, field string, value any) error
+
+	// Count count the number of given data.
 	Count(ctx context.Context, filter bson.D) (int64, error)
+
+	// List list the data by given filter.
 	List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
+
+	// DistinctString distinct the string value of given key.
+	DistinctString(
+		ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error)
+
+	// DistinctInt64 distinct the int64 value of given key.
+	DistinctInt64(
+		ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error)
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -209,4 +237,42 @@ func (orm *Orm[P, T]) List(ctx context.Context, filter bson.D, findOpt *mongoOpt
 	}
 
 	return hosts, nil
+}
+
+// DistinctString this is a common operation for mongo db.
+func (orm *Orm[P, T]) DistinctString(
+	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error) {
+
+	values, err := orm.dao.GetClient().Distinct(ctx, key, filter, distinctOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0)
+	for _, value := range values {
+		if v, ok := value.(string); ok {
+			result = append(result, v)
+		}
+	}
+
+	return result, nil
+}
+
+// DistinctInt64 this is a common operation for mongo db.
+func (orm *Orm[P, T]) DistinctInt64(
+	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error) {
+
+	values, err := orm.dao.GetClient().Distinct(ctx, key, filter, distinctOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]int64, 0)
+	for _, value := range values {
+		if v, ok := value.(int64); ok {
+			result = append(result, v)
+		}
+	}
+
+	return result, nil
 }

@@ -135,6 +135,38 @@ func (c *cli) listHost(ctx context.Context, tenantID string, req *protoBackend.T
 	return resp, nil
 }
 
+func (c *cli) distinctHost(ctx context.Context, tenantID string, req *protoBackend.TopoHostDistinctReq) (
+	*protoBackend.TopoHostDistinctResp, error) {
+
+	resp := new(protoBackend.TopoHostDistinctResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/host/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct host failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct host failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaCreateReq) (
 	*protoBackend.TopoNetworkAreaCreateResp, error) {
 
@@ -482,6 +514,38 @@ func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *protoBack
 
 	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list topoevent failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) distinctTopoEvent(ctx context.Context, tenantID string, req *protoBackend.TopoEventDistinctReq) (
+	*protoBackend.TopoEventDistinctResp, error) {
+
+	resp := new(protoBackend.TopoEventDistinctResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/topo/event/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct topoevent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct topoevent failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

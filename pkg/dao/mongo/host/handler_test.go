@@ -14,6 +14,8 @@ package host
 import (
 	"context"
 	"os"
+	"reflect"
+	"sort"
 	"sync"
 	"testing"
 
@@ -26,7 +28,7 @@ import (
 )
 
 // testClient ...
-func testClient(t *testing.T) Handler {
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -71,7 +73,9 @@ func prepareData(t *testing.T, ctx context.Context) {
 					HostName: "hostname-1",
 				},
 				Dynamic: &types.HostDynamic{
-					NodeRole: types.NodeRoleAgent,
+					NodeStatus:  types.NodeStatusDamaged,
+					NodeRole:    types.NodeRoleAgent,
+					NodeVersion: "v2.0.0",
 				},
 			},
 			&types.Host{
@@ -85,7 +89,8 @@ func prepareData(t *testing.T, ctx context.Context) {
 				TenantID: tenantID,
 				HostID:   90003,
 				Static: &types.HostStatic{
-					HostName: "unknown-name",
+					HostName:      "unknown-name",
+					NetworkAreaID: 1,
 				},
 				Dynamic: &types.HostDynamic{
 					NodeRole:            types.NodeRoleAgent,
@@ -118,6 +123,9 @@ func prepareData(t *testing.T, ctx context.Context) {
 					Arch:          "",
 					Addressing:    types.AddressingDynamic,
 					SyncedAgentID: "",
+				},
+				Dynamic: &types.HostDynamic{
+					NodeVersion: "v2.0.1",
 				},
 			},
 		)
@@ -646,6 +654,138 @@ func Test_handler_List(t *testing.T) {
 
 			for _, v := range got {
 				t.Logf("List() got = %v", v)
+			}
+		})
+	}
+}
+
+// Test_handler_DistinctNodeVersion distinct node role fields.
+func Test_handler_DistinctNodeVersion(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []string
+		wantErr    bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				optFn: []OptFn{WithHostID(90001, 90002, 90003, 90004)},
+			},
+			wantResult: []string{"", "v2.0.0", "v2.0.1"},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctNodeVersion(ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctNodeVersion() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Strings(gotResult)
+			sort.Strings(tt.wantResult)
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctNodeVersion() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+		})
+	}
+}
+
+// Test_handler_DistinctNodeStatus distinct node status fields.
+func Test_handler_DistinctNodeStatus(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []types.NodeStatus
+		wantErr    bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				optFn: []OptFn{WithHostID(90001, 90002, 90003, 90004)},
+			},
+			wantResult: []types.NodeStatus{"", types.NodeStatusDamaged, types.NodeStatusRunning},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctNodeStatus(ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctNodeStatus() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
+			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctNodeStatus() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+		})
+	}
+}
+
+// Test_handler_DistinctNetworkAreaID distinct networkarea fields.
+func Test_handler_DistinctNetworkAreaID(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		optFn []OptFn
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult []int64
+		wantErr    bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				optFn: []OptFn{WithHostID(90001, 90002, 90003, 90004)},
+			},
+			wantResult: []int64{0, 1},
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			gotResult, err := h.DistinctNetworkAreaID(ctx, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DistinctNetworkAreaID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
+			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
+
+			if !reflect.DeepEqual(gotResult, tt.wantResult) {
+				t.Errorf("DistinctNetworkAreaID() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
 		})
 	}

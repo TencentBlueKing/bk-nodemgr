@@ -19,12 +19,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Handler topo event handler interface.
-type Handler interface {
+// IHandler topo event handler interface.
+type IHandler interface {
 	// List list topo events by page and conditions.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.TopoEvent, int64, error)
 
@@ -33,6 +34,26 @@ type Handler interface {
 
 	// CreateMany create multiple topo events.
 	CreateMany(ctx context.Context, events ...*types.TopoEvent) error
+
+	IDistinctor
+}
+
+// IDistinctor defines the interface for distinctor.
+type IDistinctor interface {
+	// DistinctType distincts with field type.
+	DistinctType(ctx context.Context, opts ...OptFn) ([]types.TopoEventType, error)
+
+	// DistinctNetworkAreaID distincts with field networkarea-id.
+	DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
+	// DistinctNetworkUnitID distincts with field networkunit-id.
+	DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
+	// DistinctAccessPointID distincts with field accesspoint-id.
+	DistinctAccessPointID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
+	// DistinctOperator distincts with field operator.
+	DistinctOperator(ctx context.Context, opts ...OptFn) ([]string, error)
 }
 
 type handler struct {
@@ -61,7 +82,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new topo event handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
 		client: client,
 		logger: logger,
@@ -93,6 +114,9 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	if page.Limit > 0 {
 		findOpt.SetLimit(int64(page.Limit))
 	}
+
+	// descending sort by operate time.
+	findOpt.SetSort(bson.D{{FieldKeyOperateTime, -1}})
 
 	events, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
 	if err != nil {
@@ -156,6 +180,65 @@ func (h *handler) CreateMany(ctx context.Context, events ...*types.TopoEvent) er
 	}
 
 	return nil
+}
+
+// DistinctType returns distinct values of type field.
+func (h *handler) DistinctType(ctx context.Context, opts ...OptFn) ([]types.TopoEventType, error) {
+	result, err := h.distinctString(ctx, FieldKeyType, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.StringListToTopoEventTypeList(result), nil
+}
+
+// DistinctNetworkAreaID returns distinct values of networkarea-id field.
+func (h *handler) DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyNetworkAreaID, opts...)
+}
+
+// DistinctNetworkUnitID returns distinct values of networkunit-id field.
+func (h *handler) DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyNetworkUnitID, opts...)
+}
+
+// DistinctAccessPointID returns distinct values of accesspoint-id field.
+func (h *handler) DistinctAccessPointID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyAccessPointID, opts...)
+}
+
+// DistinctOperator returns distinct values of operator field.
+func (h *handler) DistinctOperator(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyOperator, opts...)
+}
+
+// distinctInt64 returns distinct values of specified field.
+func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) ([]int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+}
+
+func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
 }
 
 func convertTopoEventFromTypes(event *types.TopoEvent) *TopoEvent {

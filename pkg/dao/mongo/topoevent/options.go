@@ -20,50 +20,55 @@ type OptFn = base.OptFn
 
 // WithNetworkAreaID filters by networkarea-id.
 func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithInt64Values("data.networkarea_id", networkAreaIDs...)
+	return base.WithValues(FieldKeyNetworkAreaID, networkAreaIDs...)
 }
 
 // WithoutNetworkAreaID filters by not contains networkarea-id.
 func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.networkarea_id", networkAreaIDs...)
+	return base.WithoutValues(FieldKeyNetworkAreaID, networkAreaIDs...)
 }
 
 // WithNetworkUnitID filters by networkunit-id.
 func WithNetworkUnitID(networkUnitIDs ...int64) OptFn {
-	return base.WithInt64Values("data.networkunit_id", networkUnitIDs...)
+	return base.WithValues(FieldKeyNetworkUnitID, networkUnitIDs...)
 }
 
 // WithoutNetworkUnitID filters by not contains networkunit-id.
 func WithoutNetworkUnitID(networkUnitIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.networkunit_id", networkUnitIDs...)
+	return base.WithoutValues(FieldKeyNetworkUnitID, networkUnitIDs...)
 }
 
 // WithAccessPointID filters by accesspoint-id.
 func WithAccessPointID(accessPointIDs ...int64) OptFn {
-	return base.WithInt64Values("data.accesspoint_id", accessPointIDs...)
+	return base.WithValues(FieldKeyAccessPointID, accessPointIDs...)
 }
 
 // WithoutAccessPointID filters by not contains accesspoint-id.
 func WithoutAccessPointID(accessPointIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.accesspoint_id", accessPointIDs...)
+	return base.WithoutValues(FieldKeyAccessPointID, accessPointIDs...)
 }
 
 // WithType filters by event-type.
 func WithType(eventTypes ...types.TopoEventType) OptFn {
-	return base.WithStringValues("type", types.TopoEventTypeListToStringList(eventTypes)...)
+	return base.WithValues(FieldKeyType, types.TopoEventTypeListToStringList(eventTypes)...)
 }
 
 // WithoutType filters by not contains event-type.
 func WithoutType(eventTypes ...types.TopoEventType) OptFn {
-	return base.WithoutStringValues("type", types.TopoEventTypeListToStringList(eventTypes)...)
+	return base.WithoutValues(FieldKeyType, types.TopoEventTypeListToStringList(eventTypes)...)
 }
 
 // WithOperator filters by operator.
 func WithOperator(operator ...string) OptFn {
-	return base.WithStringValues("operator", operator...)
+	return base.WithValues(FieldKeyOperator, operator...)
 }
 
 // WithoutOperator filters by not contains operator.
 func WithoutOperator(operator ...string) OptFn {
-	return base.WithoutStringValues("operator", operator...)
+	return base.WithoutValues(FieldKeyOperator, operator...)
+}
+
+// WithOperateTimeRange filters by operate-time.
+func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
+	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)
 }

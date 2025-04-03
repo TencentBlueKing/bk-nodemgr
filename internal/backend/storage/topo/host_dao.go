@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -96,86 +97,122 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 	return nil
 }
 
-// nolint:cyclop
 // ListHost lists hosts by page and conditions.
 func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
 	[]*types.Host, int64, error) {
 
-	opts := make([]host.OptFn, 0)
-	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					host.WithHostID(condition.Exact.HostID...),
-					host.WithBizID(condition.Exact.BizID...),
-					host.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					host.WithOSType(condition.Exact.OSType...),
-					host.WithNodeRole(condition.Exact.NodeRole...),
-					host.WithNodeStatus(condition.Exact.NodeStatus...),
-					host.WithNodeVersion(condition.Exact.NodeVersion...),
-					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
-					host.WithAgentID(condition.Exact.AgentID...),
-					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
-					host.WithStaticAddressing(condition.Exact.Addressing...),
-					host.WithStaticInnerIP(condition.Exact.InnerIP...),
-				)
-			}
-
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					business.WithoutBizID(condition.Exact.HostID...),
-					host.WithoutBizID(condition.Exact.BizID...),
-					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithoutOSType(condition.Exact.OSType...),
-					host.WithoutNodeRole(condition.Exact.NodeRole...),
-					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
-					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
-					host.WithoutAgentID(condition.Exact.AgentID...),
-					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
-					host.WithStaticAddressing(condition.Exact.Addressing...),
-					host.WithStaticInnerIP(condition.Exact.InnerIP...),
-				)
-			}
-
-		case types.ConditionTypeFuzzyInclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					host.WithFuzzyHostName(condition.Fuzzy.HostName...),
-					host.WithFuzzyDeptName(condition.Fuzzy.DeptName...),
-					host.WithFuzzyInnerIP(condition.Fuzzy.InnerIP...),
-					host.WithFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
-					host.WithFuzzyOuterIP(condition.Fuzzy.OuterIP...),
-					host.WithFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
-				)
-			}
-
-		case types.ConditionTypeFuzzyExclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					host.WithoutFuzzyHostName(condition.Fuzzy.HostName...),
-					host.WithoutFuzzyDeptName(condition.Fuzzy.DeptName...),
-					host.WithoutFuzzyInnerIP(condition.Fuzzy.InnerIP...),
-					host.WithoutFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
-					host.WithoutFuzzyOuterIP(condition.Fuzzy.OuterIP...),
-					host.WithoutFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
-				)
-			}
-
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
-		}
+	opts, err := convertHostConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return s.daoHost.List(ctx, page, opts...)
 }
 
-// nolint:cyclop
 // CountHost counts host by conditions.
 func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
+	opts, err := convertHostConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.daoHost.Count(ctx, opts...)
+}
+
+// DistinctHost distinct host fields.
+// nolint:funlen
+func (s *Storage) DistinctHost(
+	ctx context.Context, request types.HostDistinctRequest, conditions ...types.HostCondition) (
+	*types.HostDistinctResult, error) {
+
+	opts, err := convertHostConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := new(types.HostDistinctResult)
+
+	gp := gopool.NewPool()
+	if request.NodeRole {
+		gp.Go(func() error {
+			var err error
+			result.NodeRole, err = s.daoHost.DistinctNodeRole(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.NodeStatus {
+		gp.Go(func() error {
+			var err error
+			result.NodeStatus, err = s.daoHost.DistinctNodeStatus(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.NodeVersion {
+		gp.Go(func() error {
+			var err error
+			result.NodeVersion, err = s.daoHost.DistinctNodeVersion(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.DeptName {
+		gp.Go(func() error {
+			var err error
+			result.DeptName, err = s.daoHost.DistinctDeptName(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.OSType {
+		gp.Go(func() error {
+			var err error
+			result.OSType, err = s.daoHost.DistinctOSType(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.Arch {
+		gp.Go(func() error {
+			var err error
+			result.Arch, err = s.daoHost.DistinctArch(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.Addressing {
+		gp.Go(func() error {
+			var err error
+			result.Addressing, err = s.daoHost.DistinctAddressing(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.NetworkAreaID {
+		gp.Go(func() error {
+			var err error
+			result.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(ctx, opts...)
+
+			return err
+		})
+	}
+	if request.NetworkUnitID {
+		gp.Go(func() error {
+			var err error
+			result.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(ctx, opts...)
+
+			return err
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func convertHostConditionsToOptions(conditions ...types.HostCondition) ([]host.OptFn, error) {
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
 		switch condition.Type {
@@ -189,11 +226,12 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 					host.WithOSType(condition.Exact.OSType...),
 					host.WithNodeRole(condition.Exact.NodeRole...),
 					host.WithNodeStatus(condition.Exact.NodeStatus...),
+					host.WithNodeVersion(condition.Exact.NodeVersion...),
+					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
+					host.WithAgentID(condition.Exact.AgentID...),
 					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
 					host.WithStaticAddressing(condition.Exact.Addressing...),
 					host.WithStaticInnerIP(condition.Exact.InnerIP...),
-					host.WithNodeVersion(condition.Exact.NodeVersion...),
-					host.WithAgentID(condition.Exact.AgentID...),
 				)
 			}
 
@@ -203,7 +241,7 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 					business.WithoutBizID(condition.Exact.HostID...),
 					host.WithoutBizID(condition.Exact.BizID...),
 					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
+					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
 					host.WithoutOSType(condition.Exact.OSType...),
 					host.WithoutNodeRole(condition.Exact.NodeRole...),
 					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
@@ -240,9 +278,9 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 			}
 
 		default:
-			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+			return nil, fmt.Errorf("get unexpected condition type: %s", condition.Type)
 		}
 	}
 
-	return s.daoHost.Count(ctx, opts...)
+	return opts, nil
 }

@@ -24,8 +24,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Handler host handler interface.
-type Handler interface {
+// IHandler host handler interface.
+type IHandler interface {
 	// ListAll lists all hosts.
 	ListAll(ctx context.Context) ([]*types.Host, error)
 
@@ -43,6 +43,38 @@ type Handler interface {
 
 	// UpdateDynamicMany updates host dynamics. will not insert.
 	UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error
+
+	IDistinctor
+}
+
+// IDistinctor host distinct handler interface.
+type IDistinctor interface {
+	// DistinctNodeRole distincts with field node-role.
+	DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.NodeRole, error)
+
+	// DistinctNodeStatus distincts with field node-status.
+	DistinctNodeStatus(ctx context.Context, opts ...OptFn) ([]types.NodeStatus, error)
+
+	// DistinctNodeVersion distincts with field node-version.
+	DistinctNodeVersion(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctDeptName distincts with field dept-name.
+	DistinctDeptName(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctOSType distincts with field os-type.
+	DistinctOSType(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctArch distincts with field arch.
+	DistinctArch(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctAddressing distincts with field addressing.
+	DistinctAddressing(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctNetworkAreaID distincts with field networkarea-id.
+	DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
+	// DistinctNetworkUnitID distincts with field networkunit-id.
+	DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error)
 }
 
 type handler struct {
@@ -71,7 +103,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
 		client: client,
 		logger: logger,
@@ -152,6 +184,91 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// DistinctNodeRole distincts with field node-role.
+func (h *handler) DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.NodeRole, error) {
+	result, err := h.distinctString(ctx, FieldKeyDynamicNodeRole, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.StringListToNodeRoleList(result), nil
+}
+
+// DistinctNodeStatus distincts with field node-status.
+func (h *handler) DistinctNodeStatus(ctx context.Context, opts ...OptFn) ([]types.NodeStatus, error) {
+	result, err := h.distinctString(ctx, FieldKeyDynamicNodeStatus, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.StringListToNodeStatusList(result), nil
+}
+
+// DistinctNodeVersion distincts with field node-version.
+func (h *handler) DistinctNodeVersion(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyDynamicNodeVersion, opts...)
+}
+
+// DistinctDeptName distincts with field dept-name.
+func (h *handler) DistinctDeptName(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyStaticDeptName, opts...)
+}
+
+// DistinctOSType distincts with field os-type.
+func (h *handler) DistinctOSType(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyStaticOSType, opts...)
+}
+
+// DistinctArch distincts with field arch.
+func (h *handler) DistinctArch(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyStaticArch, opts...)
+}
+
+// DistinctAddressing distincts with field addressing.
+func (h *handler) DistinctAddressing(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyStaticAddressing, opts...)
+}
+
+// DistinctNetworkAreaID distincts with field networkarea-id.
+func (h *handler) DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyStaticNetworkAreaID, opts...)
+}
+
+// DistinctNetworkUnitID distincts with field networkunit-id.
+func (h *handler) DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyDynamicNetworkUnitID, opts...)
+}
+
+// distinctInt64 returns distinct values of specified field.
+func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) ([]int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+}
+
+// distinctString returns distinct values of specified field.
+func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
 }
 
 // UpsertMany updates or inserts hosts.

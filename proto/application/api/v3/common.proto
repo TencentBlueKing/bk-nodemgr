@@ -141,3 +141,9 @@ message TopoEvent {
   optional int64 operate_time = 9;
   optional string operator = 10;
 }
+
+// TimeRange describes the time range.
+message TimeRange {
+  int64 start_timestamp_sec = 1;
+  int64 end_timestamp_sec = 2;
+}
