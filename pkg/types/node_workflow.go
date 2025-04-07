@@ -40,9 +40,9 @@ func (nwo NodeWorkflowOperType) Validate() error {
 	switch nwo {
 	case NodeWorkflowOperTypeInstall:
 		return nil
+	default:
+		return fmt.Errorf("invalid node workflow oper type, oper-type(%s)", nwo)
 	}
-
-	return fmt.Errorf("invalid node workflow oper type, oper type(%s)", nwo)
 }
 
 // NodeWorkflowStatus represents the status of a node workflow.
