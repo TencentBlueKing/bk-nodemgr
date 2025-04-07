@@ -177,16 +177,19 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 		osTypeKeeper:      newOSTypeKeeper(cli),
 		cpuArchKeeper:     newCPUArchKeeper(cli),
 	}
-	h.initEnumKeepers()
 
 	for _, opt := range opts {
 		opt(h)
 	}
 
+	h.initEnumKeepers()
+
 	return h, nil
 }
 
 func (h *Handler) initEnumKeepers() {
+	h.logger.Infof("initializing enum keepers from cmdb")
+
 	h.scheduler = scheduler.NewScheduler()
 
 	h.scheduler.RegisterTask(&scheduler.Task{
@@ -228,6 +231,8 @@ func (h *Handler) initEnumKeepers() {
 	if err := h.cpuArchKeeper.update(ctx); err != nil {
 		h.logger.Warnf("failed to sync cpu arch, err: %v", err)
 	}
+
+	h.logger.Infof("initialized enum keepers from cmdb")
 }
 
 // ListBizHosts list biz hosts.

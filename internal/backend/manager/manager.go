@@ -92,6 +92,8 @@ type manager struct {
 
 // Start starts the manager.
 func (mgr *manager) Start(ctx context.Context) error {
+	mgr.logger.Info("starting manager")
+
 	if mgr.isRunning {
 		return errors.New("manager already started")
 	}
@@ -110,7 +112,7 @@ func (mgr *manager) Start(ctx context.Context) error {
 
 	mgr.isRunning = true
 
-	mgr.logger.Info("successfully started manager")
+	mgr.logger.Info("started manager")
 
 	return nil
 }

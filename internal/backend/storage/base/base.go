@@ -111,6 +111,8 @@ func InitStorage(s *Storage, opts ...OptionFunc) error {
 
 // Start ...
 func (s *Storage) Start(ctx context.Context) (err error) {
+	s.Logger.Infof("starting storage, name(%s)", s.Name)
+
 	if s.IsRunning {
 		return errors.New("storage already started")
 	}
@@ -174,12 +176,12 @@ func (s *Storage) Start(ctx context.Context) (err error) {
 
 				s.IsRunning = false
 
-				s.Logger.Infof("successfully terminated storage, name(%s)", s.Name)
+				s.Logger.Infof("terminated storage, name(%s)", s.Name)
 			}
 		}
 	}()
 
-	s.Logger.Infof("successfully started storage, name(%s)", s.Name)
+	s.Logger.Infof("started storage, name(%s)", s.Name)
 
 	return nil
 }

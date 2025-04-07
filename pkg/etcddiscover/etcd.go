@@ -128,7 +128,7 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	// keep listing.
 	go provider.keepListing()
 
-	provider.logger.Infof("successfully started etcd discover provider")
+	provider.logger.Infof("started etcd discover provider")
 
 	return nil
 }
@@ -139,7 +139,7 @@ func (provider *ProviderEtcd) Stop() error {
 		provider.cancel()
 	}
 
-	provider.logger.Infof("successfully stopped etcd discover provider")
+	provider.logger.Infof("stopped etcd discover provider")
 
 	return nil
 }
@@ -170,6 +170,8 @@ func (provider *ProviderEtcd) GetEndpoint(
 
 // Register registers a service instance.
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
+	provider.logger.Infof("registering serivce(%s), id(%s)", string(serviceName), instance.ID)
+
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
@@ -228,7 +230,7 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 	}()
 
 	provider.getLocalInstanceHolder(serviceName).upsert(instance)
-	provider.logger.Infof("successfully registered. serivce(%s), id(%s), data(%s)",
+	provider.logger.Infof("registered serivce(%s), id(%s), data(%s)",
 		string(serviceName), instance.ID, string(content))
 
 	return nil

@@ -46,7 +46,7 @@ func (d *dao) ensureIndexes() error {
 		return err
 	}
 
-	d.logger.Infof("successfully created required indexes")
+	d.logger.Infof("created required indexes, table(%s), indexes(%v)", TableName(), indexes)
 
 	return nil
 }

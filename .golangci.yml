@@ -185,6 +185,7 @@ issues:
     - install/*
     - .github/*
     - proto/*
+    - pkg/blog/*
   # Enables exclude of directories:
   # - vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
   # Default: true

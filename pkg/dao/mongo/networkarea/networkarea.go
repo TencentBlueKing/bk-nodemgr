@@ -13,7 +13,6 @@ package networkarea
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -23,83 +22,63 @@ import (
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{tenantID: tenantID, client: client.Collection(TableName()), logger: logger}
+	tableName := TableName()
+	d := &dao{
+		tenantID:  tenantID,
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.IOrm = base.NewOrm[*NetworkArea, NetworkArea](d)
+
+	return d
 }
 
 type dao struct {
-	tenantID string
-	client   *mongo.Collection
-	logger   logger.Logger
+	tenantID  string
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	base.IOrm[*NetworkArea, NetworkArea]
 }
 
-// nolint:contextcheck
-// ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes() error {
-	var indexes []mongo.IndexModel
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
 
-	opts := new(options.IndexOptions)
-	indexes = append(indexes, mongo.IndexModel{
-		Keys:    bson.D{{Key: "data.networkarea_id", Value: 1}},
-		Options: opts.SetUnique(true),
-	})
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
 
-	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
-	if err != nil {
-		return err
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyNetworkAreaID, Value: 1}},
+		},
 	}
 
-	d.logger.Infof("successfully created required indexes")
-
-	return nil
+	return indexes
 }
 
 func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	num, err := d.client.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	if num < 0 {
-		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
-	}
-
-	return num, nil
+	return d.Count(ctx, append(filter, d.tenantFilter()))
 }
 
 func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*NetworkArea, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result, err := d.client.Find(ctx, filter, findOpt)
-	if err != nil {
-		return nil, err
-	}
-
-	networkAreas := make([]*NetworkArea, 0)
-	for result.Next(ctx) {
-		table := &TableNetworkArea{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode networkarea, err %v", err)
-
-			continue
-		}
-		networkAreas = append(networkAreas, table.Data)
-	}
-
-	return networkAreas, nil
+	return d.List(ctx, append(filter, d.tenantFilter()), findOpt)
 }
 
 func (d *dao) get(ctx context.Context, filter bson.D) (*NetworkArea, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result := &TableNetworkArea{}
-	err := d.client.FindOne(ctx, filter).Decode(result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Data, nil
+	return d.Get(ctx, append(filter, d.tenantFilter()))
 }
 
 func (d *dao) upsertMany(ctx context.Context, networkAreas []*NetworkArea) error {
@@ -111,11 +90,11 @@ func (d *dao) upsertMany(ctx context.Context, networkAreas []*NetworkArea) error
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("successfully inserted networkareas, inserted-count(%v)", result.UpsertedCount)
+		d.logger.Infof("inserted networkareas, inserted-count(%v)", result.UpsertedCount)
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated networkareas, update-count(%v)", result.MatchedCount)
+		d.logger.Infof("updated networkareas, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil
@@ -130,7 +109,7 @@ func (d *dao) updateMany(ctx context.Context, networkAreas []*NetworkArea) error
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated networkareas, update-count(%v)", result.MatchedCount)
+		d.logger.Infof("updated networkareas, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil
@@ -145,10 +124,22 @@ func (d *dao) deleteMany(ctx context.Context, networkAreaIDs ...int64) error {
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully deleted networkareas, deleted-count(%v)", result.MatchedCount)
+		d.logger.Infof("deleted networkareas, deleted-count(%v)", result.MatchedCount)
 	}
 
 	return nil
+}
+
+// tenantFilter additional tenant filter.
+// all tenants can filter global networkarea in query methods.
+// and the networkareas in their own tenant.
+func (d *dao) tenantFilter() bson.E {
+	return bson.E{
+		Key: "$or",
+		Value: bson.A{
+			bson.D{{FieldKeyTenantID, d.tenantID}},
+			bson.D{{FieldKeyNetworkAreaID, base.GlobalNetworkAreaID}},
+		}}
 }
 
 // buildUpsertManyParams build upsert many params.
@@ -157,8 +148,8 @@ func buildUpsertManyParams(tenantID string, networkAreas []*NetworkArea) []mongo
 
 	for _, networkarea := range networkAreas {
 		filter := bson.D{
-			bson.E{Key: "data.networkarea_id", Value: networkarea.NetworkAreaID},
-			bson.E{Key: "data.tenant_id", Value: tenantID},
+			bson.E{Key: FieldKeyNetworkAreaID, Value: networkarea.NetworkAreaID},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID},
 		}
 
 		update := base.BuildUpsertParam(networkarea)
@@ -175,8 +166,8 @@ func buildUpdateManyParams(tenantID string, networkAreas []*NetworkArea) []mongo
 
 	for _, networkarea := range networkAreas {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: "data.networkarea_id", Value: networkarea.NetworkAreaID},
-			bson.E{Key: "data.tenant_id", Value: tenantID})
+			bson.E{Key: FieldKeyNetworkAreaID, Value: networkarea.NetworkAreaID},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID})
 
 		update := base.BuildUpsertParam(networkarea)
 
@@ -189,22 +180,10 @@ func buildUpdateManyParams(tenantID string, networkAreas []*NetworkArea) []mongo
 // buildDeleteManyParams build delete many params.
 func buildDeleteManyParams(tenantID string, networkAreaIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: "data.networkarea_id", Value: bson.D{{Key: "$in", Value: networkAreaIDs}}},
-		bson.E{Key: "data.tenant_id", Value: tenantID}}
+		bson.E{Key: FieldKeyNetworkAreaID, Value: bson.D{{Key: "$in", Value: networkAreaIDs}}},
+		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
 
 	update := base.BuildDeleteParam()
 
 	return []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
-}
-
-// tenantFilter additional tenant filter.
-// all tenants can filter global networkarea in query methods.
-// and the networkareas in their own tenant.
-func tenantFilter(tenantID string) bson.E {
-	return bson.E{
-		Key: "$or",
-		Value: bson.A{
-			bson.D{{"data.tenant_id", tenantID}},
-			bson.D{{"data.networkarea_id", base.GlobalNetworkAreaID}},
-		}}
 }

@@ -13,7 +13,6 @@ package networkunit
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -25,88 +24,66 @@ import (
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{
-		tenantID: tenantID,
-		client:   client.Collection(TableName()),
-		logger:   logger,
-		counter:  counter.New(client, logger)}
+	tableName := TableName()
+	d := &dao{
+		tenantID:  tenantID,
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+		counter:   counter.New(client, logger),
+	}
+
+	d.IOrm = base.NewOrm[*NetworkUnit, NetworkUnit](d)
+
+	return d
 }
 
 type dao struct {
-	tenantID string
-	client   *mongo.Collection
-	logger   logger.Logger
-	counter  counter.Handler
+	tenantID  string
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	counter   counter.Handler
+
+	base.IOrm[*NetworkUnit, NetworkUnit]
 }
 
-// nolint:contextcheck
-// ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes() error {
-	var indexes []mongo.IndexModel
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
 
-	opts := new(options.IndexOptions)
-	indexes = append(indexes, mongo.IndexModel{
-		Keys:    bson.D{{Key: "data.networkunit_id", Value: 1}},
-		Options: opts.SetUnique(true),
-	})
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
 
-	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
-	if err != nil {
-		return err
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyNetworkUnitID, Value: 1}},
+		},
 	}
 
-	d.logger.Infof("successfully created required indexes")
-
-	return nil
+	return indexes
 }
 
 func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	num, err := d.client.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	if num < 0 {
-		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
-	}
-
-	return num, nil
+	return d.Count(ctx, append(filter, d.tenantFilter()))
 }
 
 func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*NetworkUnit, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result, err := d.client.Find(ctx, filter, findOpt)
-	if err != nil {
-		return nil, err
-	}
-
-	networkUnits := make([]*NetworkUnit, 0)
-	for result.Next(ctx) {
-		table := &TableNetworkUnit{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode networkunit, err %v", err)
-
-			continue
-		}
-		networkUnits = append(networkUnits, table.Data)
-	}
-
-	return networkUnits, nil
+	return d.List(ctx, append(filter, d.tenantFilter()), findOpt)
 }
 
 func (d *dao) get(ctx context.Context, filter bson.D) (*NetworkUnit, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result := &TableNetworkUnit{}
-	err := d.client.FindOne(ctx, filter).Decode(result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Data, nil
+	return d.Get(ctx, append(filter, d.tenantFilter()))
 }
 
 func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, error) {
@@ -161,14 +138,27 @@ func (d *dao) deleteMany(ctx context.Context, networkUnitIDs ...int64) error {
 	return nil
 }
 
+// tenantFilter additional tenant filter.
+// global networkarea is a special networkarea, it belongs to system tenant, but it can be seen by all tenants.
+// this scene is also ensured in CMDB.
+// a query from a tenant, should be filtered in its own tenant, and plus the global networkarea.
+func (d *dao) tenantFilter() bson.E {
+	return bson.E{
+		Key: "$or",
+		Value: bson.A{
+			bson.D{{FieldKeyTenantID, d.tenantID}},
+			bson.D{{FieldKeyNetworkAreaID, base.GlobalNetworkAreaID}},
+		}}
+}
+
 // buildUpdateManyParams build update many params.
 func buildUpdateManyParams(tenantID string, networkUnits []*NetworkUnit) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 
 	for _, networkUnit := range networkUnits {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: "data.networkunit_id", Value: networkUnit.NetworkUnitID},
-			bson.E{Key: "data.tenant_id", Value: tenantID})
+			bson.E{Key: FieldKeyNetworkUnitID, Value: networkUnit.NetworkUnitID},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID})
 
 		update := base.BuildUpsertParam(networkUnit)
 
@@ -181,23 +171,10 @@ func buildUpdateManyParams(tenantID string, networkUnits []*NetworkUnit) []mongo
 // buildDeleteManyParams build delete many params.
 func buildDeleteManyParams(tenantID string, networkUnitIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: "data.networkunit_id", Value: bson.D{{Key: "$in", Value: networkUnitIDs}}},
-		bson.E{Key: "data.tenant_id", Value: tenantID}}
+		bson.E{Key: FieldKeyNetworkUnitID, Value: bson.D{{Key: "$in", Value: networkUnitIDs}}},
+		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
 
 	update := base.BuildDeleteParam()
 
 	return []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
-}
-
-// tenantFilter additional tenant filter.
-// global networkarea is a special networkarea, it belongs to system tenant, but it can be seen by all tenants.
-// this scene is also ensured in CMDB.
-// a query from a tenant, should be filtered in its own tenant, and plus the global networkarea.
-func tenantFilter(tenantID string) bson.E {
-	return bson.E{
-		Key: "$or",
-		Value: bson.A{
-			bson.D{{"data.tenant_id", tenantID}},
-			bson.D{{"data.networkarea_id", base.GlobalNetworkAreaID}},
-		}}
 }

@@ -46,7 +46,7 @@ func NewWatcher(conf Config, logger logger.Logger) (*Watcher, error) {
 
 // Start starts the watcher manager.
 func (w *Watcher) Start(_ context.Context) error {
-	w.logger.Info("successfully started watcher manager")
+	w.logger.Info("started watcher manager")
 
 	return nil
 }

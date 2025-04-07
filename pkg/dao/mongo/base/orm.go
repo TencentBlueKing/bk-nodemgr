@@ -167,7 +167,7 @@ func (orm *Orm[P, T]) EnsureIndexes() error {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("successfully created required indexes, table(%s), indexes(%v)",
+	orm.dao.GetLogger().Infof("created required indexes, table(%s), indexes(%v)",
 		orm.dao.GetTableName(), indexes)
 
 	return nil

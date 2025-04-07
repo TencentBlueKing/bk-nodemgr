@@ -57,7 +57,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.ensureIndexes(); err != nil {
+	if err := newDaoClient.EnsureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure networkarea indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 

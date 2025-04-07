@@ -25,9 +25,6 @@ import (
 
 // IHandler business Handler interface.
 type IHandler interface {
-	// ListAll list all business.
-	ListAll(ctx context.Context) ([]*types.Business, error)
-
 	// Count counts business by opts.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -53,7 +50,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.ensureIndexes(); err != nil {
+	if err := newDaoClient.EnsureIndexes(); err != nil {
 		h.logger.Warnf("failed to ensure business indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
@@ -73,30 +70,6 @@ func New(client *mongo.Database, logger logger.Logger) *Handler {
 	}
 }
 
-// ListAll list all business.
-func (h *Handler) ListAll(ctx context.Context) ([]*types.Business, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	bizs, err := h.tenantDao(tenantID).listAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]*types.Business, len(bizs))
-	for idx, biz := range bizs {
-		data[idx] = &types.Business{
-			TenantID: biz.TenantID,
-			BizID:    biz.BizID,
-			BizName:  biz.BizName,
-		}
-	}
-
-	return data, nil
-}
-
 // Count counts business by opts.
 func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	tenantID, err := tenant.GetID(ctx)
@@ -109,7 +82,7 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).count(ctx, filter)
+	return h.tenantDao(tenantID).Count(ctx, filter)
 }
 
 // List list business by page and conditions.
@@ -126,14 +99,14 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	bizs, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	bizs, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}

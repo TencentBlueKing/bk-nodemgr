@@ -96,6 +96,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -598,14 +599,25 @@ func (l *loggingT) formatHeader(s severity, file string, line int) *buffer {
 	buf.tmp[14] = '.'
 	buf.nDigits(6, 15, now.Nanosecond()/1000, '0')
 	buf.tmp[21] = ' '
-	buf.nDigits(7, 22, pid, ' ') // Note: should be TID
-	buf.tmp[29] = ' '
-	buf.Write(buf.tmp[:30])
-	buf.WriteString(file)
+	buf.Write(buf.tmp[:22])
+
+	buf.nDigits(7, 0, syscall.Gettid(), ' ') // Note: should be TID
+	buf.Write(buf.tmp[:7])
+	buf.WriteString("TID ")
+
 	buf.tmp[0] = ':'
 	n := buf.someDigits(1, line)
 	buf.tmp[n+1] = ']'
 	buf.tmp[n+2] = ' '
+
+	// add padding space
+	logPointLength := len(file) + n
+	for logPointLength < 20 {
+		buf.WriteString(" ")
+		logPointLength++
+	}
+
+	buf.WriteString(file)
 	buf.Write(buf.tmp[:n+3])
 	return buf
 }

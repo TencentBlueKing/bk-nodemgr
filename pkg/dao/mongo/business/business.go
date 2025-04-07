@@ -13,42 +13,58 @@ package business
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName(tenantID)), logger: logger}
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.IOrm = base.NewOrm[*Business, Business](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	base.IOrm[*Business, Business]
 }
 
-// nolint:contextcheck
-// ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes() error {
-	var indexes []mongo.IndexModel
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
 
-	indexes = append(indexes, mongo.IndexModel{
-		Keys: bson.D{{Key: "data.biz_id", Value: 1}},
-	})
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
 
-	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
-	if err != nil {
-		return err
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyBizID, Value: 1}},
+		},
 	}
 
-	d.logger.Infof("successfully created required indexes")
-
-	return nil
+	return indexes
 }
 
 // upsert updates or inserts a business.
@@ -78,7 +94,7 @@ func (d *dao) upsert(ctx context.Context, biz *Business) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(biz *Business) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update business by biz_id.
-	filter := bson.D{{Key: "data.biz_id", Value: biz.BizID}}
+	filter := bson.D{{Key: FieldKeyBizID, Value: biz.BizID}}
 
 	// insert as creation or update data only.
 	update := base.BuildUpsertParam(biz)
@@ -87,60 +103,6 @@ func buildUpsertParams(biz *Business) (bson.D, bson.D, *mongoOptions.UpdateOptio
 	opts := mongoOptions.Update().SetUpsert(true)
 
 	return filter, update, opts
-}
-
-// ListAll list all business.
-func (d *dao) listAll(ctx context.Context) ([]*Business, error) {
-	result, err := d.client.Find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
-	if err != nil {
-		return nil, err
-	}
-
-	bizs := make([]*Business, 0)
-	for result.Next(ctx) {
-		table := &TableBusiness{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode business, err %v", err)
-
-			continue
-		}
-		bizs = append(bizs, table.Data)
-	}
-
-	return bizs, nil
-}
-
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	num, err := d.client.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	if num < 0 {
-		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
-	}
-
-	return num, nil
-}
-
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*Business, error) {
-	result, err := d.client.Find(ctx, filter, findOpt)
-	if err != nil {
-		return nil, err
-	}
-
-	bizs := make([]*Business, 0)
-	for result.Next(ctx) {
-		table := &TableBusiness{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode business, err %v", err)
-
-			continue
-		}
-		bizs = append(bizs, table.Data)
-	}
-
-	return bizs, nil
 }
 
 // upsertMany upsert many business.
@@ -168,7 +130,7 @@ func buildUpsertManyParams(bizs []*Business) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0, len(bizs))
 
 	for _, biz := range bizs {
-		filter := bson.D{{Key: "data.biz_id", Value: biz.BizID}}
+		filter := bson.D{{Key: FieldKeyBizID, Value: biz.BizID}}
 
 		update := base.BuildUpsertParam(biz)
 
