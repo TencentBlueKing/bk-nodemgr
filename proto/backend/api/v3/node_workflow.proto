@@ -1,0 +1,185 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// NodeWorkflowListReq describes the node workflow list request.
+message NodeWorkflowListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 workflow_id = 1;
+    repeated string type = 2;
+    repeated int64 biz_id = 3;
+    repeated string status = 5;
+  }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions { repeated string execute_users = 1; }
+  FuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// NodeWorkflowListResp describes the node workflow list response.
+message NodeWorkflowListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated NodeWorkflowInfo workflows = 1;
+    int64 total = 2;
+  }
+  Data data = 4;
+}
+
+// NodeWorkflowInfo describes the node workflow information.
+message NodeWorkflowInfo {
+  int64 workflow_id = 1;
+  string type = 2;
+  repeated int64 biz_ids = 3;
+  string execute_user = 4;
+  string execute_time = 5;
+  string status = 6;
+}
+
+// NodeWorkflowStatisticReq describes the node workflow statistic request.
+message NodeWorkflowStatisticsReq { repeated int64 workflow_id = 1; }
+
+// NodeWorkflowStatisticResp describes the node workflow statistic response.
+message NodeWorkflowStatisticResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    message NodeWorkflowStatistic {
+      int64 workflow_id = 1;
+      int64 total_count = 2;
+      int64 success_count = 3;
+      int64 failed_count = 4;
+      int64 running_count = 5;
+      int64 pending_count = 6;
+      int64 ignored_count = 7;
+    }
+    repeated NodeWorkflowStatistic statistics = 1;
+  }
+  Data data = 4;
+}
+
+// NodeOperInstLisByWorkflowIDReq describes the node operation instance list by
+// workflow ID request.
+message NodeOperInstLisByWorkflowIDReq {
+  int64 workflow_id = 1;
+  Page page = 2;
+}
+
+// NodeOperInstLisByWorkflowIDResp describes the node operation instance list by
+// workflow ID response.
+message NodeOperInstLisByWorkflowIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { repeated NodeOperInst operation = 1; }
+  Data data = 4;
+}
+
+// NodeOperInst describes the node operation instance.
+message NodeOperInst {
+  string operation_id = 1;
+  string oper_inst_id = 2;
+  string oper_inst_status = 3;
+  string ip = 4;
+  string network_unit_id = 5;
+  string biz_id = 6;
+  string node_version = 7;
+  repeated Action actin = 8;
+  message Action {
+    string action_name = 1;
+    string action_status = 2;
+    string cost_time = 3;
+  }
+}
+
+// NodeOperInstLisByOperationIDReq describes the node operation instance list by
+// operation ID request.
+message NodeOperInstLisByOperationIDReq { string operation_id = 1; }
+
+// NodeOperInstLisByOperationIDResp describes the node operation instance list
+// by operation ID response.
+message NodeOperInstLisByOperationIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { repeated string oper_inst_id = 1; }
+  Data data = 4;
+}
+
+// NodeOperActionInstLogReq describes the node operation action instance log
+// request.
+message NodeOperActionInstLogGetReq { string oper_inst_id = 1; }
+
+// NodeOperActionInstLogResp describes the node operation action instance log
+// response.
+message NodeOperActionInstLogGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated Message logs = 1;
+    message Message {
+      string time = 1;
+      string text = 2;
+    }
+  }
+  Data data = 4;
+}
+
+service NodeWorkflow {
+  // NodeWorkflowList provides node workflow list.
+  rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
+    option (google.api.http) = {
+      get : "/api/v3/node_workflow/list"
+    };
+  }
+
+  // NodeWorkflowStatistics provides node workflow statistics.
+  rpc NodeWorkflowStatistics(NodeWorkflowStatisticsReq)
+      returns (NodeWorkflowStatisticResp) {
+    option (google.api.http) = {
+      get : "/api/v3/node_workflow/statistics"
+    };
+  }
+
+  // NodeOperInstLisByWorkflowID provides node operation instance list by
+  // workflow ID.
+  rpc NodeOperInstLisByWorkflowID(NodeOperInstLisByWorkflowIDReq)
+      returns (NodeOperInstLisByWorkflowIDResp) {
+    option (google.api.http) = {
+      get : "/api/v3/node_workflow/oper_inst/list_by_workflow_id"
+    };
+  }
+
+  // NodeOperInstLisByOperationID provides node operation instance list by
+  // operation ID.
+  rpc NodeOperInstLisByOperationID(NodeOperInstLisByOperationIDReq)
+      returns (NodeOperInstLisByOperationIDResp) {
+    option (google.api.http) = {
+      get : "/api/v3/node_workflow/oper_inst/list_by_operation_id"
+    };
+  }
+
+  // NodeOperActionInstLog provides node operation action instance log.
+  rpc NodeOperActionInstLog(NodeOperActionInstLogGetReq)
+      returns (NodeOperActionInstLogGetResp) {
+    option (google.api.http) = {
+      get : "/api/v3/node_workflow/oper_inst/get_action_instance_log"
+    };
+  }
+}
