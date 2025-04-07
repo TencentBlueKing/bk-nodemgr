@@ -77,7 +77,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "exact_include_conditions.biz_id",
+            "name": "exact_include_conditions.bk_biz_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -98,7 +98,21 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "fuzzy_include_conditions.execute_users",
+            "name": "exact_include_conditions.operate_time_range.start_timestamp_sec",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "exact_include_conditions.operate_time_range.end_timestamp_sec",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "fuzzy_include_conditions.operators",
             "in": "query",
             "required": false,
             "type": "array",
@@ -312,7 +326,7 @@
         "action_status": {
           "type": "string"
         },
-        "cost_time": {
+        "cost_time_sec": {
           "type": "string"
         }
       }
@@ -333,7 +347,7 @@
             "type": "string"
           }
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "array",
           "items": {
             "type": "string",
@@ -345,13 +359,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
         }
       }
     },
     "NodeWorkflowListReqFuzzyConditions": {
       "type": "object",
       "properties": {
-        "execute_users": {
+        "operators": {
           "type": "array",
           "items": {
             "type": "string"
@@ -433,16 +450,16 @@
         "ip": {
           "type": "string"
         },
-        "network_unit_id": {
+        "bk_networkunit_id": {
           "type": "string"
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "string"
         },
         "node_version": {
           "type": "string"
         },
-        "actin": {
+        "action": {
           "type": "array",
           "items": {
             "type": "object",
@@ -523,17 +540,17 @@
         "type": {
           "type": "string"
         },
-        "biz_ids": {
+        "bk_biz_ids": {
           "type": "array",
           "items": {
             "type": "string",
             "format": "int64"
           }
         },
-        "execute_user": {
+        "operator": {
           "type": "string"
         },
-        "execute_time": {
+        "operate_time": {
           "type": "string"
         },
         "status": {
@@ -621,6 +638,20 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
     }
   }
 }

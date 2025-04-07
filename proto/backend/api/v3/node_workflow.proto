@@ -14,12 +14,13 @@ message NodeWorkflowListReq {
   message ExactConditions {
     repeated int64 workflow_id = 1;
     repeated string type = 2;
-    repeated int64 biz_id = 3;
+    repeated int64 bk_biz_id = 3;
     repeated string status = 5;
+    TimeRange operate_time_range = 6;
   }
   ExactConditions exact_include_conditions = 3;
 
-  message FuzzyConditions { repeated string execute_users = 1; }
+  message FuzzyConditions { repeated string operators = 1; }
   FuzzyConditions fuzzy_include_conditions = 4;
 }
 
@@ -40,9 +41,9 @@ message NodeWorkflowListResp {
 message NodeWorkflowInfo {
   int64 workflow_id = 1;
   string type = 2;
-  repeated int64 biz_ids = 3;
-  string execute_user = 4;
-  string execute_time = 5;
+  repeated int64 bk_biz_ids = 3;
+  string operator = 4;
+  string operate_time = 5;
   string status = 6;
 }
 
@@ -94,14 +95,14 @@ message NodeOperInst {
   string oper_inst_id = 2;
   string oper_inst_status = 3;
   string ip = 4;
-  string network_unit_id = 5;
-  string biz_id = 6;
+  string bk_networkunit_id = 5;
+  string bk_biz_id = 6;
   string node_version = 7;
-  repeated Action actin = 8;
+  repeated Action action = 8;
   message Action {
     string action_name = 1;
     string action_status = 2;
-    string cost_time = 3;
+    string cost_time_sec = 3;
   }
 }
 
