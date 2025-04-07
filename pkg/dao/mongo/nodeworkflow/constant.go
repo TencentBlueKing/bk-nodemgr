@@ -11,7 +11,7 @@
 package nodeworkflow
 
 const (
-	// FieldKeyWorkflowID is the key for task ID.
+	// FieldKeyWorkflowID is the key for workflow ID.
 	FieldKeyWorkflowID = "data.workflow_id"
 
 	// FieldKeyStatus is the key for status.

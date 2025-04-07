@@ -148,7 +148,7 @@ func (testSuit *TestSuite) TestList() {
 		wantErr bool
 	}{
 		{
-			name: "filter by task id",
+			name: "filter by workflow id",
 			args: args{
 				ctx: context.Background(),
 				page: types.Page{
@@ -265,7 +265,7 @@ func (testSuit *TestSuite) TestCount() {
 		wantErr bool
 	}{
 		{
-			name: "filter by task id",
+			name: "filter by workflow id",
 			args: args{
 				ctx: context.Background(),
 				opts: []OptFn{
@@ -292,9 +292,9 @@ func (testSuit *TestSuite) TestCount() {
 // TestUpdateStatus tests the UpdateStatus method of the handler.
 func (testSuit *TestSuite) TestUpdateStatus() {
 	type args struct {
-		ctx    context.Context
-		taskID int64
-		status types.NodeWorkflowStatus
+		ctx        context.Context
+		workflowID int64
+		status     types.NodeWorkflowStatus
 	}
 	tests := []struct {
 		name    string
@@ -304,16 +304,16 @@ func (testSuit *TestSuite) TestUpdateStatus() {
 		{
 			name: "normal",
 			args: args{
-				ctx:    context.Background(),
-				taskID: 3,
-				status: types.NodeWorkflowStatusSuccess,
+				ctx:        context.Background(),
+				workflowID: 3,
+				status:     types.NodeWorkflowStatusSuccess,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.UpdateStatus(tt.args.ctx, tt.args.taskID, tt.args.status)
+			err := testSuit.Handler.UpdateStatus(tt.args.ctx, tt.args.workflowID, tt.args.status)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "UpdateStatus() error = %v", err)
 			}
