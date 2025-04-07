@@ -18,9 +18,9 @@ import (
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
-// WithTaskID filters by task-id.
-func WithTaskID(taskIDs ...int64) OptFn {
-	return base.WithValues(FieldKeyTaskID, taskIDs...)
+// WithWorkflowID filters by workflow ID.
+func WithWorkflowID(taskIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyWorkflowID, taskIDs...)
 }
 
 // WithStatus filters by status.

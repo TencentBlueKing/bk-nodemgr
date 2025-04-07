@@ -33,7 +33,7 @@ type IHandler interface {
 	Create(ctx context.Context, workflow *types.NodeWorkflow) error
 
 	// UpdateStatus updates the status of a node workflow.
-	UpdateStatus(ctx context.Context, taskID int64, status types.NodeWorkflowStatus) error
+	UpdateStatus(ctx context.Context, workflowID int64, status types.NodeWorkflowStatus) error
 }
 
 // Handler this is a Handler to operate node workflow table.
@@ -107,7 +107,7 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 // Data is the data of node workflow.
 func convDataToWorkflow(data *Data) *types.NodeWorkflow {
 	return &types.NodeWorkflow{
-		TaskID:      data.TaskID,
+		WorkflowID:  data.WorkflowID,
 		TriggerID:   data.TriggerID,
 		OperType:    types.NodeWorkflowOperType(data.OperType),
 		TaskType:    types.NodeWorkflowTaskType(data.TaskType),
@@ -138,7 +138,7 @@ func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 
 	var err error
 	data := ConvNodeWorkflowToData(workflow)
-	data.TaskID, err = h.counter.Generate(ctx, TableName)
+	data.WorkflowID, err = h.counter.Generate(ctx, TableName)
 
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 // ConvNodeWorkflowToData convert node workflow to data.
 func ConvNodeWorkflowToData(workflow *types.NodeWorkflow) *Data {
 	return &Data{
-		TaskID:      workflow.TaskID,
+		WorkflowID:  workflow.WorkflowID,
 		TriggerID:   workflow.TriggerID,
 		OperType:    string(workflow.OperType),
 		TaskType:    string(workflow.TaskType),
@@ -166,13 +166,13 @@ func ConvNodeWorkflowToData(workflow *types.NodeWorkflow) *Data {
 }
 
 // UpdateStatus updates the status of a node workflow.
-func (h *Handler) UpdateStatus(ctx context.Context, taskID int64, status types.NodeWorkflowStatus) error {
+func (h *Handler) UpdateStatus(ctx context.Context, workflowID int64, status types.NodeWorkflowStatus) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	if taskID <= 0 {
-		return errors.New("task id should not be empty")
+	if workflowID <= 0 {
+		return errors.New("workflow id should not be empty")
 	}
 
 	if err := status.Validate(); err != nil {
@@ -180,7 +180,7 @@ func (h *Handler) UpdateStatus(ctx context.Context, taskID int64, status types.N
 	}
 
 	filter := base.AliveFilter()
-	filter = WithTaskID(taskID)(filter)
+	filter = WithWorkflowID(workflowID)(filter)
 	if err := h.dao.UpdateField(ctx, filter, FieldKeyStatus, string(status)); err != nil {
 		return err
 	}

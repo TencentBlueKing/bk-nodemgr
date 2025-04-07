@@ -17,7 +17,7 @@ import (
 
 // NodeWorkflow represents the workflow of a node.
 type NodeWorkflow struct {
-	TaskID      int64
+	WorkflowID  int64
 	TriggerID   string
 	OperType    NodeWorkflowOperType
 	TaskType    NodeWorkflowTaskType

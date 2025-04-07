@@ -23,7 +23,7 @@ const TableName = "node_workflow"
 // Data represents the table of node workflow.
 // Token should be the unique key.
 type Data struct {
-	TaskID      int64     `json:"task_id" bson:"task_id"`
+	WorkflowID  int64     `json:"workflow_id" bson:"workflow_id"`
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
 	OperType    string    `json:"oper_type" bson:"oper_type"`
 	TaskType    string    `json:"task_type" bson:"task_type"`
@@ -35,7 +35,7 @@ type Data struct {
 
 // UniqueKey unique key of the table.
 func (workflow *Data) UniqueKey() string {
-	return strconv.FormatInt(workflow.TaskID, 10)
+	return strconv.FormatInt(workflow.WorkflowID, 10)
 }
 
 // Table represent the complete db structures of node workflow.

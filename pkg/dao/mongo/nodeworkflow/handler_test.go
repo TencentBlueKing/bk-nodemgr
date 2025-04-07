@@ -50,7 +50,7 @@ func TestAll(t *testing.T) {
 func (testSuit *TestSuite) prepareTestData() []*Data {
 	testDatas := []*Data{
 		{
-			TaskID:      0,
+			WorkflowID:  0,
 			TriggerID:   "T-123456",
 			OperType:    string(types.NodeWorkflowOperTypeInstall),
 			TaskType:    "agent",
@@ -60,7 +60,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 			Status:      "running",
 		},
 		{
-			TaskID:      1,
+			WorkflowID:  1,
 			TriggerID:   "T-123457",
 			OperType:    string(types.NodeWorkflowOperTypeInstall),
 			TaskType:    "agent",
@@ -70,7 +70,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 			Status:      "failed",
 		},
 		{
-			TaskID:      2,
+			WorkflowID:  2,
 			TriggerID:   "T-123458",
 			OperType:    "uninstall",
 			TaskType:    "agent",
@@ -80,7 +80,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 			Status:      "running",
 		},
 		{
-			TaskID:      3,
+			WorkflowID:  3,
 			TriggerID:   "T-123459",
 			OperType:    "uninstall",
 			TaskType:    "agent",
@@ -92,7 +92,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 	}
 
 	for idx := range testDatas {
-		testDatas[idx].TaskID, _ = testSuit.counter.Generate(context.Background(), TableName)
+		testDatas[idx].WorkflowID, _ = testSuit.counter.Generate(context.Background(), TableName)
 	}
 
 	return testDatas
@@ -114,7 +114,7 @@ func (testSuit *TestSuite) TestCreate() {
 			args: args{
 				ctx: context.Background(),
 				nodeWorkflow: &types.NodeWorkflow{
-					TaskID:      0,
+					WorkflowID:  0,
 					TriggerID:   "T-123459",
 					OperType:    "install",
 					TaskType:    "agent",
@@ -162,12 +162,12 @@ func (testSuit *TestSuite) TestList() {
 					Sort:   "",
 				},
 				opts: []OptFn{
-					WithTaskID(1),
+					WithWorkflowID(1),
 				},
 			},
 			want: []*types.NodeWorkflow{
 				{
-					TaskID:      1,
+					WorkflowID:  1,
 					TriggerID:   "T-123457",
 					OperType:    "install",
 					TaskType:    "agent",
@@ -195,7 +195,7 @@ func (testSuit *TestSuite) TestList() {
 			},
 			want: []*types.NodeWorkflow{
 				{
-					TaskID:      0,
+					WorkflowID:  0,
 					TriggerID:   "T-123456",
 					OperType:    "install",
 					TaskType:    "agent",
@@ -205,7 +205,7 @@ func (testSuit *TestSuite) TestList() {
 					Status:      "running",
 				},
 				{
-					TaskID:      2,
+					WorkflowID:  2,
 					TriggerID:   "T-123458",
 					OperType:    "uninstall",
 					TaskType:    "agent",
@@ -227,13 +227,13 @@ func (testSuit *TestSuite) TestList() {
 					Limit:  1,
 				},
 				opts: []OptFn{
-					WithTaskID(1),
+					WithWorkflowID(1),
 					WithOperType(types.NodeWorkflowOperTypeInstall),
 				},
 			},
 			want: []*types.NodeWorkflow{
 				{
-					TaskID:      1,
+					WorkflowID:  1,
 					TriggerID:   "T-123457",
 					OperType:    types.NodeWorkflowOperTypeInstall,
 					TaskType:    "agent",
@@ -278,7 +278,7 @@ func (testSuit *TestSuite) TestCount() {
 			args: args{
 				ctx: context.Background(),
 				opts: []OptFn{
-					WithTaskID(1),
+					WithWorkflowID(1),
 				},
 			},
 			want:    1,
