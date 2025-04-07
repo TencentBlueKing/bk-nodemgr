@@ -25,8 +25,7 @@ const TableName = "node_workflow"
 type Data struct {
 	WorkflowID  int64     `json:"workflow_id" bson:"workflow_id"`
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
-	OperType    string    `json:"oper_type" bson:"oper_type"`
-	TaskType    string    `json:"task_type" bson:"task_type"`
+	Type        string    `json:"type" bson:"type"`
 	BizIDs      []int64   `json:"biz_ids" bson:"biz_ids"`
 	ExecuteUser string    `json:"execute_user" bson:"execute_user"`
 	ExecuteTime time.Time `json:"execute_time" bson:"execute_time"`

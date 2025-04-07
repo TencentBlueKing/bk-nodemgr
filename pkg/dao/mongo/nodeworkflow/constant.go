@@ -17,11 +17,8 @@ const (
 	// FieldKeyStatus is the key for status.
 	FieldKeyStatus = "data.status"
 
-	// FieldKeyOperType is the key for operation type.
-	FieldKeyOperType = "data.oper_type"
-
-	// FieldKeyTaskType is the key for task type.
-	FieldKeyTaskType = "data.task_type"
+	// FieldKeyType is the key for workflow type.
+	FieldKeyType = "data.type"
 
 	// FieldKeyBizID is the key for business ID.
 	FieldKeyBizID = "data.biz_ids"

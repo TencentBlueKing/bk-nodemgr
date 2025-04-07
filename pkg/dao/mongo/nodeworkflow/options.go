@@ -33,24 +33,14 @@ func WithStatus(statuses ...types.NodeWorkflowStatus) OptFn {
 	return base.WithValues(FieldKeyStatus, strs...)
 }
 
-// WithOperType filters by oper-type.
-func WithOperType(operTypes ...types.NodeWorkflowOperType) OptFn {
-	strs := make([]string, len(operTypes))
-	for idx, operType := range operTypes {
-		strs[idx] = string(operType)
+// WithType filters by oper-type.
+func WithType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
+	strs := make([]string, len(nodeWorkflowTypes))
+	for idx, nodeWorkflowType := range nodeWorkflowTypes {
+		strs[idx] = string(nodeWorkflowType)
 	}
 
-	return base.WithValues(FieldKeyOperType, strs...)
-}
-
-// WithTaskType filters by task-type.
-func WithTaskType(taskTypes ...types.NodeWorkflowTaskType) OptFn {
-	strs := make([]string, len(taskTypes))
-	for idx, taskType := range taskTypes {
-		strs[idx] = string(taskType)
-	}
-
-	return base.WithValues(FieldKeyTaskType, strs...)
+	return base.WithValues(FieldKeyType, strs...)
 }
 
 // WithBizID filters by biz-id.

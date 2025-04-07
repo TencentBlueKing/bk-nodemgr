@@ -109,8 +109,7 @@ func convDataToWorkflow(data *Data) *types.NodeWorkflow {
 	return &types.NodeWorkflow{
 		WorkflowID:  data.WorkflowID,
 		TriggerID:   data.TriggerID,
-		OperType:    types.NodeWorkflowOperType(data.OperType),
-		TaskType:    types.NodeWorkflowTaskType(data.TaskType),
+		Type:        types.NodeWorkflowType(data.Type),
 		BizIDs:      data.BizIDs,
 		ExecuteUser: data.ExecuteUser,
 		ExecuteTime: data.ExecuteTime,
@@ -156,8 +155,7 @@ func ConvNodeWorkflowToData(workflow *types.NodeWorkflow) *Data {
 	return &Data{
 		WorkflowID:  workflow.WorkflowID,
 		TriggerID:   workflow.TriggerID,
-		OperType:    string(workflow.OperType),
-		TaskType:    string(workflow.TaskType),
+		Type:        string(workflow.Type),
 		BizIDs:      workflow.BizIDs,
 		ExecuteUser: workflow.ExecuteUser,
 		ExecuteTime: workflow.ExecuteTime,

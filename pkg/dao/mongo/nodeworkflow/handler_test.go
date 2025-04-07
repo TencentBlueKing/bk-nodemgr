@@ -52,8 +52,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 		{
 			WorkflowID:  0,
 			TriggerID:   "T-123456",
-			OperType:    string(types.NodeWorkflowOperTypeInstall),
-			TaskType:    "agent",
+			Type:        string(types.NodeWorkflowTypeInstallAgent),
 			BizIDs:      []int64{639},
 			ExecuteUser: "test1",
 			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -62,8 +61,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 		{
 			WorkflowID:  1,
 			TriggerID:   "T-123457",
-			OperType:    string(types.NodeWorkflowOperTypeInstall),
-			TaskType:    "agent",
+			Type:        string(types.NodeWorkflowTypeInstallAgent),
 			BizIDs:      []int64{639},
 			ExecuteUser: "test2",
 			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -72,8 +70,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 		{
 			WorkflowID:  2,
 			TriggerID:   "T-123458",
-			OperType:    "uninstall",
-			TaskType:    "agent",
+			Type:        "uninstall",
 			BizIDs:      []int64{639},
 			ExecuteUser: "test3",
 			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -82,8 +79,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 		{
 			WorkflowID:  3,
 			TriggerID:   "T-123459",
-			OperType:    "uninstall",
-			TaskType:    "agent",
+			Type:        "uninstall",
 			BizIDs:      []int64{639},
 			ExecuteUser: "test3",
 			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -116,8 +112,7 @@ func (testSuit *TestSuite) TestCreate() {
 				nodeWorkflow: &types.NodeWorkflow{
 					WorkflowID:  0,
 					TriggerID:   "T-123459",
-					OperType:    "install",
-					TaskType:    "agent",
+					Type:        "install",
 					ExecuteUser: "test",
 					ExecuteTime: time.Time{},
 					Status:      types.NodeWorkflowStatusRunning,
@@ -169,8 +164,7 @@ func (testSuit *TestSuite) TestList() {
 				{
 					WorkflowID:  1,
 					TriggerID:   "T-123457",
-					OperType:    "install",
-					TaskType:    "agent",
+					Type:        "install",
 					BizIDs:      []int64{639},
 					ExecuteUser: "test2",
 					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -197,8 +191,7 @@ func (testSuit *TestSuite) TestList() {
 				{
 					WorkflowID:  0,
 					TriggerID:   "T-123456",
-					OperType:    "install",
-					TaskType:    "agent",
+					Type:        "install",
 					BizIDs:      []int64{639},
 					ExecuteUser: "test1",
 					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -207,8 +200,7 @@ func (testSuit *TestSuite) TestList() {
 				{
 					WorkflowID:  2,
 					TriggerID:   "T-123458",
-					OperType:    "uninstall",
-					TaskType:    "agent",
+					Type:        "uninstall",
 					BizIDs:      []int64{639},
 					ExecuteUser: "test3",
 					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
@@ -228,15 +220,14 @@ func (testSuit *TestSuite) TestList() {
 				},
 				opts: []OptFn{
 					WithWorkflowID(1),
-					WithOperType(types.NodeWorkflowOperTypeInstall),
+					WithType(types.NodeWorkflowTypeInstallAgent),
 				},
 			},
 			want: []*types.NodeWorkflow{
 				{
 					WorkflowID:  1,
 					TriggerID:   "T-123457",
-					OperType:    types.NodeWorkflowOperTypeInstall,
-					TaskType:    "agent",
+					Type:        types.NodeWorkflowTypeInstallAgent,
 					BizIDs:      []int64{639},
 					ExecuteUser: "test2",
 					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),

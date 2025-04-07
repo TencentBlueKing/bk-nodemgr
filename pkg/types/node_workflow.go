@@ -19,26 +19,35 @@ import (
 type NodeWorkflow struct {
 	WorkflowID  int64
 	TriggerID   string
-	OperType    NodeWorkflowOperType
-	TaskType    NodeWorkflowTaskType
+	Type        NodeWorkflowType
 	BizIDs      []int64
 	ExecuteUser string
 	ExecuteTime time.Time
 	Status      NodeWorkflowStatus
 }
 
-// NodeWorkflowOperType represents the operation type of a node workflow.
-type NodeWorkflowOperType string
+// NodeWorkflowType represents the operation type of a node workflow.
+type NodeWorkflowType string
 
 const (
-	// NodeWorkflowOperTypeInstall is the operation type for install.
-	NodeWorkflowOperTypeInstall NodeWorkflowOperType = "install"
+	// NodeWorkflowTypeInstallAgent is the operation type for install.
+	NodeWorkflowTypeInstallAgent NodeWorkflowType = "install_agent"
+
+	// NodeWorkflowTypeInstallProxy is the operation type for install proxy.
+	NodeWorkflowTypeInstallProxy NodeWorkflowType = "install_proxy"
+
+	// NodeWorkflowTypeUpgradeAgent is the operation type for upgrade.
+	NodeWorkflowTypeUpgradeAgent NodeWorkflowType = "upgrade_agent"
+
+	// NodeWorkflowTypeUpgradeProxy is the operation type for upgrade proxy.
+	NodeWorkflowTypeUpgradeProxy NodeWorkflowType = "upgrade_proxy"
 )
 
-// Validate checks if the NodeWorkflowOperType is valid.
-func (nwo NodeWorkflowOperType) Validate() error {
+// Validate checks if the NodeWorkflowType is valid.
+func (nwo NodeWorkflowType) Validate() error {
 	switch nwo {
-	case NodeWorkflowOperTypeInstall:
+	case NodeWorkflowTypeInstallAgent, NodeWorkflowTypeInstallProxy,
+		NodeWorkflowTypeUpgradeAgent, NodeWorkflowTypeUpgradeProxy:
 		return nil
 	default:
 		return fmt.Errorf("invalid node workflow oper type, oper-type(%s)", nwo)
@@ -66,13 +75,3 @@ func (nws NodeWorkflowStatus) Validate() error {
 
 	return fmt.Errorf("invalid node workflow status, status(%s)", nws)
 }
-
-// NodeWorkflowTaskType represents the task type of a node workflow.
-type NodeWorkflowTaskType string
-
-const (
-	// NodeWorkflowTaskTypeAgent is the task type for agent.
-	NodeWorkflowTaskTypeAgent NodeWorkflowTaskType = "agent"
-	// NodeWorkflowTaskTypePlugin is the task type for plugin.
-	NodeWorkflowTaskTypePlugin NodeWorkflowTaskType = "plugin"
-)
