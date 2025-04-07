@@ -1,0 +1,333 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package nodeworkflow
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mongodaotest"
+	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+// TestSuite ...
+type TestSuite struct {
+	mongodaotest.TestSuite[*Data, Data]
+	Handler IHandler
+	counter counter.Handler
+}
+
+// TestAll is the entry point for all tests in this package.
+func TestAll(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	testSuit := new(TestSuite)
+	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.Logger) {
+		testSuit.Dao = newDao(client, logger)
+		testSuit.Handler = New(client, logger)
+		testSuit.counter = counter.New(client, logger)
+		testSuit.TestDatas = testSuit.prepareTestData()
+	})
+
+	suite.Run(t, testSuit)
+}
+
+func (testSuit *TestSuite) prepareTestData() []*Data {
+	testDatas := []*Data{
+		{
+			TaskID:      0,
+			TriggerID:   "T-123456",
+			OperType:    string(types.NodeWorkflowOperTypeInstall),
+			TaskType:    "agent",
+			BizIDs:      []int64{639},
+			ExecuteUser: "test1",
+			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+			Status:      "running",
+		},
+		{
+			TaskID:      1,
+			TriggerID:   "T-123457",
+			OperType:    string(types.NodeWorkflowOperTypeInstall),
+			TaskType:    "agent",
+			BizIDs:      []int64{639},
+			ExecuteUser: "test2",
+			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+			Status:      "failed",
+		},
+		{
+			TaskID:      2,
+			TriggerID:   "T-123458",
+			OperType:    "uninstall",
+			TaskType:    "agent",
+			BizIDs:      []int64{639},
+			ExecuteUser: "test3",
+			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+			Status:      "running",
+		},
+		{
+			TaskID:      3,
+			TriggerID:   "T-123459",
+			OperType:    "uninstall",
+			TaskType:    "agent",
+			BizIDs:      []int64{639},
+			ExecuteUser: "test3",
+			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+			Status:      "failed",
+		},
+	}
+
+	for idx := range testDatas {
+		testDatas[idx].TaskID, _ = testSuit.counter.Generate(context.Background(), TableName)
+	}
+
+	return testDatas
+}
+
+// TestCreate tests the Create method of the handler.
+func (testSuit *TestSuite) TestCreate() {
+	type args struct {
+		ctx          context.Context
+		nodeWorkflow *types.NodeWorkflow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: context.Background(),
+				nodeWorkflow: &types.NodeWorkflow{
+					TaskID:      0,
+					TriggerID:   "T-123459",
+					OperType:    "install",
+					TaskType:    "agent",
+					ExecuteUser: "test",
+					ExecuteTime: time.Time{},
+					Status:      types.NodeWorkflowStatusRunning,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		testSuit.Run(tt.name, func() {
+			err := testSuit.Handler.Create(tt.args.ctx, tt.args.nodeWorkflow)
+			if !tt.wantErr {
+				testSuit.NoErrorf(err, "Create() error = %v", err)
+			}
+
+			testSuit.T().Logf("err: %v", err)
+		})
+	}
+}
+
+// TestList tests the List method of the handler.
+func (testSuit *TestSuite) TestList() {
+	type args struct {
+		ctx  context.Context
+		page types.Page
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*types.NodeWorkflow
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "filter by task id",
+			args: args{
+				ctx: context.Background(),
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+					Sort:   "",
+				},
+				opts: []OptFn{
+					WithTaskID(1),
+				},
+			},
+			want: []*types.NodeWorkflow{
+				{
+					TaskID:      1,
+					TriggerID:   "T-123457",
+					OperType:    "install",
+					TaskType:    "agent",
+					BizIDs:      []int64{639},
+					ExecuteUser: "test2",
+					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+					Status:      "failed",
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by status",
+			args: args{
+				ctx: context.Background(),
+				page: types.Page{
+					Offset: 0,
+					Limit:  2,
+					Sort:   "",
+				},
+				opts: []OptFn{
+					WithStatus(types.NodeWorkflowStatusRunning),
+				},
+			},
+			want: []*types.NodeWorkflow{
+				{
+					TaskID:      0,
+					TriggerID:   "T-123456",
+					OperType:    "install",
+					TaskType:    "agent",
+					BizIDs:      []int64{639},
+					ExecuteUser: "test1",
+					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+					Status:      "running",
+				},
+				{
+					TaskID:      2,
+					TriggerID:   "T-123458",
+					OperType:    "uninstall",
+					TaskType:    "agent",
+					BizIDs:      []int64{639},
+					ExecuteUser: "test3",
+					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+					Status:      "running",
+				},
+			},
+			wantNum: 2,
+			wantErr: false,
+		},
+		{
+			name: "filter by oper type",
+			args: args{
+				ctx: context.Background(),
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				opts: []OptFn{
+					WithTaskID(1),
+					WithOperType(types.NodeWorkflowOperTypeInstall),
+				},
+			},
+			want: []*types.NodeWorkflow{
+				{
+					TaskID:      1,
+					TriggerID:   "T-123457",
+					OperType:    types.NodeWorkflowOperTypeInstall,
+					TaskType:    "agent",
+					BizIDs:      []int64{639},
+					ExecuteUser: "test2",
+					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
+					Status:      "failed",
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		testSuit.Run(tt.name, func() {
+			got, gotNum, err := testSuit.Handler.List(tt.args.ctx, tt.args.page, tt.args.opts...)
+			if !tt.wantErr {
+				testSuit.NoErrorf(err, "List() error = %v", err)
+			}
+
+			testSuit.Equal(tt.wantNum, gotNum)
+			testSuit.Equal(tt.want, got)
+		})
+	}
+}
+
+// TestCount tests the Count method of the handler.
+func (testSuit *TestSuite) TestCount() {
+	type args struct {
+		ctx  context.Context
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int64
+		wantErr bool
+	}{
+		{
+			name: "filter by task id",
+			args: args{
+				ctx: context.Background(),
+				opts: []OptFn{
+					WithTaskID(1),
+				},
+			},
+			want:    1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		testSuit.Run(tt.name, func() {
+			got, err := testSuit.Handler.Count(tt.args.ctx, tt.args.opts...)
+			if !tt.wantErr {
+				testSuit.NoErrorf(err, "Count() error = %v", err)
+			}
+
+			testSuit.Equal(tt.want, got)
+		})
+	}
+}
+
+// TestUpdateStatus tests the UpdateStatus method of the handler.
+func (testSuit *TestSuite) TestUpdateStatus() {
+	type args struct {
+		ctx    context.Context
+		taskID int64
+		status types.NodeWorkflowStatus
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:    context.Background(),
+				taskID: 3,
+				status: types.NodeWorkflowStatusSuccess,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		testSuit.Run(tt.name, func() {
+			err := testSuit.Handler.UpdateStatus(tt.args.ctx, tt.args.taskID, tt.args.status)
+			if !tt.wantErr {
+				testSuit.NoErrorf(err, "UpdateStatus() error = %v", err)
+			}
+
+			testSuit.T().Logf("err: %v", err)
+		})
+	}
+}
