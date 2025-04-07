@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // IHandler topo event handler interface.
@@ -107,13 +106,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		return nil, 0, err
 	}
 
-	findOpt := new(options.FindOptions)
-	if page.Offset > 0 {
-		findOpt.SetSkip(int64(page.Offset))
-	}
-	if page.Limit > 0 {
-		findOpt.SetLimit(int64(page.Limit))
-	}
+	findOpt := base.ParsePage(page)
 
 	// descending sort by operate time.
 	findOpt.SetSort(bson.D{{FieldKeyOperateTime, -1}})

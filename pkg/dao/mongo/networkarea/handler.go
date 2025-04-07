@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Handler networkarea handler interface.
@@ -112,13 +111,7 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		return nil, 0, err
 	}
 
-	findOpt := new(options.FindOptions)
-	if page.Offset > 0 {
-		findOpt.SetSkip(int64(page.Offset))
-	}
-	if page.Limit > 0 {
-		findOpt.SetLimit(int64(page.Limit))
-	}
+	findOpt := base.ParsePage(page)
 
 	networkAreas, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
 	if err != nil {
