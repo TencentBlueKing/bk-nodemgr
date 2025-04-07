@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -46,7 +47,9 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 			return err
 		}
 
+		regex := `agent-id:\s+[A-Za-z0-9]+`
 		agentIDStr = strings.TrimPrefix(stdout.String(), "agent-id: ")
+		agentIDStr = regexp.MustCompile(regex).FindString(stdout.String())
 
 		return nil
 	})
