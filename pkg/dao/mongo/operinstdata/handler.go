@@ -71,6 +71,7 @@ func (h *handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 	data := &operengine.OperInstData{
 		TriggerID:         operInstData.TriggerID,
 		OperInstID:        operInstData.OperInstID,
+		OperationID:       operInstData.OperationID,
 		OperDefName:       operInstData.OperDefName,
 		ActionNames:       operInstData.ActionNames,
 		ParentOperationID: operInstData.ParentOperationID,
@@ -178,12 +179,14 @@ func convActInstLifeCycleToCommon(lifecycle *ActInstLifeCycle) *operengine.ActIn
 
 func convActionInstDataToDB(actionInstData *operengine.ActionInstData) (*ActionInstData, error) {
 	data := &ActionInstData{
-		TriggerID:  actionInstData.TriggerID,
-		OperInstID: actionInstData.OperInstID,
-		Name:       actionInstData.Name,
-		Index:      actionInstData.Index,
-		Messages:   make([]Message, 0, len(actionInstData.Messages)),
-		Lifecycle:  convActInstLifeCycleToDB(actionInstData.Lifecycle),
+		TriggerID:   actionInstData.TriggerID,
+		OperInstID:  actionInstData.OperInstID,
+		OperationID: actionInstData.OperationID,
+		OperDefName: actionInstData.OperDefName,
+		Name:        actionInstData.Name,
+		Index:       actionInstData.Index,
+		Messages:    make([]Message, 0, len(actionInstData.Messages)),
+		Lifecycle:   convActInstLifeCycleToDB(actionInstData.Lifecycle),
 	}
 
 	for _, message := range actionInstData.Messages {
@@ -209,6 +212,7 @@ func convOperInstDataToDB(data *operengine.OperInstData) (*OperInstData, error) 
 		TriggerID:         data.TriggerID,
 		OperInstID:        data.OperInstID,
 		ActionNames:       data.ActionNames,
+		OperationID:       data.OperationID,
 		OperDefName:       data.OperDefName,
 		ParentOperationID: data.ParentOperationID,
 		Timeout:           data.Timeout,

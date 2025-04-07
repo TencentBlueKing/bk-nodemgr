@@ -100,6 +100,8 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operengine.OperI
 		actionInstData := &operengine.ActionInstData{
 			TriggerID:   v.TriggerID,
 			OperInstID:  v.OperInstID,
+			OperationID: v.OperationID,
+			OperDefName: v.OperDefName,
 			Name:        v.Name,
 			Index:       v.Index,
 			Messages:    make([]operengine.Message, len(v.Messages)),

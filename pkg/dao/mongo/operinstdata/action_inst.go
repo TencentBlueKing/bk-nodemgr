@@ -304,6 +304,8 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	data := &operengine.ActionInstData{
 		TriggerID:   actionInstData.TriggerID,
 		OperInstID:  actionInstData.OperInstID,
+		OperationID: actionInstData.OperationID,
+		OperDefName: actionInstData.OperDefName,
 		Name:        actionInstData.Name,
 		Index:       actionInstData.Index,
 		PrivateData: actionInstData.PrivateData,

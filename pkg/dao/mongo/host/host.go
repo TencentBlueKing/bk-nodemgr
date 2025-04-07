@@ -81,11 +81,11 @@ func (d *dao) upsertMany(ctx context.Context, hosts []*Host) error {
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("successfully inserted hosts, inserted-count(%v)", result.UpsertedCount)
+		d.logger.Infof("inserted hosts, inserted-count(%v)", result.UpsertedCount)
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated hosts, update-count(%v)", result.MatchedCount)
+		d.logger.Infof("updated hosts, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil
@@ -101,11 +101,11 @@ func (d *dao) upsertStaticMany(ctx context.Context, hosts []*Host) error {
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("successfully inserted host statics, inserted-count(%v)", result.UpsertedCount)
+		d.logger.Infof("inserted host statics, inserted-count(%v)", result.UpsertedCount)
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated host statics, update-count(%v)", result.MatchedCount)
+		d.logger.Infof("updated host statics, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil
@@ -121,11 +121,11 @@ func (d *dao) updateDynamicMany(ctx context.Context, hosts []*Host) error {
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("successfully inserted host statics, inserted-count(%v)", result.UpsertedCount)
+		d.logger.Infof("inserted host statics, inserted-count(%v)", result.UpsertedCount)
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated host statics, update-count(%v)", result.MatchedCount)
+		d.logger.Infof("updated host statics, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil

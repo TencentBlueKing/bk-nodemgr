@@ -24,6 +24,8 @@ const TableName = "oper_inst_data"
 type ActionInstData struct {
 	TriggerID   string            `json:"trigger_id" bson:"trigger_id"`
 	OperInstID  string            `json:"oper_inst_id" bson:"oper_inst_id"`
+	OperationID string            `json:"operation_id" bson:"operation_id"`
+	OperDefName string            `json:"oper_def_name" bson:"oper_def_name"`
 	Name        string            `json:"name" bson:"name"`
 	Index       int               `json:"index" bson:"index"`
 	Lifecycle   *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`

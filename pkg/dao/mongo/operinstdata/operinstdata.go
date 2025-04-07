@@ -72,14 +72,15 @@ func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
 	switch {
 	case result.UpsertedCount > 0:
 		{
-			d.logger.Infof("successfully inserted data, unique-key(%s)", data.UniqueKey())
+			d.logger.Infof("inserted data, unique-key(%s), table(%s)", data.UniqueKey(), TableName)
 		}
 	case result.MatchedCount > 0:
 		{
-			d.logger.Infof("successfully updated data, unique-key(%s)", data.UniqueKey())
+			d.logger.Infof("updated data, unique-key(%s), table(%s)", data.UniqueKey(), TableName)
 		}
 	default:
-		d.logger.Warnf("try to upsert data but no changes made, unique-key(%s)", data.UniqueKey())
+		d.logger.Warnf("try to upsert data but no changes made. unique-key(%s), table(%s)",
+			data.UniqueKey(), TableName)
 	}
 
 	return nil
@@ -165,7 +166,8 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 		return err
 	}
 
-	d.logger.Infof("successfully pushed field(%v), value(%v), updated-count(%d)", field, value, result.MatchedCount)
+	d.logger.Infof("pushed oper-inst-data field(%v), table(%s), value(%v), updated-count(%d)",
+		field, TableName, value, result.MatchedCount)
 
 	return nil
 }

@@ -22,6 +22,7 @@ type ActionInstData struct {
 	TriggerID   string
 	OperInstID  string
 	OperationID string
+	OperDefName string
 	Name        string
 	Index       int
 	Messages    []Message

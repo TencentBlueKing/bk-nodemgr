@@ -133,7 +133,8 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("successfully created %s, count(%d)", orm.dao.GetTableName(), len(result.InsertedIDs))
+	orm.dao.GetLogger().Infof("created multi documents. table(%s), count(%d)",
+		orm.dao.GetTableName(), len(result.InsertedIDs))
 
 	return nil
 }
@@ -148,7 +149,7 @@ func (orm *Orm[P, T]) Create(ctx context.Context, data P) error {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("successfully created %s, unique-key(%s)", orm.dao.GetTableName(), data.UniqueKey())
+	orm.dao.GetLogger().Infof("created document. table(%s), unique-key(%s)", orm.dao.GetTableName(), data.UniqueKey())
 
 	return nil
 }
@@ -182,7 +183,8 @@ func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field stri
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("successfully updated, field(%v), updated-count(%d)", field, result.MatchedCount)
+	orm.dao.GetLogger().Infof("updated field(%v), table(%s), updated-count(%d)",
+		field, orm.dao.GetTableName(), result.MatchedCount)
 
 	return nil
 }

@@ -281,7 +281,7 @@ func (mgr *operInstMgr) DispatchOperInst(inst *OperInst) error {
 		return err
 	}
 
-	mgr.logger.Infof("successfully store operation inst, oper-inst-id(%s)", inst.data.OperInstID)
+	mgr.logger.Infof("stored operation inst, oper-inst-id(%s)", inst.data.OperInstID)
 
 	return mgr.dispatchOperInst(inst)
 }
@@ -710,9 +710,9 @@ func (mgr *operInstMgr) callActionDefWithRetry(actionInstCtx *ActionInstContext,
 	var doErr error
 
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < EngineMaxRetryLimit; retryNum++ {
-		mgr.logger.Infof("successfully started action, action-name(%s), retry-num(%d)",
-			actionInstCtx.Data.Name, retryNum)
-		actionInstCtx.Data.Log(fmt.Sprintf("successfully started action, action-name(%s), retry-num(%d)",
+		mgr.logger.Infof("started action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+			actionInstCtx.Data.Name, actionInstCtx.Data.OperDefName, retryNum)
+		actionInstCtx.Data.Log(fmt.Sprintf("started action, action-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, retryNum))
 
 		doErr = actionDef.Do(actionInstCtx)
@@ -727,10 +727,10 @@ func (mgr *operInstMgr) callActionDefWithRetry(actionInstCtx *ActionInstContext,
 			continue
 		}
 
-		mgr.logger.Infof("successfully done action, action-name(%s), retry-num(%d)",
-			actionInstCtx.Data.Name, retryNum)
-		actionInstCtx.Data.Log(fmt.Sprintf("successfully done action, action-name(%s), retry-num(%d)",
-			actionInstCtx.Data.Name, retryNum))
+		mgr.logger.Infof("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+			actionInstCtx.Data.Name, actionInstCtx.Data.OperDefName, retryNum)
+		actionInstCtx.Data.Log(fmt.Sprintf("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+			actionInstCtx.Data.Name, actionInstCtx.Data.OperDefName, retryNum))
 
 		break
 	}

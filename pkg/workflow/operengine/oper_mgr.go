@@ -105,13 +105,16 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 
 	operInst.data.TriggerID = operation.TriggerID
 	operInst.data.OperationID = operation.OperationID
+	operInst.data.OperDefName = operation.DefSnapshot.OperDefName
 
 	for idx, actionName := range operation.DefSnapshot.ActionNames {
 		actionInstData := &ActionInstData{
-			TriggerID:  operInst.data.TriggerID,
-			OperInstID: operInst.data.OperInstID,
-			Name:       actionName,
-			Index:      idx,
+			TriggerID:   operInst.data.TriggerID,
+			OperInstID:  operInst.data.OperInstID,
+			OperationID: operInst.data.OperationID,
+			OperDefName: operInst.data.OperDefName,
+			Name:        actionName,
+			Index:       idx,
 			Lifecycle: &ActInstLifeCycle{
 				State: ActionInstStatePending,
 			},

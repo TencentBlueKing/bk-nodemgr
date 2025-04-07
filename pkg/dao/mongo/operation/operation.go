@@ -41,14 +41,17 @@ func (d *dao) upsert(ctx context.Context, operation *Operation) error {
 	switch {
 	case result.UpsertedCount > 0:
 		{
-			d.logger.Infof("successfully upserted operation, unique-key(%s)", operation.UniqueKey())
+			d.logger.Infof("upserted operation, unique-key(%s), table(%s)",
+				operation.UniqueKey(), TableName)
 		}
 	case result.MatchedCount > 0:
 		{
-			d.logger.Infof("successfully updated operation, unique-key(%s)", operation.UniqueKey())
+			d.logger.Infof("updated operation, unique-key(%s), table(%s)",
+				operation.UniqueKey(), TableName)
 		}
 	default:
-		d.logger.Warnf("try to upsert operation but no changes made, unique-key(%s", operation.UniqueKey())
+		d.logger.Warnf("try to upsert operation but no changes made. unique-key(%s), table(%s)",
+			operation.UniqueKey(), TableName)
 	}
 
 	return nil
