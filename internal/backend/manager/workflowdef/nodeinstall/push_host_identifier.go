@@ -122,7 +122,7 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("successfully push host identifier, task-id(%s)", taskID))
+	ctx.Data.Log(fmt.Sprintf("successfully pushed host identifier, task-id(%s)", taskID))
 
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  action.Timeout(),
@@ -155,7 +155,7 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 			return errors.New("failed to push host identifier, no success result")
 		}
 
-		action.logger.Infof("successfully push host identifier, success(%v)", successList)
+		action.logger.Infof("successfully pushed host identifier, success(%v)", successList)
 
 		return nil
 	})
@@ -165,7 +165,7 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	ctx.Data.Log("successfully push host identifier")
+	ctx.Data.Log("successfully pushed host identifier")
 
 	return nil
 }

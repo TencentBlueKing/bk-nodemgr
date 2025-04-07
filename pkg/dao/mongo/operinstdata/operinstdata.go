@@ -165,7 +165,7 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 		return err
 	}
 
-	d.logger.Infof("successfully push, field(%v), value(%v), updated-count(%d)", field, value, result.MatchedCount)
+	d.logger.Infof("successfully pushed field(%v), value(%v), updated-count(%d)", field, value, result.MatchedCount)
 
 	return nil
 }
