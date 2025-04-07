@@ -102,7 +102,7 @@ message NodeOperInst {
   message Action {
     string action_name = 1;
     string action_status = 2;
-    string cost_time_sec = 3;
+    int64 cost_time_sec = 3;
   }
 }
 

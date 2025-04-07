@@ -327,7 +327,8 @@
           "type": "string"
         },
         "cost_time_sec": {
-          "type": "string"
+          "type": "string",
+          "format": "int64"
         }
       }
     },
