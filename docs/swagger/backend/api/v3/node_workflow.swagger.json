@@ -36,90 +36,13 @@
         },
         "parameters": [
           {
-            "name": "page.offset",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "page.limit",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "only_count",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "exact_include_conditions.workflow_id",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "int64"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "exact_include_conditions.type",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "exact_include_conditions.bk_biz_id",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "int64"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "exact_include_conditions.status",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "fuzzy_include_conditions.operators",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "operate_time_range.start_timestamp_sec",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "operate_time_range.end_timestamp_sec",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
+            "name": "body",
+            "description": "NodeWorkflowListReq describes the node workflow list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowListReq"
+            }
           }
         ],
         "tags": [
@@ -147,10 +70,13 @@
         },
         "parameters": [
           {
-            "name": "oper_inst_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "description": "NodeOperActionInstLogReq describes the node operation action instance log\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOperActionInstLogGetReq"
+            }
           }
         ],
         "tags": [
@@ -178,10 +104,13 @@
         },
         "parameters": [
           {
-            "name": "operation_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "description": "NodeOperInstLisByOperationIDReq describes the node operation instance list by\noperation ID request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOperInstLisByOperationIDReq"
+            }
           }
         ],
         "tags": [
@@ -209,25 +138,13 @@
         },
         "parameters": [
           {
-            "name": "workflow_id",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "page.offset",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "page.limit",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
+            "name": "body",
+            "description": "NodeOperInstLisByWorkflowIDReq describes the node operation instance list by\nworkflow ID request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeOperInstLisByWorkflowIDReq"
+            }
           }
         ],
         "tags": [
@@ -255,15 +172,13 @@
         },
         "parameters": [
           {
-            "name": "workflow_id",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "int64"
-            },
-            "collectionFormat": "multi"
+            "name": "body",
+            "description": "NodeWorkflowStatisticReq describes the node workflow statistic request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowStatisticsReq"
+            }
           }
         ],
         "tags": [
@@ -402,6 +317,15 @@
         }
       }
     },
+    "v3NodeOperActionInstLogGetReq": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeOperActionInstLogReq describes the node operation action instance log\nrequest."
+    },
     "v3NodeOperActionInstLogGetResp": {
       "type": "object",
       "properties": {
@@ -467,6 +391,15 @@
       },
       "description": "NodeOperInst describes the node operation instance."
     },
+    "v3NodeOperInstLisByOperationIDReq": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeOperInstLisByOperationIDReq describes the node operation instance list by\noperation ID request."
+    },
     "v3NodeOperInstLisByOperationIDResp": {
       "type": "object",
       "properties": {
@@ -496,6 +429,19 @@
           }
         }
       }
+    },
+    "v3NodeOperInstLisByWorkflowIDReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        }
+      },
+      "description": "NodeOperInstLisByWorkflowIDReq describes the node operation instance list by\nworkflow ID request."
     },
     "v3NodeOperInstLisByWorkflowIDResp": {
       "type": "object",
@@ -556,6 +502,27 @@
         }
       },
       "description": "NodeWorkflowInfo describes the node workflow information."
+    },
+    "v3NodeWorkflowListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/NodeWorkflowListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/NodeWorkflowListReqFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "NodeWorkflowListReq describes the node workflow list request."
     },
     "v3NodeWorkflowListResp": {
       "type": "object",
@@ -622,6 +589,19 @@
           }
         }
       }
+    },
+    "v3NodeWorkflowStatisticsReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeWorkflowStatisticReq describes the node workflow statistic request."
     },
     "v3Page": {
       "type": "object",
