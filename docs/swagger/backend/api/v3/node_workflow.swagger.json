@@ -98,20 +98,6 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "exact_include_conditions.operate_time_range.start_timestamp_sec",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "exact_include_conditions.operate_time_range.end_timestamp_sec",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
             "name": "fuzzy_include_conditions.operators",
             "in": "query",
             "required": false,
@@ -120,6 +106,20 @@
               "type": "string"
             },
             "collectionFormat": "multi"
+          },
+          {
+            "name": "operate_time_range.start_timestamp_sec",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "operate_time_range.end_timestamp_sec",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -360,9 +360,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "operate_time_range": {
-          "$ref": "#/definitions/v3TimeRange"
         }
       }
     },
