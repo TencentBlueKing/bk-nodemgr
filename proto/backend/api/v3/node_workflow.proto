@@ -145,7 +145,7 @@ service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
     option (google.api.http) = {
-      get : "/api/v3/node_workflow/list"
+      post : "/api/v3/node_workflow/list"
     };
   }
 
@@ -153,7 +153,7 @@ service NodeWorkflow {
   rpc NodeWorkflowStatistics(NodeWorkflowStatisticsReq)
       returns (NodeWorkflowStatisticResp) {
     option (google.api.http) = {
-      get : "/api/v3/node_workflow/statistics"
+      post : "/api/v3/node_workflow/statistics"
     };
   }
 
@@ -162,7 +162,7 @@ service NodeWorkflow {
   rpc NodeOperInstLisByWorkflowID(NodeOperInstLisByWorkflowIDReq)
       returns (NodeOperInstLisByWorkflowIDResp) {
     option (google.api.http) = {
-      get : "/api/v3/node_workflow/oper_inst/list_by_workflow_id"
+      post : "/api/v3/node_workflow/oper_inst/list_by_workflow_id"
     };
   }
 
@@ -171,7 +171,7 @@ service NodeWorkflow {
   rpc NodeOperInstLisByOperationID(NodeOperInstLisByOperationIDReq)
       returns (NodeOperInstLisByOperationIDResp) {
     option (google.api.http) = {
-      get : "/api/v3/node_workflow/oper_inst/list_by_operation_id"
+      post : "/api/v3/node_workflow/oper_inst/list_by_operation_id"
     };
   }
 
@@ -179,7 +179,7 @@ service NodeWorkflow {
   rpc NodeOperActionInstLog(NodeOperActionInstLogGetReq)
       returns (NodeOperActionInstLogGetResp) {
     option (google.api.http) = {
-      get : "/api/v3/node_workflow/oper_inst/get_action_instance_log"
+      post : "/api/v3/node_workflow/oper_inst/get_action_instance_log"
     };
   }
 }

@@ -17,7 +17,7 @@
   ],
   "paths": {
     "/api/v3/node_workflow/list": {
-      "get": {
+      "post": {
         "summary": "NodeWorkflowList provides node workflow list.",
         "operationId": "NodeWorkflow_NodeWorkflowList",
         "responses": {
@@ -128,7 +128,7 @@
       }
     },
     "/api/v3/node_workflow/oper_inst/get_action_instance_log": {
-      "get": {
+      "post": {
         "summary": "NodeOperActionInstLog provides node operation action instance log.",
         "operationId": "NodeWorkflow_NodeOperActionInstLog",
         "responses": {
@@ -159,7 +159,7 @@
       }
     },
     "/api/v3/node_workflow/oper_inst/list_by_operation_id": {
-      "get": {
+      "post": {
         "summary": "NodeOperInstLisByOperationID provides node operation instance list by\noperation ID.",
         "operationId": "NodeWorkflow_NodeOperInstLisByOperationID",
         "responses": {
@@ -190,7 +190,7 @@
       }
     },
     "/api/v3/node_workflow/oper_inst/list_by_workflow_id": {
-      "get": {
+      "post": {
         "summary": "NodeOperInstLisByWorkflowID provides node operation instance list by\nworkflow ID.",
         "operationId": "NodeWorkflow_NodeOperInstLisByWorkflowID",
         "responses": {
@@ -236,7 +236,7 @@
       }
     },
     "/api/v3/node_workflow/statistics": {
-      "get": {
+      "post": {
         "summary": "NodeWorkflowStatistics provides node workflow statistics.",
         "operationId": "NodeWorkflow_NodeWorkflowStatistics",
         "responses": {
