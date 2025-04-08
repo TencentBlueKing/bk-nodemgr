@@ -224,6 +224,13 @@ func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (
 	var exactCond *TopoEventExactConditions
 	var fuzzyCond *TopoEventFuzzyConditions
 
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
+
 	if condition.ExactInclude != nil {
 		exactCond = &TopoEventExactConditions{
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
