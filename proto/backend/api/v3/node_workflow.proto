@@ -19,7 +19,7 @@ message NodeWorkflowListReq {
   }
   ExactConditions exact_include_conditions = 3;
 
-  message FuzzyConditions { repeated string operators = 1; }
+  message FuzzyConditions { repeated string operator = 1; }
   FuzzyConditions fuzzy_include_conditions = 4;
 
   TimeRange operate_time_range = 5;
@@ -42,7 +42,7 @@ message NodeWorkflowListResp {
 message NodeWorkflowInfo {
   int64 workflow_id = 1;
   string type = 2;
-  repeated int64 bk_biz_ids = 3;
+  repeated int64 bk_biz_id = 3;
   string operator = 4;
   string operate_time = 5;
   string status = 6;
