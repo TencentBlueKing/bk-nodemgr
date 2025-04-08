@@ -35,3 +35,24 @@ message GetCheckListReq {
   string node_type = 3;
   string token = 4;
 }
+
+// ReportLogReq describes the HTTP request body when report log.
+message ReportLogReq {
+  string token = 1;
+  repeated ReportLog logs = 3;
+}
+
+// ReportLog
+message ReportLog {
+  int64 timestamp = 1;
+  string level = 2;
+  string step = 3;
+  string log = 4;
+  string status = 5;
+}
+
+// ReportDataReq describes the HTTP request body when report data.
+message ReportDataReq {
+  string token = 1;
+  string agent_id = 2;
+}

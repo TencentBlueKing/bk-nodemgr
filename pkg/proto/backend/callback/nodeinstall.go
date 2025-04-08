@@ -64,3 +64,33 @@ func (x *GetCheckListReq) Validate() error {
 // AutoConvert auto convert.
 func (x *GetCheckListReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *ReportLogReq) Validate() error {
+	if x.Token == "" {
+		return errors.New("token is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportLogReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportDataReq) Validate() error {
+	if x.Token == "" {
+		return errors.New("token is required")
+	}
+
+	if x.AgentId == "" {
+		return errors.New("agent_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportDataReq) AutoConvert() {
+}
