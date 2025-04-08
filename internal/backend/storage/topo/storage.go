@@ -34,10 +34,10 @@ type IStorage interface {
 // IDaoTopoEvent this interface defines the operations which is only for topo event.
 type IDaoTopoEvent interface {
 	// CountTopoEvent counts topo events by conditions.
-	CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error)
+	CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (int64, error)
 
 	// ListTopoEvent lists topo events by page and conditions.
-	ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+	ListTopoEvent(ctx context.Context, page types.Page, conditions ...*types.TopoEventCondition) (
 		[]*types.TopoEvent, int64, error)
 
 	// CreateManyTopoEvent creates multiple topo events.
@@ -45,14 +45,14 @@ type IDaoTopoEvent interface {
 
 	// DistinctTopoEvent distincts topoevent fields.
 	DistinctTopoEvent(
-		ctx context.Context, request types.TopoEventDistinctRequest, conditions ...types.TopoEventCondition) (
+		ctx context.Context, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
 		*types.TopoEventDistinctResult, error)
 }
 
 // IDaoNetworkUnit this interface defines the operations which is only for network unit.
 type IDaoNetworkUnit interface {
 	// ListNetworkUnit lists networkunit by page and conditions.
-	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
+	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
 
 	// GetNetworkUnit gets networkunit by id.
@@ -76,14 +76,14 @@ type IDaoBusiness interface {
 	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
 
 	// ListBusinesses lists businesses by page and conditions.
-	ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+	ListBusinesses(ctx context.Context, page types.Page, conditions ...*types.BusinessCondition) (
 		[]*types.Business, int64, error)
 }
 
 // IDaoNetworkArea this interface defines the operations which is only for network area.
 type IDaoNetworkArea interface {
 	// ListNetworkArea lists networkarea by page and conditions.
-	ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
+	ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
 
 	// GetNetworkArea gets networkarea by id.
@@ -102,10 +102,10 @@ type IDaoNetworkArea interface {
 // IDaoAccessPoint this interface defines the operations which is only for accesspoint.
 type IDaoAccessPoint interface {
 	// CountAccessPoint counts accesspoint by conditions.
-	CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error)
+	CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (int64, error)
 
 	// ListAccessPoint lists accesspoint by page and conditions.
-	ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
+	ListAccessPoint(ctx context.Context, page types.Page, conditions ...*types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
 }
 
@@ -121,16 +121,16 @@ type IDaoHost interface {
 	UpdateManyHostDynamic(ctx context.Context, host ...*types.Host) error
 
 	// ListHost lists hosts by page and conditions.
-	ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) ([]*types.Host, int64, error)
+	ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
 
 	// CountHost counts hosts by conditions.
-	CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error)
+	CountHost(ctx context.Context, conditions ...*types.HostCondition) (int64, error)
 
 	// GetHostByID gets host by id.
 	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
 
 	// DistinctHost distincts host fields.
-	DistinctHost(ctx context.Context, request types.HostDistinctRequest, conditions ...types.HostCondition) (
+	DistinctHost(ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 		*types.HostDistinctResult, error)
 }
 

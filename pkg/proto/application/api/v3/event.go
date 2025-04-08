@@ -52,18 +52,19 @@ func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoEventListReq) ConvertConditionsToTypes() *types.TopoEventCondition {
-	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetOperateTimeRange())
+	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetOperateTimeRange())
 }
 
 // ConvertConditionsFromTypes convert types to conditions.
 func (x *TopoEventListReq) ConvertConditionsFromTypes(condition *types.TopoEventCondition) error {
-	exactCond, timeRange, err := convertTopoEventConditionsFromTypes(condition)
+	exactCond, fuzzyCond, timeRange, err := convertTopoEventConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.OperateTimeRange = timeRange
 	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
 
 	return nil
 }
@@ -131,18 +132,19 @@ func (x *TopoEventDistinctReq) AutoConvert() {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoEventDistinctReq) ConvertConditionsToTypes() *types.TopoEventCondition {
-	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetOperateTimeRange())
+	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetOperateTimeRange())
 }
 
 // ConvertConditionsFromTypes convert types to conditions.
 func (x *TopoEventDistinctReq) ConvertConditionsFromTypes(condition *types.TopoEventCondition) error {
-	exactCond, timeRange, err := convertTopoEventConditionsFromTypes(condition)
+	exactCond, fuzzyCond, timeRange, err := convertTopoEventConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.OperateTimeRange = timeRange
 	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
 
 	return nil
 }
@@ -178,14 +180,12 @@ func newEmptyTopoEvent() *TopoEvent {
 }
 
 func convertTopoEventConditionsToTypes(
-	exactCond *TopoEventExactConditions, timeRange *TimeRange) *types.TopoEventCondition {
+	exactCond *TopoEventExactConditions, fuzzyCond *TopoEventFuzzyConditions, timeRange *TimeRange) *types.TopoEventCondition {
 
-	conditions := &types.TopoEventCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	condition := &types.TopoEventCondition{}
 
 	if timeRange != nil {
-		conditions.OperateTimeRange = types.TimeRange{
+		condition.OperateTimeRange = &types.TimeRange{
 			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
 			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
 		}
@@ -193,48 +193,57 @@ func convertTopoEventConditionsToTypes(
 
 	// exact conditions.
 	if exactCond != nil {
-		conditions.Type = types.ConditionTypeExactInclude
-		conditions.Exact = &types.TopoEventExactFields{
+		condition.ExactInclude = &types.TopoEventExactFields{
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			AccessPointID: exactCond.GetAccesspointId(),
 			Type:          types.StringListToTopoEventTypeList(exactCond.GetType()),
 			Operator:      exactCond.GetOperator(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return conditions
+	// fuzzy conditions.
+	if fuzzyCond != nil {
+		condition.FuzzyInclude = &types.TopoEventFuzzyFields{
+			NetworkAreaName: fuzzyCond.GetBkNetworkareaName(),
+			NetworkUnitName: fuzzyCond.GetBkNetworkunitName(),
+		}
+	}
+
+	return condition
 }
 
-func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (*TopoEventExactConditions, *TimeRange, error) {
+func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (
+	*TopoEventExactConditions, *TopoEventFuzzyConditions, *TimeRange, error) {
+
 	if condition == nil {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
-	timeRange := &TimeRange{
-		StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
-		EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
-	}
+	var timeRange *TimeRange
 	var exactCond *TopoEventExactConditions
+	var fuzzyCond *TopoEventFuzzyConditions
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			exactCond = &TopoEventExactConditions{
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-				BkNetworkunitId: condition.Exact.NetworkUnitID,
-				AccesspointId:   condition.Exact.AccessPointID,
-				Type:            types.TopoEventTypeListToStringList(condition.Exact.Type),
-				Operator:        condition.Exact.Operator,
-			}
+	if condition.ExactInclude != nil {
+		exactCond = &TopoEventExactConditions{
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			AccesspointId:   condition.ExactInclude.AccessPointID,
+			Type:            types.TopoEventTypeListToStringList(condition.ExactInclude.Type),
+			Operator:        condition.ExactInclude.Operator,
 		}
-
-	default:
-		return nil, nil, fmt.Errorf("unknown condition type: %s", condition.Type)
 	}
 
-	return exactCond, timeRange, nil
+	if condition.FuzzyInclude != nil {
+		fuzzyCond = &TopoEventFuzzyConditions{
+			BkNetworkareaName: condition.FuzzyInclude.NetworkAreaName,
+			BkNetworkunitName: condition.FuzzyInclude.NetworkUnitName,
+		}
+	}
+
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, nil, fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, timeRange, nil
 }

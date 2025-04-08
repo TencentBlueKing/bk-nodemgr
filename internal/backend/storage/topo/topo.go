@@ -110,42 +110,37 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 
 // ListBusinesses lists businesses by page and conditions.
 
-func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...types.BusinessCondition) (
+func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...*types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
 	opts := make([]business.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					business.WithBizID(condition.Exact.BizID...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					business.WithoutBizID(condition.Exact.BizID...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				business.WithBizID(condition.ExactInclude.BizID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					business.WithFuzzyBizName(condition.Fuzzy.BizName...),
-				)
-			}
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				business.WithoutBizID(condition.ExactExclude.BizID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyExclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					business.WithoutFuzzyBizName(condition.Fuzzy.BizName...),
-				)
-			}
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				business.WithFuzzyBizName(condition.FuzzyInclude.BizName...),
+			)
+		}
 
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				business.WithoutFuzzyBizName(condition.FuzzyExclude.BizName...),
+			)
 		}
 	}
 
@@ -154,42 +149,37 @@ func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, condition
 
 // ListNetworkArea lists networkarea by page and conditions.
 // nolint: cyclop
-func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...types.NetworkAreaCondition) (
+func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
 	opts := make([]networkarea.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					networkarea.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					networkarea.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				networkarea.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					networkarea.WithFuzzyNetworkAreaName(condition.Fuzzy.NetworkAreaName...),
-				)
-			}
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				networkarea.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyExclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					networkarea.WithoutFuzzyNetworkAreaName(condition.Fuzzy.NetworkAreaName...),
-				)
-			}
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				networkarea.WithFuzzyNetworkAreaName(condition.FuzzyInclude.NetworkAreaName...),
+			)
+		}
 
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				networkarea.WithoutFuzzyNetworkAreaName(condition.FuzzyExclude.NetworkAreaName...),
+			)
 		}
 	}
 
@@ -218,33 +208,27 @@ func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...i
 
 // ListNetworkUnit lists networkunit.
 
-func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...types.NetworkUnitCondition) (
+func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
 	opts := make([]networkunit.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					networkunit.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					networkunit.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					networkunit.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
-					networkunit.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+				networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
-
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
+				networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+			)
 		}
 	}
 
@@ -446,31 +430,25 @@ func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...i
 }
 
 // CountAccessPoint counts accesspoint.
-func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...types.AccessPointCondition) (int64, error) {
+func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (int64, error) {
 	opts := make([]accesspoint.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					accesspoint.WithAccessPointID(condition.Exact.AccessPointID...),
-					accesspoint.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					accesspoint.WithoutAccessPointID(condition.Exact.AccessPointID...),
-					accesspoint.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+				accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
-
-		default:
-			return 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+				accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+			)
 		}
 	}
 
@@ -479,33 +457,27 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...types.Acce
 
 // ListAccessPoint lists accesspoint.
 
-func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...types.AccessPointCondition) (
+func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...*types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
 	opts := make([]accesspoint.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					accesspoint.WithAccessPointID(condition.Exact.AccessPointID...),
-					accesspoint.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					accesspoint.WithoutAccessPointID(condition.Exact.AccessPointID...),
-					accesspoint.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+				accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
-
-		default:
-			return nil, 0, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+				accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+			)
 		}
 	}
 

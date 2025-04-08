@@ -98,8 +98,7 @@ func (h *handler) completeNetworkAreaName(ctx context.Context, hosts []*types.Ho
 		ctx,
 		types.Page{Limit: len(ids)},
 		&types.NetworkAreaCondition{
-			Type: types.ConditionTypeExactInclude,
-			Exact: &types.NetworkAreaExactFields{
+			ExactInclude: &types.NetworkAreaExactFields{
 				NetworkAreaID: ids,
 			},
 		},
@@ -136,8 +135,7 @@ func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Ho
 		ctx,
 		types.Page{Limit: len(ids)},
 		&types.NetworkUnitCondition{
-			Type: types.ConditionTypeExactInclude,
-			Exact: &types.NetworkUnitExactFields{
+			ExactInclude: &types.NetworkUnitExactFields{
 				NetworkUnitID: ids,
 			},
 		},

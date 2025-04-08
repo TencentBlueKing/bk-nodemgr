@@ -186,8 +186,7 @@ func (h *handler) ListNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	if len(ids) > 0 {
 		accessPoints, _, err = h.backendHandler.ListAccessPoint(
 			sCtx, types.Page{Limit: len(ids)}, &types.AccessPointCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.AccessPointExactFields{
+				ExactInclude: &types.AccessPointExactFields{
 					AccessPointID: ids,
 				}})
 		if err != nil {

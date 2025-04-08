@@ -130,36 +130,25 @@ func (x *TopoNetworkAreaListReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *TopoNetworkAreaListReq) ConvertConditionsToTypes() types.NetworkAreaCondition {
+func (x *TopoNetworkAreaListReq) ConvertConditionsToTypes() *types.NetworkAreaCondition {
+	condition := &types.NetworkAreaCondition{}
+
 	// exact conditions.
 	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
-		conditions := types.NetworkAreaCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.NetworkAreaExactFields{
+		condition.ExactInclude = &types.NetworkAreaExactFields{
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			CloudVendor:   exactCond.GetCloudVendor(),
 		}
-
-		return conditions
 	}
 
 	// fuzzy conditions.
 	if fuzzyCond := x.GetFuzzyIncludeConditions(); fuzzyCond != nil {
-		conditions := types.NetworkAreaCondition{
-			Type: types.ConditionTypeFuzzyInclude,
-		}
-		conditions.Fuzzy = &types.NetworkAreaFuzzyFields{
+		condition.FuzzyInclude = &types.NetworkAreaFuzzyFields{
 			NetworkAreaName: fuzzyCond.GetBkNetworkareaName(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return types.NetworkAreaCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types to proto.
@@ -168,24 +157,21 @@ func (x *TopoNetworkAreaListReq) ConvertConditionsFromTypes(condition *types.Net
 		return nil
 	}
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			x.ExactIncludeConditions = &TopoNetworkAreaListReq_ExactConditions{
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-				CloudVendor:     condition.Exact.CloudVendor,
-			}
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoNetworkAreaListReq_ExactConditions{
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			CloudVendor:     condition.ExactInclude.CloudVendor,
 		}
+	}
 
-	case types.ConditionTypeFuzzyInclude:
-		if condition.Fuzzy != nil {
-			x.FuzzyIncludeConditions = &TopoNetworkAreaListReq_FuzzyConditions{
-				BkNetworkareaName: condition.Fuzzy.NetworkAreaName,
-			}
+	if condition.FuzzyInclude != nil {
+		x.FuzzyIncludeConditions = &TopoNetworkAreaListReq_FuzzyConditions{
+			BkNetworkareaName: condition.FuzzyInclude.NetworkAreaName,
 		}
+	}
 
-	default:
-		return fmt.Errorf("unknown condition type: %s", condition.Type)
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return nil

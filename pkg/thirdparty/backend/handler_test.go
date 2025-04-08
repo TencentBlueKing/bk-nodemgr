@@ -111,8 +111,7 @@ func Test_handler_ListBusiness(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.BusinessCondition{
-					Type: types.ConditionTypeExactInclude,
-					Exact: &types.BusinessExactFields{
+					ExactInclude: &types.BusinessExactFields{
 						BizID: []int64{0, 1, 2},
 					},
 				},
@@ -185,8 +184,7 @@ func Test_hanlder_ListHost(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.HostCondition{
-					Type: types.ConditionTypeExactInclude,
-					Exact: &types.HostExactFields{
+					ExactInclude: &types.HostExactFields{
 						BizID: []int64{0, 1, 2},
 					},
 				},
@@ -259,8 +257,7 @@ func Test_hanlder_ListNetworkArea(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.NetworkAreaCondition{
-					Type: types.ConditionTypeExactInclude,
-					Exact: &types.NetworkAreaExactFields{
+					ExactInclude: &types.NetworkAreaExactFields{
 						NetworkAreaID: []int64{0, 1, 2},
 					},
 				},
@@ -333,8 +330,7 @@ func Test_hanlder_ListNetworkUnit(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.NetworkUnitCondition{
-					Type: types.ConditionTypeExactInclude,
-					Exact: &types.NetworkUnitExactFields{
+					ExactInclude: &types.NetworkUnitExactFields{
 						NetworkAreaID: []int64{0, 1, 2},
 					},
 				},
@@ -716,8 +712,7 @@ func Test_handler_ListAccessPoint(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.AccessPointCondition{
-					Type: types.ConditionTypeExactInclude,
-					Exact: &types.AccessPointExactFields{
+					ExactInclude: &types.AccessPointExactFields{
 						NetworkAreaID: []int64{0, 1, 2},
 					},
 				},

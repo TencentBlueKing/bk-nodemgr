@@ -185,23 +185,17 @@ func (x *TopoNetworkUnitListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoNetworkUnitListReq) ConvertConditionsToTypes() *types.NetworkUnitCondition {
+	condition := &types.NetworkUnitCondition{}
+
 	// exact conditions.
 	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
-		conditions := &types.NetworkUnitCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.NetworkUnitExactFields{
+		condition.ExactInclude = &types.NetworkUnitExactFields{
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return &types.NetworkUnitCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types to proto.
@@ -210,17 +204,15 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 		return nil
 	}
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			x.ExactIncludeConditions = &TopoNetworkUnitListReq_ExactConditions{
-				BkNetworkunitId: condition.Exact.NetworkUnitID,
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-			}
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoNetworkUnitListReq_ExactConditions{
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
 		}
+	}
 
-	default:
-		return fmt.Errorf("unknown condition type: %s", condition.Type)
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return nil

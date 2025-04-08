@@ -98,7 +98,7 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 }
 
 // ListHost lists hosts by page and conditions.
-func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...types.HostCondition) (
+func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
 	[]*types.Host, int64, error) {
 
 	opts, err := convertHostConditionsToOptions(conditions...)
@@ -110,7 +110,7 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...t
 }
 
 // CountHost counts host by conditions.
-func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostCondition) (int64, error) {
+func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondition) (int64, error) {
 	opts, err := convertHostConditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err
@@ -122,7 +122,7 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...types.HostConditi
 // DistinctHost distinct host fields.
 // nolint:funlen
 func (s *Storage) DistinctHost(
-	ctx context.Context, request types.HostDistinctRequest, conditions ...types.HostCondition) (
+	ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 	*types.HostDistinctResult, error) {
 
 	opts, err := convertHostConditionsToOptions(conditions...)
@@ -212,72 +212,67 @@ func (s *Storage) DistinctHost(
 	return result, nil
 }
 
-func convertHostConditionsToOptions(conditions ...types.HostCondition) ([]host.OptFn, error) {
+func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.OptFn, error) {
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					host.WithHostID(condition.Exact.HostID...),
-					host.WithBizID(condition.Exact.BizID...),
-					host.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					host.WithOSType(condition.Exact.OSType...),
-					host.WithNodeRole(condition.Exact.NodeRole...),
-					host.WithNodeStatus(condition.Exact.NodeStatus...),
-					host.WithNodeVersion(condition.Exact.NodeVersion...),
-					host.WithAgentID(condition.Exact.AgentID...),
-					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
-					host.WithStaticAddressing(condition.Exact.Addressing...),
-					host.WithStaticInnerIP(condition.Exact.InnerIP...),
-				)
-			}
+		if condition == nil {
+			continue
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					business.WithoutBizID(condition.Exact.HostID...),
-					host.WithoutBizID(condition.Exact.BizID...),
-					host.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					host.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
-					host.WithoutOSType(condition.Exact.OSType...),
-					host.WithoutNodeRole(condition.Exact.NodeRole...),
-					host.WithoutNodeStatus(condition.Exact.NodeStatus...),
-					host.WithoutNodeVersion(condition.Exact.NodeVersion...),
-					host.WithoutAgentID(condition.Exact.AgentID...),
-					host.WithNodeGeneration(condition.Exact.NodeGeneration...),
-					host.WithStaticAddressing(condition.Exact.Addressing...),
-					host.WithStaticInnerIP(condition.Exact.InnerIP...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				host.WithHostID(condition.ExactInclude.HostID...),
+				host.WithBizID(condition.ExactInclude.BizID...),
+				host.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				host.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+				host.WithOSType(condition.ExactInclude.OSType...),
+				host.WithNodeRole(condition.ExactInclude.NodeRole...),
+				host.WithNodeStatus(condition.ExactInclude.NodeStatus...),
+				host.WithNodeVersion(condition.ExactInclude.NodeVersion...),
+				host.WithAgentID(condition.ExactInclude.AgentID...),
+				host.WithNodeGeneration(condition.ExactInclude.NodeGeneration...),
+				host.WithStaticAddressing(condition.ExactInclude.Addressing...),
+				host.WithStaticInnerIP(condition.ExactInclude.InnerIP...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					host.WithFuzzyHostName(condition.Fuzzy.HostName...),
-					host.WithFuzzyDeptName(condition.Fuzzy.DeptName...),
-					host.WithFuzzyInnerIP(condition.Fuzzy.InnerIP...),
-					host.WithFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
-					host.WithFuzzyOuterIP(condition.Fuzzy.OuterIP...),
-					host.WithFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
-				)
-			}
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				business.WithoutBizID(condition.ExactExclude.HostID...),
+				host.WithoutBizID(condition.ExactExclude.BizID...),
+				host.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				host.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
+				host.WithoutOSType(condition.ExactExclude.OSType...),
+				host.WithoutNodeRole(condition.ExactExclude.NodeRole...),
+				host.WithoutNodeStatus(condition.ExactExclude.NodeStatus...),
+				host.WithoutNodeVersion(condition.ExactExclude.NodeVersion...),
+				host.WithoutAgentID(condition.ExactExclude.AgentID...),
+				host.WithNodeGeneration(condition.ExactExclude.NodeGeneration...),
+				host.WithStaticAddressing(condition.ExactExclude.Addressing...),
+				host.WithStaticInnerIP(condition.ExactExclude.InnerIP...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyExclude:
-			if condition.Fuzzy != nil {
-				opts = append(opts,
-					host.WithoutFuzzyHostName(condition.Fuzzy.HostName...),
-					host.WithoutFuzzyDeptName(condition.Fuzzy.DeptName...),
-					host.WithoutFuzzyInnerIP(condition.Fuzzy.InnerIP...),
-					host.WithoutFuzzyInnerIPV6(condition.Fuzzy.InnerIPV6...),
-					host.WithoutFuzzyOuterIP(condition.Fuzzy.OuterIP...),
-					host.WithoutFuzzyOuterIPV6(condition.Fuzzy.OuterIPV6...),
-				)
-			}
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				host.WithFuzzyHostName(condition.FuzzyInclude.HostName...),
+				host.WithFuzzyDeptName(condition.FuzzyInclude.DeptName...),
+				host.WithFuzzyInnerIP(condition.FuzzyInclude.InnerIP...),
+				host.WithFuzzyInnerIPV6(condition.FuzzyInclude.InnerIPV6...),
+				host.WithFuzzyOuterIP(condition.FuzzyInclude.OuterIP...),
+				host.WithFuzzyOuterIPV6(condition.FuzzyInclude.OuterIPV6...),
+			)
+		}
 
-		default:
-			return nil, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				host.WithoutFuzzyHostName(condition.FuzzyExclude.HostName...),
+				host.WithoutFuzzyDeptName(condition.FuzzyExclude.DeptName...),
+				host.WithoutFuzzyInnerIP(condition.FuzzyExclude.InnerIP...),
+				host.WithoutFuzzyInnerIPV6(condition.FuzzyExclude.InnerIPV6...),
+				host.WithoutFuzzyOuterIP(condition.FuzzyExclude.OuterIP...),
+				host.WithoutFuzzyOuterIPV6(condition.FuzzyExclude.OuterIPV6...),
+			)
 		}
 	}
 

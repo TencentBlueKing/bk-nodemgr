@@ -1218,6 +1218,9 @@
         "exact_include_conditions": {
           "$ref": "#/definitions/v3TopoEventExactConditions"
         },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoEventFuzzyConditions"
+        },
         "operate_time_range": {
           "$ref": "#/definitions/v3TimeRange"
         }
@@ -1320,6 +1323,24 @@
       },
       "title": "TopoEventExactConditions describes the conditions when list event"
     },
+    "v3TopoEventFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_networkunit_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "TopoEventFuzzyConditions describes the conditions when list event"
+    },
     "v3TopoEventListReq": {
       "type": "object",
       "properties": {
@@ -1331,6 +1352,9 @@
         },
         "exact_include_conditions": {
           "$ref": "#/definitions/v3TopoEventExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoEventFuzzyConditions"
         },
         "operate_time_range": {
           "$ref": "#/definitions/v3TimeRange"

@@ -12,27 +12,6 @@ package types
 
 import "time"
 
-// Condition defines the generic condition settings.
-type Condition struct {
-}
-
-// ConditionType define the condition type.
-type ConditionType string
-
-const (
-	// ConditionTypeExactInclude means this condition should be matched including given values in exact mode.
-	ConditionTypeExactInclude ConditionType = "exact_include"
-
-	// ConditionTypeExactExclude means this condition should be matched excluding given values in exact mode.
-	ConditionTypeExactExclude ConditionType = "exact_exclude"
-
-	// ConditionTypeFuzzyInclude means this condition should be matched including given values in a fuzzy mode.
-	ConditionTypeFuzzyInclude ConditionType = "fuzzy_include"
-
-	// ConditionTypeFuzzyExclude means this condition should be matched excluding given values in a fuzzy mode.
-	ConditionTypeFuzzyExclude ConditionType = "fuzzy_exclude"
-)
-
 // TimeRange defines the time range.
 type TimeRange struct {
 	StartTime time.Time
@@ -54,13 +33,17 @@ type BusinessFuzzyFields struct {
 // BusinessCondition defines the business condition.
 // in this condition, fields are generated with AND expr.
 type BusinessCondition struct {
-	Type ConditionType
+	// will be used when condition type is included in exact mode.
+	ExactInclude *BusinessExactFields
 
-	// will be used when condition type is in exact mode.
-	Exact *BusinessExactFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *BusinessFuzzyFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *BusinessFuzzyFields
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *BusinessExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *BusinessFuzzyFields
 }
 
 // HostExactFields defines the host exact fields.
@@ -93,13 +76,17 @@ type HostFuzzyFields struct {
 // HostCondition defines the host condition.
 // in this condition, fields are generated with AND expr.
 type HostCondition struct {
-	Type ConditionType
+	// will be used when condition type is included in exact mode.
+	ExactInclude *HostExactFields
 
-	// will be used when condition type is in exact mode.
-	Exact *HostExactFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *HostFuzzyFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *HostFuzzyFields
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *HostExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *HostFuzzyFields
 }
 
 // NetworkAreaExactFields defines the network area exact fields.
@@ -116,13 +103,17 @@ type NetworkAreaFuzzyFields struct {
 // NetworkAreaCondition defines the network area condition.
 // in this condition, fields are generated with AND expr.
 type NetworkAreaCondition struct {
-	Type ConditionType
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NetworkAreaExactFields
 
-	// will be used when condition type is in exact mode.
-	Exact *NetworkAreaExactFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NetworkAreaFuzzyFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *NetworkAreaFuzzyFields
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *NetworkAreaExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *NetworkAreaFuzzyFields
 }
 
 // NetworkUnitExactFields defines the network unit exact fields.
@@ -138,13 +129,17 @@ type NetworkUnitFuzzyFields struct {
 // NetworkUnitCondition defines the network unit condition.
 // in this condition, fields are generated with AND expr.
 type NetworkUnitCondition struct {
-	Type ConditionType
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NetworkUnitExactFields
 
-	// will be used when condition type is in exact mode.
-	Exact *NetworkUnitExactFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NetworkUnitFuzzyFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *NetworkUnitFuzzyFields
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *NetworkUnitExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *NetworkUnitFuzzyFields
 }
 
 // AccessPointExactFields defines the access point exact fields.
@@ -160,13 +155,17 @@ type AccessPointFuzzyFields struct {
 // AccessPointCondition defines the access point condition.
 // in this condition, fields are generated with AND expr.
 type AccessPointCondition struct {
-	Type ConditionType
+	// will be used when condition type is included in exact mode.
+	ExactInclude *AccessPointExactFields
 
-	// will be used when condition type is in exact mode.
-	Exact *AccessPointExactFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *AccessPointFuzzyFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *AccessPointFuzzyFields
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *AccessPointExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *AccessPointFuzzyFields
 }
 
 // TopoEventExactFields defines the topo event exact fields.
@@ -180,20 +179,26 @@ type TopoEventExactFields struct {
 
 // TopoEventFuzzyFields defines the topo event fuzzy fields.
 type TopoEventFuzzyFields struct {
+	NetworkAreaName []string
+	NetworkUnitName []string
 }
 
 // TopoEventCondition defines the topo event condition.
 type TopoEventCondition struct {
-	Type ConditionType
-
 	// operate time range will be used whatever condition type is.
-	OperateTimeRange TimeRange
+	OperateTimeRange *TimeRange
 
-	// will be used when condition type is in exact mode.
-	Exact *TopoEventExactFields
+	// will be used when condition type is included in exact mode.
+	ExactInclude *TopoEventExactFields
 
-	// will be used when condition type is in fuzzy mode.
-	Fuzzy *TopoEventFuzzyFields
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *TopoEventFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *TopoEventExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *TopoEventFuzzyFields
 }
 
 // TopoConstantFields defines the topo constant fields.

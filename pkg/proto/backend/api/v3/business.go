@@ -31,33 +31,24 @@ func (x *TopoBusinessListReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *TopoBusinessListReq) ConvertConditionsToTypes() types.BusinessCondition {
+func (x *TopoBusinessListReq) ConvertConditionsToTypes() *types.BusinessCondition {
+	condition := &types.BusinessCondition{}
+
 	// exact conditions.
 	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
-		conditions := types.BusinessCondition{Type: types.ConditionTypeExactInclude}
-		conditions.Exact = &types.BusinessExactFields{
+		condition.ExactInclude = &types.BusinessExactFields{
 			BizID: exactCond.GetBkBizId(),
 		}
-
-		return conditions
 	}
 
 	// fuzzy conditions.
 	if fuzzyCond := x.GetFuzzyIncludeConditions(); fuzzyCond != nil {
-		conditions := types.BusinessCondition{
-			Type: types.ConditionTypeFuzzyInclude,
-		}
-		conditions.Fuzzy = &types.BusinessFuzzyFields{
+		condition.FuzzyInclude = &types.BusinessFuzzyFields{
 			BizName: fuzzyCond.GetBkBizName(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return types.BusinessCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -65,23 +56,21 @@ func (x *TopoBusinessListReq) ConvertConditionsFromTypes(condition *types.Busine
 	if condition == nil {
 		return nil
 	}
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			x.ExactIncludeConditions = &TopoBusinessListReq_ExactConditions{
-				BkBizId: condition.Exact.BizID,
-			}
-		}
 
-	case types.ConditionTypeFuzzyInclude:
-		if condition.Fuzzy != nil {
-			x.FuzzyIncludeConditions = &TopoBusinessListReq_FuzzyConditions{
-				BkBizName: condition.Fuzzy.BizName,
-			}
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoBusinessListReq_ExactConditions{
+			BkBizId: condition.ExactInclude.BizID,
 		}
+	}
 
-	default:
-		return fmt.Errorf("unknown condition type: %s", condition.Type)
+	if condition.FuzzyExclude != nil {
+		x.FuzzyIncludeConditions = &TopoBusinessListReq_FuzzyConditions{
+			BkBizName: condition.FuzzyExclude.BizName,
+		}
+	}
+
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return nil

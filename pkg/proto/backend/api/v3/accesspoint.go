@@ -31,24 +31,18 @@ func (x *TopoAccessPointListReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *TopoAccessPointListReq) ConvertConditionsToTypes() types.AccessPointCondition {
+func (x *TopoAccessPointListReq) ConvertConditionsToTypes() *types.AccessPointCondition {
+	condition := &types.AccessPointCondition{}
+
 	// exact conditions.
 	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
-		conditions := types.AccessPointCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.AccessPointExactFields{
+		condition.ExactInclude = &types.AccessPointExactFields{
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			AccessPointID: exactCond.GetAccesspointId(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return types.AccessPointCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -57,17 +51,15 @@ func (x *TopoAccessPointListReq) ConvertConditionsFromTypes(condition *types.Acc
 		return nil
 	}
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			x.ExactIncludeConditions = &TopoAccessPointListReq_ExactConditions{
-				AccesspointId:   condition.Exact.AccessPointID,
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-			}
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoAccessPointListReq_ExactConditions{
+			AccesspointId:   condition.ExactInclude.AccessPointID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
 		}
+	}
 
-	default:
-		return fmt.Errorf("unknown condition type: %s", condition.Type)
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return nil

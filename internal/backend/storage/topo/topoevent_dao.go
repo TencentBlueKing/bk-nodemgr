@@ -12,7 +12,6 @@ package topo
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -20,7 +19,7 @@ import (
 )
 
 // CountTopoEvent counts topo events.
-func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEventCondition) (int64, error) {
+func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (int64, error) {
 	opts, err := convertTopoEventConditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err
@@ -30,7 +29,7 @@ func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...types.TopoEv
 }
 
 // ListTopoEvent lists topo events.
-func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...types.TopoEventCondition) (
+func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...*types.TopoEventCondition) (
 	[]*types.TopoEvent, int64, error) {
 
 	opts, err := convertTopoEventConditionsToOptions(conditions...)
@@ -48,7 +47,7 @@ func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.Topo
 
 // DistinctTopoEvent distincts topo events.
 func (s *Storage) DistinctTopoEvent(
-	ctx context.Context, request types.TopoEventDistinctRequest, conditions ...types.TopoEventCondition) (
+	ctx context.Context, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
 	*types.TopoEventDistinctResult, error) {
 
 	opts, err := convertTopoEventConditionsToOptions(conditions...)
@@ -106,39 +105,48 @@ func (s *Storage) DistinctTopoEvent(
 	return result, nil
 }
 
-func convertTopoEventConditionsToOptions(conditions ...types.TopoEventCondition) ([]topoevent.OptFn, error) {
+func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition) ([]topoevent.OptFn, error) {
 	opts := make([]topoevent.OptFn, 0)
 	for _, condition := range conditions {
-		opts = append(opts, topoevent.WithOperateTimeRange(condition.OperateTimeRange))
+		if condition == nil {
+			continue
+		}
 
-		switch condition.Type {
-		case types.ConditionTypeExactInclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithAccessPointID(condition.Exact.AccessPointID...),
-					topoevent.WithType(condition.Exact.Type...),
-					topoevent.WithOperator(condition.Exact.Operator...),
-				)
-			}
+		if condition.OperateTimeRange != nil {
+			opts = append(opts, topoevent.WithOperateTimeRange(*condition.OperateTimeRange))
+		}
 
-		case types.ConditionTypeExactExclude:
-			if condition.Exact != nil {
-				opts = append(opts,
-					topoevent.WithoutNetworkAreaID(condition.Exact.NetworkAreaID...),
-					topoevent.WithoutNetworkUnitID(condition.Exact.NetworkUnitID...),
-					topoevent.WithoutAccessPointID(condition.Exact.AccessPointID...),
-					topoevent.WithoutType(condition.Exact.Type...),
-					topoevent.WithoutOperator(condition.Exact.Operator...),
-				)
-			}
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				topoevent.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				topoevent.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+				topoevent.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+				topoevent.WithType(condition.ExactInclude.Type...),
+				topoevent.WithOperator(condition.ExactInclude.Operator...),
+			)
+		}
 
-		case types.ConditionTypeFuzzyInclude:
-		case types.ConditionTypeFuzzyExclude:
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				topoevent.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				topoevent.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
+				topoevent.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+				topoevent.WithoutType(condition.ExactExclude.Type...),
+				topoevent.WithoutOperator(condition.ExactExclude.Operator...),
+			)
+		}
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				topoevent.WithFuzzyNetworkAreaName(condition.FuzzyInclude.NetworkAreaName...),
+				topoevent.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
+			)
+		}
 
-		default:
-			return nil, fmt.Errorf("get unexpected condition type: %s", condition.Type)
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				topoevent.WithoutFuzzyNetworkAreaName(condition.FuzzyExclude.NetworkAreaName...),
+				topoevent.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
+			)
 		}
 	}
 

@@ -182,8 +182,7 @@ func (h *handler) StaticsNetworkArea(ctx *rest.Context) (interface{}, error) {
 		// count agent.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.HostExactFields{
+				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				},
@@ -200,8 +199,7 @@ func (h *handler) StaticsNetworkArea(ctx *rest.Context) (interface{}, error) {
 		// count proxy.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.HostExactFields{
+				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 				},

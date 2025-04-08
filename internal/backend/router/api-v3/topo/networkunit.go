@@ -237,9 +237,8 @@ func (h *handler) GetNetworkUnit(ctx *rest.Context) (interface{}, error) {
 		accessPoints, _, err = h.storage.ListAccessPoint(
 			sCtx,
 			types.Page{Offset: 0, Limit: len(networkUnit.AccessPoints)},
-			types.AccessPointCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.AccessPointExactFields{
+			&types.AccessPointCondition{
+				ExactInclude: &types.AccessPointExactFields{
 					AccessPointID: networkUnit.AccessPoints,
 					NetworkAreaID: []int64{networkUnit.NetworkAreaID},
 				},

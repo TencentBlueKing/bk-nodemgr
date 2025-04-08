@@ -42,8 +42,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 		sCtx,
 		types.Page{Limit: maxNetworkUnitLimit},
 		&types.NetworkUnitCondition{
-			Type: types.ConditionTypeExactInclude,
-			Exact: &types.NetworkUnitExactFields{
+			ExactInclude: &types.NetworkUnitExactFields{
 				NetworkAreaID: req.GetBkNetworkareaId(),
 			},
 		})
@@ -100,8 +99,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 		// count agent.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.HostExactFields{
+				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				},
@@ -118,8 +116,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 		// count proxy.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
-				Type: types.ConditionTypeExactInclude,
-				Exact: &types.HostExactFields{
+				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 				},

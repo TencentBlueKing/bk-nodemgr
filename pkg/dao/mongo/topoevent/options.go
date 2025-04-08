@@ -68,6 +68,26 @@ func WithoutOperator(operator ...string) OptFn {
 	return base.WithoutValues(FieldKeyOperator, operator...)
 }
 
+// WithFuzzyNetworkAreaName filters by networkarea-name.
+func WithFuzzyNetworkAreaName(networkAreaNames ...string) OptFn {
+	return base.WithFuzzyValues("data.networkarea_name", networkAreaNames...)
+}
+
+// WithoutFuzzyNetworkAreaName filters by not contains networkarea-name.
+func WithoutFuzzyNetworkAreaName(networkAreaNames ...string) OptFn {
+	return base.WithoutFuzzyValues("data.networkarea_name", networkAreaNames...)
+}
+
+// WithFuzzyNetworkUnitName filters by networkunit-name.
+func WithFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
+	return base.WithFuzzyValues("data.networkunit_name", networkUnitNames...)
+}
+
+// WithoutFuzzyNetworkUnitName filters by not contains networkunit-name.
+func WithoutFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
+	return base.WithoutFuzzyValues("data.networkunit_name", networkUnitNames...)
+}
+
 // WithOperateTimeRange filters by operate-time.
 func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
 	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)

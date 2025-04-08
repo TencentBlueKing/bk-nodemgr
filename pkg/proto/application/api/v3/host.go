@@ -181,7 +181,7 @@ func (x *TopoHostDistinctResp) ConvertResultFromTypes(result *types.HostDistinct
 }
 
 // ConvertResultToTypes converts the response to types.
-func (x TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult {
+func (x *TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult {
 	if x.GetData() == nil {
 		return &types.HostDistinctResult{}
 	}
@@ -232,12 +232,11 @@ func newEmptyHost() *Host {
 func convertHostConditionsToTypes(
 	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions) *types.HostCondition {
 
+	condition := &types.HostCondition{}
+
 	// exact conditions.
 	if exactCond != nil {
-		conditions := &types.HostCondition{
-			Type: types.ConditionTypeExactInclude,
-		}
-		conditions.Exact = &types.HostExactFields{
+		condition.ExactInclude = &types.HostExactFields{
 			HostID:         exactCond.GetBkHostId(),
 			BizID:          exactCond.GetBkBizId(),
 			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
@@ -249,16 +248,11 @@ func convertHostConditionsToTypes(
 			NodeGeneration: exactCond.GetNodeGeneration(),
 			AgentID:        exactCond.GetBkAgentId(),
 		}
-
-		return conditions
 	}
 
 	// fuzzy conditions.
 	if fuzzyCond != nil {
-		conditions := &types.HostCondition{
-			Type: types.ConditionTypeFuzzyInclude,
-		}
-		conditions.Fuzzy = &types.HostFuzzyFields{
+		condition.FuzzyInclude = &types.HostFuzzyFields{
 			HostName:  fuzzyCond.GetBkHostName(),
 			DeptName:  fuzzyCond.GetDeptName(),
 			InnerIP:   fuzzyCond.GetBkHostInnerip(),
@@ -266,14 +260,9 @@ func convertHostConditionsToTypes(
 			OuterIP:   fuzzyCond.GetBkHostOuterip(),
 			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
 		}
-
-		return conditions
 	}
 
-	// default empty conditions.
-	return &types.HostCondition{
-		Type: types.ConditionTypeExactInclude,
-	}
+	return condition
 }
 
 func convertHostConditionsFromTypes(
@@ -286,37 +275,34 @@ func convertHostConditionsFromTypes(
 	var exactCond *TopoHostExactConditions
 	var fuzzyCond *TopoHostFuzzyConditions
 
-	switch condition.Type {
-	case types.ConditionTypeExactInclude:
-		if condition.Exact != nil {
-			exactCond = &TopoHostExactConditions{
-				BkHostId:        condition.Exact.HostID,
-				BkBizId:         condition.Exact.BizID,
-				BkNetworkareaId: condition.Exact.NetworkAreaID,
-				BkNetworkunitId: condition.Exact.NetworkUnitID,
-				OsType:          condition.Exact.OSType,
-				NodeRole:        types.NodeRoleListToStringList(condition.Exact.NodeRole),
-				NodeStatus:      types.NodeStatusListToStringList(condition.Exact.NodeStatus),
-				NodeVersion:     condition.Exact.NodeVersion,
-				NodeGeneration:  condition.Exact.NodeGeneration,
-				BkAgentId:       condition.Exact.AgentID,
-			}
+	if condition.ExactInclude != nil {
+		exactCond = &TopoHostExactConditions{
+			BkHostId:        condition.ExactInclude.HostID,
+			BkBizId:         condition.ExactInclude.BizID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			OsType:          condition.ExactInclude.OSType,
+			NodeRole:        types.NodeRoleListToStringList(condition.ExactInclude.NodeRole),
+			NodeStatus:      types.NodeStatusListToStringList(condition.ExactInclude.NodeStatus),
+			NodeVersion:     condition.ExactInclude.NodeVersion,
+			NodeGeneration:  condition.ExactInclude.NodeGeneration,
+			BkAgentId:       condition.ExactInclude.AgentID,
 		}
+	}
 
-	case types.ConditionTypeFuzzyInclude:
-		if condition.Fuzzy != nil {
-			fuzzyCond = &TopoHostFuzzyConditions{
-				BkHostName:      condition.Fuzzy.HostName,
-				DeptName:        condition.Fuzzy.DeptName,
-				BkHostInnerip:   condition.Fuzzy.InnerIP,
-				BkHostInneripV6: condition.Fuzzy.InnerIPV6,
-				BkHostOuterip:   condition.Fuzzy.OuterIP,
-				BkHostOuteripV6: condition.Fuzzy.OuterIPV6,
-			}
+	if condition.FuzzyInclude != nil {
+		fuzzyCond = &TopoHostFuzzyConditions{
+			BkHostName:      condition.FuzzyInclude.HostName,
+			DeptName:        condition.FuzzyInclude.DeptName,
+			BkHostInnerip:   condition.FuzzyInclude.InnerIP,
+			BkHostInneripV6: condition.FuzzyInclude.InnerIPV6,
+			BkHostOuterip:   condition.FuzzyInclude.OuterIP,
+			BkHostOuteripV6: condition.FuzzyInclude.OuterIPV6,
 		}
+	}
 
-	default:
-		return nil, nil, fmt.Errorf("unknown condition type: %s", condition.Type)
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return exactCond, fuzzyCond, nil
