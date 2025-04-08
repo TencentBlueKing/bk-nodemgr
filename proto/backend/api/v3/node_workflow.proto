@@ -15,7 +15,7 @@ message NodeWorkflowListReq {
     repeated int64 workflow_id = 1;
     repeated string type = 2;
     repeated int64 bk_biz_id = 3;
-    repeated string status = 5;
+    repeated string status = 4;
   }
   ExactConditions exact_include_conditions = 3;
 
