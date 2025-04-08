@@ -35,7 +35,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		return
 	}
 
-	nodeConf, err := h.nodeDeploymentStorage.GetNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse agent setting failed, err: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

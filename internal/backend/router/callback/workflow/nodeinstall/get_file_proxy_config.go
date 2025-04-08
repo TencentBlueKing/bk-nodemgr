@@ -12,6 +12,7 @@
 package nodeinstall
 
 import (
+	"fmt"
 	"net/http"
 
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -23,22 +24,22 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 	req := new(protoBackend.GetFileProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusBadRequest, err)
+		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed, err: %w", err))
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("get gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusBadRequest, err)
+		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed, err: %w", err))
 
 		return
 	}
 
-	nodeConf, err := h.nodeDeploymentStorage.GetNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse file proxy setting failed, err: %s", err)
-		gCtx.JSON(http.StatusInternalServerError, err)
+		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("get gse file proxy setting failed, err: %w", err))
 
 		return
 	}
@@ -46,7 +47,7 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 	conf, err := RenderConfig(DefaultTemplateGseFileProxy, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusInternalServerError, err)
+		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed, err: %w", err))
 
 		return
 	}

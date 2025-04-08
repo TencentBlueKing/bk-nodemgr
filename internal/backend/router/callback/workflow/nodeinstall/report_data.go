@@ -10,22 +10,60 @@
 
 package nodeinstall
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+import (
+	"net/http"
+
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/gin-gonic/gin"
+)
 
 // ReportData ...
-func (h *handler) ReportData(cts *rest.Context) (interface{}, error) {
-	req := new(ReportDataReq)
-	if err := cts.BindJSON(req); err != nil {
-		return nil, err
+func (h *handler) ReportData(gCtx *gin.Context) {
+	req := new(proto.ReportDataReq)
+	if err := gCtx.BindJSON(req); err != nil {
+		h.logger.Errorf("report data failed, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
 	}
 
 	if err := req.Validate(); err != nil {
-		return nil, err
+		h.logger.Errorf("report data failed, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
 	}
 
-	h.logger.Infof("ReportData req: %v", req)
+	info, err := h.GetInfo(gCtx, req.Token)
+	if err != nil {
+		h.logger.Errorf("token is invalid, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
 
-	resp := new(ReportDataResp)
+		return
+	}
 
-	return resp, nil
+	info.Dynamic.AgentID = req.AgentId
+
+	err = h.UpdateInfo(gCtx, req.Token, info)
+	if err != nil {
+		h.logger.Errorf("update info failed, err: %s", err)
+		gCtx.JSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	// adjust action status to success
+	err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.ActionName, operengine.ActionInstStateSuccess)
+	if err != nil {
+		h.logger.Errorf("update oper inst action status failed, err: %s", err)
+		gCtx.JSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	h.logger.Infof("report data success, agent id: %s", req.AgentId)
+	gCtx.JSON(http.StatusOK, nil)
+
+	return
 }

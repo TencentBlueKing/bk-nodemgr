@@ -12,78 +12,57 @@
 package nodeinstall
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/gin-gonic/gin"
 )
 
 // ReportLog report agent install shell script log.
-func (h *handler) ReportLog(ctx *rest.Context) (any, error) {
-	req := new(ReportLogReq)
-	if err := ctx.BindJSON(req); err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+func (h *handler) ReportLog(gCtx *gin.Context) {
+	req := new(proto.ReportLogReq)
+	if err := gCtx.BindJSON(req); err != nil {
+		h.logger.Errorf("report log failed, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
 	}
 
-	token, err := h.parseToken(req.Token)
+	if err := req.Validate(); err != nil {
+		h.logger.Errorf("report log failed, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
+	}
+
+	info, err := h.GetInfo(gCtx, req.Token)
 	if err != nil {
-		return nil, fmt.Errorf("parse token failed, err: %v", err)
+		h.logger.Errorf("token is invalid, err: %s", err)
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
 	}
 
-	if token.OperInstID != req.OperInstID {
-		return nil, fmt.Errorf("oper inst id not match")
-	}
-
-	for _, log := range req.Logs {
-		installLog := InstallLog{
-			Timestamp: time.Unix(log.Timestamp, 0),
-			Level:     log.Level,
-			Step:      log.Step,
-			Log:       log.Log,
-			Status:    log.Status,
+	logs := make([]operengine.Message, len(req.Logs))
+	for idx, log := range req.Logs {
+		logs[idx] = operengine.Message{
+			Time: time.Unix(log.Timestamp, 0),
+			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t[%s]", log.Level, log.Step, log.Log, log.Status),
 		}
-
-		h.logger.Infof("report log: %+v", installLog)
 	}
 
-	resp := new(ReportLogResp)
-
-	return resp, nil
-}
-
-// parseToken ...
-func (h *handler) parseToken(tokenStr string) (*Token, error) {
-	ciphertext, err := base64.StdEncoding.DecodeString(tokenStr)
+	err = h.PushActInstMsgs(gCtx, info.OperInstID, info.ActionName, logs...)
 	if err != nil {
-		return nil, err
+		h.logger.Errorf("report log failed, err: %s", err)
+		gCtx.JSON(http.StatusInternalServerError, err)
+
+		return
 	}
 
-	jsonBytes, err := h.crypter.Decrypt(ciphertext)
-	if err != nil {
-		return nil, err
-	}
-
-	token := new(Token)
-
-	if err = json.Unmarshal(jsonBytes, token); err != nil {
-		return nil, err
-	}
-
-	return token, nil
-}
-
-// Token the token for callback.
-type Token struct {
-	OperInstID string `json:"oper_inst_id"`
-	BKHostID   string `json:"bk_host_id"`
-	InnerIP    string `json:"inner_ip"`
-	BKCloudID  string `json:"bk_cloud_id"`
-	Timestamp  string `json:"timestamp"`
-	InstID     string `json:"inst_id"`
-	HostApID   string `json:"host_ap_id"`
+	gCtx.JSON(http.StatusOK, nil)
 }
 
 // InstallLog this is the report log.

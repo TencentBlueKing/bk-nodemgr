@@ -65,11 +65,6 @@ func RenderConfig(template string, nodeConf *types.NodeConf) (string, error) {
 
 	// append custom setting to config.
 	for key, value := range nodeConf.CustomSetting {
-		// don't override existed setting
-		if _, ok := config[key]; ok {
-			continue
-		}
-
 		config[key] = value
 	}
 
