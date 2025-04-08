@@ -57,18 +57,16 @@ message NodeWorkflowStatisticResp {
   string message = 2;
   string request_id = 3;
 
-  message Data {
-    message NodeWorkflowStatistic {
-      int64 workflow_id = 1;
-      int64 total_count = 2;
-      int64 success_count = 3;
-      int64 failed_count = 4;
-      int64 running_count = 5;
-      int64 pending_count = 6;
-      int64 ignored_count = 7;
-    }
-    repeated NodeWorkflowStatistic statistics = 1;
+  message Statistic {
+    int64 workflow_id = 1;
+    int64 total_count = 2;
+    int64 success_count = 3;
+    int64 failed_count = 4;
+    int64 running_count = 5;
+    int64 pending_count = 6;
+    int64 ignored_count = 7;
   }
+  message Data { repeated Statistic items = 1; }
   Data data = 4;
 }
 

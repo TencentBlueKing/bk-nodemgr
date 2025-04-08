@@ -284,39 +284,6 @@
         }
       }
     },
-    "DataNodeWorkflowStatistic": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "total_count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "success_count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "failed_count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "running_count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "pending_count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "ignored_count": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
     "NodeOperInstAction": {
       "type": "object",
       "properties": {
@@ -371,6 +338,39 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "NodeWorkflowStatisticRespStatistic": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "total_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "success_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "running_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "pending_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "ignored_count": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -614,11 +614,11 @@
     "v3NodeWorkflowStatisticRespData": {
       "type": "object",
       "properties": {
-        "statistics": {
+        "items": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/DataNodeWorkflowStatistic"
+            "$ref": "#/definitions/NodeWorkflowStatisticRespStatistic"
           }
         }
       }
