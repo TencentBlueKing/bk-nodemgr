@@ -63,9 +63,9 @@ func (x *TopoBusinessListReq) ConvertConditionsFromTypes(condition *types.Busine
 		}
 	}
 
-	if condition.FuzzyExclude != nil {
+	if condition.FuzzyInclude != nil {
 		x.FuzzyIncludeConditions = &TopoBusinessListReq_FuzzyConditions{
-			BkBizName: condition.FuzzyExclude.BizName,
+			BkBizName: condition.FuzzyInclude.BizName,
 		}
 	}
 
