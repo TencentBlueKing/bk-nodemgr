@@ -165,8 +165,6 @@ issues:
     - linters:
         - lll
       source: "^//go:generate "
-    # Exclude all linters for glog.
-    - path: pkg/blog/glog/*
   # Independently of option `exclude` we use default exclude patterns,
   # it can be disabled by this option.
   # To list all excluded by default patterns execute `golangci-lint run --help`.
@@ -187,7 +185,7 @@ issues:
     - install/*
     - .github/*
     - proto/*
-    - pkg/blog/glog/*
+    - pkg/blog/*
   # Enables exclude of directories:
   # - vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
   # Default: true
