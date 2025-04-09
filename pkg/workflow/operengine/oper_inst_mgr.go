@@ -27,8 +27,8 @@ import (
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
 	machinerylog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/RichardKnop/machinery/v2/tasks"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/google/uuid"
 )
 
 const (
@@ -51,7 +51,7 @@ type OperInstMgr interface {
 	GracefulShutdown() error
 
 	// DispatchOperInst dispatches an operation instance.
-	DispatchOperInst(operation *OperInst) error
+	DispatchOperInst(ctx context.Context, operation *OperInst) error
 
 	// GetRegisteredAction returns the registered action.
 	GetRegisteredAction(name string) ActionDef
@@ -260,7 +260,7 @@ func (mgr *operInstMgr) GetRegisteredAction(name string) ActionDef {
 }
 
 // DispatchOperInst dispatches an operation inst to the operInstMgr.
-func (mgr *operInstMgr) DispatchOperInst(inst *OperInst) error {
+func (mgr *operInstMgr) DispatchOperInst(ctx context.Context, inst *OperInst) error {
 	if inst == nil {
 		return errors.New("operation instance is nil")
 	}
@@ -277,13 +277,12 @@ func (mgr *operInstMgr) DispatchOperInst(inst *OperInst) error {
 		return fmt.Errorf("operation instance state is not init, state: %s", inst.data.Lifecycle.State)
 	}
 
-	if err := mgr.storage.UpsertOperInstData(mgr.ctx, inst.data); err != nil {
+	if err := mgr.storage.UpsertOperInstData(ctx, inst.data); err != nil {
 		return err
 	}
+	mgr.logger.InfoCtxf(ctx, "stored operation instance and going to dispatch, oper-inst-id(%s)", inst.data.OperInstID)
 
-	mgr.logger.Infof("stored operation inst, oper-inst-id(%s)", inst.data.OperInstID)
-
-	return mgr.dispatchOperInst(inst)
+	return mgr.dispatchOperInst(ctx, inst)
 }
 
 // StopOperInst stops an operation inst.
@@ -351,16 +350,13 @@ func (mgr *operInstMgr) launchWorker() error {
 	return nil
 }
 
-// ActionInstPrefix is the prefix of action instance id.
-const ActionInstPrefix = "A"
-
 // dispatchOperInst dispatch OperInst to machinery chain.
-func (mgr *operInstMgr) dispatchOperInst(inst *OperInst) error {
+func (mgr *operInstMgr) dispatchOperInst(ctx context.Context, inst *OperInst) error {
 	var signatures []*tasks.Signature
 
 	for _, actionDef := range inst.operationDef.actionDefs {
 		signature := &tasks.Signature{
-			UUID: fmt.Sprintf("%s-%s", ActionInstPrefix, uuid.NewString()),
+			UUID: identifier.GenActionInstanceID(),
 			Name: actionDef.Name(),
 			Args: []tasks.Arg{
 				{
@@ -388,7 +384,7 @@ func (mgr *operInstMgr) dispatchOperInst(inst *OperInst) error {
 		return err
 	}
 
-	_, err = mgr.server.SendChainWithContext(mgr.ctx, chain)
+	_, err = mgr.server.SendChainWithContext(ctx, chain)
 	if err != nil {
 		return fmt.Errorf("send chain to machinery failed, err: %v", err)
 	}

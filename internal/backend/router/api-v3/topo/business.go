@@ -24,15 +24,15 @@ const (
 
 // ListBusiness list business with specified conditions.
 func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.TopoBusinessListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to list business, failed to decode request body. err: %v", err)
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list business, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
+	req := new(protoBackend.TopoBusinessListReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list business, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -41,7 +41,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		req.ConvertPageToTypes(maxBusinessLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to list business, err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to list business, err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 

@@ -587,6 +587,7 @@ linters-settings:
       - s *storage
       - s *Storage
       - p *ProviderDefault
+      - m *operMgr
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false

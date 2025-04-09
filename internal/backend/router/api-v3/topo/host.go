@@ -23,15 +23,15 @@ const (
 
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.TopoHostListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to list host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.TopoHostListReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -41,7 +41,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 			sCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.Errorf("failed to list host. failed to count host. err: %v", err)
+			h.logger.ErrorCtxf(sCtx, "failed to list host. failed to count host. err: %v", err)
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 		}
 
@@ -56,7 +56,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to list host. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to list host. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -68,15 +68,15 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 
 // DistinctHost get distinct host fields.
 func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.TopoHostDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to distinct host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to distinct host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.TopoHostDistinctReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to distinct host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -85,7 +85,7 @@ func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
 		types.NewHostDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to distinct host. failed to distinct host fields: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 

@@ -15,22 +15,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 const (
 	// OperInstMaxNum define a max instance number of an operation.
 	OperInstMaxNum = 100
-
-	// OperationPrefix define the prefix of operation id.
-	OperationPrefix = "O"
 )
 
 // NewOperation creates a new operation.
 func NewOperation(triggerID string, defSnapshot OperDefSnapshot) *Operation {
 	return &Operation{
 		TriggerID:   triggerID,
-		OperationID: fmt.Sprintf("%s-%s", OperationPrefix, uuid.New().String()),
+		OperationID: identifier.GenOperationID(),
 		DefSnapshot: defSnapshot,
 		OperInstIDs: []string{},
 	}

@@ -15,7 +15,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 // Provider this defines the interface of a complete service discovery provider.
@@ -99,7 +99,7 @@ const (
 // NewInstance creates a new instance.
 func NewInstance(name string, meta map[string]string) Instance {
 	inst := Instance{
-		ID:        fmt.Sprintf("%s-%s", name, uuid.NewString()),
+		ID:        identifier.GenServiceID(),
 		Name:      name,
 		Endpoints: make(map[EndpointName]Endpoint),
 		Meta:      meta,

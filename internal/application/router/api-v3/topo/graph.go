@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -25,15 +24,15 @@ import (
 
 // GetGraph gets a graph descriptions.
 func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
-	req := new(protoApplication.TopoGraphGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to get graph, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to get graph, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoApplication.TopoGraphGetReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to get graph, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -47,7 +46,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 			},
 		})
 	if err != nil {
-		h.logger.Errorf("failed to get graph, failed to list networkunit. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to get graph, failed to list networkunit. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -60,15 +59,15 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 
 // CountGraphNode counts graph nodes.
 func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
-	req := new(protoApplication.TopoGraphNodeCountReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to count graph node, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to count graph node, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoApplication.TopoGraphNodeCountReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to count graph node, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -76,7 +75,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	if len(networkUnitIDs) == 0 {
 		networkUnits, _, err := h.backendHandler.ListNetworkUnit(sCtx, types.Page{}, nil)
 		if err != nil {
-			h.logger.Errorf("failed to count graph node, failed to list networkunit. err: %v", err)
+			h.logger.ErrorCtxf(sCtx, "failed to count graph node, failed to list networkunit. err: %v", err)
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 		}
 
@@ -133,7 +132,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to count graph node, failed to count host: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to count graph node, failed to count host: %v", err)
 
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}

@@ -30,7 +30,13 @@ func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	err := h.manager.RetryOperation(req.OperationID, &operengine.OperInstParam{
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to sync cmdb host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	err = h.manager.RetryOperation(sCtx, req.OperationID, &operengine.OperInstParam{
 		Timeout:     1 * time.Minute,
 		InitContent: map[string]any{},
 	})

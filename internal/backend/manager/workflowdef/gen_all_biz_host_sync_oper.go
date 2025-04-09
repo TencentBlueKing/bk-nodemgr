@@ -12,6 +12,7 @@
 package workflowdef
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -112,7 +113,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 // executeOper create an operation to sync all host from cmdb and then execute it.
 func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz *types.Business) error {
 	operation := newOperSyncHostFromCMDB(data.TriggerID)
-	err := c.operMgr.ExecuteOperation(operation, &operengine.OperInstParam{
+	err := c.operMgr.ExecuteOperation(context.Background(), operation, &operengine.OperInstParam{
 		Timeout: time.Minute * 10, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
 			BizID:    biz.BizID,

@@ -85,6 +85,7 @@ package glog
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -96,8 +97,10 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 )
 
 // severity identifies the sort of log: info, warning etc. It also implements
@@ -600,10 +603,6 @@ func (l *loggingT) formatHeader(s severity, file string, line int) *buffer {
 	buf.nDigits(6, 15, now.Nanosecond()/1000, '0')
 	buf.tmp[21] = ' '
 	buf.Write(buf.tmp[:22])
-
-	buf.nDigits(7, 0, syscall.Gettid(), ' ') // Note: should be TID
-	buf.Write(buf.tmp[:7])
-	buf.WriteString("TID ")
 
 	buf.tmp[0] = ':'
 	n := buf.someDigits(1, line)
@@ -1156,6 +1155,15 @@ func Debugf(format string, args ...interface{}) {
 	logging.printf(debugLog, format, args...)
 }
 
+// DebugCtxf logs to the DEBUG log with context.
+func DebugCtxf(ctx context.Context, format string, args ...interface{}) {
+	if !debugLog.AbleToLog() {
+		return
+	}
+
+	logging.printf(debugLog, FormatWithCtx(ctx, format), args...)
+}
+
 // Debugw logs to the DEBUG log.
 // Arguments 0 are regarded as message, the rest of args are regared as key-value pairs.
 func Debugw(args ...interface{}) {
@@ -1220,6 +1228,15 @@ func Infof(format string, args ...interface{}) {
 	}
 
 	logging.printf(infoLog, format, args...)
+}
+
+// InfoCtxf logs to the INFO log with context.
+func InfoCtxf(ctx context.Context, format string, args ...interface{}) {
+	if !infoLog.AbleToLog() {
+		return
+	}
+
+	logging.printf(infoLog, FormatWithCtx(ctx, format), args...)
 }
 
 // Infow logs to the INFO log.
@@ -1292,6 +1309,15 @@ func Warningf(format string, args ...interface{}) {
 	logging.printf(warningLog, format, args...)
 }
 
+// WarningCtxf logs to the WARNING log with context.
+func WarningCtxf(ctx context.Context, format string, args ...interface{}) {
+	if !warningLog.AbleToLog() {
+		return
+	}
+
+	logging.printf(warningLog, FormatWithCtx(ctx, format), args...)
+}
+
 // Warningw logs to the WARNING log.
 // Arguments 0 are regarded as message, the rest of args are regared as key-value pairs.
 func Warningw(args ...interface{}) {
@@ -1360,6 +1386,15 @@ func Errorf(format string, args ...interface{}) {
 	}
 
 	logging.printf(errorLog, format, args...)
+}
+
+// ErrorCtxf logs to the ERROR log with context.
+func ErrorCtxf(ctx context.Context, format string, args ...interface{}) {
+	if !errorLog.AbleToLog() {
+		return
+	}
+
+	logging.printf(errorLog, FormatWithCtx(ctx, format), args...)
 }
 
 // Errorw logs to the ERROR log.
@@ -1508,4 +1543,16 @@ func logFormatDepthw(s severity, depth int, args ...interface{}) {
 	}
 
 	logging.printDepth(s, depth+1, args...)
+}
+
+// FormatWithCtx formats with rid.
+func FormatWithCtx(ctx context.Context, format string) string {
+	if ctx == nil {
+		return format
+	}
+
+	requestID := identifier.GetRequestID(ctx)
+	tenantID, _ := tenant.GetID(ctx)
+
+	return "[" + requestID + "][tenant:" + tenantID + "] " + format
 }

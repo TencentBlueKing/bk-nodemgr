@@ -23,16 +23,16 @@ import (
 // OperationMgr defines the operation operInstMgr.
 type OperationMgr interface {
 	// RetryOperation an operation.
-	RetryOperation(operationID string, param *OperInstParam) error
+	RetryOperation(ctx context.Context, operationID string, param *OperInstParam) error
 
 	// ExecuteOperation an operation.
-	ExecuteOperation(operation *Operation, param *OperInstParam) error
+	ExecuteOperation(ctx context.Context, operation *Operation, param *OperInstParam) error
 
 	// PauseOperation an operation.
-	PauseOperation(operationID string) error
+	PauseOperation(ctx context.Context, operationID string) error
 
 	// ResumeOperation an operation.
-	ResumeOperation(operationID string) error
+	ResumeOperation(ctx context.Context, operationID string) error
 }
 
 // OperMgrOptFn ...
@@ -129,7 +129,7 @@ func (m *operMgr) buildInst(operation *Operation, param *OperInstParam) (
 }
 
 // ExecuteOperation an operation.
-func (m *operMgr) ExecuteOperation(operation *Operation, param *OperInstParam) (err error) {
+func (m *operMgr) ExecuteOperation(ctx context.Context, operation *Operation, param *OperInstParam) (err error) {
 	if operation == nil {
 		return errors.New("operation is nil")
 	}
@@ -137,6 +137,9 @@ func (m *operMgr) ExecuteOperation(operation *Operation, param *OperInstParam) (
 	if param == nil {
 		return errors.New("param is nil")
 	}
+
+	m.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), operation-id(%s), param(%v)",
+		operation.DefSnapshot.OperDefName, operation.TriggerID, operation.OperationID, param)
 
 	mutex := m.mutexFactory.NewMutex(operation.OperationID)
 	if err = mutex.TryLock(); err != nil {
@@ -155,43 +158,50 @@ func (m *operMgr) ExecuteOperation(operation *Operation, param *OperInstParam) (
 	}
 
 	operation.OperInstIDs = append(operation.OperInstIDs, operInst.data.OperInstID)
-	if err = m.storage.UpsertOperation(m.ctx, operation); err != nil {
+	if err = m.storage.UpsertOperation(ctx, operation); err != nil {
 		return err
 	}
 
-	if err = m.operInstMgr.DispatchOperInst(operInst); err != nil {
+	if err = m.operInstMgr.DispatchOperInst(ctx, operInst); err != nil {
 		return err
 	}
 
+	m.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
+		operation.DefSnapshot.OperDefName, operation.TriggerID, operation.OperationID)
 	return nil
 }
 
 // RetryOperation an operation.
-func (m *operMgr) RetryOperation(operationID string, param *OperInstParam) (err error) {
+func (m *operMgr) RetryOperation(ctx context.Context, operationID string, param *OperInstParam) error {
 	operation, err := m.storage.GetOperation(m.ctx, operationID)
 	if err != nil {
 		return err
 	}
 
+	m.logger.InfoCtxf(ctx, "try to retry operation. name(%s), trigger-id(%s), operation-id(%s), param(%v)",
+		operation.DefSnapshot.OperDefName, operation.TriggerID, operation.OperationID, param)
+
 	if err = operation.CheckEnforceability(); err != nil {
 		return err
 	}
 
-	if err = m.ExecuteOperation(operation, param); err != nil {
+	if err = m.ExecuteOperation(ctx, operation, param); err != nil {
 		return err
 	}
 
+	m.logger.InfoCtxf(ctx, "dispatched retry operation. name(%s), trigger-id(%s), operation-id(%s)",
+		operation.DefSnapshot.OperDefName, operation.TriggerID, operation.OperationID)
 	return nil
 }
 
 // PauseOperation an operation.
-func (m *operMgr) PauseOperation(operationID string) error {
+func (m *operMgr) PauseOperation(_ context.Context, _ string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
 // ResumeOperation an operation.
-func (m *operMgr) ResumeOperation(operationID string) error {
+func (m *operMgr) ResumeOperation(_ context.Context, _ string) error {
 	//TODO implement me
 	panic("implement me")
 }

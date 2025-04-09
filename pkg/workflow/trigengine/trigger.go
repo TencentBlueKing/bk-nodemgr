@@ -17,12 +17,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-)
-
-const (
-	// TriggerPrefix ...
-	TriggerPrefix = "T"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 // Trigger ...
@@ -179,7 +174,7 @@ func WithTriggerID(triggerID string) TriggerOptionFunc {
 // NewTrigger create a new trigger.
 func NewTrigger(category Category, metadata MetadataPeriodic, opts ...TriggerOptionFunc) *Trigger {
 	trigger := &Trigger{
-		TriggerID:        fmt.Sprintf("%s-%s", TriggerPrefix, uuid.NewString()),
+		TriggerID:        identifier.GenTriggerID(),
 		Category:         category,
 		MetadataPeriodic: metadata,
 		State:            StateInit,

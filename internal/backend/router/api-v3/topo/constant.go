@@ -19,15 +19,15 @@ import (
 
 // GetConstant get constant values.
 func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.TopoConstantGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to get constant, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to get constant, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.TopoConstantGetReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to get constant, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -38,7 +38,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 		var err error
 		cloudVendors, err = h.cmdbHandler.GetCloudVendors(sCtx)
 		if err != nil {
-			h.logger.Errorf("failed to get constant, failed to get cloud vendors. err: %v", err)
+			h.logger.ErrorCtxf(sCtx, "failed to get constant, failed to get cloud vendors. err: %v", err)
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
 	}

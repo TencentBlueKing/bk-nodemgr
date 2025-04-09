@@ -227,8 +227,6 @@ func processBody(body interface{}) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unsupported body type, type(%v)", kind)
 	}
-
-	return nil, fmt.Errorf("unexpected error processing body, type(%v)", valueOf.Kind())
 }
 
 // FullURL get http complete url from request.

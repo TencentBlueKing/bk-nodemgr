@@ -16,6 +16,8 @@ import (
 	"errors"
 	"strings"
 	"sync"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/contextvalues"
 )
 
 // Mode tenant mode.
@@ -48,9 +50,6 @@ func GetMode() Mode {
 }
 
 const (
-	// IDKey tenant id key stored in context.
-	IDKey = "nodeman_tenant_id"
-
 	// SingleModeTenantID tenant id for single mode.
 	SingleModeTenantID = "single"
 )
@@ -65,9 +64,9 @@ func GetID(ctx context.Context) (string, error) {
 		return SingleModeTenantID, nil
 	}
 
-	tenantID, ok := ctx.Value(IDKey).(string)
-	if !ok {
-		return "", errors.New("tenant_id not found in context")
+	tenantID, err := contextvalues.Get(ctx, contextvalues.KeyTenantID)
+	if err != nil {
+		return "", err
 	}
 
 	if err := validate(tenantID); err != nil {
@@ -90,17 +89,13 @@ func validate(tenantID string) error {
 
 // SetID set tenant id to context.
 func SetID(ctx context.Context, tenantID string) (context.Context, error) {
-	if ctx == nil {
-		return nil, errors.New("context is nil")
-	}
-
 	if instance.mode == ModeSingle {
-		return context.WithValue(ctx, IDKey, SingleModeTenantID), nil
+		return contextvalues.Set(ctx, contextvalues.KeyTenantID, SingleModeTenantID)
 	}
 
 	if err := validate(tenantID); err != nil {
 		return nil, err
 	}
 
-	return context.WithValue(ctx, IDKey, tenantID), nil
+	return contextvalues.Set(ctx, contextvalues.KeyTenantID, tenantID)
 }

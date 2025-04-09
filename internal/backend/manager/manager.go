@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
@@ -33,10 +34,10 @@ type Manager interface {
 	GracefulShutdown() error
 
 	// ExecuteOperation executes the operation.
-	ExecuteOperation(name workflowdef.OperDefName, triggerID string, param *operengine.OperInstParam) error
+	ExecuteOperation(ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error)
 
 	// RetryOperation retries the operation.
-	RetryOperation(operationID string, param *operengine.OperInstParam) error
+	RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error
 }
 
 // NewManager creates a new manager.
@@ -176,23 +177,29 @@ func (mgr *manager) registerActionDefs() error {
 }
 
 // ExecuteOperation execute an operation.
-func (mgr *manager) ExecuteOperation(name workflowdef.OperDefName, triggerID string, param *operengine.OperInstParam) error {
+func (mgr *manager) ExecuteOperation(ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error) {
+	triggerID := identifier.GenTriggerID()
+	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
+		name, triggerID, param)
+
 	builder, ok := workflowdef.OperBuilderRegistry()[name]
 	if !ok {
-		return fmt.Errorf("operation builder not found, name: %s", name)
+		return triggerID, fmt.Errorf("operation builder not found, name: %s", name)
 	}
 
 	operation := builder(triggerID)
-	err := mgr.operMgr.ExecuteOperation(operation, param)
+	err := mgr.operMgr.ExecuteOperation(ctx, operation, param)
 	if err != nil {
-		return fmt.Errorf("execute operation failed, name: %s, err: %v", name, err)
+		return triggerID, fmt.Errorf("execute operation failed, name: %s, err: %v", name, err)
 	}
 
-	return nil
+	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
+		name, triggerID, operation.OperationID)
+	return triggerID, nil
 }
 
 // RetryOperation ...
-func (mgr *manager) RetryOperation(operationID string, param *operengine.OperInstParam) error {
+func (mgr *manager) RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error {
 	if len(operationID) == 0 {
 		return errors.New("operation id is empty")
 	}
@@ -201,9 +208,12 @@ func (mgr *manager) RetryOperation(operationID string, param *operengine.OperIns
 		return errors.New("param is nil")
 	}
 
-	if err := mgr.operMgr.RetryOperation(operationID, param); err != nil {
+	mgr.logger.InfoCtxf(ctx, "try to retry operation. operation-id(%s), param(%v)", operationID, param)
+
+	if err := mgr.operMgr.RetryOperation(ctx, operationID, param); err != nil {
 		return err
 	}
 
+	mgr.logger.InfoCtxf(ctx, "dispatched retry operation. operation-id(%s)", operationID)
 	return nil
 }

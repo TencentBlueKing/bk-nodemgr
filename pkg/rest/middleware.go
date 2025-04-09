@@ -12,6 +12,8 @@
 package rest
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -33,6 +35,34 @@ func MiddlewareContext() gin.HandlerFunc {
 		default:
 			rCtx.AbortWithJSONError(errf.Unauthorized, nil)
 			return
+		}
+
+		gCtx.Next()
+	}
+}
+
+type recvLoggerConfig struct {
+	Output    io.Writer
+	Formatter func(*gin.Context) string
+	SkipPaths []string
+}
+
+// MiddlewareReceivedLog print log when received request.
+func MiddlewareReceivedLog(conf recvLoggerConfig) gin.HandlerFunc {
+	if conf.Output == nil || conf.Formatter == nil {
+		return func(gCtx *gin.Context) {
+			gCtx.Next()
+		}
+	}
+
+	skip := make(map[string]struct{})
+	for _, skipPath := range conf.SkipPaths {
+		skip[skipPath] = struct{}{}
+	}
+
+	return func(gCtx *gin.Context) {
+		if _, ok := skip[gCtx.Request.URL.Path]; !ok {
+			_, _ = fmt.Fprint(conf.Output, conf.Formatter(gCtx))
 		}
 
 		gCtx.Next()

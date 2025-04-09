@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/gin-gonic/gin"
 )
@@ -62,7 +63,11 @@ func (c *Context) Param(key string) string {
 
 // GetContext get a generic context from rest-context.
 func (c *Context) GetContext() (context.Context, error) {
-	ctx := c.gCtx.Request.Context()
+	ctx, err := identifier.SetRequestID(c.gCtx.Request.Context(), c.RequestID)
+	if err != nil {
+		return nil, err
+	}
+
 	return tenant.SetID(ctx, c.TenantID)
 }
 

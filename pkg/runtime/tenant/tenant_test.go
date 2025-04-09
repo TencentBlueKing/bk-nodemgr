@@ -15,6 +15,8 @@ import (
 	"context"
 	"reflect"
 	"testing"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/contextvalues"
 )
 
 // TestGetMode ...
@@ -105,7 +107,7 @@ func TestGetID(t *testing.T) {
 		{
 			name: "with tenant id",
 			args: args{
-				ctx: context.WithValue(context.Background(), IDKey, "test"),
+				ctx: context.WithValue(context.Background(), contextvalues.KeyTenantID, "test"),
 			},
 			want:    "test",
 			wantErr: false,
@@ -152,7 +154,7 @@ func TestSetID(t *testing.T) {
 				ctx:      context.Background(),
 				tenantID: "test",
 			},
-			want:    context.WithValue(context.Background(), IDKey, "test"),
+			want:    context.WithValue(context.Background(), contextvalues.KeyTenantID, "test"),
 			wantErr: false,
 		},
 	}

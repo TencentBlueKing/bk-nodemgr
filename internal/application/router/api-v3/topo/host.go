@@ -26,15 +26,15 @@ const (
 
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	req := new(protoApplication.TopoHostListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to list host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to list host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoApplication.TopoHostListReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -44,7 +44,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 			sCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.Errorf("failed to list host, failed to count host. err: %v", err)
+			h.logger.ErrorCtxf(sCtx, "failed to list host, failed to count host. err: %v", err)
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 		}
 
@@ -59,7 +59,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to list host. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to list host. err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
@@ -81,7 +81,9 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) completeNetworkAreaName(ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+func (h *handler) completeNetworkAreaName(
+	ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {
 		idMap[host.Static.NetworkAreaID] = true
@@ -105,11 +107,11 @@ func (h *handler) completeNetworkAreaName(ctx context.Context, hosts []*types.Ho
 	)
 
 	if err != nil {
-		h.logger.Errorf("failed to complete networkarea name. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to complete networkarea name. err: %v", err)
 		return err
 	}
 
-	h.logger.Info("successfully completed networkarea name: %d", len(items))
+	h.logger.InfoCtxf(ctx, "completed networkarea name: %d", len(items))
 	mapping.NetworkArea = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkArea[item.ID] = item.Name
@@ -118,7 +120,9 @@ func (h *handler) completeNetworkAreaName(ctx context.Context, hosts []*types.Ho
 	return nil
 }
 
-func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+func (h *handler) completeNetworkUnitName(
+	ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {
 		idMap[host.Dynamic.NetworkUnitID] = true
@@ -142,11 +146,11 @@ func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Ho
 	)
 
 	if err != nil {
-		h.logger.Errorf("failed to complete networkunit name. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to complete networkunit name. err: %v", err)
 		return err
 	}
 
-	h.logger.Info("successfully completed networkunit name: %d", len(items))
+	h.logger.InfoCtxf(ctx, "completed networkunit name: %d", len(items))
 	mapping.NetworkUnit = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkUnit[item.ID] = item.Name
@@ -157,15 +161,15 @@ func (h *handler) completeNetworkUnitName(ctx context.Context, hosts []*types.Ho
 
 // DistinctHost get distinct host fields.
 func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
-	req := new(protoApplication.TopoHostDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to distinct host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to distinct host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoApplication.TopoHostDistinctReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to distinct host, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -173,7 +177,7 @@ func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
 		sCtx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.Errorf("failed to distinct host. failed to distinct host fields: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 

@@ -20,27 +20,32 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
-	"github.com/google/uuid"
 )
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
 func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.SyncCmdbHostReq)
-	if err := ctx.BindJSON(req); err != nil {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to sync cmdb host, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID := uuid.New().String()
-	tenantID := ctx.TenantID
+	req := new(protoBackend.SyncCmdbHostReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 
-	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncBizAndHost, triggerID, &operengine.OperInstParam{
-		Timeout: 10 * time.Minute, // nolint: mnd
-		InitContent: map[string]any{
-			keys.CKeyTenantID: tenantID,
-		},
-	})
+	triggerID, err := h.manager.ExecuteOperation(sCtx,
+		workflowdef.OperDefNameSyncBizAndHost,
+		&operengine.OperInstParam{
+			Timeout: 10 * time.Minute, // nolint: mnd
+			InitContent: map[string]any{
+				keys.CKeyTenantID: ctx.TenantID,
+			},
+		})
 	if err != nil {
-		h.logger.Errorf("failed to start sync cmdb host operation, err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to start sync cmdb host operation. trigger-id(%s), err: %v", triggerID, err)
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
@@ -53,22 +58,26 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
 func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to sync cmdb networkarea, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	req := new(protoBackend.SyncCmdbNetworkAreaReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID := uuid.New().String()
-	tenantID := ctx.TenantID
-
-	err := h.manager.ExecuteOperation(workflowdef.OperDefNameSyncNetworkArea, triggerID, &operengine.OperInstParam{
-		Timeout: 1 * time.Minute,
-		InitContent: map[string]any{
-			keys.CKeyTenantID: tenantID,
-		},
-	})
+	triggerID, err := h.manager.ExecuteOperation(sCtx,
+		workflowdef.OperDefNameSyncNetworkArea, &operengine.OperInstParam{
+			Timeout: 1 * time.Minute,
+			InitContent: map[string]any{
+				keys.CKeyTenantID: ctx.TenantID,
+			},
+		})
 	if err != nil {
-		h.logger.Errorf("failed to start sync cmdb networkarea operation, err: %v", err)
+		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s), err: %v", triggerID, err)
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 

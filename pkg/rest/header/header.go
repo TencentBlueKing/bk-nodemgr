@@ -13,9 +13,8 @@ package header
 
 import (
 	"net/http"
-	"strings"
 
-	"github.com/google/uuid"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 const (
@@ -61,7 +60,5 @@ func RIDGetter(req *http.Request, autoGen bool) string {
 
 // RIDGenerator generate request id
 func RIDGenerator() string {
-	uid := uuid.New().String()
-	requestId := strings.ReplaceAll(uid, "-", "")
-	return requestId
+	return identifier.GenRequestID()
 }

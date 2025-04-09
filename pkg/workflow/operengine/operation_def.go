@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 // OperInstTimeoutDefault default OperInst timeout.
@@ -48,9 +48,6 @@ func (def *operationDef) Next(actionDef ActionDef) *operationDef {
 	return def
 }
 
-// OperInstIDPrefix ...
-const OperInstIDPrefix = "I"
-
 // NewInstance creates a new OperInst.
 func (def *operationDef) NewInstance(timeout time.Duration) (*OperInst, error) {
 	if err := def.Validate(); err != nil {
@@ -63,7 +60,7 @@ func (def *operationDef) NewInstance(timeout time.Duration) (*OperInst, error) {
 
 	inst := &OperInst{
 		data: &OperInstData{
-			OperInstID:        fmt.Sprintf("%s-%s", OperInstIDPrefix, uuid.NewString()),
+			OperInstID:        identifier.GenOperationInstanceID(),
 			OperDefName:       def.name,
 			ActionNames:       make([]string, len(def.actionDefs)),
 			ActionInstDataMap: make(map[string]*ActionInstData),
