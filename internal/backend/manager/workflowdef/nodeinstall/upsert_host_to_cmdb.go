@@ -111,9 +111,8 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 	hosts, count, err := action.iDaoHost.ListHost(tenantCtx, types.Page{
 		Offset: 0,
 		Limit:  1,
-	}, types.HostCondition{
-		Type: types.ConditionTypeExactInclude,
-		Exact: &types.HostExactFields{
+	}, &types.HostCondition{
+		ExactInclude: &types.HostExactFields{
 			NetworkAreaID: []int64{info.Static.NetworkAreaID},
 			Addressing:    []types.Addressing{info.Static.Addressing},
 			InnerIP:       []string{info.Static.InnerIP},
