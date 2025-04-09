@@ -177,7 +177,9 @@ func (mgr *manager) registerActionDefs() error {
 }
 
 // ExecuteOperation execute an operation.
-func (mgr *manager) ExecuteOperation(ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error) {
+func (mgr *manager) ExecuteOperation(
+	ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error) {
+
 	triggerID := identifier.GenTriggerID()
 	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
 		name, triggerID, param)
@@ -195,6 +197,7 @@ func (mgr *manager) ExecuteOperation(ctx context.Context, name workflowdef.OperD
 
 	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
 		name, triggerID, operation.OperationID)
+
 	return triggerID, nil
 }
 
