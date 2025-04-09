@@ -21,6 +21,12 @@ import (
 
 // RetryOperation ...
 func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	req := new(RetryOperationReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -30,22 +36,16 @@ func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to sync cmdb host, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	err = h.manager.RetryOperation(sCtx, req.OperationID, &operengine.OperInstParam{
 		Timeout:     1 * time.Minute,
 		InitContent: map[string]any{},
 	})
 	if err != nil {
-		h.logger.Errorf("failed to retry operation, err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation, err: %v", err)
 		return nil, err
 	}
 
-	h.logger.Infof("successfully started operation: %s", req.OperationID)
+	h.logger.InfoCtxf(sCtx, "retried operation: %s", req.OperationID)
 
 	resp := new(RetryOperationResp)
 
