@@ -134,7 +134,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 }
 
 // StatisticsNetworkArea statistics network-area.
-// nolint: funlen
+// nolint: funlen, gocognit
 func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
