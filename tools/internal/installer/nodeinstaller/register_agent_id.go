@@ -48,8 +48,8 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 		}
 
 		regex := `agent-id:\s+[A-Za-z0-9]+`
-		agentIDStr = strings.TrimPrefix(stdout.String(), "agent-id: ")
 		agentIDStr = regexp.MustCompile(regex).FindString(stdout.String())
+		agentIDStr = strings.TrimPrefix(agentIDStr, "agent-id: ")
 
 		return nil
 	})
