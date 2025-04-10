@@ -242,7 +242,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 				GseCtlPath:   GetGseAgentCtlPath(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
-				return err
+				fmt.Printf("uninstall step failed, err: %v\n", err)
 			}
 
 			return nil

@@ -17,8 +17,8 @@ import (
 	"unsafe"
 )
 
-// countFreeSpace check windows disk free space.
-func checkFreeSpace(dirPath string) (uint64, error) {
+// countFreeSpace count windows disk free space.
+func countFreeSpace(dirPath string) (uint64, error) {
 	kernel32, err := syscall.LoadDLL("kernel32.dll")
 	if err != nil {
 		return 0, err

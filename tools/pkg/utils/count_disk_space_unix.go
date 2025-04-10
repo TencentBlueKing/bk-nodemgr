@@ -16,7 +16,7 @@ import (
 	"syscall"
 )
 
-// countFreeSpace check unix disk free space.
+// countFreeSpace count unix disk free space.
 func countFreeSpace(dirPath string) (uint64, error) {
 	var stat syscall.Statfs_t
 	err := syscall.Statfs(dirPath, &stat)
