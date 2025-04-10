@@ -13,6 +13,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
 	"io"
 	"log"
 	"os"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logreporter"
@@ -297,15 +297,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 			return fmt.Errorf("set node agent id failed, err: %v", err)
 		}
 
-		reportDataStep := datareporter.NewStep(datareporter.StepArgs{
-			Token:            GetToken(),
-			AgentID:          GetNodeAgentID(),
-			CallbackEndpoint: GetCallBackEndpoint(),
-		})
-		if err := reportDataStep.Run(cmd.Context()); err != nil {
-			return fmt.Errorf("report data failed, err: %v", err)
-		}
-
 		startNodeStep := startnode.NewStep(startnode.StepArgs{
 			AgentPath:    GetGseAgentPath(),
 			AgentCtlPath: GetGseAgentCtlPath(),
@@ -322,6 +313,15 @@ func registerRootVars(rootCmd *cobra.Command) {
 		})
 		if err := checkDeployStep.Run(cmd.Context()); err != nil {
 			return fmt.Errorf("check deploy failed, err: %v", err)
+		}
+
+		reportDataStep := datareporter.NewStep(datareporter.StepArgs{
+			Token:            GetToken(),
+			AgentID:          GetNodeAgentID(),
+			CallbackEndpoint: GetCallBackEndpoint(),
+		})
+		if err := reportDataStep.Run(cmd.Context()); err != nil {
+			return fmt.Errorf("report data failed, err: %v", err)
 		}
 
 		return nil
