@@ -169,12 +169,14 @@ func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) 
 		result[networkunit.NetworkAreaID].NetworkUnitCount++
 	}
 
+	networkAreaIDs := req.GetBkNetworkareaId()
 	gp := gopool.NewPool()
-	for _, networkAreaID := range req.GetBkNetworkareaId() {
-		id := networkAreaID
-		if _, ok := result[id]; !ok {
-			result[id] = &protoApplication.NetworkAreaStatistics{
-				NetworkAreaID: id,
+	for idx := range networkAreaIDs {
+		networkAreaID := networkAreaIDs[idx]
+
+		if _, ok := result[networkAreaID]; !ok {
+			result[networkAreaID] = &protoApplication.NetworkAreaStatistics{
+				NetworkAreaID: networkAreaID,
 			}
 		}
 
@@ -182,15 +184,15 @@ func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) 
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
 				ExactInclude: &types.HostExactFields{
-					NetworkUnitID: []int64{id},
+					NetworkUnitID: []int64{networkAreaID},
 					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				},
 			})
 			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to count agent, networkunit-id: %d", id))
+				return errors.Join(err, fmt.Errorf("failed to count agent, networkunit-id: %d", networkAreaID))
 			}
 
-			result[id].AgentCount = num
+			result[networkAreaID].AgentCount = num
 
 			return nil
 		})
@@ -199,15 +201,15 @@ func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) 
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(sCtx, &types.HostCondition{
 				ExactInclude: &types.HostExactFields{
-					NetworkUnitID: []int64{id},
+					NetworkUnitID: []int64{networkAreaID},
 					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 				},
 			})
 			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to count proxy, networkunit-id: %d", id))
+				return errors.Join(err, fmt.Errorf("failed to count proxy, networkunit-id: %d", networkAreaID))
 			}
 
-			result[id].ProxyCount = num
+			result[networkAreaID].ProxyCount = num
 
 			return nil
 		})
@@ -215,19 +217,19 @@ func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) 
 		gp.Go(func() error {
 			events, _, err := h.backendHandler.ListTopoEvent(sCtx, types.Page{Limit: 1}, &types.TopoEventCondition{
 				ExactInclude: &types.TopoEventExactFields{
-					NetworkAreaID: []int64{id},
+					NetworkAreaID: []int64{networkAreaID},
 				},
 			})
 			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to list topo event, networkunit-id: %d", id))
+				return errors.Join(err, fmt.Errorf("failed to list topo event, networkunit-id: %d", networkAreaID))
 			}
 
 			if len(events) == 0 {
 				return nil
 			}
 
-			result[id].LastOperator = events[0].Operator
-			result[id].LastOperateTime = events[0].OperateTime
+			result[networkAreaID].LastOperator = events[0].Operator
+			result[networkAreaID].LastOperateTime = events[0].OperateTime
 
 			return nil
 		})
