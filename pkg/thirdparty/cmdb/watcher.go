@@ -61,8 +61,9 @@ type Watcher struct {
 // NewWatcher create a new watcher.
 func NewWatcher(handler *Handler) *Watcher {
 	w := &Watcher{
-		logger:  handler.logger,
-		handler: handler,
+		scheduler: scheduler.NewScheduler(scheduler.WithLogger(handler.logger)),
+		logger:    handler.logger,
+		handler:   handler,
 	}
 
 	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.Host], resourceChanBuffer)
@@ -103,7 +104,7 @@ func (w *Watcher) WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel]
 }
 
 // Start start the watcher.
-// nolint: gocognit
+// nolint: gocognit, funlen
 func (w *Watcher) Start(ctx context.Context) error {
 	w.done = make(chan struct{})
 

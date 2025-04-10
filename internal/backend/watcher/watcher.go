@@ -64,6 +64,7 @@ func NewWatcher(conf Config, logger logger.Logger) (*Watcher, error) {
 	return &Watcher{
 		conf:             conf,
 		logger:           logger,
+		scheduler:        scheduler.NewScheduler(scheduler.WithLogger(logger)),
 		needSyncBizIDSet: make(map[int64]struct{}),
 	}, nil
 }

@@ -190,7 +190,7 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 func (h *Handler) initEnumKeepers() {
 	h.logger.Infof("initializing enum keepers from cmdb")
 
-	h.scheduler = scheduler.NewScheduler()
+	h.scheduler = scheduler.NewScheduler(scheduler.WithLogger(h.logger))
 
 	h.scheduler.RegisterTask(&scheduler.Task{
 		ID:       "sync_cloud_vendor",

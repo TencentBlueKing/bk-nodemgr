@@ -423,14 +423,15 @@
         ]
       }
     },
-    "/api/v3/topo/networkarea/statics": {
+    "/api/v3/topo/networkarea/statistics": {
       "post": {
-        "operationId": "Topo_NetworkAreaStatics",
+        "summary": "NetworkAreaStatistics provides network-area statistics.",
+        "operationId": "Topo_NetworkAreaStatistics",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3TopoNetworkAreaStaticsResp"
+              "$ref": "#/definitions/v3TopoNetworkAreaStatisticsResp"
             }
           },
           "default": {
@@ -443,11 +444,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "TopoNetworkAreaStaticsReq describes the HTTP request body when query\nnetwork-area statics in topo service.",
+            "description": "TopoNetworkAreaStatisticsReq describes the HTTP request body when query\nnetwork-area statics in topo service.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3TopoNetworkAreaStaticsReq"
+              "$ref": "#/definitions/v3TopoNetworkAreaStatisticsReq"
             }
           }
         ],
@@ -702,7 +703,7 @@
         }
       }
     },
-    "TopoNetworkAreaStaticsRespStaticsInfo": {
+    "TopoNetworkAreaStatisticsRespStatisticsInfo": {
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
@@ -718,6 +719,13 @@
           "format": "int64"
         },
         "agent_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_operator": {
+          "type": "string"
+        },
+        "last_operate_time": {
           "type": "string",
           "format": "int64"
         }
@@ -1939,7 +1947,7 @@
         }
       }
     },
-    "v3TopoNetworkAreaStaticsReq": {
+    "v3TopoNetworkAreaStatisticsReq": {
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
@@ -1950,9 +1958,9 @@
           }
         }
       },
-      "description": "TopoNetworkAreaStaticsReq describes the HTTP request body when query\nnetwork-area statics in topo service."
+      "description": "TopoNetworkAreaStatisticsReq describes the HTTP request body when query\nnetwork-area statics in topo service."
     },
-    "v3TopoNetworkAreaStaticsResp": {
+    "v3TopoNetworkAreaStatisticsResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -1966,19 +1974,19 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3TopoNetworkAreaStaticsRespData"
+          "$ref": "#/definitions/v3TopoNetworkAreaStatisticsRespData"
         }
       },
-      "description": "TopoNetworkAreaStaticsResp describes the HTTP response body when query\nnetwork-area statics in topo service."
+      "description": "TopoNetworkAreaStatisticsResp describes the HTTP response body when query\nnetwork-area statics in topo service."
     },
-    "v3TopoNetworkAreaStaticsRespData": {
+    "v3TopoNetworkAreaStatisticsRespData": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/TopoNetworkAreaStaticsRespStaticsInfo"
+            "$ref": "#/definitions/TopoNetworkAreaStatisticsRespStatisticsInfo"
           }
         }
       }

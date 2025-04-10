@@ -12,7 +12,7 @@ package v3
 
 import (
 	"errors"
-	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -171,7 +171,7 @@ func (x *TopoNetworkAreaListReq) ConvertConditionsFromTypes(condition *types.Net
 	}
 
 	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
+		return errors.New("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return nil
@@ -196,16 +196,18 @@ func (x *TopoNetworkAreaListResp) ConvertNetworkAreasFromTypes(total int64, netw
 	}
 }
 
-// NetworkAreaStatics describes the networkarea statics.
-type NetworkAreaStatics struct {
+// NetworkAreaStatistics describes the networkarea statics.
+type NetworkAreaStatistics struct {
 	NetworkAreaID    int64
 	NetworkUnitCount int64
 	AgentCount       int64
 	ProxyCount       int64
+	LastOperator     string
+	LastOperateTime  time.Time
 }
 
 // Validate check body.
-func (x *TopoNetworkAreaStaticsReq) Validate() error {
+func (x *TopoNetworkAreaStatisticsReq) Validate() error {
 	if len(x.GetBkNetworkareaId()) == 0 {
 		return errors.New("bk_networkarea_id is required")
 	}
@@ -214,11 +216,11 @@ func (x *TopoNetworkAreaStaticsReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *TopoNetworkAreaStaticsReq) AutoConvert() {
+func (x *TopoNetworkAreaStatisticsReq) AutoConvert() {
 }
 
 // ConvertNetworkUnitConditionToTypes convert networkunit condition to types.
-func (x *TopoNetworkAreaStaticsReq) ConvertNetworkUnitConditionToTypes() *types.NetworkUnitCondition {
+func (x *TopoNetworkAreaStatisticsReq) ConvertNetworkUnitConditionToTypes() *types.NetworkUnitCondition {
 	return &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkAreaID: x.GetBkNetworkareaId(),
@@ -226,28 +228,34 @@ func (x *TopoNetworkAreaStaticsReq) ConvertNetworkUnitConditionToTypes() *types.
 	}
 }
 
-// ConvertNetworkAreaStaticsFromResult convert networkarea statics from result.
-func (x *TopoNetworkAreaStaticsResp) ConvertNetworkAreaStaticsFromResult(result map[int64]*NetworkAreaStatics) {
-	items := make([]*TopoNetworkAreaStaticsResp_StaticsInfo, len(result))
+// ConvertNetworkAreaStatisticsFromResult convert networkarea statics from result.
+func (x *TopoNetworkAreaStatisticsResp) ConvertNetworkAreaStatisticsFromResult(
+	result map[int64]*NetworkAreaStatistics) {
+
+	items := make([]*TopoNetworkAreaStatisticsResp_StatisticsInfo, len(result))
 	idx := 0
 	for networkAreaID, networkAreaStatics := range result {
-		info := &TopoNetworkAreaStaticsResp_StaticsInfo{
+		info := &TopoNetworkAreaStatisticsResp_StatisticsInfo{
 			BkNetworkareaId:  new(int64),
 			NetworkunitCount: new(int64),
 			ProxyCount:       new(int64),
 			AgentCount:       new(int64),
+			LastOperator:     new(string),
+			LastOperateTime:  new(int64),
 		}
 
 		*info.BkNetworkareaId = networkAreaID
 		*info.NetworkunitCount = networkAreaStatics.NetworkUnitCount
 		*info.ProxyCount = networkAreaStatics.ProxyCount
 		*info.AgentCount = networkAreaStatics.AgentCount
+		*info.LastOperator = networkAreaStatics.LastOperator
+		*info.LastOperateTime = networkAreaStatics.LastOperateTime.Unix()
 
 		items[idx] = info
 		idx++
 	}
 
-	x.Data = &TopoNetworkAreaStaticsResp_Data{
+	x.Data = &TopoNetworkAreaStatisticsResp_Data{
 		Items: items,
 	}
 }
