@@ -1336,7 +1336,8 @@ func (c *cli) findHostServiceTemplate(ctx context.Context, req *FindHostServiceT
 }
 
 // resourceWatch resource watch.
-// nolint: unused
+// cc resource_watch interface using a short-long chain design
+// if there are any event changes within 20 seconds, the events will be pushed back directly
 func (c *cli) resourceWatch(ctx context.Context, req *ResourceWatchReq) (*ResourceWatchResp, error) {
 	resp := new(BaseBroker[*ResourceWatchResp])
 	header, err := c.getCommonHeader(req.TenantID)

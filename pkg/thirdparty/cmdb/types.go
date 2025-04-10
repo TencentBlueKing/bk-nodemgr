@@ -51,7 +51,6 @@ type Page struct {
 
 // HostInfo describe the information of single host.
 type HostInfo struct {
-	BKBizID int64 `json:"bk_biz_id"`
 	// 主机ID
 	BKHostID int64 `json:"bk_host_id"`
 	// 机房ID

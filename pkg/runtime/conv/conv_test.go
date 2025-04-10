@@ -880,38 +880,74 @@ func TestMapToSlice(t *testing.T) {
 
 // MapKeyToSlice map key to slice.
 func TestMapKeyToSlice(t *testing.T) {
-	type args struct {
-		m map[string]bool
-	}
 	tests := []struct {
-		name string
-		args args
-		want []string
+		name     string
+		input    interface{}
+		expected interface{}
 	}{
 		{
-			name: "normal",
-			args: args{
-				m: map[string]bool{
-					"a": true,
-					"b": true,
-					"c": true,
-					"d": true,
-				},
-			},
-			want: []string{"a", "b", "c", "d"},
+			name:     "Empty map with int keys",
+			input:    map[int]string{},
+			expected: []int{},
+		},
+		{
+			name:     "Single element map with int keys",
+			input:    map[int]string{1: "one"},
+			expected: []int{1},
+		},
+		{
+			name:     "Multiple elements map with int keys",
+			input:    map[int]string{3: "three", 1: "one", 2: "two"},
+			expected: []int{1, 2, 3},
+		},
+		{
+			name:     "Empty map with string keys",
+			input:    map[string]int{},
+			expected: []string{},
+		},
+		{
+			name:     "Single element map with string keys",
+			input:    map[string]int{"one": 1},
+			expected: []string{"one"},
+		},
+		{
+			name:     "Multiple elements map with string keys",
+			input:    map[string]int{"c": 3, "a": 1, "b": 2},
+			expected: []string{"a", "b", "c"},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MapKeyToSlice(tt.args.m)
-			sort.Slice(tt.want, func(i, j int) bool {
-				return tt.want[i] < tt.want[j]
-			})
-			sort.Slice(got, func(i, j int) bool {
-				return got[i] < got[j]
-			})
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MapSetToSlice() = %v, want %v", got, tt.want)
+			switch input := tt.input.(type) {
+			case map[int]string:
+				result := MapKeyToSlice(input)
+				expected := tt.expected.([]int)
+				if len(result) != len(expected) {
+					t.Errorf("Expected slice length %d, got %d", len(expected), len(result))
+					return
+				}
+				for i, v := range expected {
+					if result[i] != v {
+						t.Errorf("Expected sorted keys %v, got %v", expected, result)
+						break
+					}
+				}
+			case map[string]int:
+				result := MapKeyToSlice(input)
+				expected := tt.expected.([]string)
+				if len(result) != len(expected) {
+					t.Errorf("Expected slice length %d, got %d", len(expected), len(result))
+					return
+				}
+				for i, v := range expected {
+					if result[i] != v {
+						t.Errorf("Expected sorted keys %v, got %v", expected, result)
+						break
+					}
+				}
+			default:
+				t.Errorf("Unsupported input type: %T", input)
 			}
 		})
 	}

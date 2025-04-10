@@ -12,11 +12,13 @@
 package conv
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"reflect"
+	"slices"
 	"strconv"
 )
 
@@ -371,12 +373,14 @@ func MapToSlice[T any](m map[string]T) []T {
 	return values
 }
 
-// MapKeyToSlice convert map set to slice.
-func MapKeyToSlice[T any](m map[string]T) []string {
-	values := make([]string, 0, len(m))
-	for key := range m {
-		values = append(values, key)
+// MapKeyToSlice converts a map[Key]Value to a sorted slice of keys ([]Key).
+func MapKeyToSlice[K cmp.Ordered, V any](source map[K]V) []K {
+	target := make([]K, 0, len(source))
+	for key := range source {
+		target = append(target, key)
 	}
 
-	return values
+	slices.Sort(target)
+
+	return target
 }

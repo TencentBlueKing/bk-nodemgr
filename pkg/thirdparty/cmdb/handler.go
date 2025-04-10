@@ -34,7 +34,7 @@ type IHandler interface {
 	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
 
 	// NewWatcher new watcher.
-	NewWatcher(tenantID string) (IWatcher, error)
+	NewWatcher() (IWatcher, error)
 
 	IEnum
 	IBiz
@@ -259,7 +259,7 @@ func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host, bizID)
 	}
 
 	return hosts, nil
@@ -575,7 +575,7 @@ func (h *Handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host, CCResourcePoolBusinessID)
 	}
 
 	return hosts, nil
@@ -605,7 +605,7 @@ func (h *Handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host)
+		hosts[idx] = h.convHostInfoToTypes(tenantID, host, CCNoBusinessID)
 	}
 
 	return hosts, nil
@@ -686,7 +686,7 @@ func (h *Handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 			return nil, err
 		}
 
-		result[index] = h.convHostInfoToTypes(tenantID, &hostData)
+		result[index] = h.convHostInfoToTypes(tenantID, &hostData, bizID)
 	}
 
 	return result, nil
@@ -797,26 +797,26 @@ func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 	result := make([]*types.Host, len(resp.Info))
 	for index, host := range resp.Info {
-		result[index] = h.convHostInfoToTypes(tenantID, host)
+		result[index] = h.convHostInfoToTypes(tenantID, host, bizID)
 	}
 
 	return result, nil
 }
 
 // NewWatcher new watcher.
-func (h *Handler) NewWatcher(tenantID string) (IWatcher, error) {
-	watcher := NewWatcher(tenantID, h)
+func (h *Handler) NewWatcher() (IWatcher, error) {
+	watcher := NewWatcher(h)
 
 	return watcher, nil
 }
 
 // convHostInfoToTypes convert host info to types.Host.
-func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo) *types.Host {
+func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID int64) *types.Host {
 	data := &types.Host{
 		HostID:   hostInfo.BKHostID,
 		TenantID: tenantID,
 		Static: &types.HostStatic{
-			BizID:         hostInfo.BKBizID,
+			BizID:         bizID,
 			NetworkAreaID: hostInfo.BKCloudID,
 			HostName:      hostInfo.BKHostName,
 			DeptName:      hostInfo.DeptName,

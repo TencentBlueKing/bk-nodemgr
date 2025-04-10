@@ -58,6 +58,9 @@ const (
 	// ChangeTypeCreate represents the create change type.
 	ChangeTypeCreate ChangeType = "create"
 
+	// ChangeTypeUpdate represents the update change type.
+	ChangeTypeUpdate ChangeType = "update"
+
 	// ChangeTypeDelete represents the delete change type.
 	ChangeTypeDelete ChangeType = "delete"
 )
@@ -65,7 +68,7 @@ const (
 // Validate validates the change type.
 func (changeType ChangeType) Validate() error {
 	switch changeType {
-	case ChangeTypeCreate, ChangeTypeDelete:
+	case ChangeTypeCreate, ChangeTypeUpdate, ChangeTypeDelete:
 		return nil
 	default:
 		return fmt.Errorf("invalid change type, type(%s)", changeType)

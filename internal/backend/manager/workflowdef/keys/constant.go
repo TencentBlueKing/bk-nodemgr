@@ -28,4 +28,7 @@ const (
 
 	// CKeyToken define the key of token.
 	CKeyToken string = "token"
+
+	// CKeyBizID define the key of biz_id.
+	CKeyBizID string = "biz_id"
 )

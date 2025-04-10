@@ -28,7 +28,7 @@ import (
 // Notice: need watch first, then start.
 type IWatcher interface {
 	// WatchHost watch resource host id.
-	WatchHost() (<-chan *types.ChangeEvent[*types.HostStatic], error)
+	WatchHost() (<-chan *types.ChangeEvent[*types.Host], error)
 
 	// WatchHostRelation watch resource host relation id.
 	WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel], error)
@@ -43,14 +43,12 @@ type Watcher struct {
 	handler   *Handler
 	logger    logger.Logger
 
-	tenantID string
-
 	done chan struct{}
 
 	resourceHost struct {
 		sync.Once
 		cursor  string
-		channel chan *types.ChangeEvent[*types.HostStatic]
+		channel chan *types.ChangeEvent[*types.Host]
 	}
 
 	resourceHostRel struct {
@@ -61,15 +59,13 @@ type Watcher struct {
 }
 
 // NewWatcher create a new watcher.
-func NewWatcher(tenantID string, handler *Handler) *Watcher {
+func NewWatcher(handler *Handler) *Watcher {
 	w := &Watcher{
-		scheduler: scheduler.NewScheduler(scheduler.WithLogger(handler.logger)),
-		logger:    handler.logger,
-		handler:   handler,
-		tenantID:  tenantID,
+		logger:  handler.logger,
+		handler: handler,
 	}
 
-	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.HostStatic], resourceChanBuffer)
+	w.resourceHost.channel = make(chan *types.ChangeEvent[*types.Host], resourceChanBuffer)
 	w.resourceHostRel.channel = make(chan *types.ChangeEvent[*types.HostRel], resourceChanBuffer)
 
 	return w
@@ -79,7 +75,7 @@ func NewWatcher(tenantID string, handler *Handler) *Watcher {
 const resourceChanBuffer = 100
 
 // WatchHost watch resource host id.
-func (w *Watcher) WatchHost() (<-chan *types.ChangeEvent[*types.HostStatic], error) {
+func (w *Watcher) WatchHost() (<-chan *types.ChangeEvent[*types.Host], error) {
 	valid := false
 	w.resourceHost.Once.Do(func() {
 		valid = true
@@ -108,7 +104,7 @@ func (w *Watcher) WatchHostRelation() (<-chan *types.ChangeEvent[*types.HostRel]
 
 // Start start the watcher.
 // nolint: gocognit
-func (w *Watcher) Start(_ context.Context) error {
+func (w *Watcher) Start(ctx context.Context) error {
 	w.done = make(chan struct{})
 
 	registerHost, registerHostRel := true, true
@@ -118,13 +114,19 @@ func (w *Watcher) Start(_ context.Context) error {
 	w.resourceHostRel.Once.Do(func() {
 		registerHostRel = false
 	})
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return fmt.Errorf("get tenant id failed, err: %v", err)
+	}
+
 	if registerHost {
 		w.scheduler.RegisterTask(&scheduler.Task{
 			ID:       WatchResourceHost,
 			Interval: time.Second,
 			Timeout:  time.Minute,
 			Fn: func(ctx context.Context) error {
-				ctx, err := tenant.SetID(ctx, w.tenantID)
+				ctx, err := tenant.SetID(ctx, tenantID)
 				if err != nil {
 					return fmt.Errorf("set tenant id failed, err: %v", err)
 				}
@@ -140,9 +142,9 @@ func (w *Watcher) Start(_ context.Context) error {
 				}
 
 				for _, event := range events {
-					w.resourceHost.channel <- &types.ChangeEvent[*types.HostStatic]{
+					w.resourceHost.channel <- &types.ChangeEvent[*types.Host]{
 						ChangeType: types.ChangeType(event.BKEventType),
-						Detail:     w.handler.convHostInfoToTypes(w.tenantID, event.BKDetail).Static,
+						Detail:     w.handler.convHostInfoToTypes(tenantID, event.BKDetail, CCNoBusinessID),
 					}
 				}
 
@@ -157,7 +159,7 @@ func (w *Watcher) Start(_ context.Context) error {
 			Interval: time.Second,
 			Timeout:  time.Minute,
 			Fn: func(ctx context.Context) error {
-				ctx, err := tenant.SetID(ctx, w.tenantID)
+				ctx, err := tenant.SetID(ctx, tenantID)
 				if err != nil {
 					return fmt.Errorf("set tenant id failed, err: %v", err)
 				}
@@ -233,7 +235,6 @@ func (w *Watcher) getHostResourceByWatch(ctx context.Context, cursor string) ([]
 }
 
 // getHostRelationResourceByWatch get host relation resource by watch.
-
 func (w *Watcher) getHostRelationResourceByWatch(ctx context.Context, cursor string) (
 	[]*HostRelationEventInfo, string, error) {
 

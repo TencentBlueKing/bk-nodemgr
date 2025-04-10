@@ -18,8 +18,7 @@ import (
 
 func testWatcher(t *testing.T) IWatcher {
 	client := testClient(t)
-
-	watcher, err := client.NewWatcher("test")
+	watcher, err := client.NewWatcher()
 	if err != nil {
 		t.Fatalf("failed to create watcher: %v", err)
 	}
