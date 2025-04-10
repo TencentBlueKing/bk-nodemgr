@@ -287,12 +287,25 @@ func CountDiskFreeSpace(dirPath string) (uint64, error) {
 		return 0, err
 	}
 
-	_, err = os.Stat(absDirPath)
-	if err != nil {
-		return 0, err
+	existingPath := absDirPath
+	for {
+		_, err = os.Stat(existingPath)
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			return 0, err
+		}
+
+		parentPath := filepath.Dir(existingPath)
+		if parentPath == existingPath {
+			return 0, errors.New("no existing parent directory found")
+		}
+
+		existingPath = parentPath
 	}
 
-	freeSpace, err := checkFreeSpace(absDirPath)
+	freeSpace, err := countFreeSpace(existingPath)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count free space: %w", err)
 	}
