@@ -13,6 +13,7 @@ package sshx
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -42,6 +43,30 @@ const (
 	NetworkUdp6 Network = "udp6"
 )
 
+// AuthMethod defines the auth method type.
+type AuthMethod string
+
+const (
+	// AuthMethodNone this defines the none auth method.
+	AuthMethodNone = "none"
+
+	// AuthMethodPassword this defines the password auth method.
+	AuthMethodPassword = "password"
+
+	// AuthMethodPrivateKey this defines the private key auth method.
+	AuthMethodPrivateKey = "private_key"
+)
+
+// Validate validate the auth method.
+func (auth AuthMethod) Validate() error {
+	switch auth {
+	case AuthMethodNone, AuthMethodPassword, AuthMethodPrivateKey:
+		return nil
+	default:
+		return fmt.Errorf("invalid auth method, method(%s)", auth)
+	}
+}
+
 // Validate validate the network.
 func (net Network) Validate() error {
 	switch net {
@@ -55,12 +80,14 @@ func (net Network) Validate() error {
 
 // Config this is the config for sshx handler.
 type Config struct {
-	Network  Network
-	IP       string
-	Port     int
-	User     string
-	Password string
-	Logger   logger.Logger
+	Network    Network
+	IP         string
+	Port       int
+	User       string
+	Password   string
+	AuthMethod AuthMethod
+	PrivateKey []byte
+	Logger     logger.Logger
 }
 
 // Validate validate the config.
@@ -83,6 +110,25 @@ func (conf *Config) Validate() error {
 
 	if conf.Logger == nil {
 		return fmt.Errorf("logger is empty")
+	}
+
+	if err := conf.AuthMethod.Validate(); err != nil {
+		return err
+	}
+
+	switch conf.AuthMethod {
+	case AuthMethodNone:
+		if len(conf.PrivateKey) > 0 || len(conf.Password) > 0 {
+			return errors.New("auth mode is none,but private_key or password is not empty")
+		}
+	case AuthMethodPrivateKey:
+		if len(conf.PrivateKey) == 0 {
+			return errors.New("private_key is empty")
+		}
+	case AuthMethodPassword:
+		if len(conf.Password) == 0 {
+			return errors.New("password is empty")
+		}
 	}
 
 	return nil
@@ -109,9 +155,6 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 
 	sshConf := &ssh.ClientConfig{
 		User: config.User,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(config.Password),
-		},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
@@ -121,6 +164,24 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 			return nil
 		},
 		Timeout: timeout,
+	}
+
+	switch config.AuthMethod {
+	case AuthMethodPassword:
+		sshConf.Auth = []ssh.AuthMethod{
+			ssh.Password(config.Password),
+		}
+	case AuthMethodPrivateKey:
+		signer, err := ssh.ParsePrivateKey(config.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
+
+		sshConf.Auth = []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		}
+	default:
+		sshConf.Auth = []ssh.AuthMethod{}
 	}
 
 	client := &Client{
