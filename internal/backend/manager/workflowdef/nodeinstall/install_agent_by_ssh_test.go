@@ -62,7 +62,7 @@ func TestInstallAgentBySSH_Do(t *testing.T) {
 						Content: map[string]any{
 							"ip":        os.Getenv("SSH_IP"),
 							"port":      36000,
-							"node_type": "agent",
+							"node_role": "agent",
 							"user":      os.Getenv("SSH_USER"),
 							"passwd": func() []byte {
 								ciphertext, err := capability.Crypter.Encrypt([]byte(os.Getenv("SSH_PASSWD")))

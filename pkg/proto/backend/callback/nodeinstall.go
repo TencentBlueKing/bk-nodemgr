@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package v3 ...
-package v3
+// Package callback ...
+package callback
 
 import "errors"
 

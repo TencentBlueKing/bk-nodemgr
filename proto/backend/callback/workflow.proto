@@ -1,6 +1,6 @@
 syntax = "proto3";
-package v3;
-option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+package callback;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/callback";
 
 import "google/api/annotations.proto";
 
@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 message GetAgentConfReq {
   string os_type = 1;
   string cpu_arch = 2;
-  string node_type = 3;
+  string node_role = 3;
   string token = 4;
 }
 
@@ -16,7 +16,7 @@ message GetAgentConfReq {
 message GetFileProxyConfReq {
   string os_type = 1;
   string cpu_arch = 2;
-  string node_type = 3;
+  string node_role = 3;
   string token = 4;
 }
 
@@ -24,7 +24,7 @@ message GetFileProxyConfReq {
 message GetDataProxyConfReq {
   string os_type = 1;
   string cpu_arch = 2;
-  string node_type = 3;
+  string node_role = 3;
   string token = 4;
 }
 
@@ -32,7 +32,7 @@ message GetDataProxyConfReq {
 message GetCheckListReq {
   string os_type = 1;
   string cpu_arch = 2;
-  string node_type = 3;
+  string node_role = 3;
   string token = 4;
 }
 

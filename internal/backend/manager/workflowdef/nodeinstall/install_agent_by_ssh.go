@@ -262,7 +262,7 @@ func (action *InstallAgentBySSH) detectInfo(ctx *operengine.ActionInstContext, c
 // nolint: perfsprint
 func (action *InstallAgentBySSH) buildCMD(installerPath string, param installerParams, operInstID string) string {
 	args := []string{
-		fmt.Sprintf("--node_type %s", param.NodeRole),
+		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),
 		fmt.Sprintf("--download_endpoint %s", param.DownloadEndpoint),
 		fmt.Sprintf("--pkg_version %s", param.PkgVersion),
