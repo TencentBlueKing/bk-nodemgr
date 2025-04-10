@@ -126,7 +126,7 @@ var setupDirPath = struct {
 // GetSetupDir get setup dir.
 func GetSetupDir() string {
 	setupDirPath.Do(func() {
-		setupDirPath.dirPath = filepath.Join(node.gsePrefix, node.installEnv, string(node.nodeType))
+		setupDirPath.dirPath = filepath.Join(node.gseRoot, string(node.nodeType))
 	})
 
 	return setupDirPath.dirPath

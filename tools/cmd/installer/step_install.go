@@ -21,20 +21,15 @@ import (
 // NewStepInstallAgent ...
 func NewStepInstallAgent() *cobra.Command {
 	var (
-		gsePrefix  string
-		pkgName    string
-		installEnv string
+		gseRoot string
+		pkgName string
 	)
 	stepCmd := &cobra.Command{
 		Use:   "step_install",
 		Short: "install",
 		Long:  "install",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetInstallEnv(installEnv); err != nil {
-				return err
-			}
-
-			if err := SetGsePrefix(gsePrefix); err != nil {
+			if err := SetGseRoot(gseRoot); err != nil {
 				return err
 			}
 
@@ -63,10 +58,9 @@ func NewStepInstallAgent() *cobra.Command {
 		},
 	}
 	stepCmd.Flags().StringVar(&pkgName, CmdFlagPkgName, "", "gse pkg name")
-	stepCmd.Flags().StringVar(&gsePrefix, CmdFlagGsePrefix, "/usr/local", "this is the setup dir prefix")
-	stepCmd.Flags().StringVar(&installEnv, CmdFlagInstallEnv, CmdDefaultInstallEnv, "this is the install env")
+	stepCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "this is the gse root path")
 
-	_ = stepCmd.MarkFlagRequired(CmdFlagInstallEnv)
+	_ = stepCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = stepCmd.MarkFlagRequired(CmdFlagPkgName)
 
 	return stepCmd

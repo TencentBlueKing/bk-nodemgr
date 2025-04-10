@@ -165,16 +165,15 @@ func registerRootVars(rootCmd *cobra.Command) {
 		pkgGeneration     int
 		pkgVersion        string
 		callBackEndPoint  string
-		gsePrefix         string
-		installEnv        string
+		gseRoot           string
 		token             string
 		reinstall         bool
 		reRegisterAgentID bool
 	)
 	rootCmd.PreRunE = func(_ *cobra.Command, _ []string) error {
-		if gsePrefix != "" {
-			if err := SetGsePrefix(gsePrefix); err != nil {
-				return fmt.Errorf("set gse prefix failed, err: %v", err)
+		if gseRoot != "" {
+			if err := SetGseRoot(gseRoot); err != nil {
+				return fmt.Errorf("set gse root failed, err: %v", err)
 			}
 		}
 
@@ -184,12 +183,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 		if err := SetCallbackEndPoint(callBackEndPoint); err != nil {
 			return fmt.Errorf("set callback endpoint failed, err: %v", err)
-		}
-
-		if installEnv != "" {
-			if err := SetInstallEnv(installEnv); err != nil {
-				return fmt.Errorf("set install env failed, err: %v", err)
-			}
 		}
 
 		if err := SetNodeGeneration(pkgGeneration); err != nil {
@@ -335,20 +328,19 @@ func registerRootVars(rootCmd *cobra.Command) {
 	}
 
 	// this is the root command's private variable.
-	rootCmd.Flags().StringVar(&installEnv, CmdFlagInstallEnv, CmdDefaultInstallEnv, "install env")
 	rootCmd.Flags().StringVar(&downloadEndpoint, CmdFlagDownloadEndpoint, "", "download endpoint")
 	rootCmd.Flags().StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
 	rootCmd.Flags().IntVar(&pkgGeneration, CmdFlagPkgGeneration, CmdDefaultPkgGeneration,
 		"this is the gse pkg generation which will be installed")
 	rootCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
 	rootCmd.Flags().StringVar(&pkgVersion, CmdFlagPkgVersion, "", "this gse node pkg version which will be installed")
-	rootCmd.Flags().StringVar(&gsePrefix, CmdFlagGsePrefix, CmdDefaultGsePrefix(), "gse prefix")
+	rootCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "gse root")
 	rootCmd.Flags().BoolVar(&reinstall, CmdFlagReinstall, false, "reinstall")
 	rootCmd.Flags().BoolVar(&reRegisterAgentID, CmdFlagReRegisterAgentID, false, "re register agent id")
 	_ = rootCmd.MarkFlagRequired(CmdFlagDownloadEndpoint)
 	_ = rootCmd.MarkFlagRequired(CmdFlagCallbackEndpoint)
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgGeneration)
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
-	_ = rootCmd.MarkFlagRequired(CmdFlagInstallEnv)
+	_ = rootCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
 }

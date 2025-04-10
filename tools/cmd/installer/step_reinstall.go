@@ -23,19 +23,14 @@ import (
 func NewStepReinstall() *cobra.Command {
 	var (
 		unregister bool
-		gsePrefix  string
+		gseRoot    string
 		pkgName    string
-		installEnv string
 	)
 	stepCmd := &cobra.Command{
 		Use:   "step_reinstall",
 		Short: "reinstall",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetInstallEnv(installEnv); err != nil {
-				return err
-			}
-
-			if err := SetGsePrefix(gsePrefix); err != nil {
+			if err := SetGseRoot(gseRoot); err != nil {
 				return err
 			}
 
@@ -74,11 +69,10 @@ func NewStepReinstall() *cobra.Command {
 
 	stepCmd.Flags().BoolVar(&unregister, "unregister", false, "need unregister agent id or not")
 	stepCmd.Flags().StringVar(&pkgName, CmdFlagPkgName, "", "gse pkg name")
-	stepCmd.Flags().StringVar(&gsePrefix, CmdFlagGsePrefix, "/usr/local", "this is the setup dir prefix")
-	stepCmd.Flags().StringVar(&installEnv, CmdFlagInstallEnv, CmdDefaultInstallEnv, "this is the install env")
+	stepCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, "/usr/local", "this is the setup dir prefix")
 
 	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
-	_ = stepCmd.MarkFlagRequired(CmdFlagInstallEnv)
+	_ = stepCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = stepCmd.MarkFlagRequired(CmdFlagPkgName)
 
 	return stepCmd
