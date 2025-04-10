@@ -135,6 +135,7 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 	defer cancel()
 
 	// use singleflight to prevent repeated calls.
+	// nolint: dogsled
 	_, _, _ = s.group.Do(task.ID, func() (result interface{}, err error) {
 		defer func() {
 			if r := recover(); r != nil {
