@@ -21,11 +21,11 @@ import (
 )
 
 // GetFileProxyConf get file proxy conf.
-func GetFileProxyConf(ctx context.Context, tmpFileProxyConfPath, nodeType, token, callbackEndpoint string) error {
+func GetFileProxyConf(ctx context.Context, tmpFileProxyConfPath, nodeRole, token, callbackEndpoint string) error {
 	requestBody := GetFileProxyConfReq{
 		OSType:   runtime.GOOS,
 		CPUArch:  runtime.GOARCH,
-		NodeType: nodeType,
+		NodeRole: nodeRole,
 		Token:    token,
 	}
 
@@ -50,16 +50,16 @@ func GetFileProxyConf(ctx context.Context, tmpFileProxyConfPath, nodeType, token
 type GetFileProxyConfReq struct {
 	OSType   string `json:"os_type"`
 	CPUArch  string `json:"cpu_arch"`
-	NodeType string `json:"node_type"`
+	NodeRole string `json:"node_role"`
 	Token    string `json:"token"`
 }
 
 // GetDataProxyConf get data proxy conf.
-func GetDataProxyConf(ctx context.Context, tmpDataProxyConfPath, nodeType, token, callbackEndpoint string) error {
+func GetDataProxyConf(ctx context.Context, tmpDataProxyConfPath, nodeRole, token, callbackEndpoint string) error {
 	requestBody := GetFileProxyConfReq{
 		OSType:   runtime.GOOS,
 		CPUArch:  runtime.GOARCH,
-		NodeType: nodeType,
+		NodeRole: nodeRole,
 		Token:    token,
 	}
 

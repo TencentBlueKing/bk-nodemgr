@@ -21,11 +21,11 @@ import (
 )
 
 // GetAgentConfig get agent config file.
-func GetAgentConfig(ctx context.Context, callbackEndpoint, tmpAgentConfPath, nodeType, token string) error {
+func GetAgentConfig(ctx context.Context, callbackEndpoint, tmpAgentConfPath, nodeRole, token string) error {
 	requestBody := GetAgentConfigReq{
 		OSType:   runtime.GOOS,
 		CPUArch:  runtime.GOARCH,
-		NodeType: nodeType,
+		NodeRole: nodeRole,
 		Token:    token,
 	}
 
@@ -48,6 +48,6 @@ func GetAgentConfig(ctx context.Context, callbackEndpoint, tmpAgentConfPath, nod
 type GetAgentConfigReq struct {
 	OSType   string `json:"os_type"`
 	CPUArch  string `json:"cpu_arch"`
-	NodeType string `json:"node_type"`
+	NodeRole string `json:"node_role"`
 	Token    string `json:"token"`
 }

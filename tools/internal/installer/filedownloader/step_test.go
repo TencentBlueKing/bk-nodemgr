@@ -24,7 +24,7 @@ func TestNewStep(t *testing.T) {
 		ctx              context.Context
 		callbackEndpoint string
 		downloadEndpoint string
-		nodeType         string
+		nodeRole         string
 		version          string
 		tag              string
 	}
@@ -39,7 +39,7 @@ func TestNewStep(t *testing.T) {
 				ctx:              context.Background(),
 				callbackEndpoint: "http://9.134.43.70:8002",
 				downloadEndpoint: "http://9.134.43.70:7000",
-				nodeType:         "agent",
+				nodeRole:         "agent",
 				version:          "2",
 				tag:              "2.1",
 			},
@@ -50,7 +50,7 @@ func TestNewStep(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_ = main.SetCallbackEndPoint(tt.args.callbackEndpoint)
 			_ = main.SetDownloadEndPoint(tt.args.downloadEndpoint)
-			_ = main.SetNodeType(main.NodeType(tt.args.nodeType))
+			_ = main.SetNodeRole(main.NodeRole(tt.args.nodeRole))
 			_ = main.SetNodeGeneration(tt.args.version)
 			_ = main.SetNodeVersion(tt.args.tag)
 

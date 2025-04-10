@@ -81,7 +81,7 @@ func registerRootPersistentVars(rootCmd *cobra.Command) {
 	var (
 		logFilePath string
 		tmpDirPath  string
-		nodeType    string
+		nodeRole    string
 		debug       bool
 	)
 
@@ -92,16 +92,16 @@ func registerRootPersistentVars(rootCmd *cobra.Command) {
 		StringVar(&tmpDirPath, CmdFlagTmpDir, CmdDefaultTmpDir,
 			"the dir which used to store agent pkg, configs and install log")
 	rootCmd.PersistentFlags().
-		StringVar(&nodeType, CmdFlagNodeType, "agent", "this is the node type")
+		StringVar(&nodeRole, CmdFlagNodeRole, "agent", "this is the node role")
 	rootCmd.PersistentFlags().
 		BoolVar(&debug, CmdFlagDebug, false, "debug mode, default is false")
 
-	_ = rootCmd.MarkPersistentFlagRequired(CmdFlagNodeType)
+	_ = rootCmd.MarkPersistentFlagRequired(CmdFlagNodeRole)
 
 	logFile := new(os.File)
 	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
-		if err := SetNodeType(constant.NodeType(nodeType)); err != nil {
-			return fmt.Errorf("set node type failed, err: %v", err)
+		if err := SetNodeRole(constant.NodeRole(nodeRole)); err != nil {
+			return fmt.Errorf("set node role failed, err: %v", err)
 		}
 
 		if logFilePath != "" {
@@ -255,7 +255,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 				PkgGeneration:        GetNodePkgGeneration(),
 				PkgPath:              GetGsePkgPath(),
 				PkgVersion:           GetNodePkgVersion(),
-				NodeType:             GetNodeType(),
+				NodeRole:             GetNodeRole(),
 				Token:                GetToken(),
 				TmpAgentConfPath:     GetTmpAgentConfPath(),
 				TmpFileProxyConfPath: GetTmpFileProxyConfPath(),

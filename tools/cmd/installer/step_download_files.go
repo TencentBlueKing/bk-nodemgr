@@ -59,7 +59,7 @@ func NewStepDownloadFiles() *cobra.Command {
 				PkgGeneration:        GetNodePkgGeneration(),
 				PkgPath:              GetGsePkgPath(),
 				PkgVersion:           GetNodePkgVersion(),
-				NodeType:             GetNodeType(),
+				NodeRole:             GetNodeRole(),
 				Token:                GetToken(),
 				TmpAgentConfPath:     GetTmpAgentConfPath(),
 				TmpFileProxyConfPath: GetTmpFileProxyConfPath(),

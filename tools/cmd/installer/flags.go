@@ -28,8 +28,8 @@ const (
 	CmdFlagPkgGeneration = "pkg_generation"
 	// CmdFlagGseRoot this flag is used to specify the gse root.
 	CmdFlagGseRoot = "gse_root"
-	// CmdFlagNodeType this flag is used to specify the node type.
-	CmdFlagNodeType = "node_type"
+	// CmdFlagNodeRole this flag is used to specify the node role.
+	CmdFlagNodeRole = "node_role"
 	// CmdFlagDebug this flag is used to specify the debug.
 	CmdFlagDebug = "debug"
 	// CmdFlagTmpDir this flag is used to specify the tmp dir.

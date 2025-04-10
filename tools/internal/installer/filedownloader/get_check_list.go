@@ -23,11 +23,11 @@ import (
 )
 
 // GetCheckList ...
-func GetCheckList(ctx context.Context, nodeType, checkListPath, token, callbackEndpoint string) error {
+func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackEndpoint string) error {
 	requestBody := GetCheckListReq{
 		OSType:   runtime.GOOS,
 		CPUArch:  runtime.GOARCH,
-		NodeType: nodeType,
+		NodeRole: nodeRole,
 		Token:    token,
 	}
 
@@ -84,6 +84,6 @@ func GetCheckList(ctx context.Context, nodeType, checkListPath, token, callbackE
 type GetCheckListReq struct {
 	OSType   string `json:"os_type"`
 	CPUArch  string `json:"cpu_arch"`
-	NodeType string `json:"node_type"`
+	NodeRole string `json:"node_role"`
 	Token    string `json:"token"`
 }

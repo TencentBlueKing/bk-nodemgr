@@ -29,7 +29,7 @@ type Step struct {
 	pkgGeneration        int
 	pkgPath              string
 	pkgVersion           string
-	nodeType             constant.NodeType
+	nodeRole             constant.NodeRole
 	token                string
 	tmpAgentConfPath     string
 	tmpFileProxyConfPath string
@@ -44,7 +44,7 @@ type StepArgs struct {
 	PkgGeneration        int
 	PkgPath              string
 	PkgVersion           string
-	NodeType             constant.NodeType
+	NodeRole             constant.NodeRole
 	Token                string
 	TmpAgentConfPath     string
 	TmpFileProxyConfPath string
@@ -60,7 +60,7 @@ func NewStep(args StepArgs) *Step {
 		pkgGeneration:        args.PkgGeneration,
 		pkgPath:              args.PkgPath,
 		pkgVersion:           args.PkgVersion,
-		nodeType:             args.NodeType,
+		nodeRole:             args.NodeRole,
 		token:                args.Token,
 		tmpAgentConfPath:     args.TmpAgentConfPath,
 		tmpFileProxyConfPath: args.TmpFileProxyConfPath,
@@ -85,7 +85,7 @@ func (step *Step) Run(ctx context.Context) error {
 			err := GetAgentConfig(ctx,
 				step.callbackEndpoint,
 				step.tmpAgentConfPath,
-				string(step.nodeType),
+				string(step.nodeRole),
 				step.token)
 			if err != nil {
 				logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
@@ -105,11 +105,11 @@ func (step *Step) Run(ctx context.Context) error {
 		return nil
 	})
 
-	if step.nodeType == constant.NodeTypeProxy {
+	if step.nodeRole == constant.NodeRoleProxy {
 		gp.Go(func() error {
 			err := backoff.Do(ctx, func(attempt int) error {
 				if err := GetFileProxyConf(ctx, step.tmpFileProxyConfPath,
-					string(step.nodeType),
+					string(step.nodeRole),
 					step.token,
 					step.callbackEndpoint); err != nil {
 					logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
@@ -133,7 +133,7 @@ func (step *Step) Run(ctx context.Context) error {
 			err := backoff.Do(ctx, func(attempt int) error {
 				if err := GetDataProxyConf(ctx,
 					step.tmpDataProxyConfPath,
-					string(step.nodeType),
+					string(step.nodeRole),
 					step.token,
 					step.callbackEndpoint); err != nil {
 					logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
@@ -162,7 +162,7 @@ func (step *Step) Run(ctx context.Context) error {
 				step.pkgPath,
 				step.pkgVersion,
 				step.downloadPoint,
-				string(step.nodeType))
+				string(step.nodeRole))
 			if err != nil {
 				logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
 					"download agent pkg failed, attempt: %d, err: %v", attempt, err)
@@ -185,7 +185,7 @@ func (step *Step) Run(ctx context.Context) error {
 	gp.Go(func() error {
 		err := backoff.Do(ctx, func(attempt int) error {
 			if err := GetCheckList(ctx,
-				string(step.nodeType),
+				string(step.nodeRole),
 				step.checkListPath,
 				step.token,
 				step.callbackEndpoint); err != nil {

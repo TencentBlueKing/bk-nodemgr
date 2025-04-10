@@ -23,7 +23,7 @@ import (
 // nolint: gochecknoglobals
 var node = struct {
 	sync.Once
-	nodeType   constant.NodeType
+	nodeRole   constant.NodeRole
 	gseRoot    string
 	generation int
 	version    string
@@ -89,20 +89,20 @@ func SetGseRoot(gseRoot string) error {
 	return nil
 }
 
-// SetNodeType set node type.
-func SetNodeType(nodeType constant.NodeType) error {
-	if err := nodeType.Validate(); err != nil {
-		return fmt.Errorf("set node type failed, err: %w", err)
+// SetNodeRole set node role.
+func SetNodeRole(nodeRole constant.NodeRole) error {
+	if err := nodeRole.Validate(); err != nil {
+		return fmt.Errorf("set node role failed, err: %w", err)
 	}
 
-	node.nodeType = nodeType
+	node.nodeRole = nodeRole
 
 	return nil
 }
 
-// GetNodeType get node type.
-func GetNodeType() constant.NodeType {
-	return node.nodeType
+// GetNodeRole get node role.
+func GetNodeRole() constant.NodeRole {
+	return node.nodeRole
 }
 
 // GetNodePkgGeneration get node pkg generation.

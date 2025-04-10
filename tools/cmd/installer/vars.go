@@ -74,7 +74,7 @@ func GetGsePkgName() string {
 	gsePkg.Do(func() {
 		gsePkg.pkgName = strings.Join(
 			[]string{
-				string(node.nodeType),
+				string(node.nodeRole),
 				runtime.GOOS,
 				runtime.GOARCH,
 				strconv.Itoa(node.generation),
@@ -126,7 +126,7 @@ var setupDirPath = struct {
 // GetSetupDir get setup dir.
 func GetSetupDir() string {
 	setupDirPath.Do(func() {
-		setupDirPath.dirPath = filepath.Join(node.gseRoot, string(node.nodeType))
+		setupDirPath.dirPath = filepath.Join(node.gseRoot, string(node.nodeRole))
 	})
 
 	return setupDirPath.dirPath

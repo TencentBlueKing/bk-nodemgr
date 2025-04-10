@@ -12,23 +12,23 @@ package constant
 
 import "fmt"
 
-// NodeType define node type.
-type NodeType string
+// NodeRole define node role.
+type NodeRole string
 
-// Validate validate node type.
-func (nodeType NodeType) Validate() error {
-	switch nodeType {
-	case NodeTypeAgent, NodeTypeProxy:
+// Validate validate node role.
+func (nodeRole NodeRole) Validate() error {
+	switch nodeRole {
+	case NodeRoleAgent, NodeRoleProxy:
 		return nil
 	}
 
-	return fmt.Errorf("unknown node type, node-type(%s)", nodeType)
+	return fmt.Errorf("unknown node role, node-type(%s)", nodeRole)
 }
 
 const (
-	// NodeTypeAgent means this is an agent node.
-	NodeTypeAgent NodeType = "agent"
+	// NodeRoleAgent means this is an agent node.
+	NodeRoleAgent NodeRole = "agent"
 
-	// NodeTypeProxy means this is a proxy node.
-	NodeTypeProxy NodeType = "proxy"
+	// NodeRoleProxy means this is a proxy node.
+	NodeRoleProxy NodeRole = "proxy"
 )

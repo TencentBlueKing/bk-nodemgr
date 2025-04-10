@@ -22,13 +22,13 @@ import (
 )
 
 // DownloadPkg ...
-func DownloadPkg(ctx context.Context, pkgGeneration int, pkgPath, pkgVersion, downloadPoint, nodeType string) error {
+func DownloadPkg(ctx context.Context, pkgGeneration int, pkgPath, pkgVersion, downloadPoint, nodeRole string) error {
 	if pkgPath == "" {
 		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "pkg path is empty")
 		return errors.New("pkg path is empty")
 	}
 
-	downloadURL, err := url.JoinPath(downloadPoint, "/download", nodeType)
+	downloadURL, err := url.JoinPath(downloadPoint, "/download", nodeRole)
 	if err != nil {
 		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "download agent pkg failed: %v", err)
 		return fmt.Errorf("download agent pkg failed: %v", err)
