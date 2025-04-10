@@ -135,7 +135,7 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 	defer cancel()
 
 	// use singleflight to prevent repeated calls.
-	result, err, shared := s.group.Do(task.ID, func() (result interface{}, err error) {
+	_, _, _ = s.group.Do(task.ID, func() (result interface{}, err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				result = false
@@ -147,19 +147,15 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 
 		err = task.Fn(ctx)
 		if err != nil {
+			s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
+
 			return false, err
 		}
 
+		s.logger.Infof("task execution completed, scheduler-task-id(%s)", task.ID)
+
 		return true, nil
 	})
-
-	if err != nil {
-		s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
-
-		return
-	}
-
-	s.logger.Infof("task execution completed, scheduler-task-id(%s), result(%v), shared(%v)", task.ID, result, shared)
 }
 
 // Terminate ...
