@@ -9,15 +9,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-// Package utils ...
+
 package utils
 
 import (
 	"syscall"
 )
 
-// checkFreeSpace check unix disk free space.
-func checkFreeSpace(dirPath string) (uint64, error) {
+// countFreeSpace check unix disk free space.
+func countFreeSpace(dirPath string) (uint64, error) {
 	var stat syscall.Statfs_t
 	err := syscall.Statfs(dirPath, &stat)
 	if err != nil {

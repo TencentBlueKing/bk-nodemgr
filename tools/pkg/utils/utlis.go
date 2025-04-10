@@ -294,7 +294,7 @@ func CountDiskFreeSpace(dirPath string) (uint64, error) {
 
 	freeSpace, err := checkFreeSpace(absDirPath)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check free space: %w", err)
+		return 0, fmt.Errorf("failed to count free space: %w", err)
 	}
 
 	return freeSpace, nil
