@@ -20,6 +20,7 @@ type AgentInfo struct {
 	BKCloudID      int     `json:"bk_cloud_id"`
 	BKHostIP       string  `json:"bk_host_ip"`
 	BKOSType       string  `json:"bk_os_type"`
+	BKCPUArch      string  `json:"bk_cpu_architecture"`
 	ReportTime     uint64  `json:"report_time"`
 	ParentIP       string  `json:"parent_ip"`
 	ParentPort     uint    `json:"parent_port"`

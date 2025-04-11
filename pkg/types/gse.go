@@ -86,6 +86,7 @@ type AgentInfo struct {
 
 	HostIP        string
 	OSType        string
+	Arch          string
 	ParentIP      string
 	ParentPort    uint
 	CPURate       float32

@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -103,6 +104,9 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 	}
 	data := make([]*types.AgentInfo, len(resp))
 	for idx, info := range resp {
+		osType, _ := platform.NormalizeOS(info.BKOSType)
+		arch, _ := platform.NormalizeArch(info.BKCPUArch)
+
 		data[idx] = &types.AgentInfo{
 			AgentState: types.AgentState{
 				AgentID:        info.BKAgentID,
@@ -113,7 +117,8 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 				ReportTime:     info.ReportTime,
 			},
 			HostIP:        info.BKHostIP,
-			OSType:        info.BKOSType,
+			OSType:        osType,
+			Arch:          arch,
 			ParentIP:      info.ParentIP,
 			ParentPort:    info.ParentPort,
 			CPURate:       info.CPURate,
