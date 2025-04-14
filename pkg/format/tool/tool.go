@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package tool this package provide stander format for the nodemgr tools.
 package tool
 
 import (
