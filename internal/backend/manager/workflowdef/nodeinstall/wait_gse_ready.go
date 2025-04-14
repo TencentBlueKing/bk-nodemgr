@@ -29,6 +29,7 @@ func NewActionWaitGseRunning(
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
 ) operengine.ActionDef {
+
 	return &WaitGseReady{
 		gseClient:          gseClient,
 		iDaoNodeDeployment: iDaoNodeDeployment,
@@ -121,8 +122,6 @@ func (action *WaitGseReady) Do(ctx *operengine.ActionInstContext) error {
 		if state.StatusCode != types.AgentStatusCodeRunning {
 			return fmt.Errorf("agent state is not running, status(%s)", state.StatusCode.String())
 		}
-
-		ctx.Data.Log("agent state: " + state.StatusCode.String())
 
 		return nil
 	})

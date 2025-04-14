@@ -28,6 +28,7 @@ func NewActionSyncNodeInfo(
 	storage nodedeployment.IStorage,
 	logger logger.Logger,
 ) operengine.ActionDef {
+
 	return &SyncNodeInfo{
 		gseClient: gseClient,
 		storage:   storage,
@@ -74,7 +75,7 @@ func (action *SyncNodeInfo) Tags() []operengine.ActionTag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (action *SyncNodeInfo) MaxRetryCount() uint {
-	return 3
+	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
@@ -114,7 +115,8 @@ func (action *SyncNodeInfo) Do(ctx *operengine.ActionInstContext) error {
 
 	info.Dynamic.NodeOsType, err = platform.NormalizeOS(agentInfo.OSType)
 	if err != nil {
-		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)", info.Dynamic.AgentID, agentInfo.OSType, err)
+		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)",
+			info.Dynamic.AgentID, agentInfo.OSType, err)
 	}
 
 	if err := action.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {

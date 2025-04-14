@@ -25,7 +25,11 @@ import (
 )
 
 // NewActionPushHostIdentifier ...
-func NewActionPushHostIdentifier(cmdbClient cmdb.IHandler, storage nodedeployment.IStorage, logger logger.Logger) *PushHostIdentifier {
+func NewActionPushHostIdentifier(
+	cmdbClient cmdb.IHandler,
+	storage nodedeployment.IStorage,
+	logger logger.Logger,
+) *PushHostIdentifier {
 
 	return &PushHostIdentifier{
 		cmdbClient: cmdbClient,
