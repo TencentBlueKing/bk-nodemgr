@@ -11,6 +11,7 @@
 package nodeinstall
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
@@ -111,7 +112,7 @@ func (action *InstallAgentBySSH) MaxRetryCount() uint {
 // DelayFn this func define when this action fails, how long to wait before retrying.
 func (action *InstallAgentBySSH) DelayFn() func() {
 	return func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(5 * time.Second) // nolint: mnd
 	}
 }
 
@@ -138,47 +139,8 @@ func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) (err erro
 		}
 	}()
 
-	sshConf := &sshx.Config{
-		Network: sshx.NetworkTCP,
-		IP:      info.LoginIP,
-		Port:    int(info.LoginPort),
-		User:    info.LoginUser,
-		Logger:  action.logger,
-	}
-
-	switch info.LoginMode {
-	case types.LoginModePassword:
-		passwd, err := action.crypter.Decrypt(info.LoginPassword)
-		if err != nil {
-			err = fmt.Errorf("failed to decrypt password, err: %w", err)
-
-			return err
-		}
-
-		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = string(passwd)
-
-	case types.LoginModeKeyFile:
-		privateKey, err := action.crypter.Decrypt(info.LoginKeyFile)
-		if err != nil {
-			err = fmt.Errorf("failed to decrypt private key, err: %w", err)
-
-			return err
-		}
-
-		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
-		sshConf.PrivateKey = privateKey
-	case types.LoginModeNone:
-		sshConf.AuthMethod = sshx.AuthMethodNone
-	default:
-		return fmt.Errorf("this action unsupported login mode, mode(%s)", info.LoginMode)
-	}
-
-	client, err := sshx.NewClient(ctx.Ctx, sshConf, sshx.DefaultTimeout)
+	client, err := action.buildSSH(ctx.Ctx, info)
 	if err != nil {
-		err = fmt.Errorf("failed to connect to host, host(%s), err: %w",
-			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
-
 		return err
 	}
 
@@ -272,6 +234,48 @@ func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) (err erro
 	ctx.Data.Log(fmt.Sprintf("install agent result: %s", outStr))
 
 	return nil
+}
+
+func (action *InstallAgentBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
+	sshConf := &sshx.Config{
+		Network: sshx.NetworkTCP,
+		IP:      info.LoginIP,
+		Port:    int(info.LoginPort),
+		User:    info.LoginUser,
+		Logger:  action.logger,
+	}
+
+	switch info.LoginMode {
+	case types.LoginModePassword:
+		passwd, err := action.crypter.Decrypt(info.LoginPassword)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
+		}
+
+		sshConf.AuthMethod = sshx.AuthMethodPassword
+		sshConf.Password = string(passwd)
+
+	case types.LoginModeKeyFile:
+		privateKey, err := action.crypter.Decrypt(info.LoginKeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
+		}
+
+		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
+		sshConf.PrivateKey = privateKey
+	case types.LoginModeNone:
+		sshConf.AuthMethod = sshx.AuthMethodNone
+	default:
+		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
+	}
+
+	client, err := sshx.NewClient(ctx, sshConf, sshx.DefaultTimeout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
+			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
+	}
+
+	return client, nil
 }
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
