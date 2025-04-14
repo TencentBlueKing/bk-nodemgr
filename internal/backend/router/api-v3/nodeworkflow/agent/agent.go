@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -27,7 +27,7 @@ type handler struct {
 	rg                 *gin.RouterGroup
 	manager            manager.Manager
 	iDaoNodeDeployment nodedeployment.IDomainInit
-	iDaoNetworkUnit    topoStorage.IDaoNetworkUnit
+	iDaoNetworkUnit    topoStg.IDaoNetworkUnit
 	logger             logger.Logger
 	crypter            crypter.Crypter
 }

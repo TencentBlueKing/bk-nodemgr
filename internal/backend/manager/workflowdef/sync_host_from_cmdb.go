@@ -15,7 +15,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -25,7 +25,7 @@ import (
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topo.IStorage) operengine.ActionDef {
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
 	return &syncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
@@ -41,7 +41,7 @@ type SyncHostFromCMDBParam struct {
 // syncHostFromCMDB ...
 type syncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	topoStorage topo.IStorage
+	topoStorage topoStg.IStorage
 }
 
 // Name ...

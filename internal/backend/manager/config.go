@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -29,7 +29,7 @@ import (
 type Config struct {
 	CmdbHandler           cmdb.IHandler
 	GSEHandler            gse.IHandler
-	TopoStorage           topoStorage.IStorage
+	TopoStorage           topoStg.IStorage
 	NodeDeploymentStorage nodedeployment.IStorage
 	Provider              discover.Provider
 

@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -24,7 +24,7 @@ import (
 )
 
 // NewActionGenAllBizHostSyncOper this action will create host sync operation for all business.
-func NewActionGenAllBizHostSyncOper(topoStorage topo.IStorage, operMgr operengine.OperationMgr) operengine.ActionDef {
+func NewActionGenAllBizHostSyncOper(topoStorage topoStg.IStorage, operMgr operengine.OperationMgr) operengine.ActionDef {
 	return &genAllBizHostSyncOper{
 		topoStorage: topoStorage,
 		operMgr:     operMgr,
@@ -38,7 +38,7 @@ type GenAllBizHostSyncOperParam struct {
 
 // genAllBizHostSyncOper ...
 type genAllBizHostSyncOper struct {
-	topoStorage topo.IStorage
+	topoStorage topoStg.IStorage
 	operMgr     operengine.OperationMgr
 }
 

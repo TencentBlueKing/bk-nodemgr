@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -30,7 +30,7 @@ import (
 // NewActionUpsertHost ...
 func NewActionUpsertHost(
 	cmdbHandler cmdb.IHandler,
-	iDaoHost topo.IDaoHost,
+	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 ) operengine.ActionDef {
 
@@ -49,7 +49,7 @@ type UpsertHostParam struct {
 // UpsertHost ...
 type UpsertHost struct {
 	cmdbHandler        cmdb.IHost
-	iDaoHost           topo.IDaoHost
+	iDaoHost           topoStg.IDaoHost
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 }
 

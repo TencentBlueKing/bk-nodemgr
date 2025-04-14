@@ -13,7 +13,7 @@ package nodeinstall
 import (
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"time"
 
@@ -23,7 +23,7 @@ import (
 
 // NewActionUpdateHost ...
 func NewActionUpdateHost(
-	iDaoHost topo.IDaoHost,
+	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
 ) operengine.ActionDef {
@@ -42,7 +42,7 @@ type UpdateHostParam struct {
 
 // UpdateHost ...
 type UpdateHost struct {
-	iDaoHost           topo.IDaoHost
+	iDaoHost           topoStg.IDaoHost
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	logger             logger.Logger
 }

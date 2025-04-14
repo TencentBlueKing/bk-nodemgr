@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -35,7 +35,7 @@ type Capability struct {
 	Manager manager.Manager
 
 	// TopoStorage bk nodeman topo storage.
-	TopoStorage topo.IStorage
+	TopoStorage topoStg.IStorage
 
 	// TrigEngineStorage bk nodeman trigengine storage.
 	TrigEngineStorage trigengine.Storage

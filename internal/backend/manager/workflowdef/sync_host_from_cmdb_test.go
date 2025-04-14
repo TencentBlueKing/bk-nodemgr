@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
@@ -28,7 +28,7 @@ func Test_syncHostFromCMDB_Do(t *testing.T) {
 
 	type fields struct {
 		cmdbHandler cmdb.IHandler
-		topoStorage topo.IStorage
+		topoStorage topoStg.IStorage
 	}
 	type args struct {
 		ctx *operengine.ActionInstContext

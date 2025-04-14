@@ -15,7 +15,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -27,7 +27,7 @@ import (
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topo.IStorage,
+func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage,
 	logger logger.Logger) operengine.ActionDef {
 
 	return &syncBusinessFromCMDB{
@@ -45,7 +45,7 @@ type SyncBizFromCMDBParam struct {
 // syncBusinessFromCMDB sync business info from cmdb.
 type syncBusinessFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	topoStorage topo.IStorage
+	topoStorage topoStg.IStorage
 	logger      logger.Logger
 }
 

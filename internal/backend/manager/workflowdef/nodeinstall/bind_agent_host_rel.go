@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -27,7 +27,7 @@ import (
 )
 
 // NewActionBindAgentHostRel ...
-func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topo.IDaoHost,
+func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topoStg.IDaoHost,
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) *BindAgentHostRel {
 
 	return &BindAgentHostRel{
@@ -46,7 +46,7 @@ type BindAgentHostRelParam struct {
 // BindAgentHostRel ...
 type BindAgentHostRel struct {
 	cmdb.IBindHostAgent
-	hostDao           topo.IDaoHost
+	hostDao           topoStg.IDaoHost
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment
 	logger            logger.Logger
 }

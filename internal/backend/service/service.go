@@ -32,7 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
@@ -157,7 +157,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.TopoStorage, err = topoStorage.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.TopoStorage, err = topoStg.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}

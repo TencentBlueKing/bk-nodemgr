@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -34,8 +34,8 @@ import (
 // NewActionRenderNodeDeployment new action to render node deployment.
 func NewActionRenderNodeDeployment(
 	storage nodedeployment.IDaoNodeDeployment,
-	iDaoHost topo.IDaoHost,
-	iDomainGseProxy topo.IDomainGse,
+	iDaoHost topoStg.IDaoHost,
+	iDomainGseProxy topoStg.IDomainGse,
 	logger logger.Logger) operengine.ActionDef {
 
 	return &RenderNodeDeployment{
@@ -54,8 +54,8 @@ type RenderNodeDeploymentParam struct {
 // RenderNodeDeployment this is the action to render node deployment.
 type RenderNodeDeployment struct {
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
-	iDaoHost           topo.IDaoHost
-	topo.IDomainGse
+	iDaoHost           topoStg.IDaoHost
+	topoStg.IDomainGse
 
 	logger logger.Logger
 }

@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -24,7 +24,7 @@ import (
 )
 
 // NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topo.IStorage) operengine.ActionDef {
+func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
 	return &syncNetworkAreaFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
@@ -39,7 +39,7 @@ type SyncNetworkAreaFromCMDBParam struct {
 // syncNetworkAreaFromCMDB defines the action.
 type syncNetworkAreaFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	topoStorage topo.IStorage
+	topoStorage topoStg.IStorage
 }
 
 // Name returns the name of the action.

@@ -8,13 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo provides the topo API handler.
+// Package topoStg provides the topoStg API handler.
 package topo
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -24,7 +24,7 @@ import (
 type handler struct {
 	rg          *gin.RouterGroup
 	manager     manager.Manager
-	storage     topo.IStorage
+	storage     topoStg.IStorage
 	cmdbHandler cmdb.IHandler
 	logger      logger.Logger
 }
@@ -40,7 +40,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	}
 }
 
-// Load loads topo handler.
+// Load loads topoStg handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
@@ -68,7 +68,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// accesspoint apis.
 	h.rg.POST("/accesspoint/list", rest.RestHandlerFunc(h.ListAccessPoint))
 
-	// topo event apis.
+	// topoStg event apis.
 	h.rg.POST("/event/list", rest.RestHandlerFunc(h.ListEvent))
 	h.rg.POST("/event/distinct", rest.RestHandlerFunc(h.DistinctEvent))
 

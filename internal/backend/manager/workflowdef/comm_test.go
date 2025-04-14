@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
@@ -38,7 +38,7 @@ import (
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// TopoStorage bk nodeman topo storage.
-	TopoStorage topo.IStorage
+	TopoStorage topoStg.IStorage
 
 	// TrigEngineStorage bk nodeman trigengine storage.
 	TrigEngineStorage trigengine.Storage
@@ -110,7 +110,7 @@ func testCapability(t *testing.T) *Capability {
 		t.Fatal(err)
 	}
 
-	topoStorage, err := topo.NewStorage(mongoClient, "bk_nodeman", loggerDefault)
+	topoStorage, err := topoStg.NewStorage(mongoClient, "bk_nodeman", loggerDefault)
 	if err != nil {
 		t.Fatal(err)
 	}

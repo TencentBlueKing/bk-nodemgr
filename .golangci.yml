@@ -633,9 +633,6 @@ linters-settings:
     # List of aliases
     # Default: []
     alias:
-      # Using `$2Storage` alias for `pkg/storage/^[a-z0-9]+$`
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/^[a-z0-9]+$/storage/^[a-z0-9]+$
-        alias: $2Storage
       # An explicit empty alias can be used to ensure no aliases are used for a package.
       # This can be useful if `no-extra-aliases: true` doesn't fit your need.
       # Multiple packages can use an empty alias.
@@ -657,3 +654,6 @@ linters-settings:
       # Using `mongoOptions` alias for `go.mongodb.org/mongo-driver/mongo/options`
       - pkg: go.mongodb.org/mongo-driver/mongo/options
         alias: mongoOptions
+      # Using `topoStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo
+        alias: topoStg
