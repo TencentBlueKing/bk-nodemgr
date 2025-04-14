@@ -143,30 +143,20 @@ message NodeOperActionInstLogGetResp {
 
 // NodeAgentInstallReq describes the node agent install request.
 message NodeAgentInstallReq {
-  enum Addressing {
-    static = 0;
-    dynamic = 1;
-  }
-  Addressing addressing = 1;
-  optional int64 biz_id = 2;
-  string inner_ip = 3;
-  string inner_ipv6 = 4;
+  string bk_addressing = 1;
+  optional int64 bk_biz_id = 2;
+  string bk_host_innerip = 3;
+  string bk_host_innerip_v6 = 4;
   string login_ip = 5;
   optional int64 login_port = 6;
   string login_user = 7;
-  enum LoginMode {
-    LOGIN_MODE_AUTO = 0;
-    LOGIN_MODE_PASSWORD = 1;
-    LOGIN_MODE_KEY = 2;
-    LOGIN_MODE_NONE = 3;
-  }
-  LoginMode login_mode = 8;
+  // support: auto, password, keyfile, none
+  string login_mode = 8;
   string login_password = 9;
   bytes login_key_file = 10;
-  optional int64 network_unit_id = 11;
+  optional int64 bk_networkunit_id = 11;
   string os_type = 12;
-  optional int64 target_generation = 13;
-  string target_version = 14;
+  string target_version = 13;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

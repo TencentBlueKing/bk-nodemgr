@@ -12,7 +12,6 @@
 package agent
 
 import (
-	"errors"
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
@@ -24,6 +23,9 @@ import (
 	"github.com/google/uuid"
 	"time"
 )
+
+// DefaultNodeGeneration default node generation.
+const DefaultNodeGeneration = 2
 
 // AgentInstall install agent.
 func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
@@ -41,19 +43,9 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	var addressing types.Addressing
-	switch req.GetAddressing() {
-	case protoBackend.NodeAgentInstallReq_static:
-		addressing = types.AddressingStatic
-	case protoBackend.NodeAgentInstallReq_dynamic:
-		addressing = types.AddressingDynamic
-	default:
-		h.logger.Error("invalid addressing", errors.New("addressing must be static or dynamic"))
+	addressing := types.Addressing(req.GetBkAddressing())
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, errors.New("addressing must be static or dynamic"))
-	}
-
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, req.GetNetworkUnitId())
+	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, req.GetBkNetworkunitId())
 	if err != nil {
 		h.logger.Error("get network unit failed", err)
 
@@ -64,17 +56,17 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		Host: types.Host{
 			TenantID: ctx.TenantID,
 			Static: &types.HostStatic{
-				BizID:         req.GetBizId(),
+				BizID:         req.GetBkBizId(),
 				NetworkAreaID: networkUnit.NetworkAreaID,
-				InnerIP:       req.GetInnerIp(),
-				InnerIPV6:     req.GetInnerIpv6(),
+				InnerIP:       req.GetBkHostInnerip(),
+				InnerIPV6:     req.GetBkHostInneripV6(),
 				OSType:        req.GetOsType(),
 				Addressing:    addressing,
 			},
 			Dynamic: &types.HostDynamic{
 				NodeRole:       types.NodeRoleAgent,
 				NodeVersion:    req.GetTargetVersion(),
-				NodeGeneration: types.NodeGeneration(req.GetTargetGeneration()),
+				NodeGeneration: DefaultNodeGeneration,
 				NetworkUnitID:  networkUnit.ID,
 			},
 		},
@@ -83,20 +75,16 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		LoginUser: req.GetLoginUser(),
 	})
 
-	switch req.GetLoginMode() {
-	case protoBackend.NodeAgentInstallReq_LOGIN_MODE_AUTO:
-		return nil, errf.ErrWrap(errf.InvalidParameter,
-			errors.New("this mode is no implement, please use login_mode_password or login_mode_key"))
-
-	case protoBackend.NodeAgentInstallReq_LOGIN_MODE_KEY:
-		nodeDeployment.Info.LoginMode = types.LoginModeKeyFile
+	nodeDeployment.Info.LoginMode = types.LoginMode(req.GetLoginMode())
+	switch nodeDeployment.Info.LoginMode {
+	case types.LoginModeKeyFile:
 		nodeDeployment.Info.LoginKeyFile, err = h.crypter.Encrypt(req.GetLoginKeyFile())
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
-	case protoBackend.NodeAgentInstallReq_LOGIN_MODE_PASSWORD:
+	case types.LoginModePassword:
 		nodeDeployment.Info.LoginMode = types.LoginModePassword
 		nodeDeployment.Info.LoginPassword, err = h.crypter.Encrypt([]byte(req.GetLoginPassword()))
 		if err != nil {
@@ -104,7 +92,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
-	case protoBackend.NodeAgentInstallReq_LOGIN_MODE_NONE:
+	case types.LoginModeNone:
 		nodeDeployment.Info.LoginMode = types.LoginModeNone
 	default:
 		err = fmt.Errorf("unsupported login mode %s", req.GetLoginMode())

@@ -12,15 +12,17 @@ package v3
 
 import (
 	"errors"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check body.
+// nolint: protogetter
 func (x *NodeAgentInstallReq) Validate() error {
-	if x.InnerIp == "" && x.InnerIpv6 == "" {
-		return errors.New("inner_ip and inner_ipv6 can not be empty at the same time")
+	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
+		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
 
-	if x.GetBizId() < 0 {
+	if x.GetBkBizId() < 0 {
 		return errors.New("biz_id must be equal or greater than 0")
 	}
 
@@ -28,20 +30,16 @@ func (x *NodeAgentInstallReq) Validate() error {
 		return errors.New("os_type can not be empty")
 	}
 
-	//if err := types.Addressing(x.GetAddressing()).Validate(); err != nil {
-	//	return err
-	//}
+	if err := types.Addressing(x.GetBkAddressing()).Validate(); err != nil {
+		return err
+	}
 
-	if x.GetNetworkUnitId() < 0 {
+	if x.GetBkNetworkunitId() < 0 {
 		return errors.New("network_unit_id must be greater than or equal to 0")
 	}
 
 	if x.TargetVersion == "" {
 		return errors.New("target_version can not be empty")
-	}
-
-	if x.GetTargetGeneration() <= 0 || x.GetTargetGeneration() > 2 {
-		return errors.New("target_generation must be 1 or 2")
 	}
 
 	if x.LoginIp == "" {
@@ -56,15 +54,8 @@ func (x *NodeAgentInstallReq) Validate() error {
 		return errors.New("login_user can not be empty")
 	}
 
-	switch x.GetLoginMode() {
-	case NodeAgentInstallReq_LOGIN_MODE_PASSWORD:
-		if len(x.LoginPassword) == 0 {
-			return errors.New("login_password can not be empty")
-		}
-	case NodeAgentInstallReq_LOGIN_MODE_KEY:
-		if len(x.LoginKeyFile) == 0 {
-			return errors.New("login_key_file can not be empty")
-		}
+	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+		return err
 	}
 
 	return nil
@@ -72,23 +63,18 @@ func (x *NodeAgentInstallReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeAgentInstallReq) AutoConvert() {
-	if x.NetworkUnitId == nil {
-		x.NetworkUnitId = new(int64)
-		*x.NetworkUnitId = -1
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
 	}
 
-	if x.BizId == nil {
-		x.BizId = new(int64)
-		*x.BizId = -1
+	if x.BkBizId == nil {
+		x.BkBizId = new(int64)
+		*x.BkBizId = -1
 	}
 
 	if x.LoginPort == nil {
 		x.LoginPort = new(int64)
 		*x.LoginPort = -1
-	}
-
-	if x.TargetGeneration == nil {
-		x.TargetGeneration = new(int64)
-		*x.TargetGeneration = -1
 	}
 }

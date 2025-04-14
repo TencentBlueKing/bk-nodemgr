@@ -22,104 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type NodeAgentInstallReq_Addressing int32
-
-const (
-	NodeAgentInstallReq_static  NodeAgentInstallReq_Addressing = 0
-	NodeAgentInstallReq_dynamic NodeAgentInstallReq_Addressing = 1
-)
-
-// Enum value maps for NodeAgentInstallReq_Addressing.
-var (
-	NodeAgentInstallReq_Addressing_name = map[int32]string{
-		0: "static",
-		1: "dynamic",
-	}
-	NodeAgentInstallReq_Addressing_value = map[string]int32{
-		"static":  0,
-		"dynamic": 1,
-	}
-)
-
-func (x NodeAgentInstallReq_Addressing) Enum() *NodeAgentInstallReq_Addressing {
-	p := new(NodeAgentInstallReq_Addressing)
-	*p = x
-	return p
-}
-
-func (x NodeAgentInstallReq_Addressing) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (NodeAgentInstallReq_Addressing) Descriptor() protoreflect.EnumDescriptor {
-	return file_node_workflow_proto_enumTypes[0].Descriptor()
-}
-
-func (NodeAgentInstallReq_Addressing) Type() protoreflect.EnumType {
-	return &file_node_workflow_proto_enumTypes[0]
-}
-
-func (x NodeAgentInstallReq_Addressing) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use NodeAgentInstallReq_Addressing.Descriptor instead.
-func (NodeAgentInstallReq_Addressing) EnumDescriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{12, 0}
-}
-
-type NodeAgentInstallReq_LoginMode int32
-
-const (
-	NodeAgentInstallReq_LOGIN_MODE_AUTO     NodeAgentInstallReq_LoginMode = 0
-	NodeAgentInstallReq_LOGIN_MODE_PASSWORD NodeAgentInstallReq_LoginMode = 1
-	NodeAgentInstallReq_LOGIN_MODE_KEY      NodeAgentInstallReq_LoginMode = 2
-	NodeAgentInstallReq_LOGIN_MODE_NONE     NodeAgentInstallReq_LoginMode = 3
-)
-
-// Enum value maps for NodeAgentInstallReq_LoginMode.
-var (
-	NodeAgentInstallReq_LoginMode_name = map[int32]string{
-		0: "LOGIN_MODE_AUTO",
-		1: "LOGIN_MODE_PASSWORD",
-		2: "LOGIN_MODE_KEY",
-		3: "LOGIN_MODE_NONE",
-	}
-	NodeAgentInstallReq_LoginMode_value = map[string]int32{
-		"LOGIN_MODE_AUTO":     0,
-		"LOGIN_MODE_PASSWORD": 1,
-		"LOGIN_MODE_KEY":      2,
-		"LOGIN_MODE_NONE":     3,
-	}
-)
-
-func (x NodeAgentInstallReq_LoginMode) Enum() *NodeAgentInstallReq_LoginMode {
-	p := new(NodeAgentInstallReq_LoginMode)
-	*p = x
-	return p
-}
-
-func (x NodeAgentInstallReq_LoginMode) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (NodeAgentInstallReq_LoginMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_node_workflow_proto_enumTypes[1].Descriptor()
-}
-
-func (NodeAgentInstallReq_LoginMode) Type() protoreflect.EnumType {
-	return &file_node_workflow_proto_enumTypes[1]
-}
-
-func (x NodeAgentInstallReq_LoginMode) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use NodeAgentInstallReq_LoginMode.Descriptor instead.
-func (NodeAgentInstallReq_LoginMode) EnumDescriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{12, 1}
-}
-
 // NodeWorkflowListReq describes the node workflow list request.
 type NodeWorkflowListReq struct {
 	state                  protoimpl.MessageState               `protogen:"open.v1"`
@@ -924,23 +826,23 @@ func (x *NodeOperActionInstLogGetResp) GetData() *NodeOperActionInstLogGetResp_D
 
 // NodeAgentInstallReq describes the node agent install request.
 type NodeAgentInstallReq struct {
-	state            protoimpl.MessageState         `protogen:"open.v1"`
-	Addressing       NodeAgentInstallReq_Addressing `protobuf:"varint,1,opt,name=addressing,proto3,enum=v3.NodeAgentInstallReq_Addressing" json:"addressing"`
-	BizId            *int64                         `protobuf:"varint,2,opt,name=biz_id,json=bizId,proto3,oneof" json:"biz_id"`
-	InnerIp          string                         `protobuf:"bytes,3,opt,name=inner_ip,json=innerIp,proto3" json:"inner_ip"`
-	InnerIpv6        string                         `protobuf:"bytes,4,opt,name=inner_ipv6,json=innerIpv6,proto3" json:"inner_ipv6"`
-	LoginIp          string                         `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip"`
-	LoginPort        *int64                         `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3,oneof" json:"login_port"`
-	LoginUser        string                         `protobuf:"bytes,7,opt,name=login_user,json=loginUser,proto3" json:"login_user"`
-	LoginMode        NodeAgentInstallReq_LoginMode  `protobuf:"varint,8,opt,name=login_mode,json=loginMode,proto3,enum=v3.NodeAgentInstallReq_LoginMode" json:"login_mode"`
-	LoginPassword    string                         `protobuf:"bytes,9,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
-	LoginKeyFile     []byte                         `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
-	NetworkUnitId    *int64                         `protobuf:"varint,11,opt,name=network_unit_id,json=networkUnitId,proto3,oneof" json:"network_unit_id"`
-	OsType           string                         `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
-	TargetGeneration *int64                         `protobuf:"varint,13,opt,name=target_generation,json=targetGeneration,proto3,oneof" json:"target_generation"`
-	TargetVersion    string                         `protobuf:"bytes,14,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
+	BkBizId         *int64                 `protobuf:"varint,2,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id"`
+	BkHostInnerip   string                 `protobuf:"bytes,3,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	BkHostInneripV6 string                 `protobuf:"bytes,4,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
+	LoginIp         string                 `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip"`
+	LoginPort       *int64                 `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3,oneof" json:"login_port"`
+	LoginUser       string                 `protobuf:"bytes,7,opt,name=login_user,json=loginUser,proto3" json:"login_user"`
+	// support: auto, password, keyfile, none
+	LoginMode       string `protobuf:"bytes,8,opt,name=login_mode,json=loginMode,proto3" json:"login_mode"`
+	LoginPassword   string `protobuf:"bytes,9,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
+	LoginKeyFile    []byte `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
+	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
+	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
+	TargetVersion   string `protobuf:"bytes,13,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *NodeAgentInstallReq) Reset() {
@@ -973,30 +875,30 @@ func (*NodeAgentInstallReq) Descriptor() ([]byte, []int) {
 	return file_node_workflow_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *NodeAgentInstallReq) GetAddressing() NodeAgentInstallReq_Addressing {
+func (x *NodeAgentInstallReq) GetBkAddressing() string {
 	if x != nil {
-		return x.Addressing
-	}
-	return NodeAgentInstallReq_static
-}
-
-func (x *NodeAgentInstallReq) GetBizId() int64 {
-	if x != nil && x.BizId != nil {
-		return *x.BizId
-	}
-	return 0
-}
-
-func (x *NodeAgentInstallReq) GetInnerIp() string {
-	if x != nil {
-		return x.InnerIp
+		return x.BkAddressing
 	}
 	return ""
 }
 
-func (x *NodeAgentInstallReq) GetInnerIpv6() string {
+func (x *NodeAgentInstallReq) GetBkBizId() int64 {
+	if x != nil && x.BkBizId != nil {
+		return *x.BkBizId
+	}
+	return 0
+}
+
+func (x *NodeAgentInstallReq) GetBkHostInnerip() string {
 	if x != nil {
-		return x.InnerIpv6
+		return x.BkHostInnerip
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq) GetBkHostInneripV6() string {
+	if x != nil {
+		return x.BkHostInneripV6
 	}
 	return ""
 }
@@ -1022,11 +924,11 @@ func (x *NodeAgentInstallReq) GetLoginUser() string {
 	return ""
 }
 
-func (x *NodeAgentInstallReq) GetLoginMode() NodeAgentInstallReq_LoginMode {
+func (x *NodeAgentInstallReq) GetLoginMode() string {
 	if x != nil {
 		return x.LoginMode
 	}
-	return NodeAgentInstallReq_LOGIN_MODE_AUTO
+	return ""
 }
 
 func (x *NodeAgentInstallReq) GetLoginPassword() string {
@@ -1043,9 +945,9 @@ func (x *NodeAgentInstallReq) GetLoginKeyFile() []byte {
 	return nil
 }
 
-func (x *NodeAgentInstallReq) GetNetworkUnitId() int64 {
-	if x != nil && x.NetworkUnitId != nil {
-		return *x.NetworkUnitId
+func (x *NodeAgentInstallReq) GetBkNetworkunitId() int64 {
+	if x != nil && x.BkNetworkunitId != nil {
+		return *x.BkNetworkunitId
 	}
 	return 0
 }
@@ -1055,13 +957,6 @@ func (x *NodeAgentInstallReq) GetOsType() string {
 		return x.OsType
 	}
 	return ""
-}
-
-func (x *NodeAgentInstallReq) GetTargetGeneration() int64 {
-	if x != nil && x.TargetGeneration != nil {
-		return *x.TargetGeneration
-	}
-	return 0
 }
 
 func (x *NodeAgentInstallReq) GetTargetVersion() string {
@@ -1837,43 +1732,29 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x04logs\x18\x01 \x03(\v2-.v3.NodeOperActionInstLogGetResp.Data.MessageR\x04logs\x1a1\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04time\x18\x01 \x01(\tR\x04time\x12\x12\n" +
-	"\x04text\x18\x02 \x01(\tR\x04text\"\x8a\x06\n" +
-	"\x13NodeAgentInstallReq\x12B\n" +
-	"\n" +
-	"addressing\x18\x01 \x01(\x0e2\".v3.NodeAgentInstallReq.AddressingR\n" +
-	"addressing\x12\x1a\n" +
-	"\x06biz_id\x18\x02 \x01(\x03H\x00R\x05bizId\x88\x01\x01\x12\x19\n" +
-	"\binner_ip\x18\x03 \x01(\tR\ainnerIp\x12\x1d\n" +
-	"\n" +
-	"inner_ipv6\x18\x04 \x01(\tR\tinnerIpv6\x12\x19\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"\x9e\x04\n" +
+	"\x13NodeAgentInstallReq\x12#\n" +
+	"\rbk_addressing\x18\x01 \x01(\tR\fbkAddressing\x12\x1f\n" +
+	"\tbk_biz_id\x18\x02 \x01(\x03H\x00R\abkBizId\x88\x01\x01\x12&\n" +
+	"\x0fbk_host_innerip\x18\x03 \x01(\tR\rbkHostInnerip\x12+\n" +
+	"\x12bk_host_innerip_v6\x18\x04 \x01(\tR\x0fbkHostInneripV6\x12\x19\n" +
 	"\blogin_ip\x18\x05 \x01(\tR\aloginIp\x12\"\n" +
 	"\n" +
 	"login_port\x18\x06 \x01(\x03H\x01R\tloginPort\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"login_user\x18\a \x01(\tR\tloginUser\x12@\n" +
+	"login_user\x18\a \x01(\tR\tloginUser\x12\x1d\n" +
 	"\n" +
-	"login_mode\x18\b \x01(\x0e2!.v3.NodeAgentInstallReq.LoginModeR\tloginMode\x12%\n" +
+	"login_mode\x18\b \x01(\tR\tloginMode\x12%\n" +
 	"\x0elogin_password\x18\t \x01(\tR\rloginPassword\x12$\n" +
 	"\x0elogin_key_file\x18\n" +
-	" \x01(\fR\floginKeyFile\x12+\n" +
-	"\x0fnetwork_unit_id\x18\v \x01(\x03H\x02R\rnetworkUnitId\x88\x01\x01\x12\x17\n" +
-	"\aos_type\x18\f \x01(\tR\x06osType\x120\n" +
-	"\x11target_generation\x18\r \x01(\x03H\x03R\x10targetGeneration\x88\x01\x01\x12%\n" +
-	"\x0etarget_version\x18\x0e \x01(\tR\rtargetVersion\"%\n" +
+	" \x01(\fR\floginKeyFile\x12/\n" +
+	"\x11bk_networkunit_id\x18\v \x01(\x03H\x02R\x0fbkNetworkunitId\x88\x01\x01\x12\x17\n" +
+	"\aos_type\x18\f \x01(\tR\x06osType\x12%\n" +
+	"\x0etarget_version\x18\r \x01(\tR\rtargetVersionB\f\n" +
 	"\n" +
-	"Addressing\x12\n" +
-	"\n" +
-	"\x06static\x10\x00\x12\v\n" +
-	"\adynamic\x10\x01\"b\n" +
-	"\tLoginMode\x12\x13\n" +
-	"\x0fLOGIN_MODE_AUTO\x10\x00\x12\x17\n" +
-	"\x13LOGIN_MODE_PASSWORD\x10\x01\x12\x12\n" +
-	"\x0eLOGIN_MODE_KEY\x10\x02\x12\x13\n" +
-	"\x0fLOGIN_MODE_NONE\x10\x03B\t\n" +
-	"\a_biz_idB\r\n" +
-	"\v_login_portB\x12\n" +
-	"\x10_network_unit_idB\x14\n" +
-	"\x12_target_generation\"\xbf\x01\n" +
+	"_bk_biz_idB\r\n" +
+	"\v_login_portB\x14\n" +
+	"\x12_bk_networkunit_id\"\xbf\x01\n" +
 	"\x14NodeAgentInstallResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
@@ -1902,73 +1783,68 @@ func file_node_workflow_proto_rawDescGZIP() []byte {
 	return file_node_workflow_proto_rawDescData
 }
 
-var file_node_workflow_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_node_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_node_workflow_proto_goTypes = []any{
-	(NodeAgentInstallReq_Addressing)(0),               // 0: v3.NodeAgentInstallReq.Addressing
-	(NodeAgentInstallReq_LoginMode)(0),                // 1: v3.NodeAgentInstallReq.LoginMode
-	(*NodeWorkflowListReq)(nil),                       // 2: v3.NodeWorkflowListReq
-	(*NodeWorkflowListResp)(nil),                      // 3: v3.NodeWorkflowListResp
-	(*NodeWorkflowInfo)(nil),                          // 4: v3.NodeWorkflowInfo
-	(*NodeWorkflowStatisticsReq)(nil),                 // 5: v3.NodeWorkflowStatisticsReq
-	(*NodeWorkflowStatisticResp)(nil),                 // 6: v3.NodeWorkflowStatisticResp
-	(*NodeOperInstLisByWorkflowIDReq)(nil),            // 7: v3.NodeOperInstLisByWorkflowIDReq
-	(*NodeOperInstLisByWorkflowIDResp)(nil),           // 8: v3.NodeOperInstLisByWorkflowIDResp
-	(*NodeOperInst)(nil),                              // 9: v3.NodeOperInst
-	(*NodeOperInstLisByOperationIDReq)(nil),           // 10: v3.NodeOperInstLisByOperationIDReq
-	(*NodeOperInstLisByOperationIDResp)(nil),          // 11: v3.NodeOperInstLisByOperationIDResp
-	(*NodeOperActionInstLogGetReq)(nil),               // 12: v3.NodeOperActionInstLogGetReq
-	(*NodeOperActionInstLogGetResp)(nil),              // 13: v3.NodeOperActionInstLogGetResp
-	(*NodeAgentInstallReq)(nil),                       // 14: v3.NodeAgentInstallReq
-	(*NodeAgentInstallResp)(nil),                      // 15: v3.NodeAgentInstallResp
-	(*NodeWorkflowListReq_ExactConditions)(nil),       // 16: v3.NodeWorkflowListReq.ExactConditions
-	(*NodeWorkflowListReq_FuzzyConditions)(nil),       // 17: v3.NodeWorkflowListReq.FuzzyConditions
-	(*NodeWorkflowListResp_Data)(nil),                 // 18: v3.NodeWorkflowListResp.Data
-	(*NodeWorkflowStatisticResp_Statistic)(nil),       // 19: v3.NodeWorkflowStatisticResp.Statistic
-	(*NodeWorkflowStatisticResp_Data)(nil),            // 20: v3.NodeWorkflowStatisticResp.Data
-	(*NodeOperInstLisByWorkflowIDResp_Data)(nil),      // 21: v3.NodeOperInstLisByWorkflowIDResp.Data
-	(*NodeOperInst_Action)(nil),                       // 22: v3.NodeOperInst.Action
-	(*NodeOperInstLisByOperationIDResp_Data)(nil),     // 23: v3.NodeOperInstLisByOperationIDResp.Data
-	(*NodeOperActionInstLogGetResp_Data)(nil),         // 24: v3.NodeOperActionInstLogGetResp.Data
-	(*NodeOperActionInstLogGetResp_Data_Message)(nil), // 25: v3.NodeOperActionInstLogGetResp.Data.Message
-	(*NodeAgentInstallResp_Data)(nil),                 // 26: v3.NodeAgentInstallResp.Data
-	(*Page)(nil),                                      // 27: v3.Page
-	(*TimeRange)(nil),                                 // 28: v3.TimeRange
+	(*NodeWorkflowListReq)(nil),                       // 0: v3.NodeWorkflowListReq
+	(*NodeWorkflowListResp)(nil),                      // 1: v3.NodeWorkflowListResp
+	(*NodeWorkflowInfo)(nil),                          // 2: v3.NodeWorkflowInfo
+	(*NodeWorkflowStatisticsReq)(nil),                 // 3: v3.NodeWorkflowStatisticsReq
+	(*NodeWorkflowStatisticResp)(nil),                 // 4: v3.NodeWorkflowStatisticResp
+	(*NodeOperInstLisByWorkflowIDReq)(nil),            // 5: v3.NodeOperInstLisByWorkflowIDReq
+	(*NodeOperInstLisByWorkflowIDResp)(nil),           // 6: v3.NodeOperInstLisByWorkflowIDResp
+	(*NodeOperInst)(nil),                              // 7: v3.NodeOperInst
+	(*NodeOperInstLisByOperationIDReq)(nil),           // 8: v3.NodeOperInstLisByOperationIDReq
+	(*NodeOperInstLisByOperationIDResp)(nil),          // 9: v3.NodeOperInstLisByOperationIDResp
+	(*NodeOperActionInstLogGetReq)(nil),               // 10: v3.NodeOperActionInstLogGetReq
+	(*NodeOperActionInstLogGetResp)(nil),              // 11: v3.NodeOperActionInstLogGetResp
+	(*NodeAgentInstallReq)(nil),                       // 12: v3.NodeAgentInstallReq
+	(*NodeAgentInstallResp)(nil),                      // 13: v3.NodeAgentInstallResp
+	(*NodeWorkflowListReq_ExactConditions)(nil),       // 14: v3.NodeWorkflowListReq.ExactConditions
+	(*NodeWorkflowListReq_FuzzyConditions)(nil),       // 15: v3.NodeWorkflowListReq.FuzzyConditions
+	(*NodeWorkflowListResp_Data)(nil),                 // 16: v3.NodeWorkflowListResp.Data
+	(*NodeWorkflowStatisticResp_Statistic)(nil),       // 17: v3.NodeWorkflowStatisticResp.Statistic
+	(*NodeWorkflowStatisticResp_Data)(nil),            // 18: v3.NodeWorkflowStatisticResp.Data
+	(*NodeOperInstLisByWorkflowIDResp_Data)(nil),      // 19: v3.NodeOperInstLisByWorkflowIDResp.Data
+	(*NodeOperInst_Action)(nil),                       // 20: v3.NodeOperInst.Action
+	(*NodeOperInstLisByOperationIDResp_Data)(nil),     // 21: v3.NodeOperInstLisByOperationIDResp.Data
+	(*NodeOperActionInstLogGetResp_Data)(nil),         // 22: v3.NodeOperActionInstLogGetResp.Data
+	(*NodeOperActionInstLogGetResp_Data_Message)(nil), // 23: v3.NodeOperActionInstLogGetResp.Data.Message
+	(*NodeAgentInstallResp_Data)(nil),                 // 24: v3.NodeAgentInstallResp.Data
+	(*Page)(nil),                                      // 25: v3.Page
+	(*TimeRange)(nil),                                 // 26: v3.TimeRange
 }
 var file_node_workflow_proto_depIdxs = []int32{
-	27, // 0: v3.NodeWorkflowListReq.page:type_name -> v3.Page
-	16, // 1: v3.NodeWorkflowListReq.exact_include_conditions:type_name -> v3.NodeWorkflowListReq.ExactConditions
-	17, // 2: v3.NodeWorkflowListReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowListReq.FuzzyConditions
-	28, // 3: v3.NodeWorkflowListReq.operate_time_range:type_name -> v3.TimeRange
-	18, // 4: v3.NodeWorkflowListResp.data:type_name -> v3.NodeWorkflowListResp.Data
-	20, // 5: v3.NodeWorkflowStatisticResp.data:type_name -> v3.NodeWorkflowStatisticResp.Data
-	27, // 6: v3.NodeOperInstLisByWorkflowIDReq.page:type_name -> v3.Page
-	21, // 7: v3.NodeOperInstLisByWorkflowIDResp.data:type_name -> v3.NodeOperInstLisByWorkflowIDResp.Data
-	22, // 8: v3.NodeOperInst.action:type_name -> v3.NodeOperInst.Action
-	23, // 9: v3.NodeOperInstLisByOperationIDResp.data:type_name -> v3.NodeOperInstLisByOperationIDResp.Data
-	24, // 10: v3.NodeOperActionInstLogGetResp.data:type_name -> v3.NodeOperActionInstLogGetResp.Data
-	0,  // 11: v3.NodeAgentInstallReq.addressing:type_name -> v3.NodeAgentInstallReq.Addressing
-	1,  // 12: v3.NodeAgentInstallReq.login_mode:type_name -> v3.NodeAgentInstallReq.LoginMode
-	26, // 13: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
-	4,  // 14: v3.NodeWorkflowListResp.Data.workflows:type_name -> v3.NodeWorkflowInfo
-	19, // 15: v3.NodeWorkflowStatisticResp.Data.items:type_name -> v3.NodeWorkflowStatisticResp.Statistic
-	9,  // 16: v3.NodeOperInstLisByWorkflowIDResp.Data.operation:type_name -> v3.NodeOperInst
-	25, // 17: v3.NodeOperActionInstLogGetResp.Data.logs:type_name -> v3.NodeOperActionInstLogGetResp.Data.Message
-	2,  // 18: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
-	5,  // 19: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
-	7,  // 20: v3.NodeWorkflow.NodeOperInstLisByWorkflowID:input_type -> v3.NodeOperInstLisByWorkflowIDReq
-	10, // 21: v3.NodeWorkflow.NodeOperInstLisByOperationID:input_type -> v3.NodeOperInstLisByOperationIDReq
-	12, // 22: v3.NodeWorkflow.NodeOperActionInstLog:input_type -> v3.NodeOperActionInstLogGetReq
-	3,  // 23: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
-	6,  // 24: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticResp
-	8,  // 25: v3.NodeWorkflow.NodeOperInstLisByWorkflowID:output_type -> v3.NodeOperInstLisByWorkflowIDResp
-	11, // 26: v3.NodeWorkflow.NodeOperInstLisByOperationID:output_type -> v3.NodeOperInstLisByOperationIDResp
-	13, // 27: v3.NodeWorkflow.NodeOperActionInstLog:output_type -> v3.NodeOperActionInstLogGetResp
-	23, // [23:28] is the sub-list for method output_type
-	18, // [18:23] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	25, // 0: v3.NodeWorkflowListReq.page:type_name -> v3.Page
+	14, // 1: v3.NodeWorkflowListReq.exact_include_conditions:type_name -> v3.NodeWorkflowListReq.ExactConditions
+	15, // 2: v3.NodeWorkflowListReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowListReq.FuzzyConditions
+	26, // 3: v3.NodeWorkflowListReq.operate_time_range:type_name -> v3.TimeRange
+	16, // 4: v3.NodeWorkflowListResp.data:type_name -> v3.NodeWorkflowListResp.Data
+	18, // 5: v3.NodeWorkflowStatisticResp.data:type_name -> v3.NodeWorkflowStatisticResp.Data
+	25, // 6: v3.NodeOperInstLisByWorkflowIDReq.page:type_name -> v3.Page
+	19, // 7: v3.NodeOperInstLisByWorkflowIDResp.data:type_name -> v3.NodeOperInstLisByWorkflowIDResp.Data
+	20, // 8: v3.NodeOperInst.action:type_name -> v3.NodeOperInst.Action
+	21, // 9: v3.NodeOperInstLisByOperationIDResp.data:type_name -> v3.NodeOperInstLisByOperationIDResp.Data
+	22, // 10: v3.NodeOperActionInstLogGetResp.data:type_name -> v3.NodeOperActionInstLogGetResp.Data
+	24, // 11: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
+	2,  // 12: v3.NodeWorkflowListResp.Data.workflows:type_name -> v3.NodeWorkflowInfo
+	17, // 13: v3.NodeWorkflowStatisticResp.Data.items:type_name -> v3.NodeWorkflowStatisticResp.Statistic
+	7,  // 14: v3.NodeOperInstLisByWorkflowIDResp.Data.operation:type_name -> v3.NodeOperInst
+	23, // 15: v3.NodeOperActionInstLogGetResp.Data.logs:type_name -> v3.NodeOperActionInstLogGetResp.Data.Message
+	0,  // 16: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
+	3,  // 17: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
+	5,  // 18: v3.NodeWorkflow.NodeOperInstLisByWorkflowID:input_type -> v3.NodeOperInstLisByWorkflowIDReq
+	8,  // 19: v3.NodeWorkflow.NodeOperInstLisByOperationID:input_type -> v3.NodeOperInstLisByOperationIDReq
+	10, // 20: v3.NodeWorkflow.NodeOperActionInstLog:input_type -> v3.NodeOperActionInstLogGetReq
+	1,  // 21: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
+	4,  // 22: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticResp
+	6,  // 23: v3.NodeWorkflow.NodeOperInstLisByWorkflowID:output_type -> v3.NodeOperInstLisByWorkflowIDResp
+	9,  // 24: v3.NodeWorkflow.NodeOperInstLisByOperationID:output_type -> v3.NodeOperInstLisByOperationIDResp
+	11, // 25: v3.NodeWorkflow.NodeOperActionInstLog:output_type -> v3.NodeOperActionInstLogGetResp
+	21, // [21:26] is the sub-list for method output_type
+	16, // [16:21] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_node_workflow_proto_init() }
@@ -1983,14 +1859,13 @@ func file_node_workflow_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_workflow_proto_rawDesc), len(file_node_workflow_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      0,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_node_workflow_proto_goTypes,
 		DependencyIndexes: file_node_workflow_proto_depIdxs,
-		EnumInfos:         file_node_workflow_proto_enumTypes,
 		MessageInfos:      file_node_workflow_proto_msgTypes,
 	}.Build()
 	File_node_workflow_proto = out.File
