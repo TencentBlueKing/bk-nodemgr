@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
-	"github.com/google/uuid"
 	"time"
 )
 
@@ -107,8 +106,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	triggerID := uuid.New().String()
-	triggerID, err = h.manager.ExecuteOperation(
+	triggerID, err := h.manager.ExecuteOperation(
 		tenantCtx,
 		nodeinstall.OperDefNameInstallNodeBySSH,
 		&operengine.OperInstParam{

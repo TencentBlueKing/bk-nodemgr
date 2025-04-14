@@ -184,7 +184,8 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.operInstMgr.RegisterActions(
 		nodeinstall.NewActionBindAgentHostRel(
 			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger, mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
+		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
+			mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
 		nodeinstall.NewActionWaitGseRunning(
 			mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
 		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),

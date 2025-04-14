@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	// NamePrefixInstaller this is the prefix for the tools tool name
+	// NamePrefixInstaller this is the prefix for the tools tool name.
 	NamePrefixInstaller = "installer"
 )
 

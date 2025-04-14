@@ -68,7 +68,7 @@ func StringListToNodeStatusList(stringList []string) []NodeStatus {
 }
 
 const (
-	// NodeStatusInit means this node status is initialized
+	// NodeStatusInit means this node status is initialized.
 	NodeStatusInit NodeStatus = "init"
 
 	// NodeStatusRunning means this node status is running.
