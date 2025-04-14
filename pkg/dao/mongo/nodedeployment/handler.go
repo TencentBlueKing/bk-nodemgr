@@ -93,6 +93,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				NodeStatus:     types.NodeStatus(info.NodeStatus),
 				NodeVersion:    info.NodeVersion,
 				NodeGeneration: types.NodeGeneration(info.NodeGeneration),
+				NodeCpuArch:    info.NodeCpuArch,
+				NodeOsType:     info.NodeOsType,
 				AgentID:        info.AgentID,
 				NetworkUnitID:  info.NetworkUnitID,
 				ProxyTags: func() []types.ProxyTag {
@@ -269,6 +271,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		TenantID:       info.Host.TenantID,
 		NodeRole:       string(info.Host.Dynamic.NodeRole),
 		NodeStatus:     string(info.Host.Dynamic.NodeStatus),
+		NodeCpuArch:    info.Host.Dynamic.NodeCpuArch,
+		NodeOsType:     info.Host.Dynamic.NodeOsType,
 		NodeVersion:    info.Host.Dynamic.NodeVersion,
 		NodeGeneration: int64(info.Host.Dynamic.NodeGeneration),
 		AgentID:        info.Host.Dynamic.AgentID,

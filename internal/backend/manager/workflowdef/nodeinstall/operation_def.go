@@ -26,10 +26,11 @@ func NewOperationInstallNodeBySSH(triggerID string) *operengine.Operation {
 			ActionNameRenderNodeDeployment,
 			ActionNameInstallAgentBySSH,
 			ActionNameWaitComplete,
-			ActionNameWaitGseRunning,
+			ActionNameWaitGseReady,
 			ActionNameSyncNodeInfo,
 			ActionNameBindAgentHostRel,
 			ActionNamePushHostIdentifier,
+			ActionNameUpdateHost,
 		},
 	}
 

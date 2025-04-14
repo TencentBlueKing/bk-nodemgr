@@ -32,6 +32,9 @@ const (
 	// ActionNameSyncNodeInfo the name of SyncNodeInfo.
 	ActionNameSyncNodeInfo = "sync_node_info"
 
-	// ActionNameWaitGseRunning the name of WaitGseRunning.
-	ActionNameWaitGseRunning = "wait_gse_running"
+	// ActionNameWaitGseReady the name of WaitGseReady.
+	ActionNameWaitGseReady = "wait_gse_ready"
+
+	// ActionNameUpdateHost the name of UpdateHost.
+	ActionNameUpdateHost = "update_host"
 )

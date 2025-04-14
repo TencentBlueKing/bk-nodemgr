@@ -39,8 +39,8 @@ type NodeStatus string
 // Validate validates the node status.
 func (nodeStatus NodeStatus) Validate() error {
 	switch nodeStatus {
-	case NodeStatusUnknown, NodeStatusInit, NodeStatusRunning,
-		NodeStatusDamaged, NodeStatusBusy, NodeStatusUpgrading, NodeStatusOffline:
+	case NodeStatusInit, NodeStatusRunning, NodeStatusDamaged, NodeStatusBusy,
+		NodeStatusStarting, NodeStatusUpgrade, NodeStatusStopping, NodeStatusUninit, NodeStatusUnknown:
 		return nil
 	default:
 		return errors.New("invalid node status")
@@ -68,10 +68,7 @@ func StringListToNodeStatusList(stringList []string) []NodeStatus {
 }
 
 const (
-	// NodeStatusUnknown means this node status is unknown.
-	NodeStatusUnknown NodeStatus = "unknown"
-
-	// NodeStatusInit means this node status is init.
+	// NodeStatusInit means this node status is initialized
 	NodeStatusInit NodeStatus = "init"
 
 	// NodeStatusRunning means this node status is running.
@@ -83,11 +80,20 @@ const (
 	// NodeStatusBusy means this node status is busy.
 	NodeStatusBusy NodeStatus = "busy"
 
-	// NodeStatusUpgrading means this node status is upgrading.
-	NodeStatusUpgrading NodeStatus = "upgrading"
+	// NodeStatusStarting means this node status is starting.
+	NodeStatusStarting NodeStatus = "starting"
 
-	// NodeStatusOffline means this node status is offline.
-	NodeStatusOffline NodeStatus = "offline"
+	// NodeStatusUpgrade means this node status is upgrading.
+	NodeStatusUpgrade NodeStatus = "upgrade"
+
+	// NodeStatusStopping means this node status is stopping.
+	NodeStatusStopping NodeStatus = "stopping"
+
+	// NodeStatusUninit means this node status is uninitialized.
+	NodeStatusUninit NodeStatus = "uninit"
+
+	// NodeStatusUnknown means this node status is unknown.
+	NodeStatusUnknown NodeStatus = "unknown"
 )
 
 // NodeGeneration represents a node generation.

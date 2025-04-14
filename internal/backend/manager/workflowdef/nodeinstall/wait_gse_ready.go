@@ -26,13 +26,13 @@ import (
 // NewActionWaitGseRunning ...
 func NewActionWaitGseRunning(
 	gseClient gse.IHandler,
-	storage nodedeployment.IStorage,
+	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
 ) operengine.ActionDef {
-	return &WaitGseRunning{
-		gseClient: gseClient,
-		storage:   storage,
-		logger:    logger,
+	return &WaitGseReady{
+		gseClient:          gseClient,
+		iDaoNodeDeployment: iDaoNodeDeployment,
+		logger:             logger,
 	}
 }
 
@@ -41,62 +41,62 @@ type WaitGseRunningParam struct {
 	Token string `json:"token"`
 }
 
-// WaitGseRunning ...
-type WaitGseRunning struct {
-	gseClient gse.IHandler
-	storage   nodedeployment.IStorage
-	logger    logger.Logger
+// WaitGseReady ...
+type WaitGseReady struct {
+	gseClient          gse.IHandler
+	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
+	logger             logger.Logger
 }
 
 // Name returns the name of the action.
-func (action *WaitGseRunning) Name() string {
-	return ActionNameWaitGseRunning
+func (action *WaitGseReady) Name() string {
+	return ActionNameWaitGseReady
 }
 
 // Version returns the version of the action.
-func (action *WaitGseRunning) Version() string {
-	return ""
+func (action *WaitGseReady) Version() string {
+	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *WaitGseRunning) Description() string {
-	return ""
+func (action *WaitGseReady) Description() string {
+	return "wait gse ready"
 }
 
 // Timeout returns the timeout of the action.
-func (action *WaitGseRunning) Timeout() time.Duration {
+func (action *WaitGseReady) Timeout() time.Duration {
 	// notice: in this action, the timeout should be equal or grander than the timeout of the workflow,
 	// so we set it to 24 hours.
 	return 24 * time.Hour // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (action *WaitGseRunning) Tags() []operengine.ActionTag {
+func (action *WaitGseReady) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *WaitGseRunning) MaxRetryCount() uint {
+func (action *WaitGseReady) MaxRetryCount() uint {
 	// notice: this action is an polling action should not auto retry.
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *WaitGseRunning) DelayFn() func() {
+func (action *WaitGseReady) DelayFn() func() {
 	return func() {
 		action.logger.Errorf("this action should not auto retry, action-name(%s)", action.Name())
 	}
 }
 
 // Do this func define what the action will do.
-func (action *WaitGseRunning) Do(ctx *operengine.ActionInstContext) error {
+func (action *WaitGseReady) Do(ctx *operengine.ActionInstContext) error {
 	param := new(WaitGseRunningParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.storage.GetInfo(ctx.Ctx, param.Token)
+	info, err := action.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -117,6 +117,7 @@ func (action *WaitGseRunning) Do(ctx *operengine.ActionInstContext) error {
 		}
 
 		state := states[0]
+		info.Dynamic.NodeStatus = state.StatusCode.ToNodeStatus()
 		if state.StatusCode != types.AgentStatusCodeRunning {
 			return fmt.Errorf("agent state is not running, status(%s)", state.StatusCode.String())
 		}
@@ -129,6 +130,10 @@ func (action *WaitGseRunning) Do(ctx *operengine.ActionInstContext) error {
 		ctx.Data.Log("failed to query agent state, err: " + err.Error())
 
 		return err
+	}
+
+	if err := action.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 
 	return nil

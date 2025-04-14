@@ -194,6 +194,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionUpsertHost(
 			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage),
 		nodeinstall.NewActionWaitComplete(mgr.conf.OperInstStorage, mgr.logger),
+		nodeinstall.NewActionUpdateHost(mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
 	)
 }
 

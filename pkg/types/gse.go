@@ -70,6 +70,30 @@ func (code AgentStatusCode) String() string {
 	return "Unknown"
 }
 
+// ToNodeStatus returns the node status.
+func (code AgentStatusCode) ToNodeStatus() NodeStatus {
+	switch code {
+	case AgentStatusCodeInit:
+		return NodeStatusInit
+	case AgentStatusCodeStarting:
+		return NodeStatusStarting
+	case AgentStatusCodeRunning:
+		return NodeStatusRunning
+	case AgentStatusCodeDamaged:
+		return NodeStatusDamaged
+	case AgentStatusCodeBusy:
+		return NodeStatusBusy
+	case AgentStatusCodeUpgrade:
+		return NodeStatusUpgrade
+	case AgentStatusCodeStopping:
+		return NodeStatusStopping
+	case AgentStatusCodeUninit:
+		return NodeStatusUninit
+	default:
+		return NodeStatusUnknown
+	}
+}
+
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
 	AgentID        string

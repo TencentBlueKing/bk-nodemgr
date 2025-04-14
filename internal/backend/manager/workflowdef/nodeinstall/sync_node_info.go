@@ -13,6 +13,7 @@ package nodeinstall
 import (
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"time"
@@ -106,8 +107,15 @@ func (action *SyncNodeInfo) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	agentInfo := agentInfos[0]
-	info.Dynamic.NodeCpuArch = agentInfo.Arch
-	info.Dynamic.NodeOsType = agentInfo.OSType
+	info.Dynamic.NodeCpuArch, err = platform.NormalizeArch(agentInfo.Arch)
+	if err != nil {
+		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)", info.Dynamic.AgentID, agentInfo.Arch, err)
+	}
+
+	info.Dynamic.NodeOsType, err = platform.NormalizeOS(agentInfo.OSType)
+	if err != nil {
+		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)", info.Dynamic.AgentID, agentInfo.OSType, err)
+	}
 
 	if err := action.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Dynamic.AgentID, err)
