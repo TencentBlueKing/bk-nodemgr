@@ -141,6 +141,44 @@ message NodeOperActionInstLogGetResp {
   Data data = 4;
 }
 
+// NodeAgentInstallReq describes the node agent install request.
+message NodeAgentInstallReq {
+  enum Addressing {
+    static = 0;
+    dynamic = 1;
+  }
+  Addressing addressing = 1;
+  optional int64 biz_id = 2;
+  string inner_ip = 3;
+  string inner_ipv6 = 4;
+  string login_ip = 5;
+  optional int64 login_port = 6;
+  string login_user = 7;
+  enum LoginMode {
+    LOGIN_MODE_AUTO = 0;
+    LOGIN_MODE_PASSWORD = 1;
+    LOGIN_MODE_KEY = 2;
+    LOGIN_MODE_NONE = 3;
+  }
+  LoginMode login_mode = 8;
+  string login_password = 9;
+  bytes login_key_file = 10;
+  optional int64 network_unit_id = 11;
+  string os_type = 12;
+  optional int64 target_generation = 13;
+  string target_version = 14;
+}
+
+// NodeAgentInstallResp describes the node agent install response.
+message NodeAgentInstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {string workflow_id = 1;}
+  Data data = 4;
+}
+
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {

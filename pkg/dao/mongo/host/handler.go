@@ -367,8 +367,11 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OuterIPV6:     host.Static.OuterIPV6,
 			Mac:           host.Static.Mac,
 			OSType:        host.Static.OSType,
+			OSTypeCCID:    host.Static.OSTypeCCID,
 			Arch:          host.Static.Arch,
 			Addressing:    string(host.Static.Addressing),
+			RegionID:      host.Static.RegionID,
+			CityID:        host.Static.CityID,
 			SyncedAgentID: host.Static.SyncedAgentID,
 		}
 	}
@@ -376,12 +379,15 @@ func convertHostFromTypes(host *types.Host) *Host {
 	dynamic := &HostDynamic{}
 	if host.Dynamic != nil {
 		dynamic = &HostDynamic{
-			NodeRole:       string(host.Dynamic.NodeRole),
-			NodeStatus:     string(host.Dynamic.NodeStatus),
-			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: int64(host.Dynamic.NodeGeneration),
-			AgentID:        host.Dynamic.AgentID,
-			NetworkUnitID:  host.Dynamic.NetworkUnitID,
+			NodeRole:            string(host.Dynamic.NodeRole),
+			NodeStatus:          string(host.Dynamic.NodeStatus),
+			NodeVersion:         host.Dynamic.NodeVersion,
+			NodeGeneration:      int64(host.Dynamic.NodeGeneration),
+			NodeCpuArch:         host.Dynamic.NodeCpuArch,
+			NodeOsType:          host.Dynamic.NodeOsType,
+			AgentID:             host.Dynamic.AgentID,
+			NetworkUnitID:       host.Dynamic.NetworkUnitID,
+			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
 			ProxyTags: func() []string {
 				tags := make([]string, len(host.Dynamic.ProxyTags))
 				for idx := range host.Dynamic.ProxyTags {
@@ -390,10 +396,9 @@ func convertHostFromTypes(host *types.Host) *Host {
 
 				return tags
 			}(),
-			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
-			ProxyClusterPort:    host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:       host.Dynamic.ProxyDataPort,
-			ProxyFilePort:       host.Dynamic.ProxyFilePort,
+			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:    host.Dynamic.ProxyDataPort,
+			ProxyFilePort:    host.Dynamic.ProxyFilePort,
 		}
 	}
 
@@ -409,8 +414,10 @@ func convertHostToTypes(host *Host) *types.Host {
 	static := &types.HostStatic{}
 	if host.Static != nil {
 		static = &types.HostStatic{
-			NetworkAreaID: host.Static.NetworkAreaID,
 			BizID:         host.Static.BizID,
+			NetworkAreaID: host.Static.NetworkAreaID,
+			RegionID:      host.Static.RegionID,
+			CityID:        host.Static.CityID,
 			HostName:      host.Static.HostName,
 			DeptName:      host.Static.DeptName,
 			InnerIP:       host.Static.InnerIP,
@@ -418,6 +425,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			OuterIP:       host.Static.OuterIP,
 			OuterIPV6:     host.Static.OuterIPV6,
 			Mac:           host.Static.Mac,
+			OSTypeCCID:    host.Static.OSTypeCCID,
 			OSType:        host.Static.OSType,
 			Arch:          host.Static.Arch,
 			Addressing:    types.Addressing(host.Static.Addressing),
@@ -432,6 +440,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
 			NodeVersion:    host.Dynamic.NodeVersion,
 			NodeGeneration: types.NodeGeneration(host.Dynamic.NodeGeneration),
+			NodeCpuArch:    host.Dynamic.NodeCpuArch,
+			NodeOsType:     host.Dynamic.NodeOsType,
 			AgentID:        host.Dynamic.AgentID,
 			NetworkUnitID:  host.Dynamic.NetworkUnitID,
 			ProxyTags: func() []types.ProxyTag {

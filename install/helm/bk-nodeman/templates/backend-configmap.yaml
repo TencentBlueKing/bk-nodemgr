@@ -21,11 +21,11 @@ data:
     encryptKey: {{ .Values.backend.config.encryptKey }}
 
     httpServer: {{ .Values.backend.config.httpServer | toYaml | nindent 6 }}
-      advertiseIPV4: __ADVERTISE_IPV4__ 
+      advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
-    
+
     callbackServer: {{ .Values.backend.config.callbackServer | toYaml | nindent 6 }}
-      advertiseIPV4: __ADVERTISE_IPV4__ 
+      advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
     adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
@@ -33,6 +33,8 @@ data:
     workflow: {{ .Values.backend.config.workflow | toYaml | nindent 6 }}
 
     cmdb: {{ .Values.backend.config.cmdb | toYaml | nindent 6 }}
+
+    gse: {{ .Values.backend.config.gse | toYaml | nindent 6 }}
 
     log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
 

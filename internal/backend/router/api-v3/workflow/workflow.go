@@ -14,7 +14,6 @@ package workflow
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow/agent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -43,7 +42,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	agent.Load(h.rg, capability)
 	proxy.Load(h.rg, capability)
 	operation.Load(h.rg, capability)
 

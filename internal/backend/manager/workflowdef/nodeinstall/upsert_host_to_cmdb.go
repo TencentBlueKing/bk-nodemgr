@@ -48,7 +48,7 @@ type UpsertHostParam struct {
 
 // UpsertHost ...
 type UpsertHost struct {
-	cmdbHandler        cmdb.IHandler
+	cmdbHandler        cmdb.IHost
 	iDaoHost           topo.IDaoHost
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 }

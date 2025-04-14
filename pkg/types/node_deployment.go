@@ -13,7 +13,22 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
+
+	"github.com/google/uuid"
 )
+
+// NewNodeDeployment this is the info for node deployment.
+func NewNodeDeployment(info *DeploymentInfo) *NodeDeployment {
+	return &NodeDeployment{
+		Token: strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Info:  info,
+		NodeConf: &NodeConf{
+			PreSetting:    make(map[string]any),
+			CustomSetting: make(map[string]any),
+		},
+	}
+}
 
 // NodeDeployment this is the info for node deployment.
 type NodeDeployment struct {
@@ -22,11 +37,43 @@ type NodeDeployment struct {
 	NodeConf *NodeConf
 }
 
+// LoginMode this is the login mode for node deployment.
+type LoginMode string
+
+const (
+	// LoginModePassword this mode means system will use password to login.
+	LoginModePassword LoginMode = "password"
+
+	// LoginModeKeyFile this mode means system will use key file to login.
+	LoginModeKeyFile LoginMode = "keyfile"
+
+	// LoginModeNone this mode means system will not use any login method.
+	LoginModeNone LoginMode = "none"
+)
+
+// Validate this is the validate for login mode.
+func (mode LoginMode) Validate() error {
+	switch mode {
+	case LoginModePassword, LoginModeKeyFile, LoginModeNone:
+		return nil
+	default:
+		return fmt.Errorf("invalid login mode: %s", mode)
+	}
+}
+
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	OperInstID string
-	ActionName string
+	OperInstID         string
+	BlockingActionName string
 	Host
+
+	TmpDir        string
+	LoginIP       string
+	LoginPort     int64
+	LoginUser     string
+	LoginMode     LoginMode
+	LoginPassword []byte
+	LoginKeyFile  []byte
 }
 
 // Validate this is the validate for node deployment.
@@ -36,8 +83,8 @@ func (info DeploymentInfo) Validate() error {
 		return errors.New("oper_inst_id shouldn't not be empty")
 	}
 
-	if info.ActionName == "" {
-		return errors.New("action_name shouldn't not be empty")
+	if info.BlockingActionName == "" {
+		return errors.New("blocking_action_name shouldn't not be empty")
 	}
 
 	if info.Host.HostID < 0 {
@@ -105,6 +152,10 @@ func (info DeploymentInfo) Validate() error {
 		if info.Dynamic.ProxyFilePort != 0 {
 			return errors.New("node_role is not proxy, proxy_file_port should be 0")
 		}
+	}
+
+	if err := info.LoginMode.Validate(); err != nil {
+		return fmt.Errorf("login_mode validate failed, err: %w", err)
 	}
 
 	return nil

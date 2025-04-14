@@ -21,16 +21,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
 // NewActionPushHostIdentifier ...
-func NewActionPushHostIdentifier(gseClient gse.IHandler, cmdbClient cmdb.IHandler,
-	storage nodedeployment.IStorage, logger logger.Logger) *PushHostIdentifier {
+func NewActionPushHostIdentifier(cmdbClient cmdb.IHandler, storage nodedeployment.IStorage, logger logger.Logger) *PushHostIdentifier {
 
 	return &PushHostIdentifier{
-		gseClient:  gseClient,
 		cmdbClient: cmdbClient,
 		storage:    storage,
 		logger:     logger,
@@ -44,7 +41,6 @@ type PushHostIdentifierParam struct {
 
 // PushHostIdentifier ...
 type PushHostIdentifier struct {
-	gseClient  gse.IHandler
 	cmdbClient cmdb.IHandler
 	storage    nodedeployment.IStorage
 	logger     logger.Logger
@@ -105,30 +101,19 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	states, err := action.gseClient.ListAgentState(tCtx, info.Dynamic.AgentID)
-	if err != nil {
-		return err
-	}
-
-	if len(states) != 1 {
-		return fmt.Errorf("query agent state result no 1, states(%v)", states)
-	}
-
-	state := states[0]
-	ctx.Data.Log("agent state: %s" + state.StatusCode.String())
-
-	taskID, err := action.cmdbClient.PushHostIdentifier(tCtx, info.HostID)
-	if err != nil {
-		return err
-	}
-
-	ctx.Data.Log(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
-
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  action.Timeout(),
 		Interval: time.Second,
 		Logger:   action.logger,
 	})
+
+	taskID, err := action.cmdbClient.PushHostIdentifier(tCtx, info.HostID)
+	if err != nil {
+		return err
+	}
+	ctx.Data.Log(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
+
+	var success bool
 	err = polling.Do(tCtx, func(_ int) error {
 		successList, failedList, pendingList, err := action.cmdbClient.FindHostIdentifierPushResult(tCtx, taskID)
 		if err != nil {
@@ -138,24 +123,16 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		}
 
 		if len(pendingList) > 0 {
-			action.logger.Infof("pending host identifier push result, pending(%v)", pendingList)
-
 			return errors.New("pending host identifier push result")
 		}
 
-		if len(failedList) > 0 {
-			action.logger.Errorf("failed to push host identifier, failed(%v)", failedList)
-
-			return fmt.Errorf("failed to push host identifier, failed(%v)", failedList)
+		if len(successList)+len(failedList) == 0 {
+			return errors.New("invalid host identifier push result, no success or failed")
 		}
 
-		if len(successList) == 0 {
-			action.logger.Error("failed to push host identifier, no success result")
-
-			return errors.New("failed to push host identifier, no success result")
+		if len(successList) > 0 {
+			success = true
 		}
-
-		action.logger.Infof("pushed host identifier, success(%v)", successList)
 
 		return nil
 	})
@@ -163,6 +140,12 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 		ctx.Data.Log("failed to push host identifier, err: " + err.Error())
 
 		return err
+	}
+
+	if !success {
+		ctx.Data.Log("failed to push host identifier, no success result")
+
+		return errors.New("failed to push host identifier")
 	}
 
 	ctx.Data.Log("pushed host identifier")

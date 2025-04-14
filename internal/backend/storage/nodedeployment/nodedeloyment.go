@@ -148,3 +148,20 @@ func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.Depl
 
 	return nil
 }
+
+// Create create a node deployment.
+func (s *Storage) Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
+	if ctx == nil {
+		return base.ErrNilContent()
+	}
+
+	if nodeDeployment == nil {
+		return errors.New("node deployment is nil")
+	}
+
+	if err := s.nodeDeploymentDao.Create(ctx, nodeDeployment); err != nil {
+		return err
+	}
+
+	return nil
+}

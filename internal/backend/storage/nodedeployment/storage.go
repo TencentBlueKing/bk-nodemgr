@@ -23,6 +23,8 @@ type IStorage interface {
 	base.Interface
 
 	IDaoNodeDeployment
+
+	IDomainInit
 }
 
 // IDaoNodeDeployment defines the node deployment dao interface.
@@ -38,4 +40,10 @@ type IDaoNodeDeployment interface {
 
 	// UpdateInfo update node deployment info.
 	UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
+}
+
+// IDomainInit defines the node deployment domain init interface.
+type IDomainInit interface {
+	// Create create a node deployment.
+	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
 }

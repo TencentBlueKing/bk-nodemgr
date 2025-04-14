@@ -54,7 +54,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 	}
 
 	// adjust action status to success
-	err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.ActionName, operengine.ActionInstStateSuccess)
+	err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, operengine.ActionInstStateSuccess)
 	if err != nil {
 		h.logger.Errorf("update oper inst action status failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

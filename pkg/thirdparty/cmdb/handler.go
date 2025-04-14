@@ -76,16 +76,6 @@ type IHostIdentifier interface {
 	// FindHostIdentifierPushResult find host identifier push result.
 	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
 		pendingList []int64, err error)
-
-	// ListResourcePoolHosts list resource pool hosts.
-	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
-
-	// AddHostToResourcePool add host to resource pool
-	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
-		failedIndexMsg []string, err error)
-
-	// AddHostToBusinessIdle add host to business idle
-	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
 }
 
 // IHost this interface is used to edit host info.
@@ -102,6 +92,16 @@ type IHost interface {
 
 	// CheckBizHostByIP check biz host by ip
 	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
+
+	// ListResourcePoolHosts list resource pool hosts.
+	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
+
+	// AddHostToResourcePool add host to resource pool
+	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+		failedIndexMsg []string, err error)
+
+	// AddHostToBusinessIdle add host to business idle
+	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
 }
 
 // INetworkArea this interface is used to edit network area.
@@ -818,6 +818,8 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 		Static: &types.HostStatic{
 			BizID:         bizID,
 			NetworkAreaID: hostInfo.BKCloudID,
+			RegionID:      hostInfo.BKCloudRegion,
+			CityID:        hostInfo.IdcCityID,
 			HostName:      hostInfo.BKHostName,
 			DeptName:      hostInfo.DeptName,
 			InnerIP:       hostInfo.BKHostInnerIPV4,
@@ -825,6 +827,7 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			OuterIP:       hostInfo.BKHostOuterIPV4,
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
 			Mac:           hostInfo.BKMac,
+			OSTypeCCID:    hostInfo.BKOSType,
 			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
 			Arch:          h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),
 			Addressing:    types.Addressing(hostInfo.BKAddressing),

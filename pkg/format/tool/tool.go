@@ -8,15 +8,20 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+package tool
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"fmt"
 )
 
-// AgentInstall install agent.
-func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
-	// TODO: implement me
-	return nil, nil
+const (
+	// NamePrefixInstaller this is the prefix for the tools tool name
+	NamePrefixInstaller = "installer"
+)
+
+// FormatInstallerName formats the tools name based on the OS type and CPU architecture.
+func FormatInstallerName(osType, cpuArch string) (string, error) {
+	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
+
+	return toolName, nil
 }

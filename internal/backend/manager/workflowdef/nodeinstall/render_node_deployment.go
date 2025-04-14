@@ -31,14 +31,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// NewActionRenderNodeInstallConfig ...
-func NewActionRenderNodeInstallConfig(
+// NewActionRenderNodeDeployment new action to render node deployment.
+func NewActionRenderNodeDeployment(
 	storage nodedeployment.IDaoNodeDeployment,
 	iDaoHost topo.IDaoHost,
 	iDomainGseProxy topo.IDomainGse,
 	logger logger.Logger) operengine.ActionDef {
 
-	return &RenderNodeInstallConfig{
+	return &RenderNodeDeployment{
 		iDaoNodeDeployment: storage,
 		iDaoHost:           iDaoHost,
 		IDomainGse:         iDomainGseProxy,
@@ -46,13 +46,13 @@ func NewActionRenderNodeInstallConfig(
 	}
 }
 
-// RenderNodeInstallConfigParam ...
-type RenderNodeInstallConfigParam struct {
+// RenderNodeDeploymentParam this is the param for render deployment.
+type RenderNodeDeploymentParam struct {
 	Token string `json:"token"`
 }
 
-// RenderNodeInstallConfig ...
-type RenderNodeInstallConfig struct {
+// RenderNodeDeployment this is the action to render node deployment.
+type RenderNodeDeployment struct {
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	iDaoHost           topo.IDaoHost
 	topo.IDomainGse
@@ -61,45 +61,45 @@ type RenderNodeInstallConfig struct {
 }
 
 // Name returns the name of the action.
-func (action *RenderNodeInstallConfig) Name() string {
-	return ActionNameRenderNodeInstallConfig
+func (action *RenderNodeDeployment) Name() string {
+	return ActionNameRenderNodeDeployment
 }
 
 // Version returns the version of the action.
-func (action *RenderNodeInstallConfig) Version() string {
+func (action *RenderNodeDeployment) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *RenderNodeInstallConfig) Description() string {
-	return "render node install necessary config"
+func (action *RenderNodeDeployment) Description() string {
+	return "render node deployment"
 }
 
 // Timeout returns the timeout of the action.
-func (action *RenderNodeInstallConfig) Timeout() time.Duration {
+func (action *RenderNodeDeployment) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *RenderNodeInstallConfig) Tags() []operengine.ActionTag {
+func (action *RenderNodeDeployment) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *RenderNodeInstallConfig) MaxRetryCount() uint {
+func (action *RenderNodeDeployment) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *RenderNodeInstallConfig) DelayFn() func() {
+func (action *RenderNodeDeployment) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) error {
-	param := new(RenderNodeInstallConfigParam)
+func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error {
+	param := new(RenderNodeDeploymentParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -113,6 +113,13 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
 	if err != nil {
 		return err
+	}
+
+	info.OperInstID = ctx.Data.OperInstID
+	info.BlockingActionName = ActionNameWaitComplete
+
+	if err := action.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
@@ -153,7 +160,7 @@ func (action *RenderNodeInstallConfig) Do(ctx *operengine.ActionInstContext) err
 	return nil
 }
 
-func (action *RenderNodeInstallConfig) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (action *RenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) error {
 
 	if err := action.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
@@ -167,7 +174,7 @@ func (action *RenderNodeInstallConfig) renderPreSetting(ctx context.Context, nod
 	return nil
 }
 
-func (action *RenderNodeInstallConfig) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
+func (action *RenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
 ) error {
 
 	switch nodeRole {
@@ -307,70 +314,70 @@ func GseProxySettingDefault() map[string]any {
 }
 
 const (
-	// GseLogPathKey the config template key of gse log path.
-	GseLogPathKey = "__BK_GSE_LOG_PATH__"
+	// GseTemplateKeyLogPath the config template key of gse log path.
+	GseTemplateKeyLogPath = "__BK_GSE_LOG_PATH__"
 
-	// GseHomeDirKey the config template key of gse home dir.
-	GseHomeDirKey = "__BK_GSE_HOME_DIR__"
+	// GseTemplateKeyHomeDir the config template key of gse home dir.
+	GseTemplateKeyHomeDir = "__BK_GSE_HOME_DIR__"
 
-	// GseAgentBasePluginIPCKey the config template key of gse agent base plugin ipc.
-	GseAgentBasePluginIPCKey = "__BK_GSE_AGENT_BASE_PLUGIN_IPC__"
+	// GseTemplateKeyAgentBasePluginIPC the config template key of gse agent base plugin ipc.
+	GseTemplateKeyAgentBasePluginIPC = "__BK_GSE_AGENT_BASE_PLUGIN_IPC__"
 
-	// GseDataIPCKey the config template key of gse agent base ipc.
-	GseDataIPCKey = "__BK_GSE_DATA_IPC__"
+	// GseTemplateKeyDataIPC the config template key of gse agent base ipc.
+	GseTemplateKeyDataIPC = "__BK_GSE_DATA_IPC__"
 
-	// GseProxyTLSCaFile the config template key of gse proxy tls ca file.
-	GseProxyTLSCaFile = "__BK_GSE_PROXY_TLS_CA_FILE__"
+	// GseTemplateKeyProxyTLSCaFile the config template key of gse proxy tls ca file.
+	GseTemplateKeyProxyTLSCaFile = "__BK_GSE_PROXY_TLS_CA_FILE__"
 
-	// GseProxyTLSCertFile the config template key of gse proxy tls cert file.
-	GseProxyTLSCertFile = "__BK_GSE_PROXY_TLS_CERT_FILE__"
+	// GseTemplateKeyProxyTLSCertFile the config template key of gse proxy tls cert file.
+	GseTemplateKeyProxyTLSCertFile = "__BK_GSE_PROXY_TLS_CERT_FILE__"
 
-	// GseProxyTLSKeyFile the config template key of gse proxy tls key file.
-	GseProxyTLSKeyFile = "__BK_GSE_PROXY_TLS_KEY_FILE__"
+	// GseTemplateKeyProxyTLSKeyFile the config template key of gse proxy tls key file.
+	GseTemplateKeyProxyTLSKeyFile = "__BK_GSE_PROXY_TLS_KEY_FILE__"
 
-	// GseProxyTLSPasswordFile the config template key of gse proxy tls password file.
-	GseProxyTLSPasswordFile = "__BK_GSE_PROXY_TLS_PASSWORD_FILE__"
+	// GseTemplateKeyProxyTLSPasswordFile the config template key of gse proxy tls password file.
+	GseTemplateKeyProxyTLSPasswordFile = "__BK_GSE_PROXY_TLS_PASSWORD_FILE__"
 
-	// GseAgentBaseTLSCAFile the config template key of gse agent base tls ca file.
-	GseAgentBaseTLSCAFile = "__BK_GSE_AGENT_BASE_TLS_CA_FILE__"
+	// GseTemplateKeyAgentBaseTLSCAFile the config template key of gse agent base tls ca file.
+	GseTemplateKeyAgentBaseTLSCAFile = "__BK_GSE_AGENT_BASE_TLS_CA_FILE__"
 
-	// GseAgentBaseTLSCertFile the config template key of gse agent base tls cert file.
-	GseAgentBaseTLSCertFile = "__BK_GSE_AGENT_BASE_TLS_CERT_FILE__"
+	// GseTemplateKeyAgentBaseTLSCertFile the config template key of gse agent base tls cert file.
+	GseTemplateKeyAgentBaseTLSCertFile = "__BK_GSE_AGENT_BASE_TLS_CERT_FILE__"
 
-	// GseAgentBaseTLSKeyFile the config template key of gse agent base tls key file.
-	GseAgentBaseTLSKeyFile = "__BK_GSE_AGENT_BASE_TLS_KEY_FILE__"
+	// GseTemplateKeyAgentBaseTLSKeyFile the config template key of gse agent base tls key file.
+	GseTemplateKeyAgentBaseTLSKeyFile = "__BK_GSE_AGENT_BASE_TLS_KEY_FILE__"
 
-	// GseAgentBaseTLSPasswordFile the config template key of gse agent base tls password file.
-	GseAgentBaseTLSPasswordFile = "__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__"
+	// GseTemplateKeyAgentBaseTLSPasswordFile the config template key of gse agent base tls password file.
+	GseTemplateKeyAgentBaseTLSPasswordFile = "__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__"
 
-	// GseExtraConfigDirectory the config template key of gse extra config directory.
-	GseExtraConfigDirectory = "__BK_GSE_EXTRA_CONFIG_DIRECTORY__"
+	// GseTemplateKeyExtraConfigDirectory the config template key of gse extra config directory.
+	GseTemplateKeyExtraConfigDirectory = "__BK_GSE_EXTRA_CONFIG_DIRECTORY__"
 
-	// GseAccessClusterEndpoints the config template key of gse access cluster endpoints.
-	GseAccessClusterEndpoints = "__BK_GSE_ACCESS_CLUSTER_ENDPOINTS__"
+	// GseTemplateKeyAccessClusterEndpoints the config template key of gse access cluster endpoints.
+	GseTemplateKeyAccessClusterEndpoints = "__BK_GSE_ACCESS_CLUSTER_ENDPOINTS__"
 
-	// GseAccessDataEndpoints the config template key of gse access data endpoints.
-	GseAccessDataEndpoints = "__BK_GSE_ACCESS_DATA_ENDPOINTS__"
+	// GseTemplateKeyAccessDataEndpoints the config template key of gse access data endpoints.
+	GseTemplateKeyAccessDataEndpoints = "__BK_GSE_ACCESS_DATA_ENDPOINTS__"
 
-	// GseAccessFileEndpoints the config template key of gse access file endpoints.
-	GseAccessFileEndpoints = "__BK_GSE_ACCESS_FILE_ENDPOINTS__"
+	// GseTemplateKeyAccessFileEndpoints the config template key of gse access file endpoints.
+	GseTemplateKeyAccessFileEndpoints = "__BK_GSE_ACCESS_FILE_ENDPOINTS__"
 
 	// GseDataProxyEndpoints the config template key of gse data proxy endpoints.
 	GseDataProxyEndpoints = "__BK_GSE_DATA_PROXY_ENDPOINTS__"
 
-	// GseFileAgentAdvertiseIPV4 the config template key of gse file agent advertise ipv4.
-	GseFileAgentAdvertiseIPV4 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV4__"
+	// GseTemplateKeyFileAgentAdvertiseIPV4 the config template key of gse file agent advertise ipv4.
+	GseTemplateKeyFileAgentAdvertiseIPV4 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV4__"
 
-	// GseFileAgentAdvertiseIPV6 the config template key of gse file agent advertise ipv6.
-	GseFileAgentAdvertiseIPV6 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV6__"
+	// GseTemplateKeyFileAgentAdvertiseIPV6 the config template key of gse file agent advertise ipv6.
+	GseTemplateKeyFileAgentAdvertiseIPV6 = "__BK_GSE_FILE_AGENT_ADVERTISE_IPV6__"
 
-	// GseFileTopologyAdvertiseIP the config template key of gse file topology advertise ip.
-	GseFileTopologyAdvertiseIP = "__BK_GSE_FILE_TOPOLOGY_ADVERTISE_IP__"
+	// GseTemplateKeyFileTopologyAdvertiseIP the config template key of gse file topology advertise ip.
+	GseTemplateKeyFileTopologyAdvertiseIP = "__BK_GSE_FILE_TOPOLOGY_ADVERTISE_IP__"
 )
 
 // renderLogicSetting load logic setting to the config presetting.
-// nolint: nonamedreturns
-func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, preSetting map[string]any,
+// nolint: nonamedreturns,funlen
+func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, preSetting map[string]any,
 	host *types.Host) (err error) {
 
 	osType, err := platform.NormalizeOS(host.Static.OSType)
@@ -399,28 +406,28 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 	}()
 
 	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(host.Dynamic.NodeRole))
-	certDir := joinPath(osType, deploymentConf.GseHomeDir, "cert")
-	preSetting[GseHomeDirKey] = homeDir
+	certDir := joinPath(osType, homeDir, "cert")
+	preSetting[GseTemplateKeyHomeDir] = homeDir
 
 	// base setting
-	preSetting[GseAgentBaseTLSCAFile] = joinPath(osType, certDir, "gseca.crt")
-	preSetting[GseAgentBaseTLSCertFile] = joinPath(osType, certDir, "gse_agent.crt")
-	preSetting[GseAgentBaseTLSKeyFile] = joinPath(osType, certDir, "gse_agent.key")
+	preSetting[GseTemplateKeyAgentBaseTLSCAFile] = joinPath(osType, certDir, "gseca.crt")
+	preSetting[GseTemplateKeyAgentBaseTLSCertFile] = joinPath(osType, certDir, "gse_agent.crt")
+	preSetting[GseTemplateKeyAgentBaseTLSKeyFile] = joinPath(osType, certDir, "gse_agent.key")
 
 	// proxy setting
-	preSetting[GseProxyTLSCaFile] = joinPath(osType, certDir, "gseca.crt")
-	preSetting[GseProxyTLSCertFile] = joinPath(osType, certDir, "gse_server.crt")
-	preSetting[GseProxyTLSKeyFile] = joinPath(osType, certDir, "gse_server.key")
+	preSetting[GseTemplateKeyProxyTLSCaFile] = joinPath(osType, certDir, "gseca.crt")
+	preSetting[GseTemplateKeyProxyTLSCertFile] = joinPath(osType, certDir, "gse_server.crt")
+	preSetting[GseTemplateKeyProxyTLSKeyFile] = joinPath(osType, certDir, "gse_server.key")
 
 	if system.GetEdition() == system.EditionEE {
-		preSetting[GseAgentBaseTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
-		preSetting[GseProxyTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
+		preSetting[GseTemplateKeyAgentBaseTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
+		preSetting[GseTemplateKeyProxyTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
 	}
 
-	preSetting[GseExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
-	preSetting[GseLogPathKey] = deploymentConf.GseLogDir
-	preSetting[GseAgentBasePluginIPCKey] = deploymentConf.GsePluginIPC
-	preSetting[GseDataIPCKey] = deploymentConf.GseDataDir
+	preSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
+	preSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
+	preSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
+	preSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
 
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
@@ -430,24 +437,24 @@ func (action *RenderNodeInstallConfig) renderLogicSetting(ctx context.Context, p
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
 
-			preSetting[GseAccessClusterEndpoints] = strings.Join(clusters, ",")
-			preSetting[GseAccessDataEndpoints] = strings.Join(datas, ",")
-			preSetting[GseAccessFileEndpoints] = strings.Join(files, ",")
+			preSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
+			preSetting[GseTemplateKeyAccessDataEndpoints] = strings.Join(datas, ",")
+			preSetting[GseTemplateKeyAccessFileEndpoints] = strings.Join(files, ",")
 		}
 	case types.NodeRoleProxy:
 		{
-			preSetting[GseFileAgentAdvertiseIPV4] = advertiseIPV4
-			preSetting[GseFileAgentAdvertiseIPV6] = advertiseIPV6
-			preSetting[GseFileTopologyAdvertiseIP] = advertiseIP
+			preSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
+			preSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
+			preSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
 
 			clusters, files, datas, err := action.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
 
-			preSetting[GseAccessClusterEndpoints] = strings.Join(clusters, ",")
-			preSetting[GseAccessFileEndpoints] = advertiseIP
-			preSetting[GseAccessDataEndpoints] = advertiseIP
+			preSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
+			preSetting[GseTemplateKeyAccessFileEndpoints] = advertiseIP
+			preSetting[GseTemplateKeyAccessDataEndpoints] = advertiseIP
 
 			// TODO: save files upstreams for file-proxy links
 			_ = files
@@ -487,31 +494,33 @@ func joinPath(osType string, parts ...string) string {
 	return result
 }
 
-// necessaryKeys this defines the necessary keys in custom setting.
-func necessaryKeys() []string {
+const (
+	// GseKeyRunMode the config template key of gse run mode.
+	GseKeyRunMode = "run_mode"
+	// GseKeyCloudID the config template key of gse cloud id.
+	GseKeyCloudID = "cloud_id"
+
+	// GseKeyZoneID the config template key of gse zone id.
+	GseKeyZoneID = "zone_id"
+
+	// GseKeyCityID the config template key of gse city id.
+	GseKeyCityID = "city_id"
+)
+
+// forbiddenKeys this defines the forbidden keys in custom setting.
+func forbiddenKeys() []string {
 	return []string{
-		"run_mode",
+		GseKeyRunMode,
 		"cloud_id",
 		"zone_id",
 		"city_id",
 	}
 }
 
-// forbiddenKeys this defines the forbidden keys in custom setting.
-func forbiddenKeys() []string {
-	return []string{}
-}
-
 // renderCustomSetting load custom setting to the config presetting.
-func (action *RenderNodeInstallConfig) renderCustomSetting(conf *types.NodeConf, _ *types.DeploymentInfo) error {
+func (action *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
 	if conf.CustomSetting == nil {
 		return errors.New("lack custom setting")
-	}
-
-	for _, key := range necessaryKeys() {
-		if _, ok := conf.CustomSetting[key]; !ok {
-			return fmt.Errorf("lack necessary key, key(%s)", key)
-		}
 	}
 
 	for _, key := range forbiddenKeys() {
@@ -520,11 +529,16 @@ func (action *RenderNodeInstallConfig) renderCustomSetting(conf *types.NodeConf,
 		}
 	}
 
+	conf.CustomSetting[GseKeyRunMode] = info.Dynamic.NodeRole
+	conf.CustomSetting[GseKeyCloudID] = info.Static.NetworkAreaID
+	conf.CustomSetting[GseKeyZoneID] = info.Static.RegionID
+	conf.CustomSetting[GseKeyCityID] = info.Static.CityID
+
 	// TODO: Rendering strategy logic
 
 	return nil
 }
-func (action *RenderNodeInstallConfig) checkHostExist(ctx context.Context, hostID int64) error {
+func (action *RenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
 	host, err := action.iDaoHost.GetHostByID(ctx, hostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)

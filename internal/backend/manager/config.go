@@ -13,19 +13,27 @@ package manager
 
 import (
 	"errors"
-
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
 // Config defines the config of manager.
 type Config struct {
-	CmdbHandler cmdb.IHandler
-	TopoStorage topoStorage.IStorage
+	CmdbHandler           cmdb.IHandler
+	GSEHandler            gse.IHandler
+	TopoStorage           topoStorage.IStorage
+	NodeDeploymentStorage nodedeployment.IStorage
+	Provider              discover.Provider
+
+	InstallerFileGroup iface.FileGroup
 
 	LockerFactory locker.MutexFactory
 

@@ -8,15 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apiv3 defines the api v3 router.
-package apiv3
+// Package nodeworkflow defines the node workflow apis.
+package nodeworkflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow/agent"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,16 +26,12 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg: rg.Group("/node_workflow"),
 	}
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg)
-
-	sync.Load(h.rg, cap)
-	workflow.Load(h.rg, cap)
-	nodeworkflow.Load(h.rg, cap)
-	topo.Load(h.rg, cap)
+	agent.Load(h.rg, capability)
 }

@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/test/basetest"
 )
 
-// TestRenderNodeInstallConfig is a test suite for the RenderNodeInstallConfig action
+// TestRenderNodeInstallConfig is a test suite for the RenderNodeDeployment action
 type TestSuite struct {
 	basetest.TestSuit
 	capability *Capability
@@ -85,7 +85,7 @@ func (suite *TestSuite) TestRenderNodeInstallConfig_Do() {
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			action := NewActionRenderNodeInstallConfig(
+			action := NewActionRenderNodeDeployment(
 				suite.capability.NodeDeploymentStorage,
 				suite.capability.TopoStorage,
 				suite.capability.TopoStorage,

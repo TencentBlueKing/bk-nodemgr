@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 )
 
-// AgentReconfig reload agent config.
+// AgentReConfig reload agent config.
 func (h *handler) AgentReConfig(ctx *rest.Context) (interface{}, error) {
 	// TODO: implement me
 	return nil, nil

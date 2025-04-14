@@ -14,54 +14,57 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// TestPushHostIdentifier_Name ...
-func TestPushHostIdentifier_Do(t *testing.T) {
+// Test_waitComplete_Do ...
+func Test_waitComplete_Do(t *testing.T) {
 	capability := testCapability(t)
 
+	type fields struct {
+		storage operengine.OperInstStorage
+		logger  logger.Logger
+	}
 	type args struct {
 		ctx *operengine.ActionInstContext
 	}
 	tests := []struct {
 		name    string
+		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "normal",
+			name: "test",
+			fields: fields{
+				storage: capability.OperInstStorage,
+				logger:  capability.Logger,
+			},
 			args: args{
 				ctx: &operengine.ActionInstContext{
 					Ctx: context.Background(),
 					Data: &operengine.ActionInstData{
 						TriggerID:   "",
-						OperInstID:  "",
+						OperInstID:  "oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0",
 						OperationID: "",
-						Name:        "",
+						Name:        "sync_biz_from_cmdb",
 						Index:       0,
 						Messages:    nil,
-						Content: map[string]any{
-							keys.CKeyToken: "aebefe59260d42019e1deafaed4a7859",
+						Content: map[string]interface{}{
+							"wait_time": 10,
 						},
 						PrivateData: nil,
 						Lifecycle:   nil,
 					},
 				},
 			},
-			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			action := &PushHostIdentifier{
-				gseClient:  capability.GseHandler,
-				cmdbClient: capability.CmdbHandler,
-				storage:    capability.NodeDeploymentStorage,
-				logger:     capability.Logger,
-			}
-			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
+			s := NewActionWaitComplete(capability.OperInstStorage, capability.Logger)
+			if err := s.Do(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -49,7 +49,7 @@ func SetNodeAgentID(agentID string) error {
 // SetNodeGeneration set node generation.
 func SetNodeGeneration(generation int) error {
 	if generation <= 0 {
-		return errors.New("set node generation failed, generation shuold be greater than 0")
+		return errors.New("set node generation failed, generation should be greater than 0")
 	}
 
 	node.generation = generation

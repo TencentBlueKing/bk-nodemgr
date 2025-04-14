@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -167,12 +168,32 @@ func (mgr *manager) startOperEngineManager(ctx context.Context) error {
 
 // registerActionDefs init action defs
 func (mgr *manager) registerActionDefs() error {
+	if err := mgr.registerActionDefNodeInstall(); err != nil {
+		return fmt.Errorf("register action def node install failed, err: %v", err)
+	}
+
 	return mgr.operInstMgr.RegisterActions(
 		workflowdef.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
 		workflowdef.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
 		workflowdef.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
 		workflowdef.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
-		workflowdef.NewActionSshHostExecCmd(mgr.conf.Crypter, mgr.logger),
+	)
+}
+
+func (mgr *manager) registerActionDefNodeInstall() error {
+	return mgr.operInstMgr.RegisterActions(
+		nodeinstall.NewActionBindAgentHostRel(
+			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
+		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger, mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
+		nodeinstall.NewActionWaitGseRunning(
+			mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
+		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
+		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
+		nodeinstall.NewActionRenderNodeDeployment(
+			mgr.conf.NodeDeploymentStorage, mgr.conf.TopoStorage, mgr.conf.TopoStorage, mgr.logger),
+		nodeinstall.NewActionUpsertHost(
+			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage),
+		nodeinstall.NewActionWaitComplete(mgr.conf.OperInstStorage, mgr.logger),
 	)
 }
 

@@ -54,7 +54,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		}
 	}
 
-	err = h.PushActInstMsgs(gCtx, info.OperInstID, info.ActionName, logs...)
+	err = h.PushActInstMsgs(gCtx, info.OperInstID, info.BlockingActionName, logs...)
 	if err != nil {
 		h.logger.Errorf("report log failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

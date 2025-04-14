@@ -14,12 +14,24 @@ const (
 	// ActionNameBindAgentHostRel the name of BindAgentHostRel.
 	ActionNameBindAgentHostRel = "bind_agent_host_rel"
 
-	// ActionNameRenderNodeInstallConfig the name of RenderNodeInstallConfig.
-	ActionNameRenderNodeInstallConfig = "render_node_install_config"
+	// ActionNameRenderNodeDeployment the name of RenderNodeDeployment.
+	ActionNameRenderNodeDeployment = "render_node_deployment"
 
 	// ActionNamePushHostIdentifier the name of PushHostIdentifier.
 	ActionNamePushHostIdentifier = "push_host_identifier"
 
 	// ActionNameUpsertHost the name of UpsertHost.
 	ActionNameUpsertHost = "upsert_host"
+
+	// ActionNameWaitComplete the name of WaitComplete.
+	ActionNameWaitComplete = "wait_complete"
+
+	// ActionNameInstallAgentBySSH the name of InstallAgentBySSH.
+	ActionNameInstallAgentBySSH = "install_agent_by_ssh"
+
+	// ActionNameSyncNodeInfo the name of SyncNodeInfo.
+	ActionNameSyncNodeInfo = "sync_node_info"
+
+	// ActionNameWaitGseRunning the name of WaitGseRunning.
+	ActionNameWaitGseRunning = "wait_gse_running"
 )

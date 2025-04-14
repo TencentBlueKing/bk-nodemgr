@@ -8,5 +8,6 @@ tools/build/
 /logs
 .env
 /.run
-
 pre-*-bkcodeai
+/etc/
+/file/

@@ -35,8 +35,11 @@ type HostStatic struct {
 	OuterIPV6     string `json:"outer_ipv6" bson:"outer_ipv6"`
 	Mac           string `json:"mac" bson:"mac"`
 	OSType        string `json:"os_type" bson:"os_type"`
+	OSTypeCCID    string `json:"os_type_ccid" bson:"os_type_ccid"`
 	Arch          string `json:"arch" bson:"arch"`
 	Addressing    string `json:"addressing" bson:"addressing"`
+	RegionID      string `json:"region_id" bson:"region_id"`
+	CityID        string `json:"city_id" bson:"city_id"`
 	SyncedAgentID string `json:"synced_agent_id" bson:"synced_agent_id"`
 }
 
@@ -46,6 +49,8 @@ type HostDynamic struct {
 	NodeStatus          string   `json:"node_status" bson:"node_status"`
 	NodeVersion         string   `json:"node_version" bson:"node_version"`
 	NodeGeneration      int64    `json:"node_generation" bson:"node_generation"`
+	NodeCpuArch         string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeOsType          string   `json:"node_os_type" bson:"node_os_type"`
 	AgentID             string   `json:"agent_id" bson:"agent_id"`
 	NetworkUnitID       int64    `json:"networkunit_id" bson:"networkunit_id"`
 	ProxyAccessDisabled bool     `json:"proxy_access_disabled" bson:"proxy_access_disabled"`

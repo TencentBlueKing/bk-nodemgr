@@ -15,6 +15,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"io"
 	"runtime"
 
@@ -108,12 +112,35 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	for idx := range svc.conf.GseDeployConfs {
+		deployConf := deployconstant.DeployConf{
+			Generation:    types.NodeGeneration(svc.conf.GseDeployConfs[idx].Generation),
+			OsType:        svc.conf.GseDeployConfs[idx].OsType,
+			HostIDPath:    svc.conf.GseDeployConfs[idx].HostIDPath,
+			GseDataIPC:    svc.conf.GseDeployConfs[idx].GseDataIPC,
+			GsePluginIPC:  svc.conf.GseDeployConfs[idx].GsePluginIPC,
+			GseHomeDir:    svc.conf.GseDeployConfs[idx].GseHomeDir,
+			GseDataDir:    svc.conf.GseDeployConfs[idx].GseDataDir,
+			GseRunDir:     svc.conf.GseDeployConfs[idx].GseRunDir,
+			GseLogDir:     svc.conf.GseDeployConfs[idx].GseLogDir,
+			GseEnvironDir: svc.conf.GseDeployConfs[idx].GseEnvironDir,
+		}
+		if err := deployconstant.SetDeployConf(deployConf); err != nil {
+			return nil, fmt.Errorf("failed to set deploy conf, err: %w", err)
+		}
+	}
+
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
 		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
 	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
 	if err != nil {
 		return nil, err
 	}
@@ -155,12 +182,22 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
-		CmdbHandler:     svc.Cap.CmdbHandler,
-		TopoStorage:     svc.Cap.TopoStorage,
-		LockerFactory:   svc.Cap.LockerFactory,
-		OperStorage:     svc.Cap.OperStorage,
-		OperInstStorage: svc.Cap.OperInstStorage,
+		CmdbHandler:           svc.Cap.CmdbHandler,
+		GSEHandler:            svc.Cap.GSEHandler,
+		TopoStorage:           svc.Cap.TopoStorage,
+		NodeDeploymentStorage: svc.Cap.NodeDeploymentStorage,
+		Provider:              svc.Cap.DiscoverProvider,
+		InstallerFileGroup:    svc.Cap.InstallerFileGroup,
+		LockerFactory:         svc.Cap.LockerFactory,
+		OperStorage:           svc.Cap.OperStorage,
+		OperInstStorage:       svc.Cap.OperInstStorage,
+		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{
@@ -169,7 +206,6 @@ func NewService(conf *config.BackendService) (*Service, error) {
 				DB:       conf.Redis.DB,
 			},
 		},
-		Crypter: svc.Cap.Crypter,
 	}, blog.GlobalLogger{})
 	if err != nil {
 		return nil, err
@@ -360,6 +396,25 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 	}
 
 	return cmdbHandler, nil
+}
+
+// newGSEHandler.
+func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	if err != nil {
+		return nil, err
+	}
+
+	apiGwClientCapability.Name = "gse"
+	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
+		HeaderSetter: apiGwHeaderSetter,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return gseHandler, nil
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

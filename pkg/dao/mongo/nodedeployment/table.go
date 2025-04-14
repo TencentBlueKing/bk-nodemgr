@@ -44,6 +44,13 @@ type Info struct {
 	ProxyClusterPort int64    `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort    int64    `json:"proxy_data_port" bson:"proxy_data_port"`
 	ProxyFilePort    int64    `json:"proxy_file_port" bson:"proxy_file_port"`
+	TmpDir           string   `json:"tmp_dir" bson:"tmp_dir"`
+	LoginIP          string   `json:"login_ip" bson:"login_ip"`
+	LoginPort        int64    `json:"login_port" bson:"login_port"`
+	LoginUser        string   `json:"login_user" bson:"login_user"`
+	LoginMode        string   `json:"login_mode" bson:"login_mode"`
+	LoginPassword    []byte   `json:"login_password" bson:"login_password"`
+	LoginKeyFile     []byte   `json:"login_key_file" bson:"login_key_file"`
 }
 
 // NodeConf this is the node conf for node deployment.

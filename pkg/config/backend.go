@@ -40,6 +40,8 @@ const (
 	defaultBackendAdvertiseIPv4  = "127.0.0.1"
 	defaultBackendAdvertiseIPv6  = "::1"
 
+	defaultInstallerFileGroup = "/bk-nodeman/file/tools"
+
 	defaultGseDeployConfLinuxGeneration    = 2
 	defaultGseDeployConfLinuxOsType        = criteria.OSLinux
 	defaultGseDeployConfLinuxHostIDPath    = "/var/lib/gse2/host/hostid"
@@ -65,20 +67,22 @@ const (
 
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode        RunMode         `yaml:"runMode" usage:"run mode of service"`
-	TenantMode     tenant.Mode     `yaml:"tenantMode" usage:"tenant mode of service"`
-	CMDB           CMDB            `yaml:"cmdb" usage:"cmdb config of backend service"`
-	Workflow       Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
-	HTTPServer     HTTPServer      `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer    AdminServer     `yaml:"adminServer" usage:"admin server config of backend service"`
-	CallbackServer CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
-	Etcd           Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
-	Redis          Redis           `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB        MongoDB         `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log            Log             `yaml:"log" usage:"log config of backend service"`
-	System         System          `yaml:"system" usage:"system config of backend service"`
-	EncryptKey     string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GseDeployConfs []GseDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	RunMode            RunMode         `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode     `yaml:"tenantMode" usage:"tenant mode of service"`
+	CMDB               CMDB            `yaml:"cmdb" usage:"cmdb config of backend service"`
+	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
+	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
+	HTTPServer         HTTPServer      `yaml:"httpServer" usage:"http server config of backend service"`
+	AdminServer        AdminServer     `yaml:"adminServer" usage:"admin server config of backend service"`
+	CallbackServer     CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
+	Etcd               Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
+	Redis              Redis           `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB            MongoDB         `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log                Log             `yaml:"log" usage:"log config of backend service"`
+	System             System          `yaml:"system" usage:"system config of backend service"`
+	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	GseDeployConfs     []GseDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -141,6 +145,9 @@ func NewBackendService() *BackendService {
 				GseEnvironDir: defaultGseDeployConfWindowsGseEnvironDir,
 			},
 		},
+		InstallerFileGroup: FileGroup{
+			FullPath: defaultInstallerFileGroup,
+		},
 	}
 }
 
@@ -176,13 +183,13 @@ func (svc *BackendService) Validate() error {
 // GseDeployConf defines the deployment configuration for gse agent.
 type GseDeployConf struct {
 	Generation    int64  `yaml:"generation" usage:"generation of deploy"`
-	OsType        string `yaml:"os_type" usage:"os type"`
-	HostIDPath    string `yaml:"host_id_path" usage:"host id path"`
-	GseDataIPC    string `yaml:"gse_data_ipc" usage:"gse data ipc"`
-	GsePluginIPC  string `yaml:"gse_plugin_ipc" usage:"gse plugin ipc"`
-	GseHomeDir    string `yaml:"gse_home_dir" usage:"gse home dir"`
-	GseDataDir    string `yaml:"gse_data_dir" usage:"gse data dir"`
-	GseRunDir     string `yaml:"gse_run_dir" usage:"gse run dir"`
-	GseLogDir     string `yaml:"gse_log_dir" usage:"gse log dir"`
-	GseEnvironDir string `yaml:"gse_environ_dir" usage:"gse environ dir"`
+	OsType        string `yaml:"osType" usage:"os type"`
+	HostIDPath    string `yaml:"hostIDPath" usage:"host id path"`
+	GseDataIPC    string `yaml:"gseDataIPC" usage:"gse data ipc"`
+	GsePluginIPC  string `yaml:"gsePluginIPC" usage:"gse plugin ipc"`
+	GseHomeDir    string `yaml:"gseHomeDir" usage:"gse home dir"`
+	GseDataDir    string `yaml:"gseDataDir" usage:"gse data dir"`
+	GseRunDir     string `yaml:"gseRunDir" usage:"gse run dir"`
+	GseLogDir     string `yaml:"gseLogDir" usage:"gse log dir"`
+	GseEnvironDir string `yaml:"gseEnvironDir" usage:"gse environ dir"`
 }

@@ -14,6 +14,7 @@ package workflowdef
 import (
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
@@ -52,10 +53,11 @@ var instance = struct {
 func OperBuilderRegistry() map[OperDefName]OperBuilder {
 	instance.once.Do(func() {
 		instance.registry = map[OperDefName]OperBuilder{
-			OperDefNameSyncHost:        newOperSyncHostFromCMDB,
-			OperDefNameSyncBiz:         newOperSyncBizFromCMDB,
-			OperDefNameSyncBizAndHost:  newOperSyncBizAndHostFromCMDB,
-			OperDefNameSyncNetworkArea: newOperSyncNetworkAreaFromCMDB,
+			OperDefNameSyncHost:                     newOperSyncHostFromCMDB,
+			OperDefNameSyncBiz:                      newOperSyncBizFromCMDB,
+			OperDefNameSyncBizAndHost:               newOperSyncBizAndHostFromCMDB,
+			OperDefNameSyncNetworkArea:              newOperSyncNetworkAreaFromCMDB,
+			nodeinstall.OperDefNameInstallNodeBySSH: nodeinstall.NewOperationInstallNodeBySSH,
 		}
 	})
 

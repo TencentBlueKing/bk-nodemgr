@@ -39,39 +39,39 @@ func (conf DeployConf) Validate() error {
 	}
 
 	if conf.OsType == "" {
-		return errors.New("os_type is empty")
+		return errors.New("osType is empty")
 	}
 
 	if conf.HostIDPath == "" {
-		return errors.New("host_id_path is empty")
+		return errors.New("hostIDPath is empty")
 	}
 
 	if conf.GseDataIPC == "" {
-		return errors.New("gse_data_ipc is empty")
+		return errors.New("gseDataIPC is empty")
 	}
 
 	if conf.GsePluginIPC == "" {
-		return errors.New("gse_plugin_ipc is empty")
+		return errors.New("gsePluginIPC is empty")
 	}
 
 	if conf.GseHomeDir == "" {
-		return errors.New("gse_home_dir is empty")
+		return errors.New("gseHomeDir is empty")
 	}
 
 	if conf.GseDataDir == "" {
-		return errors.New("gse_data_dir is empty")
+		return errors.New("gseDataDir is empty")
 	}
 
 	if conf.GseRunDir == "" {
-		return errors.New("gse_run_dir is empty")
+		return errors.New("gseRunDir is empty")
 	}
 
 	if conf.GseLogDir == "" {
-		return errors.New("gse_log_dir is empty")
+		return errors.New("gseLogDir is empty")
 	}
 
 	if conf.GseEnvironDir == "" {
-		return errors.New("gse_environ_dir is empty")
+		return errors.New("gseEnvironDir is empty")
 	}
 
 	return nil

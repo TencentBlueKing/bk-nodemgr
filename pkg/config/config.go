@@ -239,6 +239,11 @@ type CMDB struct {
 	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
+// GSE the config of gse.
+type GSE struct {
+	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+}
+
 // Validate validates the config.
 func (conf CMDB) Validate() error {
 	if conf.SupplierAccount == "" {

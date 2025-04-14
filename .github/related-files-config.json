@@ -96,6 +96,20 @@
         "pkg/rest/errf/error.go",
         "pkg/rest/errf/http_status.go"
       ]
+    },
+    {
+      "id": "sync-cmdb-host",
+      "name": "新增 or 调整 host static 字段",
+      "description": "记得要修改下列几处文件",
+      "source_patterns": [
+        "pkg/types/host.go"
+      ],
+      "related_files": [
+        "pkg/dao/mongo/host/handler.go",
+        "pkg/dao/mongo/host/table.go",
+        "pkg/types/host.go",
+        "pkg/thirdparty/cmdb/handler.go"
+      ]
     }
   ]
 }

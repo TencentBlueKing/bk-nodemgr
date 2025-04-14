@@ -76,8 +76,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		OperInstID: info.OperInstID,
-		ActionName: info.ActionName,
+		OperInstID:         info.OperInstID,
+		BlockingActionName: info.ActionName,
 		Host: types.Host{
 			HostID:   info.HostID,
 			TenantID: info.TenantID,
@@ -108,6 +108,13 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				ProxyFilePort:    info.ProxyFilePort,
 			},
 		},
+		TmpDir:        info.TmpDir,
+		LoginIP:       info.LoginIP,
+		LoginPort:     info.LoginPort,
+		LoginUser:     info.LoginUser,
+		LoginMode:     types.LoginMode(info.LoginMode),
+		LoginPassword: info.LoginPassword,
+		LoginKeyFile:  info.LoginKeyFile,
 	}, nil
 }
 
@@ -256,7 +263,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 	data := &Info{
 		OperInstID:     info.OperInstID,
-		ActionName:     info.ActionName,
+		ActionName:     info.BlockingActionName,
 		HostID:         info.Host.HostID,
 		OSType:         info.Host.Static.OSType,
 		TenantID:       info.Host.TenantID,
@@ -281,6 +288,13 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		ProxyClusterPort: info.Host.Dynamic.ProxyClusterPort,
 		ProxyDataPort:    info.Host.Dynamic.ProxyDataPort,
 		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
+		TmpDir:           info.TmpDir,
+		LoginIP:          info.LoginIP,
+		LoginPort:        info.LoginPort,
+		LoginUser:        info.LoginUser,
+		LoginMode:        string(info.LoginMode),
+		LoginPassword:    info.LoginPassword,
+		LoginKeyFile:     info.LoginKeyFile,
 	}
 
 	return data, nil
