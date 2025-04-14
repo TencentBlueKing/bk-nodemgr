@@ -124,7 +124,7 @@ type HostDynamic struct {
 	NodeStatus     NodeStatus
 	NodeVersion    string
 	NodeGeneration NodeGeneration
-	NodeCpuArch    string
+	NodeCPUArch    string
 	NodeOsType     string
 	AgentID        string
 	NetworkUnitID  int64

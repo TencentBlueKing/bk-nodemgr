@@ -34,7 +34,7 @@ type Info struct {
 	NodeStatus       string   `json:"node_status" bson:"node_status"`
 	NodeVersion      string   `json:"node_version" bson:"node_version"`
 	NodeGeneration   int64    `json:"node_generation" bson:"node_generation"`
-	NodeCpuArch      string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeCPUArch      string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
 	NodeOsType       string   `json:"node_os_type" bson:"node_os_type"`
 	AgentID          string   `json:"agent_id" bson:"agent_id"`
 	NetworkUnitID    int64    `json:"network_unit_id" bson:"network_unit_id"`
