@@ -47,7 +47,7 @@ func DownloadFile(ctx context.Context, reqBody any, downloadURL, filePath string
 				"download file complete, file-path(%s)", filePath)
 		}
 
-		if current-lastProgress < 1024*1024 {
+		if current-lastProgress < total/10 {
 			return
 		}
 
