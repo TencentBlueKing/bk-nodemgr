@@ -24,8 +24,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 )
 
-// StartAgent ...
-func StartAgent(ctx context.Context, gseCtlPath string) error {
+// StartNode ...
+func StartNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Error(constant.StepStartNode, constant.StateFailed,

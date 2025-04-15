@@ -66,20 +66,20 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepStartNode, constant.StateRunning,
 		"agent path(%s), config path(%s)", step.agentPath, step.agentConfigPath)
 
-	if step.isProxy {
-		logger.Infof(constant.StepStartNode, constant.StateRunning,
-			"data proxy path(%s), config path(%s)", step.dataProxyPath, step.dataProxyConfigPath)
-		logger.Infof(constant.StepStartNode, constant.StateRunning,
-			"file proxy path(%s), config path(%s)", step.fileProxyPath, step.fileProxyConfigPath)
-
-		err := StartProxy(ctx, step.dataProxyPath, step.dataProxyConfigPath, step.fileProxyPath, step.fileProxyConfigPath)
-		if err != nil {
-			logger.Error(constant.StepStartNode, constant.StateFailed,
-				fmt.Sprintf("start proxy failed, err: %v", err))
-		}
-
-		logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start data and file proxy")
-	}
+	//if step.isProxy {
+	//	logger.Infof(constant.StepStartNode, constant.StateRunning,
+	//		"data proxy path(%s), config path(%s)", step.dataProxyPath, step.dataProxyConfigPath)
+	//	logger.Infof(constant.StepStartNode, constant.StateRunning,
+	//		"file proxy path(%s), config path(%s)", step.fileProxyPath, step.fileProxyConfigPath)
+	//
+	//	err := StartProxy(ctx, step.dataProxyPath, step.dataProxyConfigPath, step.fileProxyPath, step.fileProxyConfigPath)
+	//	if err != nil {
+	//		logger.Error(constant.StepStartNode, constant.StateFailed,
+	//			fmt.Sprintf("start proxy failed, err: %v", err))
+	//	}
+	//
+	//	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start data and file proxy")
+	//}
 
 	// check gse agent health
 	healthState, err := CheckAgentHealth(ctx, step.agentPath, step.agentConfigPath)
@@ -98,7 +98,7 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully check agent health")
 
 	// start gse agent
-	if err := StartAgent(ctx, step.agentCtlPath); err != nil {
+	if err := StartNode(ctx, step.agentCtlPath); err != nil {
 		logger.Error(constant.StepStartNode, constant.StateFailed, fmt.Sprintf("start agent failed, err: %v", err))
 
 		return fmt.Errorf("start agent failed, err: %v", err)
