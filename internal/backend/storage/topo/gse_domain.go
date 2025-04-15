@@ -162,3 +162,27 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 
 	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
 }
+
+// CheckStaticAccess check host is need static access or not.
+func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (bool, error) {
+	if ctx == nil {
+		return false, base.ErrNilContent()
+	}
+
+	if networkUnitID < 0 {
+		return false, errors.New("unit id should be equal or greater than 0")
+	}
+
+	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
+	if err != nil {
+		return false,
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
+	}
+
+	need := false
+	if networkUnit.NetworkAreaID == types.DefaultNetworkAreaID && !networkUnit.IsDirect {
+		need = true
+	}
+
+	return need, nil
+}

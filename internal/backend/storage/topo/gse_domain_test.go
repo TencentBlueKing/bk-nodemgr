@@ -57,6 +57,29 @@ func prepareGSEData(t *testing.T, ctx context.Context) {
 			t.Fatal(err)
 		}
 
+		gsePrepareDirectUnitID, apResult, err = h.CreateNetworkUnit(ctx, &types.NetworkUnit{
+			TenantID: tenantID,
+			Name:     "in-direct-unit",
+			IsDirect: false,
+			DirectEndpoints: &types.Endpoints{
+				Cluster: []string{"1.1.1.1:20001", "2.2.2.2:20001"},
+				File:    []string{"3.3.3.3:20002"},
+				Data:    []string{"4.4.4.4:20003"},
+			},
+		}, &types.AccessPoint{
+			TenantID:      tenantID,
+			NetworkAreaID: 0,
+			Name:          "direct-access",
+			Endpoints: types.Endpoints{
+				Cluster: []string{"5.5.5.5", "6.6.6.6"},
+				File:    []string{"7.7.7.7"},
+				Data:    []string{"8.8.8.8"},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		directAccessPointID := apResult.Created[0].ID
 		gsePrepareNormalUnitID, _, err = h.CreateNetworkUnit(ctx, &types.NetworkUnit{
 			TenantID: tenantID,
@@ -226,6 +249,48 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 
 			if !reflect.DeepEqual(dataEp, tt.wantDataEp) {
 				t.Errorf("GetAgentAccessEndpoints() dataEp = %v, want %v", dataEp, tt.wantDataEp)
+			}
+		})
+	}
+}
+
+// TestStorage_NeedStaticAccess tests check static access.
+func TestStorage_NeedStaticAccess(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareGSEData(t, ctx)
+
+	type args struct {
+		ctx           context.Context
+		networkUnitID int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:           ctx,
+				networkUnitID: 0,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := testClient(t)
+			got, err := s.NeedStaticAccess(tt.args.ctx, tt.args.networkUnitID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NeedStaticAccess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("NeedStaticAccess() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

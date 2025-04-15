@@ -42,6 +42,9 @@ type NetworkArea struct {
 	CloudVendor     string
 }
 
+// DefaultNetworkAreaID is the default network area.
+const DefaultNetworkAreaID = 0
+
 // NetworkUnit represents a basic unit for proxy management.
 type NetworkUnit struct {
 	// belongs to

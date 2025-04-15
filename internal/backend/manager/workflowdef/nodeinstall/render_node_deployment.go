@@ -130,7 +130,7 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.renderPreSetting(tenantCtx, nodeConf, &info.Host); err != nil {
+		if err := action.renderSystemSetting(tenantCtx, nodeConf, &info.Host); err != nil {
 			return fmt.Errorf("render pre setting failed, err: %w", err)
 		}
 
@@ -140,7 +140,7 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 	})
 
 	gp.Go(func() error {
-		if err := action.renderCustomSetting(nodeConf, info); err != nil {
+		if err := action.renderUserSetting(nodeConf, info); err != nil {
 			return fmt.Errorf("render custom setting failed, err: %w", err)
 		}
 
@@ -160,14 +160,14 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 	return nil
 }
 
-func (action *RenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (action *RenderNodeDeployment) renderSystemSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) error {
 
 	if err := action.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
 		return fmt.Errorf("render default setting failed, err: %w", err)
 	}
 
-	if err := action.renderLogicSetting(ctx, nodeConf.PreSetting, host); err != nil {
+	if err := action.renderLogicSetting(ctx, nodeConf, host); err != nil {
 		return fmt.Errorf("render logic setting failed, err: %w", err)
 	}
 
@@ -251,6 +251,38 @@ func GseAgentSettingDefault() map[string]any {
 func GseProxySettingDefault() map[string]any {
 	return map[string]any{
 		"__BK_GSE_HOME_DIR__":                               "/usr/local/gse/proxy",
+		"__BK_GSE_RUN_MODE__":                               "proxy",
+		"__BK_GSE_ENABLE_STATIC_ACCESS__":                   false,
+		"__BK_GSE_ENABLE_FAKE_SEED__":                       false,
+		"__BK_GSE_ACCESS_CLUSTER_ENDPOINTS__":               "127.0.0.1:28668",
+		"__BK_GSE_ACCESS_DATA_ENDPOINTS__":                  "127.0.0.1:28625",
+		"__BK_GSE_ACCESS_FILE_ENDPOINTS__":                  "127.0.0.1:28925",
+		"__BK_GSE_AGENT_BASE_TLS_CA_FILE__":                 "",
+		"__BK_GSE_AGENT_BASE_TLS_CERT_FILE__":               "",
+		"__BK_GSE_AGENT_BASE_TLS_KEY_FILE__":                "",
+		"__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__":           "",
+		"__BK_GSE_AGENT_BASE_PROCESSOR_NUM__":               4,
+		"__BK_GSE_AGENT_BASE_PROCESSOR_QUEUE_SIZE__":        4096,
+		"__BK_GSE_AGENT_BASE_ALARM_EVENT_DATA_ID__":         1000,
+		"__BK_GSE_AGENT_BASE_PLUGIN_IPC__":                  "${BK_GSE_HOME_DIR}/data/ipc.state.message",
+		"__BK_GSE_PROXY_TLS_CA_FILE__":                      "",
+		"__BK_GSE_PROXY_TLS_CERT_FILE__":                    "",
+		"__BK_GSE_PROXY_TLS_KEY_FILE__":                     "",
+		"__BK_GSE_PROXY_TLS_PASSWORD_FILE__":                "",
+		"__BK_GSE_PROXY_BIND_IP__":                          "::",
+		"__BK_GSE_PROXY_BIND_PORT__":                        28668,
+		"__BK_GSE_PROXY_THREAD_NUM__":                       4,
+		"__BK_GSE_TASK_PROC_EVENT_DATA_ID__":                1100008,
+		"__BK_GSE_TASK_CONCURRENCE_COUNT__":                 100,
+		"__BK_GSE_TASK_SCRIPT_FILE_EXPIRE_TIME_HOUR__":      72,
+		"__BK_GSE_DATA_IPC__":                               "${BK_GSE_HOME_DIR}/data/ipc.state.report",
+		"__BK_GSE_DATA_ENABLE_COMPRESSION__":                false,
+		"__BK_GSE_FILE_MAX_TRANSFER_SPEED_MB_PER_SEC__":     100,
+		"__BK_GSE_FILE_MAX_TRANSFER_CONCURRENT_NUM__":       10,
+		"__BK_GSE_FILE_BT_LISTEN_INTERFACE__":               "",
+		"__BK_GSE_FILE_BT_OUTGOING_INTERFACE__":             "",
+		"__BK_GSE_FILE_BT_ENABLE_OUTGOING_INTERFACE__":      true,
+		"__BK_GSE_EXTRA_CONFIG_DIRECTORY__":                 "",
 		"__BK_GSE_CLOUD_ID__":                               0,
 		"__BK_GSE_ZONE_ID__":                                "default",
 		"__BK_GSE_CITY_ID__":                                "default",
@@ -314,6 +346,18 @@ func GseProxySettingDefault() map[string]any {
 }
 
 const (
+	// GseTemplateKeyRunMode the config template key of gse run mode.
+	GseTemplateKeyRunMode = "__BK_GSE_RUN_MODE__"
+
+	// GseTemplateKeyCloudID the config template key of gse cloud id.
+	GseTemplateKeyCloudID = "__BK_GSE_CLOUD_ID__"
+
+	// GseTemplateKeyZoneID the config template key of gse zone id.
+	GseTemplateKeyZoneID = "__BK_GSE_ZONE_ID__"
+
+	// GseTemplateKeyCityID the config template key of gse city id.
+	GseTemplateKeyCityID = "__BK_GSE_CITY_ID__"
+
 	// GseTemplateKeyLogPath the config template key of gse log path.
 	GseTemplateKeyLogPath = "__BK_GSE_LOG_PATH__"
 
@@ -350,6 +394,60 @@ const (
 	// GseTemplateKeyAgentBaseTLSPasswordFile the config template key of gse agent base tls password file.
 	GseTemplateKeyAgentBaseTLSPasswordFile = "__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__"
 
+	// GseTemplateKeyDataAgentTLSCaFile the config template key of gse data agent tls ca file.
+	GseTemplateKeyDataAgentTLSCaFile = "__BK_GSE_DATA_AGENT_TLS_CA_FILE__"
+
+	// GseTemplateKeyDataAgentTLSCertFile the config template key of gse data agent tls cert file.
+	GseTemplateKeyDataAgentTLSCertFile = "__BK_GSE_DATA_AGENT_TLS_CERT_FILE__"
+
+	// GseTemplateKeyDataAgentTLSKeyFile the config template key of gse data agent tls key file.
+	GseTemplateKeyDataAgentTLSKeyFile = "__BK_GSE_DATA_AGENT_TLS_KEY_FILE__"
+
+	// GseTemplateKeyDataAgentTLSPasswordFile the config template key of gse data agent tls password file.
+	GseTemplateKeyDataAgentTLSPasswordFile = "__BK_GSE_DATA_AGENT_TLS_PASSWORD_FILE__"
+
+	// GseTemplateKeyDataProxyTLSCaFile the config template key of gse data proxy tls ca file.
+	GseTemplateKeyDataProxyTLSCaFile = "__BK_GSE_DATA_PROXY_TLS_CA_FILE__"
+
+	// GseTemplateKeyDataProxyTLSCertFile the config template key of gse data proxy tls cert file.
+	GseTemplateKeyDataProxyTLSCertFile = "__BK_GSE_DATA_PROXY_TLS_CERT_FILE__"
+
+	// GseTemplateKeyDataProxyTLSKeyFile the config template key of gse data proxy tls key file.
+	GseTemplateKeyDataProxyTLSKeyFile = "__BK_GSE_DATA_PROXY_TLS_KEY_FILE__"
+
+	// GseTemplateKeyDataProxyTLSPasswordFile the config template key of gse data proxy tls password file.
+	GseTemplateKeyDataProxyTLSPasswordFile = "__BK_GSE_DATA_PROXY_TLS_PASSWORD_FILE__"
+
+	// GseTemplateKeyFileAgentTLSCaFile the config template key of gse file agent tls ca file.
+	GseTemplateKeyFileAgentTLSCaFile = "__BK_GSE_FILE_AGENT_TLS_CA_FILE__"
+
+	// GseTemplateKeyFileAgentTLSCertFile the config template key of gse file agent tls cert file.
+	GseTemplateKeyFileAgentTLSCertFile = "__BK_GSE_FILE_AGENT_TLS_CERT_FILE__"
+
+	// GseTemplateKeyFileAgentTLSKeyFile the config template key of gse file agent tls key file.
+	GseTemplateKeyFileAgentTLSKeyFile = "__BK_GSE_FILE_AGENT_TLS_KEY_FILE__"
+
+	// GseTemplateKeyFileAgentTLSPasswordFile the config template key of gse file agent tls password file.
+	GseTemplateKeyFileAgentTLSPasswordFile = "__BK_GSE_FILE_AGENT_TLS_PASSWORD_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSCaFile the config template key of gse file topology tls ca file.
+	GseTemplateKeyFileTopologyTLSCaFile = "__BK_GSE_FILE_TOPOLOGY_TLS_CA_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSPasswordFile the config template key of gse file topology tls password file.
+	GseTemplateKeyFileTopologyTLSPasswordFile = "__BK_GSE_FILE_TOPOLOGY_TLS_PASSWORD_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSSvrCertFile the config template key of gse file topology tls svr cert file.
+	GseTemplateKeyFileTopologyTLSSvrCertFile = "__BK_GSE_FILE_TOPOLOGY_TLS_SVR_CERT_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSSvrKeyFile the config template key of gse file topology tls svr key file.
+	GseTemplateKeyFileTopologyTLSSvrKeyFile = "__BK_GSE_FILE_TOPOLOGY_TLS_SVR_KEY_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSCliCertFile the config template key of gse file topology tls cli cert file.
+	GseTemplateKeyFileTopologyTLSCliCertFile = "__BK_GSE_FILE_TOPOLOGY_TLS_CLI_CERT_FILE__"
+
+	// GseTemplateKeyFileTopologyTLSCliKeyFile the config template key of gse file topology tls cli key file.
+	GseTemplateKeyFileTopologyTLSCliKeyFile = "__BK_GSE_FILE_TOPOLOGY_TLS_CLI_KEY_FILE__"
+
 	// GseTemplateKeyExtraConfigDirectory the config template key of gse extra config directory.
 	GseTemplateKeyExtraConfigDirectory = "__BK_GSE_EXTRA_CONFIG_DIRECTORY__"
 
@@ -373,11 +471,25 @@ const (
 
 	// GseTemplateKeyFileTopologyAdvertiseIP the config template key of gse file topology advertise ip.
 	GseTemplateKeyFileTopologyAdvertiseIP = "__BK_GSE_FILE_TOPOLOGY_ADVERTISE_IP__"
+
+	// GseTemplateKeyEnableStaticAccess the config template key of gse enable static access.
+	GseTemplateKeyEnableStaticAccess = "__BK_GSE_ENABLE_STATIC_ACCESS__"
+
+	// GseTemplateKeyDataAgentBindPort the config template key of gse data agent bind port.
+	GseTemplateKeyDataAgentBindPort = "__BK_GSE_DATA_AGENT_BIND_PORT__"
+
+	// GseTemplateKeyFileAgentBindPort the config template key of gse file agent bind port.
+	GseTemplateKeyFileAgentBindPort = "__BK_GSE_FILE_AGENT_BIND_PORT__"
+)
+
+const (
+	// GseCustomKeyFileTopologyLinks the config template key of gse file topology links.
+	GseCustomKeyFileTopologyLinks = "file.topology.links"
 )
 
 // renderLogicSetting load logic setting to the config presetting.
 // nolint: nonamedreturns,funlen
-func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, preSetting map[string]any,
+func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 
 	osType, err := platform.NormalizeOS(host.Static.OSType)
@@ -405,30 +517,76 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, preS
 		return advertiseIPV6
 	}()
 
+	nodeConf.PreSetting[GseTemplateKeyRunMode] = host.Dynamic.NodeRole
+	nodeConf.PreSetting[GseTemplateKeyCloudID] = host.Static.NetworkAreaID
+	nodeConf.PreSetting[GseTemplateKeyZoneID] = host.Static.RegionID
+	nodeConf.PreSetting[GseTemplateKeyCityID] = host.Static.CityID
+
 	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(host.Dynamic.NodeRole))
 	certDir := joinPath(osType, homeDir, "cert")
-	preSetting[GseTemplateKeyHomeDir] = homeDir
+	nodeConf.PreSetting[GseTemplateKeyHomeDir] = homeDir
+
+	gseCaFilePath := joinPath(osType, certDir, "gseca.crt")
+	gsePasswordFilePath := joinPath(osType, certDir, "cert_encrypt.key")
+	gseAgentCertFilePath := joinPath(osType, certDir, "gse_agent.crt")
+	gseAgentKeyFilePath := joinPath(osType, certDir, "gse_agent.key")
+	gseServerCertFilePath := joinPath(osType, certDir, "gse_server.crt")
+	gseServerKeyFilePath := joinPath(osType, certDir, "gse_server.key")
+	gseAPIClientCertFilePath := joinPath(osType, certDir, "gse_api_client.crt")
+	gseAPIClientKeyFilePath := joinPath(osType, certDir, "gse_api_client.key")
 
 	// base setting
-	preSetting[GseTemplateKeyAgentBaseTLSCAFile] = joinPath(osType, certDir, "gseca.crt")
-	preSetting[GseTemplateKeyAgentBaseTLSCertFile] = joinPath(osType, certDir, "gse_agent.crt")
-	preSetting[GseTemplateKeyAgentBaseTLSKeyFile] = joinPath(osType, certDir, "gse_agent.key")
-
-	// proxy setting
-	preSetting[GseTemplateKeyProxyTLSCaFile] = joinPath(osType, certDir, "gseca.crt")
-	preSetting[GseTemplateKeyProxyTLSCertFile] = joinPath(osType, certDir, "gse_server.crt")
-	preSetting[GseTemplateKeyProxyTLSKeyFile] = joinPath(osType, certDir, "gse_server.key")
+	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSCAFile] = gseCaFilePath
+	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSCertFile] = gseAgentCertFilePath
+	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSKeyFile] = gseAgentKeyFilePath
 
 	if system.GetEdition() == system.EditionEE {
-		preSetting[GseTemplateKeyAgentBaseTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
-		preSetting[GseTemplateKeyProxyTLSPasswordFile] = joinPath(osType, certDir, "cert_encrypt.key")
+		nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSPasswordFile] = gsePasswordFilePath
 	}
 
-	preSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
-	preSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
-	preSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
-	preSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
+	if host.Dynamic.NodeRole == types.NodeRoleProxy {
+		// proxy setting
+		nodeConf.PreSetting[GseTemplateKeyProxyTLSCaFile] = gseCaFilePath
+		nodeConf.PreSetting[GseTemplateKeyProxyTLSCertFile] = gseServerCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyProxyTLSKeyFile] = gseServerKeyFilePath
 
+		if system.GetEdition() == system.EditionEE {
+			nodeConf.PreSetting[GseTemplateKeyProxyTLSPasswordFile] = gsePasswordFilePath
+		}
+
+		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSCaFile] = gseCaFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSCertFile] = gseServerCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSKeyFile] = gseServerKeyFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSPasswordFile] = gsePasswordFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataProxyTLSCaFile] = gseCaFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataProxyTLSCertFile] = gseAgentCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataProxyTLSKeyFile] = gseAgentKeyFilePath
+		nodeConf.PreSetting[GseTemplateKeyDataProxyTLSPasswordFile] = gsePasswordFilePath
+
+		nodeConf.PreSetting[GseTemplateKeyFileAgentTLSCaFile] = gseCaFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileAgentTLSCertFile] = gseServerCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileAgentTLSKeyFile] = gseServerKeyFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileAgentTLSPasswordFile] = gsePasswordFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCaFile] = gseCaFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSPasswordFile] = gsePasswordFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSSvrCertFile] = gseServerCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSSvrKeyFile] = gseServerKeyFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCliCertFile] = gseAPIClientCertFilePath
+		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCliKeyFile] = gseAPIClientKeyFilePath
+	}
+
+	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
+	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
+	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
+	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
+	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = action.IDomainGse.NeedStaticAccess(
+		ctx, host.Dynamic.NetworkUnitID)
+
+	if err != nil {
+		return fmt.Errorf("check static access failed, err: %w", err)
+	}
+
+	// render access endpoints
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
@@ -437,29 +595,29 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, preS
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
 
-			preSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
-			preSetting[GseTemplateKeyAccessDataEndpoints] = strings.Join(datas, ",")
-			preSetting[GseTemplateKeyAccessFileEndpoints] = strings.Join(files, ",")
+			nodeConf.PreSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
+			nodeConf.PreSetting[GseTemplateKeyAccessDataEndpoints] = strings.Join(datas, ",")
+			nodeConf.PreSetting[GseTemplateKeyAccessFileEndpoints] = strings.Join(files, ",")
 		}
 	case types.NodeRoleProxy:
 		{
-			preSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
-			preSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
-			preSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-
+			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
+			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
 			clusters, files, datas, err := action.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
 
-			preSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
-			preSetting[GseTemplateKeyAccessFileEndpoints] = advertiseIP
-			preSetting[GseTemplateKeyAccessDataEndpoints] = advertiseIP
+			nodeConf.PreSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
+			nodeConf.PreSetting[GseTemplateKeyAccessFileEndpoints] =
+				fmt.Sprintf("%s:%v", advertiseIP, nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort])
+			nodeConf.PreSetting[GseTemplateKeyAccessDataEndpoints] =
+				fmt.Sprintf("%s:%v", advertiseIP, nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort])
 
-			// TODO: save files upstreams for file-proxy links
-			_ = files
+			nodeConf.PreSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 
-			preSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
+			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = action.renderFileLinks(files)
 		}
 	default:
 		return fmt.Errorf("unsupported node role: %s", host.Dynamic.NodeRole)
@@ -495,30 +653,31 @@ func joinPath(osType string, parts ...string) string {
 }
 
 const (
-	// GseKeyRunMode the config template key of gse run mode.
-	GseKeyRunMode = "run_mode"
-	// GseKeyCloudID the config template key of gse cloud id.
-	GseKeyCloudID = "cloud_id"
+	// GseCustomKeyAgentRunMode the config template key of gse run mode.
+	GseCustomKeyAgentRunMode = "agent.run_mode"
 
-	// GseKeyZoneID the config template key of gse zone id.
-	GseKeyZoneID = "zone_id"
+	// GseCustomKeyAgentCloudID the config template key of gse cloud id.
+	GseCustomKeyAgentCloudID = "agent.cloud_id"
 
-	// GseKeyCityID the config template key of gse city id.
-	GseKeyCityID = "city_id"
+	// GseCustomKeyAgentZoneID the config template key of gse zone id.
+	GseCustomKeyAgentZoneID = "agent.zone_id"
+
+	// GseCustomKeyAgentCityID the config template key of gse city id.
+	GseCustomKeyAgentCityID = "agent.city_id"
 )
 
 // forbiddenKeys this defines the forbidden keys in custom setting.
 func forbiddenKeys() []string {
 	return []string{
-		GseKeyRunMode,
-		"cloud_id",
-		"zone_id",
-		"city_id",
+		GseCustomKeyAgentRunMode,
+		GseCustomKeyAgentCloudID,
+		GseCustomKeyAgentZoneID,
+		GseCustomKeyAgentCityID,
 	}
 }
 
-// renderCustomSetting load custom setting to the config presetting.
-func (action *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
+// renderUserSetting load user setting to the config presetting.
+func (action *RenderNodeDeployment) renderUserSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
 	if conf.CustomSetting == nil {
 		return errors.New("lack custom setting")
 	}
@@ -529,10 +688,9 @@ func (action *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, in
 		}
 	}
 
-	conf.CustomSetting[GseKeyRunMode] = info.Dynamic.NodeRole
-	conf.CustomSetting[GseKeyCloudID] = info.Static.NetworkAreaID
-	conf.CustomSetting[GseKeyZoneID] = info.Static.RegionID
-	conf.CustomSetting[GseKeyCityID] = info.Static.CityID
+	conf.CustomSetting[GseCustomKeyAgentCloudID] = info.Static.NetworkAreaID
+	conf.CustomSetting[GseCustomKeyAgentZoneID] = info.Static.RegionID
+	conf.CustomSetting[GseCustomKeyAgentCityID] = info.Static.CityID
 
 	// TODO: Rendering strategy logic
 
@@ -549,4 +707,42 @@ func (action *RenderNodeDeployment) checkHostExist(ctx context.Context, hostID i
 	}
 
 	return nil
+}
+
+// FileLink file link.
+type FileLink struct {
+	TargetIP   string `json:"target_ip,omitempty"`
+	TargetPort int64  `json:"target_port,omitempty"`
+	ReportIP   string `json:"report_ip,omitempty"`
+	ReportPort int64  `json:"report_port,omitempty"`
+}
+
+// NewFileLink new file link.
+// TODO: 需要 wesleylin 配合填写下默认值.
+// nolint: mnd
+func NewFileLink() *FileLink {
+	return &FileLink{
+		TargetIP:   "127.0.0.1",
+		TargetPort: 8080,
+		ReportIP:   "127.0.0.1",
+		ReportPort: 9090,
+	}
+}
+
+const defaultFileLinkTargetPort = 28930
+
+func (action *RenderNodeDeployment) renderFileLinks(fileUpstreams []string) []FileLink {
+	links := make([]FileLink, 0, len(fileUpstreams))
+	for _, upstream := range fileUpstreams {
+		strs := strings.Split(upstream, ":")
+
+		link := FileLink{
+			TargetIP:   strs[0],
+			TargetPort: conv.ToInt64Default(strs[1], defaultFileLinkTargetPort),
+			// TODO: 补充 report ip
+		}
+		links = append(links, link)
+	}
+
+	return links
 }

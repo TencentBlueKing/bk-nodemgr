@@ -21,15 +21,50 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// Template is a template.
+type Template struct {
+	UniqueKey string
+	Content   string
+}
+
 // ConfigFieldRegex is the regex of config field.
 const ConfigFieldRegex = `__BK_.*?__`
 
-// RenderConfig render config.
-func RenderConfig(template string, nodeConf *types.NodeConf) (string, error) {
-	re := regexp.MustCompile(ConfigFieldRegex)
-	result := re.FindAllStringSubmatch(template, -1)
+const (
+	// UniqueKeyAgent is the unique key of agent.
+	UniqueKeyAgent = "agent"
 
-	configStr := template
+	// UniqueKeyData is the unique key of data.
+	UniqueKeyData = "data"
+
+	// UniqueKeyFile is the unique key of file.
+	UniqueKeyFile = "file"
+)
+
+// RenderConfig render config.
+func RenderConfig(template Template, nodeConf *types.NodeConf) (map[string]any, error) {
+	config, err := renderPreSetting(template.Content, nodeConf)
+	if err != nil {
+		return nil, err
+	}
+
+	if nodeConf.CustomSetting != nil {
+		// append custom setting to config.
+		for key, value := range nodeConf.CustomSetting {
+			if err := renderCustomSetting(template.UniqueKey, config, key, value); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return config, nil
+}
+
+func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (map[string]any, error) {
+	re := regexp.MustCompile(ConfigFieldRegex)
+	result := re.FindAllStringSubmatch(templateContent, -1)
+
+	configStr := templateContent
 
 	for _, item := range result {
 		key := item[0]
@@ -45,7 +80,7 @@ func RenderConfig(template string, nodeConf *types.NodeConf) (string, error) {
 		case reflect.Struct, reflect.Map, reflect.Slice:
 			bytes, err := json.Marshal(value)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
@@ -54,26 +89,63 @@ func RenderConfig(template string, nodeConf *types.NodeConf) (string, error) {
 		}
 	}
 
-	if nodeConf.CustomSetting == nil {
-		return configStr, nil
-	}
-
 	config := make(map[string]any)
 	if err := json.Unmarshal([]byte(configStr), &config); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// append custom setting to config.
-	for key, value := range nodeConf.CustomSetting {
-		config[key] = value
+	return config, nil
+}
+
+func renderCustomSetting(uniqueKey string, config map[string]any, key string, value any) error {
+	if key == "" {
+		return fmt.Errorf("key cannot be empty")
 	}
 
-	jsonBytes, err := json.Marshal(config)
-	if err != nil {
-		return "", err
+	keys := strings.Split(key, ".")
+	if len(keys) == 0 {
+		return fmt.Errorf("key cannot be empty")
 	}
 
-	configStr = string(jsonBytes)
+	// ignore if key is not belong to this uniqueKey.
+	if keys[0] != uniqueKey {
+		return nil
+	}
 
-	return configStr, nil
+	keys = keys[1:]
+
+	target := config
+
+	for i, k := range keys {
+		if i == len(keys)-1 {
+			target[k] = value
+			break
+		}
+
+		// Check the existing values
+		existingVal, exists := target[k]
+		if !exists {
+			// If the existing value does not exist, replace it with a new map
+			newMap := make(map[string]any)
+			target[k] = newMap
+			target = newMap
+		} else if existingVal == nil {
+			// The existing value is nil and replaced with a new map
+			newMap := make(map[string]any)
+			target[k] = newMap
+			target = newMap
+		} else {
+			// key exists, try to convert to map
+			subMap, ok := existingVal.(map[string]any)
+			if !ok {
+				return fmt.Errorf(
+					"path conflict at %q: expected map but got %T in key path %q",
+					k, existingVal, key,
+				)
+			}
+			target = subMap
+		}
+	}
+
+	return nil
 }

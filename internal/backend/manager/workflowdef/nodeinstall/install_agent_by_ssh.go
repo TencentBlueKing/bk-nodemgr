@@ -40,9 +40,9 @@ func NewActionInstallAgentBySSH(
 	logger logger.Logger,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	provider discover.Provider,
-) *InstallAgentBySSH {
+) *InstallNodeBySSH {
 
-	return &InstallAgentBySSH{
+	return &InstallNodeBySSH{
 		installerGroup:     installerFileGroup,
 		crypter:            crypter,
 		logger:             logger,
@@ -70,8 +70,8 @@ type InstallParams struct {
 	AdditionArgs     []string
 }
 
-// InstallAgentBySSH ...
-type InstallAgentBySSH struct {
+// InstallNodeBySSH ...
+type InstallNodeBySSH struct {
 	installerGroup     iface.FileGroup
 	crypter            crypter.Crypter
 	logger             logger.Logger
@@ -80,37 +80,37 @@ type InstallAgentBySSH struct {
 }
 
 // Name returns the name of the action.
-func (action *InstallAgentBySSH) Name() string {
-	return ActionNameInstallAgentBySSH
+func (action *InstallNodeBySSH) Name() string {
+	return ActionNameInstallNodeBySSH
 }
 
 // Version returns the version of the action.
-func (action *InstallAgentBySSH) Version() string {
+func (action *InstallNodeBySSH) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *InstallAgentBySSH) Description() string {
+func (action *InstallNodeBySSH) Description() string {
 	return "Use ssh to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (action *InstallAgentBySSH) Timeout() time.Duration {
+func (action *InstallNodeBySSH) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *InstallAgentBySSH) Tags() []operengine.ActionTag {
+func (action *InstallNodeBySSH) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *InstallAgentBySSH) MaxRetryCount() uint {
+func (action *InstallNodeBySSH) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *InstallAgentBySSH) DelayFn() func() {
+func (action *InstallNodeBySSH) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -119,7 +119,7 @@ func (action *InstallAgentBySSH) DelayFn() func() {
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) (err error) {
+func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error) {
 	param := new(InstallAgentParamBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -223,20 +223,20 @@ func (action *InstallAgentBySSH) Do(ctx *operengine.ActionInstContext) (err erro
 
 	// 7. exec install command
 	installCmd := action.buildCMD(installParams)
-	ctx.Data.Log(fmt.Sprintf("install agent cmd: %s", installCmd))
+	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installCmd))
 
 	outStr, err := client.RunCommand(installCmd)
 	if err != nil {
-		err = fmt.Errorf("failed to run install agent, err: %w", err)
+		err = fmt.Errorf("failed to run install node, err: %w", err)
 
 		return err
 	}
-	ctx.Data.Log(fmt.Sprintf("install agent result: %s", outStr))
+	ctx.Data.Log(fmt.Sprintf("install node result: %s", outStr))
 
 	return nil
 }
 
-func (action *InstallAgentBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
+func (action *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
 	sshConf := &sshx.Config{
 		Network: sshx.NetworkTCP,
 		IP:      info.LoginIP,
@@ -280,7 +280,7 @@ func (action *InstallAgentBySSH) buildSSH(ctx context.Context, info *types.Deplo
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
-func (action *InstallAgentBySSH) detectInfo(ctx *operengine.ActionInstContext, client *sshx.Client) (
+func (action *InstallNodeBySSH) detectInfo(ctx *operengine.ActionInstContext, client *sshx.Client) (
 	osType string, cpuArch string, targetDir string, err error) {
 
 	// 1. detect target system
@@ -339,7 +339,7 @@ func (action *InstallAgentBySSH) detectInfo(ctx *operengine.ActionInstContext, c
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (action *InstallAgentBySSH) buildCMD(param *InstallParams) string {
+func (action *InstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),

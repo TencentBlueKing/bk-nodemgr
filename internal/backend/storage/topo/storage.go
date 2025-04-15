@@ -147,4 +147,7 @@ type IDomainGse interface {
 	// GetProxyUpstreamAccessEndpoints get proxy upstream access endpoints.
 	GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
 		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)
+
+	// NeedStaticAccess check host is need static access or not.
+	NeedStaticAccess(ctx context.Context, networkUnitID int64) (bool, error)
 }

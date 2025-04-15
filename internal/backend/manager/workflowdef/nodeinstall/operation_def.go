@@ -24,7 +24,7 @@ func NewOperationInstallNodeBySSH(triggerID string) *operengine.Operation {
 		ActionNames: []string{
 			ActionNameUpsertHost,
 			ActionNameRenderNodeDeployment,
-			ActionNameInstallAgentBySSH,
+			ActionNameInstallNodeBySSH,
 			ActionNameWaitComplete,
 			ActionNameWaitGseReady,
 			ActionNameSyncNodeInfo,

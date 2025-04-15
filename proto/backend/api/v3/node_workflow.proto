@@ -169,6 +169,34 @@ message NodeAgentInstallResp {
   Data data = 4;
 }
 
+// NodeProxyInstallReq describes the node proxy install request.
+message NodeProxyInstallReq {
+  string bk_addressing = 1;
+  optional int64 bk_biz_id = 2;
+  string bk_host_innerip = 3;
+  string bk_host_innerip_v6 = 4;
+  string login_ip = 5;
+  optional int64 login_port = 6;
+  string login_user = 7;
+  // support: auto, password, keyfile, none
+  string login_mode = 8;
+  string login_password = 9;
+  bytes login_key_file = 10;
+  optional int64 bk_networkunit_id = 11;
+  string os_type = 12;
+  string target_version = 13;
+}
+
+// NodeProxyInstallResp describes the node proxy install response.
+message NodeProxyInstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {string workflow_id = 1;}
+  Data data = 4;
+}
+
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {

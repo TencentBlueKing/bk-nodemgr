@@ -14,6 +14,7 @@ package nodeworkflow
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow/agent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow/proxy"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,4 +35,5 @@ func newHandler(rg *gin.RouterGroup) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg)
 	agent.Load(h.rg, capability)
+	proxy.Load(h.rg, capability)
 }

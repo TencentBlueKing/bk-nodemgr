@@ -44,7 +44,10 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateGseFileProxy, nodeConf)
+	conf, err := RenderConfig(Template{
+		UniqueKey: UniqueKeyFile,
+		Content:   DefaultTemplateGseFileProxy,
+	}, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse file proxy config failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed, err: %w", err))
@@ -52,7 +55,7 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	gCtx.String(http.StatusOK, conf)
+	gCtx.IndentedJSON(http.StatusOK, conf)
 
 	return
 }

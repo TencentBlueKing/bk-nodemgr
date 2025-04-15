@@ -23,14 +23,14 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	req := new(protoBackend.GetAgentConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse agent config failed, err: %v", err)
-		gCtx.JSON(http.StatusBadRequest, err)
+		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("get gse agent config failed, err: %v", err)
-		gCtx.JSON(http.StatusBadRequest, err)
+		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
 	}
@@ -38,20 +38,23 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse agent setting failed, err: %v", err)
-		gCtx.JSON(http.StatusInternalServerError, err)
+		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
 	}
 
-	conf, err := RenderConfig(DefaultTemplateGseAgent, nodeConf)
+	conf, err := RenderConfig(Template{
+		UniqueKey: UniqueKeyAgent,
+		Content:   DefaultTemplateGseAgent,
+	}, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse agent config failed, err: %v", err)
-		gCtx.JSON(http.StatusInternalServerError, err)
+		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
 	}
 
-	gCtx.String(http.StatusOK, conf)
+	gCtx.IndentedJSON(http.StatusOK, conf)
 
 	return
 }

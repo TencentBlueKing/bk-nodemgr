@@ -26,8 +26,8 @@ const (
 	// ActionNameWaitComplete the name of WaitComplete.
 	ActionNameWaitComplete = "wait_complete"
 
-	// ActionNameInstallAgentBySSH the name of InstallAgentBySSH.
-	ActionNameInstallAgentBySSH = "install_agent_by_ssh"
+	// ActionNameInstallNodeBySSH the name of InstallNodeBySSH.
+	ActionNameInstallNodeBySSH = "install_node_by_ssh"
 
 	// ActionNameSyncNodeInfo the name of SyncNodeInfo.
 	ActionNameSyncNodeInfo = "sync_node_info"

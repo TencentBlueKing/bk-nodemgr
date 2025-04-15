@@ -19,7 +19,7 @@ import (
 
 func TestRenderConfig(t *testing.T) {
 	type args struct {
-		template string
+		template Template
 		nodeConf types.NodeConf
 	}
 	tests := []struct {
@@ -30,7 +30,9 @@ func TestRenderConfig(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				template: `{
+				template: Template{
+					UniqueKey: UniqueKeyFile,
+					Content: `{
     "run_mode": "proxy",
     "cloud_id": __BK_GSE_CLOUD_ID__,
     "zone_id": "__BK_GSE_ZONE_ID__",
@@ -92,6 +94,7 @@ func TestRenderConfig(t *testing.T) {
         "flush_interval_ms": __BK_GSE_LOG_FLUSH_INTERVAL_MS__
     }
 }`,
+				},
 				nodeConf: types.NodeConf{
 					PreSetting: map[string]any{
 						"__BK_GSE_HOME_DIR__":                               "/usr/local/gse/proxy",
@@ -156,7 +159,7 @@ func TestRenderConfig(t *testing.T) {
 						"__BK_GSE_LOG_FLUSH_INTERVAL_MS__":                  100,
 					},
 					CustomSetting: map[string]any{
-						"test": "127.0.0.1",
+						"file.topology.links": "127.0.0.1",
 					},
 				},
 			},
