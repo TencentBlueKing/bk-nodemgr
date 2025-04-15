@@ -155,6 +155,44 @@ func SetSetupDir(dirPath string) error {
 	return nil
 }
 
+// nolint:gochecknoglobals
+var runDirPath = struct {
+	sync.Once
+	dirPath string
+}{}
+
+// GetRunDir get run dir.
+func GetRunDir() string {
+	runDirPath.Do(func() {
+		runDirPath.dirPath = filepath.Join(GetSetupDir(), "bin", "run")
+	})
+
+	return runDirPath.dirPath
+}
+
+// SetRunDir set run dir.
+func SetRunDir(dirPath string) error {
+	var err error
+	runDirPath.Do(func() {
+		if dirPath == "" {
+			err = errors.New("dir path is empty")
+			return
+		}
+
+		dirPath, err = filepath.Abs(dirPath)
+		if err != nil {
+			return
+		}
+
+		runDirPath.dirPath = filepath.Clean(filepath.FromSlash(dirPath))
+	})
+	if err != nil {
+		return fmt.Errorf("set run dir failed, err: %w", err)
+	}
+
+	return nil
+}
+
 // nolint: gochecknoglobals
 var tmpDir = struct {
 	sync.Once

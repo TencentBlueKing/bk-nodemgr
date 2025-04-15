@@ -314,7 +314,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		fmt.Println(agentID)
 
 		checkDeployStep := checkdeploy.NewStep(checkdeploy.StepArgs{
-			SetupDir: GetSetupDir(),
+			RunDir: GetRunDir(),
 		})
 		if err := checkDeployStep.Run(cmd.Context()); err != nil {
 			return fmt.Errorf("check deploy failed, err: %v", err)

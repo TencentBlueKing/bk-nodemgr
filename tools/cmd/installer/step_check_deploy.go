@@ -19,13 +19,13 @@ import (
 // NewCheckDeploy ...
 func NewCheckDeploy() *cobra.Command {
 	var (
-		setupDirPath string
+		runDirPath string
 	)
 	stepCmd := &cobra.Command{
 		Use:   "step_check_deploy",
 		Short: "check deploy",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetSetupDir(setupDirPath); err != nil {
+			if err := SetSetupDir(runDirPath); err != nil {
 				return err
 			}
 
@@ -33,7 +33,7 @@ func NewCheckDeploy() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := checkdeploy.NewStep(checkdeploy.StepArgs{
-				SetupDir: GetSetupDir(),
+				RunDir: GetRunDir(),
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
@@ -45,8 +45,8 @@ func NewCheckDeploy() *cobra.Command {
 	}
 
 	// nolint: goconst
-	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
-	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
+	stepCmd.Flags().StringVar(&runDirPath, CmdFlagRunDirPath, "", "run dir path")
+	_ = stepCmd.MarkFlagRequired(CmdFlagRunDirPath)
 
 	return stepCmd
 }

@@ -42,6 +42,8 @@ const (
 	CmdFlagPreCheckListPath = "pre_check_list_path"
 	// CmdFlagSetupDirPath this flag is used to specify the setup dir path.
 	CmdFlagSetupDirPath = "setup_dir_path"
+	// 	CmdFlagRunDirPath this flag is used to specify the run dir path.
+	CmdFlagRunDirPath = "run_dir_path"
 	// CmdFlagToken this flag is used to specify the token.
 	CmdFlagToken = "token"
 	// CmdFlagReinstall this flag is used to specify the reinstall.
