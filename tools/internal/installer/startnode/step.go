@@ -81,21 +81,21 @@ func (step *Step) Run(ctx context.Context) error {
 	//	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start data and file proxy")
 	//}
 
-	// check gse agent health
-	healthState, err := CheckAgentHealth(ctx, step.agentPath, step.agentConfigPath)
-	if err != nil {
-		logger.Error(constant.StepStartNode, constant.StateFailed,
-			fmt.Sprintf("check agent health failed, err: %v", err))
-
-		return fmt.Errorf("check agent health failed, err: %v", err)
-	}
-	if !healthState.OK {
-		logger.Error(constant.StepStartNode, constant.StateFailed,
-			fmt.Sprintf("check agent health failed, health-state(%v)", healthState))
-
-		return fmt.Errorf("check agent health failed, health-state(%v)", healthState)
-	}
-	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully check agent health")
+	//// check gse agent health
+	//healthState, err := CheckAgentHealth(ctx, step.agentPath, step.agentConfigPath)
+	//if err != nil {
+	//	logger.Error(constant.StepStartNode, constant.StateFailed,
+	//		fmt.Sprintf("check agent health failed, err: %v", err))
+	//
+	//	return fmt.Errorf("check agent health failed, err: %v", err)
+	//}
+	//if !healthState.OK {
+	//	logger.Error(constant.StepStartNode, constant.StateFailed,
+	//		fmt.Sprintf("check agent health failed, health-state(%v)", healthState))
+	//
+	//	return fmt.Errorf("check agent health failed, health-state(%v)", healthState)
+	//}
+	//logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully check agent health")
 
 	// start gse agent
 	if err := StartNode(ctx, step.agentCtlPath); err != nil {
