@@ -13,7 +13,6 @@ package uninstallnode
 
 import (
 	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 )
@@ -48,7 +47,7 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepUninstallNode, constant.StateStart, "start to uninstall agent")
 
 	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "stop agent, gse-ctl(%s)", step.gseCtlPath)
-	if err := StopAgent(ctx, step.gseCtlPath); err != nil {
+	if err := StopNode(ctx, step.gseCtlPath); err != nil {
 		logger.Infof(constant.StepUninstallNode, constant.StateFailed, "stop agent failed: %v", err)
 
 		return err

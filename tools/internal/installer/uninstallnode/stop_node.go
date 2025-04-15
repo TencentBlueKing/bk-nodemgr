@@ -23,9 +23,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 )
 
-// StopAgent stop agent.
+// StopNode stop agent.
 // nolint: gocognit
-func StopAgent(ctx context.Context, gseCtlPath string) error {
+func StopNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Error(constant.StepUninstallNode, constant.StateFailed,
