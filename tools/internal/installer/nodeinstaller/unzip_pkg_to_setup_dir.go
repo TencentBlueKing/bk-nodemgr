@@ -30,12 +30,12 @@ const maxDecompressedSize = 100 * 1024 * 1024 // 100M
 // UnzipPkgToSetupDir unzip gse pkg to setup dir.
 // nolint: funlen,gocognit,gocyclo,cyclop
 func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode, constant.StateRunning,
 		"unzip pkg to setup dir, unzip-pkg-path(%s), setup-dir(%s)", pkgPath, setupDir)
 
 	// check pkg exist or not.
 	if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-		logger.Errorf(constant.StepInstallAgent, constant.StateFailed,
+		logger.Errorf(constant.StepInstallNode, constant.StateFailed,
 			"unzip pkg to setup dir failed, pkg-path(%s) does not exist", pkgPath)
 
 		return fmt.Errorf("pkg does not exist, pkg-path(%s), err: %v", pkgPath, err)
@@ -43,7 +43,7 @@ func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
 
 	// check pkg format is tar.gz or not.
 	if !strings.HasSuffix(strings.ToLower(pkgPath), ".tar.gz") {
-		logger.Errorf(constant.StepInstallAgent, constant.StateFailed,
+		logger.Errorf(constant.StepInstallNode, constant.StateFailed,
 			"unzip pkg to setup dir failed, pkg-path(%s) format is not tar.gz", pkgPath)
 
 		return fmt.Errorf("pkg format is not tar.gz, pkg-path(%s)", pkgPath)
@@ -52,26 +52,26 @@ func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
 	// check setupDir exist or not.
 	if _, err := os.Stat(setupDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(setupDir, 0700); err != nil { // nolint: mnd
-			logger.Errorf(constant.StepInstallAgent, constant.StateFailed,
+			logger.Errorf(constant.StepInstallNode, constant.StateFailed,
 				"create setup directory failed, setup-dir(%s), err: %v", setupDir, err)
 
 			return fmt.Errorf("create setup directory failed, setup-dir(%s), err: %v", setupDir, err)
 		}
 
-		logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+		logger.Infof(constant.StepInstallNode, constant.StateRunning,
 			"create setup directory, setup-dir(%s)", setupDir)
 	}
 
 	// make sure setupDir has write permission.
 	testPath := filepath.Join(setupDir, fmt.Sprintf("write_test_%d", time.Now().UnixNano()))
 
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode, constant.StateRunning,
 		"try creating a file to make sure the setup directory has write permissions, "+
 			"setup-dir(%s), test-path(%s)", setupDir, testPath)
 
 	testFile, err := os.OpenFile(testPath, os.O_CREATE|os.O_WRONLY, 0600) // nolint: gosec,mnd
 	if err != nil {
-		logger.Errorf(constant.StepInstallAgent, constant.StateFailed,
+		logger.Errorf(constant.StepInstallNode, constant.StateFailed,
 			"setup directory has no write permission, setup-dir(%s), err: %v", setupDir, err)
 
 		return fmt.Errorf("setup directory has no write permission, setup-dir(%s), err: %v", setupDir, err)
@@ -80,13 +80,13 @@ func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
 	_ = testFile.Close()
 	_ = os.Remove(testPath)
 
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode, constant.StateRunning,
 		"remove test file, setup-dir(%s), test-path(%s)", setupDir, testPath)
 
 	// open pkg file.
 	file, err := os.Open(pkgPath) // nolint: gosec
 	if err != nil {
-		logger.Errorf(constant.StepInstallAgent, constant.StateFailed,
+		logger.Errorf(constant.StepInstallNode, constant.StateFailed,
 			"cannot open pkg file, pkg-path(%s), err: %v", pkgPath, err)
 
 		return fmt.Errorf("cannot open pkg file, pkg-path(%s), err: %v", pkgPath, err)
@@ -165,12 +165,12 @@ func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
 			_ = outFile.Close()
 		default:
 			// log unsupported file type.
-			logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+			logger.Infof(constant.StepInstallNode, constant.StateRunning,
 				"unzip file type is not supported, type(%d), path(%s)", header.Typeflag, target)
 		}
 	}
 
-	logger.Info(constant.StepInstallAgent, constant.StateRunning, "successfully unzip gse pkg to setup dir")
+	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully unzip gse pkg to setup dir")
 
 	return nil
 }

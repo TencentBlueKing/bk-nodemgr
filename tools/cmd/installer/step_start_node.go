@@ -37,9 +37,9 @@ func NewStepStartNode() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := startnode.NewStep(startnode.StepArgs{
-				AgentPath:    GetGseAgentPath(),
-				AgentCtlPath: GetGseAgentCtlPath(),
-				ConfigPath:   GetGseAgentConfPath(),
+				AgentPath:       GetGseAgentPath(),
+				AgentCtlPath:    GetGseAgentCtlPath(),
+				AgentConfigPath: GetGseAgentConfPath(),
 			})
 			if err := step.Run(cmd.Context()); err != nil {
 				return err

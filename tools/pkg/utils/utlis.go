@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net"
 	"os"
 	"path/filepath"
@@ -401,4 +402,47 @@ func CleanDirectory(path string) ([]string, error) {
 	}
 
 	return paths, nil
+}
+
+// ListFiles list all files in a directory.
+func ListFiles(dir string) ([]string, error) {
+	if dir == "" {
+		return nil, errors.New("invalid directory path")
+	}
+
+	// validate directory existence and permission.
+	dirInfo, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("directory does not exist, dir(%w)", err)
+		}
+		if os.IsPermission(err) {
+			return nil, fmt.Errorf("permission denied, dir(%s)", dir)
+		}
+
+		return nil, fmt.Errorf("failed to access directory: %w", err)
+	}
+
+	if !dirInfo.IsDir() {
+		return nil, fmt.Errorf("%s is not a directory", dir)
+	}
+
+	files := make([]string, 0)
+	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return filepath.SkipDir
+		}
+
+		if !d.IsDir() {
+			files = append(files, path)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error walking directory, err: %w", err)
+	}
+
+	return files, nil
 }

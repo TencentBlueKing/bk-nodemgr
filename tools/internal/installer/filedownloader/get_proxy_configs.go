@@ -56,18 +56,18 @@ type GetFileProxyConfReq struct {
 
 // GetDataProxyConf get data proxy conf.
 func GetDataProxyConf(ctx context.Context, tmpDataProxyConfPath, nodeRole, token, callbackEndpoint string) error {
-	requestBody := GetFileProxyConfReq{
+	requestBody := GetDataProxyConfReq{
 		OSType:   runtime.GOOS,
 		CPUArch:  runtime.GOARCH,
 		NodeRole: nodeRole,
 		Token:    token,
 	}
 
-	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_file_proxy_config")
+	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_data_proxy_config")
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get file proxy config failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get data proxy config failed, err: %v", err)
 
-		return fmt.Errorf("get file proxy config failed, err: %v", err)
+		return fmt.Errorf("get data proxy config failed, err: %v", err)
 	}
 
 	if err := DownloadFile(ctx, requestBody, downloadURL, tmpDataProxyConfPath); err != nil {
@@ -77,4 +77,12 @@ func GetDataProxyConf(ctx context.Context, tmpDataProxyConfPath, nodeRole, token
 	}
 
 	return nil
+}
+
+// GetDataProxyConfReq get file proxy config request.
+type GetDataProxyConfReq struct {
+	OSType   string `json:"os_type"`
+	CPUArch  string `json:"cpu_arch"`
+	NodeRole string `json:"node_role"`
+	Token    string `json:"token"`
 }

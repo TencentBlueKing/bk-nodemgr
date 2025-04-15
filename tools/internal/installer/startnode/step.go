@@ -21,24 +21,39 @@ import (
 
 // Step start node step.
 type Step struct {
-	agentPath    string
-	agentCtlPath string
-	configPath   string
+	isProxy             bool
+	agentPath           string
+	agentCtlPath        string
+	agentConfigPath     string
+	dataProxyPath       string
+	dataProxyConfigPath string
+	fileProxyPath       string
+	fileProxyConfigPath string
 }
 
 // StepArgs this define the args for step.
 type StepArgs struct {
-	AgentPath    string
-	AgentCtlPath string
-	ConfigPath   string
+	IsProxy             bool
+	AgentPath           string
+	AgentCtlPath        string
+	AgentConfigPath     string
+	DataProxyPath       string
+	DataProxyConfigPath string
+	FileProxyPath       string
+	FileProxyConfigPath string
 }
 
 // NewStep ...
 func NewStep(args StepArgs) *Step {
 	step := &Step{
-		agentPath:    args.AgentPath,
-		agentCtlPath: args.AgentCtlPath,
-		configPath:   args.ConfigPath,
+		isProxy:             args.IsProxy,
+		agentPath:           args.AgentPath,
+		agentCtlPath:        args.AgentCtlPath,
+		agentConfigPath:     args.AgentConfigPath,
+		dataProxyPath:       args.DataProxyPath,
+		dataProxyConfigPath: args.DataProxyConfigPath,
+		fileProxyPath:       args.FileProxyPath,
+		fileProxyConfigPath: args.FileProxyConfigPath,
 	}
 
 	return step
@@ -49,10 +64,25 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepStartNode, constant.StateStart, "start to start node")
 
 	logger.Infof(constant.StepStartNode, constant.StateRunning,
-		"agent path(%s), config path(%s)", step.agentPath, step.configPath)
+		"agent path(%s), config path(%s)", step.agentPath, step.agentConfigPath)
+
+	if step.isProxy {
+		logger.Infof(constant.StepStartNode, constant.StateRunning,
+			"data proxy path(%s), config path(%s)", step.dataProxyPath, step.dataProxyConfigPath)
+		logger.Infof(constant.StepStartNode, constant.StateRunning,
+			"file proxy path(%s), config path(%s)", step.fileProxyPath, step.fileProxyConfigPath)
+
+		err := StartProxy(ctx, step.dataProxyPath, step.dataProxyConfigPath, step.fileProxyPath, step.fileProxyConfigPath)
+		if err != nil {
+			logger.Error(constant.StepStartNode, constant.StateFailed,
+				fmt.Sprintf("start proxy failed, err: %v", err))
+		}
+
+		logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start data and file proxy")
+	}
 
 	// check gse agent health
-	healthState, err := CheckAgentHealth(ctx, step.agentPath, step.configPath)
+	healthState, err := CheckAgentHealth(ctx, step.agentPath, step.agentConfigPath)
 	if err != nil {
 		logger.Error(constant.StepStartNode, constant.StateFailed,
 			fmt.Sprintf("check agent health failed, err: %v", err))
@@ -74,8 +104,6 @@ func (step *Step) Run(ctx context.Context) error {
 		return fmt.Errorf("start agent failed, err: %v", err)
 	}
 	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start agent")
-
-	// TODO: start go proxy.
 
 	logger.Infof(constant.StepStartNode, constant.StateDone, "successfully start node")
 

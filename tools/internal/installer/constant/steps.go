@@ -14,8 +14,8 @@ package constant
 type Step string
 
 const (
-	// StepInstallAgent this is the step to install agent.
-	StepInstallAgent Step = "install_agent"
+	// StepInstallNode this is the step to install node.
+	StepInstallNode Step = "install_node"
 
 	// StepDownloadFiles this is the step to download files.
 	StepDownloadFiles Step = "download_files"
@@ -32,6 +32,6 @@ const (
 	// StepCheckDeploy this is the step to check this gse node is deploy or not.
 	StepCheckDeploy Step = "check_deploy"
 
-	// StepUninstallAgent this is the step to uninstall agent.
-	StepUninstallAgent Step = "uninstall_agent"
+	// StepUninstallNode this is the step to uninstall node.
+	StepUninstallNode Step = "uninstall_node"
 )

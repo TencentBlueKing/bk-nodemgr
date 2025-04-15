@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -38,7 +39,12 @@ type AgentHealthState struct {
 func CheckAgentHealth(ctx context.Context, agentPath, configPath string) (*AgentHealthState, error) {
 	state := &AgentHealthState{}
 
-	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
+		MaxRetries:    10,
+		BaseDelay:     1,
+		MaxDelay:      5,
+		JitterPercent: 0.2,
+	})
 	err := backoff.Do(ctx, func(attempt int) error {
 		var stdout, stderr bytes.Buffer
 
@@ -47,11 +53,12 @@ func CheckAgentHealth(ctx context.Context, agentPath, configPath string) (*Agent
 			"-f", configPath,
 			"--healthz",
 		)
+		cmd.Dir = filepath.Dir(agentPath)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 
 		if err := cmd.Run(); err != nil {
-			logger.Warnf(constant.StepInstallAgent, constant.StateRunning,
+			logger.Warnf(constant.StepInstallNode, constant.StateRunning,
 				"check agent health failed, attempt(%d), stderr(%s), err: %v", attempt, stderr.String(), err)
 		}
 
@@ -59,7 +66,7 @@ func CheckAgentHealth(ctx context.Context, agentPath, configPath string) (*Agent
 		healthzStr = strings.TrimPrefix(healthzStr, "healthz: ")
 
 		if err := json.Unmarshal([]byte(healthzStr), state); err != nil {
-			logger.Warnf(constant.StepInstallAgent, constant.StateRunning,
+			logger.Warnf(constant.StepInstallNode, constant.StateRunning,
 				"check agent health failed, attempt(%d), stderr(%s), err: %v", attempt, stderr.String(), err)
 
 			return err

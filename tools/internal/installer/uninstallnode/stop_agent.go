@@ -28,7 +28,7 @@ import (
 func StopAgent(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error(constant.StepUninstallAgent, constant.StateFailed,
+			logger.Error(constant.StepUninstallNode, constant.StateFailed,
 				fmt.Sprintf("stop agent panic: %s", r))
 		}
 	}()
@@ -45,12 +45,12 @@ func StopAgent(ctx context.Context, gseCtlPath string) error {
 		cmd.Stdout = &stdOut
 		cmd.Stderr = &stdErr
 
-		logger.Infof(constant.StepUninstallAgent, constant.StateRunning,
+		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
 			"run agent stop cmd: %s", cmd.String())
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Warn(constant.StepUninstallAgent, constant.StateRunning,
+			logger.Warn(constant.StepUninstallNode, constant.StateRunning,
 				"stop agent failed, attempt: %d, stderr: %s, err: %w",
 				attempt, stdErr.String(), err)
 
@@ -58,7 +58,7 @@ func StopAgent(ctx context.Context, gseCtlPath string) error {
 		}
 
 		if stdErr.String() != "" {
-			logger.Warn(constant.StepUninstallAgent, constant.StateRunning,
+			logger.Warn(constant.StepUninstallNode, constant.StateRunning,
 				"stop agent failed, attempt: %d, stderr: %s",
 				attempt, stdErr.String())
 		}
@@ -68,7 +68,7 @@ func StopAgent(ctx context.Context, gseCtlPath string) error {
 			outputLines := strings.Split(strings.TrimSpace(stdOutStr), "\n")
 			for _, line := range outputLines {
 				if line != "" {
-					logger.Infof(constant.StepUninstallAgent, constant.StateRunning, "agent output: %s", line)
+					logger.Infof(constant.StepUninstallNode, constant.StateRunning, "agent output: %s", line)
 				}
 
 				if strings.Contains(line, "gse agent stop failed") {
@@ -76,7 +76,7 @@ func StopAgent(ctx context.Context, gseCtlPath string) error {
 				}
 			}
 		} else {
-			logger.Infof(constant.StepUninstallAgent, constant.StateRunning, "stop agent success (no output)")
+			logger.Infof(constant.StepUninstallNode, constant.StateRunning, "stop agent success (no output)")
 		}
 
 		return nil

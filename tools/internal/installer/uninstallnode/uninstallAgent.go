@@ -45,24 +45,24 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step tp uninstall agent.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepUninstallAgent, constant.StateStart, "start to uninstall agent")
+	logger.Infof(constant.StepUninstallNode, constant.StateStart, "start to uninstall agent")
 
-	logger.Infof(constant.StepUninstallAgent, constant.StateRunning, "stop agent, gse-ctl(%s)", step.gseCtlPath)
+	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "stop agent, gse-ctl(%s)", step.gseCtlPath)
 	if err := StopAgent(ctx, step.gseCtlPath); err != nil {
-		logger.Infof(constant.StepUninstallAgent, constant.StateFailed, "stop agent failed: %v", err)
+		logger.Infof(constant.StepUninstallNode, constant.StateFailed, "stop agent failed: %v", err)
 
 		return err
 	}
-	logger.Infof(constant.StepUninstallAgent, constant.StateRunning, "successfully stop agent")
+	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "successfully stop agent")
 
-	logger.Infof(constant.StepUninstallAgent, constant.StateRunning, "remove setup dir(%s)", step.setupDirPath)
+	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "remove setup dir(%s)", step.setupDirPath)
 	if err := RemoveSetupDir(ctx, step.setupDirPath); err != nil {
-		logger.Infof(constant.StepUninstallAgent, constant.StateFailed, "remove setup dir failed: %v", err)
+		logger.Infof(constant.StepUninstallNode, constant.StateFailed, "remove setup dir failed: %v", err)
 
 		return err
 	}
 
-	logger.Infof(constant.StepUninstallAgent, constant.StateDone, "successfully uninstall agent")
+	logger.Infof(constant.StepUninstallNode, constant.StateDone, "successfully uninstall agent")
 
 	return nil
 }

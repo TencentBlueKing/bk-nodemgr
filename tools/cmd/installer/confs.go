@@ -45,46 +45,6 @@ func GetGseConfDir() string {
 }
 
 // nolint: gochecknoglobals
-var gseDataProxyConf = struct {
-	sync.Once
-	filePath string
-	fileName string
-}{
-	Once:     sync.Once{},
-	filePath: "",
-	fileName: "gse_data_proxy.conf",
-}
-
-// GetGseDataProxyConfPath get gse data proxy config file path.
-func GetGseDataProxyConfPath() string {
-	gseDataProxyConf.Do(func() {
-		gseDataProxyConf.filePath = filepath.Join(GetGseConfDir(), gseDataProxyConf.fileName)
-	})
-
-	return gseDataProxyConf.filePath
-}
-
-// nolint: gochecknoglobals
-var gseFileProxyConf = struct {
-	sync.Once
-	filePath string
-	fileName string
-}{
-	Once:     sync.Once{},
-	filePath: "",
-	fileName: "gse_file_proxy.conf",
-}
-
-// GetGseFileProxyConfPath get gse file proxy config file path.
-func GetGseFileProxyConfPath() string {
-	gseFileProxyConf.Do(func() {
-		gseFileProxyConf.filePath = filepath.Join(GetGseConfDir(), gseFileProxyConf.fileName)
-	})
-
-	return gseFileProxyConf.filePath
-}
-
-// nolint: gochecknoglobals
 var tmpAgentConf = struct {
 	sync.Once
 	filePath string

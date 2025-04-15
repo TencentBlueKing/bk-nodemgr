@@ -18,25 +18,26 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
-// MakeGseExecutable ...
-func MakeGseExecutable(_ context.Context, agentPath, agentCtlPath string) error {
-	if err := utils.MakeExecutable(agentPath); err != nil {
-		logger.Errorf(constant.StepInstallAgent, constant.StateRunning,
-			"make gse agent executable failed, agent-path(%s), err(%s)", agentPath, err)
+// MakeGseBinFileExecutable makes gse bin file executable.
+func MakeGseBinFileExecutable(_ context.Context, binDir string) error {
+	binFiles, err := utils.ListFiles(binDir)
+	if err != nil {
+		logger.Errorf(constant.StepInstallNode, constant.StateRunning,
+			"list files failed, dir-path(%s), err(%s)", binDir, err)
 
 		return err
 	}
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
-		"successfully make gse agent executable, agent-path(%s)", agentPath)
 
-	if err := utils.MakeExecutable(agentCtlPath); err != nil {
-		logger.Errorf(constant.StepInstallAgent, constant.StateRunning,
-			"make gse agent ctl executable failed, agent-ctl-path(%s), err(%s)", agentCtlPath, err)
+	for _, binFile := range binFiles {
+		if err := utils.MakeExecutable(binFile); err != nil {
+			logger.Errorf(constant.StepInstallNode, constant.StateRunning,
+				"make file executable failed, file-path(%s), err(%s)", binFile, err)
 
-		return err
+			return err
+		}
+		logger.Infof(constant.StepInstallNode, constant.StateRunning,
+			"successfully make file executable, file-path(%s)", binFile)
 	}
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
-		"successfully make gse agent executable, agent-ctl-path(%s)", agentCtlPath)
 
 	return nil
 }

@@ -298,9 +298,14 @@ func registerRootVars(rootCmd *cobra.Command) {
 		}
 
 		startNodeStep := startnode.NewStep(startnode.StepArgs{
-			AgentPath:    GetGseAgentPath(),
-			AgentCtlPath: GetGseAgentCtlPath(),
-			ConfigPath:   GetGseAgentConfPath(),
+			IsProxy:             GetNodeRole() == constant.NodeRoleProxy,
+			AgentPath:           GetGseAgentPath(),
+			AgentCtlPath:        GetGseAgentCtlPath(),
+			AgentConfigPath:     GetGseAgentConfPath(),
+			DataProxyPath:       GetGseDataProxyPath(),
+			DataProxyConfigPath: GetGseDataProxyConfPath(),
+			FileProxyPath:       GetGseFileProxyPath(),
+			FileProxyConfigPath: GetGseFileProxyConfPath(),
 		})
 		if err := startNodeStep.Run(cmd.Context()); err != nil {
 			return err

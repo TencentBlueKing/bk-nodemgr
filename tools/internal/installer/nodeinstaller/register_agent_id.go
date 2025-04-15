@@ -24,7 +24,7 @@ import (
 
 // RegisterAgentID run the register agent ID command.
 func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, configPath string) (string, error) {
-	logger.Infof(constant.StepInstallAgent, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode, constant.StateRunning,
 		"register agent id, agent-path(%s), config-path(%s)", agentPath, configPath)
 
 	var agentIDStr string
@@ -40,7 +40,7 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Warnf(constant.StepInstallAgent, constant.StateFailed,
+			logger.Warnf(constant.StepInstallNode, constant.StateFailed,
 				"register agent id failed, attempt(%d),stderr: %s, err: %v",
 				attempt, stderr.String(), err)
 
