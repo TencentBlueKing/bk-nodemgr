@@ -274,8 +274,8 @@ var gseAgentCtlPath = struct {
 	filePath string
 }{}
 
-// GetGseAgentCtlPath get gse agent ctl path.
-func GetGseAgentCtlPath() string {
+// GetGseCtlPath get gse agent ctl path.
+func GetGseCtlPath() string {
 	gseAgentCtlPath.Do(func() {
 		gseAgentCtlPath.filePath = filepath.Join(GetSetupDir(), "bin", GetGseAgentCtlName())
 	})

@@ -239,7 +239,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 			uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
 				SetupDirPath: GetSetupDir(),
-				GseCtlPath:   GetGseAgentCtlPath(),
+				GseCtlPath:   GetGseCtlPath(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
 				fmt.Printf("uninstall step failed, err: %v\n", err)
@@ -298,14 +298,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		}
 
 		startNodeStep := startnode.NewStep(startnode.StepArgs{
-			IsProxy:             GetNodeRole() == constant.NodeRoleProxy,
-			AgentPath:           GetGseAgentPath(),
-			AgentCtlPath:        GetGseAgentCtlPath(),
-			AgentConfigPath:     GetGseAgentConfPath(),
-			DataProxyPath:       GetGseDataProxyPath(),
-			DataProxyConfigPath: GetGseDataProxyConfPath(),
-			FileProxyPath:       GetGseFileProxyPath(),
-			FileProxyConfigPath: GetGseFileProxyConfPath(),
+			GseCtlPath: GetGseCtlPath(),
 		})
 		if err := startNodeStep.Run(cmd.Context()); err != nil {
 			return err

@@ -43,7 +43,7 @@ func NewStepReinstall() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
 				SetupDirPath: GetSetupDir(),
-				GseCtlPath:   GetGseAgentCtlPath(),
+				GseCtlPath:   GetGseCtlPath(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
 				return err
