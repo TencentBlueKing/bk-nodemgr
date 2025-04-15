@@ -148,5 +148,9 @@ func StartProxy(ctx context.Context,
 		return nil
 	})
 
+	if err := gp.Wait(); err != nil {
+		return fmt.Errorf("start proxy failed, err: %w", err)
+	}
+
 	return nil
 }
