@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -25,33 +26,55 @@ import (
 
 // Step this step is used to check this gse node is deploy or not.
 type Step struct {
-	runDir string
+	runDir   string
+	nodeRole constant.NodeRole
 }
 
 // StepArgs ...
 type StepArgs struct {
-	RunDir string
+	RunDir   string
+	NodeRole constant.NodeRole
 }
 
 // NewStep new step to check this gse node is deploy or not.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
-		runDir: args.RunDir,
+		runDir:   args.RunDir,
+		nodeRole: args.NodeRole,
 	}
 
 	return step
+}
+
+// AgentPidFileList ...
+func AgentPidFileList(runDirPath string) []string {
+	return []string{
+		filepath.Join(runDirPath, "agent.pid"),
+	}
+}
+
+// ProxyPidFileList ...
+func ProxyPidFileList(runDirPath string) []string {
+	return []string{
+		filepath.Join(runDirPath, "agent.pid"),
+		filepath.Join(runDirPath, "data.pid"),
+		filepath.Join(runDirPath, "file.pid"),
+	}
 }
 
 // Run the step to check this gse node is deploy or not.
 func (step *Step) Run(_ context.Context) error {
 	logger.Infof(constant.StepCheckDeploy, constant.StateStart, "start check deploy result")
 
-	pidFiles, err := utils.ListFiles(step.runDir)
-	if err != nil {
-		logger.Errorf(constant.StepInstallNode, constant.StateRunning,
-			"list files failed, dir-path(%s), err(%s)", step.runDir, err)
+	var pidFiles []string
 
-		return err
+	switch step.nodeRole {
+	case constant.NodeRoleAgent:
+		pidFiles = AgentPidFileList(step.runDir)
+	case constant.NodeRoleProxy:
+		pidFiles = ProxyPidFileList(step.runDir)
+	default:
+		return fmt.Errorf("invalid node role(%s)", step.nodeRole)
 	}
 
 	gp := gopool.NewPool()
@@ -85,6 +108,18 @@ func (step *Step) Run(_ context.Context) error {
 
 // checkPidFile check pid file exist or not and use utils.CheckPIDExist to check pid exist or not.
 func (step *Step) checkPidFile(pidFilePath string) error {
+	info, err := os.Stat(pidFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("pid file(%s) not exist", pidFilePath)
+		}
+		return fmt.Errorf("stat pid file(%s) failed, err: %w", pidFilePath, err)
+	}
+
+	if info.IsDir() {
+		return fmt.Errorf("pid file(%s) is dir", pidFilePath)
+	}
+
 	// nolint: gosec
 	pidStr, err := os.ReadFile(pidFilePath)
 	if err != nil {
