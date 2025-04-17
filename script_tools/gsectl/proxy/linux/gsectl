@@ -1019,7 +1019,7 @@ if [ "${node_type}" == "unknown" ];then
 fi
 
 
-if [ $auto_type == "systemd" ]; then
+if [ "${auto_type}" == "systemd" ]; then
     case $action in
         start) start_by_systemd 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         stop) stop_by_systemd 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
@@ -1030,7 +1030,7 @@ if [ $auto_type == "systemd" ]; then
         watch) watch_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         -h|*) usage ; exit 255 ;;
     esac
-elif [ $auto_type == "crontab" ]; then
+elif [ "${auto_type}" == "crontab" ]; then
     case $action in
         start) start_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         stop) stop_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
@@ -1041,7 +1041,7 @@ elif [ $auto_type == "crontab" ]; then
         watch) watch_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         -h|*) usage ; exit 255 ;;
     esac
-elif [ $auto_type == "rclocal" ]; then
+elif [ "${auto_type}" == "rclocal" ]; then
     case $action in
         start) start_by_rclocal 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         stop) stop_by_rclocal 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
