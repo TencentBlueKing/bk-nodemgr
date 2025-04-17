@@ -19,7 +19,7 @@ import (
 // OperDefNameSyncHost sync specific biz's host from cmdb.
 const OperDefNameSyncHost = "oper_def_sync_host"
 
-// OperSyncHost the params of OperSyncHost
+// OperSyncHost the params of OperSyncHost.
 type OperSyncHost struct {
 	TenantID string `json:"tenant_id"`
 	BizID    int64  `json:"biz_id"`

@@ -44,44 +44,44 @@ type syncHostFromCMDB struct {
 }
 
 // Name ...
-func (s *syncHostFromCMDB) Name() string {
+func (action *syncHostFromCMDB) Name() string {
 	return ActionNameSyncHostFromCMDB
 }
 
 // Version ...
-func (s *syncHostFromCMDB) Version() string {
+func (action *syncHostFromCMDB) Version() string {
 	return "v1"
 }
 
 // Description ...
-func (s *syncHostFromCMDB) Description() string {
+func (action *syncHostFromCMDB) Description() string {
 	return "Get the host information of the designated business from CMDB, and update to the database."
 }
 
 // Timeout ...
-func (s *syncHostFromCMDB) Timeout() time.Duration {
+func (action *syncHostFromCMDB) Timeout() time.Duration {
 	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags ...
-func (s *syncHostFromCMDB) Tags() []operengine.ActionTag {
+func (action *syncHostFromCMDB) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount ...
-func (s *syncHostFromCMDB) MaxRetryCount() uint {
-	return 3
+func (action *syncHostFromCMDB) MaxRetryCount() uint {
+	return 3 // nolint: mnd
 }
 
 // DelayFn ...
-func (s *syncHostFromCMDB) DelayFn() func() {
+func (action *syncHostFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do ...
-func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	param := new(SyncHostFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -93,9 +93,9 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour)
+	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
-		hosts, err := s.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
+		hosts, err := action.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
+	if err = action.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

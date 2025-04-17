@@ -19,7 +19,7 @@ import (
 // OperDefNameSyncNetworkArea sync networkarea from cmdb.
 const OperDefNameSyncNetworkArea = "oper_def_sync_networkarea"
 
-// OperSyncNetworkAreaFromCMDB the params of OperSyncNetworkAreaFromCMDB
+// OperSyncNetworkAreaFromCMDB the params of OperSyncNetworkAreaFromCMDB.
 type OperSyncNetworkAreaFromCMDB struct {
 	TenantID string `json:"tenant_id"`
 }

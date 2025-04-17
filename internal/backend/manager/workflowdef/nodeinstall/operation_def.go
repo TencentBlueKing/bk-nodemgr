@@ -21,7 +21,7 @@ const (
 	OperDefNameInstallNodeBySSH = "install_node_by_ssh"
 )
 
-// OperInstallNodeBySSH the params of OperInstallNodeBySSH
+// OperInstallNodeBySSH the params of OperInstallNodeBySSH.
 type OperInstallNodeBySSH struct {
 	Token string `json:"token"`
 }
@@ -47,7 +47,7 @@ func (oper *OperInstallNodeBySSH) OperDef() operengine.OperDefSnapshot {
 // Param the param of OperInstallNodeBySSH.
 func (oper *OperInstallNodeBySSH) Param() operengine.OperInstParam {
 	return operengine.OperInstParam{
-		Timeout:     time.Minute * 10,
+		Timeout:     time.Minute * 10, //nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper),
 	}
 }

@@ -55,7 +55,7 @@ func (act *syncBusinessFromCMDB) Name() string {
 
 // Version returns the version of the action.
 func (act *syncBusinessFromCMDB) Version() string {
-	return "v1"
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
@@ -70,7 +70,7 @@ func (act *syncBusinessFromCMDB) Timeout() time.Duration {
 
 // MaxRetryCount returns the max retry count of this action.
 func (act *syncBusinessFromCMDB) MaxRetryCount() uint {
-	return 2
+	return 2 // nolint: mnd
 }
 
 // DelayFn returns the delay of this action.
@@ -94,10 +94,9 @@ func (act *syncBusinessFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	gp := gopool.NewPool()
-	gp.SetLimit(10)
+	gp.SetLimit(10) // nolint: mnd
 
-	pageSize := 500
-	executor := runtime.NewPageExecutor[*types.Business](pageSize, 1*time.Hour)
+	executor := runtime.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
 		bizs, err := act.cmdbHandler.SearchBusiness(ctx, p)
 		if err != nil {

@@ -43,44 +43,44 @@ type syncNetworkAreaFromCMDB struct {
 }
 
 // Name returns the name of the action.
-func (s *syncNetworkAreaFromCMDB) Name() string {
+func (action *syncNetworkAreaFromCMDB) Name() string {
 	return ActionNameSyncNetworkAreaFromCMDB
 }
 
 // Version returns the version of the action.
-func (s *syncNetworkAreaFromCMDB) Version() string {
+func (action *syncNetworkAreaFromCMDB) Version() string {
 	return "v1"
 }
 
 // Description returns the description of the action.
-func (s *syncNetworkAreaFromCMDB) Description() string {
+func (action *syncNetworkAreaFromCMDB) Description() string {
 	return "Get the networkareas which also called cloudarea from CMDB, and update to the database."
 }
 
 // Timeout returns the timeout of the action.
-func (s *syncNetworkAreaFromCMDB) Timeout() time.Duration {
+func (action *syncNetworkAreaFromCMDB) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (s *syncNetworkAreaFromCMDB) Tags() []operengine.ActionTag {
+func (action *syncNetworkAreaFromCMDB) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount returns the retry count of the action.
-func (s *syncNetworkAreaFromCMDB) MaxRetryCount() uint {
-	return 3
+func (action *syncNetworkAreaFromCMDB) MaxRetryCount() uint {
+	return 3 // nolint: mnd
 }
 
 // DelayFn returns the delay function.
-func (s *syncNetworkAreaFromCMDB) DelayFn() func() {
+func (action *syncNetworkAreaFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do does the action.
-func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+func (action *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	param := new(SyncNetworkAreaFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -92,9 +92,9 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour)
+	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := s.cmdbHandler.SearchNetworkArea(ctx, p)
+		networkareas, err := action.cmdbHandler.SearchNetworkArea(ctx, p)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +107,7 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
+	if err = action.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

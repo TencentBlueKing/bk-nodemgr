@@ -19,7 +19,7 @@ import (
 // OperDefNameSyncBizAndHostFromCMDB sync all biz and their host from cmdb.
 const OperDefNameSyncBizAndHostFromCMDB = "oper_def_sync_biz_and_host"
 
-// OperInstSyncBizAndHostFromCMDB the params of OperInstSyncBizAndHostFromCMDB
+// OperInstSyncBizAndHostFromCMDB the params of OperInstSyncBizAndHostFromCMDB.
 type OperInstSyncBizAndHostFromCMDB struct {
 	TenantID string `json:"tenant_id"`
 }
