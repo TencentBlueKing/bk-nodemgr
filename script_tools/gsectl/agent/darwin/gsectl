@@ -3,7 +3,7 @@
 # vim:ft=sh sts=4 ts=4 expandtab
 
 # 切换到本脚本(gsectl)所在的目录，并设置WORK_HOME变量为上一级目录
-cd ${BASH_SOURCE%/*} 2>/dev/null
+cd "${BASH_SOURCE%/*}" 2>/dev/null
 WORK_HOME=${PWD%/bin}
 WORK_HOME=`echo $WORK_HOME |sed 's/\/$//g'`
 INSTALL_ENV=`echo $WORK_HOME |awk -F/ '{print $(NF-1)}'`
@@ -828,7 +828,7 @@ if [ "${node_type}" == "unknown" ];then
     echo "wrong node type: ${node_type}"
     exit
 fi
-if [ $auto_type == "systemd" ]; then
+if [ "${auto_type}" == "systemd" ]; then
       case $action in
           start) start_by_systemd 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
           stop) stop_by_systemd 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
@@ -838,7 +838,7 @@ if [ $auto_type == "systemd" ]; then
           healthz) healthz_by_systemd 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
           -h|*) usage ; exit 255 ;;
      esac
-elif [ $auto_type == "crontab" ]; then
+elif [ "${auto_type}" == "crontab" ]; then
       case $action in
           start) start_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
           stop) stop_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
@@ -849,7 +849,7 @@ elif [ $auto_type == "crontab" ]; then
           watch) watch_by_crontab 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
           -h|*) usage ; exit 255 ;;
       esac
-elif [ $auto_type == "rclocal" ]; then
+elif [ "${auto_type}" == "rclocal" ]; then
     case $action in
         start) start_by_rclocal 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
         stop) stop_by_rclocal 2>&1 | tee /tmp/nm_"${auto_type}"_"${action}".log ;;
