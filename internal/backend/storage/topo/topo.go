@@ -109,7 +109,6 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 }
 
 // ListBusinesses lists businesses by page and conditions.
-
 func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...*types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
@@ -207,7 +206,6 @@ func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...i
 }
 
 // ListNetworkUnit lists networkunit.
-
 func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
@@ -456,7 +454,6 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.Acc
 }
 
 // ListAccessPoint lists accesspoint.
-
 func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...*types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 

@@ -163,7 +163,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
 }
 
-// CheckStaticAccess check host is need static access or not.
+// NeedStaticAccess check host is need static access or not.
 func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (bool, error) {
 	if ctx == nil {
 		return false, base.ErrNilContent()

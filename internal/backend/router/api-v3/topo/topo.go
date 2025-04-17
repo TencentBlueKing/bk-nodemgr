@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topoStg provides the topoStg API handler.
+// Package topo provides the topoStg API handler.
 package topo
 
 import (
