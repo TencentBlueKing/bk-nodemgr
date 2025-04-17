@@ -78,9 +78,9 @@ func (x *NodeAgentInstallReq) AutoConvert() {
 		*x.LoginPort = -1
 	}
 
-	if x.HostId == nil {
-		x.HostId = new(int64)
-		*x.HostId = -1
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
 	}
 }
 
@@ -147,8 +147,8 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 		*x.LoginPort = -1
 	}
 
-	if x.HostId == nil {
-		x.HostId = new(int64)
-		*x.HostId = -1
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
 	}
 }

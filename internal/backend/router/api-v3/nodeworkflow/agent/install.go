@@ -51,7 +51,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 		Host: types.Host{
 			TenantID: ctx.TenantID,
-			HostID:   req.GetHostId(),
+			HostID:   req.GetBkHostId(),
 			Static: &types.HostStatic{
 				BizID:         req.GetBkBizId(),
 				NetworkAreaID: networkUnit.NetworkAreaID,

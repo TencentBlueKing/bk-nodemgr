@@ -157,7 +157,7 @@ message NodeAgentInstallReq {
   optional int64 bk_networkunit_id = 11;
   string os_type = 12;
   string target_version = 13;
-  optional int64 host_id = 14;
+  optional int64 bk_host_id = 14;
 }
 
 // NodeAgentInstallResp describes the node agent install response.
@@ -186,7 +186,7 @@ message NodeProxyInstallReq {
   optional int64 bk_networkunit_id = 11;
   string os_type = 12;
   string target_version = 13;
-  optional int64 host_id = 14;
+  optional int64 bk_host_id = 14;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.
