@@ -108,33 +108,53 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	hosts, count, err := action.iDaoHost.ListHost(tenantCtx, types.Page{
-		Offset: 0,
-		Limit:  1,
-	}, &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
-			NetworkAreaID: []int64{info.Static.NetworkAreaID},
-			Addressing:    []types.Addressing{info.Static.Addressing},
-			InnerIP:       []string{info.Static.InnerIP},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	if count > 1 {
-		return fmt.Errorf("more than one host found, connect the system administrator to check the host, "+
-			"network_area_id(%d), addressing(%s), inner_ip(%s)",
-			info.Static.NetworkAreaID, info.Static.Addressing, info.Static.InnerIP)
-	}
-
-	if len(hosts) == 0 {
-		info.HostID, err = action.insertHost(tenantCtx, info)
+	if info.HostID < 0 {
+		hosts, count, err := action.iDaoHost.ListHost(tenantCtx, types.Page{
+			Offset: 0,
+			Limit:  1,
+		}, &types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				NetworkAreaID: []int64{info.Static.NetworkAreaID},
+				Addressing:    []types.Addressing{info.Static.Addressing},
+				InnerIP:       []string{info.Static.InnerIP},
+			},
+		})
 		if err != nil {
 			return err
 		}
+
+		if count > 1 {
+			return fmt.Errorf("more than one host found, connect the system administrator to check the host, "+
+				"network_area_id(%d), addressing(%s), inner_ip(%s)",
+				info.Static.NetworkAreaID, info.Static.Addressing, info.Static.InnerIP)
+		}
+
+		if len(hosts) == 0 {
+			info.HostID, err = action.insertHost(tenantCtx, info)
+			if err != nil {
+				return err
+			}
+		} else {
+			info.HostID = hosts[0].HostID
+		}
 	} else {
-		info.HostID = hosts[0].HostID
+		count, err := action.iDaoHost.CountHost(tenantCtx, &types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				HostID:        []int64{info.HostID},
+				NetworkAreaID: []int64{info.Static.NetworkAreaID},
+				Addressing:    []types.Addressing{info.Static.Addressing},
+				InnerIP:       []string{info.Static.InnerIP},
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		if count == 0 {
+			return fmt.Errorf("no host found, connect the system administrator to check the host, "+
+				"network_area_id(%d), addressing(%s), inner_ip(%s)",
+				info.Static.NetworkAreaID, info.Static.Addressing, info.Static.InnerIP)
+		}
 	}
 
 	gp := gopool.NewPool()

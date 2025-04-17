@@ -49,6 +49,7 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 		Host: types.Host{
+			HostID:   req.GetHostId(),
 			TenantID: ctx.TenantID,
 			Static: &types.HostStatic{
 				BizID:         req.GetBkBizId(),

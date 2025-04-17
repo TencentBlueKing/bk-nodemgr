@@ -841,6 +841,7 @@ type NodeAgentInstallReq struct {
 	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
 	TargetVersion   string `protobuf:"bytes,13,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
+	HostId          *int64 `protobuf:"varint,14,opt,name=host_id,json=hostId,proto3,oneof" json:"host_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -966,6 +967,13 @@ func (x *NodeAgentInstallReq) GetTargetVersion() string {
 	return ""
 }
 
+func (x *NodeAgentInstallReq) GetHostId() int64 {
+	if x != nil && x.HostId != nil {
+		return *x.HostId
+	}
+	return 0
+}
+
 // NodeAgentInstallResp describes the node agent install response.
 type NodeAgentInstallResp struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
@@ -1052,6 +1060,7 @@ type NodeProxyInstallReq struct {
 	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
 	TargetVersion   string `protobuf:"bytes,13,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
+	HostId          *int64 `protobuf:"varint,14,opt,name=host_id,json=hostId,proto3,oneof" json:"host_id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1175,6 +1184,13 @@ func (x *NodeProxyInstallReq) GetTargetVersion() string {
 		return x.TargetVersion
 	}
 	return ""
+}
+
+func (x *NodeProxyInstallReq) GetHostId() int64 {
+	if x != nil && x.HostId != nil {
+		return *x.HostId
+	}
+	return 0
 }
 
 // NodeProxyInstallResp describes the node proxy install response.
@@ -1987,7 +2003,7 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x04logs\x18\x01 \x03(\v2-.v3.NodeOperActionInstLogGetResp.Data.MessageR\x04logs\x1a1\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04time\x18\x01 \x01(\tR\x04time\x12\x12\n" +
-	"\x04text\x18\x02 \x01(\tR\x04text\"\x9e\x04\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"\xc8\x04\n" +
 	"\x13NodeAgentInstallReq\x12#\n" +
 	"\rbk_addressing\x18\x01 \x01(\tR\fbkAddressing\x12\x1f\n" +
 	"\tbk_biz_id\x18\x02 \x01(\x03H\x00R\abkBizId\x88\x01\x01\x12&\n" +
@@ -2005,11 +2021,14 @@ const file_node_workflow_proto_rawDesc = "" +
 	" \x01(\fR\floginKeyFile\x12/\n" +
 	"\x11bk_networkunit_id\x18\v \x01(\x03H\x02R\x0fbkNetworkunitId\x88\x01\x01\x12\x17\n" +
 	"\aos_type\x18\f \x01(\tR\x06osType\x12%\n" +
-	"\x0etarget_version\x18\r \x01(\tR\rtargetVersionB\f\n" +
+	"\x0etarget_version\x18\r \x01(\tR\rtargetVersion\x12\x1c\n" +
+	"\ahost_id\x18\x0e \x01(\x03H\x03R\x06hostId\x88\x01\x01B\f\n" +
 	"\n" +
 	"_bk_biz_idB\r\n" +
 	"\v_login_portB\x14\n" +
-	"\x12_bk_networkunit_id\"\xbf\x01\n" +
+	"\x12_bk_networkunit_idB\n" +
+	"\n" +
+	"\b_host_id\"\xbf\x01\n" +
 	"\x14NodeAgentInstallResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
@@ -2018,7 +2037,7 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x04data\x18\x04 \x01(\v2\x1d.v3.NodeAgentInstallResp.DataR\x04data\x1a'\n" +
 	"\x04Data\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
-	"workflowId\"\x9e\x04\n" +
+	"workflowId\"\xc8\x04\n" +
 	"\x13NodeProxyInstallReq\x12#\n" +
 	"\rbk_addressing\x18\x01 \x01(\tR\fbkAddressing\x12\x1f\n" +
 	"\tbk_biz_id\x18\x02 \x01(\x03H\x00R\abkBizId\x88\x01\x01\x12&\n" +
@@ -2036,11 +2055,14 @@ const file_node_workflow_proto_rawDesc = "" +
 	" \x01(\fR\floginKeyFile\x12/\n" +
 	"\x11bk_networkunit_id\x18\v \x01(\x03H\x02R\x0fbkNetworkunitId\x88\x01\x01\x12\x17\n" +
 	"\aos_type\x18\f \x01(\tR\x06osType\x12%\n" +
-	"\x0etarget_version\x18\r \x01(\tR\rtargetVersionB\f\n" +
+	"\x0etarget_version\x18\r \x01(\tR\rtargetVersion\x12\x1c\n" +
+	"\ahost_id\x18\x0e \x01(\x03H\x03R\x06hostId\x88\x01\x01B\f\n" +
 	"\n" +
 	"_bk_biz_idB\r\n" +
 	"\v_login_portB\x14\n" +
-	"\x12_bk_networkunit_id\"\xbf\x01\n" +
+	"\x12_bk_networkunit_idB\n" +
+	"\n" +
+	"\b_host_id\"\xbf\x01\n" +
 	"\x14NodeProxyInstallResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
