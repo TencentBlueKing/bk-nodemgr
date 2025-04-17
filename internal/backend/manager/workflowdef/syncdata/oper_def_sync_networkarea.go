@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package nodeinstall
+package syncdata
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -16,38 +16,26 @@ import (
 	"time"
 )
 
-const (
-	// OperDefNameInstallNodeBySSH the name of the operation definition.
-	OperDefNameInstallNodeBySSH = "install_node_by_ssh"
-)
+// OperDefNameSyncNetworkArea sync networkarea from cmdb.
+const OperDefNameSyncNetworkArea = "oper_def_sync_networkarea"
 
-// OperInstallNodeBySSH the params of OperInstallNodeBySSH
-type OperInstallNodeBySSH struct {
-	Token string `json:"token"`
+// OperSyncNetworkAreaFromCMDB the params of OperSyncNetworkAreaFromCMDB
+type OperSyncNetworkAreaFromCMDB struct {
+	TenantID string `json:"tenant_id"`
 }
 
-// OperDef the operdef of OperInstallNodeBySSH.
-func (oper *OperInstallNodeBySSH) OperDef() operengine.OperDefSnapshot {
+// OperDef the operdef of OperSyncNetworkAreaFromCMDB.
+func (oper *OperSyncNetworkAreaFromCMDB) OperDef() operengine.OperDefSnapshot {
 	return operengine.OperDefSnapshot{
-		OperDefName: OperDefNameInstallNodeBySSH,
-		ActionNames: []string{
-			ActionNameUpsertHost,
-			ActionNameRenderNodeDeployment,
-			ActionNameInstallNodeBySSH,
-			ActionNameWaitComplete,
-			ActionNameWaitGseReady,
-			ActionNameSyncNodeInfo,
-			ActionNameBindAgentHostRel,
-			ActionNamePushHostIdentifier,
-			ActionNameUpdateHost,
-		},
+		OperDefName: OperDefNameSyncNetworkArea,
+		ActionNames: []string{ActionNameSyncNetworkAreaFromCMDB},
 	}
 }
 
-// Param the param of OperInstallNodeBySSH.
-func (oper *OperInstallNodeBySSH) Param() operengine.OperInstParam {
+// Param the param of OperSyncNetworkAreaFromCMDB.
+func (oper *OperSyncNetworkAreaFromCMDB) Param() operengine.OperInstParam {
 	return operengine.OperInstParam{
-		Timeout:     time.Minute * 10,
+		Timeout:     1 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper),
 	}
 }

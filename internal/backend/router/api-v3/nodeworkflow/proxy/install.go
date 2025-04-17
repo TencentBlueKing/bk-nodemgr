@@ -12,14 +12,11 @@ package proxy
 
 import (
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
-	"time"
 )
 
 // DefaultNodeGeneration default node generation.
@@ -105,15 +102,10 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	triggerID, err := h.manager.ExecuteOperation(
+	triggerID, err := h.manager.Execute(
 		tenantCtx,
-		nodeinstall.OperDefNameInstallNodeBySSH,
-		&operengine.OperInstParam{
-			Timeout: 5 * time.Minute,
-			InitContent: map[string]any{
-				keys.CKeyToken: nodeDeployment.Token,
-			},
-			ParentOperationID: "",
+		&nodeinstall.OperInstallNodeBySSH{
+			Token: nodeDeployment.Token,
 		})
 
 	if err != nil {

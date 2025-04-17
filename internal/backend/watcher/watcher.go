@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -26,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
 const (
@@ -170,14 +168,10 @@ func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
 			w.mu.Unlock()
 
 			for _, bizID := range bizSet {
-				triggerID, err := w.conf.Manager.ExecuteOperation(ctx, syncdata.OperDefNameSyncBizAndHostFromCMDB,
-					&operengine.OperInstParam{
-						Timeout: 10 * time.Minute, // nolint: mnd
-						InitContent: map[string]any{
-							keys.CKeyTenantID: tenantID,
-							keys.CKeyBizID:    bizID,
-						},
-					})
+				triggerID, err := w.conf.Manager.Execute(ctx, &syncdata.OperSyncHost{
+					TenantID: tenantID,
+					BizID:    bizID,
+				})
 
 				if err != nil {
 					w.logger.Errorf("failed to start sync cmdb host operation, biz id: %v, err: %v", bizID, err)

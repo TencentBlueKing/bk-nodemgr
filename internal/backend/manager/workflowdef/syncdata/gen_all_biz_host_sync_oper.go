@@ -119,15 +119,16 @@ func (action *GenAllBizHostSyncOper) executeOper(
 	data *operengine.ActionInstData,
 	biz *types.Business) error {
 
-	operation := NewOperSyncHostFromCMDB(data.TriggerID)
-	err := action.operMgr.ExecuteOperation(ctx, operation, &operengine.OperInstParam{
-		Timeout: time.Minute * 10, // nolint: mnd
-		InitContent: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
-			BizID:    biz.BizID,
-			TenantID: biz.TenantID,
-		}),
-		ParentOperationID: data.OperationID,
-	})
+	oper := OperSyncHost{
+		TenantID: biz.TenantID,
+		BizID:    biz.BizID,
+	}
+
+	operation := operengine.NewOperation(data.TriggerID, oper.OperDef())
+	param := oper.Param()
+	param.ParentOperationID = data.OperationID
+
+	err := action.operMgr.ExecuteOperation(ctx, operation, &param)
 	if err != nil {
 		err = fmt.Errorf(
 			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",

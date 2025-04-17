@@ -13,13 +13,9 @@ package sync
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
@@ -39,7 +35,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 	}
 
 	triggerID, err := h.manager.Execute(sCtx,
-		&syncdata.OperInstSyncBizFromCMDB{
+		&syncdata.OperInstSyncBizAndHostFromCMDB{
 			TenantID: ctx.TenantID,
 		},
 	)
@@ -70,13 +66,9 @@ func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.ExecuteOperation(sCtx,
-		syncdata.OperDefNameSyncNetworkArea, &operengine.OperInstParam{
-			Timeout: 1 * time.Minute,
-			InitContent: map[string]any{
-				keys.CKeyTenantID: ctx.TenantID,
-			},
-		})
+	triggerID, err := h.manager.Execute(sCtx, &syncdata.OperSyncNetworkAreaFromCMDB{
+		TenantID: ctx.TenantID,
+	})
 	if err != nil {
 		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s), err: %v", triggerID, err)
 		return nil, errf.ErrWrap(errf.Aborted, err)

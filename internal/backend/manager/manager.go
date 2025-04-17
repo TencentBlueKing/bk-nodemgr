@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
@@ -40,10 +39,6 @@ type Manager interface {
 
 	// GracefulShutdown ...
 	GracefulShutdown() error
-
-	// ExecuteOperation executes the operation.
-	// deprecated: use Execute instead.
-	ExecuteOperation(ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error)
 
 	// Execute operation.
 	Execute(ctx context.Context, operInst OperInst) (string, error)
@@ -210,33 +205,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 	)
 }
 
-// ExecuteOperation execute an operation.
-// deprecated: use Execute instead
-func (mgr *manager) ExecuteOperation(
-	ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error) {
-
-	triggerID := identifier.GenTriggerID()
-	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
-		name, triggerID, param)
-
-	builder, ok := workflowdef.OperBuilderRegistry()[name]
-	if !ok {
-		return triggerID, fmt.Errorf("operation builder not found, name: %s", name)
-	}
-
-	operation := builder(triggerID)
-	err := mgr.operMgr.ExecuteOperation(ctx, operation, param)
-	if err != nil {
-		return triggerID, fmt.Errorf("execute operation failed, name: %s, err: %v", name, err)
-	}
-
-	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
-		name, triggerID, operation.OperationID)
-
-	return triggerID, nil
-}
-
-// Execute ...
+// Execute try to execute an operation.
 func (mgr *manager) Execute(ctx context.Context, operInst OperInst) (string, error) {
 	triggerID := identifier.GenTriggerID()
 	def := operInst.OperDef()

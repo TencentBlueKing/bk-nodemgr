@@ -19,34 +19,21 @@ import (
 // OperDefNameSyncBizAndHostFromCMDB sync all biz and their host from cmdb.
 const OperDefNameSyncBizAndHostFromCMDB = "oper_def_sync_biz_and_host"
 
-// NewOperSyncBizAndHostFromCMDB new an operation to sync all bizs and their host from cmdb.
-func NewOperSyncBizAndHostFromCMDB(triggerID string) *operengine.Operation {
-	defSnapshot := operengine.OperDefSnapshot{
-		OperDefName: OperDefNameSyncBizAndHostFromCMDB,
-		ActionNames: []string{ActionNameSyncBizFromCMDB, ActionNameGenAllBizHostSyncOper},
-	}
-
-	operation := operengine.NewOperation(triggerID, defSnapshot)
-
-	return operation
-}
-
-// OperInstSyncBizFromCMDB the params of OperInstSyncBizFromCMDB
-type OperInstSyncBizFromCMDB struct {
+// OperInstSyncBizAndHostFromCMDB the params of OperInstSyncBizAndHostFromCMDB
+type OperInstSyncBizAndHostFromCMDB struct {
 	TenantID string `json:"tenant_id"`
-	BizID    string `json:"biz_id"`
 }
 
-// OperDef the operdef of OperInstSyncBizFromCMDB.
-func (oper *OperInstSyncBizFromCMDB) OperDef() operengine.OperDefSnapshot {
+// OperDef the operdef of OperInstSyncBizAndHostFromCMDB.
+func (oper *OperInstSyncBizAndHostFromCMDB) OperDef() operengine.OperDefSnapshot {
 	return operengine.OperDefSnapshot{
 		OperDefName: OperDefNameSyncBizAndHostFromCMDB,
 		ActionNames: []string{ActionNameSyncBizFromCMDB, ActionNameGenAllBizHostSyncOper},
 	}
 }
 
-// Param the param of OperInstSyncBizFromCMDB.
-func (oper *OperInstSyncBizFromCMDB) Param() operengine.OperInstParam {
+// Param the param of OperInstSyncBizAndHostFromCMDB.
+func (oper *OperInstSyncBizAndHostFromCMDB) Param() operengine.OperInstParam {
 	return operengine.OperInstParam{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper),
