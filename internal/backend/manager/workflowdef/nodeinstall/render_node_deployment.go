@@ -157,6 +157,14 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
+	if err := action.renderNodeDeploymentInfo(tenantCtx, info, nodeConf); err != nil {
+		return fmt.Errorf("set node deployment info failed, err: %w", err)
+	}
+
+	if err := action.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+		return fmt.Errorf("set node deployment info failed, err: %w", err)
+	}
+
 	return nil
 }
 
@@ -480,6 +488,9 @@ const (
 
 	// GseTemplateKeyFileAgentBindPort the config template key of gse file agent bind port.
 	GseTemplateKeyFileAgentBindPort = "__BK_GSE_FILE_AGENT_BIND_PORT__"
+
+	// GseTemplateKeyProxyBindPort the config template key of gse proxy bind port.
+	GseTemplateKeyProxyBindPort = "__BK_GSE_PROXY_BIND_PORT__"
 )
 
 const (
@@ -745,4 +756,25 @@ func (action *RenderNodeDeployment) renderFileLinks(fileUpstreams []string) []Fi
 	}
 
 	return links
+}
+
+const (
+	defaultKeyProxyBindPort = 28668
+	defaultKeyProxyDataPort = 28625
+	defaultKeyProxyFilePort = 28925
+)
+
+func (action *RenderNodeDeployment) renderNodeDeploymentInfo(
+	_ context.Context,
+	info *types.DeploymentInfo,
+	conf *types.NodeConf) error {
+
+	info.Dynamic.ProxyClusterPort = conv.ToInt64Default(
+		conf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
+	info.Dynamic.ProxyDataPort = conv.ToInt64Default(
+		conf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyProxyDataPort)
+	info.Dynamic.ProxyFilePort = conv.ToInt64Default(
+		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
+
+	return nil
 }
