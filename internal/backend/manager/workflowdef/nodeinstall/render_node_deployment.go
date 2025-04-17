@@ -174,6 +174,7 @@ func (action *RenderNodeDeployment) renderSystemSetting(ctx context.Context, nod
 	return nil
 }
 
+// GseAgentSettingDefault will load the default setting for gse agent to preSetting.
 func (action *RenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
 ) error {
 
@@ -487,7 +488,7 @@ const (
 	GseCustomKeyFileTopologyLinks = "file.topology.links"
 )
 
-// renderLogicSetting load logic setting to the config presetting.
+// renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen
 func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
@@ -617,7 +618,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 
 			nodeConf.PreSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 
-			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = action.renderFileLinks(files)
+			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = action.renderFileLinks(nodeConf, host, files)
 		}
 	default:
 		return fmt.Errorf("unsupported node role: %s", host.Dynamic.NodeRole)
@@ -688,10 +689,6 @@ func (action *RenderNodeDeployment) renderUserSetting(conf *types.NodeConf, info
 		}
 	}
 
-	conf.CustomSetting[GseCustomKeyAgentCloudID] = info.Static.NetworkAreaID
-	conf.CustomSetting[GseCustomKeyAgentZoneID] = info.Static.RegionID
-	conf.CustomSetting[GseCustomKeyAgentCityID] = info.Static.CityID
-
 	// TODO: Rendering strategy logic
 
 	return nil
@@ -718,20 +715,35 @@ type FileLink struct {
 }
 
 // NewFileLink new file link.
-// TODO: 需要 wesleylin 配合填写下默认值.
 // nolint: mnd
 func NewFileLink() *FileLink {
 	return &FileLink{
 		TargetIP:   "127.0.0.1",
-		TargetPort: 8080,
+		TargetPort: defaultFileLinkTargetPort,
 		ReportIP:   "127.0.0.1",
-		ReportPort: 9090,
+		ReportPort: defaultFileLinkTargetPort,
 	}
 }
 
 const defaultFileLinkTargetPort = 28930
 
-func (action *RenderNodeDeployment) renderFileLinks(fileUpstreams []string) []FileLink {
+func (action *RenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf, host *types.Host,
+	fileUpstreams []string) []FileLink {
+
+	reportIP := func() string {
+		outerIps := host.Static.GetOuterIPList()
+		if len(outerIps) > 0 {
+			return outerIps[0]
+		}
+
+		innerIPs := host.Static.GetInnerIPList()
+		if len(innerIPs) > 0 {
+			return innerIPs[0]
+		}
+
+		return ""
+	}()
+
 	links := make([]FileLink, 0, len(fileUpstreams))
 	for _, upstream := range fileUpstreams {
 		strs := strings.Split(upstream, ":")
@@ -739,7 +751,9 @@ func (action *RenderNodeDeployment) renderFileLinks(fileUpstreams []string) []Fi
 		link := FileLink{
 			TargetIP:   strs[0],
 			TargetPort: conv.ToInt64Default(strs[1], defaultFileLinkTargetPort),
-			// TODO: 补充 report ip
+			ReportIP:   reportIP,
+			ReportPort: conv.ToInt64Default(
+				nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultFileLinkTargetPort),
 		}
 		links = append(links, link)
 	}

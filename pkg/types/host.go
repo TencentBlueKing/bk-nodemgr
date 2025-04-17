@@ -10,7 +10,10 @@
 
 package types
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // Addressing represents an addressing type.
 type Addressing string
@@ -206,6 +209,27 @@ type HostStatic struct {
 	// synced types, do not use this for processing.
 	// just use it for comparing and checking.
 	SyncedAgentID string
+}
+
+// IPSeparator is the separator of inner and outer ip.
+const IPSeparator = ","
+
+// GetInnerIPList returns a list of inner ip.
+func (static *HostStatic) GetInnerIPList() []string {
+	if static.InnerIP == "" {
+		return []string{}
+	}
+
+	return strings.Split(static.InnerIP, IPSeparator)
+}
+
+// GetOuterIPList returns a list of outer ip.
+func (static *HostStatic) GetOuterIPList() []string {
+	if static.OuterIP == "" {
+		return []string{}
+	}
+
+	return strings.Split(static.OuterIP, IPSeparator)
 }
 
 // NodeRole represents a node role.
