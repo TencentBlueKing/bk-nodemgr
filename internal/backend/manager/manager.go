@@ -16,12 +16,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
+
+// OperInst defines the operation instance interface.
+type OperInst interface {
+	OperDef() operengine.OperDefSnapshot
+	Param() operengine.OperInstParam
+}
 
 // Manager defines the manager interface.
 type Manager interface {
@@ -35,7 +42,11 @@ type Manager interface {
 	GracefulShutdown() error
 
 	// ExecuteOperation executes the operation.
+	// deprecated: use Execute instead.
 	ExecuteOperation(ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error)
+
+	// Execute operation.
+	Execute(ctx context.Context, operInst OperInst) (string, error)
 
 	// RetryOperation retries the operation.
 	RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error
@@ -173,10 +184,10 @@ func (mgr *manager) registerActionDefs() error {
 	}
 
 	return mgr.operInstMgr.RegisterActions(
-		workflowdef.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
-		workflowdef.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		workflowdef.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		workflowdef.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
+		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
+		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
+		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
+		syncdata.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
 	)
 }
 
@@ -200,6 +211,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 }
 
 // ExecuteOperation execute an operation.
+// deprecated: use Execute instead
 func (mgr *manager) ExecuteOperation(
 	ctx context.Context, name workflowdef.OperDefName, param *operengine.OperInstParam) (string, error) {
 
@@ -220,6 +232,27 @@ func (mgr *manager) ExecuteOperation(
 
 	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
 		name, triggerID, operation.OperationID)
+
+	return triggerID, nil
+}
+
+// Execute ...
+func (mgr *manager) Execute(ctx context.Context, operInst OperInst) (string, error) {
+	triggerID := identifier.GenTriggerID()
+	def := operInst.OperDef()
+	param := operInst.Param()
+	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
+		def.OperDefName, triggerID, param)
+
+	operation := operengine.NewOperation(triggerID, def)
+	err := mgr.operMgr.ExecuteOperation(ctx, operation, &param)
+	if err != nil {
+		return triggerID, fmt.Errorf("execute operation failed, name(%s), trigger-id(%s), err: %v",
+			def.OperDefName, triggerID, err)
+	}
+
+	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
+		def.OperDefName, triggerID, operation.OperationID)
 
 	return triggerID, nil
 }

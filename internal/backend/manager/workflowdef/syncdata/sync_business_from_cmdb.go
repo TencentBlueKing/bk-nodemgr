@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package syncdata
 
 import (
 	"context"
@@ -51,7 +50,7 @@ type syncBusinessFromCMDB struct {
 
 // Name returns the name of the action.
 func (act *syncBusinessFromCMDB) Name() string {
-	return SyncBizFromCMDB
+	return ActionNameSyncBizFromCMDB
 }
 
 // Version returns the version of the action.

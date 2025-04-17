@@ -13,11 +13,11 @@ package watcher
 
 import (
 	"context"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -170,7 +170,7 @@ func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
 			w.mu.Unlock()
 
 			for _, bizID := range bizSet {
-				triggerID, err := w.conf.Manager.ExecuteOperation(ctx, workflowdef.OperDefNameSyncBizAndHost,
+				triggerID, err := w.conf.Manager.ExecuteOperation(ctx, syncdata.OperDefNameSyncBizAndHostFromCMDB,
 					&operengine.OperInstParam{
 						Timeout: 10 * time.Minute, // nolint: mnd
 						InitContent: map[string]any{

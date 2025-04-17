@@ -8,24 +8,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package syncdata
 
 import (
 	"context"
 	"testing"
+	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// Test_waitComplete_Do ...
-func Test_waitComplete_Do(t *testing.T) {
-	capability := testCapability(t)
+// Test_syncHostFromCMDB_Do ...
+func Test_syncHostFromCMDB_Do(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "bk_nodeman")
 
 	type fields struct {
-		storage operengine.OperInstStorage
-		logger  logger.Logger
+		cmdbHandler cmdb.IHandler
+		topoStorage topoStg.IStorage
 	}
 	type args struct {
 		ctx *operengine.ActionInstContext
@@ -37,37 +39,41 @@ func Test_waitComplete_Do(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "test",
-			fields: fields{
-				storage: capability.OperInstStorage,
-				logger:  capability.Logger,
-			},
+			name:   "normal",
+			fields: fields{},
 			args: args{
 				ctx: &operengine.ActionInstContext{
-					Ctx: context.Background(),
+					Ctx: ctx,
 					Data: &operengine.ActionInstData{
-						TriggerID:   "",
-						OperInstID:  "oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0",
-						OperationID: "",
-						Name:        "sync_biz_from_cmdb",
-						Index:       0,
-						Messages:    nil,
-						Content: map[string]interface{}{
-							"wait_time": 10,
+						TriggerID:  "",
+						OperInstID: "",
+						Name:       "",
+						Index:      0,
+						Lifecycle: &operengine.ActInstLifeCycle{
+							State:     operengine.ActionInstStateRunning,
+							StartedAt: time.Time{},
+							EndedAt:   time.Time{},
+							StoppedAt: time.Time{},
 						},
-						PrivateData: nil,
-						Lifecycle:   nil,
+						Messages: nil,
+						Content: map[string]any{
+							"biz_id":   2,
+							"biz_name": "test",
+						},
 					},
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewActionWaitComplete(capability.OperInstStorage, capability.Logger)
+			s := NewActionSyncHostFromCMDB(tt.fields.cmdbHandler, tt.fields.topoStorage)
 			if err := s.Do(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			t.Logf("Data %#v", tt.args.ctx.Data)
 		})
 	}
 }

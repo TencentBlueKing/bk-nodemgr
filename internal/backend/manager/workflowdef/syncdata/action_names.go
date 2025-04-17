@@ -8,22 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef is the action definition for operation inst engine manager.
-package workflowdef
+package syncdata
 
 const (
-	// SyncBizFromCMDB ...
-	SyncBizFromCMDB = "sync_biz_from_cmdb"
+	// ActionNameSyncBizFromCMDB ...
+	ActionNameSyncBizFromCMDB = "sync_biz_from_cmdb"
 
-	// SyncHostFromCMDB ...
-	SyncHostFromCMDB = "sync_host_from_cmdb"
+	// ActionNameSyncHostFromCMDB ...
+	ActionNameSyncHostFromCMDB = "sync_host_from_cmdb"
 
-	// SyncNetworkAreaFromCMDB sync networkarea from cmdb.
-	SyncNetworkAreaFromCMDB = "sync_networkarea_from_cmdb"
+	// ActionNameSyncNetworkAreaFromCMDB sync networkarea from cmdb.
+	ActionNameSyncNetworkAreaFromCMDB = "sync_networkarea_from_cmdb"
 
-	// GenAllBizHostSyncOper ...
-	GenAllBizHostSyncOper = "gen_all_biz_host_sync_oper"
-
-	// SshHostExecCmd use ssh build connection to execute command.
-	SshHostExecCmd = "ssh_host_exec_cmd"
+	// ActionNameGenAllBizHostSyncOper ...
+	ActionNameGenAllBizHostSyncOper = "gen_all_biz_host_sync_oper"
 )

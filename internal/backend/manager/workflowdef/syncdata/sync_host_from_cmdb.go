@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package workflowdef
+package syncdata
 
 import (
 	"context"
@@ -23,65 +23,66 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
-// NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
-	return &syncNetworkAreaFromCMDB{
+// NewActionSyncHostFromCMDB ...
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
+	return &syncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
 	}
 }
 
-// SyncNetworkAreaFromCMDBParam describes the parameters.
-type SyncNetworkAreaFromCMDBParam struct {
+// SyncHostFromCMDBParam ...
+type SyncHostFromCMDBParam struct {
+	BizID    int64  `json:"biz_id"`
 	TenantID string `json:"tenant_id"`
 }
 
-// syncNetworkAreaFromCMDB defines the action.
-type syncNetworkAreaFromCMDB struct {
+// syncHostFromCMDB ...
+type syncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
 	topoStorage topoStg.IStorage
 }
 
-// Name returns the name of the action.
-func (s *syncNetworkAreaFromCMDB) Name() string {
-	return SyncNetworkAreaFromCMDB
+// Name ...
+func (s *syncHostFromCMDB) Name() string {
+	return ActionNameSyncHostFromCMDB
 }
 
-// Version returns the version of the action.
-func (s *syncNetworkAreaFromCMDB) Version() string {
+// Version ...
+func (s *syncHostFromCMDB) Version() string {
 	return "v1"
 }
 
-// Description returns the description of the action.
-func (s *syncNetworkAreaFromCMDB) Description() string {
-	return "Get the networkareas which also called cloudarea from CMDB, and update to the database."
+// Description ...
+func (s *syncHostFromCMDB) Description() string {
+	return "Get the host information of the designated business from CMDB, and update to the database."
 }
 
-// Timeout returns the timeout of the action.
-func (s *syncNetworkAreaFromCMDB) Timeout() time.Duration {
-	return 1 * time.Minute
+// Timeout ...
+func (s *syncHostFromCMDB) Timeout() time.Duration {
+	return 5 * time.Minute // nolint: mnd
 }
 
-// Tags returns the tags of the action.
-func (s *syncNetworkAreaFromCMDB) Tags() []operengine.ActionTag {
+// Tags ...
+func (s *syncHostFromCMDB) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
-// MaxRetryCount returns the retry count of the action.
-func (s *syncNetworkAreaFromCMDB) MaxRetryCount() uint {
+// MaxRetryCount ...
+func (s *syncHostFromCMDB) MaxRetryCount() uint {
 	return 3
 }
 
-// DelayFn returns the delay function.
-func (s *syncNetworkAreaFromCMDB) DelayFn() func() {
+// DelayFn ...
+func (s *syncHostFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
-// Do does the action.
-func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
-	param := new(SyncNetworkAreaFromCMDBParam)
+// Do ...
+func (s *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+	param := new(SyncHostFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -92,14 +93,14 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour)
-	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := s.cmdbHandler.SearchNetworkArea(ctx, p)
+	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour)
+	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
+		hosts, err := s.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
 		if err != nil {
 			return nil, err
 		}
 
-		return networkareas, nil
+		return hosts, nil
 	}
 
 	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
@@ -107,7 +108,7 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	if err = s.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
+	if err = s.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

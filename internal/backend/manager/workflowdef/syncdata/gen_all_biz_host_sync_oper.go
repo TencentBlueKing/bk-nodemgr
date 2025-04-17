@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflowdef ...
-package workflowdef
+package syncdata
 
 import (
 	"context"
@@ -24,10 +23,14 @@ import (
 )
 
 // NewActionGenAllBizHostSyncOper this action will create host sync operation for all business.
-func NewActionGenAllBizHostSyncOper(topoStorage topoStg.IStorage, operMgr operengine.OperationMgr) operengine.ActionDef {
-	return &genAllBizHostSyncOper{
-		topoStorage: topoStorage,
-		operMgr:     operMgr,
+func NewActionGenAllBizHostSyncOper(
+	iDaoBusiness topoStg.IDaoBusiness,
+	operMgr operengine.OperationMgr,
+) operengine.ActionDef {
+
+	return &GenAllBizHostSyncOper{
+		iDaoBusiness: iDaoBusiness,
+		operMgr:      operMgr,
 	}
 }
 
@@ -36,51 +39,51 @@ type GenAllBizHostSyncOperParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// genAllBizHostSyncOper ...
-type genAllBizHostSyncOper struct {
-	topoStorage topoStg.IStorage
-	operMgr     operengine.OperationMgr
+// GenAllBizHostSyncOper this action will create host sync operation for all business.
+type GenAllBizHostSyncOper struct {
+	iDaoBusiness topoStg.IDaoBusiness
+	operMgr      operengine.OperationMgr
 }
 
 // Name returns the name of the action.
-func (c *genAllBizHostSyncOper) Name() string {
-	return GenAllBizHostSyncOper
+func (action *GenAllBizHostSyncOper) Name() string {
+	return ActionNameGenAllBizHostSyncOper
 }
 
 // Version returns the version of the action.
-func (c *genAllBizHostSyncOper) Version() string {
+func (action *GenAllBizHostSyncOper) Version() string {
 	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (c *genAllBizHostSyncOper) Description() string {
+func (action *GenAllBizHostSyncOper) Description() string {
 	return "reads all business information from the database," +
 		"and creates host synchronization tasks on a business-by-business basis."
 }
 
 // Timeout returns the timeout of the action.
-func (c *genAllBizHostSyncOper) Timeout() time.Duration {
+func (action *GenAllBizHostSyncOper) Timeout() time.Duration {
 	return time.Second * 10 // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (c *genAllBizHostSyncOper) Tags() []operengine.ActionTag {
+func (action *GenAllBizHostSyncOper) Tags() []operengine.ActionTag {
 	return []operengine.ActionTag{}
 }
 
 // MaxRetryCount this action creates a large number of synchronization tasks,
 // therefore does not allow the system to automatically retry.
-func (c *genAllBizHostSyncOper) MaxRetryCount() uint {
+func (action *GenAllBizHostSyncOper) MaxRetryCount() uint {
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (c *genAllBizHostSyncOper) DelayFn() func() {
+func (action *GenAllBizHostSyncOper) DelayFn() func() {
 	return func() {}
 }
 
 // Do this func define what the action will do.
-func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
+func (action *GenAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 	param := new(GenAllBizHostSyncOperParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -92,7 +95,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	bizs, _, err := c.topoStorage.ListBusinesses(tenantCtx, types.Page{})
+	bizs, _, err := action.iDaoBusiness.ListBusinesses(tenantCtx, types.Page{})
 	if err != nil {
 		return err
 	}
@@ -102,7 +105,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 	for idx := range bizs {
 		biz := bizs[idx]
 
-		if err = c.executeOper(ctx.Data, biz); err != nil {
+		if err = action.executeOper(ctx.Ctx, ctx.Data, biz); err != nil {
 			return err
 		}
 	}
@@ -111,9 +114,13 @@ func (c *genAllBizHostSyncOper) Do(ctx *operengine.ActionInstContext) error {
 }
 
 // executeOper create an operation to sync all host from cmdb and then execute it.
-func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz *types.Business) error {
-	operation := newOperSyncHostFromCMDB(data.TriggerID)
-	err := c.operMgr.ExecuteOperation(context.Background(), operation, &operengine.OperInstParam{
+func (action *GenAllBizHostSyncOper) executeOper(
+	ctx context.Context,
+	data *operengine.ActionInstData,
+	biz *types.Business) error {
+
+	operation := NewOperSyncHostFromCMDB(data.TriggerID)
+	err := action.operMgr.ExecuteOperation(ctx, operation, &operengine.OperInstParam{
 		Timeout: time.Minute * 10, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(SyncHostFromCMDBParam{
 			BizID:    biz.BizID,
@@ -122,14 +129,15 @@ func (c *genAllBizHostSyncOper) executeOper(data *operengine.ActionInstData, biz
 		ParentOperationID: data.OperationID,
 	})
 	if err != nil {
-		msg := fmt.Sprintf("failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
-			biz.TenantID, biz.BizName, biz.BizID)
-		data.Log(msg)
+		err = fmt.Errorf(
+			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",
+			biz.TenantID, biz.BizName, biz.BizID, err)
+		data.Log(err.Error())
 
 		return err
 	}
 
-	msg := fmt.Sprintf("successfully create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
+	msg := fmt.Sprintf("created sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
 		biz.TenantID, biz.BizName, biz.BizID)
 	data.Log(msg)
 
