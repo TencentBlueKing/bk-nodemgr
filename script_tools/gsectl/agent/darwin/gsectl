@@ -792,9 +792,6 @@ _healthz () {
 }
 
 get_auto_type () {
-    # 由节点管理进行渲染，当前环境使用 {{ AUTO_TYPE }}
-    echo "{{ AUTO_TYPE }}"
-    return
     if is_systemd_supported;then
         echo "systemd"
     else
