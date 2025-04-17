@@ -108,6 +108,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
+	// nolint: nestif
 	if info.HostID < 0 {
 		hosts, count, err := action.iDaoHost.ListHost(tenantCtx, types.Page{
 			Offset: 0,
