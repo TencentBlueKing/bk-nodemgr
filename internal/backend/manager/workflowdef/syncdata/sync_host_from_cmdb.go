@@ -139,7 +139,6 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 }
 
 func (action *syncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) ([]*types.Host, []int64, error) {
-
 	upsertHosts := make([]*types.Host, 0)
 	deleteHostIDs := make([]int64, 0)
 
