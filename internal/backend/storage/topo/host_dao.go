@@ -278,3 +278,16 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.
 
 	return opts, nil
 }
+
+// DeleteManyHost delete many hosts by hostIDs.
+func (s *Storage) DeleteManyHost(ctx context.Context, hostIDs ...int64) error {
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	return s.daoHost.DeleteMany(ctx, hostIDs...)
+}

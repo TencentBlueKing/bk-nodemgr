@@ -11,6 +11,9 @@ const (
 
 	// CCResourcePoolBusinessID describe the resource pool business id.
 	CCResourcePoolBusinessID = 1
+
+	// CCPageSizeLimit describe the max page size.
+	CCPageSizeLimit = 500
 )
 
 // ccHostFields describe the default search host fields.

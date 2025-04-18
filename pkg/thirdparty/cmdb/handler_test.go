@@ -96,6 +96,19 @@ func Test_handler_ListBizHosts(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				biz: types.Business{
+					TenantID: "",
+					BizID:    12,
+					BizName:  "",
+				},
+				page: types.UnlimitedPage(),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

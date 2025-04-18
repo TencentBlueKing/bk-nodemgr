@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -242,27 +243,37 @@ func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 		return nil, err
 	}
 
-	req := &ListBizHostsReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
+	executor := runtime.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
+	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
+		req := &ListBizHostsReq{
+			TenantID: tenantID,
+			BKBizID:  bizID,
+			Page: Page{
+				Start: p.Offset,
+				Limit: p.Limit,
+				Sort:  p.Sort,
+			},
+		}
+
+		resp, err := h.cli.listBizHosts(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		hosts := make([]*types.Host, len(resp.Info))
+		for idx, host := range resp.Info {
+			hosts[idx] = h.convHostInfoToTypes(tenantID, host, bizID)
+		}
+
+		return hosts, nil
 	}
 
-	resp, err := h.cli.listBizHosts(ctx, req)
+	result, err := executor.Execute(ctx, page, fn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("execute page executor failed, err: %v", err)
 	}
 
-	hosts := make([]*types.Host, len(resp.Info))
-	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host, bizID)
-	}
-
-	return hosts, nil
+	return result.Items, nil
 }
 
 // SearchBusiness search business.

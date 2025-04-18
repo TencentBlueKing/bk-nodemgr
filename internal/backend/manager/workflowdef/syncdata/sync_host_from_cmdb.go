@@ -11,11 +11,11 @@
 package syncdata
 
 import (
-	"context"
+	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"time"
 
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -24,10 +24,10 @@ import (
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, iDaoHost topoStg.IDaoHost) operengine.ActionDef {
 	return &syncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
-		topoStorage: topoStorage,
+		iDaoHost:    iDaoHost,
 	}
 }
 
@@ -40,7 +40,7 @@ type SyncHostFromCMDBParam struct {
 // syncHostFromCMDB ...
 type syncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	topoStorage topoStg.IStorage
+	iDaoHost    topoStg.IDaoHost
 }
 
 // Name ...
@@ -93,24 +93,81 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.Host](500, 1*time.Hour) // nolint: mnd
-	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
-		hosts, err := action.cmdbHandler.ListBizHosts(ctx, param.BizID, p)
+	var cmdbData, dbData []*types.Host
+
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		cmdbData, err = action.cmdbHandler.ListBizHosts(tenantCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
-			return nil, err
+			return fmt.Errorf("list host from cmdb failed, err: %w", err)
 		}
 
-		return hosts, nil
+		return nil
+	})
+
+	gp.Go(func() error {
+		dbData, _, err = action.iDaoHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				BizID: []int64{param.BizID},
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("list host from db failed, err: %w", err)
+		}
+
+		return nil
+	})
+
+	if err = gp.Wait(); err != nil {
+		return err
 	}
 
-	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
+	upsertHosts, deleteHostIDs, err := action.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
 
-	if err = action.topoStorage.UpsertManyHost(tenantCtx, result.Items...); err != nil {
+	if err = action.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
+		return err
+	}
+
+	if err = action.iDaoHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (action *syncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) ([]*types.Host, []int64, error) {
+
+	upsertHosts := make([]*types.Host, 0)
+	deleteHostIDs := make([]int64, 0)
+
+	// Convert CMDB data into maps for quick lookup
+	cmdbHostMap, err := conv.SliceToMap(cmdbData, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("convert cmdb data to map failed, err: %w", err)
+	}
+
+	// Handle hosts in the database
+	for _, host := range dbData {
+		if cmdbHost, exists := cmdbHostMap[host.HostID]; exists {
+			// The host exists in the CMDB and is added to the update list
+			// Note: cmdbHost is used here instead of host, because we want to use the CMDB data as the prevailing one
+			upsertHosts = append(upsertHosts, cmdbHost)
+			delete(cmdbHostMap, host.HostID)
+		} else {
+			// The host does not exist in the CMDB and should be removed from the database
+			deleteHostIDs = append(deleteHostIDs, host.HostID)
+		}
+	}
+
+	// Handling Hosts that Only Exist in the CMDB (New Hosts)
+	for _, host := range cmdbHostMap {
+		upsertHosts = append(upsertHosts, host)
+	}
+
+	return upsertHosts, deleteHostIDs, nil
 }

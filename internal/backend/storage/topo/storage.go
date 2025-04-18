@@ -114,7 +114,7 @@ type IDaoHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(ctx context.Context, host ...*types.Host) error
 
-	// UpsertManyHostStatic updates or inserts host statics.
+	// UpdateManyHostStatic updates host statics.
 	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
 
 	// UpdateManyHostDynamic updates host dynamic.
@@ -122,6 +122,9 @@ type IDaoHost interface {
 
 	// ListHost lists hosts by page and conditions.
 	ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
+
+	// DeleteManyHost deletes hosts.
+	DeleteManyHost(ctx context.Context, hostIDs ...int64) error
 
 	// CountHost counts hosts by conditions.
 	CountHost(ctx context.Context, conditions ...*types.HostCondition) (int64, error)

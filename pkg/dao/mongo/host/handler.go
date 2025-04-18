@@ -34,6 +34,9 @@ type IHandler interface {
 	// List lists hosts by page and conditions.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
 
+	// DeleteMany deletes hosts by hostIDs.
+	DeleteMany(ctx context.Context, hostIDs ...int64) error
+
 	// UpsertMany updates or inserts hosts.
 	UpsertMany(ctx context.Context, hosts ...*types.Host) error
 
@@ -465,4 +468,24 @@ func convertHostToTypes(host *Host) *types.Host {
 		Static:   static,
 		Dynamic:  dynamic,
 	}
+}
+
+// DeleteMany delete many hosts.
+func (h *handler) DeleteMany(ctx context.Context, hostIDs ...int64) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(hostIDs) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithHostID(hostIDs...)(filter)
+	if err := h.tenantDao(tenantID).DeleteMany(ctx, filter); err != nil {
+		return err
+	}
+
+	return nil
 }

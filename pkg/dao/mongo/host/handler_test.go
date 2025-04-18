@@ -790,3 +790,37 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_DeleteMany delete many hosts.
+func Test_handler_DeleteMany(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx     context.Context
+		hostIDs []int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:     ctx,
+				hostIDs: []int64{90001, 90002, 90003, 90004},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.DeleteMany(tt.args.ctx, tt.args.hostIDs...); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

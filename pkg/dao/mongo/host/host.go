@@ -184,7 +184,7 @@ func buildUpsertStaticManyParams(hosts []*Host) []mongo.WriteModel {
 			},
 		}
 
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
+		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
 	}
 
 	return models

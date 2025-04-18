@@ -75,6 +75,11 @@ type IOrm[P Pointer[T], T any] interface {
 	// DistinctInt64 distinct the int64 value of given key.
 	DistinctInt64(
 		ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error)
+
+	// DeleteMany delete multiple data.
+	DeleteMany(ctx context.Context, filter bson.D) error
+
+	// U
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -277,4 +282,22 @@ func (orm *Orm[P, T]) DistinctInt64(
 	}
 
 	return result, nil
+}
+
+// DeleteMany this is a common operation for mongo db.
+// NOTE: this is a soft delete, not real delete.
+func (orm *Orm[P, T]) DeleteMany(ctx context.Context, filter bson.D) error {
+	update := BuildDeleteParam()
+	models := []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
+
+	result, err := orm.dao.GetClient().BulkWrite(ctx, models)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount > 0 {
+		orm.dao.GetLogger().Infof("successfully deleted networkunits, deleted-count(%v)", result.MatchedCount)
+	}
+
+	return nil
 }
