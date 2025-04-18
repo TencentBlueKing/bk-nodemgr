@@ -94,7 +94,6 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	var cmdbData, dbData []*types.Host
-
 	gp := gopool.NewPool()
 	gp.Go(func() error {
 		cmdbData, err = action.cmdbHandler.ListBizHosts(tenantCtx, param.BizID, types.UnlimitedPage())
@@ -122,10 +121,13 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 		return err
 	}
 
+	ctx.Data.Log(fmt.Sprintf("find %v hosts from cmdb, %v hosts in db", len(cmdbData), len(dbData)))
 	upsertHosts, deleteHostIDs, err := action.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
+
+	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete", len(upsertHosts), len(deleteHostIDs)))
 
 	if err = action.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
 		return err
