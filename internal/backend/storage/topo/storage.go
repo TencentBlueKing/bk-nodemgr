@@ -114,7 +114,7 @@ type IDaoHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(ctx context.Context, host ...*types.Host) error
 
-	// UpdateManyHostStatic updates host statics.
+	// UpsertManyHostStatic updates or inserts host statics.
 	UpsertManyHostStatic(ctx context.Context, host ...*types.Host) error
 
 	// UpdateManyHostDynamic updates host dynamic.
