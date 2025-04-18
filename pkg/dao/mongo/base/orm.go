@@ -78,8 +78,6 @@ type IOrm[P Pointer[T], T any] interface {
 
 	// DeleteMany delete multiple data.
 	DeleteMany(ctx context.Context, filter bson.D) error
-
-	// U
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -296,7 +294,7 @@ func (orm *Orm[P, T]) DeleteMany(ctx context.Context, filter bson.D) error {
 	}
 
 	if result.MatchedCount > 0 {
-		orm.dao.GetLogger().Infof("successfully deleted networkunits, deleted-count(%v)", result.MatchedCount)
+		orm.dao.GetLogger().Infof("deleted networkunits, deleted-count(%v)", result.MatchedCount)
 	}
 
 	return nil
