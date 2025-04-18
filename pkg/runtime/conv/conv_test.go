@@ -13,9 +13,12 @@ package conv
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 )
 
@@ -949,6 +952,142 @@ func TestMapKeyToSlice(t *testing.T) {
 			default:
 				t.Errorf("Unsupported input type: %T", input)
 			}
+		})
+	}
+}
+
+// TestSliceToMap tests SliceToMap.
+func TestSliceToMap(t *testing.T) {
+	type args[V any, K comparable] struct {
+		s  []V
+		fn func(V) K
+	}
+	type testCase[V any, K comparable] struct {
+		name    string
+		args    args[V, K]
+		want    map[K]V
+		wantErr bool
+	}
+
+	// 创建测试函数
+	strKeyFn := func(v string) string { return v }
+	uppercaseKeyFn := func(v string) string { return strings.ToUpper(v) }
+	firstCharKeyFn := func(v string) string { return string(v[0]) }
+	emptyKeyFn := func(v string) string { return "" }
+	panicFn := func(v string) string {
+		if len(v) == 0 {
+			panic("empty string")
+		}
+		return v
+	}
+
+	tests := []testCase[string, string]{
+		{
+			name:    "nil slice",
+			args:    args[string, string]{s: nil, fn: strKeyFn},
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "empty slice",
+			args:    args[string, string]{s: []string{}, fn: strKeyFn},
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "nil function",
+			args:    args[string, string]{s: []string{"a", "b"}, fn: nil},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "basic case - identity key function",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: strKeyFn},
+			want:    map[string]string{"a": "a", "b": "b", "c": "c"},
+			wantErr: false,
+		},
+		{
+			name:    "transformation - uppercase keys",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: uppercaseKeyFn},
+			want:    map[string]string{"A": "a", "B": "b", "C": "c"},
+			wantErr: false,
+		},
+		{
+			name:    "duplicate keys - first char as key",
+			args:    args[string, string]{s: []string{"apple", "apricot", "banana"}, fn: firstCharKeyFn},
+			want:    nil,
+			wantErr: true, // 'apple' and 'apricot' would both produce key 'a'
+		},
+		{
+			name:    "all empty keys",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: emptyKeyFn},
+			want:    nil,
+			wantErr: true, // All keys would be empty, causing duplicates
+		},
+		{
+			name:    "function panics with empty string",
+			args:    args[string, string]{s: []string{"a", "", "c"}, fn: panicFn},
+			want:    nil,
+			wantErr: true, // Should detect the panic
+		},
+		{
+			name:    "single element",
+			args:    args[string, string]{s: []string{"solo"}, fn: strKeyFn},
+			want:    map[string]string{"solo": "solo"},
+			wantErr: false,
+		},
+		{
+			name: "large slice (1000 elements)",
+			args: args[string, string]{
+				s: func() []string {
+					result := make([]string, 1000)
+					for i := range result {
+						result[i] = fmt.Sprintf("str%d", i)
+					}
+					return result
+				}(),
+				fn: strKeyFn,
+			},
+			want: func() map[string]string {
+				result := make(map[string]string)
+				for i := 0; i < 1000; i++ {
+					key := fmt.Sprintf("str%d", i)
+					result[key] = key
+				}
+				return result
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "special characters in strings",
+			args: args[string, string]{
+				s:  []string{"hello", "世界", "!@#$%^&*()"},
+				fn: strKeyFn,
+			},
+			want: map[string]string{
+				"hello":      "hello",
+				"世界":         "世界",
+				"!@#$%^&*()": "!@#$%^&*()",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got map[string]string
+			var err error
+
+			got, err = SliceToMap(tt.args.s, tt.args.fn)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SliceToMap() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !assert.Equal(t, tt.want, got) {
+				t.Errorf("SliceToMap() got = %v, want %v", got, tt.want)
+			}
+
 		})
 	}
 }
