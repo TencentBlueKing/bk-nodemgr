@@ -12,6 +12,7 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -39,38 +40,12 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	addressing := types.Addressing(req.GetBkAddressing())
-
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, req.GetBkNetworkunitId())
+	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, ctx.TenantID, req)
 	if err != nil {
-		h.logger.Error("get network unit failed", err)
+		h.logger.Error("conv agent install req to node deployment failed", err)
 
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
-
-	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
-		Host: types.Host{
-			TenantID: ctx.TenantID,
-			HostID:   req.GetBkHostId(),
-			Static: &types.HostStatic{
-				BizID:         req.GetBkBizId(),
-				NetworkAreaID: networkUnit.NetworkAreaID,
-				InnerIP:       req.GetBkHostInnerip(),
-				InnerIPV6:     req.GetBkHostInneripV6(),
-				OSType:        req.GetOsType(),
-				Addressing:    addressing,
-			},
-			Dynamic: &types.HostDynamic{
-				NodeRole:       types.NodeRoleAgent,
-				NodeVersion:    req.GetTargetVersion(),
-				NodeGeneration: DefaultNodeGeneration,
-				NetworkUnitID:  networkUnit.ID,
-			},
-		},
-		LoginIP:   req.GetLoginIp(),
-		LoginPort: req.GetLoginPort(),
-		LoginUser: req.GetLoginUser(),
-	})
 
 	nodeDeployment.Info.LoginMode = types.LoginMode(req.GetLoginMode())
 	switch nodeDeployment.Info.LoginMode {
@@ -122,4 +97,41 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	}
 
 	return resp, nil
+}
+
+func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
+	tenantID string,
+	req *protoBackend.NodeAgentInstallReq,
+) (*types.NodeDeployment, error) {
+
+	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, req.GetBkNetworkunitId())
+	if err != nil {
+		return nil, fmt.Errorf("get network unit failed, err: %w", err)
+	}
+
+	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
+		Host: types.Host{
+			TenantID: tenantID,
+			HostID:   req.GetBkHostId(),
+			Static: &types.HostStatic{
+				BizID:         req.GetBkBizId(),
+				NetworkAreaID: networkUnit.NetworkAreaID,
+				InnerIP:       req.GetBkHostInnerip(),
+				InnerIPV6:     req.GetBkHostInneripV6(),
+				OSType:        req.GetOsType(),
+				Addressing:    types.Addressing(req.GetBkAddressing()),
+			},
+			Dynamic: &types.HostDynamic{
+				NodeRole:       types.NodeRoleAgent,
+				NodeVersion:    req.GetTargetVersion(),
+				NodeGeneration: DefaultNodeGeneration,
+				NetworkUnitID:  networkUnit.ID,
+			},
+		},
+		LoginIP:   req.GetLoginIp(),
+		LoginPort: req.GetLoginPort(),
+		LoginUser: req.GetLoginUser(),
+	})
+
+	return nodeDeployment, nil
 }
