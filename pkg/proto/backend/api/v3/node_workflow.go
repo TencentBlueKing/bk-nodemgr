@@ -16,8 +16,28 @@ import (
 )
 
 // Validate check body.
-// nolint: protogetter
 func (x *NodeAgentInstallReq) Validate() error {
+	hosts := x.GetHost()
+	for _, host := range hosts {
+		if err := host.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentInstallReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeAgentInstallReq_Host) Validate() error {
 	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
@@ -62,7 +82,7 @@ func (x *NodeAgentInstallReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeAgentInstallReq) AutoConvert() {
+func (x *NodeAgentInstallReq_Host) AutoConvert() {
 	if x.BkNetworkunitId == nil {
 		x.BkNetworkunitId = new(int64)
 		*x.BkNetworkunitId = -1
@@ -85,8 +105,28 @@ func (x *NodeAgentInstallReq) AutoConvert() {
 }
 
 // Validate check body.
-// nolint: protogetter
 func (x *NodeProxyInstallReq) Validate() error {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyInstallReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyInstallReq_Host) Validate() error {
 	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
@@ -131,7 +171,7 @@ func (x *NodeProxyInstallReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyInstallReq) AutoConvert() {
+func (x *NodeProxyInstallReq_Host) AutoConvert() {
 	if x.BkNetworkunitId == nil {
 		x.BkNetworkunitId = new(int64)
 		*x.BkNetworkunitId = -1

@@ -1,4 +1,3 @@
-markdown
 # Protocol Buffers 编写规范
 
 ## 基本原则

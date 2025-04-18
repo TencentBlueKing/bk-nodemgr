@@ -40,43 +40,66 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, ctx.TenantID, req)
-	if err != nil {
-		h.logger.Error("conv agent install req to node deployment failed", err)
-
-		return nil, errf.ErrWrap(errf.Aborted, err)
+	hosts := req.GetHost()
+	resp := &protoBackend.NodeAgentInstallResp_Data{
+		WorkflowId: make([]string, len(hosts)),
 	}
 
-	nodeDeployment.Info.LoginMode = types.LoginMode(req.GetLoginMode())
+	for idx := range hosts {
+		reqHost := hosts[idx]
+
+		// push workflow
+		triggerID, err := h.pushWorkflow(tenantCtx, ctx.TenantID, reqHost)
+		if err != nil {
+			return nil, err
+		}
+
+		resp.WorkflowId[idx] = triggerID
+	}
+
+	return resp, nil
+}
+
+func (h *handler) pushWorkflow(tenantCtx context.Context, tenantID string,
+	reqHost *protoBackend.NodeAgentInstallReq_Host) (string, error) {
+
+	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost)
+	if err != nil {
+		h.logger.Error("conv agent install reqHost to node deployment failed", err)
+
+		return "", errf.ErrWrap(errf.Aborted, err)
+	}
+
+	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
 	switch nodeDeployment.Info.LoginMode {
 	case types.LoginModeKeyFile:
-		nodeDeployment.Info.LoginKeyFile, err = h.crypter.Encrypt(req.GetLoginKeyFile())
+		nodeDeployment.Info.LoginKeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return "", errf.ErrWrap(errf.InvalidParameter, err)
 		}
 	case types.LoginModePassword:
 		nodeDeployment.Info.LoginMode = types.LoginModePassword
-		nodeDeployment.Info.LoginPassword, err = h.crypter.Encrypt([]byte(req.GetLoginPassword()))
+		nodeDeployment.Info.LoginPassword, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return "", errf.ErrWrap(errf.InvalidParameter, err)
 		}
 	case types.LoginModeNone:
 		nodeDeployment.Info.LoginMode = types.LoginModeNone
 	default:
-		err = fmt.Errorf("unsupported login mode %s", req.GetLoginMode())
+		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return "", errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := h.iDaoNodeDeployment.Create(tenantCtx, nodeDeployment); err != nil {
 		h.logger.Error("create node deployment failed", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return "", errf.ErrWrap(errf.Aborted, err)
 	}
 
 	triggerID, err := h.manager.Execute(
@@ -89,22 +112,18 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	if err != nil {
 		h.logger.Error("execute operation failed", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return "", errf.ErrWrap(errf.Aborted, err)
 	}
 
-	resp := &protoBackend.NodeAgentInstallResp_Data{
-		WorkflowId: triggerID,
-	}
-
-	return resp, nil
+	return triggerID, nil
 }
 
 func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 	tenantID string,
-	req *protoBackend.NodeAgentInstallReq,
+	reqHost *protoBackend.NodeAgentInstallReq_Host,
 ) (*types.NodeDeployment, error) {
 
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, req.GetBkNetworkunitId())
+	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
 	if err != nil {
 		return nil, fmt.Errorf("get network unit failed, err: %w", err)
 	}
@@ -112,25 +131,25 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 		Host: types.Host{
 			TenantID: tenantID,
-			HostID:   req.GetBkHostId(),
+			HostID:   reqHost.GetBkHostId(),
 			Static: &types.HostStatic{
-				BizID:         req.GetBkBizId(),
+				BizID:         reqHost.GetBkBizId(),
 				NetworkAreaID: networkUnit.NetworkAreaID,
-				InnerIP:       req.GetBkHostInnerip(),
-				InnerIPV6:     req.GetBkHostInneripV6(),
-				OSType:        req.GetOsType(),
-				Addressing:    types.Addressing(req.GetBkAddressing()),
+				InnerIP:       reqHost.GetBkHostInnerip(),
+				InnerIPV6:     reqHost.GetBkHostInneripV6(),
+				OSType:        reqHost.GetOsType(),
+				Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 			},
 			Dynamic: &types.HostDynamic{
 				NodeRole:       types.NodeRoleAgent,
-				NodeVersion:    req.GetTargetVersion(),
+				NodeVersion:    reqHost.GetTargetVersion(),
 				NodeGeneration: DefaultNodeGeneration,
 				NetworkUnitID:  networkUnit.ID,
 			},
 		},
-		LoginIP:   req.GetLoginIp(),
-		LoginPort: req.GetLoginPort(),
-		LoginUser: req.GetLoginUser(),
+		LoginIP:   reqHost.GetLoginIp(),
+		LoginPort: reqHost.GetLoginPort(),
+		LoginUser: reqHost.GetLoginUser(),
 	})
 
 	return nodeDeployment, nil
