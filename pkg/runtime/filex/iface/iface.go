@@ -22,14 +22,14 @@ type FileGroup interface {
 	Name() string
 
 	// SubGroups the sub groups of file group.
-	SubGroups() []FileGroup
+	SubGroups() ([]FileGroup, error)
 
 	// GetFile get a file by name.
 	GetFile(name string) (File, error)
 
 	// AllFiles the all files of file group.
 	// notice: this func will not return the file of sub groups.
-	AllFiles() []File
+	AllFiles() ([]File, error)
 
 	// Store the func will store a file into the file group.
 	Store(ctx context.Context, info FileInfo, reader io.ReadCloser, overwrite bool) error

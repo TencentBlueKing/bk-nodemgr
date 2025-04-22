@@ -109,13 +109,13 @@ func (group *LocalDir) Name() string {
 }
 
 // SubGroups the sub groups of file group.
-func (group *LocalDir) SubGroups() []iface.FileGroup {
+func (group *LocalDir) SubGroups() ([]iface.FileGroup, error) {
 	subGroups := make([]iface.FileGroup, 0, len(group.subDirs))
 	for _, subDir := range group.subDirs {
 		subGroups = append(subGroups, subDir)
 	}
 
-	return subGroups
+	return subGroups, nil
 }
 
 // GetFile the func will get a file from the file group.
@@ -129,13 +129,13 @@ func (group *LocalDir) GetFile(name string) (iface.File, error) {
 }
 
 // AllFiles the files of file group.
-func (group *LocalDir) AllFiles() []iface.File {
+func (group *LocalDir) AllFiles() ([]iface.File, error) {
 	files := make([]iface.File, 0, len(group.fileMap))
 	for _, file := range group.fileMap {
 		files = append(files, file)
 	}
 
-	return files
+	return files, nil
 }
 
 // Store the func will store a file into the file group.
