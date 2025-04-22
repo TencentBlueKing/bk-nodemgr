@@ -12,11 +12,11 @@ package nodeinstall
 
 import (
 	"context"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/local"
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"github.com/joho/godotenv"

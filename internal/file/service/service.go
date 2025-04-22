@@ -14,6 +14,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/local"
 	"io"
 	"runtime"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
