@@ -17,7 +17,7 @@
 
 ## 通用命名约定
 
-- Find: 查询
+- Get: 查询
 - List: 分页查询
 - Count: 计数
 - Upsert: 新增或更新
