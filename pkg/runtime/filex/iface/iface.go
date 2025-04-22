@@ -28,6 +28,7 @@ type FileGroup interface {
 	GetFile(name string) (File, error)
 
 	// AllFiles the all files of file group.
+	// notice: this func will not return the file of sub groups.
 	AllFiles() []File
 
 	// Store the func will store a file into the file group.
