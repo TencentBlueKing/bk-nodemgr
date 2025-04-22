@@ -57,9 +57,6 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
-
-	// TODO: 接入租户信息
-
 	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
 	if err != nil {
 		return nil, err
