@@ -42,7 +42,7 @@ type File interface {
 	FileContent
 
 	// Info the info of file.
-	Info() FileInfo
+	Info() (FileInfo, error)
 }
 
 // FileInfo file info.

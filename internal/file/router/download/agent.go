@@ -55,7 +55,11 @@ func (h *handler) Agent(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
 	}
 
-	info := file.Info()
+	info, err := file.Info()
+	if err != nil {
+		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file info failed, err: %w", err))
+	}
+
 	resp := &rest.FileResponse{
 		Data:        reader,
 		Size:        info.Size,

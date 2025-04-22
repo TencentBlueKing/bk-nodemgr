@@ -126,8 +126,8 @@ func (f *LocalFile) Content() (io.ReadCloser, error) {
 }
 
 // Info returns LocalFile info.
-func (f *LocalFile) Info() iface.FileInfo {
-	return f.info
+func (f *LocalFile) Info() (iface.FileInfo, error) {
+	return f.info, nil
 }
 
 // FileObject returns LocalFile file object.
