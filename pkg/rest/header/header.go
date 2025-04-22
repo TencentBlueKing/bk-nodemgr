@@ -18,23 +18,23 @@ import (
 )
 
 const (
-	// RIDKey is request id header key.
-	RIDKey = "X-Bkapi-Request-Id"
+	// BKRIDKey is request id header key.
+	BKRIDKey = "X-Bkapi-Request-Id"
 
-	// UserKey is operator name header key.
-	UserKey = "X-Bkapi-User-Name"
+	// BKUserKey is operator name header key.
+	BKUserKey = "X-Bkapi-User-Name"
 
-	// AppCodeKey is blueking application code header key.
-	AppCodeKey = "X-Bkapi-App-Code"
+	// BKAppCodeKey is blueking application code header key.
+	BKAppCodeKey = "X-Bkapi-App-Code"
 
-	// LanguageKey the language key word.
-	LanguageKey = "HTTP_BLUEKING_LANGUAGE"
+	// BKLanguageKey the language key word.
+	BKLanguageKey = "HTTP_BLUEKING_LANGUAGE"
 
 	// BKGWJWTTokenKey is blueking api gateway jwt header key.
 	BKGWJWTTokenKey = "X-Bkapi-JWT"
 
-	// TenantIDKey is tenant id header key.
-	TenantIDKey = "X-Bk-Tenant-Id"
+	// BKTenantIDKey is tenant id header key.
+	BKTenantIDKey = "X-Bk-Tenant-Id"
 
 	// BKGWAuthKey is blueking api gateway authorization header key.
 	BKGWAuthKey = "X-Bkapi-Authorization"
@@ -49,16 +49,16 @@ const (
 	JsonContent     ContentType = "application/json"
 )
 
-// RIDGetter request id value
-func RIDGetter(req *http.Request, autoGen bool) string {
-	id := req.Header.Get(RIDKey)
+// BKRIDGetter request id value
+func BKRIDGetter(req *http.Request, autoGen bool) string {
+	id := req.Header.Get(BKRIDKey)
 	if id == "" && autoGen {
-		id = RIDGenerator()
+		id = BKRIDGenerator()
 	}
 	return id
 }
 
-// RIDGenerator generate request id
-func RIDGenerator() string {
+// BKRIDGenerator generate request id
+func BKRIDGenerator() string {
 	return identifier.GenRequestID()
 }

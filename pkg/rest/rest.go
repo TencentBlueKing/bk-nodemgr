@@ -124,15 +124,15 @@ const restContextKey = "rest_context"
 func InitRestContext(gCtx *gin.Context) *Context {
 	restContext := &Context{
 		gCtx:      gCtx,
-		RequestID: header.RIDGetter(gCtx.Request, true),
-		Username:  gCtx.GetHeader(header.UserKey),
-		TenantID:  gCtx.GetHeader(header.TenantIDKey),
+		RequestID: header.BKRIDGetter(gCtx.Request, true),
+		Username:  gCtx.GetHeader(header.BKUserKey),
+		TenantID:  gCtx.GetHeader(header.BKTenantIDKey),
 	}
 
 	gCtx.Set(restContextKey, restContext)
 
 	// note: for thread safety you need to reset it here.
-	ctx := context.WithValue(gCtx.Request.Context(), header.RIDKey, restContext.RequestID)
+	ctx := context.WithValue(gCtx.Request.Context(), header.BKRIDKey, restContext.RequestID)
 	restContext.gCtx.Request = restContext.gCtx.Request.WithContext(ctx)
 
 	return restContext

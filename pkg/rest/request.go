@@ -277,8 +277,8 @@ func (r *Request) checkToleranceLatency(start *time.Time, url string, rid string
 	r.capability.Logger.Infof("http request exceeded max latency time. "+
 		"cost(%d ms), appcode(%s), user(%s), method(%s), url(%s), body(%s), rid(%s)",
 		time.Since(*start)/time.Millisecond,
-		r.headers.Get(header.AppCodeKey),
-		r.headers.Get(header.UserKey), r.verb, url, r.body, rid)
+		r.headers.Get(header.BKAppCodeKey),
+		r.headers.Get(header.BKUserKey), r.verb, url, r.body, rid)
 }
 
 // isToleranceLatencyExclusionURL judge url if need to checkToleranceLatency.
@@ -344,7 +344,7 @@ func (r *Request) tryThrottle(url string) {
 func (r *Request) Do() *Result {
 	rid := getRIDFromContext(r.ctx)
 	if rid == "" {
-		rid = r.headers.Get(header.RIDKey)
+		rid = r.headers.Get(header.BKRIDKey)
 	}
 
 	if r.err != nil {
@@ -509,7 +509,7 @@ func getRIDFromContext(ctx context.Context) string {
 	if ctx == nil {
 		return ""
 	}
-	rid := ctx.Value(header.RIDKey)
+	rid := ctx.Value(header.BKRIDKey)
 	ridValue, ok := rid.(string)
 	if ok == true {
 		return ridValue

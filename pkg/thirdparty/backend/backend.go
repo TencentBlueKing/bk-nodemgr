@@ -57,8 +57,8 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get backend common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.RIDKey, restheader.RIDGenerator())
-	header.Set(restheader.TenantIDKey, tenantID)
+	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
+	header.Set(restheader.BKTenantIDKey, tenantID)
 
 	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
 	if err != nil {

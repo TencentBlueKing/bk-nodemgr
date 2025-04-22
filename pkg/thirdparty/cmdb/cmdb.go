@@ -80,8 +80,8 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get cmdb common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.RIDKey, restheader.RIDGenerator())
-	header.Set(restheader.TenantIDKey, tenantID)
+	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
+	header.Set(restheader.BKTenantIDKey, tenantID)
 	header.Set(languageHeaderKey, languageHeaderValue)
 
 	authHeader, err := c.config.HeaderSetter.GetAuthHeader()

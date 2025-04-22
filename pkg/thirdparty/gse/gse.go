@@ -56,7 +56,7 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.RIDKey, restheader.RIDGenerator())
+	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
 
 	// TODO: 接入租户信息
 
