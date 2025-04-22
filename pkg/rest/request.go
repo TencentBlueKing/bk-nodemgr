@@ -170,6 +170,13 @@ func (r *Request) WithContentType(contentType header.ContentType) *Request {
 	return r
 }
 
+// RawBody add raw body to request.
+func (r *Request) RawBody(body []byte) *Request {
+	r.body = body
+
+	return r
+}
+
 // Body add body to request.
 func (r *Request) Body(body interface{}) *Request {
 	if body == nil {
@@ -326,6 +333,19 @@ func (r *Result) Into(obj interface{}) error {
 	}
 
 	return nil
+}
+
+// RawData get raw data.
+func (r *Result) RawData() ([]byte, error) {
+	if r.Err != nil {
+		return nil, r.Err
+	}
+
+	if r.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, r.Body)
+	}
+
+	return r.Body, nil
 }
 
 // maxLatency max latency time.

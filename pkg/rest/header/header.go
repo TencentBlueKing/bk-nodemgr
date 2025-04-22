@@ -40,6 +40,11 @@ const (
 	BKGWAuthKey = "X-Bkapi-Authorization"
 )
 
+const (
+	// AuthKey is authorization header key.
+	AuthKey = "Authorization"
+)
+
 // ContentType http request content type
 type ContentType string
 
