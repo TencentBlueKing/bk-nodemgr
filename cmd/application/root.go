@@ -22,8 +22,9 @@ import (
 // application service entrypoint.
 func main() {
 	var rootCMD = &cobra.Command{
-		Use:   "bk_nodeman_application",
-		Short: "bk-nodeman application server",
+		Use:     "bk_nodeman_application",
+		Short:   "bk-nodeman application server",
+		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())
 		},

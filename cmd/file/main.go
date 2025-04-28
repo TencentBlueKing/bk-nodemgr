@@ -92,9 +92,10 @@ func main() {
 	var configPath string
 
 	serverCmd := &cobra.Command{
-		Use:   "bk_nodeman_file",
-		Short: "bk-nodeman file server",
-		Long:  "bk-nodeman file server",
+		Use:     "bk_nodeman_file",
+		Short:   "bk-nodeman file server",
+		Long:    "bk-nodeman file server",
+		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())
 		},

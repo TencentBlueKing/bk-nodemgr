@@ -12,10 +12,10 @@ OUTPUT_DIR := $(ROOT_DIR)/build/$(VERSION)
 
 # ldflags
 # output directory for release package and version for command line
-LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/internal/version.VERSION=${VERSION} \
-	-X github.com/TencentBlueKing/bk-nodemgr/internal/version.BUILDTIME=${BUILDTIME} \
-	-X github.com/TencentBlueKing/bk-nodemgr/internal/version.GITHASH=${GITHASH} \
-	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
+LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${VERSION} \
+	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.BUILDTIME=${BUILDTIME} \
+	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.GITHASH=${GITHASH} \
+	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 
 # cmd
 MKDIR = mkdir -p
