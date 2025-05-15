@@ -18,4 +18,29 @@ type Definition interface {
 
 	// ActionDefNames returns the names of the action definitions, in order.
 	ActionDefNames() []string
+
+	// DefaultParameters returns the default parameters of the operation.
+	DefaultParameters() OperationParam
+}
+
+// DefinitionSnapshot represents a snapshot of an operation definition.
+type DefinitionSnapshot struct {
+	SnapshotName              string
+	SnapshotActionDefNames    []string
+	SnapshotDefaultParameters OperationParam
+}
+
+// Name returns the name of the operation definition.
+func (ds *DefinitionSnapshot) Name() string {
+	return ds.SnapshotName
+}
+
+// ActionDefNames returns the names of the action definitions, in order.
+func (ds *DefinitionSnapshot) ActionDefNames() []string {
+	return ds.SnapshotActionDefNames
+}
+
+// DefaultParameters returns the default parameters of the operation.
+func (ds *DefinitionSnapshot) DefaultParameters() OperationParam {
+	return ds.SnapshotDefaultParameters
 }
