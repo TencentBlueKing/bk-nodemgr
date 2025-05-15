@@ -104,6 +104,8 @@ spec:
           ports:
             - name: service-http
               containerPort: {{ .Values.backend.config.httpServer.port }}
+            - name: callback-http
+              containerPort: {{ .Values.backend.config.callbackServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
