@@ -23,9 +23,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
+const (
+	// ActionNameSyncNetworkAreaFromCMDB defines the action name.
+	ActionNameSyncNetworkAreaFromCMDB = "sync_networkarea_from_cmdb"
+)
+
 // NewActionSyncNetworkAreaFromCMDB get a new action.
 func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) action.Definition {
-	return &syncNetworkAreaFromCMDB{
+	return &actionSyncNetworkAreaFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
 	}
@@ -36,51 +41,50 @@ type SyncNetworkAreaFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// syncNetworkAreaFromCMDB defines the action.
-type syncNetworkAreaFromCMDB struct {
+type actionSyncNetworkAreaFromCMDB struct {
 	cmdbHandler cmdb.IHandler
 	topoStorage topoStg.IStorage
 }
 
 // Name returns the name of the action.
-func (action *syncNetworkAreaFromCMDB) Name() string {
+func (act *actionSyncNetworkAreaFromCMDB) Name() string {
 	return ActionNameSyncNetworkAreaFromCMDB
 }
 
 // Version returns the version of the action.
-func (action *syncNetworkAreaFromCMDB) Version() string {
+func (act *actionSyncNetworkAreaFromCMDB) Version() string {
 	return "v1"
 }
 
 // Description returns the description of the action.
-func (action *syncNetworkAreaFromCMDB) Description() string {
+func (act *actionSyncNetworkAreaFromCMDB) Description() string {
 	return "Get the networkareas which also called cloudarea from CMDB, and update to the database."
 }
 
 // Timeout returns the timeout of the action.
-func (action *syncNetworkAreaFromCMDB) Timeout() time.Duration {
+func (act *actionSyncNetworkAreaFromCMDB) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (s *syncNetworkAreaFromCMDB) Tags() []action.Tag {
+func (act *actionSyncNetworkAreaFromCMDB) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the retry count of the action.
-func (action *syncNetworkAreaFromCMDB) MaxRetryCount() uint {
+func (act *actionSyncNetworkAreaFromCMDB) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn returns the delay function.
-func (action *syncNetworkAreaFromCMDB) DelayFn() func() {
+func (act *actionSyncNetworkAreaFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do does the action.
-func (s *syncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
+func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(SyncNetworkAreaFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -94,7 +98,7 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
 
 	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := action.cmdbHandler.SearchNetworkArea(ctx, p)
+		networkareas, err := act.cmdbHandler.SearchNetworkArea(ctx, p)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +111,7 @@ func (s *syncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err = action.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
+	if err = act.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

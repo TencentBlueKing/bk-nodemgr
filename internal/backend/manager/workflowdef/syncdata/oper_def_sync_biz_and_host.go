@@ -11,31 +11,43 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // OperDefNameSyncBizAndHostFromCMDB sync all biz and their host from cmdb.
-const OperDefNameSyncBizAndHostFromCMDB = "oper_def_sync_biz_and_host"
+const OperDefNameSyncBizAndHostFromCMDB = "oper_def_sync_biz_and_host_from_cmdb"
 
-// OperInstSyncBizAndHostFromCMDB the params of OperInstSyncBizAndHostFromCMDB.
-type OperInstSyncBizAndHostFromCMDB struct {
-	TenantID string `json:"tenant_id"`
-}
-
-// OperDef the operdef of OperInstSyncBizAndHostFromCMDB.
-func (oper *OperInstSyncBizAndHostFromCMDB) OperDef() operengine.OperDefSnapshot {
-	return operengine.OperDefSnapshot{
-		OperDefName: OperDefNameSyncBizAndHostFromCMDB,
-		ActionNames: []string{ActionNameSyncBizFromCMDB, ActionNameGenAllBizHostSyncOper},
+// NewOperSyncBizAndHostFromCMDB new an operation.
+func NewOperSyncBizAndHostFromCMDB(param SyncBizFromCMDBParam) operation.Definition {
+	return &operSyncBizAndHostFromCMDB{
+		param: param,
 	}
 }
 
-// Param the param of OperInstSyncBizAndHostFromCMDB.
-func (oper *OperInstSyncBizAndHostFromCMDB) Param() operengine.OperInstParam {
-	return operengine.OperInstParam{
-		Timeout:     10 * time.Minute, // nolint: mnd
-		InitContent: conv.StructToMapIgnoreError(oper),
+type operSyncBizAndHostFromCMDB struct {
+	param SyncBizFromCMDBParam
+}
+
+// Name returns the name.
+func (oper *operSyncBizAndHostFromCMDB) Name() string {
+	return OperDefNameSyncBizAndHostFromCMDB
+}
+
+// ActionDefNames returns the action def names.
+func (oper *operSyncBizAndHostFromCMDB) ActionDefNames() []string {
+	return []string{
+		ActionNameSyncBizFromCMDB,
+		ActionNameGenOperSyncHost,
+	}
+}
+
+// DefaultParameters returns the default parameters.
+func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.OperationParam {
+	return operation.OperationParam{
+		Timeout:     10 * time.Minute,
+		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

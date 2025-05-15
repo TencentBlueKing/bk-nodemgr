@@ -12,20 +12,26 @@ package syncdata
 
 import (
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+)
+
+const (
+	// ActionNameSyncHostFromCMDB defines the action name.
+	ActionNameSyncHostFromCMDB = "sync_host_from_cmdb"
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, iDaoHost topoStg.IDaoHost) operengine.ActionDef {
-	return &syncHostFromCMDB{
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, iDaoHost topoStg.IDaoHost) action.Definition {
+	return &actionSyncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
 		iDaoHost:    iDaoHost,
 	}
@@ -37,51 +43,50 @@ type SyncHostFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// syncHostFromCMDB ...
-type syncHostFromCMDB struct {
+type actionSyncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
 	iDaoHost    topoStg.IDaoHost
 }
 
 // Name ...
-func (action *syncHostFromCMDB) Name() string {
+func (act *actionSyncHostFromCMDB) Name() string {
 	return ActionNameSyncHostFromCMDB
 }
 
 // Version ...
-func (action *syncHostFromCMDB) Version() string {
+func (act *actionSyncHostFromCMDB) Version() string {
 	return "v1"
 }
 
 // Description ...
-func (action *syncHostFromCMDB) Description() string {
+func (act *actionSyncHostFromCMDB) Description() string {
 	return "Get the host information of the designated business from CMDB, and update to the database."
 }
 
 // Timeout ...
-func (action *syncHostFromCMDB) Timeout() time.Duration {
+func (act *actionSyncHostFromCMDB) Timeout() time.Duration {
 	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags ...
-func (action *syncHostFromCMDB) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *actionSyncHostFromCMDB) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount ...
-func (action *syncHostFromCMDB) MaxRetryCount() uint {
+func (act *actionSyncHostFromCMDB) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn ...
-func (action *syncHostFromCMDB) DelayFn() func() {
+func (act *actionSyncHostFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do ...
-func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(SyncHostFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -96,7 +101,7 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = action.cmdbHandler.ListBizHosts(tenantCtx, param.BizID, types.UnlimitedPage())
+		cmdbData, err = act.cmdbHandler.ListBizHosts(tenantCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed, err: %w", err)
 		}
@@ -105,7 +110,7 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	})
 
 	gp.Go(func() error {
-		dbData, _, err = action.iDaoHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
+		dbData, _, err = act.iDaoHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				BizID: []int64{param.BizID},
 			},
@@ -122,25 +127,25 @@ func (action *syncHostFromCMDB) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	ctx.Data.Log(fmt.Sprintf("find %v hosts from cmdb, %v hosts in db", len(cmdbData), len(dbData)))
-	upsertHosts, deleteHostIDs, err := action.compareData(cmdbData, dbData)
+	upsertHosts, deleteHostIDs, err := act.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
 
 	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete", len(upsertHosts), len(deleteHostIDs)))
 
-	if err = action.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
+	if err = act.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
 		return err
 	}
 
-	if err = action.iDaoHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
+	if err = act.iDaoHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (action *syncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) ([]*types.Host, []int64, error) {
+func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) ([]*types.Host, []int64, error) {
 	upsertHosts := make([]*types.Host, 0)
 	deleteHostIDs := make([]int64, 0)
 

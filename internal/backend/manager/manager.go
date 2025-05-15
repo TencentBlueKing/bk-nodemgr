@@ -19,17 +19,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/old/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
-
-// OperInst defines the operation instance interface.
-type OperInst interface {
-	OperDef() operengine.OperDefSnapshot
-	Param() operengine.OperInstParam
-}
 
 // Manager defines the manager interface.
 type Manager interface {
@@ -42,11 +36,11 @@ type Manager interface {
 	// GracefulShutdown ...
 	GracefulShutdown() error
 
-	// Execute operation.
-	Execute(ctx context.Context, operInst OperInst) (string, error)
+	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
+	LaunchSyncBizAndHost(ctx context.Context) (string, error)
 
-	// RetryOperation retries the operation.
-	RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error
+	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
+	LaunchSyncNetworkArea(ctx context.Context) (string, error)
 }
 
 // NewManager creates a new manager.
@@ -166,11 +160,11 @@ func (mgr *manager) registerActionDefs() error {
 		return fmt.Errorf("register action def node install failed, err: %v", err)
 	}
 
-	return mgr.operInstMgr.RegisterActions(
+	return mgr.workflowMgr.RegisterActions(
 		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
 		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.workflowMgr),
+		syncdata.NewActionGenOperSyncHost(mgr.conf.TopoStorage, mgr.workflowMgr),
 	)
 }
 
@@ -193,68 +187,50 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 	)
 }
 
-// Execute try to execute an operation.
-func (mgr *manager) Execute(ctx context.Context, operInst OperInst) (string, error) {
-	triggerID := identifier.GenTriggerID()
-	def := operInst.OperDef()
-	param := operInst.Param()
-	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
-		def.OperDefName, triggerID, param)
-
-	operation := operengine.NewOperation(triggerID, def)
-	err := mgr.operMgr.ExecuteOperation(ctx, operation, &param)
+// LaunchSyncBizAndHost launch a task to sync biz and host.
+func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
-		return triggerID, fmt.Errorf("execute operation failed, name(%s), trigger-id(%s), err: %v",
-			def.OperDefName, triggerID, err)
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
-		def.OperDefName, triggerID, operation.OperationID)
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
 
-	return triggerID, nil
+	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.SyncBizFromCMDBParam{TenantID: tenantID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync biz and host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
 }
 
-// ExecuteOperations execute operations.
-func (mgr *manager) ExecuteOperations(
-	ctx context.Context, name workflowdef.OperDefName, params []*operengine.OperInstParam) (string, error) {
-
-	triggerID := identifier.GenTriggerID()
-	mgr.logger.InfoCtxf(ctx, "try to execute operations. name(%s), trigger-id(%s), params(%d)",
-		name, triggerID, params)
-
-	builder, ok := workflowdef.OperBuilderRegistry()[name]
-	if !ok {
-		return triggerID, fmt.Errorf("operation builder not found, name: %s", name)
-	}
-
-	operation := builder(triggerID)
-	err := mgr.operMgr.ExecuteOperation(ctx, operation, params)
+// LaunchSyncNetworkArea launch a task to sync networkarea.
+func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
-		return triggerID, fmt.Errorf("execute operations failed, name: %s, err: %v", name, err)
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "dispatched execute operations. name(%s), trigger-id(%s), operation-id(%s)",
-		name, triggerID, operation.OperationID)
-
-	return triggerID, nil
-}
-
-// RetryOperation ...
-func (mgr *manager) RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error {
-	if len(operationID) == 0 {
-		return errors.New("operation id is empty")
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
 	}
 
-	if param == nil {
-		return errors.New("param is nil")
+	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.SyncNetworkAreaFromCMDBParam{TenantID: tenantID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "try to retry operation. operation-id(%s), param(%v)", operationID, param)
+	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
-	if err := mgr.operMgr.RetryOperation(ctx, operationID, param); err != nil {
-		return err
-	}
-
-	mgr.logger.InfoCtxf(ctx, "dispatched retry operation. operation-id(%s)", operationID)
-	return nil
+	return triggerCtl.GetTriggerID(), nil
 }

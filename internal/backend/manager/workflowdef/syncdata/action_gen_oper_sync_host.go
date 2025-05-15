@@ -11,7 +11,6 @@
 package syncdata
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -23,65 +22,69 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionGenAllBizHostSyncOper this action will create host sync operation for all business.
-func NewActionGenAllBizHostSyncOper(topoStorage topoStg.IStorage, workflowCtl workflow.IController) action.Definition {
-	return &genAllBizHostSyncOper{
-		topoStorage: topoStorage,
-		workflowCtl: workflowCtl,
+const (
+	// ActionNameGenOperSyncHost defines the action name.
+	ActionNameGenOperSyncHost = "gen_oper_sync_host"
+)
+
+// NewActionGenOperSyncHost this action will create host sync operation for all business.
+func NewActionGenOperSyncHost(iDaoBusiness topoStg.IDaoBusiness, workflowCtl workflow.IController) action.Definition {
+	return &actionGenOperSyncHost{
+		iDaoBusiness: iDaoBusiness,
+		workflowCtl:  workflowCtl,
 	}
 }
 
-// GenAllBizHostSyncOperParam ...
-type GenAllBizHostSyncOperParam struct {
+// GenOperSyncHostParam ...
+type GenOperSyncHostParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// genAllBizHostSyncOper ...
-type genAllBizHostSyncOper struct {
-	topoStorage topoStg.IStorage
-	workflowCtl workflow.IController
+type actionGenOperSyncHost struct {
+	iDaoBusiness topoStg.IDaoBusiness
+	workflowCtl  workflow.IController
 }
 
 // Name returns the name of the action.
-func (action *GenAllBizHostSyncOper) Name() string {
-	return ActionNameGenAllBizHostSyncOper
+func (act *actionGenOperSyncHost) Name() string {
+	return ActionNameGenOperSyncHost
 }
 
 // Version returns the version of the action.
-func (action *GenAllBizHostSyncOper) Version() string {
+func (act *actionGenOperSyncHost) Version() string {
 	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *GenAllBizHostSyncOper) Description() string {
+func (act *actionGenOperSyncHost) Description() string {
 	return "reads all business information from the database," +
 		"and creates host synchronization tasks on a business-by-business basis."
 }
 
 // Timeout returns the timeout of the action.
-func (action *GenAllBizHostSyncOper) Timeout() time.Duration {
+func (act *actionGenOperSyncHost) Timeout() time.Duration {
 	return time.Second * 10 // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (c *genAllBizHostSyncOper) Tags() []action.Tag {
+func (act *actionGenOperSyncHost) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount this action creates a large number of synchronization tasks,
 // therefore does not allow the system to automatically retry.
-func (action *GenAllBizHostSyncOper) MaxRetryCount() uint {
+func (act *actionGenOperSyncHost) MaxRetryCount() uint {
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *GenAllBizHostSyncOper) DelayFn() func() {
+func (act *actionGenOperSyncHost) DelayFn() func() {
 	return func() {}
 }
 
 // Do this func define what the action will do.
-func (c *genAllBizHostSyncOper) Do(ctx *action.InstanceContext) error {
-	param := new(GenAllBizHostSyncOperParam)
+func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
+	param := new(GenOperSyncHostParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -92,7 +95,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	bizs, _, err := action.iDaoBusiness.ListBusinesses(tenantCtx, types.Page{})
+	bizs, _, err := act.iDaoBusiness.ListBusinesses(tenantCtx, types.Page{})
 	if err != nil {
 		return err
 	}
@@ -102,7 +105,7 @@ func (c *genAllBizHostSyncOper) Do(ctx *action.InstanceContext) error {
 	for idx := range bizs {
 		biz := bizs[idx]
 
-		if err = action.executeOper(ctx.Ctx, ctx.Data, biz); err != nil {
+		if err = act.executeOper(ctx, biz); err != nil {
 			return err
 		}
 	}
@@ -111,33 +114,42 @@ func (c *genAllBizHostSyncOper) Do(ctx *action.InstanceContext) error {
 }
 
 // executeOper create an operation to sync all host from cmdb and then execute it.
-func (action *GenAllBizHostSyncOper) executeOper(
-	ctx context.Context,
-	data *action.InstanceContext,
+func (act *actionGenOperSyncHost) executeOper(
+	ctx *action.InstanceContext,
 	biz *types.Business) error {
 
-	// oper := OperSyncHost{
-	// 	TenantID: biz.TenantID,
-	// 	BizID:    biz.BizID,
-	// }
+	trigCtl, err := act.workflowCtl.GetTrigger(ctx.Ctx, ctx.Data.TriggerID)
+	if err != nil {
+		err = fmt.Errorf(
+			"failed to get trigger. tenant-id(%s), trigger-id(%s), biz-name(%s), biz-id(%d), err: %w",
+			biz.TenantID, ctx.Data.TriggerID, biz.BizName, biz.BizID, err)
 
-	// operation := operengine.NewOperation(data.TriggerID, oper.OperDef())
-	// param := oper.Param()
-	// param.ParentOperationID = data.OperationID
+		ctx.Data.Log(err.Error())
 
-	// err := action.operMgr.ExecuteOperation(ctx, operation, &param)
-	// if err != nil {
-	// 	err = fmt.Errorf(
-	// 		"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",
-	// 		biz.TenantID, biz.BizName, biz.BizID, err)
-	// 	data.Log(err.Error())
+		return err
+	}
 
-	// 	return err
-	// }
+	operationDef := NewOperSyncHostFromCMDB(SyncHostFromCMDBParam{
+		TenantID: biz.TenantID,
+		BizID:    biz.BizID,
+	})
 
-	msg := fmt.Sprintf("created sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d)",
-		biz.TenantID, biz.BizName, biz.BizID)
-	data.Log(msg)
+	operationParam := operationDef.DefaultParameters()
+	operationParam.ParentOperationID = ctx.Data.OperationID
+
+	operCtl, err := trigCtl.CreateOperation(ctx.Ctx, operationDef, operationParam)
+	if err != nil {
+		err = fmt.Errorf(
+			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",
+			biz.TenantID, biz.BizName, biz.BizID, err)
+
+		ctx.Data.Log(err.Error())
+
+		return err
+	}
+
+	ctx.Data.Log(fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
+		biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
 
 	return nil
 }

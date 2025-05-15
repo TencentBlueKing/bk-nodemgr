@@ -25,11 +25,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
+const (
+	// ActionNameSyncBizFromCMDB defines the action name.
+	ActionNameSyncBizFromCMDB = "sync_biz_from_cmdb"
+)
+
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
 func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage,
 	logger logger.Logger) action.Definition {
 
-	return &syncBusinessFromCMDB{
+	return &actionSyncBusinessFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
 		logger:      logger,
@@ -41,52 +46,51 @@ type SyncBizFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
 }
 
-// syncBusinessFromCMDB sync business info from cmdb.
-type syncBusinessFromCMDB struct {
+type actionSyncBusinessFromCMDB struct {
 	cmdbHandler cmdb.IHandler
 	topoStorage topoStg.IStorage
 	logger      logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *syncBusinessFromCMDB) Name() string {
+func (act *actionSyncBusinessFromCMDB) Name() string {
 	return ActionNameSyncBizFromCMDB
 }
 
 // Version returns the version of the action.
-func (act *syncBusinessFromCMDB) Version() string {
+func (act *actionSyncBusinessFromCMDB) Version() string {
 	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *syncBusinessFromCMDB) Description() string {
+func (act *actionSyncBusinessFromCMDB) Description() string {
 	return "sync business info from cmdb and update to storage"
 }
 
 // Timeout returns the timeout of this action.
-func (act *syncBusinessFromCMDB) Timeout() time.Duration {
+func (act *actionSyncBusinessFromCMDB) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // MaxRetryCount returns the max retry count of this action.
-func (act *syncBusinessFromCMDB) MaxRetryCount() uint {
+func (act *actionSyncBusinessFromCMDB) MaxRetryCount() uint {
 	return 2 // nolint: mnd
 }
 
 // DelayFn returns the delay of this action.
-func (act *syncBusinessFromCMDB) DelayFn() func() {
+func (act *actionSyncBusinessFromCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Tags returns the tags of this action.
-func (act *syncBusinessFromCMDB) Tags() []action.Tag {
+func (act *actionSyncBusinessFromCMDB) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // Do the action.
-func (act *syncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
+func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(SyncBizFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
