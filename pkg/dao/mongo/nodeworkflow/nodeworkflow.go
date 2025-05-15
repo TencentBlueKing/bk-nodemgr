@@ -19,16 +19,23 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
-	d := &dao{client: client.Collection(TableName), logger: logger}
+func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
 	d.IOrm = base.NewOrm[*Data, Data](d)
 
 	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
 	base.IOrm[*Data, Data]
 }
 
@@ -44,7 +51,7 @@ func (d *dao) GetLogger() logger.Logger {
 
 // GetTableName get the dao's table name.
 func (d *dao) GetTableName() string {
-	return TableName
+	return d.tableName
 }
 
 // GetIndexes get the dao's indexes.

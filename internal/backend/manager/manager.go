@@ -15,12 +15,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/old/operengine"
 )
 
 // OperInst defines the operation instance interface.
@@ -54,32 +56,19 @@ func NewManager(conf Config, logger logger.Logger) (Manager, error) {
 	}
 
 	mgr := &manager{
-		logger:      logger,
-		isRunning:   false,
-		operInstMgr: nil,
-		conf:        conf,
+		logger:    logger,
+		isRunning: false,
+		conf:      conf,
 	}
 
-	var err error
-	mgr.operInstMgr, err = operengine.NewOperInstMgr(
+	mgr.workflowMgr = workflow.NewManager(
 		mgr.conf.WorkflowConfig.WorkNodeNum,
-		operengine.WithRedis(
+		nil,
+		workflow.WithRedis(
 			mgr.conf.WorkflowConfig.Redis.Addr,
 			mgr.conf.WorkflowConfig.Redis.Password,
 			mgr.conf.WorkflowConfig.Redis.DB),
-		mgr.conf.OperInstStorage,
-		operengine.WithLogger(mgr.logger))
-	if err != nil {
-		return nil, err
-	}
-
-	mgr.operMgr, err = operengine.NewOperationMgr(
-		mgr.operInstMgr,
-		mgr.conf.OperStorage,
-		operengine.OperMgrWithLogger(mgr.logger))
-	if err != nil {
-		return nil, err
-	}
+		workflow.WithLogger(mgr.logger))
 
 	return mgr, nil
 }
@@ -91,8 +80,7 @@ type manager struct {
 	// state
 	isRunning bool
 
-	operInstMgr operengine.OperInstMgr
-	operMgr     operengine.OperationMgr
+	workflowMgr workflow.IManager
 
 	// config
 	conf Config
@@ -114,7 +102,7 @@ func (mgr *manager) Start(ctx context.Context) error {
 		return fmt.Errorf("config is invalid, err: %v", err)
 	}
 
-	if err := mgr.startOperEngineManager(ctx); err != nil {
+	if err := mgr.startWorkflowManager(ctx); err != nil {
 		return err
 	}
 
@@ -135,12 +123,12 @@ func (mgr *manager) CheckHealth() error {
 		return fmt.Errorf("topo storage is unhealthy, err: %v", err)
 	}
 
-	if mgr.operInstMgr == nil {
-		return errors.New("task engine manager is not initialized")
+	if mgr.workflowMgr == nil {
+		return errors.New("workflow manager is not initialized")
 	}
 
-	if err := mgr.operInstMgr.CheckHealth(); err != nil {
-		return fmt.Errorf("operation instance engine manager is unhealthy, err: %v", err)
+	if err := mgr.workflowMgr.CheckHealth(); err != nil {
+		return fmt.Errorf("workflow manager is unhealthy, err: %v", err)
 	}
 
 	return nil
@@ -152,20 +140,20 @@ func (mgr *manager) GracefulShutdown() error {
 		return errors.New("manager is not running")
 	}
 
-	if err := mgr.operInstMgr.GracefulShutdown(); err != nil {
+	if err := mgr.workflowMgr.GracefulShutdown(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (mgr *manager) startOperEngineManager(ctx context.Context) error {
+func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 	// TODO: implement me
 	if err := mgr.registerActionDefs(); err != nil {
 		return err
 	}
 
-	if err := mgr.operInstMgr.Start(ctx); err != nil {
+	if err := mgr.workflowMgr.Start(ctx); err != nil {
 		return err
 	}
 
@@ -182,12 +170,12 @@ func (mgr *manager) registerActionDefs() error {
 		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
 		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
+		syncdata.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.workflowMgr),
 	)
 }
 
 func (mgr *manager) registerActionDefNodeInstall() error {
-	return mgr.operInstMgr.RegisterActions(
+	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionBindAgentHostRel(
 			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
 		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
@@ -222,6 +210,31 @@ func (mgr *manager) Execute(ctx context.Context, operInst OperInst) (string, err
 
 	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
 		def.OperDefName, triggerID, operation.OperationID)
+
+	return triggerID, nil
+}
+
+// ExecuteOperations execute operations.
+func (mgr *manager) ExecuteOperations(
+	ctx context.Context, name workflowdef.OperDefName, params []*operengine.OperInstParam) (string, error) {
+
+	triggerID := identifier.GenTriggerID()
+	mgr.logger.InfoCtxf(ctx, "try to execute operations. name(%s), trigger-id(%s), params(%d)",
+		name, triggerID, params)
+
+	builder, ok := workflowdef.OperBuilderRegistry()[name]
+	if !ok {
+		return triggerID, fmt.Errorf("operation builder not found, name: %s", name)
+	}
+
+	operation := builder(triggerID)
+	err := mgr.operMgr.ExecuteOperation(ctx, operation, params)
+	if err != nil {
+		return triggerID, fmt.Errorf("execute operations failed, name: %s, err: %v", name, err)
+	}
+
+	mgr.logger.InfoCtxf(ctx, "dispatched execute operations. name(%s), trigger-id(%s), operation-id(%s)",
+		name, triggerID, operation.OperationID)
 
 	return triggerID, nil
 }

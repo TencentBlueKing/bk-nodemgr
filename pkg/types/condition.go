@@ -206,3 +206,34 @@ type TopoConstantFields struct {
 	CloudVendor bool
 	OSType      bool
 }
+
+// NodeWorkflowExactFields defines the node workflow exact fields.
+type NodeWorkflowExactFields struct {
+	WorkflowID []string
+	Type       []NodeWorkflowType
+	BizID      []int64
+	Status     []NodeWorkflowStatus
+	Operator   []string
+}
+
+// NodeWorkflowFuzzyFields defines the node workflow fuzzy fields.
+type NodeWorkflowFuzzyFields struct {
+}
+
+// NodeWorkflowCondition defines the node workflow condition.
+type NodeWorkflowCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NodeWorkflowExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NodeWorkflowFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *NodeWorkflowExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *NodeWorkflowFuzzyFields
+}

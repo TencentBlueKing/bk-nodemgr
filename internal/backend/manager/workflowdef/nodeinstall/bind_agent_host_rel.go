@@ -23,12 +23,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionBindAgentHostRel ...
 func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topoStg.IDaoHost,
-	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) *BindAgentHostRel {
+	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) action.Definition {
 
 	return &BindAgentHostRel{
 		IBindHostAgent:    bindHostAgent,
@@ -52,51 +52,51 @@ type BindAgentHostRel struct {
 }
 
 // Name returns the name of the action.
-func (action *BindAgentHostRel) Name() string {
+func (act *BindAgentHostRel) Name() string {
 	return ActionNameBindAgentHostRel
 }
 
 // Version returns the version of the action.
-func (action *BindAgentHostRel) Version() string {
+func (act *BindAgentHostRel) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *BindAgentHostRel) Description() string {
+func (act *BindAgentHostRel) Description() string {
 	return "bind agent host relation"
 }
 
 // Timeout returns the timeout of the action.
-func (action *BindAgentHostRel) Timeout() time.Duration {
+func (act *BindAgentHostRel) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *BindAgentHostRel) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *BindAgentHostRel) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *BindAgentHostRel) MaxRetryCount() uint {
+func (act *BindAgentHostRel) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *BindAgentHostRel) DelayFn() func() {
+func (act *BindAgentHostRel) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *BindAgentHostRel) Do(ctx *operengine.ActionInstContext) error {
+func (act *BindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	param := new(BindAgentHostRelParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.nodeDeploymentDao.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.nodeDeploymentDao.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}
@@ -107,28 +107,28 @@ func (action *BindAgentHostRel) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
-	if err := action.checkHostExist(tenantCtx, info); err != nil {
+	if err := act.checkHostExist(tenantCtx, info); err != nil {
 		return err
 	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.BindHostAgent(tenantCtx, &info.Host); err != nil {
+		if err := act.BindHostAgent(tenantCtx, &info.Host); err != nil {
 			return err
 		}
 
-		action.logger.Infof("successfully bind host agent relation to cmdb, host-id(%d), agent-id(%s)",
+		act.logger.Infof("successfully bind host agent relation to cmdb, host-id(%d), agent-id(%s)",
 			info.HostID, info.Dynamic.AgentID)
 
 		return nil
 	})
 
 	gp.Go(func() error {
-		if err := action.hostDao.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
+		if err := act.hostDao.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
 			return err
 		}
 
-		action.logger.Infof("successfully bind host agent relation to db, host-id(%d), agent-id(%s)",
+		act.logger.Infof("successfully bind host agent relation to db, host-id(%d), agent-id(%s)",
 			info.HostID, info.Dynamic.AgentID)
 
 		return nil
@@ -144,8 +144,8 @@ func (action *BindAgentHostRel) Do(ctx *operengine.ActionInstContext) error {
 	return nil
 }
 
-func (action *BindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
-	daoHost, err := action.hostDao.GetHostByID(ctx, info.HostID)
+func (act *BindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
+	daoHost, err := act.hostDao.GetHostByID(ctx, info.HostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
 	}

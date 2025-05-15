@@ -8,47 +8,49 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package trigengine ...
-package trigengine
+package trigger
 
 import (
 	"errors"
 	"time"
 )
 
-// MetadataOnce will store the metadata of a trigger
+// Metadata defines the trigger metadata.
+type Metadata interface {
+	// Validate validates the metadata.
+	Validate() error
+}
+
+// MetadataOnce will store the metadata of once trigger.
 type MetadataOnce struct {
 }
 
-// Validate ...
+// Validate validates the metadata.
 func (m *MetadataOnce) Validate() error {
 	return nil
 }
 
-// MetadataPeriodic will store the metadata of a trigger
-type MetadataPeriodic struct {
-	IntervalSecond int
+// MetadataOrdered will store the metadata of ordered trigger.
+type MetadataOrdered struct {
+	MaxConcurrencyNum int
 }
 
-// Validate ...
-func (m *MetadataPeriodic) Validate() error {
-	if m.IntervalSecond <= 0 {
-		return errors.New("interval second must be greater than 0")
-	}
-
+// Validate validates the metadata.
+func (m *MetadataOrdered) Validate() error {
 	return nil
 }
 
-// GetInterval get interval
-func (m *MetadataPeriodic) GetInterval() time.Duration {
-	return time.Duration(m.IntervalSecond) * time.Second
+// MetadataPeriodic will store the metadata of periodic trigger.
+type MetadataPeriodic struct {
+	Interval           time.Duration
+	AllowedConcurrency bool
 }
 
-// MetadataOrdered will store the metadata of a trigger
-type MetadataOrdered struct {
-}
+// Validate validates the metadata.
+func (m *MetadataPeriodic) Validate() error {
+	if m.Interval <= 0 {
+		return errors.New("interval must be greater than 0")
+	}
 
-// Validate validate
-func (m *MetadataOrdered) Validate() error {
 	return nil
 }

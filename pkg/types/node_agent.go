@@ -8,5 +8,21 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package types
+
+// NodeAgentInstallParam describes the node agent install parameter.
+type NodeAgentInstallParam struct {
+	BizID         string
+	InnerIP       string
+	InnerIPV6     string
+	Addressing    Addressing
+	LoginIP       string
+	LoginPort     int
+	LoginUser     string
+	LoginMode     LoginMode
+	LoginPassword string
+	LoginKeyFile  []byte
+	NetworkUnitID int64
+	OSType        string
+	TargetVersion string
+}

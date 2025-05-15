@@ -23,6 +23,7 @@ import (
 type Handler interface {
 	IHandlerNetworkArea
 	IHandlerNetworkUnit
+	IHandlerNodeAgent
 
 	// ListBusiness list business within specified tenant in context.
 	// @param ctx context, contains tenant-id.
@@ -161,6 +162,15 @@ type IHandlerNetworkUnit interface {
 	// @param networkUnitID the network unit id.
 	// @return the network-unit id.
 	DeleteNetworkUnit(ctx context.Context, networkUnitID int64) error
+}
+
+// IHandlerNodeAgent defines the node agent handler.
+type IHandlerNodeAgent interface {
+	// InstallAgent node agent.
+	// @param ctx context, contains tenant-id.
+	// @param param the install param.
+	// @return the installing workflow-id and error.
+	InstallAgent(ctx context.Context, param *types.NodeAgentInstallParam) (string, error)
 }
 
 type handler struct {

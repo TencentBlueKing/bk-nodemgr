@@ -14,6 +14,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -45,12 +46,12 @@ func (c *Context) BindJSON(body RequestBody) error {
 func (c *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error) {
 	metaData := c.gCtx.PostForm("metadata")
 	if err := json.Unmarshal([]byte(metaData), body); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse metadata(%s), err(%v)", metaData, err)
 	}
 
 	file, err := c.gCtx.FormFile("file")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse file, err(%v)", err)
 	}
 
 	return file, nil

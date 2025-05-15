@@ -12,14 +12,15 @@ package nodeinstall
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionSyncNodeInfo ...
@@ -27,7 +28,7 @@ func NewActionSyncNodeInfo(
 	gseClient gse.IHandler,
 	storage nodedeployment.IStorage,
 	logger logger.Logger,
-) operengine.ActionDef {
+) action.Definition {
 
 	return &SyncNodeInfo{
 		gseClient: gseClient,
@@ -49,56 +50,56 @@ type SyncNodeInfo struct {
 }
 
 // Name returns the name of the action.
-func (action *SyncNodeInfo) Name() string {
+func (act *SyncNodeInfo) Name() string {
 	return ActionNameSyncNodeInfo
 }
 
 // Version returns the version of the action.
-func (action *SyncNodeInfo) Version() string {
+func (act *SyncNodeInfo) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *SyncNodeInfo) Description() string {
+func (act *SyncNodeInfo) Description() string {
 	return "sync node info to db"
 }
 
 // Timeout returns the timeout of the action.
-func (action *SyncNodeInfo) Timeout() time.Duration {
+func (act *SyncNodeInfo) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *SyncNodeInfo) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *SyncNodeInfo) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *SyncNodeInfo) MaxRetryCount() uint {
+func (act *SyncNodeInfo) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *SyncNodeInfo) DelayFn() func() {
+func (act *SyncNodeInfo) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *SyncNodeInfo) Do(ctx *operengine.ActionInstContext) error {
+func (act *SyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	param := new(SyncNodeInfoParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.storage.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storage.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
 
-	agentInfos, err := action.gseClient.ListAgentInfo(ctx.Ctx, info.Dynamic.AgentID)
+	agentInfos, err := act.gseClient.ListAgentInfo(ctx.Ctx, info.Dynamic.AgentID)
 	if err != nil {
 		return err
 	}
@@ -119,7 +120,7 @@ func (action *SyncNodeInfo) Do(ctx *operengine.ActionInstContext) error {
 			info.Dynamic.AgentID, agentInfo.OSType, err)
 	}
 
-	if err := action.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Dynamic.AgentID, err)
 	}
 

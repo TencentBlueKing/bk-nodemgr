@@ -12,13 +12,14 @@ package nodeinstall
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionUpdateHost ...
@@ -26,7 +27,7 @@ func NewActionUpdateHost(
 	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
-) operengine.ActionDef {
+) action.Definition {
 
 	return &UpdateHost{
 		iDaoHost:           iDaoHost,
@@ -48,56 +49,56 @@ type UpdateHost struct {
 }
 
 // Name returns the name of the action.
-func (action *UpdateHost) Name() string {
+func (act *UpdateHost) Name() string {
 	return ActionNameUpdateHost
 }
 
 // Version returns the version of the action.
-func (action *UpdateHost) Version() string {
+func (act *UpdateHost) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *UpdateHost) Description() string {
+func (act *UpdateHost) Description() string {
 	return "update host"
 }
 
 // Timeout returns the timeout of the action.
-func (action *UpdateHost) Timeout() time.Duration {
+func (act *UpdateHost) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *UpdateHost) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *UpdateHost) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *UpdateHost) MaxRetryCount() uint {
+func (act *UpdateHost) MaxRetryCount() uint {
 	return 3 //nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *UpdateHost) DelayFn() func() {
+func (act *UpdateHost) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *UpdateHost) Do(ctx *operengine.ActionInstContext) error {
+func (act *UpdateHost) Do(ctx *action.InstanceContext) error {
 	param := new(UpdateHostParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}
 
-	err = action.iDaoHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
+	err = act.iDaoHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
 	if err != nil {
 		return fmt.Errorf("update host dynamic failed, err: %w", err)
 	}

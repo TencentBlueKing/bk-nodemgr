@@ -28,7 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionRenderNodeDeployment new action to render node deployment.
@@ -36,7 +36,7 @@ func NewActionRenderNodeDeployment(
 	storage nodedeployment.IDaoNodeDeployment,
 	iDaoHost topoStg.IDaoHost,
 	iDomainGseProxy topoStg.IDomainGse,
-	logger logger.Logger) operengine.ActionDef {
+	logger logger.Logger) action.Definition {
 
 	return &RenderNodeDeployment{
 		iDaoNodeDeployment: storage,
@@ -61,51 +61,51 @@ type RenderNodeDeployment struct {
 }
 
 // Name returns the name of the action.
-func (action *RenderNodeDeployment) Name() string {
+func (act *RenderNodeDeployment) Name() string {
 	return ActionNameRenderNodeDeployment
 }
 
 // Version returns the version of the action.
-func (action *RenderNodeDeployment) Version() string {
+func (act *RenderNodeDeployment) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *RenderNodeDeployment) Description() string {
+func (act *RenderNodeDeployment) Description() string {
 	return "render node deployment"
 }
 
 // Timeout returns the timeout of the action.
-func (action *RenderNodeDeployment) Timeout() time.Duration {
+func (act *RenderNodeDeployment) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *RenderNodeDeployment) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *RenderNodeDeployment) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *RenderNodeDeployment) MaxRetryCount() uint {
+func (act *RenderNodeDeployment) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *RenderNodeDeployment) DelayFn() func() {
+func (act *RenderNodeDeployment) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error {
+func (act *RenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	param := new(RenderNodeDeploymentParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -115,36 +115,36 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 		return err
 	}
 
-	info.OperInstID = ctx.Data.OperInstID
+	info.OperInstID = ctx.Data.OperationInstanceID
 	info.BlockingActionName = ActionNameWaitComplete
 
-	if err := action.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := action.iDaoNodeDeployment.GetNodeConf(tenantCtx, param.Token)
+	nodeConf, err := act.iDaoNodeDeployment.GetNodeConf(tenantCtx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.renderSystemSetting(tenantCtx, nodeConf, &info.Host); err != nil {
+		if err := act.renderPreSetting(tenantCtx, nodeConf, &info.Host); err != nil {
 			return fmt.Errorf("render pre setting failed, err: %w", err)
 		}
 
-		action.logger.Infof("succfessfully render pre setting, token: %s", param.Token)
+		act.logger.Infof("rendered pre setting, token: %s", param.Token)
 
 		return nil
 	})
 
 	gp.Go(func() error {
-		if err := action.renderUserSetting(nodeConf, info); err != nil {
+		if err := act.renderCustomSetting(nodeConf, info); err != nil {
 			return fmt.Errorf("render custom setting failed, err: %w", err)
 		}
 
-		action.logger.Infof("succfessfully render custom setting, token: %s", param.Token)
+		act.logger.Infof("rendered custom setting, token: %s", param.Token)
 
 		return nil
 	})
@@ -153,37 +153,36 @@ func (action *RenderNodeDeployment) Do(ctx *operengine.ActionInstContext) error 
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := action.iDaoNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
+	if err := act.iDaoNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
-	if err := action.renderNodeDeploymentInfo(tenantCtx, info, nodeConf); err != nil {
+	if err := act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 
-	if err := action.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 
 	return nil
 }
 
-func (action *RenderNodeDeployment) renderSystemSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (act *RenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) error {
 
-	if err := action.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
+	if err := act.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
 		return fmt.Errorf("render default setting failed, err: %w", err)
 	}
 
-	if err := action.renderLogicSetting(ctx, nodeConf, host); err != nil {
+	if err := act.renderLogicSetting(ctx, nodeConf, host); err != nil {
 		return fmt.Errorf("render logic setting failed, err: %w", err)
 	}
 
 	return nil
 }
 
-// GseAgentSettingDefault will load the default setting for gse agent to preSetting.
-func (action *RenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
+func (act *RenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
 ) error {
 
 	switch nodeRole {
@@ -501,7 +500,7 @@ const (
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen
-func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (act *RenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 
 	osType, err := platform.NormalizeOS(host.Static.OSType)
@@ -510,7 +509,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 	}
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
-	if err := action.checkHostExist(ctx, host.HostID); err != nil {
+	if err := act.checkHostExist(ctx, host.HostID); err != nil {
 		return err
 	}
 
@@ -591,7 +590,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
-	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = action.IDomainGse.NeedStaticAccess(
+	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.IDomainGse.NeedStaticAccess(
 		ctx, host.Dynamic.NetworkUnitID)
 
 	if err != nil {
@@ -602,7 +601,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := action.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
@@ -616,7 +615,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-			clusters, files, datas, err := action.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
@@ -629,7 +628,7 @@ func (action *RenderNodeDeployment) renderLogicSetting(ctx context.Context, node
 
 			nodeConf.PreSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 
-			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = action.renderFileLinks(nodeConf, host, files)
+			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = act.renderFileLinks(nodeConf, host, files)
 		}
 	default:
 		return fmt.Errorf("unsupported node role: %s", host.Dynamic.NodeRole)
@@ -688,8 +687,8 @@ func forbiddenKeys() []string {
 	}
 }
 
-// renderUserSetting load user setting to the config presetting.
-func (action *RenderNodeDeployment) renderUserSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
+// renderCustomSetting load custom setting to the config presetting.
+func (act *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
 	if conf.CustomSetting == nil {
 		return errors.New("lack custom setting")
 	}
@@ -704,8 +703,8 @@ func (action *RenderNodeDeployment) renderUserSetting(conf *types.NodeConf, info
 
 	return nil
 }
-func (action *RenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
-	host, err := action.iDaoHost.GetHostByID(ctx, hostID)
+func (act *RenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
+	host, err := act.iDaoHost.GetHostByID(ctx, hostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
 	}

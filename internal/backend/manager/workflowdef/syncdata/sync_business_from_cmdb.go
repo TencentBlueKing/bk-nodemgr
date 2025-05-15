@@ -22,12 +22,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
 func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage,
-	logger logger.Logger) operengine.ActionDef {
+	logger logger.Logger) action.Definition {
 
 	return &syncBusinessFromCMDB{
 		cmdbHandler: cmdbHandler,
@@ -81,12 +81,12 @@ func (act *syncBusinessFromCMDB) DelayFn() func() {
 }
 
 // Tags returns the tags of this action.
-func (act *syncBusinessFromCMDB) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *syncBusinessFromCMDB) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // Do the action.
-func (act *syncBusinessFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+func (act *syncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(SyncBizFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

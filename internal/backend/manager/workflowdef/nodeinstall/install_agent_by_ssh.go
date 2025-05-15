@@ -14,15 +14,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
+	"strings"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"path"
-	"strings"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -30,17 +31,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionInstallAgentBySSH ...
-func NewActionInstallAgentBySSH(
+// NewActionInstallNodeBySSH ...
+func NewActionInstallNodeBySSH(
 	installerFileGroup iface.FileGroup,
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	provider discover.Provider,
-) *InstallNodeBySSH {
+) action.Definition {
 
 	return &InstallNodeBySSH{
 		installerGroup:     installerFileGroup,
@@ -80,37 +81,37 @@ type InstallNodeBySSH struct {
 }
 
 // Name returns the name of the action.
-func (action *InstallNodeBySSH) Name() string {
+func (act *InstallNodeBySSH) Name() string {
 	return ActionNameInstallNodeBySSH
 }
 
 // Version returns the version of the action.
-func (action *InstallNodeBySSH) Version() string {
+func (act *InstallNodeBySSH) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *InstallNodeBySSH) Description() string {
+func (act *InstallNodeBySSH) Description() string {
 	return "Use ssh to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (action *InstallNodeBySSH) Timeout() time.Duration {
+func (act *InstallNodeBySSH) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *InstallNodeBySSH) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *InstallNodeBySSH) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *InstallNodeBySSH) MaxRetryCount() uint {
+func (act *InstallNodeBySSH) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *InstallNodeBySSH) DelayFn() func() {
+func (act *InstallNodeBySSH) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -119,7 +120,7 @@ func (action *InstallNodeBySSH) DelayFn() func() {
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error) {
+func (act *InstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(InstallAgentParamBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -128,23 +129,23 @@ func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error
 		return err
 	}
 
-	info, err := action.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if storeErr := action.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := act.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	client, err := action.buildSSH(ctx.Ctx, info)
+	client, err := act.buildSSH(ctx.Ctx, info)
 	if err != nil {
 		return err
 	}
 
-	osType, cpuArch, targetDir, err := action.detectInfo(ctx, client)
+	osType, cpuArch, targetDir, err := act.detectInfo(ctx, client)
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error
 		return err
 	}
 
-	toolFile, err := action.installerGroup.GetFile(toolName)
+	toolFile, err := act.installerGroup.GetFile(toolName)
 	if err != nil {
 		err = fmt.Errorf("failed to get file, err: %w", err)
 
@@ -187,12 +188,12 @@ func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error
 	}
 
 	randSelector := discover.NewRandomSelector()
-	downloadEndpoint, err := action.provider.GetEndpoint(discover.ServiceNameFile, discover.EndpointNameFileBasic, randSelector)
+	downloadEndpoint, err := act.provider.GetEndpoint(discover.ServiceNameFile, discover.EndpointNameFileBasic, randSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get file endpoint, err: %w", err)
 	}
 
-	callbackEndpoint, err := action.provider.GetEndpoint(discover.ServiceNameBackend, discover.EndpointNameBackendCallback, randSelector)
+	callbackEndpoint, err := act.provider.GetEndpoint(discover.ServiceNameBackend, discover.EndpointNameBackendCallback, randSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
@@ -236,18 +237,18 @@ func (action *InstallNodeBySSH) Do(ctx *operengine.ActionInstContext) (err error
 	return nil
 }
 
-func (action *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
+func (act *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
 	sshConf := &sshx.Config{
 		Network: sshx.NetworkTCP,
 		IP:      info.LoginIP,
 		Port:    int(info.LoginPort),
 		User:    info.LoginUser,
-		Logger:  action.logger,
+		Logger:  act.logger,
 	}
 
 	switch info.LoginMode {
 	case types.LoginModePassword:
-		passwd, err := action.crypter.Decrypt(info.LoginPassword)
+		passwd, err := act.crypter.Decrypt(info.LoginPassword)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
 		}
@@ -256,7 +257,7 @@ func (action *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.Deploy
 		sshConf.Password = string(passwd)
 
 	case types.LoginModeKeyFile:
-		privateKey, err := action.crypter.Decrypt(info.LoginKeyFile)
+		privateKey, err := act.crypter.Decrypt(info.LoginKeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
 		}
@@ -280,7 +281,7 @@ func (action *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.Deploy
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
-func (action *InstallNodeBySSH) detectInfo(ctx *operengine.ActionInstContext, client *sshx.Client) (
+func (act *InstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
 	osType string, cpuArch string, targetDir string, err error) {
 
 	// 1. detect target system
@@ -339,7 +340,7 @@ func (action *InstallNodeBySSH) detectInfo(ctx *operengine.ActionInstContext, cl
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (action *InstallNodeBySSH) buildCMD(param *InstallParams) string {
+func (act *InstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),

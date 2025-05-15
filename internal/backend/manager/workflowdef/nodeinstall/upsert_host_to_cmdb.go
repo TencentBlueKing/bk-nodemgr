@@ -24,7 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionUpsertHost ...
@@ -32,7 +32,7 @@ func NewActionUpsertHost(
 	cmdbHandler cmdb.IHandler,
 	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
-) operengine.ActionDef {
+) action.Definition {
 
 	return &UpsertHost{
 		cmdbHandler:        cmdbHandler,
@@ -54,51 +54,51 @@ type UpsertHost struct {
 }
 
 // Name returns the name of the action.
-func (action *UpsertHost) Name() string {
+func (act *UpsertHost) Name() string {
 	return ActionNameUpsertHost
 }
 
 // Version returns the version of the action.
-func (action *UpsertHost) Version() string {
+func (act *UpsertHost) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *UpsertHost) Description() string {
+func (act *UpsertHost) Description() string {
 	return "insert or update host"
 }
 
 // Timeout returns the timeout of the action.
-func (action *UpsertHost) Timeout() time.Duration {
+func (act *UpsertHost) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *UpsertHost) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *UpsertHost) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *UpsertHost) MaxRetryCount() uint {
+func (act *UpsertHost) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *UpsertHost) DelayFn() func() {
+func (act *UpsertHost) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
+func (act *UpsertHost) Do(ctx *action.InstanceContext) error {
 	param := new(UpsertHostParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 
 	// nolint: nestif
 	if info.HostID < 0 {
-		hosts, count, err := action.iDaoHost.ListHost(tenantCtx, types.Page{
+		hosts, count, err := act.iDaoHost.ListHost(tenantCtx, types.Page{
 			Offset: 0,
 			Limit:  1,
 		}, &types.HostCondition{
@@ -131,7 +131,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 		}
 
 		if len(hosts) == 0 {
-			info.HostID, err = action.insertHost(tenantCtx, info)
+			info.HostID, err = act.insertHost(tenantCtx, info)
 			if err != nil {
 				return err
 			}
@@ -139,7 +139,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 			info.HostID = hosts[0].HostID
 		}
 	} else {
-		count, err := action.iDaoHost.CountHost(tenantCtx, &types.HostCondition{
+		count, err := act.iDaoHost.CountHost(tenantCtx, &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				HostID:        []int64{info.HostID},
 				NetworkAreaID: []int64{info.Static.NetworkAreaID},
@@ -160,7 +160,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := action.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+		if err := act.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 			return fmt.Errorf("update node deployment info failed, err: %w", err)
 		}
 
@@ -168,7 +168,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 	})
 
 	gp.Go(func() error {
-		if err := action.iDaoHost.UpsertManyHost(tenantCtx, &info.Host); err != nil {
+		if err := act.iDaoHost.UpsertManyHost(tenantCtx, &info.Host); err != nil {
 			return fmt.Errorf("upsert host to db failed, err: %w", err)
 		}
 
@@ -182,7 +182,7 @@ func (action *UpsertHost) Do(ctx *operengine.ActionInstContext) error {
 	return nil
 }
 
-func (action *UpsertHost) insertHost(ctx context.Context, info *types.DeploymentInfo) (int64, error) {
+func (act *UpsertHost) insertHost(ctx context.Context, info *types.DeploymentInfo) (int64, error) {
 	host := &info.Host
 
 	// inorder to check the interface of cc, and set the default architecture at the beginning
@@ -196,7 +196,7 @@ func (action *UpsertHost) insertHost(ctx context.Context, info *types.Deployment
 		host.Static.Arch = criteria.CPUArch386
 	}
 
-	hostIDs, err := action.cmdbHandler.AddHostToBusinessIdle(ctx, info.Static.BizID, host)
+	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Static.BizID, host)
 	if err != nil {
 		return 0, err
 	}

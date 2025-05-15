@@ -79,3 +79,29 @@ type TopoEventDistinctResult struct {
 	AccessPointID []int64
 	Operator      []string
 }
+
+// NodeWorkflowDistinctRequest describes the wanted distinct fields.
+type NodeWorkflowDistinctRequest struct {
+	Type     bool
+	BizID    bool
+	Status   bool
+	Operator bool
+}
+
+// NewNodeWorkflowDistinctRequestAllSet creates a NodeWorkflowDistinctRequest with all fields set to true.
+func NewNodeWorkflowDistinctRequestAllSet() NodeWorkflowDistinctRequest {
+	return NodeWorkflowDistinctRequest{
+		Type:     true,
+		BizID:    true,
+		Status:   true,
+		Operator: true,
+	}
+}
+
+// NodeWorkflowDistinctResult describes the result of distinct.
+type NodeWorkflowDistinctResult struct {
+	Type     []NodeWorkflowType
+	BizID    []int64
+	Status   []NodeWorkflowStatus
+	Operator []string
+}

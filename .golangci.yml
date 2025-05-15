@@ -658,3 +658,19 @@ linters-settings:
       # Using `topoStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo
         alias: topoStg
+      # Using `operinstdataStorage` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata
+        alias: operinstdataStorage
+      - Using `machinery` things.
+      - pkg: backendIface
+        alias: github.com/RichardKnop/machinery/v2/backends/iface
+      - pkg: github.com/RichardKnop/machinery/v2/backends/redis
+        alias: backendRedis
+	    - pkg: github.com/RichardKnop/machinery/v2/brokers/iface
+        alias: brokerIface
+	    - pkg: github.com/RichardKnop/machinery/v2/brokers/redis
+        alias: brokerRedis
+	    - pkg: github.com/RichardKnop/machinery/v2/config
+        alias: machineryConfig
+	    - pkg: github.com/RichardKnop/machinery/v2/log
+        alias: machinerylog

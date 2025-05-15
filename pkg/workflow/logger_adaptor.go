@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package operengine ...
-package operengine
+// Package workflow ...
+package workflow
 
 import (
 	"github.com/RichardKnop/logging"

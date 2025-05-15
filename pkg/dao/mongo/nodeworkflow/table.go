@@ -11,30 +11,32 @@
 package nodeworkflow
 
 import (
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
 // TableName node workflow table name.
-const TableName = "node_workflow"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("node_workflow_%s", tenantID)
+}
 
 // Data represents the table of node workflow.
 // Token should be the unique key.
 type Data struct {
-	WorkflowID  int64     `json:"workflow_id" bson:"workflow_id"`
+	WorkflowID  string    `json:"workflow_id" bson:"workflow_id"`
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
 	Type        string    `json:"type" bson:"type"`
 	BizIDs      []int64   `json:"biz_ids" bson:"biz_ids"`
-	ExecuteUser string    `json:"execute_user" bson:"execute_user"`
-	ExecuteTime time.Time `json:"execute_time" bson:"execute_time"`
+	Operator    string    `json:"operator" bson:"operator"`
+	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
 	Status      string    `json:"status" bson:"status"`
 }
 
 // UniqueKey unique key of the table.
 func (workflow *Data) UniqueKey() string {
-	return strconv.FormatInt(workflow.WorkflowID, 10)
+	return workflow.WorkflowID
 }
 
 // Table represent the complete db structures of node workflow.

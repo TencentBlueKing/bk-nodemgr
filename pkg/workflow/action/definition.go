@@ -8,34 +8,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package operengine ...
-package operengine
+// Package action describes the basic step in operation.
+package action
 
 import (
-	"context"
 	"time"
 )
 
-// ActionTag represents a tag of an action.
-type ActionTag string
+// Tag represents a tag of an action.
+type Tag string
 
 const (
-	// ActionTagIdempotent represents an idempotent action.
-	ActionTagIdempotent ActionTag = "idempotent"
-	// ActionTagNotIdempotent represents a not idempotent action.
-	ActionTagNotIdempotent ActionTag = "non-idempotent"
+	// TagIdempotent represents an idempotent action.
+	TagIdempotent Tag = "idempotent"
+
+	// TagNotIdempotent represents a not idempotent action.
+	TagNotIdempotent Tag = "non-idempotent"
 )
 
-// ActionInstContext represents the context of an action.
-type ActionInstContext struct {
-	// Context is the context of the action
-	Ctx context.Context
-	// Data is the action being executed
-	Data *ActionInstData
-}
-
-// ActionDef represents an operation inst operInstMgr action, which is a single basic step of work.
-type ActionDef interface {
+// Definition represents an action, which is a single basic step of work.
+type Definition interface {
 	// Name returns the name of the action.
 	Name() string
 
@@ -49,7 +41,7 @@ type ActionDef interface {
 	Timeout() time.Duration
 
 	// Tags returns the tags of the action.
-	Tags() []ActionTag
+	Tags() []Tag
 
 	// MaxRetryCount returns the max retry count of the action.
 	MaxRetryCount() uint
@@ -58,5 +50,5 @@ type ActionDef interface {
 	DelayFn() func()
 
 	// Do executes the action, with specified context.
-	Do(*ActionInstContext) error
+	Do(iCtx *InstanceContext) error
 }

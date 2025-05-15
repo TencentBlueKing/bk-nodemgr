@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionPushHostIdentifier ...
@@ -29,7 +29,7 @@ func NewActionPushHostIdentifier(
 	cmdbClient cmdb.IHandler,
 	storage nodedeployment.IStorage,
 	logger logger.Logger,
-) *PushHostIdentifier {
+) action.Definition {
 
 	return &PushHostIdentifier{
 		cmdbClient: cmdbClient,
@@ -51,51 +51,51 @@ type PushHostIdentifier struct {
 }
 
 // Name returns the name of the action.
-func (action *PushHostIdentifier) Name() string {
+func (act *PushHostIdentifier) Name() string {
 	return ActionNamePushHostIdentifier
 }
 
 // Version returns the version of the action.
-func (action *PushHostIdentifier) Version() string {
+func (act *PushHostIdentifier) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (action *PushHostIdentifier) Description() string {
+func (act *PushHostIdentifier) Description() string {
 	return "Query agent state"
 }
 
 // Timeout returns the timeout of the action.
-func (action *PushHostIdentifier) Timeout() time.Duration {
+func (act *PushHostIdentifier) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *PushHostIdentifier) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *PushHostIdentifier) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *PushHostIdentifier) MaxRetryCount() uint {
+func (act *PushHostIdentifier) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *PushHostIdentifier) DelayFn() func() {
+func (act *PushHostIdentifier) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
+func (act *PushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	param := new(PushHostIdentifierParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := action.storage.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storage.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -106,12 +106,12 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 	}
 
 	polling := retrier.NewPolling(retrier.PollingOpts{
-		Timeout:  action.Timeout(),
+		Timeout:  act.Timeout(),
 		Interval: time.Second,
-		Logger:   action.logger,
+		Logger:   act.logger,
 	})
 
-	taskID, err := action.cmdbClient.PushHostIdentifier(tCtx, info.HostID)
+	taskID, err := act.cmdbClient.PushHostIdentifier(tCtx, info.HostID)
 	if err != nil {
 		return err
 	}
@@ -119,9 +119,9 @@ func (action *PushHostIdentifier) Do(ctx *operengine.ActionInstContext) error {
 
 	var success bool
 	err = polling.Do(tCtx, func(_ int) error {
-		successList, failedList, pendingList, err := action.cmdbClient.FindHostIdentifierPushResult(tCtx, taskID)
+		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(tCtx, taskID)
 		if err != nil {
-			action.logger.Errorf("failed to find host identifier push result, err: %s", err.Error())
+			act.logger.Errorf("failed to find host identifier push result, err: %s", err.Error())
 
 			return err
 		}

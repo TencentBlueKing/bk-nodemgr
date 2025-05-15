@@ -25,22 +25,22 @@ func WithWorkflowID(workflowIDs ...int64) OptFn {
 
 // WithStatus filters by status.
 func WithStatus(statuses ...types.NodeWorkflowStatus) OptFn {
-	strs := make([]string, len(statuses))
-	for idx, status := range statuses {
-		strs[idx] = string(status)
-	}
-
-	return base.WithValues(FieldKeyStatus, strs...)
+	return base.WithValues(FieldKeyStatus, types.NodeWorkflowStatusListToStringList(statuses)...)
 }
 
-// WithType filters by oper-type.
-func WithType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
-	strs := make([]string, len(nodeWorkflowTypes))
-	for idx, nodeWorkflowType := range nodeWorkflowTypes {
-		strs[idx] = string(nodeWorkflowType)
-	}
+// WithoutStatus filters by not contains status.
+func WithoutStatus(statuses ...types.NodeWorkflowStatus) OptFn {
+	return base.WithoutValues(FieldKeyStatus, types.NodeWorkflowStatusListToStringList(statuses)...)
+}
 
-	return base.WithValues(FieldKeyType, strs...)
+// WithType filters by type.
+func WithType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
+	return base.WithValues(FieldKeyType, types.NodeWorkflowTypeListToStringList(nodeWorkflowTypes)...)
+}
+
+// WithoutType filters by not contains type.
+func WithoutType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
+	return base.WithoutValues(FieldKeyType, types.NodeWorkflowTypeListToStringList(nodeWorkflowTypes)...)
 }
 
 // WithBizID filters by biz-id.
@@ -48,7 +48,22 @@ func WithBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyBizID, bizIDs...)
 }
 
-// WithExecuteUser filters by execute-user.
-func WithExecuteUser(executeUsers ...string) OptFn {
-	return base.WithValues(FieldKeyExecuteUser, executeUsers...)
+// WithoutBizID filters by not contains biz-id.
+func WithoutBizID(bizID ...int64) OptFn {
+	return base.WithoutValues(FieldKeyBizID, bizID...)
+}
+
+// WithOperator filters by operator.
+func WithOperator(operator ...string) OptFn {
+	return base.WithValues(FieldKeyOperator, operator...)
+}
+
+// WithoutOperator filters by not contains operator.
+func WithoutOperator(operator ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperator, operator...)
+}
+
+// WithOperateTimeRange filters by operate-time.
+func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
+	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)
 }

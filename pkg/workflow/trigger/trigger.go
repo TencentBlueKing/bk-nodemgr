@@ -8,8 +8,22 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package trigengine ...
-package trigengine
+package trigger
+
+import (
+	"time"
+)
+
+// Trigger defines the trigger, which will handle the workflow.
+type Trigger struct {
+	TriggerID       string
+	Category        Category
+	Metadata        Metadata
+	State           State
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	LastTriggeredAt time.Time
+}
 
 // Category represents the category of a trigger.
 type Category string

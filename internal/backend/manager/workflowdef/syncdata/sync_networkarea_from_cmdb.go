@@ -20,11 +20,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) operengine.ActionDef {
+func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) action.Definition {
 	return &syncNetworkAreaFromCMDB{
 		cmdbHandler: cmdbHandler,
 		topoStorage: topoStorage,
@@ -63,8 +63,8 @@ func (action *syncNetworkAreaFromCMDB) Timeout() time.Duration {
 }
 
 // Tags returns the tags of the action.
-func (action *syncNetworkAreaFromCMDB) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (s *syncNetworkAreaFromCMDB) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the retry count of the action.
@@ -80,7 +80,7 @@ func (action *syncNetworkAreaFromCMDB) DelayFn() func() {
 }
 
 // Do does the action.
-func (action *syncNetworkAreaFromCMDB) Do(ctx *operengine.ActionInstContext) error {
+func (s *syncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(SyncNetworkAreaFromCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

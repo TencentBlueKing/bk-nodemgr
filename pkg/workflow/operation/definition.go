@@ -8,27 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package nodeworkflow
+// Package operation describes the operation of workflow.
+package operation
 
-const (
-	// FieldKeyWorkflowID is the key for workflow ID.
-	FieldKeyWorkflowID = "data.workflow_id"
+// Definition represents an operation.
+type Definition interface {
+	// Name returns the name of the operation definition.
+	Name() string
 
-	// FieldKeyStatus is the key for status.
-	FieldKeyStatus = "data.status"
-
-	// FieldKeyType is the key for workflow type.
-	FieldKeyType = "data.type"
-
-	// FieldKeyBizID is the key for business ID.
-	FieldKeyBizID = "data.biz_ids"
-
-	// FieldKeyExecuteUser is the key for execute user.
-	FieldKeyExecuteUser = "data.execute_user"
-
-	// FieldKeyOperator is the key for operator.
-	FieldKeyOperator = "data.operator"
-
-	// FieldKeyOperateTime the operate time field key.
-	FieldKeyOperateTime = "data.operate_time"
-)
+	// ActionDefNames returns the names of the action definitions, in order.
+	ActionDefNames() []string
+}

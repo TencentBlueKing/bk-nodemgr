@@ -13,10 +13,12 @@ package options
 
 import (
 	"context"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
@@ -48,6 +50,9 @@ type Capability struct {
 
 	// NodeDeploymentStorage bk nodeman node deployment storage.
 	NodeDeploymentStorage nodedeployment.IStorage
+
+	// NodeWorkflowStorage bk nodeman node workflow storage.
+	NodeWorkflowStorage nodeworkflow.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -94,6 +99,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.NodeDeploymentStorage.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.NodeWorkflowStorage.Start(ctx); err != nil {
 		return err
 	}
 
