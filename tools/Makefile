@@ -28,7 +28,7 @@ UPX_LEVEL   ?= 9
 UPX_ARGS    ?= -$(UPX_LEVEL)
 
 # fixed go version.
-GO = go1.20.14
+GO = CGO_ENABLED=0 go1.20.14
 
 # cmd
 MKDIR = mkdir -p
