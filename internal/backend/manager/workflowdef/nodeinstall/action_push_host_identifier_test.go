@@ -12,46 +12,56 @@ package nodeinstall
 
 import (
 	"context"
+	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// TestUpsertHost is a test suite for the UpsertHost action.
-func (suite *TestSuite) TestUpsertHost() {
+// TestPushHostIdentifier_Name ...
+func TestPushHostIdentifier_Do(t *testing.T) {
+	capability := testCapability(t)
+
 	type args struct {
-		ctx *operengine.ActionInstContext
+		ctx *action.InstanceContext
 	}
 	tests := []struct {
-		name string
-		args args
-		want int64
+		name    string
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "normal",
 			args: args{
-				ctx: &operengine.ActionInstContext{
+				ctx: &action.InstanceContext{
 					Ctx: context.Background(),
-					Data: &operengine.ActionInstData{
-						Content: map[string]interface{}{
-							keys.CKeyToken: "123",
+					Data: &action.InstanceData{
+						TriggerID:           "",
+						OperationInstanceID: "",
+						OperationID:         "",
+						Name:                "",
+						Index:               0,
+						Messages:            nil,
+						Content: map[string]any{
+							keys.CKeyToken: "aebefe59260d42019e1deafaed4a7859",
 						},
+						PrivateData: nil,
+						Lifecycle:   nil,
 					},
 				},
 			},
-			want: 0,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			action := NewActionUpsertHost(
-				suite.capability.CmdbHandler,
-				suite.capability.TopoStorage,
-				suite.capability.NodeDeploymentStorage,
-			)
-			err := action.Do(tt.args.ctx)
-			suite.Require().NoError(err, "failed to execute action")
-			suite.T().Logf("action result: %v", tt.args.ctx.Data)
+		t.Run(tt.name, func(t *testing.T) {
+			action := NewActionPushHostIdentifier(
+				capability.CmdbHandler,
+				capability.NodeDeploymentStorage,
+				capability.Logger)
+			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
+				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

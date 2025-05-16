@@ -31,14 +31,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionRenderNodeDeployment new action to render node deployment.
+const (
+	// ActionNameRenderNodeDeployment defines the action name.
+	ActionNameRenderNodeDeployment = "render_node_deployment"
+)
+
+// NewActionRenderNodeDeployment get a new action.
 func NewActionRenderNodeDeployment(
 	storage nodedeployment.IDaoNodeDeployment,
 	iDaoHost topoStg.IDaoHost,
 	iDomainGseProxy topoStg.IDomainGse,
 	logger logger.Logger) action.Definition {
 
-	return &RenderNodeDeployment{
+	return &actionRenderNodeDeployment{
 		iDaoNodeDeployment: storage,
 		iDaoHost:           iDaoHost,
 		IDomainGse:         iDomainGseProxy,
@@ -51,8 +56,7 @@ type RenderNodeDeploymentParam struct {
 	Token string `json:"token"`
 }
 
-// RenderNodeDeployment this is the action to render node deployment.
-type RenderNodeDeployment struct {
+type actionRenderNodeDeployment struct {
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	iDaoHost           topoStg.IDaoHost
 	topoStg.IDomainGse
@@ -61,44 +65,44 @@ type RenderNodeDeployment struct {
 }
 
 // Name returns the name of the action.
-func (act *RenderNodeDeployment) Name() string {
+func (act *actionRenderNodeDeployment) Name() string {
 	return ActionNameRenderNodeDeployment
 }
 
 // Version returns the version of the action.
-func (act *RenderNodeDeployment) Version() string {
-	return "1.0.0"
+func (act *actionRenderNodeDeployment) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *RenderNodeDeployment) Description() string {
+func (act *actionRenderNodeDeployment) Description() string {
 	return "render node deployment"
 }
 
 // Timeout returns the timeout of the action.
-func (act *RenderNodeDeployment) Timeout() time.Duration {
+func (act *actionRenderNodeDeployment) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *RenderNodeDeployment) Tags() []action.Tag {
+func (act *actionRenderNodeDeployment) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *RenderNodeDeployment) MaxRetryCount() uint {
+func (act *actionRenderNodeDeployment) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *RenderNodeDeployment) DelayFn() func() {
+func (act *actionRenderNodeDeployment) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *RenderNodeDeployment) Do(ctx *action.InstanceContext) error {
+func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	param := new(RenderNodeDeploymentParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -168,7 +172,7 @@ func (act *RenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *RenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (act *actionRenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) error {
 
 	if err := act.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
@@ -182,7 +186,7 @@ func (act *RenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf 
 	return nil
 }
 
-func (act *RenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
+func (act *actionRenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
 ) error {
 
 	switch nodeRole {
@@ -500,7 +504,7 @@ const (
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen
-func (act *RenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 
 	osType, err := platform.NormalizeOS(host.Static.OSType)
@@ -688,7 +692,7 @@ func forbiddenKeys() []string {
 }
 
 // renderCustomSetting load custom setting to the config presetting.
-func (act *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
+func (act *actionRenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
 	if conf.CustomSetting == nil {
 		return errors.New("lack custom setting")
 	}
@@ -703,7 +707,7 @@ func (act *RenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info 
 
 	return nil
 }
-func (act *RenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
+func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
 	host, err := act.iDaoHost.GetHostByID(ctx, hostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
@@ -737,7 +741,7 @@ func NewFileLink() *FileLink {
 
 const defaultFileLinkTargetPort = 28930
 
-func (action *RenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf, host *types.Host,
+func (action *actionRenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf, host *types.Host,
 	fileUpstreams []string) []FileLink {
 
 	reportIP := func() string {
@@ -777,7 +781,7 @@ const (
 	defaultKeyProxyFilePort = 28925
 )
 
-func (action *RenderNodeDeployment) renderNodeDeploymentInfo(
+func (action *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	_ context.Context,
 	info *types.DeploymentInfo,
 	conf *types.NodeConf) error {

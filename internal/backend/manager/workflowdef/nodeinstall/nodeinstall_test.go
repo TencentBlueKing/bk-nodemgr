@@ -28,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -38,9 +37,6 @@ import (
 type Capability struct {
 	// TopoStorage bk nodeman topo storage.
 	TopoStorage topoStg.IStorage
-
-	// TrigEngineStorage bk nodeman trigengine storage.
-	TrigEngineStorage trigengine.Storage
 
 	// OperInstStorage bk nodeman operation_inst storage.
 	OperInstStorage operinstdataStorage.IStorage
@@ -171,7 +167,6 @@ func testCapability(t *testing.T) *Capability {
 
 	capability := &Capability{
 		TopoStorage:           topoStorage,
-		TrigEngineStorage:     nil,
 		OperInstStorage:       operInstStorage,
 		OperStorage:           nil,
 		NodeDeploymentStorage: deploymentStorage,

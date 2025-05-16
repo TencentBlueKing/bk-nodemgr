@@ -8,37 +8,35 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apiv3 defines the api v3 router.
-package apiv3
+// Package node describes the node router.
+package node
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
-	rg *gin.RouterGroup
+	rg             *gin.RouterGroup
+	backendHandler backend.Handler
+	logger         logger.Logger
 }
 
-// newHandler ...
-func newHandler(rg *gin.RouterGroup) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg:             rg.Group("/node"),
+		backendHandler: capability.BackendHandler,
+		logger:         capability.Logger,
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg)
+// Load loads node handler.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
-	sync.Load(h.rg, cap)
-	workflow.Load(h.rg, cap)
-	node.Load(h.rg, cap)
-	topo.Load(h.rg, cap)
+	workflow.Load(h.rg, capability)
 }

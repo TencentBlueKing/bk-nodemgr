@@ -171,7 +171,7 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 
 // Validate check body.
 func (x *TopoNetworkUnitListReq) Validate() error {
-	return validateTopoPage(x.GetPage())
+	return validatePage(x.GetPage())
 }
 
 // AutoConvert auto convert.

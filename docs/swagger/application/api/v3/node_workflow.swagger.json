@@ -219,74 +219,6 @@
           "NodeWorkflow"
         ]
       }
-    },
-    "/api/v3/node_workflow/agent/install": {
-      "post": {
-        "summary": "NodeAgentInstall provides node agent install.",
-        "operationId": "NodeWorkflow_NodeAgentInstall",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentInstallResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeAgentInstallReq describes the node agent install request.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentInstallReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
-    },
-    "/api/v3/node_workflow/proxy/install": {
-      "post": {
-        "summary": "NodeProxyInstall provides node proxy install.",
-        "operationId": "NodeWorkflow_NodeProxyInstall",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyInstallResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeProxyInstallReq describes the node proxy install request.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyInstallReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
     }
   },
   "definitions": {
@@ -373,195 +305,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "v3NodeAgentInstallReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeAgentInstallReqHost"
-          }
-        }
-      },
-      "description": "NodeAgentInstallReq describes the node agent install request."
-    },
-    "v3NodeAgentInstallReqHost": {
-      "type": "object",
-      "properties": {
-        "bk_addressing": {
-          "type": "string"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip": {
-          "type": "string"
-        },
-        "bk_host_innerip_v6": {
-          "type": "string"
-        },
-        "login_ip": {
-          "type": "string"
-        },
-        "login_port": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "login_user": {
-          "type": "string"
-        },
-        "login_mode": {
-          "type": "string",
-          "title": "support: auto, password, keyfile, none"
-        },
-        "login_password": {
-          "type": "string"
-        },
-        "login_key_file": {
-          "type": "string",
-          "format": "byte"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "os_type": {
-          "type": "string"
-        },
-        "target_version": {
-          "type": "string"
-        },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "v3NodeAgentInstallResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeAgentInstallRespData"
-        }
-      },
-      "description": "NodeAgentInstallResp describes the node agent install response."
-    },
-    "v3NodeAgentInstallRespData": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        }
-      }
-    },
-    "v3NodeProxyInstallReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyInstallReqHost"
-          }
-        }
-      },
-      "description": "NodeProxyInstallReq describes the node proxy install request."
-    },
-    "v3NodeProxyInstallReqHost": {
-      "type": "object",
-      "properties": {
-        "bk_addressing": {
-          "type": "string"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip": {
-          "type": "string"
-        },
-        "bk_host_innerip_v6": {
-          "type": "string"
-        },
-        "login_ip": {
-          "type": "string"
-        },
-        "login_port": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "login_user": {
-          "type": "string"
-        },
-        "login_mode": {
-          "type": "string",
-          "title": "support: auto, password, keyfile, none"
-        },
-        "login_password": {
-          "type": "string"
-        },
-        "login_key_file": {
-          "type": "string",
-          "format": "byte"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "os_type": {
-          "type": "string"
-        },
-        "target_version": {
-          "type": "string"
-        },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "v3NodeProxyInstallResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeProxyInstallRespData"
-        }
-      },
-      "description": "NodeProxyInstallResp describes the node proxy install response."
-    },
-    "v3NodeProxyInstallRespData": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
           }
         }
       }
@@ -707,7 +450,8 @@
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "type": {
           "type": "string"
@@ -723,8 +467,7 @@
           "type": "string"
         },
         "operate_time": {
-          "type": "integer",
-          "format": "int64"
+          "type": "string"
         },
         "status": {
           "type": "string"

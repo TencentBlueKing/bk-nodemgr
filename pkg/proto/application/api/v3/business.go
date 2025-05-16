@@ -18,7 +18,7 @@ import (
 
 // Validate check body.
 func (x *TopoBusinessListReq) Validate() error {
-	return validateTopoPage(x.GetPage())
+	return validatePage(x.GetPage())
 }
 
 // AutoConvert auto convert.

@@ -24,7 +24,7 @@ const (
 
 // Validate check body.
 func (x *TopoEventListReq) Validate() error {
-	if err := validateTopoPage(x.GetPage()); err != nil {
+	if err := validatePage(x.GetPage()); err != nil {
 		return err
 	}
 

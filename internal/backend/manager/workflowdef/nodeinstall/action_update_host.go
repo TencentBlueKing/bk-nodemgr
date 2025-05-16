@@ -22,14 +22,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionUpdateHost ...
+const (
+	// ActionNameUpdateHost defines the action name.
+	ActionNameUpdateHost = "update_host"
+)
+
+// NewActionUpdateHost get a new action.
 func NewActionUpdateHost(
 	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
 ) action.Definition {
 
-	return &UpdateHost{
+	return &actionUpdateHost{
 		iDaoHost:           iDaoHost,
 		iDaoNodeDeployment: iDaoNodeDeployment,
 		logger:             logger,
@@ -42,51 +47,51 @@ type UpdateHostParam struct {
 }
 
 // UpdateHost ...
-type UpdateHost struct {
+type actionUpdateHost struct {
 	iDaoHost           topoStg.IDaoHost
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	logger             logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *UpdateHost) Name() string {
+func (act *actionUpdateHost) Name() string {
 	return ActionNameUpdateHost
 }
 
 // Version returns the version of the action.
-func (act *UpdateHost) Version() string {
-	return "1.0.0"
+func (act *actionUpdateHost) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *UpdateHost) Description() string {
-	return "update host"
+func (act *actionUpdateHost) Description() string {
+	return "update host to storage"
 }
 
 // Timeout returns the timeout of the action.
-func (act *UpdateHost) Timeout() time.Duration {
+func (act *actionUpdateHost) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *UpdateHost) Tags() []action.Tag {
+func (act *actionUpdateHost) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *UpdateHost) MaxRetryCount() uint {
+func (act *actionUpdateHost) MaxRetryCount() uint {
 	return 3 //nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *UpdateHost) DelayFn() func() {
+func (act *actionUpdateHost) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *UpdateHost) Do(ctx *action.InstanceContext) error {
+func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 	param := new(UpdateHostParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

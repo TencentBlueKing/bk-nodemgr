@@ -24,75 +24,79 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionWaitGseRunning ...
-func NewActionWaitGseRunning(
+const (
+	// ActionNameWaitGseReady defines the action name.
+	ActionNameWaitGseReady = "wait_gse_ready"
+)
+
+// NewActionWaitGseReady get a new action.
+func NewActionWaitGseReady(
 	gseClient gse.IHandler,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 	logger logger.Logger,
 ) action.Definition {
 
-	return &WaitGseReady{
+	return &actionWaitGseReady{
 		gseClient:          gseClient,
 		iDaoNodeDeployment: iDaoNodeDeployment,
 		logger:             logger,
 	}
 }
 
-// WaitGseRunningParam ...
-type WaitGseRunningParam struct {
+// WaitGseReadyParam ...
+type WaitGseReadyParam struct {
 	Token string `json:"token"`
 }
 
-// WaitGseReady ...
-type WaitGseReady struct {
+type actionWaitGseReady struct {
 	gseClient          gse.IHandler
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 	logger             logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *WaitGseReady) Name() string {
+func (act *actionWaitGseReady) Name() string {
 	return ActionNameWaitGseReady
 }
 
 // Version returns the version of the action.
-func (act *WaitGseReady) Version() string {
-	return "1.0.0"
+func (act *actionWaitGseReady) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *WaitGseReady) Description() string {
+func (act *actionWaitGseReady) Description() string {
 	return "wait gse ready"
 }
 
 // Timeout returns the timeout of the action.
-func (act *WaitGseReady) Timeout() time.Duration {
+func (act *actionWaitGseReady) Timeout() time.Duration {
 	// notice: in this action, the timeout should be equal or grander than the timeout of the workflow,
 	// so we set it to 24 hours.
 	return 24 * time.Hour // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (act *WaitGseReady) Tags() []action.Tag {
+func (act *actionWaitGseReady) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *WaitGseReady) MaxRetryCount() uint {
+func (act *actionWaitGseReady) MaxRetryCount() uint {
 	// notice: this action is an polling action should not auto retry.
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *WaitGseReady) DelayFn() func() {
+func (act *actionWaitGseReady) DelayFn() func() {
 	return func() {
 		act.logger.Errorf("this action should not auto retry, action-name(%s)", act.Name())
 	}
 }
 
 // Do this func define what the action will do.
-func (act *WaitGseReady) Do(ctx *action.InstanceContext) error {
-	param := new(WaitGseRunningParam)
+func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
+	param := new(WaitGseReadyParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

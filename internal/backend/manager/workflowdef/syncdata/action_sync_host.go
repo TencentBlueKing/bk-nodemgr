@@ -55,12 +55,12 @@ func (act *actionSyncHostFromCMDB) Name() string {
 
 // Version ...
 func (act *actionSyncHostFromCMDB) Version() string {
-	return "v1"
+	return "v1.0.0"
 }
 
 // Description ...
 func (act *actionSyncHostFromCMDB) Description() string {
-	return "Get the host information of the designated business from CMDB, and update to the database."
+	return "get the host information of the designated business from cmdb, and update to the database"
 }
 
 // Timeout ...

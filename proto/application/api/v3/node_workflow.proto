@@ -1,20 +1,19 @@
 syntax = "proto3";
 package v3;
-option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
 
 import "common.proto";
-import "node_agent.proto";
 
 import "google/api/annotations.proto";
 
 // NodeWorkflowInfo describes the node workflow information.
 message NodeWorkflowInfo {
-  optional string workflow_id = 1;
-  optional string type = 2;
+  int64 workflow_id = 1;
+  string type = 2;
   repeated int64 bk_biz_id = 3;
-  optional string operator = 4;
-  optional int64 operate_time = 5;
-  optional string status = 6;
+  string operator = 4;
+  string operate_time = 5;
+  string status = 6;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
@@ -97,13 +96,6 @@ message NodeWorkflowDistinctResp {
   Data data = 4;
 }
 
-// NodeOperInstLisByWorkflowIDReq describes the node operation instance list by
-// workflow ID request.
-message NodeOperInstLisByWorkflowIDReq {
-  int64 workflow_id = 1;
-  Page page = 2;
-}
-
 // NodeWorflowOperationInstance describes the node operation instance.
 message NodeWorflowOperationInstance {
   string operation_id = 1;
@@ -176,38 +168,6 @@ message NodeWorkflowOperationInstanceLogGetResp {
   Data data = 4;
 }
 
-// NodeProxyInstallReq describes the node proxy install request.
-message NodeProxyInstallReq {
-  message Host {
-    string bk_addressing = 1;
-    optional int64 bk_biz_id = 2;
-    string bk_host_innerip = 3;
-    string bk_host_innerip_v6 = 4;
-    string login_ip = 5;
-    optional int64 login_port = 6;
-    string login_user = 7;
-    // support: auto, password, keyfile, none
-    string login_mode = 8;
-    string login_password = 9;
-    bytes login_key_file = 10;
-    optional int64 bk_networkunit_id = 11;
-    string os_type = 12;
-    string target_version = 13;
-    optional int64 bk_host_id = 14;
-  }
-  repeated Host host = 1;
-}
-
-// NodeProxyInstallResp describes the node proxy install response.
-message NodeProxyInstallResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message Data { repeated string workflow_id = 1; }
-  Data data = 4;
-}
-
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
@@ -261,22 +221,6 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationInstanceLogGetResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/instance/log/get"
-      body : "*"
-    };
-  }
-
-  // NodeAgentInstall provides node agent install.
-  rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
-    option (google.api.http) = {
-      post : "/api/v3/node_workflow/agent/install"
-      body : "*"
-    };
-  }
-
-  // NodeProxyInstall provides node proxy install.
-  rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
-    option (google.api.http) = {
-      post : "/api/v3/node_workflow/proxy/install"
       body : "*"
     };
   }

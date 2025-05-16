@@ -8,4 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package nodeinstall
+package v3
+
+// Validate check body.
+func (x *NodeAgentInstallReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentInstallReq) AutoConvert() {
+}

@@ -18,7 +18,7 @@ import (
 )
 
 // OperDefNameSyncBizAndHostFromCMDB sync all biz and their host from cmdb.
-const OperDefNameSyncBizAndHostFromCMDB = "oper_def_sync_biz_and_host_from_cmdb"
+const OperDefNameSyncBizAndHostFromCMDB = "sync_biz_and_host_from_cmdb"
 
 // NewOperSyncBizAndHostFromCMDB new an operation.
 func NewOperSyncBizAndHostFromCMDB(param SyncBizFromCMDBParam) operation.Definition {

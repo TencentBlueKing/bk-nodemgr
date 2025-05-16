@@ -34,7 +34,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionInstallNodeBySSH ...
+const (
+	// ActionNameInstallNodeBySSH defines the action name.
+	ActionNameInstallNodeBySSH = "install_node_by_ssh"
+)
+
+// NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(
 	installerFileGroup iface.FileGroup,
 	crypter crypter.Crypter,
@@ -43,7 +48,7 @@ func NewActionInstallNodeBySSH(
 	provider discover.Provider,
 ) action.Definition {
 
-	return &InstallNodeBySSH{
+	return &actionInstallNodeBySSH{
 		installerGroup:     installerFileGroup,
 		crypter:            crypter,
 		logger:             logger,
@@ -71,8 +76,7 @@ type InstallParams struct {
 	AdditionArgs     []string
 }
 
-// InstallNodeBySSH ...
-type InstallNodeBySSH struct {
+type actionInstallNodeBySSH struct {
 	installerGroup     iface.FileGroup
 	crypter            crypter.Crypter
 	logger             logger.Logger
@@ -81,37 +85,37 @@ type InstallNodeBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *InstallNodeBySSH) Name() string {
+func (act *actionInstallNodeBySSH) Name() string {
 	return ActionNameInstallNodeBySSH
 }
 
 // Version returns the version of the action.
-func (act *InstallNodeBySSH) Version() string {
-	return "1.0.0"
+func (act *actionInstallNodeBySSH) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *InstallNodeBySSH) Description() string {
+func (act *actionInstallNodeBySSH) Description() string {
 	return "Use ssh to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (act *InstallNodeBySSH) Timeout() time.Duration {
+func (act *actionInstallNodeBySSH) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *InstallNodeBySSH) Tags() []action.Tag {
+func (act *actionInstallNodeBySSH) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *InstallNodeBySSH) MaxRetryCount() uint {
+func (act *actionInstallNodeBySSH) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *InstallNodeBySSH) DelayFn() func() {
+func (act *actionInstallNodeBySSH) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -120,7 +124,7 @@ func (act *InstallNodeBySSH) DelayFn() func() {
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (act *InstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(InstallAgentParamBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -237,7 +241,7 @@ func (act *InstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
+func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
 	sshConf := &sshx.Config{
 		Network: sshx.NetworkTCP,
 		IP:      info.LoginIP,
@@ -281,7 +285,7 @@ func (act *InstallNodeBySSH) buildSSH(ctx context.Context, info *types.Deploymen
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
-func (act *InstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
+func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
 	osType string, cpuArch string, targetDir string, err error) {
 
 	// 1. detect target system
@@ -340,7 +344,7 @@ func (act *InstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *ssh
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (act *InstallNodeBySSH) buildCMD(param *InstallParams) string {
+func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),

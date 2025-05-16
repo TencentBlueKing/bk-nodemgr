@@ -26,11 +26,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionBindAgentHostRel ...
+const (
+	// ActionNameBindAgentHostRel defines the action name.
+	ActionNameBindAgentHostRel = "bind_agent_host_rel"
+)
+
+// NewActionBindAgentHostRel get a new action.
 func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topoStg.IDaoHost,
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) action.Definition {
 
-	return &BindAgentHostRel{
+	return &actionBindAgentHostRel{
 		IBindHostAgent:    bindHostAgent,
 		hostDao:           hostDao,
 		nodeDeploymentDao: nodeDeploymentDao,
@@ -43,8 +48,7 @@ type BindAgentHostRelParam struct {
 	Token string `json:"token"`
 }
 
-// BindAgentHostRel ...
-type BindAgentHostRel struct {
+type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
 	hostDao           topoStg.IDaoHost
 	nodeDeploymentDao nodedeployment.IDaoNodeDeployment
@@ -52,44 +56,44 @@ type BindAgentHostRel struct {
 }
 
 // Name returns the name of the action.
-func (act *BindAgentHostRel) Name() string {
+func (act *actionBindAgentHostRel) Name() string {
 	return ActionNameBindAgentHostRel
 }
 
 // Version returns the version of the action.
-func (act *BindAgentHostRel) Version() string {
-	return "1.0.0"
+func (act *actionBindAgentHostRel) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *BindAgentHostRel) Description() string {
+func (act *actionBindAgentHostRel) Description() string {
 	return "bind agent host relation"
 }
 
 // Timeout returns the timeout of the action.
-func (act *BindAgentHostRel) Timeout() time.Duration {
+func (act *actionBindAgentHostRel) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *BindAgentHostRel) Tags() []action.Tag {
+func (act *actionBindAgentHostRel) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *BindAgentHostRel) MaxRetryCount() uint {
+func (act *actionBindAgentHostRel) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *BindAgentHostRel) DelayFn() func() {
+func (act *actionBindAgentHostRel) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *BindAgentHostRel) Do(ctx *action.InstanceContext) error {
+func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	param := new(BindAgentHostRelParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -144,7 +148,7 @@ func (act *BindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *BindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
+func (act *actionBindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
 	daoHost, err := act.hostDao.GetHostByID(ctx, info.HostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)

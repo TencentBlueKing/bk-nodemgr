@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/test/basetest"
 )
 
@@ -53,7 +53,7 @@ func TestAll(t *testing.T) {
 
 func (suite *TestSuite) TestRenderNodeInstallConfig_Do() {
 	type args struct {
-		ctx *operengine.ActionInstContext
+		ctx *action.InstanceContext
 	}
 	tests := []struct {
 		name    string
@@ -63,15 +63,15 @@ func (suite *TestSuite) TestRenderNodeInstallConfig_Do() {
 		{
 			name: "normal",
 			args: args{
-				ctx: &operengine.ActionInstContext{
+				ctx: &action.InstanceContext{
 					Ctx: context.Background(),
-					Data: &operengine.ActionInstData{
-						TriggerID:   "",
-						OperInstID:  "",
-						OperationID: "",
-						Name:        "",
-						Index:       0,
-						Messages:    nil,
+					Data: &action.InstanceData{
+						TriggerID:           "",
+						OperationInstanceID: "",
+						OperationID:         "",
+						Name:                "",
+						Index:               0,
+						Messages:            nil,
 						Content: map[string]any{
 							keys.CKeyToken: "123",
 						},

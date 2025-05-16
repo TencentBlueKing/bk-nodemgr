@@ -27,14 +27,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionUpsertHost ...
-func NewActionUpsertHost(
+const (
+	// ActionNameUpsertHostToCMDB defines the action name.
+	ActionNameUpsertHostToCMDB = "upsert_host_to_cmdb"
+)
+
+// NewActionUpsertHost get a new action.
+func NewActionUpsertHostToCMDB(
 	cmdbHandler cmdb.IHandler,
 	iDaoHost topoStg.IDaoHost,
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
 ) action.Definition {
 
-	return &UpsertHost{
+	return &actionUpsertHostToCMDB{
 		cmdbHandler:        cmdbHandler,
 		iDaoHost:           iDaoHost,
 		iDaoNodeDeployment: iDaoNodeDeployment,
@@ -42,57 +47,57 @@ func NewActionUpsertHost(
 }
 
 // UpsertHostParam ...
-type UpsertHostParam struct {
+type UpsertHostToCMDBParam struct {
 	Token string `json:"token"`
 }
 
 // UpsertHost ...
-type UpsertHost struct {
+type actionUpsertHostToCMDB struct {
 	cmdbHandler        cmdb.IHost
 	iDaoHost           topoStg.IDaoHost
 	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
-func (act *UpsertHost) Name() string {
-	return ActionNameUpsertHost
+func (act *actionUpsertHostToCMDB) Name() string {
+	return ActionNameUpsertHostToCMDB
 }
 
 // Version returns the version of the action.
-func (act *UpsertHost) Version() string {
-	return "1.0.0"
+func (act *actionUpsertHostToCMDB) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *UpsertHost) Description() string {
-	return "insert or update host"
+func (act *actionUpsertHostToCMDB) Description() string {
+	return "insert or update host to cmdb"
 }
 
 // Timeout returns the timeout of the action.
-func (act *UpsertHost) Timeout() time.Duration {
+func (act *actionUpsertHostToCMDB) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *UpsertHost) Tags() []action.Tag {
+func (act *actionUpsertHostToCMDB) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *UpsertHost) MaxRetryCount() uint {
+func (act *actionUpsertHostToCMDB) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *UpsertHost) DelayFn() func() {
+func (act *actionUpsertHostToCMDB) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *UpsertHost) Do(ctx *action.InstanceContext) error {
-	param := new(UpsertHostParam)
+func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
+	param := new(UpsertHostToCMDBParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -182,7 +187,7 @@ func (act *UpsertHost) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *UpsertHost) insertHost(ctx context.Context, info *types.DeploymentInfo) (int64, error) {
+func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.DeploymentInfo) (int64, error) {
 	host := &info.Host
 
 	// inorder to check the interface of cc, and set the default architecture at the beginning

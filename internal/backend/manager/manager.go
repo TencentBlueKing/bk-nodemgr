@@ -18,9 +18,12 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -41,6 +44,9 @@ type Manager interface {
 
 	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
 	LaunchSyncNetworkArea(ctx context.Context) (string, error)
+
+	// LaunchInstallNode launch a task to install node. returns the workflow-id.
+	LaunchInstallNode(ctx context.Context, nodeDeploys []*types.NodeDeployment) (string, error)
 }
 
 // NewManager creates a new manager.
@@ -74,7 +80,8 @@ type manager struct {
 	// state
 	isRunning bool
 
-	workflowMgr workflow.IManager
+	workflowMgr        workflow.IManager
+	iDaoNodeDeployment nodedeployment.IDomainInit
 
 	// config
 	conf Config
@@ -172,17 +179,17 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionBindAgentHostRel(
 			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
+		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
 			mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
-		nodeinstall.NewActionWaitGseRunning(
+		nodeinstall.NewActionWaitGseReady(
 			mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
 		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
 		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
 		nodeinstall.NewActionRenderNodeDeployment(
 			mgr.conf.NodeDeploymentStorage, mgr.conf.TopoStorage, mgr.conf.TopoStorage, mgr.logger),
-		nodeinstall.NewActionUpsertHost(
+		nodeinstall.NewActionUpsertHostToCMDB(
 			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage),
-		nodeinstall.NewActionWaitComplete(mgr.conf.OperInstStorage, mgr.logger),
+		nodeinstall.NewActionWaitInstallComplete(mgr.conf.OperInstStorage, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
 	)
 }
@@ -231,6 +238,52 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 
 	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchInstallNode launch a task to install node.
+func (mgr *manager) LaunchInstallNode(ctx context.Context, nodeDeploys []*types.NodeDeployment) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range nodeDeploys {
+		deploy := nodeDeploy
+
+		gp.Go(func() error {
+			if err := mgr.iDaoNodeDeployment.Create(ctx, deploy); err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to create node deployment. "+
+						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+			}
+
+			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.UpsertHostToCMDBParam{Token: deploy.Token})
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+			if err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to launch install node task. "+
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+				return err
+			}
+
+			mgr.logger.InfoCtxf(ctx,
+				"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s)",
+				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+			return nil
+		})
+	}
+	gp.Wait()
 
 	return triggerCtl.GetTriggerID(), nil
 }

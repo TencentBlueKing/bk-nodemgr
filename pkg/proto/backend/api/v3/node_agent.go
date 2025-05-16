@@ -8,4 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package nodeinstall
+package v3
+
+// Validate check body.
+func (x *NodeAgentInstallReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentInstallReq) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
+}

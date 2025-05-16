@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func validateTopoPage(reqPage *Page) error {
+func validatePage(reqPage *Page) error {
 	if reqPage == nil {
 		return nil
 	}

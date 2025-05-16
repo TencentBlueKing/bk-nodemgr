@@ -142,7 +142,7 @@
           "type": "string"
         },
         "generation": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "version": {
@@ -161,7 +161,7 @@
           "type": "string"
         },
         "generation": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "version": {

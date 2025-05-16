@@ -24,14 +24,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionPushHostIdentifier ...
+const (
+	// ActionNamePushHostIdentifier defines the action name.
+	ActionNamePushHostIdentifier = "push_host_identifier"
+)
+
+// NewActionPushHostIdentifier get a new action.
 func NewActionPushHostIdentifier(
 	cmdbClient cmdb.IHandler,
 	storage nodedeployment.IStorage,
 	logger logger.Logger,
 ) action.Definition {
 
-	return &PushHostIdentifier{
+	return &actionPushHostIdentifier{
 		cmdbClient: cmdbClient,
 		storage:    storage,
 		logger:     logger,
@@ -44,51 +49,51 @@ type PushHostIdentifierParam struct {
 }
 
 // PushHostIdentifier ...
-type PushHostIdentifier struct {
+type actionPushHostIdentifier struct {
 	cmdbClient cmdb.IHandler
 	storage    nodedeployment.IStorage
 	logger     logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *PushHostIdentifier) Name() string {
+func (act *actionPushHostIdentifier) Name() string {
 	return ActionNamePushHostIdentifier
 }
 
 // Version returns the version of the action.
-func (act *PushHostIdentifier) Version() string {
-	return "1.0.0"
+func (act *actionPushHostIdentifier) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *PushHostIdentifier) Description() string {
-	return "Query agent state"
+func (act *actionPushHostIdentifier) Description() string {
+	return "push host identifier via cmdb"
 }
 
 // Timeout returns the timeout of the action.
-func (act *PushHostIdentifier) Timeout() time.Duration {
+func (act *actionPushHostIdentifier) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *PushHostIdentifier) Tags() []action.Tag {
+func (act *actionPushHostIdentifier) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *PushHostIdentifier) MaxRetryCount() uint {
+func (act *actionPushHostIdentifier) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *PushHostIdentifier) DelayFn() func() {
+func (act *actionPushHostIdentifier) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *PushHostIdentifier) Do(ctx *action.InstanceContext) error {
+func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	param := new(PushHostIdentifierParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

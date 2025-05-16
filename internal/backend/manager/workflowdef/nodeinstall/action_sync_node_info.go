@@ -23,14 +23,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionSyncNodeInfo ...
+const (
+	// ActionNameSyncNodeInfo defines the action name.
+	ActionNameSyncNodeInfo = "sync_node_info"
+)
+
+// NewActionSyncNodeInfo get a new action.
 func NewActionSyncNodeInfo(
 	gseClient gse.IHandler,
 	storage nodedeployment.IStorage,
 	logger logger.Logger,
 ) action.Definition {
 
-	return &SyncNodeInfo{
+	return &actionSyncNodeInfo{
 		gseClient: gseClient,
 		storage:   storage,
 		logger:    logger,
@@ -42,52 +47,51 @@ type SyncNodeInfoParam struct {
 	Token string `json:"token"`
 }
 
-// SyncNodeInfo ...
-type SyncNodeInfo struct {
+type actionSyncNodeInfo struct {
 	gseClient gse.IHandler
 	storage   nodedeployment.IStorage
 	logger    logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *SyncNodeInfo) Name() string {
+func (act *actionSyncNodeInfo) Name() string {
 	return ActionNameSyncNodeInfo
 }
 
 // Version returns the version of the action.
-func (act *SyncNodeInfo) Version() string {
-	return "1.0.0"
+func (act *actionSyncNodeInfo) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *SyncNodeInfo) Description() string {
+func (act *actionSyncNodeInfo) Description() string {
 	return "sync node info to db"
 }
 
 // Timeout returns the timeout of the action.
-func (act *SyncNodeInfo) Timeout() time.Duration {
+func (act *actionSyncNodeInfo) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *SyncNodeInfo) Tags() []action.Tag {
+func (act *actionSyncNodeInfo) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *SyncNodeInfo) MaxRetryCount() uint {
+func (act *actionSyncNodeInfo) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *SyncNodeInfo) DelayFn() func() {
+func (act *actionSyncNodeInfo) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *SyncNodeInfo) Do(ctx *action.InstanceContext) error {
+func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	param := new(SyncNodeInfoParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

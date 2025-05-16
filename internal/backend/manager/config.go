@@ -13,9 +13,10 @@ package manager
 
 import (
 	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
@@ -38,7 +39,7 @@ type Config struct {
 	LockerFactory locker.MutexFactory
 
 	OperStorage     operation.Storage
-	OperInstStorage operinstdataStorage.IStorage
+	OperInstStorage operinstdata.IStorage
 
 	Crypter crypter.Crypter
 

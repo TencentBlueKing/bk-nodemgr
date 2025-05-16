@@ -76,4 +76,7 @@ const (
 
 	// ThirdpartyRequestFailed means request thirdparty service failed.
 	ThirdpartyRequestFailed Code = 3800012
+
+	// BackendOperateFailed means operate backend failed.
+	BackendOperateFailed Code = 3800013
 )

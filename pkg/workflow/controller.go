@@ -59,6 +59,9 @@ type ITriggerCtl interface {
 	// UpdateLastTriggeredTime updates the last triggered time.
 	UpdateLastTriggeredTime(ctx context.Context) error
 
+	// ListEmptyOperation returns the operations without instances.
+	ListEmptyOperation(ctx context.Context, page types.Page) ([]IOperationCtl, error)
+
 	// ListOperationInstances returns the operation instances with states.
 	ListOperationInstances(
 		ctx context.Context, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error)
@@ -216,6 +219,25 @@ func (ctl *controller) UpdateLastTriggeredTime(ctx context.Context) error {
 	return nil
 }
 
+// ListEmptyOperation returns the empty operation.
+func (ctl *controller) ListEmptyOperation(ctx context.Context, page types.Page) ([]IOperationCtl, error) {
+	opers, _, err := ctl.mgr.storage.ListEmptyOperation(ctx, page, ctl.trig.TriggerID)
+	if err != nil {
+		return nil, err
+	}
+
+	ctls := make([]IOperationCtl, len(opers))
+	for idx, oper := range opers {
+		ctls[idx] = &controller{
+			mgr:  ctl.mgr,
+			trig: ctl.trig,
+			oper: oper,
+		}
+	}
+
+	return ctls, nil
+}
+
 // ListOperationInstances returns the operation instances with states.
 func (ctl *controller) ListOperationInstances(
 	ctx context.Context, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
@@ -290,6 +312,11 @@ func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationI
 	}
 
 	if err := ctl.mgr.storage.UpsertOperationInstanceData(ctx, instanceData); err != nil {
+		return nil, err
+	}
+
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, operationInstanceID)
+	if err := ctl.mgr.storage.UpsertOperation(ctx, ctl.oper); err != nil {
 		return nil, err
 	}
 

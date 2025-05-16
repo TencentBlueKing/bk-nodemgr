@@ -14,6 +14,7 @@ package agent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -28,6 +29,7 @@ type handler struct {
 	manager            manager.Manager
 	iDaoNodeDeployment nodedeployment.IDomainInit
 	iDaoNetworkUnit    topoStg.IDaoNetworkUnit
+	iDaoNodeWorkflow   nodeworkflow.IStorage
 	logger             logger.Logger
 	crypter            crypter.Crypter
 }

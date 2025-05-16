@@ -14,57 +14,53 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// Test_waitComplete_Do ...
-func Test_waitComplete_Do(t *testing.T) {
+// NewActionBindAgentHostRel ...
+func TestBindAgentHostRel_Do(t *testing.T) {
 	capability := testCapability(t)
 
-	type fields struct {
-		storage operengine.OperInstStorage
-		logger  logger.Logger
-	}
 	type args struct {
-		ctx *operengine.ActionInstContext
+		ctx *action.InstanceContext
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "test",
-			fields: fields{
-				storage: capability.OperInstStorage,
-				logger:  capability.Logger,
-			},
+			name: "normal",
 			args: args{
-				ctx: &operengine.ActionInstContext{
+				ctx: &action.InstanceContext{
 					Ctx: context.Background(),
-					Data: &operengine.ActionInstData{
-						TriggerID:   "",
-						OperInstID:  "oper-inst-efb1362d-73af-434b-aae2-e40aed1ed2e0",
-						OperationID: "",
-						Name:        "sync_biz_from_cmdb",
-						Index:       0,
-						Messages:    nil,
-						Content: map[string]interface{}{
-							"wait_time": 10,
+					Data: &action.InstanceData{
+						TriggerID:           "",
+						OperationInstanceID: "",
+						OperationID:         "",
+						Name:                "",
+						Index:               0,
+						Messages:            nil,
+						Content: map[string]any{
+							keys.CKeyToken: "666",
 						},
 						PrivateData: nil,
 						Lifecycle:   nil,
 					},
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewActionWaitComplete(capability.OperInstStorage, capability.Logger)
-			if err := s.Do(tt.args.ctx); (err != nil) != tt.wantErr {
+			action := NewActionBindAgentHostRel(
+				capability.CmdbHandler,
+				capability.TopoStorage,
+				capability.NodeDeploymentStorage,
+				capability.Logger)
+			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

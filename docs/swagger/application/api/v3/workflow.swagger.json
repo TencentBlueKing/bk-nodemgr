@@ -1112,7 +1112,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "items": {

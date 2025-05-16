@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/joho/godotenv"
 )
 
@@ -40,7 +40,7 @@ func testToolGroup(t *testing.T) iface.FileGroup {
 func TestInstallAgentBySSH_Do(t *testing.T) {
 	capability := testCapability(t)
 	type args struct {
-		ctx *operengine.ActionInstContext
+		ctx *action.InstanceContext
 	}
 	tests := []struct {
 		name    string
@@ -50,15 +50,15 @@ func TestInstallAgentBySSH_Do(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				ctx: &operengine.ActionInstContext{
+				ctx: &action.InstanceContext{
 					Ctx: context.Background(),
-					Data: &operengine.ActionInstData{
-						TriggerID:   "",
-						OperInstID:  "asdasd",
-						OperationID: "",
-						Name:        "install_agent_by_ssh",
-						Index:       0,
-						Messages:    nil,
+					Data: &action.InstanceData{
+						TriggerID:           "",
+						OperationInstanceID: "asdasd",
+						OperationID:         "",
+						Name:                "install_node_by_ssh",
+						Index:               0,
+						Messages:            nil,
 						Content: map[string]any{
 							"ip":        os.Getenv("SSH_IP"),
 							"port":      36000,
@@ -90,7 +90,7 @@ func TestInstallAgentBySSH_Do(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			action := NewActionInstallAgentBySSH(
+			action := NewActionInstallNodeBySSH(
 				testToolGroup(t), capability.Crypter, capability.Logger,
 				nil, nil)
 			err := action.Do(tt.args.ctx)

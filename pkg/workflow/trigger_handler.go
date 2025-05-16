@@ -107,6 +107,8 @@ const (
 	periodicTriggersSyncIntervalDefault  = 1 * time.Second
 	periodicTriggersCheckIntervalDefault = 5 * time.Second
 
+	maxOnceTriggerProcessLimit = 500
+
 	taskIDSyncOnceTrigger      = "sync_once_trigger"
 	taskIDSyncPeriodicTrigger  = "sync_periodic_trigger"
 	taskIDSyncOrderedTrigger   = "sync_ordered_trigger"
@@ -370,10 +372,39 @@ func (handler *triggerHandler) doTrigger(ctx context.Context, trigCtl ITriggerCt
 	return nil
 }
 
+func (handler *triggerHandler) initEmptyOperation(ctx context.Context, trigCtl ITriggerCtl, limit int) error {
+	operList, err := trigCtl.ListEmptyOperation(ctx, types.Page{Limit: limit})
+	if err != nil {
+		return err
+	}
+
+	gp := gopool.NewPool()
+	for _, operCtl := range operList {
+		ctl := operCtl
+		gp.Go(func() error {
+			if _, err := ctl.CreateOperationInstance(ctx); err != nil {
+				handler.mgr.logger.ErrorCtxf(ctx, "failed to create operation instance. trigger-id(%s), operation-id(%s), err(%v)",
+					trigCtl.GetTriggerID(), ctl.GetOperationID(), err)
+
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	return gp.Wait()
+}
+
 func (handler *triggerHandler) doOnceTrigger(
 	ctx context.Context, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 
-	instanceList, err := trigCtl.ListOperationInstances(ctx, types.UnlimitedPage(), operation.StateInit)
+	if err := handler.initEmptyOperation(ctx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
+		handler.mgr.logger.WarnCtxf(ctx, "failed to init empty operation. trigger-id(%s), err(%v)",
+			trigCtl.GetTriggerID(), err)
+	}
+
+	instanceList, err := trigCtl.ListOperationInstances(ctx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
 	if err != nil {
 		return nil, err
 	}
@@ -406,6 +437,11 @@ func (handler *triggerHandler) doOrderedTrigger(
 	idleNum := metadata.MaxConcurrencyNum - int(workingCount)
 	if idleNum <= 0 {
 		return nil, nil
+	}
+
+	if err := handler.initEmptyOperation(ctx, trigCtl, idleNum); err != nil {
+		handler.mgr.logger.WarnCtxf(ctx, "failed to init empty operation. trigger-id(%s), err(%v)",
+			trigCtl.GetTriggerID(), err)
 	}
 
 	instanceList, err := trigCtl.ListOperationInstances(ctx, types.Page{Limit: idleNum}, operation.StateInit)

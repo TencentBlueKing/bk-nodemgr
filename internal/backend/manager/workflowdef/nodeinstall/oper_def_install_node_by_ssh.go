@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package syncdata
+package nodeinstall
 
 import (
 	"time"
@@ -17,34 +17,42 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncHost defines the operation def name.
-const OperDefNameSyncHost = "sync_host_from_cmdb"
+const (
+	// OperDefNameInstallNodeBySSH the name of the operation definition.
+	OperDefNameInstallNodeBySSH = "install_node_by_ssh"
+)
 
-// NewOperSyncHostFromCMDB new an operation.
-func NewOperSyncHostFromCMDB(param SyncHostFromCMDBParam) operation.Definition {
-	return &operSyncHostFromCMDB{
-		param: param,
-	}
+// NewOperInstallNodeBySSH new an operation.
+func NewOperInstallNodeBySSH(param UpsertHostToCMDBParam) operation.Definition {
+	return &operInstallNodeBySSH{param: param}
 }
 
-type operSyncHostFromCMDB struct {
-	param SyncHostFromCMDBParam
+type operInstallNodeBySSH struct {
+	param UpsertHostToCMDBParam
 }
 
 // Name returns the name.
-func (oper *operSyncHostFromCMDB) Name() string {
-	return OperDefNameSyncHost
+func (oper *operInstallNodeBySSH) Name() string {
+	return OperDefNameInstallNodeBySSH
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncHostFromCMDB) ActionDefNames() []string {
+func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncHostFromCMDB,
+		ActionNameUpsertHostToCMDB,
+		ActionNameRenderNodeDeployment,
+		ActionNameInstallNodeBySSH,
+		ActionNameWaitInstallComplete,
+		ActionNameWaitGseReady,
+		ActionNameSyncNodeInfo,
+		ActionNameBindAgentHostRel,
+		ActionNamePushHostIdentifier,
+		ActionNameUpdateHost,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncHostFromCMDB) DefaultParameters() operation.OperationParam {
+func (oper *operInstallNodeBySSH) DefaultParameters() operation.OperationParam {
 	return operation.OperationParam{
 		Timeout:     10 * time.Minute,
 		InitContent: conv.StructToMapIgnoreError(oper.param),

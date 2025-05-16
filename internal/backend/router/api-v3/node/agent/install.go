@@ -14,7 +14,7 @@ package agent
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -26,48 +26,51 @@ const DefaultNodeGeneration = 2
 
 // AgentInstall install agent.
 func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.NodeAgentInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Error("bind json failed", err)
-
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	tenantCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Error("get tenant context failed", err)
-
+	req := new(protoBackend.NodeAgentInstallReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	hosts := req.GetHost()
-	resp := &protoBackend.NodeAgentInstallResp_Data{
-		WorkflowId: make([]string, len(hosts)),
-	}
-
+	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range hosts {
 		reqHost := hosts[idx]
 
-		// push workflow
-		triggerID, err := h.pushWorkflow(tenantCtx, ctx.TenantID, reqHost)
+		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
 			return nil, err
 		}
 
-		resp.WorkflowId[idx] = triggerID
+		nodeDeploys[idx] = nodeDeploy
 	}
 
-	return resp, nil
+	workflowID, err := h.manager.LaunchInstallNode(sCtx, nodeDeploys)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeAgentInstallResp)
+	resp.ConvertWorkflowID(workflowID)
+
+	return resp.GetData(), nil
 }
 
-func (h *handler) pushWorkflow(tenantCtx context.Context, tenantID string,
-	reqHost *protoBackend.NodeAgentInstallReq_Host) (string, error) {
+func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
+	reqHost *protoBackend.NodeAgentInstallReq_Host) (*types.NodeDeployment, error) {
 
 	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost)
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
 
-		return "", errf.ErrWrap(errf.Aborted, err)
+		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
 	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
@@ -77,7 +80,7 @@ func (h *handler) pushWorkflow(tenantCtx context.Context, tenantID string,
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
-			return "", errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
 	case types.LoginModePassword:
 		nodeDeployment.Info.LoginMode = types.LoginModePassword
@@ -85,7 +88,7 @@ func (h *handler) pushWorkflow(tenantCtx context.Context, tenantID string,
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
-			return "", errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
 	case types.LoginModeNone:
 		nodeDeployment.Info.LoginMode = types.LoginModeNone
@@ -93,29 +96,10 @@ func (h *handler) pushWorkflow(tenantCtx context.Context, tenantID string,
 		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
-		return "", errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	if err := h.iDaoNodeDeployment.Create(tenantCtx, nodeDeployment); err != nil {
-		h.logger.Error("create node deployment failed", err)
-
-		return "", errf.ErrWrap(errf.Aborted, err)
-	}
-
-	triggerID, err := h.manager.Execute(
-		tenantCtx,
-		&nodeinstall.OperInstallNodeBySSH{
-			Token: nodeDeployment.Token,
-		},
-	)
-
-	if err != nil {
-		h.logger.Error("execute operation failed", err)
-
-		return "", errf.ErrWrap(errf.Aborted, err)
-	}
-
-	return triggerID, nil
+	return nodeDeployment, nil
 }
 
 func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,

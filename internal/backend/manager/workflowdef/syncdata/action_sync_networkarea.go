@@ -53,12 +53,12 @@ func (act *actionSyncNetworkAreaFromCMDB) Name() string {
 
 // Version returns the version of the action.
 func (act *actionSyncNetworkAreaFromCMDB) Version() string {
-	return "v1"
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
 func (act *actionSyncNetworkAreaFromCMDB) Description() string {
-	return "Get the networkareas which also called cloudarea from CMDB, and update to the database."
+	return "get the networkareas which also called cloudarea from cmdb, and update to the database"
 }
 
 // Timeout returns the timeout of the action.

@@ -18,7 +18,7 @@ import (
 )
 
 // OperDefNameSyncNetworkArea defines the operation def name.
-const OperDefNameSyncNetworkArea = "oper_def_sync_networkarea_from_cmdb"
+const OperDefNameSyncNetworkArea = "sync_networkarea_from_cmdb"
 
 // NewOperSyncNetworkAreaFromCMDB new an operation definition.
 func NewOperSyncNetworkAreaFromCMDB(param SyncNetworkAreaFromCMDBParam) operation.Definition {

@@ -58,7 +58,7 @@ func (act *actionGenOperSyncHost) Version() string {
 // Description returns the description of the action.
 func (act *actionGenOperSyncHost) Description() string {
 	return "reads all business information from the database," +
-		"and creates host synchronization tasks on a business-by-business basis."
+		"and creates host synchronization tasks on a business-by-business basis"
 }
 
 // Timeout returns the timeout of the action.

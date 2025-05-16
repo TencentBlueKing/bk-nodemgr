@@ -18,57 +18,61 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// NewActionWaitComplete new an action to wait action finished by other code.
-func NewActionWaitComplete(storage workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
-	return &WaitComplete{
+const (
+	// ActionNameWaitComplete defines the action name.
+	ActionNameWaitInstallComplete = "wait_install_complete"
+)
+
+// NewActionWaitInstallComplete get a new action.
+func NewActionWaitInstallComplete(storage workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
+	return &actionWaitInstallComplete{
 		storage: storage,
 		logger:  logger,
 	}
 }
 
-// WaitComplete is an action to wait action finished by other code.
-type WaitComplete struct {
+type actionWaitInstallComplete struct {
 	storage workflow.IStorageActionInstance
 	logger  logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *WaitComplete) Name() string {
-	return ActionNameWaitComplete
+func (act *actionWaitInstallComplete) Name() string {
+	return ActionNameWaitInstallComplete
 }
 
 // Version returns the version of the action.
-func (act *WaitComplete) Version() string {
-	return "1.0.0"
+func (act *actionWaitInstallComplete) Version() string {
+	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *WaitComplete) Description() string {
+func (act *actionWaitInstallComplete) Description() string {
 	return "Wait for the action to complete"
 }
 
 // Timeout returns the timeout of the action.
-func (act *WaitComplete) Timeout() time.Duration {
+func (act *actionWaitInstallComplete) Timeout() time.Duration {
 	return 30 * time.Minute // nolint:mnd
 }
 
 // Tags returns the tags of the action.
-func (act *WaitComplete) Tags() []action.Tag {
+func (act *actionWaitInstallComplete) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount this func define how many times this action will retry.
-func (act *WaitComplete) MaxRetryCount() uint {
+func (act *actionWaitInstallComplete) MaxRetryCount() uint {
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *WaitComplete) DelayFn() func() {
+func (act *actionWaitInstallComplete) DelayFn() func() {
 	return func() {}
 }
 
 // Do this func define what the action will do.
-func (act *WaitComplete) Do(ctx *action.InstanceContext) error {
+func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 	for {
 		select {
 		case <-ctx.Ctx.Done():

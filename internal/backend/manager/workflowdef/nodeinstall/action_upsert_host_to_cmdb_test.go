@@ -12,58 +12,46 @@ package nodeinstall
 
 import (
 	"context"
-	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/keys"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-// TestPushHostIdentifier_Name ...
-func TestPushHostIdentifier_Do(t *testing.T) {
-	capability := testCapability(t)
-
+// TestUpsertHost is a test suite for the UpsertHost action.
+func (suite *TestSuite) TestUpsertHost() {
 	type args struct {
-		ctx *operengine.ActionInstContext
+		ctx *action.InstanceContext
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name string
+		args args
+		want int64
 	}{
 		{
 			name: "normal",
 			args: args{
-				ctx: &operengine.ActionInstContext{
+				ctx: &action.InstanceContext{
 					Ctx: context.Background(),
-					Data: &operengine.ActionInstData{
-						TriggerID:   "",
-						OperInstID:  "",
-						OperationID: "",
-						Name:        "",
-						Index:       0,
-						Messages:    nil,
-						Content: map[string]any{
-							keys.CKeyToken: "aebefe59260d42019e1deafaed4a7859",
+					Data: &action.InstanceData{
+						Content: map[string]interface{}{
+							keys.CKeyToken: "123",
 						},
-						PrivateData: nil,
-						Lifecycle:   nil,
 					},
 				},
 			},
-			wantErr: false,
+			want: 0,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			action := &PushHostIdentifier{
-				gseClient:  capability.GseHandler,
-				cmdbClient: capability.CmdbHandler,
-				storage:    capability.NodeDeploymentStorage,
-				logger:     capability.Logger,
-			}
-			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {
-				t.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
-			}
+		suite.Run(tt.name, func() {
+			action := NewActionUpsertHostToCMDB(
+				suite.capability.CmdbHandler,
+				suite.capability.TopoStorage,
+				suite.capability.NodeDeploymentStorage,
+			)
+			err := action.Do(tt.args.ctx)
+			suite.Require().NoError(err, "failed to execute action")
+			suite.T().Logf("action result: %v", tt.args.ctx.Data)
 		})
 	}
 }

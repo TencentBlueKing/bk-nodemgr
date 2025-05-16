@@ -54,6 +54,9 @@ type IStorageOperation interface {
 
 	// ListOperation lists operation.
 	ListOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
+
+	// ListEmptyOperation lists empty operation.
+	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.
