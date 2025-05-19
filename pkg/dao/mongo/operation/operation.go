@@ -21,13 +21,52 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName), logger: logger}
+// TableName the operation table name.
+func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.IOrm = base.NewOrm[*Operation, Operation](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	base.IOrm[*Operation, Operation]
+}
+
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: FieldKeyOperationID, Value: 1}},
+			Options: new(mongoOptions.IndexOptions).SetUnique(true),
+		},
+	}
+
+	return indexes
 }
 
 // upsert updates or inserts an operation.

@@ -27,3 +27,8 @@ func ErrNilContent() error {
 func ErrEmptyUniqueKey() error {
 	return errors.New("empty unique key")
 }
+
+// ErrEmptyTraggerID this error indicates that the user inserted an empty block of data when inserting data.
+func ErrEmptyTriggerID() error {
+	return errors.New("empty trigger key")
+}

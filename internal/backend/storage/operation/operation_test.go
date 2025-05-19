@@ -17,6 +17,8 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -60,6 +62,108 @@ func testClient(t *testing.T) Storage {
 	return s
 }
 
+func Test_storage_UpsertOperation(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		operation *operation.Operation
+	}
+
+	// 公共测试数据
+	baseOperation := &operation.Operation{
+		OperationID: "test-op-id",
+		TriggerID:   "test-trigger-id",
+		Definition:  &operation.DefinitionSnapshot{SnapshotName: "test-def"},
+	}
+
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     bool
+		preInsert   bool
+		validateKey string
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:       context.Background(),
+				operation: baseOperation,
+			},
+			wantErr:     false,
+			validateKey: "OperationID",
+		},
+		{
+			name: "update operation",
+			args: args{
+				ctx: context.Background(),
+				operation: &operation.Operation{
+					OperationID: "test-op-id",
+					TriggerID:   "updated-trigger-id",
+				},
+			},
+			preInsert:   true,
+			wantErr:     false,
+			validateKey: "TriggerID",
+		},
+		{
+			name: "nil operation",
+			args: args{
+				ctx:       context.Background(),
+				operation: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil ctx",
+			args: args{
+				ctx:       nil,
+				operation: baseOperation,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := testClient(t)
+			ctx := tt.args.ctx
+
+			// 准备测试数据
+			if tt.preInsert {
+				if err := s.UpsertOperation(context.Background(), baseOperation); err != nil {
+					t.Fatalf("err: %v", err)
+				}
+			}
+
+			err := s.UpsertOperation(ctx, tt.args.operation)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpsertOperation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && tt.args.operation != nil {
+				got, err := s.GetOperation(context.Background(), tt.args.operation.OperationID)
+				if err != nil {
+					t.Errorf("err: %v", err)
+					return
+				}
+
+				switch tt.validateKey {
+				case "OperationID":
+					if got.OperationID != tt.args.operation.OperationID {
+						t.Errorf("OperationID 不匹配, got = %v, want %v", got.OperationID, tt.args.operation.OperationID)
+					}
+				case "TriggerID":
+					if got.TriggerID != tt.args.operation.TriggerID {
+						t.Errorf("TriggerID 不匹配, got = %v, want %v", got.TriggerID, tt.args.operation.TriggerID)
+					}
+				}
+			}
+
+		})
+	}
+}
+
 // Test_storage_GetOperation ...
 func Test_storage_GetOperation(t *testing.T) {
 	type args struct {
@@ -84,6 +188,47 @@ func Test_storage_GetOperation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
 			got, err := s.GetOperation(tt.args.ctx, tt.args.operationID)
+			if err != nil {
+				t.Logf("GetOperation() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// Test_storage_GetOperation ...
+func Test_storage_ListOperation(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		operationID string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCount  int
+		wantErr    bool
+		trigger_id string
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:         context.Background(),
+				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
+			},
+			trigger_id: "trigger_base",
+			wantCount:  2,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := testClient(t)
+			got, _, err := s.ListOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
 			if err != nil {
 				t.Logf("GetOperation() error = %v", err)
 			}

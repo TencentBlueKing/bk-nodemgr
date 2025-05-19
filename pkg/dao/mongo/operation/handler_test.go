@@ -15,15 +15,19 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // testClient ...
-func testClient(t *testing.T) Handler {
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -51,41 +55,178 @@ func testClient(t *testing.T) Handler {
 	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
 }
 
-// Test_handler_FindOne ...
-func Test_handler_FindOne(t *testing.T) {
-	type args struct {
-		ctx  context.Context
-		opts []OptFn
+// Test_handler_List tests the List method of the handler
+func Test_handler_List(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test_tenant")
+
+	// prepare test data
+	h := testClient(t)
+	baseOp1 := &operation.Operation{
+		TriggerID:   "trigger_base",
+		OperationID: "operation_base1",
+		InstanceIDs: []string{"instance_1", "instance_2"},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing1",
+			SnapshotActionDefNames:    []string{"validate1", "charge1"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation1",
+			Timeout:           1 * time.Second,
+			InitContent:       map[string]any{"key": "value1"},
+		},
 	}
 
+	baseOp2 := &operation.Operation{
+		TriggerID:   "trigger_base",
+		OperationID: "operation_base2",
+		InstanceIDs: []string{"instance_3", "instance_4"},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing2",
+			SnapshotActionDefNames:    []string{"validate2", "charge2"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 20 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation2",
+			Timeout:           2 * time.Second,
+			InitContent:       map[string]any{"key": "value2"},
+		},
+	}
+
+	if err := h.Upsert(ctx, baseOp1); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
+
+	if err := h.Upsert(ctx, baseOp2); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name      string
+		page      types.Page
+		opts      []OptFn
+		wantCount int
+		wantErr   bool
 	}{
 		{
-			name: "",
-			args: args{
-				ctx:  context.Background(),
-				opts: []OptFn{WithOperationID("35fa1c8a-3089-4a89-9b45-100398698dd2")},
-			},
-			wantErr: false,
+			name:      "normal list",
+			page:      types.Page{Offset: 0, Limit: 10},
+			opts:      nil,
+			wantCount: 3,
+			wantErr:   false,
+		},
+		{
+			name:      "filter by non-existent trigger",
+			page:      types.Page{Offset: 0, Limit: 10},
+			opts:      []OptFn{WithTriggerID("invalid_trigger")},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name:      "invalid page params",
+			page:      types.Page{Offset: -1, Limit: 0},
+			wantCount: 0,
+			wantErr:   true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.FindOne(tt.args.ctx, tt.args.opts...)
-			if err != nil {
-				t.Logf("FindOne() error = %v", err)
+			ops, total, err := h.List(ctx, tt.page, tt.opts...)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
+
+			if !tt.wantErr {
+				if int64(tt.wantCount) != total {
+					t.Errorf("List() total = %v, want %v", total, tt.wantCount)
+				}
+
+				if len(ops) != tt.wantCount {
+					t.Errorf("List() result count = %v, want %v", len(ops), tt.wantCount)
+				}
+			}
+		})
+	}
+}
+
+// Test_handler_FindOne tests the FindOne method of the handler
+func Test_handler_FindOne(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test_tenant")
+
+	h := testClient(t)
+
+	// prepare test data
+	testOp := &operation.Operation{
+		TriggerID:   "special_trigger",
+		OperationID: "special_operation",
+		InstanceIDs: []string{"instance_3", "instance_4"},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing",
+			SnapshotActionDefNames:    []string{"validate", "charge"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 50 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation",
+			Timeout:           60 * time.Second,
+			InitContent:       map[string]any{"key": "value"},
+		},
+	}
+	if err := h.Upsert(ctx, testOp); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
+
+	tests := []struct {
+		name      string
+		opts      []OptFn
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name:      "find special_trigger operation",
+			opts:      []OptFn{WithTriggerID("special_trigger")},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name:      "find base_trigger operation",
+			opts:      []OptFn{WithTriggerID("special_trigger")},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name:      "find non-existent operation",
+			opts:      []OptFn{WithTriggerID("invalid_trigger")},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name:      "invalid filter combination",
+			opts:      []OptFn{InvalidFilterFn()}, // error case
+			wantCount: 0,
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			op, err := h.FindOne(ctx, tt.opts...)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindOne() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			t.Logf("FindOne() got = %v", got)
+			if tt.wantCount != 0 && op == nil {
+				t.Error("Expected operation not found")
+			}
+
+			if tt.wantCount == 0 && op != nil {
+				t.Error("Unexpected operation found")
+			}
 		})
 	}
 }

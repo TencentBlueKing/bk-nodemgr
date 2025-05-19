@@ -18,7 +18,7 @@ import (
 // OptFn option of find.
 type OptFn func(f bson.D) bson.D
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
 	if len(triggerID) == 1 {
 		return func(f bson.D) bson.D {
@@ -41,5 +41,18 @@ func WithOperationID(ids ...string) OptFn {
 
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{Key: "data.operation_id", Value: bson.M{"$in": ids}})
+	}
+}
+
+// InvalidFilterFn provides an invalid filter function for testing purposes.
+func InvalidFilterFn() OptFn {
+	return func(filter bson.D) bson.D {
+		return append(filter, bson.E{
+			Key: "$and",
+			Value: []bson.D{
+				{{Key: "data.trigger_id", Value: "non_existent_value_1"}},
+				{{Key: "data.trigger_id", Value: "non_existent_value_2"}},
+			},
+		})
 	}
 }

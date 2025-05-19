@@ -12,11 +12,15 @@
 package operation
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
-// TableName operation table name.
-const TableName = "operation"
+// TableName  tenantID table name.
+func TableName(tenantID string) string {
+	return "operation_%s" + tenantID
+}
 
 // Operation represents an operation under a tenant.
 // OperationID should be the unique key.
@@ -25,12 +29,22 @@ type Operation struct {
 	TriggerID   string      `json:"trigger_id" bson:"trigger_id"`
 	OperInstIDs []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
 	DefSnapshot DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
+
+	Parameters Parameters `json:"parameters" bson:"parameters"`
 }
 
 // DefSnapshot represents the snapshot of the operation definition.
 type DefSnapshot struct {
-	OperDefName string   `json:"oper_def_name" bson:"oper_def_name"`
-	ActionNames []string `json:"action_names" bson:"action_names"`
+	OperDefName       string     `json:"oper_def_name" bson:"oper_def_name"`
+	ActionNames       []string   `json:"action_names" bson:"action_names"`
+	DefaultParameters Parameters `json:"default_parameters" bson:"default_parameters"`
+}
+
+// Parameters represents the snapshot of the operation definition.
+type Parameters struct {
+	ParentOperationID string         `json:"parent_operation_id" bson:"parent_operation_id"`
+	Timeout           time.Duration  `json:"timeout" bson:"timeout"`
+	InitContent       map[string]any `json:"init_content" bson:"init_content"`
 }
 
 // UniqueKey unique key of the table.
