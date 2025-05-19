@@ -12,15 +12,15 @@
 package trigger
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn option of find.
 type OptFn func(f bson.D) bson.D
 
-// WithStatus filters by status
-func WithStatus(states ...trigengine.State) OptFn {
+// WithState filters by state.
+func WithState(states ...trigger.State) OptFn {
 	if len(states) == 1 {
 		return func(f bson.D) bson.D {
 			return append(f, bson.E{Key: "data.state", Value: states[0]})
@@ -32,8 +32,8 @@ func WithStatus(states ...trigengine.State) OptFn {
 	}
 }
 
-// WithCategory filter by category
-func WithCategory(category ...trigengine.Category) OptFn {
+// WithCategory filter by category.
+func WithCategory(category ...trigger.Category) OptFn {
 	if len(category) == 1 {
 		return func(f bson.D) bson.D {
 			return append(f, bson.E{Key: "data.category", Value: category[0]})
@@ -45,7 +45,7 @@ func WithCategory(category ...trigengine.Category) OptFn {
 	}
 }
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
 	if len(triggerID) == 1 {
 		return func(f bson.D) bson.D {

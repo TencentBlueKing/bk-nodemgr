@@ -661,16 +661,16 @@ linters-settings:
       # Using `operinstdataStorage` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata
         alias: operinstdataStorage
-      - Using `machinery` things.
-      - pkg: backendIface
-        alias: github.com/RichardKnop/machinery/v2/backends/iface
+      # Using `machinery` things.
+      - pkg: github.com/RichardKnop/machinery/v2/backends/iface
+        alias: backendIface
       - pkg: github.com/RichardKnop/machinery/v2/backends/redis
         alias: backendRedis
-	    - pkg: github.com/RichardKnop/machinery/v2/brokers/iface
+      - pkg: github.com/RichardKnop/machinery/v2/brokers/iface
         alias: brokerIface
-	    - pkg: github.com/RichardKnop/machinery/v2/brokers/redis
+      - pkg: github.com/RichardKnop/machinery/v2/brokers/redis
         alias: brokerRedis
-	    - pkg: github.com/RichardKnop/machinery/v2/config
+      - pkg: github.com/RichardKnop/machinery/v2/config
         alias: machineryConfig
-	    - pkg: github.com/RichardKnop/machinery/v2/log
+      - pkg: github.com/RichardKnop/machinery/v2/log
         alias: machinerylog

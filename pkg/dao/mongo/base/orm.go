@@ -145,6 +145,10 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) error {
 // Create this is a common operation for mongo db.
 func (orm *Orm[P, T]) Create(ctx context.Context, data P) error {
 	table := &TableBroker[P]{
+		BasicInfo: BasicInfo{
+			IsDeleted: false,
+			CreatedAt: time.Now(),
+		},
 		Data: data,
 	}
 

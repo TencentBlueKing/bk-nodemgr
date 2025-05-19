@@ -8,16 +8,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package trigengine ...
-package trigengine
+// Package trigger ...
+package trigger
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
-// Storage defines the storage interface.
-type Storage interface {
-	trigengine.Storage
+// IStorage defines the storage interface.
+type IStorage interface {
 	base.Interface
+
+	workflow.IStorageTrigger
 }

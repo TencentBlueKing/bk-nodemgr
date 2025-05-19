@@ -18,7 +18,9 @@ import (
 )
 
 // TableName trigger table name.
-const TableName = "trigger"
+func TableName(tenantID string) string {
+	return "trigger_" + tenantID
+}
 
 // Trigger represents a tenant.
 // TriggerID should be the unique key.
@@ -31,6 +33,7 @@ type Trigger struct {
 	State            string           `json:"state" bson:"state"`
 	CreatedAt        time.Time        `json:"created_at" bson:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at" bson:"updated_at"`
+	LastTriggeredAt  time.Time        `json:"last_triggered_at" bson:"last_triggered_at"`
 }
 
 // UniqueKey unique key of the table.
@@ -41,15 +44,17 @@ func (t *Trigger) UniqueKey() string {
 // TableTrigger represents the complete db structures of a tenant.
 type TableTrigger base.TableBroker[*Trigger]
 
-// MetadataOnce will store the metadata of a trigger
+// MetadataOnce will store the metadata of a trigger.
 type MetadataOnce struct {
 }
 
-// MetadataPeriodic will store the metadata of a trigger
+// MetadataPeriodic will store the metadata of a trigger.
 type MetadataPeriodic struct {
-	IntervalSecond int
+	IntervalSec        int64 `json:"interval_sec" bson:"interval_sec"`
+	AllowedConcurrency bool  `json:"allowed_concurrency" bson:"allowed_concurrency"`
 }
 
-// MetadataOrdered will store the metadata of a trigger
+// MetadataOrdered will store the metadata of a trigger.
 type MetadataOrdered struct {
+	MaxConcurrencyNum int `json:"max_concurrency_num" bson:"max_concurrency_num"`
 }

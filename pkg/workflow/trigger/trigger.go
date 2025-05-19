@@ -11,6 +11,7 @@
 package trigger
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -23,6 +24,50 @@ type Trigger struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	LastTriggeredAt time.Time
+}
+
+// Validate validates the trigger.
+func (t *Trigger) Validate() error {
+	if t.TriggerID == "" {
+		return fmt.Errorf("trigger_id should not be empty")
+	}
+
+	switch t.Category {
+	case CategoryOnce:
+		_, ok := t.Metadata.(*MetadataOnce)
+		if !ok {
+			return fmt.Errorf("metadata not match category once")
+		}
+
+	case CategoryOrdered:
+		_, ok := t.Metadata.(*MetadataOrdered)
+		if !ok {
+			return fmt.Errorf("metadata not match category ordered")
+		}
+
+	case CategoryPeriodic:
+		_, ok := t.Metadata.(*MetadataPeriodic)
+		if !ok {
+			return fmt.Errorf("metadata not match category periodic")
+		}
+
+	default:
+		return fmt.Errorf("category should be one of %s, %s, %s",
+			CategoryOnce, CategoryPeriodic, CategoryOrdered)
+	}
+
+	switch t.State {
+	case StateInit, StateRunning, StateTerminated:
+	default:
+		return fmt.Errorf("state should be one of %s, %s, %s",
+			StateInit, StateRunning, StateTerminated)
+	}
+
+	if err := t.Metadata.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Category represents the category of a trigger.
