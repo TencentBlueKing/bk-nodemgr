@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -227,6 +228,19 @@ func Test_handler_FindOne(t *testing.T) {
 			if tt.wantCount == 0 && op != nil {
 				t.Error("Unexpected operation found")
 			}
+		})
+	}
+}
+
+// InvalidFilterFn provides an invalid filter function for testing purposes.
+func InvalidFilterFn() OptFn {
+	return func(filter bson.D) bson.D {
+		return append(filter, bson.E{
+			Key: "$and",
+			Value: []bson.D{
+				{{Key: "data.trigger_id", Value: "non_existent_value_1"}},
+				{{Key: "data.trigger_id", Value: "non_existent_value_2"}},
+			},
 		})
 	}
 }

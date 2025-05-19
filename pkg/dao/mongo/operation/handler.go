@@ -52,7 +52,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure networkarea indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure operation indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	daoclient, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)

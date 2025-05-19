@@ -62,7 +62,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	indexes := []mongo.IndexModel{
 		{
 			Keys:    bson.D{{Key: FieldKeyOperationID, Value: 1}},
-			Options: new(mongoOptions.IndexOptions).SetUnique(true),
+			Options: mongoOptions.Index().SetUnique(true),
 		},
 	}
 

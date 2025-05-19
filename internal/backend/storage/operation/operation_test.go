@@ -68,7 +68,6 @@ func Test_storage_UpsertOperation(t *testing.T) {
 		operation *operation.Operation
 	}
 
-	// 公共测试数据
 	baseOperation := &operation.Operation{
 		OperationID: "test-op-id",
 		TriggerID:   "test-trigger-id",
@@ -127,7 +126,6 @@ func Test_storage_UpsertOperation(t *testing.T) {
 			s := testClient(t)
 			ctx := tt.args.ctx
 
-			// 准备测试数据
 			if tt.preInsert {
 				if err := s.UpsertOperation(context.Background(), baseOperation); err != nil {
 					t.Fatalf("err: %v", err)
