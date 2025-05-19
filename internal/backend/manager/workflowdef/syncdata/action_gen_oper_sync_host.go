@@ -52,7 +52,7 @@ func (act *actionGenOperSyncHost) Name() string {
 
 // Version returns the version of the action.
 func (act *actionGenOperSyncHost) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -148,8 +148,9 @@ func (act *actionGenOperSyncHost) executeOper(
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
-		biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
+	ctx.Data.Log(
+		fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
+			biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
 
 	return nil
 }

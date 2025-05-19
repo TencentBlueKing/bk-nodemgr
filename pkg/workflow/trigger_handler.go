@@ -241,7 +241,9 @@ func (handler *triggerHandler) checkTriggerList(ctx context.Context, list []*tri
 			if mutex == nil {
 				return nil
 			}
-			defer mutex.Unlock()
+			defer func() {
+				_ = mutex.Unlock()
+			}()
 
 			// get trigger from storage after get lock.
 			// make sure the trigger data is fresh.
@@ -288,7 +290,7 @@ func (handler *triggerHandler) tryLockTrigger(ctx context.Context, trig *trigger
 	}
 
 	if handler.checkFeasibility(ctx, trig) != nil {
-		mutex.Unlock()
+		_ = mutex.Unlock()
 
 		return nil
 	}
@@ -327,7 +329,7 @@ func (handler *triggerHandler) checkFeasibility(_ context.Context, trig *trigger
 }
 
 func (handler *triggerHandler) doTrigger(ctx context.Context, trigCtl ITriggerCtl) error {
-	instanceCtls := make([]IOperationInstanceCtl, 0)
+	var instanceCtls []IOperationInstanceCtl
 	var err error
 
 	switch trigCtl.GetTriggerCategory() {
@@ -404,7 +406,8 @@ func (handler *triggerHandler) doOnceTrigger(
 			trigCtl.GetTriggerID(), err)
 	}
 
-	instanceList, err := trigCtl.ListOperationInstances(ctx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
+	instanceList, err := trigCtl.ListOperationInstances(
+		ctx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
 	if err != nil {
 		return nil, err
 	}

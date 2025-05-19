@@ -59,7 +59,7 @@ func (act *actionSyncBusinessFromCMDB) Name() string {
 
 // Version returns the version of the action.
 func (act *actionSyncBusinessFromCMDB) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.

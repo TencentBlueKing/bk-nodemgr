@@ -45,9 +45,9 @@ func (oper *operSyncBizAndHostFromCMDB) ActionDefNames() []string {
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.OperationParam {
-	return operation.OperationParam{
-		Timeout:     10 * time.Minute,
+func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.Param {
+	return operation.Param{
+		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

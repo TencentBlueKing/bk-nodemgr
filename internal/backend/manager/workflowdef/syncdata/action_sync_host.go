@@ -55,7 +55,7 @@ func (act *actionSyncHostFromCMDB) Name() string {
 
 // Version ...
 func (act *actionSyncHostFromCMDB) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description ...
@@ -132,7 +132,8 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete", len(upsertHosts), len(deleteHostIDs)))
+	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete",
+		len(upsertHosts), len(deleteHostIDs)))
 
 	if err = act.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
 		return err

@@ -8,9 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package trigger describes the trigger.
 package trigger
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -29,26 +31,26 @@ type Trigger struct {
 // Validate validates the trigger.
 func (t *Trigger) Validate() error {
 	if t.TriggerID == "" {
-		return fmt.Errorf("trigger_id should not be empty")
+		return errors.New("trigger_id should not be empty")
 	}
 
 	switch t.Category {
 	case CategoryOnce:
 		_, ok := t.Metadata.(*MetadataOnce)
 		if !ok {
-			return fmt.Errorf("metadata not match category once")
+			return errors.New("metadata not match category once")
 		}
 
 	case CategoryOrdered:
 		_, ok := t.Metadata.(*MetadataOrdered)
 		if !ok {
-			return fmt.Errorf("metadata not match category ordered")
+			return errors.New("metadata not match category ordered")
 		}
 
 	case CategoryPeriodic:
 		_, ok := t.Metadata.(*MetadataPeriodic)
 		if !ok {
-			return fmt.Errorf("metadata not match category periodic")
+			return errors.New("metadata not match category periodic")
 		}
 
 	default:
