@@ -62,6 +62,7 @@ func testClient(t *testing.T) Storage {
 	return s
 }
 
+// Test_storage_UpsertOperation tests the UpsertOperation method of the storage
 func Test_storage_UpsertOperation(t *testing.T) {
 	type args struct {
 		ctx       context.Context
@@ -149,11 +150,11 @@ func Test_storage_UpsertOperation(t *testing.T) {
 				switch tt.validateKey {
 				case "OperationID":
 					if got.OperationID != tt.args.operation.OperationID {
-						t.Errorf("OperationID 不匹配, got = %v, want %v", got.OperationID, tt.args.operation.OperationID)
+						t.Errorf("OperationID no match, got = %v, want %v", got.OperationID, tt.args.operation.OperationID)
 					}
 				case "TriggerID":
 					if got.TriggerID != tt.args.operation.TriggerID {
-						t.Errorf("TriggerID 不匹配, got = %v, want %v", got.TriggerID, tt.args.operation.TriggerID)
+						t.Errorf("TriggerID no match, got = %v, want %v", got.TriggerID, tt.args.operation.TriggerID)
 					}
 				}
 			}
@@ -227,6 +228,107 @@ func Test_storage_ListOperation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
 			got, _, err := s.ListOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
+			if err != nil {
+				t.Logf("GetOperation() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+func Test_storage_ListEmptyOperation(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		operationID string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCount  int
+		wantErr    bool
+		trigger_id string
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:         context.Background(),
+				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
+			},
+			trigger_id: "trigger_base",
+			wantCount:  2,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := testClient(t)
+			got, _, err := s.ListOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
+			if err != nil {
+				t.Logf("GetOperation() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// Test_storage_ListEmptyOpera ...
+func Test_storage_ListEmptyOpera(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		operationID string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCount  int
+		wantErr    bool
+		trigger_id string
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:         context.Background(),
+				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
+			},
+			trigger_id: "trigger_base",
+			wantCount:  1,
+			wantErr:    false,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:         context.Background(),
+				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
+			},
+			trigger_id: "special_trigger",
+			wantCount:  1,
+			wantErr:    false,
+		},
+		{
+			name: "error",
+			args: args{
+				ctx:         context.Background(),
+				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
+			},
+			trigger_id: "no_exists_trigger",
+			wantCount:  0,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := testClient(t)
+			got, _, err := s.ListEmptyOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
 			if err != nil {
 				t.Logf("GetOperation() error = %v", err)
 			}

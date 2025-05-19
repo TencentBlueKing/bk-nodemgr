@@ -19,7 +19,7 @@ import (
 
 // TableName  tenantID table name.
 func TableName(tenantID string) string {
-	return "operation_%s" + tenantID
+	return "operation_" + tenantID
 }
 
 // Operation represents an operation under a tenant.

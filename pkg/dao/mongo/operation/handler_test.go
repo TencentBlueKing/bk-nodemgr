@@ -66,7 +66,7 @@ func Test_handler_List(t *testing.T) {
 	baseOp1 := &operation.Operation{
 		TriggerID:   "trigger_base",
 		OperationID: "operation_base1",
-		InstanceIDs: []string{"instance_1", "instance_2"},
+		InstanceIDs: []string{},
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing1",
 			SnapshotActionDefNames:    []string{"validate1", "charge1"},
@@ -113,7 +113,7 @@ func Test_handler_List(t *testing.T) {
 			name:      "normal list",
 			page:      types.Page{Offset: 0, Limit: 10},
 			opts:      nil,
-			wantCount: 3,
+			wantCount: 2,
 			wantErr:   false,
 		},
 		{
@@ -164,7 +164,7 @@ func Test_handler_FindOne(t *testing.T) {
 	testOp := &operation.Operation{
 		TriggerID:   "special_trigger",
 		OperationID: "special_operation",
-		InstanceIDs: []string{"instance_3", "instance_4"},
+		InstanceIDs: []string{},
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing",
 			SnapshotActionDefNames:    []string{"validate", "charge"},

@@ -114,3 +114,20 @@ func (s *storage) ListOperation(ctx context.Context, page types.Page, triggerID 
 
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID))
 }
+
+// ListEmptyOperation lists empty operation by triggerid.
+func (s *storage) ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
+	if ctx == nil {
+		return nil, 0, base.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	if triggerID == "" {
+		return nil, 0, base.ErrEmptyTriggerID()
+	}
+
+	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation())
+}
