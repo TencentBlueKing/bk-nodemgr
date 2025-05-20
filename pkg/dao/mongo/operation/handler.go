@@ -84,10 +84,6 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	if err != nil {
 		return nil, 0, err
 	}
-
-	if ctx == nil {
-		return nil, 0, errors.New("ctx is nil")
-	}
 	if err := page.Validate(); err != nil {
 		return nil, 0, err
 	}
@@ -100,9 +96,6 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	num, err := h.tenantDao(tenantID).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
-	}
-	if num == 0 {
-		return nil, 0, nil
 	}
 
 	findOpt := base.ParsePage(page)
@@ -197,13 +190,18 @@ func convertOperationToDB(bizOp *operation.Operation) *Operation {
 		defSnapshot = convertDefToDB(bizOp.Definition)
 	}
 
-	return &Operation{
+	opera := &Operation{
 		OperationID: bizOp.OperationID,
 		TriggerID:   bizOp.TriggerID,
 		OperInstIDs: bizOp.InstanceIDs,
 		DefSnapshot: defSnapshot,
 		Parameters:  convertParamToDB(bizOp.Param),
 	}
+	if bizOp.InstanceIDs == nil || len(bizOp.InstanceIDs) == 0 {
+		opera.OperInstEmpty = true
+	}
+
+	return opera
 }
 
 func convertParamFromDB(param Parameters) operation.OperationParam {

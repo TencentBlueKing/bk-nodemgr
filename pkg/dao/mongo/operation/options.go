@@ -44,12 +44,12 @@ func WithOperationID(ids ...string) OptFn {
 	}
 }
 
-// WithEmptyOperation filter by empty oper_inst_ids.
+// WithEmptyOperation filter by operation_instance.
 func WithEmptyOperation() OptFn {
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{
-			Key:   "data.operation_id",
-			Value: bson.M{"$eq": bson.A{}},
+			Key:   "data.oper_inst_empty",
+			Value: true,
 		})
 	}
 }

@@ -116,7 +116,9 @@ func (s *storage) ListOperation(ctx context.Context, page types.Page, triggerID 
 }
 
 // ListEmptyOperation lists empty operation by triggerid.
-func (s *storage) ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
+func (s *storage) ListEmptyOperation(
+	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
+
 	if ctx == nil {
 		return nil, 0, base.ErrNilContent()
 	}

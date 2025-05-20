@@ -28,7 +28,17 @@ func ErrEmptyUniqueKey() error {
 	return errors.New("empty unique key")
 }
 
-// ErrEmptyTraggerID this error indicates that the user inserted an empty block of data when inserting data.
+// ErrEmptyTriggerID this error indicates that the user inserted an empty block of data when inserting data.
 func ErrEmptyTriggerID() error {
 	return errors.New("empty trigger key")
+}
+
+// ErrEmptyActionName this error indicates that the user inserted an empty block of data when inserting data.
+func ErrEmptyActionName() error {
+	return errors.New("empty action name")
+}
+
+// ErrEmptyOperaInstID this error indicates that the user inserted an empty block of data when inserting data.
+func ErrEmptyOperaInstID() error {
+	return errors.New("empty operation inst id name")
 }

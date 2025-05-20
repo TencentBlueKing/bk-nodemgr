@@ -25,10 +25,11 @@ func TableName(tenantID string) string {
 // Operation represents an operation under a tenant.
 // OperationID should be the unique key.
 type Operation struct {
-	OperationID string      `json:"operation_id" bson:"operation_id"`
-	TriggerID   string      `json:"trigger_id" bson:"trigger_id"`
-	OperInstIDs []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
-	DefSnapshot DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
+	OperationID   string      `json:"operation_id" bson:"operation_id"`
+	TriggerID     string      `json:"trigger_id" bson:"trigger_id"`
+	OperInstIDs   []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
+	OperInstEmpty bool        `json:"oper_inst_empty" bson:"oper_inst_empty"`
+	DefSnapshot   DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
 
 	Parameters Parameters `json:"parameters" bson:"parameters"`
 }

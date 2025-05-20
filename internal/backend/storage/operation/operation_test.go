@@ -15,8 +15,10 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
@@ -202,32 +204,38 @@ func Test_storage_GetOperation(t *testing.T) {
 
 // Test_storage_GetOperation ...
 func Test_storage_ListOperation(t *testing.T) {
-	type args struct {
-		ctx         context.Context
-		operationID string
-	}
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
 	tests := []struct {
 		name       string
-		args       args
 		wantCount  int
 		wantErr    bool
 		trigger_id string
 	}{
 		{
-			name: "normal",
-			args: args{
-				ctx:         context.Background(),
-				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
-			},
+			name:       "normal",
 			trigger_id: "trigger_base",
 			wantCount:  2,
+			wantErr:    false,
+		},
+		{
+			name:       "normal",
+			trigger_id: "special_trigger",
+			wantCount:  1,
+			wantErr:    false,
+		},
+		{
+			name:       "error",
+			trigger_id: "non_trigger",
+			wantCount:  0,
 			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			got, _, err := s.ListOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
+			got, num, err := s.ListOperation(ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
 			if err != nil {
 				t.Logf("GetOperation() error = %v", err)
 			}
@@ -235,47 +243,9 @@ func Test_storage_ListOperation(t *testing.T) {
 				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
-			t.Logf("got: %+v", got)
-		})
-	}
-}
-
-func Test_storage_ListEmptyOperation(t *testing.T) {
-	type args struct {
-		ctx         context.Context
-		operationID string
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantCount  int
-		wantErr    bool
-		trigger_id string
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:         context.Background(),
-				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
-			},
-			trigger_id: "trigger_base",
-			wantCount:  2,
-			wantErr:    false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := testClient(t)
-			got, _, err := s.ListOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
-			if err != nil {
-				t.Logf("GetOperation() error = %v", err)
+			if num != int64(tt.wantCount) {
+				t.Errorf("GetOperation() num = %v, wantCount %v", num, tt.wantCount)
 			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
 			t.Logf("got: %+v", got)
 		})
 	}
@@ -283,43 +253,108 @@ func Test_storage_ListEmptyOperation(t *testing.T) {
 
 // Test_storage_ListEmptyOpera ...
 func Test_storage_ListEmptyOpera(t *testing.T) {
-	type args struct {
-		ctx         context.Context
-		operationID string
+	tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	// prepare test data
+	h := testClient(t)
+	baseOp1 := &operation.Operation{
+		TriggerID:   "trigger_base",
+		OperationID: "operation_base1",
+		InstanceIDs: []string{},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing1",
+			SnapshotActionDefNames:    []string{"validate1", "charge1"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation1",
+			Timeout:           1 * time.Second,
+			InitContent:       map[string]any{"key": "value1"},
+		},
 	}
+	baseOp2 := &operation.Operation{
+		TriggerID:   "trigger_base",
+		OperationID: "operation_base2",
+		InstanceIDs: nil,
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing1",
+			SnapshotActionDefNames:    []string{"validate1", "charge1"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation1",
+			Timeout:           1 * time.Second,
+			InitContent:       map[string]any{"key": "value1"},
+		},
+	}
+
+	baseOp3 := &operation.Operation{
+		TriggerID:   "trigger_base",
+		OperationID: "operation_base3",
+		InstanceIDs: []string{"instance_3", "instance_4"},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing2",
+			SnapshotActionDefNames:    []string{"validate2", "charge2"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 20 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation2",
+			Timeout:           2 * time.Second,
+			InitContent:       map[string]any{"key": "value2"},
+		},
+	}
+
+	if err := h.UpsertOperation(ctx, baseOp1); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
+
+	if err := h.UpsertOperation(ctx, baseOp2); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
+	if err := h.UpsertOperation(ctx, baseOp3); err != nil {
+		t.Fatalf("prepare data failed: %v", err)
+	}
+	// prepare test data
+	testOp := &operation.Operation{
+		TriggerID:   "special_trigger",
+		OperationID: "special_operation",
+		InstanceIDs: []string{},
+		Definition: &operation.DefinitionSnapshot{
+			SnapshotName:              "order_processing",
+			SnapshotActionDefNames:    []string{"validate", "charge"},
+			SnapshotDefaultParameters: operation.OperationParam{Timeout: 50 * time.Second},
+		},
+		Param: operation.OperationParam{
+			ParentOperationID: "parent_operation",
+			Timeout:           60 * time.Second,
+			InitContent:       map[string]any{"key": "value"},
+		},
+	}
+	if err := h.UpsertOperation(ctx, testOp); err != nil {
+		t.Fatalf("prepare data failed: %+v", err)
+	}
+
 	tests := []struct {
 		name       string
-		args       args
-		wantCount  int
+		wantCount  int64
 		wantErr    bool
 		trigger_id string
 	}{
 		{
-			name: "normal",
-			args: args{
-				ctx:         context.Background(),
-				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
-			},
+			name:       "normal_triggle",
 			trigger_id: "trigger_base",
-			wantCount:  1,
+			wantCount:  2,
 			wantErr:    false,
 		},
 		{
-			name: "normal",
-			args: args{
-				ctx:         context.Background(),
-				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
-			},
+			name:       "normal",
 			trigger_id: "special_trigger",
 			wantCount:  1,
 			wantErr:    false,
 		},
 		{
-			name: "error",
-			args: args{
-				ctx:         context.Background(),
-				operationID: "35fa1c8a-3089-4a89-9b45-100398698dd2",
-			},
+			name:       "error",
 			trigger_id: "no_exists_trigger",
 			wantCount:  0,
 			wantErr:    false,
@@ -328,15 +363,17 @@ func Test_storage_ListEmptyOpera(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			got, _, err := s.ListEmptyOperation(tt.args.ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
+			got, num, err := s.ListEmptyOperation(ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
 			if err != nil {
 				t.Logf("GetOperation() error = %v", err)
+			}
+			if num != tt.wantCount {
+				t.Errorf("GetOperation() num = %v, wantCount %v", num, tt.wantCount)
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetOperation() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
 			t.Logf("got: %+v", got)
 		})
 	}
