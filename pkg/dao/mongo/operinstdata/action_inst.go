@@ -17,29 +17,29 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // IActionInstData defines the interface for action instance data operations.
 type IActionInstData interface {
 	// GetActionInstData find one ActionInstData.
-	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*operengine.ActionInstData, error)
+	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*action.InstanceData, error)
 
 	// UpdateActionInstData updates or inserts an ActionInstData.
-	UpdateActionInstData(ctx context.Context, data *operengine.ActionInstData) error
+	UpdateActionInstData(ctx context.Context, data *action.InstanceData) error
 
 	// UpdateActInstMsg updates action inst data messages.
-	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []operengine.Message) error
+	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []action.Message) error
 
 	// GetActInstLifecycle get action inst data lifecycle.
-	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*operengine.ActInstLifeCycle, error)
+	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActInstLifecycle updates action inst data lifecycle.
 	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-		lifecycle *operengine.ActInstLifeCycle) error
+		lifecycle *action.Lifecycle) error
 
 	// PushActInstMsgs push a message to the action_inst_data's msg queue.
-	PushActInstMsgs(ctx context.Context, operInstID string, actionName string, msgs ...operengine.Message) error
+	PushActInstMsgs(ctx context.Context, operInstID string, actionName string, msgs ...action.Message) error
 
 	// AddActInstPrivateData add action inst data private data.
 	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
@@ -49,12 +49,12 @@ type IActionInstData interface {
 
 	// UpdateActionInstStatus updates the action_inst_data's status.
 	UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-		status operengine.ActionInstState) error
+		status action.State) error
 }
 
 // UpdateActInstMsg update action inst msg.
 func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
-	msgs []operengine.Message) error {
+	msgs []action.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -164,7 +164,7 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 
 // PushActInstMsgs push act inst msg.
 func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
-	msgs ...operengine.Message) error {
+	msgs ...action.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -198,7 +198,7 @@ func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, action
 }
 
 // UpdateActionInstData upsert action inst data.
-func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *operengine.ActionInstData) error {
+func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -207,13 +207,13 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *oper
 		return errors.New("actionInstData is nil")
 	}
 
-	if actionInstData.OperInstID == "" {
+	if actionInstData.OperationInstanceID == "" {
 		return errors.New("operation instance id is empty")
 	}
 
 	filter := base.AliveFilter()
 	opts := []OptFn{
-		WithOperInstID(actionInstData.OperInstID),
+		WithOperInstID(actionInstData.OperationInstanceID),
 	}
 	for _, opt := range opts {
 		filter = opt(filter)
@@ -235,7 +235,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *oper
 
 // UpdateActInstLifecycle update action inst lifecycle.
 func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-	lifecycle *operengine.ActInstLifeCycle) error {
+	lifecycle *action.Lifecycle) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -268,7 +268,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 
 // GetActionInstData find one action inst data.
 func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
-	actionName string) (*operengine.ActionInstData, error) {
+	actionName string) (*action.InstanceData, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
@@ -301,19 +301,19 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		return nil, errors.New("action inst data not found")
 	}
 
-	data := &operengine.ActionInstData{
-		TriggerID:   actionInstData.TriggerID,
-		OperInstID:  actionInstData.OperInstID,
-		OperationID: actionInstData.OperationID,
-		OperDefName: actionInstData.OperDefName,
-		Name:        actionInstData.Name,
-		Index:       actionInstData.Index,
-		PrivateData: actionInstData.PrivateData,
-		Lifecycle:   convActInstLifeCycleToCommon(actionInstData.Lifecycle),
+	data := &action.InstanceData{
+		TriggerID:           actionInstData.TriggerID,
+		OperationInstanceID: actionInstData.OperInstID,
+		OperationID:         actionInstData.OperationID,
+		OperationDefName:    actionInstData.OperDefName,
+		Name:                actionInstData.Name,
+		Index:               actionInstData.Index,
+		PrivateData:         actionInstData.PrivateData,
+		Lifecycle:           convActInstLifeCycleToCommon(actionInstData.Lifecycle),
 	}
 
 	for _, msg := range actionInstData.Messages {
-		data.Messages = append(data.Messages, operengine.Message{
+		data.Messages = append(data.Messages, action.Message{
 			Time: msg.Time,
 			Text: msg.Text,
 		})
@@ -329,7 +329,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 
 // GetActInstLifecycle find one action inst data.
 func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
-	actionName string) (*operengine.ActInstLifeCycle, error) {
+	actionName string) (*action.Lifecycle, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
@@ -369,7 +369,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 
 // UpdateActionInstStatus update action inst status.
 func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-	status operengine.ActionInstState) error {
+	status action.State) error {
 
 	if ctx == nil {
 		return base.ErrInvalidContext()

@@ -8,19 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package operinstdata ...
-package operinstdata
+package operation
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+const (
+	// FieldKeyOperationID the operation_id field key.
+	FieldKeyOperationID = "data.operation_id"
 )
-
-// IStorage defines the Storage interface.
-type IStorage interface {
-	base.Interface
-	workflow.IStorageActionInstance
-	workflow.IStorageOperationInstance
-
-	IDomainNodeInstall
-}

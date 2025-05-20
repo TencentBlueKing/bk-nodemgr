@@ -28,6 +28,7 @@ type ActionInstData struct {
 	OperDefName string            `json:"oper_def_name" bson:"oper_def_name"`
 	Name        string            `json:"name" bson:"name"`
 	Index       int               `json:"index" bson:"index"`
+	TotalIndex  int               `json:"total_index" bson:"total_index"`
 	Lifecycle   *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`
 	Messages    []Message         `json:"messages" bson:"messages"`
 	Content     string            `json:"content" bson:"content"`
@@ -43,6 +44,7 @@ type Message struct {
 // ActInstLifeCycle is the lifecycle of an action instance.
 type ActInstLifeCycle struct {
 	State     string    `json:"state" bson:"state"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	StartedAt time.Time `json:"started_at" bson:"started_at"`
 	EndedAt   time.Time `json:"ended_at" bson:"ended_at"`
 	StoppedAt time.Time `json:"stopped_at" bson:"stopped_at"`
