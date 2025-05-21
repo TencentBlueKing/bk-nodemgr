@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -44,16 +44,16 @@ func NewActionInstallNodeBySSH(
 	installerFileGroup iface.FileGroup,
 	crypter crypter.Crypter,
 	logger logger.Logger,
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	provider discover.Provider,
 ) action.Definition {
 
 	return &actionInstallNodeBySSH{
-		installerGroup:     installerFileGroup,
-		crypter:            crypter,
-		logger:             logger,
-		iDaoNodeDeployment: iDaoNodeDeployment,
-		provider:           provider,
+		installerGroup:        installerFileGroup,
+		crypter:               crypter,
+		logger:                logger,
+		storageNodeDeployment: storageNodeDeployment,
+		provider:              provider,
 	}
 }
 
@@ -77,11 +77,11 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	installerGroup     iface.FileGroup
-	crypter            crypter.Crypter
-	logger             logger.Logger
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
-	provider           discover.Provider
+	installerGroup        iface.FileGroup
+	crypter               crypter.Crypter
+	logger                logger.Logger
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	provider              discover.Provider
 }
 
 // Name returns the name of the action.
@@ -133,13 +133,13 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if storeErr := act.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
@@ -227,7 +227,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// 7. exec install command
-	installCmd := action.buildCMD(installParams)
+	installCmd := act.buildCMD(installParams)
 	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installCmd))
 
 	outStr, err := client.RunCommand(installCmd)

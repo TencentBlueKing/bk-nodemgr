@@ -14,9 +14,7 @@ package agent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -27,9 +25,7 @@ import (
 type handler struct {
 	rg                 *gin.RouterGroup
 	manager            manager.Manager
-	iDaoNodeDeployment nodedeployment.IDomainInit
-	iDaoNetworkUnit    topoStg.IDaoNetworkUnit
-	iDaoNodeWorkflow   nodeworkflow.IStorage
+	storageNetworkUnit topo.IStorageNetworkUnit
 	logger             logger.Logger
 	crypter            crypter.Crypter
 }
@@ -40,8 +36,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                 rg.Group("/agent"),
 		manager:            capability.Manager,
-		iDaoNodeDeployment: capability.NodeDeploymentStorage,
-		iDaoNetworkUnit:    capability.TopoStorage,
+		storageNetworkUnit: capability.TopoStorage,
 		logger:             capability.Logger,
 		crypter:            capability.Crypter,
 	}

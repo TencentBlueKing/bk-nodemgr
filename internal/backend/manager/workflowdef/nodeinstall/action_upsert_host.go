@@ -16,8 +16,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -35,14 +35,14 @@ const (
 // NewActionUpsertHost get a new action.
 func NewActionUpsertHostToCMDB(
 	cmdbHandler cmdb.IHandler,
-	iDaoHost topoStg.IDaoHost,
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
+	storageHost topo.IStorageHost,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 ) action.Definition {
 
 	return &actionUpsertHostToCMDB{
-		cmdbHandler:        cmdbHandler,
-		iDaoHost:           iDaoHost,
-		iDaoNodeDeployment: iDaoNodeDeployment,
+		cmdbHandler:           cmdbHandler,
+		storageHost:           storageHost,
+		storageNodeDeployment: storageNodeDeployment,
 	}
 }
 
@@ -53,9 +53,9 @@ type UpsertHostToCMDBParam struct {
 
 // UpsertHost ...
 type actionUpsertHostToCMDB struct {
-	cmdbHandler        cmdb.IHost
-	iDaoHost           topoStg.IDaoHost
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
+	cmdbHandler           cmdb.IHost
+	storageHost           topo.IStorageHost
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -103,7 +103,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 	// nolint: nestif
 	if info.HostID < 0 {
-		hosts, count, err := act.iDaoHost.ListHost(tenantCtx, types.Page{
+		hosts, count, err := act.storageHost.ListHost(tenantCtx, types.Page{
 			Offset: 0,
 			Limit:  1,
 		}, &types.HostCondition{
@@ -144,7 +144,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 			info.HostID = hosts[0].HostID
 		}
 	} else {
-		count, err := act.iDaoHost.CountHost(tenantCtx, &types.HostCondition{
+		count, err := act.storageHost.CountHost(tenantCtx, &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				HostID:        []int64{info.HostID},
 				NetworkAreaID: []int64{info.Static.NetworkAreaID},
@@ -165,7 +165,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+		if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 			return fmt.Errorf("update node deployment info failed, err: %w", err)
 		}
 
@@ -173,7 +173,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		if err := act.iDaoHost.UpsertManyHost(tenantCtx, &info.Host); err != nil {
+		if err := act.storageHost.UpsertManyHost(tenantCtx, &info.Host); err != nil {
 			return fmt.Errorf("upsert host to db failed, err: %w", err)
 		}
 

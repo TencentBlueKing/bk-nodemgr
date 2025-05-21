@@ -28,7 +28,7 @@ const (
 
 type handler struct {
 	rg                  *gin.RouterGroup
-	nodeWorkflowStorage nodeworkflow.IStorage
+	storageNodeWorkflow nodeworkflow.IStorage
 	logger              logger.Logger
 }
 
@@ -36,7 +36,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/workflow"),
-		nodeWorkflowStorage: capability.NodeWorkflowStorage,
+		storageNodeWorkflow: capability.NodeWorkflowStorage,
 		logger:              capability.Logger,
 	}
 }
@@ -68,7 +68,7 @@ func (h *handler) ListNodeWorkflow(ctx *rest.Context) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.nodeWorkflowStorage.CountNodeWorkflow(sCtx, req.ConvertConditionsToTypes())
+		num, err := h.storageNodeWorkflow.CountNodeWorkflow(sCtx, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(sCtx, "failed to list node workflow, failed to count workflow. err: %v", err)
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -80,7 +80,7 @@ func (h *handler) ListNodeWorkflow(ctx *rest.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.nodeWorkflowStorage.ListNodeWorkflow(sCtx,
+	workflows, num, err := h.storageNodeWorkflow.ListNodeWorkflow(sCtx,
 		req.ConvertPageToTypes(maxNodeWorkflowLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
@@ -109,7 +109,7 @@ func (h *handler) DistinctNodeWorkflow(ctx *rest.Context) (interface{}, error) {
 	}
 
 	// TODO: call thirdparty backend.
-	result, err := h.nodeWorkflowStorage.DistinctNodeWorkflow(
+	result, err := h.storageNodeWorkflow.DistinctNodeWorkflow(
 		sCtx,
 		types.NewNodeWorkflowDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())

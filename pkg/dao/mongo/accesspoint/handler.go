@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler accesspoint handler interface.
-type Handler interface {
+// IHandler accesspoint handler interface.
+type IHandler interface {
 	// Count counts accesspoint by conditions.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 

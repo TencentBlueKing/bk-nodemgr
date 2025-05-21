@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -28,10 +28,10 @@ const (
 )
 
 // NewActionGenOperSyncHost this action will create host sync operation for all business.
-func NewActionGenOperSyncHost(iDaoBusiness topoStg.IDaoBusiness, workflowCtl workflow.IController) action.Definition {
+func NewActionGenOperSyncHost(storageBusiness topo.IStorageBusiness, workflowCtl workflow.IController) action.Definition {
 	return &actionGenOperSyncHost{
-		iDaoBusiness: iDaoBusiness,
-		workflowCtl:  workflowCtl,
+		storageBusiness: storageBusiness,
+		workflowCtl:     workflowCtl,
 	}
 }
 
@@ -41,8 +41,8 @@ type GenOperSyncHostParam struct {
 }
 
 type actionGenOperSyncHost struct {
-	iDaoBusiness topoStg.IDaoBusiness
-	workflowCtl  workflow.IController
+	storageBusiness topo.IStorageBusiness
+	workflowCtl     workflow.IController
 }
 
 // Name returns the name of the action.
@@ -95,7 +95,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	bizs, _, err := act.iDaoBusiness.ListBusinesses(tenantCtx, types.Page{})
+	bizs, _, err := act.storageBusiness.ListBusinesses(tenantCtx, types.Page{})
 	if err != nil {
 		return err
 	}

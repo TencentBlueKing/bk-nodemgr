@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -29,10 +29,12 @@ const (
 )
 
 // NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage) action.Definition {
+func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler,
+	storageNetworkArea topo.IStorageNetworkArea) action.Definition {
+
 	return &actionSyncNetworkAreaFromCMDB{
-		cmdbHandler: cmdbHandler,
-		topoStorage: topoStorage,
+		cmdbHandler:        cmdbHandler,
+		storageNetworkArea: storageNetworkArea,
 	}
 }
 
@@ -42,8 +44,8 @@ type SyncNetworkAreaFromCMDBParam struct {
 }
 
 type actionSyncNetworkAreaFromCMDB struct {
-	cmdbHandler cmdb.IHandler
-	topoStorage topoStg.IStorage
+	cmdbHandler        cmdb.IHandler
+	storageNetworkArea topo.IStorageNetworkArea
 }
 
 // Name returns the name of the action.
@@ -111,7 +113,7 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 		return err
 	}
 
-	if err = act.topoStorage.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
+	if err = act.storageNetworkArea.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 

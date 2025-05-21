@@ -22,13 +22,13 @@ import (
 type IStorage interface {
 	base.Interface
 
-	IDaoNodeDeployment
+	IStorageNodeDeployment
 
-	IDomainInit
+	IStorageDomainInit
 }
 
-// IDaoNodeDeployment defines the node deployment dao interface.
-type IDaoNodeDeployment interface {
+// IStorageNodeDeployment defines the node deployment dao interface.
+type IStorageNodeDeployment interface {
 	// GetNodeConf get gse agent setting.
 	GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
 
@@ -42,8 +42,8 @@ type IDaoNodeDeployment interface {
 	UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
 }
 
-// IDomainInit defines the node deployment domain init interface.
-type IDomainInit interface {
+// IStorageDomainInit defines the node deployment domain init interface.
+type IStorageDomainInit interface {
 	// Create create a node deployment.
 	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
 }

@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -32,14 +32,14 @@ const (
 // NewActionWaitGseReady get a new action.
 func NewActionWaitGseReady(
 	gseClient gse.IHandler,
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	logger logger.Logger,
 ) action.Definition {
 
 	return &actionWaitGseReady{
-		gseClient:          gseClient,
-		iDaoNodeDeployment: iDaoNodeDeployment,
-		logger:             logger,
+		gseClient:             gseClient,
+		storageNodeDeployment: storageNodeDeployment,
+		logger:                logger,
 	}
 }
 
@@ -49,9 +49,9 @@ type WaitGseReadyParam struct {
 }
 
 type actionWaitGseReady struct {
-	gseClient          gse.IHandler
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
-	logger             logger.Logger
+	gseClient             gse.IHandler
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	logger                logger.Logger
 }
 
 // Name returns the name of the action.
@@ -102,7 +102,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err := act.iDaoNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 

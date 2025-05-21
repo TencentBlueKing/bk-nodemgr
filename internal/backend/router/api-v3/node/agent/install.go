@@ -118,7 +118,7 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 ) (*types.NodeDeployment, error) {
 
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
+	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
 	if err != nil {
 		return nil, fmt.Errorf("get network unit failed, err: %w", err)
 	}

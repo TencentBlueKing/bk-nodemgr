@@ -22,17 +22,17 @@ import (
 type IStorage interface {
 	base.Interface
 
-	IDaoNetworkArea
-	IDaoNetworkUnit
-	IDaoAccessPoint
-	IDaoBusiness
-	IDaoHost
-	IDaoTopoEvent
-	IDomainGse
+	IStorageNetworkArea
+	IStorageNetworkUnit
+	IStorageAccessPoint
+	IStorageBusiness
+	IStorageHost
+	IStorageTopoEvent
+	IStorageDomainGse
 }
 
-// IDaoTopoEvent this interface defines the operations which is only for topo event.
-type IDaoTopoEvent interface {
+// IStorageTopoEvent this interface defines the operations which is only for topo event.
+type IStorageTopoEvent interface {
 	// CountTopoEvent counts topo events by conditions.
 	CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (int64, error)
 
@@ -49,8 +49,8 @@ type IDaoTopoEvent interface {
 		*types.TopoEventDistinctResult, error)
 }
 
-// IDaoNetworkUnit this interface defines the operations which is only for network unit.
-type IDaoNetworkUnit interface {
+// IStorageNetworkUnit this interface defines the operations which is only for network unit.
+type IStorageNetworkUnit interface {
 	// ListNetworkUnit lists networkunit by page and conditions.
 	ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
@@ -70,8 +70,8 @@ type IDaoNetworkUnit interface {
 	DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error
 }
 
-// IDaoBusiness this interface defines the operations which is only for business.
-type IDaoBusiness interface {
+// IStorageBusiness this interface defines the operations which is only for business.
+type IStorageBusiness interface {
 	// UpsertManyBusiness updates or inserts a business.
 	UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error
 
@@ -80,8 +80,8 @@ type IDaoBusiness interface {
 		[]*types.Business, int64, error)
 }
 
-// IDaoNetworkArea this interface defines the operations which is only for network area.
-type IDaoNetworkArea interface {
+// IStorageNetworkArea this interface defines the operations which is only for network area.
+type IStorageNetworkArea interface {
 	// ListNetworkArea lists networkarea by page and conditions.
 	ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
@@ -99,8 +99,8 @@ type IDaoNetworkArea interface {
 	DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error
 }
 
-// IDaoAccessPoint this interface defines the operations which is only for accesspoint.
-type IDaoAccessPoint interface {
+// IStorageAccessPoint this interface defines the operations which is only for accesspoint.
+type IStorageAccessPoint interface {
 	// CountAccessPoint counts accesspoint by conditions.
 	CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (int64, error)
 
@@ -109,8 +109,8 @@ type IDaoAccessPoint interface {
 		[]*types.AccessPoint, int64, error)
 }
 
-// IDaoHost this interface defines the operations which is only for host.
-type IDaoHost interface {
+// IStorageHost this interface defines the operations which is only for host.
+type IStorageHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(ctx context.Context, host ...*types.Host) error
 
@@ -137,8 +137,8 @@ type IDaoHost interface {
 		*types.HostDistinctResult, error)
 }
 
-// IDomainGse this interface defines the operations which is only for domain gse.
-type IDomainGse interface {
+// IStorageDomainGse this interface defines the operations which is only for domain gse.
+type IStorageDomainGse interface {
 	// GetV4AgentAccessEndpoints get agent v4 access endpoints.
 	GetV4AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
 		clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error)

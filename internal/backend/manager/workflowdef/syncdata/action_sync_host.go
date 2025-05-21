@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -30,10 +30,10 @@ const (
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, iDaoHost topoStg.IDaoHost) action.Definition {
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, storageHost topo.IStorageHost) action.Definition {
 	return &actionSyncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
-		iDaoHost:    iDaoHost,
+		storageHost: storageHost,
 	}
 }
 
@@ -45,7 +45,7 @@ type SyncHostFromCMDBParam struct {
 
 type actionSyncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	iDaoHost    topoStg.IDaoHost
+	storageHost topo.IStorageHost
 }
 
 // Name ...
@@ -110,7 +110,7 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		dbData, _, err = act.iDaoHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
+		dbData, _, err = act.storageHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				BizID: []int64{param.BizID},
 			},
@@ -135,11 +135,11 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete",
 		len(upsertHosts), len(deleteHostIDs)))
 
-	if err = act.iDaoHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
 		return err
 	}
 
-	if err = act.iDaoHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
+	if err = act.storageHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
 		return err
 	}
 

@@ -91,9 +91,9 @@ type manager struct {
 	// state
 	isRunning bool
 
-	workflowMgr         workflow.IManager
-	iDaoNodeDeployment  nodedeployment.IDomainInit
-	storageNodeWorkflow nodeworkflow.IStorage
+	workflowMgr           workflow.IManager
+	storageNodeDeployment nodedeployment.IDomainInit
+	storageNodeWorkflow   nodeworkflow.IStorage
 
 	// config
 	conf Config
@@ -284,7 +284,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			if err := mgr.iDaoNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.storageNodeDeployment.Create(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
 						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
