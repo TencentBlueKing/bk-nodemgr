@@ -71,8 +71,8 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// ListWorkflow lists node workflow by page and conditions.
-func (s *Storage) ListWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+// ListNodeWorkflow lists node workflow by page and conditions.
+func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
 	opts := make([]nodeworkflow.OptFn, 0)
@@ -105,13 +105,40 @@ func (s *Storage) ListWorkflow(ctx context.Context, page types.Page, conditions 
 	return s.daoNodeWorkflow.List(ctx, page, opts...)
 }
 
-// CountWorkflow counts node workflow by conditions.
-func (s *Storage) CountWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
-	return 0, nil
+// CountNodeWorkflow counts node workflow by conditions.
+func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
+	opts := make([]nodeworkflow.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.OperateTimeRange != nil {
+			opts = append(opts, topoevent.WithOperateTimeRange(*condition.OperateTimeRange))
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				nodeworkflow.WithBizID(condition.ExactInclude.BizID...),
+				nodeworkflow.WithType(condition.ExactInclude.Type...),
+				nodeworkflow.WithOperator(condition.ExactInclude.Operator...),
+				nodeworkflow.WithStatus(condition.ExactInclude.Status...))
+		}
+
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				nodeworkflow.WithoutBizID(condition.ExactExclude.BizID...),
+				nodeworkflow.WithoutType(condition.ExactExclude.Type...),
+				nodeworkflow.WithoutOperator(condition.ExactExclude.Operator...),
+				nodeworkflow.WithoutStatus(condition.ExactExclude.Status...))
+		}
+	}
+
+	return s.daoNodeWorkflow.Count(ctx, opts...)
 }
 
-// DistinctWorkflow distincts node workflow fields.
-func (s *Storage) DistinctWorkflow(
+// DistinctNodeWorkflow distincts node workflow fields.
+func (s *Storage) DistinctNodeWorkflow(
 	ctx context.Context, request *types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 

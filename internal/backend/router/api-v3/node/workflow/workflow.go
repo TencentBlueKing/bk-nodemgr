@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,34 +45,42 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/list", rest.RestHandlerFunc(h.List))
-	h.rg.POST("/statistics", rest.RestHandlerFunc(h.Statistics))
-	h.rg.POST("/distinct", rest.RestHandlerFunc(h.Distinct))
+	h.rg.POST("/list", rest.RestHandlerFunc(h.ListNodeWorkflow))
+	h.rg.POST("/distinct", rest.RestHandlerFunc(h.DistinctNodeWorkflow))
 	h.rg.POST("/operation/list", rest.RestHandlerFunc(h.ListOperation))
 	h.rg.POST("/operation/instance/list", rest.RestHandlerFunc(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", rest.RestHandlerFunc(h.GetOperationInstanceLog))
 }
 
 // List workflows.
-func (h *handler) List(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListNodeWorkflow(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to list workflow, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to list node workflow, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	req := new(protoBackend.NodeWorkflowListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list workflow, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to list node workflow, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
+		num, err := h.nodeWorkflowStorage.CountNodeWorkflow(sCtx, req.ConvertConditionsToTypes())
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to list node workflow, failed to count workflow. err: %v", err)
+			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		}
 
+		resp := new(protoBackend.NodeWorkflowListResp)
+		resp.ConvertNodeWorkflowsFromTypes(num, nil)
+
+		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.nodeWorkflowStorage.ListWorkflow(sCtx,
+	workflows, num, err := h.nodeWorkflowStorage.ListNodeWorkflow(sCtx,
 		req.ConvertPageToTypes(maxNodeWorkflowLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
@@ -85,46 +94,32 @@ func (h *handler) List(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// Statistics workflow statistics.
-func (h *handler) Statistics(ctx *rest.Context) (interface{}, error) {
+// DistinctNodeWorkflow workflow distinct.
+func (h *handler) DistinctNodeWorkflow(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to statistics workflow, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	req := new(protoBackend.NodeWorkflowStatisticsReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to statistics workflow, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	// TODO: call thirdparty backend.
-
-	resp := new(protoBackend.NodeWorkflowStatisticsResp)
-	// TODO: convert data from types.
-
-	return resp.GetData(), nil
-}
-
-// Distinct workflow distinct.
-func (h *handler) Distinct(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to distinct workflow, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to distinct node workflow, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	req := new(protoBackend.NodeWorkflowDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to distinct workflow, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to distinct node workflow, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	// TODO: call thirdparty backend.
+	result, err := h.nodeWorkflowStorage.DistinctNodeWorkflow(
+		sCtx,
+		types.NewNodeWorkflowDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to distinct host. failed to distinct host fields: %v", err)
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
 
 	resp := new(protoBackend.NodeWorkflowDistinctResp)
-	// TODO: convert data from types.
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

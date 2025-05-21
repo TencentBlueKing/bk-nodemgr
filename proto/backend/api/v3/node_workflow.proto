@@ -80,6 +80,7 @@ message NodeWorkflowStatisticsResp {
 message NodeWorkflowDistinctReq {
   NodeWorkflowExactConditions exact_include_conditions = 1;
   NodeWorkflowFuzzyConditions fuzzy_include_conditions = 2;
+  TimeRange operate_time_range = 3;
 }
 
 // NodeWorkflowDistinctResp describes the node workflow distinct response.
