@@ -15,7 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // testActionInstData ...
@@ -23,6 +24,75 @@ func testActionInstData(t *testing.T) IActionInstData {
 	return testHandler(t)
 }
 
+// TODO 这里如果actionName不存在，会新增一条数据，应该返回error
+// Test_handler_UpdateActionInstData ...
+func Test_handler_UpdateActionInstData(t *testing.T) {
+	//tenant.SetMode(tenant.ModeMultiple)
+	ctx, _ := tenant.SetID(context.Background(), "single")
+
+	tests := []struct {
+		ctx     context.Context
+		name    string
+		wantErr bool
+		data    *action.InstanceData
+	}{
+		{
+			name: "action-inst-data-1",
+			data: &action.InstanceData{
+				TriggerID:           "trigger-1",
+				OperationID:         "operation-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+				OperationInstanceID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+				Name:                "action-2",
+				TotalIndex:          0,
+				Index:               0,
+				Lifecycle: &action.Lifecycle{
+					State:     action.StateRunning,
+					CreatedAt: time.Now(),
+					StartedAt: time.Now(),
+					EndedAt:   time.Now(),
+					StoppedAt: time.Now(),
+				},
+				Messages: nil,
+				Content:  nil,
+			},
+
+			wantErr: false,
+		},
+		{
+			name: "action-inst-data-2",
+			data: &action.InstanceData{
+				TriggerID:           "trigger-009",
+				OperationID:         "op-instance-00a",
+				OperationInstanceID: "op-instance-001",
+				Name:                "validate-order",
+				TotalIndex:          0,
+				Index:               0,
+				Lifecycle: &action.Lifecycle{
+					State:     action.StatePending,
+					CreatedAt: time.Now(),
+					StartedAt: time.Now(),
+					EndedAt:   time.Now(),
+					StoppedAt: time.Now(),
+				},
+				Messages: nil,
+				Content:  nil,
+			},
+
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testActionInstData(t)
+			if err := h.UpdateActionInstData(ctx, tt.data); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// TODO 这里如果actionName不存在，会新增一条数据，应该返回error
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_UpdateActionInstContent(t *testing.T) {
 	type args struct {
@@ -41,9 +111,10 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				actionName: "sync_host_from_cmdb",
+				actionName: "action-1",
 				content: map[string]any{
-					"test": "test1",
+					"test":     "test1",
+					"test_tmp": "test2",
 				},
 			},
 			wantErr: false,
@@ -59,8 +130,8 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 	}
 }
 
-// Test_handler_FindOneActionInstData ...
-func Test_handler_FindOneActionInstData(t *testing.T) {
+// Test_handler_GetActionInstData ...
+func Test_handler_GetActionInstData(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		operInstID string
@@ -79,7 +150,16 @@ func Test_handler_FindOneActionInstData(t *testing.T) {
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 			},
-			wantErr: false,
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "op-instance-002",
+				actionName: "check-stock",
+			},
+			wantErr: true,
 		},
 		{
 			name: "nil context",
@@ -119,54 +199,7 @@ func Test_handler_FindOneActionInstData(t *testing.T) {
 				return
 			}
 
-			t.Logf("GetActionInstData() got = %#v", got)
-		})
-	}
-}
-
-// Test_handler_UpdateActionInstData ...
-func Test_handler_UpdateActionInstData(t *testing.T) {
-	type args struct {
-		ctx        context.Context
-		operInstID string
-		data       *operengine.ActionInstData
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "",
-			args: args{
-				ctx:        context.Background(),
-				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				data: &operengine.ActionInstData{
-					TriggerID:  "trigger-2",
-					OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-					Name:       "sync_biz_from_cmdb",
-					Index:      0,
-					Lifecycle: &operengine.ActInstLifeCycle{
-						State:     operengine.ActionInstStateRunning,
-						StartedAt: time.Now(),
-						EndedAt:   time.Now(),
-						StoppedAt: time.Now(),
-					},
-					Messages: nil,
-					Content:  nil,
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testActionInstData(t)
-			if err := h.UpdateActionInstData(tt.args.ctx, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			t.Logf("GetActionInstData() got = %+v\n", got)
 		})
 	}
 }
@@ -177,7 +210,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 		ctx        context.Context
 		operInstID string
 		actionName string
-		status     operengine.ActionInstState
+		status     action.State
 	}
 	tests := []struct {
 		name    string
@@ -189,7 +222,17 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				actionName: "sync_biz_from_cmdb",
+				actionName: "action-1",
+				status:     "success",
+			},
+			wantErr: false,
+		},
+		{
+			name: "normal",
+			args: args{
+				ctx:        context.Background(),
+				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+				actionName: "action-3",
 				status:     "success",
 			},
 			wantErr: false,
@@ -213,17 +256,20 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 		actionName string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name      string
+		args      args
+		wantErr   bool
+		wantState action.State
 	}{
 		{
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				actionName: "sync_biz_from_cmdb",
+				operInstID: "op-instance-001",
+				actionName: "validate-order",
 			},
+			wantErr:   false,
+			wantState: action.StatePending,
 		},
 	}
 	for _, tt := range tests {
@@ -235,6 +281,10 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got.State != tt.wantState {
+				t.Errorf("GetActInstLifecycle() got = %v, want %v", got.State, tt.wantState)
 				return
 			}
 
@@ -260,8 +310,8 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				operInstID: "oper-inst-f30540ee-19b9-438a-912f-6d538bd18508",
-				actionName: "sync_host_from_cmdb",
+				operInstID: "op-instance-001",
+				actionName: "validate-order",
 				data:       map[string]any{"test": "test1"},
 			},
 			wantErr: false,
@@ -288,7 +338,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 		ctx        context.Context
 		operInstID string
 		actionName string
-		msgs       []operengine.Message
+		msgs       []action.Message
 	}
 	tests := []struct {
 		name    string
@@ -300,8 +350,8 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-				actionName: "sync_host_from_cmdb",
-				msgs: []operengine.Message{
+				actionName: "sync_action_from_cmdb",
+				msgs: []action.Message{
 					{
 						Time: time.Now(),
 						Text: "test1 ",
@@ -314,7 +364,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.PushActInstMsgs(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs...); (err != nil) != tt.wantErr {
+			if err := h.PushActionInstanceMessage(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs...); (err != nil) != tt.wantErr {
 				t.Errorf("PushActInstMsgs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -327,7 +377,7 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 		ctx        context.Context
 		operInstID string
 		actionName string
-		lifecycle  *operengine.ActInstLifeCycle
+		lifecycle  *action.Lifecycle
 	}
 	tests := []struct {
 		name    string
@@ -338,10 +388,10 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				operInstID: "oper-inst-db0b07dc-4d1e-41bd-99e9-b4059d1a0d84",
-				actionName: "sync_biz_from_cmdb",
-				lifecycle: &operengine.ActInstLifeCycle{
-					State:     operengine.ActionInstStateRunning,
+				operInstID: "op-instance-001",
+				actionName: "validate-order",
+				lifecycle: &action.Lifecycle{
+					State:     action.StateSkipped,
 					StartedAt: time.Now(),
 					EndedAt:   time.Now(),
 					StoppedAt: time.Now(),

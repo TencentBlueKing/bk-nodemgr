@@ -169,3 +169,15 @@ const (
 	// StateUnknown action instance state unknown.
 	StateUnknown State = "unknown"
 )
+
+// Validate ActionInstState.
+func (state State) Validate() error {
+	switch state {
+	case StatePending, StateRunning, StateSuccess, StateFailed,
+		StateTimeout, StateSkipped, StateTerminated, StateUnknown:
+		return nil
+
+	default:
+		return fmt.Errorf("invalid action state, state(%s)", state)
+	}
+}

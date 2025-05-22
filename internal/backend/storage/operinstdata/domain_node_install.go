@@ -16,23 +16,23 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // IDomainNodeInstall defines the Storage interface for domain node install.
 type IDomainNodeInstall interface {
 	// UpdateOperInstActionStatus will update the oper inst action status.
 	UpdateOperInstActionStatus(ctx context.Context, operInstID string, actionName string,
-		status operengine.ActionInstState) error
+		status action.State) error
 
 	// PushActInstMsgs will append the oper inst action log.
-	PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
-		msgs ...operengine.Message) error
+	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string,
+		msgs ...action.Message) error
 }
 
 // UpdateOperInstActionStatus update the oper inst action status.
 func (s *Storage) UpdateOperInstActionStatus(ctx context.Context, operInstID string, actionName string,
-	status operengine.ActionInstState) error {
+	status action.State) error {
 
 	if ctx == nil {
 		return base.ErrNilContent()

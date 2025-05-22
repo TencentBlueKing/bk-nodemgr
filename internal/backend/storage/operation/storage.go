@@ -17,7 +17,7 @@ import (
 )
 
 // Storage defines the storage interface.
-type Storage interface {
+type IStorage interface {
 	base.Interface
 	workflow.IStorageOperation
 }
