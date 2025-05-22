@@ -15,12 +15,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -46,7 +49,15 @@ type Manager interface {
 	LaunchSyncNetworkArea(ctx context.Context) (string, error)
 
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
-	LaunchInstallNode(ctx context.Context, nodeDeploys []*types.NodeDeployment) (string, error)
+	LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error)
+}
+
+// InstallNodeParam install node param.
+type InstallNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
 }
 
 // NewManager creates a new manager.
@@ -80,8 +91,9 @@ type manager struct {
 	// state
 	isRunning bool
 
-	workflowMgr        workflow.IManager
-	iDaoNodeDeployment nodedeployment.IDomainInit
+	workflowMgr           workflow.IManager
+	storageNodeDeployment nodedeployment.IDomainInit
+	storageNodeWorkflow   nodeworkflow.IStorage
 
 	// config
 	conf Config
@@ -243,7 +255,7 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 }
 
 // LaunchInstallNode launch a task to install node.
-func (mgr *manager) LaunchInstallNode(ctx context.Context, nodeDeploys []*types.NodeDeployment) (string, error) {
+func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -254,12 +266,25 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, nodeDeploys []*types.
 		return "", err
 	}
 
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.storageNodeWorkflow.CreateWorkflow(ctx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
 	gp := gopool.NewPool()
-	for _, nodeDeploy := range nodeDeploys {
+	for _, nodeDeploy := range param.NodeDeployments {
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			if err := mgr.iDaoNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.storageNodeDeployment.Create(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
 						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
@@ -285,5 +310,5 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, nodeDeploys []*types.
 	}
 	gp.Wait()
 
-	return triggerCtl.GetTriggerID(), nil
+	return workflowID, nil
 }

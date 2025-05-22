@@ -25,7 +25,7 @@ type Operation struct {
 	OperationID string
 	Definition  Definition
 	InstanceIDs []string
-	Param       OperationParam
+	Param       Param
 }
 
 // CheckEnforceability checks the enforceability of operation.
@@ -46,8 +46,8 @@ func (o *Operation) GetLastInstanceID() string {
 	return o.InstanceIDs[len(o.InstanceIDs)-1]
 }
 
-// OperationParam defines the operation param.
-type OperationParam struct {
+// Param defines the operation param.
+type Param struct {
 	ParentOperationID string
 	Timeout           time.Duration
 	InitContent       map[string]any

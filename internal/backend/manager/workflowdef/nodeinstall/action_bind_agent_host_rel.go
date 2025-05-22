@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -32,14 +32,17 @@ const (
 )
 
 // NewActionBindAgentHostRel get a new action.
-func NewActionBindAgentHostRel(bindHostAgent cmdb.IBindHostAgent, hostDao topoStg.IDaoHost,
-	nodeDeploymentDao nodedeployment.IDaoNodeDeployment, logger logger.Logger) action.Definition {
+func NewActionBindAgentHostRel(
+	bindHostAgent cmdb.IBindHostAgent,
+	storageHost topo.IStorageHost,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	logger logger.Logger) action.Definition {
 
 	return &actionBindAgentHostRel{
-		IBindHostAgent:    bindHostAgent,
-		hostDao:           hostDao,
-		nodeDeploymentDao: nodeDeploymentDao,
-		logger:            logger,
+		IBindHostAgent:        bindHostAgent,
+		storageHost:           storageHost,
+		storageNodeDeployment: storageNodeDeployment,
+		logger:                logger,
 	}
 }
 
@@ -50,9 +53,9 @@ type BindAgentHostRelParam struct {
 
 type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
-	hostDao           topoStg.IDaoHost
-	nodeDeploymentDao nodedeployment.IDaoNodeDeployment
-	logger            logger.Logger
+	storageHost           topo.IStorageHost
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	logger                logger.Logger
 }
 
 // Name returns the name of the action.
@@ -62,7 +65,7 @@ func (act *actionBindAgentHostRel) Name() string {
 
 // Version returns the version of the action.
 func (act *actionBindAgentHostRel) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -100,7 +103,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.nodeDeploymentDao.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}
@@ -128,7 +131,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		if err := act.hostDao.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
+		if err := act.storageHost.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
 			return err
 		}
 
@@ -149,7 +152,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionBindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
-	daoHost, err := act.hostDao.GetHostByID(ctx, info.HostID)
+	daoHost, err := act.storageHost.GetHostByID(ctx, info.HostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
 	}

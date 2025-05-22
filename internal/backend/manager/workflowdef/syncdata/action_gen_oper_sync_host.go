@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -28,10 +28,10 @@ const (
 )
 
 // NewActionGenOperSyncHost this action will create host sync operation for all business.
-func NewActionGenOperSyncHost(iDaoBusiness topoStg.IDaoBusiness, workflowCtl workflow.IController) action.Definition {
+func NewActionGenOperSyncHost(storageBusiness topo.IStorageBusiness, workflowCtl workflow.IController) action.Definition {
 	return &actionGenOperSyncHost{
-		iDaoBusiness: iDaoBusiness,
-		workflowCtl:  workflowCtl,
+		storageBusiness: storageBusiness,
+		workflowCtl:     workflowCtl,
 	}
 }
 
@@ -41,8 +41,8 @@ type GenOperSyncHostParam struct {
 }
 
 type actionGenOperSyncHost struct {
-	iDaoBusiness topoStg.IDaoBusiness
-	workflowCtl  workflow.IController
+	storageBusiness topo.IStorageBusiness
+	workflowCtl     workflow.IController
 }
 
 // Name returns the name of the action.
@@ -52,7 +52,7 @@ func (act *actionGenOperSyncHost) Name() string {
 
 // Version returns the version of the action.
 func (act *actionGenOperSyncHost) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -95,7 +95,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	bizs, _, err := act.iDaoBusiness.ListBusinesses(tenantCtx, types.Page{})
+	bizs, _, err := act.storageBusiness.ListBusinesses(tenantCtx, types.Page{})
 	if err != nil {
 		return err
 	}
@@ -148,8 +148,9 @@ func (act *actionGenOperSyncHost) executeOper(
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
-		biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
+	ctx.Data.Log(
+		fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
+			biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
 
 	return nil
 }

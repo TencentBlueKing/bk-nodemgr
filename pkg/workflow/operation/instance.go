@@ -28,6 +28,7 @@ type InstanceMetadata struct {
 	InitContent         map[string]any
 }
 
+// InstanceBriefData defines the brief data of operation instance.
 type InstanceBriefData struct {
 	// the below fields should be written only once.
 	Metadata *InstanceMetadata

@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler networkarea handler interface.
-type Handler interface {
+// IHandler networkarea handler interface.
+type IHandler interface {
 	// Count counts networkarea by conditions.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 

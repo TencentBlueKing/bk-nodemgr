@@ -15,9 +15,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -40,18 +42,27 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 
 	hosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
+	bizIDs := make(map[int64]struct{})
 	for idx := range hosts {
 		reqHost := hosts[idx]
 
 		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
-			return nil, err
+			h.logger.Error("failed to install agent, failed to generate node deployment. err: %v", err)
+
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
 
 		nodeDeploys[idx] = nodeDeploy
+		bizIDs[reqHost.GetBkBizId()] = struct{}{}
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(sCtx, nodeDeploys)
+	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
+		Type:            types.NodeWorkflowTypeInstallAgent,
+		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
+		Operator:        ctx.Username,
+		NodeDeployments: nodeDeploys,
+	})
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
@@ -70,7 +81,7 @@ func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
@@ -107,7 +118,7 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 ) (*types.NodeDeployment, error) {
 
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
+	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
 	if err != nil {
 		return nil, fmt.Errorf("get network unit failed, err: %w", err)
 	}

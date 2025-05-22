@@ -22,16 +22,16 @@ import (
 type IStorage interface {
 	base.Interface
 
-	// ListWorkflow lists node workflow by page and conditions.
-	ListWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+	// ListNodeWorkflow lists node workflow by page and conditions.
+	ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 		[]*types.NodeWorkflow, int64, error)
 
-	// CountWorkflow counts node workflow by conditions.
-	CountWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error)
+	// CountNodeWorkflow counts node workflow by conditions.
+	CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error)
 
-	// DistinctWorkflow distincts node workflow fields.
-	DistinctWorkflow(
-		ctx context.Context, request *types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+	// DistinctNodeWorkflow distincts node workflow fields.
+	DistinctNodeWorkflow(
+		ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 		*types.NodeWorkflowDistinctResult, error)
 
 	// GetWorkflow gets a node workflow by workflow-id.

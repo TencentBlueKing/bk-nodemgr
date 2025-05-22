@@ -44,9 +44,9 @@ func (oper *operSyncNetworkAreaFromCMDB) ActionDefNames() []string {
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.OperationParam {
-	return operation.OperationParam{
-		Timeout:     1 * time.Minute,
+func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.Param {
+	return operation.Param{
+		Timeout:     1 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

@@ -18,12 +18,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
@@ -36,22 +36,22 @@ type Capability struct {
 	// Manager workflow management.
 	Manager manager.Manager
 
-	// TopoStorage bk nodeman topo storage.
+	// TopoStorage topo storage.
 	TopoStorage topoStg.IStorage
 
-	// TrigEngineStorage bk nodeman trigengine storage.
-	TrigEngineStorage trigengine.Storage
+	// TriggerStorage trigger storage.
+	TriggerStorage trigger.IStorage
 
-	// OperInstStorage bk nodeman operation_inst storage.
+	// OperInstStorage operation_inst storage.
 	OperInstStorage operinstdataStorage.IStorage
 
-	// OperStorage bk nodeman operation storage.
+	// OperStorage operation storage.
 	OperStorage operation.Storage
 
-	// NodeDeploymentStorage bk nodeman node deployment storage.
+	// NodeDeploymentStorage node deployment storage.
 	NodeDeploymentStorage nodedeployment.IStorage
 
-	// NodeWorkflowStorage bk nodeman node workflow storage.
+	// NodeWorkflowStorage node workflow storage.
 	NodeWorkflowStorage nodeworkflow.IStorage
 
 	// CmdbHandler cmdb handler.
@@ -69,7 +69,7 @@ type Capability struct {
 	// Crypter ...
 	Crypter crypter.Crypter
 
-	// InstallerFileGroup bk nodeman tool file group.
+	// InstallerFileGroup tool file group.
 	InstallerFileGroup iface.FileGroup
 
 	// Discover provides discover handler.
@@ -86,7 +86,7 @@ func (c *Capability) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := c.TrigEngineStorage.Start(ctx); err != nil {
+	if err := c.TriggerStorage.Start(ctx); err != nil {
 		return err
 	}
 

@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -38,16 +38,16 @@ const (
 
 // NewActionRenderNodeDeployment get a new action.
 func NewActionRenderNodeDeployment(
-	storage nodedeployment.IDaoNodeDeployment,
-	iDaoHost topoStg.IDaoHost,
-	iDomainGseProxy topoStg.IDomainGse,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageHost topo.IStorageHost,
+	storageDomainGse topo.IStorageDomainGse,
 	logger logger.Logger) action.Definition {
 
 	return &actionRenderNodeDeployment{
-		iDaoNodeDeployment: storage,
-		iDaoHost:           iDaoHost,
-		IDomainGse:         iDomainGseProxy,
-		logger:             logger,
+		storageNodeDeployment: storageNodeDeployment,
+		storageHost:           storageHost,
+		storageDomainGse:      storageDomainGse,
+		logger:                logger,
 	}
 }
 
@@ -57,9 +57,9 @@ type RenderNodeDeploymentParam struct {
 }
 
 type actionRenderNodeDeployment struct {
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
-	iDaoHost           topoStg.IDaoHost
-	topoStg.IDomainGse
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageHost           topo.IStorageHost
+	storageDomainGse      topo.IStorageDomainGse
 
 	logger logger.Logger
 }
@@ -71,7 +71,7 @@ func (act *actionRenderNodeDeployment) Name() string {
 
 // Version returns the version of the action.
 func (act *actionRenderNodeDeployment) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -109,7 +109,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -120,14 +120,14 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	info.OperInstID = ctx.Data.OperationInstanceID
-	info.BlockingActionName = ActionNameWaitComplete
+	info.BlockingActionName = ActionNameWaitInstallComplete
 
-	if err := act.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.iDaoNodeDeployment.GetNodeConf(tenantCtx, param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeConf(tenantCtx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
@@ -157,7 +157,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := act.iDaoNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
@@ -165,7 +165,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 
-	if err := act.iDaoNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 
@@ -594,7 +594,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
-	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.IDomainGse.NeedStaticAccess(
+	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
 		ctx, host.Dynamic.NetworkUnitID)
 
 	if err != nil {
@@ -605,7 +605,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := act.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
@@ -619,7 +619,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-			clusters, files, datas, err := act.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
@@ -708,7 +708,7 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(conf *types.NodeConf,
 	return nil
 }
 func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
-	host, err := act.iDaoHost.GetHostByID(ctx, hostID)
+	host, err := act.storageHost.GetHostByID(ctx, hostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
 	}

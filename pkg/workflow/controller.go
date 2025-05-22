@@ -51,7 +51,7 @@ type ITriggerCtl interface {
 
 	// CreateOperation creates a new operation under trigger.
 	CreateOperation(
-		ctx context.Context, operationDef operation.Definition, param operation.OperationParam) (IOperationCtl, error)
+		ctx context.Context, operationDef operation.Definition, param operation.Param) (IOperationCtl, error)
 
 	// GetOperation returns the operation.
 	GetOperation(ctx context.Context, operationID string) (IOperationCtl, error)
@@ -92,7 +92,7 @@ type IOperationInstanceCtl interface {
 }
 
 // CreateTrigger creates a new trigger.
-func (m *manager) CreateTrigger(ctx context.Context, category trigger.Category, metadata trigger.Metadata) (
+func (mgr *manager) CreateTrigger(ctx context.Context, category trigger.Category, metadata trigger.Metadata) (
 	ITriggerCtl, error) {
 
 	trig := &trigger.Trigger{
@@ -104,25 +104,25 @@ func (m *manager) CreateTrigger(ctx context.Context, category trigger.Category, 
 		UpdatedAt: time.Now(),
 	}
 
-	if err := m.storage.CreateTrigger(ctx, trig); err != nil {
+	if err := mgr.storage.CreateTrigger(ctx, trig); err != nil {
 		return nil, err
 	}
 
 	return &controller{
-		mgr:  m,
+		mgr:  mgr,
 		trig: trig,
 	}, nil
 }
 
 // GetTrigger returns the trigger.
-func (m *manager) GetTrigger(ctx context.Context, triggerID string) (ITriggerCtl, error) {
-	trig, err := m.storage.GetTrigger(ctx, triggerID)
+func (mgr *manager) GetTrigger(ctx context.Context, triggerID string) (ITriggerCtl, error) {
+	trig, err := mgr.storage.GetTrigger(ctx, triggerID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &controller{
-		mgr:  m,
+		mgr:  mgr,
 		trig: trig,
 	}, nil
 }
@@ -159,7 +159,7 @@ func (ctl *controller) GetLastTriggeredAt() time.Time {
 
 // CreateOperation creates a new operation under trigger.
 func (ctl *controller) CreateOperation(
-	ctx context.Context, operationDef operation.Definition, param operation.OperationParam) (IOperationCtl, error) {
+	ctx context.Context, operationDef operation.Definition, param operation.Param) (IOperationCtl, error) {
 
 	ctl.mgr.logger.InfoCtxf(ctx, "try to create operation. trigger-id(%s), operation-name(%s), param(%v)",
 		ctl.trig.TriggerID, operationDef.Name(), param)
@@ -329,7 +329,9 @@ func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationI
 }
 
 // GetOperationInstance returns the operation instance.
-func (ctl *controller) GetOperationInstance(ctx context.Context, operationInstanceID string) (IOperationInstanceCtl, error) {
+func (ctl *controller) GetOperationInstance(
+	ctx context.Context, operationInstanceID string) (IOperationInstanceCtl, error) {
+
 	instanceBriefData, err := ctl.mgr.storage.GetOperationInstanceBriefData(ctx, operationInstanceID)
 	if err != nil {
 		return nil, err
@@ -358,7 +360,8 @@ func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
 	actionNames := ctl.oper.Definition.ActionDefNames()
 	if len(actionNames) == 0 {
 		return errors.Join(common.ErrNoActionTodo(),
-			fmt.Errorf("operation instance has no action. oper-inst-id(%s)", ctl.operInstanceBriefData.Metadata.OperationInstanceID))
+			fmt.Errorf("operation instance has no action. oper-inst-id(%s)",
+				ctl.operInstanceBriefData.Metadata.OperationInstanceID))
 	}
 
 	signatures := make([]*tasks.Signature, len(actionNames))
@@ -395,6 +398,6 @@ func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
 }
 
 // TerminateOperationInstance terminates the operation instance.
-func (ctl *controller) TerminateOperationInstance(ctx context.Context) error {
-	return fmt.Errorf("not implemented")
+func (ctl *controller) TerminateOperationInstance(_ context.Context) error {
+	return errors.New("not implemented")
 }

@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -29,15 +29,15 @@ const (
 
 // NewActionUpdateHost get a new action.
 func NewActionUpdateHost(
-	iDaoHost topoStg.IDaoHost,
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment,
+	storageHost topo.IStorageHost,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	logger logger.Logger,
 ) action.Definition {
 
 	return &actionUpdateHost{
-		iDaoHost:           iDaoHost,
-		iDaoNodeDeployment: iDaoNodeDeployment,
-		logger:             logger,
+		storageHost:           storageHost,
+		storageNodeDeployment: storageNodeDeployment,
+		logger:                logger,
 	}
 }
 
@@ -48,9 +48,9 @@ type UpdateHostParam struct {
 
 // UpdateHost ...
 type actionUpdateHost struct {
-	iDaoHost           topoStg.IDaoHost
-	iDaoNodeDeployment nodedeployment.IDaoNodeDeployment
-	logger             logger.Logger
+	storageHost           topo.IStorageHost
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	logger                logger.Logger
 }
 
 // Name returns the name of the action.
@@ -60,7 +60,7 @@ func (act *actionUpdateHost) Name() string {
 
 // Version returns the version of the action.
 func (act *actionUpdateHost) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -98,12 +98,12 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.iDaoNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}
 
-	err = act.iDaoHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
+	err = act.storageHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
 	if err != nil {
 		return fmt.Errorf("update host dynamic failed, err: %w", err)
 	}

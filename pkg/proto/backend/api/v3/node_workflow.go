@@ -63,32 +63,34 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 }
 
 // Validate check body.
-func (x *NodeWorkflowStatisticsReq) Validate() error {
-	if len(x.GetWorkflowId()) == 0 {
-		return errors.New("workflow_id is required")
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *NodeAgentInstallReq_Host) AutoConvert() {
-	if x.BkNetworkunitId == nil {
-		x.BkNetworkunitId = new(int64)
-		*x.BkNetworkunitId = -1
-	}
-}
-
-func (x *NodeWorkflowStatisticsReq) AutoConvert() {
-}
-
-// Validate check body.
 func (x *NodeWorkflowDistinctReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
 func (x *NodeWorkflowDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
+	return convertNodeWorkflowConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeWorkflowDistinctResp) ConvertResultFromTypes(result *types.NodeWorkflowDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &NodeWorkflowDistinctResp_Data{
+		Type:     formatRespSlice(types.NodeWorkflowTypeListToStringList(result.Type)),
+		BkBizId:  formatRespSlice(result.BizID),
+		Operator: formatRespSlice(result.Operator),
+		Status:   formatRespSlice(types.NodeWorkflowStatusListToStringList(result.Status)),
+	}
 }
 
 // Validate check body.

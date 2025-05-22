@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler networkunit handler interface.
-type Handler interface {
+// IHandler networkunit handler interface.
+type IHandler interface {
 	// Count counts networkunit by conditions.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 

@@ -22,6 +22,7 @@ import (
 	brokerRedis "github.com/RichardKnop/machinery/v2/brokers/redis"
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
 	machinerylog "github.com/RichardKnop/machinery/v2/log"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -69,13 +70,14 @@ func NewManager(workerNum int, storage IStorage, opts ...OptionsFunc) IManager {
 		opt(mgr)
 	}
 
+	mgr.triggerHandler = newTriggerHandler(mgr, mgr.globalLocker)
 	machinerylog.Set(newLoggerAdaptor(mgr.logger))
 
 	return mgr
 }
 
 // OptionsFunc is a function that configures manager.
-type OptionsFunc func(m *manager)
+type OptionsFunc func(mgr *manager)
 
 const (
 	redisMaxIdle                = 10
@@ -102,6 +104,13 @@ func WithRedis(address, password string, db int) OptionsFunc {
 
 		mgr.broker = brokerRedis.New(mgr.mConfig, address, password, "", db)
 		mgr.backend = backendRedis.New(mgr.mConfig, address, password, "", db)
+	}
+}
+
+// WithLocker sets the locker for the manager.
+func WithLocker(lock locker.MutexFactory) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.globalLocker = lock
 	}
 }
 
@@ -139,6 +148,8 @@ type manager struct {
 
 	logger logger.Logger
 
+	globalLocker locker.MutexFactory
+
 	registeredActionDefs map[string]action.Definition
 
 	launchWorkerErr chan error
@@ -158,6 +169,9 @@ func (mgr *manager) Start(ctx context.Context) error {
 	if err := mgr.initialize(); err != nil {
 		return err
 	}
+
+	// starts trigger handler.
+	mgr.triggerHandler.Start()
 
 	if mgr.WorkerNum > 0 {
 		if err := mgr.launchWorker(); err != nil {
@@ -254,6 +268,10 @@ func (mgr *manager) initialize() error {
 
 	if mgr.storage == nil {
 		return errors.New("storage is nil")
+	}
+
+	if mgr.globalLocker == nil {
+		return errors.New("global locker is nil")
 	}
 
 	// We don't need to use the periodic task of machinery, so there is no need to access the lock.

@@ -52,8 +52,8 @@ func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operInstallNodeBySSH) DefaultParameters() operation.OperationParam {
-	return operation.OperationParam{
+func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
+	return operation.Param{
 		Timeout:     10 * time.Minute,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}

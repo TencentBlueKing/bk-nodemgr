@@ -24,16 +24,16 @@ const (
 )
 
 // NewActionWaitInstallComplete get a new action.
-func NewActionWaitInstallComplete(storage workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
+func NewActionWaitInstallComplete(storageActionInstance workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
 	return &actionWaitInstallComplete{
-		storage: storage,
-		logger:  logger,
+		storageActionInstance: storageActionInstance,
+		logger:                logger,
 	}
 }
 
 type actionWaitInstallComplete struct {
-	storage workflow.IStorageActionInstance
-	logger  logger.Logger
+	storageActionInstance workflow.IStorageActionInstance
+	logger                logger.Logger
 }
 
 // Name returns the name of the action.
@@ -43,7 +43,7 @@ func (act *actionWaitInstallComplete) Name() string {
 
 // Version returns the version of the action.
 func (act *actionWaitInstallComplete) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -80,7 +80,7 @@ func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 		default:
 		}
 
-		lifecycle, err := act.storage.GetActionInstanceLifecycle(ctx.Ctx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+		lifecycle, err := act.storageActionInstance.GetActionInstanceLifecycle(ctx.Ctx, ctx.Data.OperationInstanceID, ctx.Data.Name)
 		if err != nil {
 			act.logger.Errorf("get action_inst_data lifecycle failed, err: %v", err)
 

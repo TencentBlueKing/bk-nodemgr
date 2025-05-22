@@ -63,11 +63,11 @@ type Storage struct {
 
 	daoHost host.IHandler
 
-	daoNetworkArea networkarea.Handler
+	daoNetworkArea networkarea.IHandler
 
-	daoNetworkUnit networkunit.Handler
+	daoNetworkUnit networkunit.IHandler
 
-	daoAccessPoint accesspoint.Handler
+	daoAccessPoint accesspoint.IHandler
 
 	daoTopoEvent topoevent.IHandler
 }
@@ -252,7 +252,7 @@ func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.
 
 	upstreamNetworkUnits, _, err := s.daoNetworkUnit.List(
 		ctx,
-		types.Page{Limit: 3},
+		types.UnlimitedPage(),
 		networkunit.WithNetworkUnitID(upstreamNetworkUnitIDs...))
 	if err != nil {
 		s.Logger.Errorf("failed to check networkunit links, failed to list upstream networkunit: %v", err.Error())
@@ -284,7 +284,8 @@ func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, 
 		if upstreamNetworkUnit.ID == link.NetworkUnitID {
 			// check networkarea.
 			if upstreamNetworkUnit.NetworkAreaID != link.NetworkAreaID {
-				return fmt.Errorf("upstream link networkarea not matched. networkarea-id(%d), networkunit-id(%d), accesspoint-id(%d)",
+				return fmt.Errorf("upstream link networkarea not matched. "+
+					"networkarea-id(%d), networkunit-id(%d), accesspoint-id(%d)",
 					link.NetworkAreaID, link.NetworkUnitID, link.AccessPointID)
 			}
 

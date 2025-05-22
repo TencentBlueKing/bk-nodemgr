@@ -69,7 +69,8 @@ type IStorageOperationInstance interface {
 
 	// ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
 	ListOperationInstanceBriefData(
-		ctx context.Context, page types.Page, triggerID string, states ...operation.State) ([]*operation.InstanceBriefData, error)
+		ctx context.Context, page types.Page, triggerID string, states ...operation.State) (
+		[]*operation.InstanceBriefData, error)
 
 	// CountOperationInstance counts operation instance.
 	CountOperationInstance(ctx context.Context, triggerID string, states ...operation.State) (int64, error)

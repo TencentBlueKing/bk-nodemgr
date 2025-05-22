@@ -608,6 +608,9 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
         }
       },
       "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."

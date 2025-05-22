@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -31,13 +31,13 @@ const (
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, topoStorage topoStg.IStorage,
+func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topo.IStorageBusiness,
 	logger logger.Logger) action.Definition {
 
 	return &actionSyncBusinessFromCMDB{
-		cmdbHandler: cmdbHandler,
-		topoStorage: topoStorage,
-		logger:      logger,
+		cmdbHandler:     cmdbHandler,
+		storageBusiness: storageBusiness,
+		logger:          logger,
 	}
 }
 
@@ -47,9 +47,9 @@ type SyncBizFromCMDBParam struct {
 }
 
 type actionSyncBusinessFromCMDB struct {
-	cmdbHandler cmdb.IHandler
-	topoStorage topoStg.IStorage
-	logger      logger.Logger
+	cmdbHandler     cmdb.IHandler
+	storageBusiness topo.IStorageBusiness
+	logger          logger.Logger
 }
 
 // Name returns the name of the action.
@@ -59,7 +59,7 @@ func (act *actionSyncBusinessFromCMDB) Name() string {
 
 // Version returns the version of the action.
 func (act *actionSyncBusinessFromCMDB) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
@@ -116,7 +116,7 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err = act.topoStorage.UpsertManyBusiness(tenantCtx, result.Items...); err != nil {
+	if err = act.storageBusiness.UpsertManyBusiness(tenantCtx, result.Items...); err != nil {
 		return err
 	}
 
