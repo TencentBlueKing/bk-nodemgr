@@ -27,12 +27,12 @@ import (
 const StorageName = "operation"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
 
-	s := &storage{
+	s := &Storage{
 		Storage: base.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
@@ -51,19 +51,19 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (St
 }
 
 // storage implements the Storage interface.
-type storage struct {
+type Storage struct {
 	base.Storage
 
 	daoOperation operation.IHandler
 }
 
-func (s *storage) initDao() error {
+func (s *Storage) initDao() error {
 	s.daoOperation = operation.New(s.Database, s.Logger)
 
 	return nil
 }
 
-func (s *storage) check() error {
+func (s *Storage) check() error {
 	if s.daoOperation == nil {
 		return errors.New("dao operation is nil")
 	}
@@ -72,7 +72,7 @@ func (s *storage) check() error {
 }
 
 // GetOperation ...
-func (s *storage) GetOperation(ctx context.Context, operationID string) (*workoper.Operation, error) {
+func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workoper.Operation, error) {
 	if ctx == nil {
 		return nil, base.ErrNilContent()
 	}
@@ -86,7 +86,7 @@ func (s *storage) GetOperation(ctx context.Context, operationID string) (*workop
 }
 
 // UpsertOperation ...
-func (s *storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) error {
+func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
@@ -98,8 +98,10 @@ func (s *storage) UpsertOperation(ctx context.Context, operation *workoper.Opera
 	return s.daoOperation.Upsert(ctx, operation)
 }
 
-// ListByTrigger lists operation by triggerid.
-func (s *storage) ListOperation(ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
+// ListOperation lists operation by triggerid.
+func (s *Storage) ListOperation(ctx context.Context, page types.Page, triggerID string) (
+	[]*workoper.Operation, int64, error) {
+
 	if ctx == nil {
 		return nil, 0, base.ErrNilContent()
 	}
@@ -116,7 +118,7 @@ func (s *storage) ListOperation(ctx context.Context, page types.Page, triggerID 
 }
 
 // ListEmptyOperation lists empty operation by triggerid.
-func (s *storage) ListEmptyOperation(
+func (s *Storage) ListEmptyOperation(
 	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
 
 	if ctx == nil {

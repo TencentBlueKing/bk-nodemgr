@@ -11,7 +11,10 @@
 // Package operinstdata ...
 package operinstdata
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 // OptFn option of find.
 type OptFn func(f bson.D) bson.D
@@ -29,7 +32,7 @@ func WithOperInstID(id ...string) OptFn {
 	}
 }
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
 	if len(triggerID) == 1 {
 		return func(f bson.D) bson.D {
@@ -39,5 +42,18 @@ func WithTriggerID(triggerID ...string) OptFn {
 
 	return func(f bson.D) bson.D {
 		return append(f, bson.E{Key: "data.trigger_id", Value: bson.M{"$in": triggerID}})
+	}
+}
+
+// WithState filter by state.
+func WithState(states ...operation.State) OptFn {
+	if len(states) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f, bson.E{Key: "data.life_cycle.state", Value: states[0]})
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: "data.life_cycle.state", Value: bson.M{"$in": states}})
 	}
 }
