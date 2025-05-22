@@ -19,8 +19,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -44,6 +44,9 @@ type Manager interface {
 
 	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
 	LaunchSyncBizAndHost(ctx context.Context) (string, error)
+
+	// LaunchSyncHostByBizID launch a task to sync host by biz-id. returns the trigger-id.
+	LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error)
 
 	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
 	LaunchSyncNetworkArea(ctx context.Context) (string, error)
@@ -92,7 +95,7 @@ type manager struct {
 	isRunning bool
 
 	workflowMgr           workflow.IManager
-	storageNodeDeployment nodedeployment.IDomainInit
+	storageNodeDeployment nodedeployment.IStorageDomainInit
 	storageNodeWorkflow   nodeworkflow.IStorage
 
 	// config
@@ -132,7 +135,7 @@ func (mgr *manager) CheckHealth() error {
 		return errors.New("manager is not running")
 	}
 
-	if err := mgr.conf.TopoStorage.CheckHealthz(); err != nil {
+	if err := mgr.conf.StorageTopo.CheckHealthz(); err != nil {
 		return fmt.Errorf("topo storage is unhealthy, err: %v", err)
 	}
 
@@ -180,29 +183,29 @@ func (mgr *manager) registerActionDefs() error {
 	}
 
 	return mgr.workflowMgr.RegisterActions(
-		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
-		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionGenOperSyncHost(mgr.conf.TopoStorage, mgr.workflowMgr),
+		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
+		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
+		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
+		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
 	)
 }
 
 func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionBindAgentHostRel(
-			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
+			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
-			mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
+			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
 		nodeinstall.NewActionWaitGseReady(
-			mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
+			mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionRenderNodeDeployment(
-			mgr.conf.NodeDeploymentStorage, mgr.conf.TopoStorage, mgr.conf.TopoStorage, mgr.logger),
+			mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
 		nodeinstall.NewActionUpsertHostToCMDB(
-			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage),
-		nodeinstall.NewActionWaitInstallComplete(mgr.conf.OperInstStorage, mgr.logger),
-		nodeinstall.NewActionUpdateHost(mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
+			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
+		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
+		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 	)
 }
 
@@ -226,6 +229,29 @@ func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 
 	mgr.logger.InfoCtxf(ctx, "launched sync biz and host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.SyncHostFromCMDBParam{TenantID: tenantID, BizID: bizID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync host task. tenant-id(%s), biz-id(%d), trigger-id(%s), operation-id(%s)",
+		tenantID, bizID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
 	return triggerCtl.GetTriggerID(), nil
 }

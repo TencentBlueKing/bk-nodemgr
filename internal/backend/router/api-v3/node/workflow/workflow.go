@@ -36,7 +36,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/workflow"),
-		storageNodeWorkflow: capability.NodeWorkflowStorage,
+		storageNodeWorkflow: capability.StorageNodeWorkflow,
 		logger:              capability.Logger,
 	}
 }

@@ -34,7 +34,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:          rg.Group("/topo"),
 		manager:     capability.Manager,
-		storage:     capability.TopoStorage,
+		storage:     capability.StorageTopo,
 		cmdbHandler: capability.CmdbHandler,
 		logger:      capability.Logger,
 	}

@@ -15,7 +15,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -35,17 +35,17 @@ import (
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
-	// TopoStorage bk nodeman topo storage.
-	TopoStorage topoStg.IStorage
+	// StorageTopo topo storage.
+	StorageTopo topoStg.IStorage
 
-	// OperInstStorage bk nodeman operation_inst storage.
-	OperInstStorage operinstdataStorage.IStorage
+	// StorageOperInst operation_inst storage.
+	StorageOperInst operinstdataStorage.IStorage
 
-	// OperStorage bk nodeman operation storage.
-	OperStorage operation.Storage
+	// StorageOperation operation storage.
+	StorageOperation operation.Storage
 
-	// NodeDeploymentStorage bk nodeman node deployment storage.
-	NodeDeploymentStorage nodedeployment.IStorage
+	// StorageNodeDeployment node deployment storage.
+	StorageNodeDeployment nodedeployment.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -166,10 +166,10 @@ func testCapability(t *testing.T) *Capability {
 	}
 
 	capability := &Capability{
-		TopoStorage:           topoStorage,
-		OperInstStorage:       operInstStorage,
-		OperStorage:           nil,
-		NodeDeploymentStorage: deploymentStorage,
+		StorageTopo:           topoStorage,
+		StorageOperInst:       operInstStorage,
+		StorageOperation:      nil,
+		StorageNodeDeployment: deploymentStorage,
 		CmdbHandler:           cmdbHandler,
 		GseHandler:            gseHandler,
 		Logger:                loggerDefault,

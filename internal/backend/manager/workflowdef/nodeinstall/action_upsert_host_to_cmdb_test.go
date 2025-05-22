@@ -46,8 +46,8 @@ func (suite *TestSuite) TestUpsertHost() {
 		suite.Run(tt.name, func() {
 			action := NewActionUpsertHostToCMDB(
 				suite.capability.CmdbHandler,
-				suite.capability.TopoStorage,
-				suite.capability.NodeDeploymentStorage,
+				suite.capability.StorageTopo,
+				suite.capability.StorageNodeDeployment,
 			)
 			err := action.Do(tt.args.ctx)
 			suite.Require().NoError(err, "failed to execute action")

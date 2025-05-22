@@ -139,7 +139,7 @@ func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.No
 
 // DistinctNodeWorkflow distincts node workflow fields.
 func (s *Storage) DistinctNodeWorkflow(
-	ctx context.Context, request *types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
 	return nil, nil

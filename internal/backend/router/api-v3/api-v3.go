@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/workflow"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +37,6 @@ func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg)
 
 	sync.Load(h.rg, cap)
-	workflow.Load(h.rg, cap)
 	node.Load(h.rg, cap)
 	topo.Load(h.rg, cap)
 }

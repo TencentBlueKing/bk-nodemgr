@@ -86,9 +86,9 @@ func (suite *TestSuite) TestRenderNodeInstallConfig_Do() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			action := NewActionRenderNodeDeployment(
-				suite.capability.NodeDeploymentStorage,
-				suite.capability.TopoStorage,
-				suite.capability.TopoStorage,
+				suite.capability.StorageNodeDeployment,
+				suite.capability.StorageTopo,
+				suite.capability.StorageTopo,
 				suite.capability.Logger,
 			)
 			err := action.Do(tt.args.ctx)

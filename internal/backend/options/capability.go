@@ -22,7 +22,7 @@ import (
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -36,23 +36,23 @@ type Capability struct {
 	// Manager workflow management.
 	Manager manager.Manager
 
-	// TopoStorage topo storage.
-	TopoStorage topoStg.IStorage
+	// StorageTopo topo storage.
+	StorageTopo topo.IStorage
 
-	// TriggerStorage trigger storage.
-	TriggerStorage trigger.IStorage
+	// StorageTrigger trigger storage.
+	StorageTrigger trigger.IStorage
 
-	// OperInstStorage operation_inst storage.
-	OperInstStorage operinstdataStorage.IStorage
+	// StorageOperInst operation_inst storage.
+	StorageOperInst operinstdataStorage.IStorage
 
-	// OperStorage operation storage.
-	OperStorage operation.Storage
+	// StorageOperation operation storage.
+	StorageOperation operation.Storage
 
-	// NodeDeploymentStorage node deployment storage.
-	NodeDeploymentStorage nodedeployment.IStorage
+	// StorageNodeDeployment node deployment storage.
+	StorageNodeDeployment nodedeployment.IStorage
 
-	// NodeWorkflowStorage node workflow storage.
-	NodeWorkflowStorage nodeworkflow.IStorage
+	// StorageNodeWorkflow node workflow storage.
+	StorageNodeWorkflow nodeworkflow.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -82,27 +82,27 @@ func (c *Capability) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := c.TopoStorage.Start(ctx); err != nil {
+	if err := c.StorageTopo.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.TriggerStorage.Start(ctx); err != nil {
+	if err := c.StorageTrigger.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.OperInstStorage.Start(ctx); err != nil {
+	if err := c.StorageOperInst.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.OperStorage.Start(ctx); err != nil {
+	if err := c.StorageOperation.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.NodeDeploymentStorage.Start(ctx); err != nil {
+	if err := c.StorageNodeDeployment.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.NodeWorkflowStorage.Start(ctx); err != nil {
+	if err := c.StorageNodeWorkflow.Start(ctx); err != nil {
 		return err
 	}
 

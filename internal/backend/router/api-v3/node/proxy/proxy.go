@@ -8,37 +8,46 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package operation defines the operation apis.
-package operation
+// Package agent defines the agent apis.
+package proxy
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.Manager
-	logger  logger.Logger
+	rg                              *gin.RouterGroup
+	manager                         manager.Manager
+	storageNetworkUnit              topo.IStorageNetworkUnit
+	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
+	logger                          logger.Logger
+	crypter                         crypter.Crypter
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/operation"),
-		manager: capability.Manager,
-		logger:  capability.Logger,
+		rg:                              rg.Group("/proxy"),
+		manager:                         capability.Manager,
+		storageNetworkUnit:              capability.StorageTopo,
+		storageNodeDeploymentDomainInit: capability.StorageNodeDeployment,
+		logger:                          capability.Logger,
+		crypter:                         capability.Crypter,
 	}
 }
 
-// Load load operation handler.
+// Load load agent handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/get", rest.RestHandlerFunc(h.GetOperationInfo))
+	h.rg.POST("/install", rest.RestHandlerFunc(h.ProxyInstall))
 }

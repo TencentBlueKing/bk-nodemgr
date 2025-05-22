@@ -13,7 +13,6 @@ package watcher
 
 import (
 	"context"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"sync"
 	"time"
 
@@ -22,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -35,7 +33,7 @@ const (
 // Config defines the configuration of watcher.
 type Config struct {
 	CmdbHandler cmdb.IHandler
-	TopoStorage topoStg.IStorage
+	StorageTopo topoStg.IStorage
 	Manager     manager.Manager
 }
 
@@ -117,7 +115,7 @@ func (w *Watcher) collectEvents(ctx context.Context, hostChannel <-chan *types.C
 			// Only handle update events which do not involve changes in biz IDs
 			case types.ChangeTypeUpdate:
 				w.logger.Infof("update host event: %v", event)
-				host, err := w.conf.TopoStorage.GetHostByID(ctx, event.Detail.HostID)
+				host, err := w.conf.StorageTopo.GetHostByID(ctx, event.Detail.HostID)
 				if err != nil {
 					w.logger.Errorf("get host by id failed, error: %v", err)
 					continue
@@ -150,11 +148,6 @@ func (w *Watcher) collectEvents(ctx context.Context, hostChannel <-chan *types.C
 
 // registerHandleEventTask registers the handle event task.
 func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		w.logger.Errorf("failed to get tenant id from context: %v", err)
-		return err
-	}
 
 	w.scheduler.RegisterTask(&scheduler.Task{
 		ID:       HandleResourceEvent,
@@ -168,17 +161,13 @@ func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
 			w.mu.Unlock()
 
 			for _, bizID := range bizSet {
-				triggerID, err := w.conf.Manager.Execute(ctx, &syncdata.OperSyncHost{
-					TenantID: tenantID,
-					BizID:    bizID,
-				})
-
+				triggerID, err := w.conf.Manager.LaunchSyncHostByBizID(ctx, bizID)
 				if err != nil {
-					w.logger.Errorf("failed to start sync cmdb host operation, biz id: %v, err: %v", bizID, err)
+					w.logger.Errorf("failed to launch sync host. biz-id(%d), err(%v)", bizID, err)
 					continue
 				}
 
-				w.logger.Infof("start sync cmdb host operation, trigger id: %s, biz id: %d", triggerID, bizID)
+				w.logger.Infof("start sync cmdb host operation. trigger-id(%s), biz-id(%d)", triggerID, bizID)
 			}
 
 			return nil

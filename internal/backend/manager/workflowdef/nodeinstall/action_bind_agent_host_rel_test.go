@@ -57,7 +57,7 @@ func TestBindAgentHostRel_Do(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			action := NewActionBindAgentHostRel(
 				capability.CmdbHandler,
-				capability.TopoStorage,
+				capability.StorageTopo,
 				capability.NodeDeploymentStorage,
 				capability.Logger)
 			if err := action.Do(tt.args.ctx); (err != nil) != tt.wantErr {

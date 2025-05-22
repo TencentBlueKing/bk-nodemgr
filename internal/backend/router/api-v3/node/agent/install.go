@@ -74,14 +74,16 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
+func (h *handler) generatesDeploys(
+	tenantCtx context.Context,
+	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host) (*types.NodeDeployment, error) {
 
 	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost)
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, err
 	}
 
 	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
@@ -91,7 +93,7 @@ func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, err
 		}
 	case types.LoginModePassword:
 		nodeDeployment.Info.LoginMode = types.LoginModePassword
@@ -99,7 +101,7 @@ func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, err
 		}
 	case types.LoginModeNone:
 		nodeDeployment.Info.LoginMode = types.LoginModeNone
@@ -107,7 +109,7 @@ func (h *handler) generatesDeploys(tenantCtx context.Context, tenantID string,
 		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, err
 	}
 
 	return nodeDeployment, nil

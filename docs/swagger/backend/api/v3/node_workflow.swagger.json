@@ -559,10 +559,7 @@
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "type": "string"
         }
       }
     },

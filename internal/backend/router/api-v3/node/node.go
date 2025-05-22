@@ -14,9 +14,8 @@ package node
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/agent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow/agent"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/nodeworkflow/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )

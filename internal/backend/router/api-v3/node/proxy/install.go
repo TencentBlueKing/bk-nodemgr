@@ -13,10 +13,12 @@ package proxy
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -25,83 +27,61 @@ const DefaultNodeGeneration = 2
 
 // ProxyInstall install proxy.
 func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
-	req := new(protoBackend.NodeProxyInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Error("bind json failed", err)
-
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to install proxy, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	tenantCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Error("get tenant context failed", err)
-
+	req := new(protoBackend.NodeProxyInstallReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install proxy, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	hosts := req.GetHost()
-	resp := &protoBackend.NodeProxyInstallResp_Data{
-		WorkflowId: make([]string, len(hosts)),
-	}
-
+	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
+	bizIDs := make(map[int64]struct{})
 	for idx := range hosts {
 		reqHost := hosts[idx]
 
-		// push workflow
-		triggerID, err := h.pushWorkflow(tenantCtx, ctx.TenantID, reqHost)
+		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
-			return nil, err
+			h.logger.Error("failed to install proxy, failed to generate node deployment. err: %v", err)
+
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
 
-		resp.WorkflowId[idx] = triggerID
+		nodeDeploys[idx] = nodeDeploy
+		bizIDs[reqHost.GetBkBizId()] = struct{}{}
 	}
+
+	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
+		Type:            types.NodeWorkflowTypeInstallProxy,
+		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
+		Operator:        ctx.Username,
+		NodeDeployments: nodeDeploys,
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install proxy: %v", err)
+		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeProxyInstallResp)
+	resp.ConvertWorkflowID(workflowID)
 
 	return resp, nil
 }
 
-func (h *handler) pushWorkflow(
-	tenantCtx context.Context,
-	tenantID string,
-	req *protoBackend.NodeProxyInstallReq_Host,
-) (string, error) {
-
-	nodeDeployment, err := h.convNodeProxyInstallReqToNodeDeployment(tenantCtx, tenantID, req)
-	if err != nil {
-		h.logger.Error("convert req to node deployment failed", err)
-
-		return "", errf.ErrWrap(errf.Aborted, err)
-	}
-
-	if err := h.iDaoNodeDeployment.Create(tenantCtx, nodeDeployment); err != nil {
-		h.logger.Error("create node deployment failed", err)
-
-		return "", errf.ErrWrap(errf.Aborted, err)
-	}
-
-	triggerID, err := h.manager.Execute(
-		tenantCtx,
-		&nodeinstall.OperInstallNodeBySSH{
-			Token: nodeDeployment.Token,
-		})
-
-	if err != nil {
-		h.logger.Error("execute operation failed", err)
-
-		return "", errf.ErrWrap(errf.Aborted, err)
-	}
-
-	return triggerID, nil
-}
-
-func (h *handler) convNodeProxyInstallReqToNodeDeployment(
+func (h *handler) generatesDeploys(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeProxyInstallReq_Host,
 ) (*types.NodeDeployment, error) {
 
-	networkUnit, err := h.iDaoNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
+	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
 	if err != nil {
-		return nil, fmt.Errorf("get network unit failed, err: %w", err)
+		return nil, err
 	}
 
 	nodeDeployment := types.NewNodeDeployment(
@@ -136,7 +116,7 @@ func (h *handler) convNodeProxyInstallReqToNodeDeployment(
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, err
 		}
 	case types.LoginModePassword:
 		nodeDeployment.Info.LoginMode = types.LoginModePassword
@@ -144,7 +124,7 @@ func (h *handler) convNodeProxyInstallReqToNodeDeployment(
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, err
 		}
 	case types.LoginModeNone:
 		nodeDeployment.Info.LoginMode = types.LoginModeNone
@@ -152,7 +132,7 @@ func (h *handler) convNodeProxyInstallReqToNodeDeployment(
 		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, err
 	}
 
 	return nodeDeployment, nil
