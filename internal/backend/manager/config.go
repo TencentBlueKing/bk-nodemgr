@@ -38,7 +38,7 @@ type Config struct {
 
 	StorageTopo           topo.IStorage
 	StorageNodeDeployment nodedeployment.IStorage
-	StorageOperation      operation.Storage
+	StorageOperation      operation.IStorage
 	StorageOperInst       operinstdata.IStorage
 
 	Crypter crypter.Crypter

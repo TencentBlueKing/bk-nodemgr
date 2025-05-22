@@ -204,15 +204,15 @@ func convertOperationToDB(bizOp *operation.Operation) *Operation {
 	return opera
 }
 
-func convertParamFromDB(param Parameters) operation.OperationParam {
-	return operation.OperationParam{
+func convertParamFromDB(param Parameters) operation.Param {
+	return operation.Param{
 		ParentOperationID: param.ParentOperationID,
 		Timeout:           param.Timeout,
 		InitContent:       param.InitContent,
 	}
 }
 
-func convertParamToDB(param operation.OperationParam) Parameters {
+func convertParamToDB(param operation.Param) Parameters {
 	return Parameters{
 		ParentOperationID: param.ParentOperationID,
 		Timeout:           param.Timeout,

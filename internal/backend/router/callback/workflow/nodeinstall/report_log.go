@@ -17,7 +17,7 @@ import (
 	"time"
 
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,15 +46,15 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		return
 	}
 
-	logs := make([]operengine.Message, len(req.Logs))
+	logs := make([]action.Message, len(req.Logs))
 	for idx, log := range req.Logs {
-		logs[idx] = operengine.Message{
+		logs[idx] = action.Message{
 			Time: time.Unix(log.Timestamp, 0),
 			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t[%s]", log.Level, log.Step, log.Log, log.Status),
 		}
 	}
 
-	err = h.PushActInstMsgs(gCtx, info.OperInstID, info.BlockingActionName, logs...)
+	err = h.PushActionInstanceMessage(gCtx, info.OperInstID, info.BlockingActionName, logs...)
 	if err != nil {
 		h.logger.Errorf("report log failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

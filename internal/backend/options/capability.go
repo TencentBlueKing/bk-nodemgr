@@ -46,7 +46,7 @@ type Capability struct {
 	StorageOperInst operinstdataStorage.IStorage
 
 	// StorageOperation operation storage.
-	StorageOperation operation.Storage
+	StorageOperation operation.IStorage
 
 	// StorageNodeDeployment node deployment storage.
 	StorageNodeDeployment nodedeployment.IStorage
