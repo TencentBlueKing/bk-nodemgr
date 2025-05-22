@@ -180,6 +180,10 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 		return errors.New("lifecycle is nil")
 	}
 
+	if err := s.existsAction(ctx, operationInstanceID, actionName); err != nil {
+		return err
+	}
+
 	if err := s.operinstdataDao.UpdateActInstLifecycle(ctx, operationInstanceID, actionName, lifecycle); err != nil {
 		return err
 	}
@@ -205,6 +209,10 @@ func (s *Storage) PushActionInstanceMessage(
 
 	if len(messages) == 0 {
 		return nil
+	}
+
+	if err := s.existsAction(ctx, operationInstanceID, actionName); err != nil {
+		return err
 	}
 
 	for _, msg := range messages {
@@ -430,7 +438,7 @@ func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 	return nil
 }
 
-// TODO: 此处有坑，需要重新测试
+// processStoppingEvents ...
 func (s *Storage) processStoppingEvents(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -504,9 +512,30 @@ func (s *Storage) UpdateActionInstContent(ctx context.Context, operInstID string
 		return errors.New("content is empty")
 	}
 
+	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
+		return err
+	}
+
 	if err := s.operinstdataDao.UpdateActionInstContent(ctx, operInstID, actionName, content); err != nil {
 		return fmt.Errorf("update action instance content failed, err(%v)", err)
 	}
 
 	return nil
+}
+
+func (s *Storage) existsAction(ctx context.Context, operInstID string, actionName string) error {
+	operation, err := s.operinstdataDao.FindOneWithoutActionData(ctx, operinstdata.WithOperInstID(operInstID))
+	if err != nil {
+		return err
+	}
+	if operation == nil {
+		return errors.New("no found operation")
+	}
+
+	for _, act := range operation.Metadata.ActionNames {
+		if act == actionName {
+			return nil
+		}
+	}
+	return errors.New("no found action")
 }
