@@ -13,13 +13,14 @@ package operinstdata
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
 // IStorage defines the Storage interface.
 type IStorage interface {
 	base.Interface
-	operengine.OperInstStorage
+	workflow.IStorageActionInstance
+	workflow.IStorageOperationInstance
 
 	IDomainNodeInstall
 }

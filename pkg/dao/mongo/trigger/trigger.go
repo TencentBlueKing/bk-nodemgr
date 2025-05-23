@@ -21,70 +21,69 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{client: client.Collection(TableName), logger: logger}
+func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
+
+	d.IOrm = base.NewOrm[*Trigger, Trigger](d)
+
+	return d
 }
 
 type dao struct {
-	client *mongo.Collection
-	logger logger.Logger
+	client    *mongo.Collection
+	tableName string
+	logger    logger.Logger
+	base.IOrm[*Trigger, Trigger]
 }
 
-// upsert updates or inserts a trigger.
-func (d *dao) upsert(ctx context.Context, trigger *Trigger) error {
-	filter, upsert, opts := buildUpsertParams(trigger)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: FieldKeyTriggerID, Value: 1}},
+			Options: mongoOptions.Index(),
+		},
+	}
+
+	return indexes
+}
+
+func (d *dao) update(ctx context.Context, trig *Trigger) error {
+	filter := WithTriggerID(trig.TriggerID)(base.AliveFilter())
+
+	result, err := d.client.UpdateOne(ctx, filter, base.BuildUpsertParam(trig), mongoOptions.Update())
 	if err != nil {
 		return err
 	}
 
 	switch {
-	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("successfully upserted trigger, unique-key(%s)", trigger.UniqueKey())
-		}
 	case result.MatchedCount > 0:
 		{
-			d.logger.Infof("successfully updated trigger, unique-key(%s)", trigger.UniqueKey())
+			d.logger.Infof("successfully updated trigger, unique-key(%s)", trig.UniqueKey())
 		}
 	default:
-		d.logger.Warnf("try to upsert trigger but no changes made, unique-key(%s", trigger.UniqueKey())
+		d.logger.Warnf("try to update trigger but no changes made, unique-key(%s", trig.UniqueKey())
 	}
 
 	return nil
-}
-
-// buildUpsertParams build update params.
-func buildUpsertParams(trigger *Trigger) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
-	// update trigger by trigger_id.
-	filter := bson.D{{Key: "data.trigger_id", Value: trigger.TriggerID}}
-
-	// insert as creation or update data only.
-	update := base.BuildUpsertParam(trigger)
-
-	// do upsert.
-	opts := mongoOptions.Update().SetUpsert(true)
-
-	return filter, update, opts
-}
-
-// find all trigger.
-func (d *dao) find(ctx context.Context, filter bson.D) ([]*Trigger, error) {
-	result, err := d.client.Find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	triggers := make([]*Trigger, 0)
-	for result.Next(ctx) {
-		table := &TableTrigger{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode trigger, err %v", err)
-
-			continue
-		}
-		triggers = append(triggers, table.Data)
-	}
-
-	return triggers, nil
 }

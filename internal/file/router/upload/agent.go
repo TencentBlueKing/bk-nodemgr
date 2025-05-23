@@ -25,7 +25,7 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 	req := new(protoFile.UploadAgentReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
-		h.logger.Error("parse file form failed", err)
+		h.logger.Errorf("parse file form failed", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}

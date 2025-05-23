@@ -14,17 +14,21 @@ package trigger
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// testClient ...
-func testClient(t *testing.T) Handler {
+// testClient creates a client for test.
+func testClient(t *testing.T) IHandler {
 	err := godotenv.Load(".env")
 	if err != nil {
 		t.Fatal(err)
@@ -52,10 +56,22 @@ func testClient(t *testing.T) Handler {
 	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
 }
 
-// Test_handler_Upsert ...
-func Test_handler_Upsert(t *testing.T) {
+var globalTrigger *trigger.Trigger
+
+// Test_handler_Create tests handler Create.
+func Test_handler_Create(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
 	type args struct {
-		trigger *trigengine.Trigger
+		ctx  context.Context
+		trig *trigger.Trigger
+	}
+
+	globalTrigger = &trigger.Trigger{
+		TriggerID: identifier.GenTriggerID(),
+		Category:  trigger.CategoryOnce,
+		Metadata:  &trigger.MetadataOnce{},
+		State:     trigger.StateInit,
 	}
 
 	tests := []struct {
@@ -66,20 +82,191 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				trigger: &trigengine.Trigger{
-					TriggerID: "trigger-base",
-					Category:  trigengine.CategoryPeriodic,
-					MetadataPeriodic: trigengine.MetadataPeriodic{
-						IntervalSecond: 10,
+				ctx:  ctx,
+				trig: globalTrigger,
+			},
+			wantErr: false,
+		},
+		{
+			name: "nil ctx",
+			args: args{
+				ctx: nil,
+				trig: &trigger.Trigger{
+					TriggerID: "trigger-nil-ctx",
+					Category:  trigger.CategoryOnce,
+					Metadata:  &trigger.MetadataOnce{},
+					State:     trigger.StateInit,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil trigger",
+			args: args{
+				ctx:  ctx,
+				trig: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid category",
+			args: args{
+				ctx: ctx,
+				trig: &trigger.Trigger{
+					TriggerID: "trigger-invalid-category",
+					Category:  "test",
+					Metadata:  &trigger.MetadataOnce{},
+					State:     trigger.StateInit,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "mismatch metadata",
+			args: args{
+				ctx: ctx,
+				trig: &trigger.Trigger{
+					TriggerID: "trigger-invalid-state",
+					Category:  trigger.CategoryOnce,
+					Metadata:  &trigger.MetadataOrdered{},
+					State:     trigger.StateInit,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid state",
+			args: args{
+				ctx: ctx,
+				trig: &trigger.Trigger{
+					TriggerID: "trigger-invalid-state",
+					Category:  trigger.CategoryOnce,
+					Metadata:  &trigger.MetadataOnce{},
+					State:     "test",
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.Create(tt.args.ctx, tt.args.trig); (err != nil) != tt.wantErr {
+				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Test_handler_Get tests handler Get.
+func Test_handler_Get(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	type args struct {
+		ctx         context.Context
+		wantTrigger *trigger.Trigger
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx:         ctx,
+				wantTrigger: globalTrigger,
+			},
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			args: args{
+				ctx:         ctx,
+				wantTrigger: &trigger.Trigger{TriggerID: "not-found"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil ctx",
+			args: args{
+				ctx:         nil,
+				wantTrigger: globalTrigger,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			trig, err := h.Get(tt.args.ctx, tt.args.wantTrigger.TriggerID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err == nil {
+				if !reflect.DeepEqual(trig, tt.args.wantTrigger) {
+					t.Errorf("Get() error, got %v, want %v", trig, tt.args.wantTrigger)
+					return
+				}
+			}
+		})
+	}
+}
+
+// Test_handler_Update tests handler Update.
+func Test_handler_Update(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	type args struct {
+		ctx     context.Context
+		trigger *trigger.Trigger
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "base",
+			args: args{
+				ctx: ctx,
+				trigger: &trigger.Trigger{
+					TriggerID: globalTrigger.TriggerID,
+					Category:  trigger.CategoryOrdered,
+					Metadata: &trigger.MetadataOrdered{
+						MaxConcurrencyNum: 10,
 					},
-					State: trigengine.StateInit,
+					State: trigger.StateRunning,
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "upsert nil",
+			name: "nil ctx",
 			args: args{
+				ctx:     nil,
+				trigger: globalTrigger,
+			},
+			wantErr: true,
+		},
+		{
+			name: "not exist trigger",
+			args: args{
+				ctx:     ctx,
+				trigger: &trigger.Trigger{TriggerID: "not-exist"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil trigger",
+			args: args{
+				ctx:     ctx,
 				trigger: nil,
 			},
 			wantErr: true,
@@ -87,27 +274,38 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				trigger: &trigengine.Trigger{
-					TriggerID: "trigger-invalid-category",
+				ctx: ctx,
+				trigger: &trigger.Trigger{
+					TriggerID: globalTrigger.TriggerID,
 					Category:  "test",
-					MetadataPeriodic: trigengine.MetadataPeriodic{
-						IntervalSecond: 10,
-					},
-					State: trigengine.StateInit,
+					Metadata:  &trigger.MetadataOnce{},
+					State:     trigger.StateInit,
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid status",
+			name: "mismatch metadata",
 			args: args{
-				trigger: &trigengine.Trigger{
-					TriggerID: "trigger-invalid-status",
-					Category:  trigengine.CategoryPeriodic,
-					MetadataPeriodic: trigengine.MetadataPeriodic{
-						IntervalSecond: -1,
-					},
-					State: trigengine.StateInit,
+				ctx: ctx,
+				trigger: &trigger.Trigger{
+					TriggerID: globalTrigger.TriggerID,
+					Category:  trigger.CategoryOnce,
+					Metadata:  &trigger.MetadataOrdered{},
+					State:     trigger.StateInit,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid state",
+			args: args{
+				ctx: ctx,
+				trigger: &trigger.Trigger{
+					TriggerID: globalTrigger.TriggerID,
+					Category:  trigger.CategoryOnce,
+					Metadata:  &trigger.MetadataOnce{},
+					State:     "test",
 				},
 			},
 			wantErr: true,
@@ -117,36 +315,88 @@ func Test_handler_Upsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.Upsert(context.Background(), tt.args.trigger); (err != nil) != tt.wantErr {
-				t.Errorf("Upsert() error = %v, wantErr %v", err, tt.wantErr)
+			err := h.Update(tt.args.ctx, tt.args.trigger)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err == nil {
+				got, err := h.Get(tt.args.ctx, tt.args.trigger.TriggerID)
+				if err != nil {
+					t.Errorf("Update() error, got %v, want %v", got, tt.args.trigger)
+					return
+				}
+
+				if !reflect.DeepEqual(got, tt.args.trigger) {
+					t.Errorf("Update() error, got %v, want %v", got, tt.args.trigger)
+					return
+				}
 			}
 		})
 	}
 }
 
-// Test_handler_ListAll ...
-func Test_handler_ListAll(t *testing.T) {
+// Test_handler_List tests handler List.
+func Test_handler_List(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	type args struct {
+		ctx   context.Context
+		page  types.Page
+		optFn []OptFn
+	}
+
 	tests := []struct {
-		name    string
-		wantErr bool
+		name      string
+		args      args
+		wantTotal int64
+		wantNum   int
+		wantErr   bool
 	}{
 		{
-			name:    "base",
-			wantErr: false,
+			name: "nil ctx",
+			args: args{
+				ctx:   nil,
+				page:  types.Page{Limit: 10},
+				optFn: nil,
+			},
+			wantTotal: -1,
+			wantNum:   -1,
+			wantErr:   true,
+		},
+		{
+			name: "base",
+			args: args{
+				ctx:   ctx,
+				page:  types.Page{Limit: 1},
+				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithState(trigger.StateRunning)},
+			},
+			wantTotal: -1,
+			wantNum:   1,
+			wantErr:   false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.FindAll(context.Background())
+			got, total, err := h.List(tt.args.ctx, tt.args.page, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("FindAll() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			for _, v := range got {
-				t.Logf("got: %#v", v)
+			if err != nil {
+				return
+			}
+
+			if tt.wantTotal >= 0 && total != tt.wantTotal {
+				t.Errorf("List() total = %v, want %v", total, tt.wantTotal)
+			}
+
+			if tt.wantNum >= 0 && len(got) != tt.wantNum {
+				t.Errorf("List() num = %v, want %v", len(got), tt.wantNum)
 			}
 		})
 	}

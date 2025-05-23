@@ -25,4 +25,10 @@ const (
 
 	// FieldKeyExecuteUser is the key for execute user.
 	FieldKeyExecuteUser = "data.execute_user"
+
+	// FieldKeyOperator is the key for operator.
+	FieldKeyOperator = "data.operator"
+
+	// FieldKeyOperateTime the operate time field key.
+	FieldKeyOperateTime = "data.operate_time"
 )

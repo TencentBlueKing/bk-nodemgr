@@ -11,32 +11,42 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncHost sync specific biz's host from cmdb.
-const OperDefNameSyncHost = "oper_def_sync_host"
+// OperDefNameSyncHost defines the operation def name.
+const OperDefNameSyncHost = "sync_host_from_cmdb"
 
-// OperSyncHost the params of OperSyncHost.
-type OperSyncHost struct {
-	TenantID string `json:"tenant_id"`
-	BizID    int64  `json:"biz_id"`
-}
-
-// OperDef the operdef of OperSyncHost.
-func (oper *OperSyncHost) OperDef() operengine.OperDefSnapshot {
-	return operengine.OperDefSnapshot{
-		OperDefName: OperDefNameSyncHost,
-		ActionNames: []string{ActionNameSyncHostFromCMDB},
+// NewOperSyncHostFromCMDB new an operation.
+func NewOperSyncHostFromCMDB(param SyncHostFromCMDBParam) operation.Definition {
+	return &operSyncHostFromCMDB{
+		param: param,
 	}
 }
 
-// Param the param of OperSyncHost.
-func (oper *OperSyncHost) Param() operengine.OperInstParam {
-	return operengine.OperInstParam{
-		Timeout:     10 * time.Minute, // nolint: mnd
-		InitContent: conv.StructToMapIgnoreError(oper),
+type operSyncHostFromCMDB struct {
+	param SyncHostFromCMDBParam
+}
+
+// Name returns the name.
+func (oper *operSyncHostFromCMDB) Name() string {
+	return OperDefNameSyncHost
+}
+
+// ActionDefNames returns the action def names.
+func (oper *operSyncHostFromCMDB) ActionDefNames() []string {
+	return []string{
+		ActionNameSyncHostFromCMDB,
+	}
+}
+
+// DefaultParameters returns the default parameters.
+func (oper *operSyncHostFromCMDB) DefaultParameters() operation.Param {
+	return operation.Param{
+		Timeout:     10 * time.Minute, // nolint:mnd
+		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

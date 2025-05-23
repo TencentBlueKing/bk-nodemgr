@@ -12,48 +12,24 @@
 package trigger
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// OptFn option of find.
-type OptFn func(f bson.D) bson.D
+// OptFn provides filtering options.
+type OptFn = base.OptFn
 
-// WithStatus filters by status
-func WithStatus(states ...trigengine.State) OptFn {
-	if len(states) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.state", Value: states[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.state", Value: bson.M{"$in": states}})
-	}
+// WithState filters by state.
+func WithState(states ...trigger.State) OptFn {
+	return base.WithStringValues(FieldKeyState, trigger.StateListToStringList(states)...)
 }
 
-// WithCategory filter by category
-func WithCategory(category ...trigengine.Category) OptFn {
-	if len(category) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.category", Value: category[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.category", Value: bson.M{"$in": category}})
-	}
+// WithCategory filter by category.
+func WithCategory(category ...trigger.Category) OptFn {
+	return base.WithStringValues(FieldKeyCategory, trigger.CategoryListToStringList(category)...)
 }
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	if len(triggerID) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.trigger_id", Value: triggerID[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.trigger_id", Value: bson.M{"$in": triggerID}})
-	}
+	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
 }

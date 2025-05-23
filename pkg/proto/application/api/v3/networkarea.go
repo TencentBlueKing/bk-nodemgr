@@ -117,7 +117,7 @@ func (x *TopoNetworkAreaGetResp) ConvertNetworkAreaFromTypes(networkArea *types.
 
 // Validate check body.
 func (x *TopoNetworkAreaListReq) Validate() error {
-	return validateTopoPage(x.GetPage())
+	return validatePage(x.GetPage())
 }
 
 // AutoConvert auto convert.

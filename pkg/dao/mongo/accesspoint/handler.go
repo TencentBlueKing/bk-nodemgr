@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler accesspoint handler interface.
-type Handler interface {
+// IHandler accesspoint handler interface.
+type IHandler interface {
 	// Count counts accesspoint by conditions.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -72,7 +72,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new accesspoint handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
 		client: client,
 		logger: logger,

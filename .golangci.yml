@@ -658,3 +658,25 @@ linters-settings:
       # Using `topoStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo
         alias: topoStg
+      # Using `operinstdataStorage` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata
+        alias: operinstdataStorage
+      # Using `nodedeployment` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment
+        alias: nodedeployment
+      # Using `nodeworkflow` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow`
+	    - pkg: "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+        alias: nodeworkflow
+      # Using `machinery` things.
+      - pkg: github.com/RichardKnop/machinery/v2/backends/iface
+        alias: backendIface
+      - pkg: github.com/RichardKnop/machinery/v2/backends/redis
+        alias: backendRedis
+      - pkg: github.com/RichardKnop/machinery/v2/brokers/iface
+        alias: brokerIface
+      - pkg: github.com/RichardKnop/machinery/v2/brokers/redis
+        alias: brokerRedis
+      - pkg: github.com/RichardKnop/machinery/v2/config
+        alias: machineryConfig
+      - pkg: github.com/RichardKnop/machinery/v2/log
+        alias: machinerylog

@@ -11,31 +11,42 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncNetworkArea sync networkarea from cmdb.
-const OperDefNameSyncNetworkArea = "oper_def_sync_networkarea"
+// OperDefNameSyncNetworkArea defines the operation def name.
+const OperDefNameSyncNetworkArea = "sync_networkarea_from_cmdb"
 
-// OperSyncNetworkAreaFromCMDB the params of OperSyncNetworkAreaFromCMDB.
-type OperSyncNetworkAreaFromCMDB struct {
-	TenantID string `json:"tenant_id"`
-}
-
-// OperDef the operdef of OperSyncNetworkAreaFromCMDB.
-func (oper *OperSyncNetworkAreaFromCMDB) OperDef() operengine.OperDefSnapshot {
-	return operengine.OperDefSnapshot{
-		OperDefName: OperDefNameSyncNetworkArea,
-		ActionNames: []string{ActionNameSyncNetworkAreaFromCMDB},
+// NewOperSyncNetworkAreaFromCMDB new an operation definition.
+func NewOperSyncNetworkAreaFromCMDB(param SyncNetworkAreaFromCMDBParam) operation.Definition {
+	return &operSyncNetworkAreaFromCMDB{
+		param: param,
 	}
 }
 
-// Param the param of OperSyncNetworkAreaFromCMDB.
-func (oper *OperSyncNetworkAreaFromCMDB) Param() operengine.OperInstParam {
-	return operengine.OperInstParam{
-		Timeout:     1 * time.Minute, // nolint: mnd
-		InitContent: conv.StructToMapIgnoreError(oper),
+type operSyncNetworkAreaFromCMDB struct {
+	param SyncNetworkAreaFromCMDBParam
+}
+
+// Name returns the name.
+func (oper *operSyncNetworkAreaFromCMDB) Name() string {
+	return OperDefNameSyncNetworkArea
+}
+
+// ActionDefNames returns the action def names.
+func (oper *operSyncNetworkAreaFromCMDB) ActionDefNames() []string {
+	return []string{
+		ActionNameSyncNetworkAreaFromCMDB,
+	}
+}
+
+// DefaultParameters returns the default parameters.
+func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.Param {
+	return operation.Param{
+		Timeout:     1 * time.Minute, // nolint:mnd
+		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

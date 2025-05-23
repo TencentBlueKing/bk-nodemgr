@@ -17,17 +17,37 @@ import (
 
 // NodeWorkflow represents the workflow of a node.
 type NodeWorkflow struct {
-	WorkflowID  int64
+	WorkflowID  string
 	TriggerID   string
 	Type        NodeWorkflowType
 	BizIDs      []int64
-	ExecuteUser string
-	ExecuteTime time.Time
+	Operator    string
+	OperateTime time.Time
 	Status      NodeWorkflowStatus
 }
 
 // NodeWorkflowType represents the operation type of a node workflow.
 type NodeWorkflowType string
+
+// NodeWorkflowTypeListToStringList converts the NodeWorkflowTypeList to a string list.
+func NodeWorkflowTypeListToStringList(nodeWorkflowTypeList []NodeWorkflowType) []string {
+	data := make([]string, len(nodeWorkflowTypeList))
+	for i, nodeWorkflowType := range nodeWorkflowTypeList {
+		data[i] = string(nodeWorkflowType)
+	}
+
+	return data
+}
+
+// StringListToNodeWorkflowTypeList converts the string list to a NodeWorkflowType list.
+func StringListToNodeWorkflowTypeList(stringList []string) []NodeWorkflowType {
+	data := make([]NodeWorkflowType, len(stringList))
+	for i, str := range stringList {
+		data[i] = NodeWorkflowType(str)
+	}
+
+	return data
+}
 
 const (
 	// NodeWorkflowTypeInstallAgent is the operation type for install.
@@ -56,6 +76,26 @@ func (nwo NodeWorkflowType) Validate() error {
 
 // NodeWorkflowStatus represents the status of a node workflow.
 type NodeWorkflowStatus string
+
+// NodeWorkflowStatusListToStringList converts the NodeWorkflowStatusList to a string list.
+func NodeWorkflowStatusListToStringList(status []NodeWorkflowStatus) []string {
+	data := make([]string, len(status))
+	for i, s := range status {
+		data[i] = string(s)
+	}
+
+	return data
+}
+
+// StringListToNodeWorkflowStatusList converts the string list to a NodeWorkflowStatus list.
+func StringListToNodeWorkflowStatusList(stringList []string) []NodeWorkflowStatus {
+	data := make([]NodeWorkflowStatus, len(stringList))
+	for i, str := range stringList {
+		data[i] = NodeWorkflowStatus(str)
+	}
+
+	return data
+}
 
 const (
 	// NodeWorkflowStatusRunning is the status when the workflow is running.

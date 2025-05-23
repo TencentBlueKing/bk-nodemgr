@@ -16,6 +16,12 @@ const (
 
 	// FieldKeyLifeCycle is the field name for life cycle.
 	FieldKeyLifeCycle = "data.life_cycle"
+
+	// FieldKeyTriggerID is the field name for trigger id.
+	FieldKeyTriggerID = "data.trigger_id"
+
+	// FieldKeyState is the field name for state.
+	FieldKeyState = "data.life_cycle.state"
 )
 
 // FieldKeyActionInstState is the field name for action instance state.

@@ -33,7 +33,8 @@ func NewCheckDeploy() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := checkdeploy.NewStep(checkdeploy.StepArgs{
-				RunDir: GetRunDir(),
+				RunDir:   GetRunDir(),
+				NodeRole: GetNodeRole(),
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {

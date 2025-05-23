@@ -14,7 +14,7 @@ import (
 	"net/http"
 
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,7 +54,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 	}
 
 	// adjust action status to success
-	err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, operengine.ActionInstStateSuccess)
+	err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, action.StateSuccess)
 	if err != nil {
 		h.logger.Errorf("update oper inst action status failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

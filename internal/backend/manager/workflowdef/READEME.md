@@ -26,11 +26,11 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewActionActionName ...
-func NewActionActionName() operengine.ActionDef {
+func NewActionActionName() action.Definition {
 	return &ActionName{}
 }
 
@@ -43,44 +43,44 @@ type ActionName struct {
 }
 
 // Name returns the name of the action.
-func (action *ActionName) Name() string {
+func (act *ActionName) Name() string {
 	return ""
 }
 
 // Version returns the version of the action.
-func (action *ActionName) Version() string {
+func (act *ActionName) Version() string {
 	return ""
 }
 
 // Description returns the description of the action.
-func (action *ActionName) Description() string {
+func (act *ActionName) Description() string {
 	return ""
 }
 
 // Timeout returns the timeout of the action.
-func (action *ActionName) Timeout() time.Duration {
+func (act *ActionName) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (action *ActionName) Tags() []operengine.ActionTag {
-	return []operengine.ActionTag{}
+func (act *ActionName) Tags() []action.Tag {
+	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (action *ActionName) MaxRetryCount() uint {
+func (act *ActionName) MaxRetryCount() uint {
 	return 3
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (action *ActionName) DelayFn() func() {
+func (act *ActionName) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (action *ActionName) Do(ctx *operengine.ActionInstContext) error {
+func (act *ActionName) Do(ctx *action.InstanceContext) error {
 	param := new(ActionNameParam)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

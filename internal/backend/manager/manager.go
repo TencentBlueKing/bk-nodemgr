@@ -15,19 +15,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
-
-// OperInst defines the operation instance interface.
-type OperInst interface {
-	OperDef() operengine.OperDefSnapshot
-	Param() operengine.OperInstParam
-}
 
 // Manager defines the manager interface.
 type Manager interface {
@@ -40,11 +40,25 @@ type Manager interface {
 	// GracefulShutdown ...
 	GracefulShutdown() error
 
-	// Execute operation.
-	Execute(ctx context.Context, operInst OperInst) (string, error)
+	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
+	LaunchSyncBizAndHost(ctx context.Context) (string, error)
 
-	// RetryOperation retries the operation.
-	RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error
+	// LaunchSyncHostByBizID launch a task to sync host by biz-id. returns the trigger-id.
+	LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error)
+
+	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
+	LaunchSyncNetworkArea(ctx context.Context) (string, error)
+
+	// LaunchInstallNode launch a task to install node. returns the workflow-id.
+	LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error)
+}
+
+// InstallNodeParam install node param.
+type InstallNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
 }
 
 // NewManager creates a new manager.
@@ -54,32 +68,23 @@ func NewManager(conf Config, logger logger.Logger) (Manager, error) {
 	}
 
 	mgr := &manager{
-		logger:      logger,
-		isRunning:   false,
-		operInstMgr: nil,
-		conf:        conf,
+		logger:    logger,
+		isRunning: false,
+		conf:      conf,
 	}
 
-	var err error
-	mgr.operInstMgr, err = operengine.NewOperInstMgr(
+	mgr.workflowMgr = workflow.NewManager(
 		mgr.conf.WorkflowConfig.WorkNodeNum,
-		operengine.WithRedis(
+		workflow.WithStorageTrigger(conf.StorageTrigger),
+		workflow.WithStorageOperation(conf.StorageOperation),
+		workflow.WithStorageOperationInstance(conf.StorageOperInst),
+		workflow.WithStorageActionInstance(conf.StorageOperInst),
+		workflow.WithLocker(conf.LockerFactory),
+		workflow.WithRedis(
 			mgr.conf.WorkflowConfig.Redis.Addr,
 			mgr.conf.WorkflowConfig.Redis.Password,
 			mgr.conf.WorkflowConfig.Redis.DB),
-		mgr.conf.OperInstStorage,
-		operengine.WithLogger(mgr.logger))
-	if err != nil {
-		return nil, err
-	}
-
-	mgr.operMgr, err = operengine.NewOperationMgr(
-		mgr.operInstMgr,
-		mgr.conf.OperStorage,
-		operengine.OperMgrWithLogger(mgr.logger))
-	if err != nil {
-		return nil, err
-	}
+		workflow.WithLogger(mgr.logger))
 
 	return mgr, nil
 }
@@ -91,8 +96,7 @@ type manager struct {
 	// state
 	isRunning bool
 
-	operInstMgr operengine.OperInstMgr
-	operMgr     operengine.OperationMgr
+	workflowMgr workflow.IManager
 
 	// config
 	conf Config
@@ -114,7 +118,7 @@ func (mgr *manager) Start(ctx context.Context) error {
 		return fmt.Errorf("config is invalid, err: %v", err)
 	}
 
-	if err := mgr.startOperEngineManager(ctx); err != nil {
+	if err := mgr.startWorkflowManager(ctx); err != nil {
 		return err
 	}
 
@@ -131,16 +135,16 @@ func (mgr *manager) CheckHealth() error {
 		return errors.New("manager is not running")
 	}
 
-	if err := mgr.conf.TopoStorage.CheckHealthz(); err != nil {
+	if err := mgr.conf.StorageTopo.CheckHealthz(); err != nil {
 		return fmt.Errorf("topo storage is unhealthy, err: %v", err)
 	}
 
-	if mgr.operInstMgr == nil {
-		return errors.New("task engine manager is not initialized")
+	if mgr.workflowMgr == nil {
+		return errors.New("workflow manager is not initialized")
 	}
 
-	if err := mgr.operInstMgr.CheckHealth(); err != nil {
-		return fmt.Errorf("operation instance engine manager is unhealthy, err: %v", err)
+	if err := mgr.workflowMgr.CheckHealth(); err != nil {
+		return fmt.Errorf("workflow manager is unhealthy, err: %v", err)
 	}
 
 	return nil
@@ -152,20 +156,20 @@ func (mgr *manager) GracefulShutdown() error {
 		return errors.New("manager is not running")
 	}
 
-	if err := mgr.operInstMgr.GracefulShutdown(); err != nil {
+	if err := mgr.workflowMgr.GracefulShutdown(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (mgr *manager) startOperEngineManager(ctx context.Context) error {
+func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 	// TODO: implement me
 	if err := mgr.registerActionDefs(); err != nil {
 		return err
 	}
 
-	if err := mgr.operInstMgr.Start(ctx); err != nil {
+	if err := mgr.workflowMgr.Start(ctx); err != nil {
 		return err
 	}
 
@@ -178,70 +182,175 @@ func (mgr *manager) registerActionDefs() error {
 		return fmt.Errorf("register action def node install failed, err: %v", err)
 	}
 
-	return mgr.operInstMgr.RegisterActions(
-		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.logger),
-		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.TopoStorage),
-		syncdata.NewActionGenAllBizHostSyncOper(mgr.conf.TopoStorage, mgr.operMgr),
+	return mgr.workflowMgr.RegisterActions(
+		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
+		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
+		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
+		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
 	)
 }
 
 func (mgr *manager) registerActionDefNodeInstall() error {
-	return mgr.operInstMgr.RegisterActions(
+	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionBindAgentHostRel(
-			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionInstallAgentBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
-			mgr.conf.NodeDeploymentStorage, mgr.conf.Provider),
-		nodeinstall.NewActionWaitGseRunning(
-			mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
-		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.NodeDeploymentStorage, mgr.logger),
+			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
+			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionWaitGseReady(
+			mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionRenderNodeDeployment(
-			mgr.conf.NodeDeploymentStorage, mgr.conf.TopoStorage, mgr.conf.TopoStorage, mgr.logger),
-		nodeinstall.NewActionUpsertHost(
-			mgr.conf.CmdbHandler, mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage),
-		nodeinstall.NewActionWaitComplete(mgr.conf.OperInstStorage, mgr.logger),
-		nodeinstall.NewActionUpdateHost(mgr.conf.TopoStorage, mgr.conf.NodeDeploymentStorage, mgr.logger),
+			mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
+		nodeinstall.NewActionUpsertHostToCMDB(
+			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
+		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
+		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 	)
 }
 
-// Execute try to execute an operation.
-func (mgr *manager) Execute(ctx context.Context, operInst OperInst) (string, error) {
-	triggerID := identifier.GenTriggerID()
-	def := operInst.OperDef()
-	param := operInst.Param()
-	mgr.logger.InfoCtxf(ctx, "try to execute operation. name(%s), trigger-id(%s), param(%v)",
-		def.OperDefName, triggerID, param)
-
-	operation := operengine.NewOperation(triggerID, def)
-	err := mgr.operMgr.ExecuteOperation(ctx, operation, &param)
+// LaunchSyncBizAndHost launch a task to sync biz and host.
+func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
-		return triggerID, fmt.Errorf("execute operation failed, name(%s), trigger-id(%s), err: %v",
-			def.OperDefName, triggerID, err)
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "dispatched execute operation. name(%s), trigger-id(%s), operation-id(%s)",
-		def.OperDefName, triggerID, operation.OperationID)
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
 
-	return triggerID, nil
+	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.SyncBizFromCMDBParam{TenantID: tenantID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync biz and host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
 }
 
-// RetryOperation ...
-func (mgr *manager) RetryOperation(ctx context.Context, operationID string, param *operengine.OperInstParam) error {
-	if len(operationID) == 0 {
-		return errors.New("operation id is empty")
+func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
 	}
 
-	if param == nil {
-		return errors.New("param is nil")
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "try to retry operation. operation-id(%s), param(%v)", operationID, param)
-
-	if err := mgr.operMgr.RetryOperation(ctx, operationID, param); err != nil {
-		return err
+	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.SyncHostFromCMDBParam{TenantID: tenantID, BizID: bizID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "dispatched retry operation. operation-id(%s)", operationID)
-	return nil
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync host task. tenant-id(%s), biz-id(%d), trigger-id(%s), operation-id(%s)",
+		tenantID, bizID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncNetworkArea launch a task to sync networkarea.
+func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.SyncNetworkAreaFromCMDBParam{TenantID: tenantID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchInstallNode launch a task to install node.
+func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StorageNodeWorkflow.CreateWorkflow(ctx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to create node deployment. "+
+						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+			}
+
+			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.UpsertHostToCMDBParam{Token: deploy.Token})
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+			if err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to launch install node task. "+
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+				return err
+			}
+
+			mgr.logger.InfoCtxf(ctx,
+				"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s)",
+				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+			return nil
+		})
+	}
+	gp.Wait()
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
 }

@@ -18,34 +18,29 @@ import (
 )
 
 // TableName operation instance data table name.
-const TableName = "oper_inst_data"
+func TableName(tenantID string) string {
+	return "oper_inst_data_" + tenantID
+}
 
 // ActionInstData represents a action data.
 type ActionInstData struct {
-	TriggerID   string            `json:"trigger_id" bson:"trigger_id"`
-	OperInstID  string            `json:"oper_inst_id" bson:"oper_inst_id"`
-	OperationID string            `json:"operation_id" bson:"operation_id"`
-	OperDefName string            `json:"oper_def_name" bson:"oper_def_name"`
-	Name        string            `json:"name" bson:"name"`
-	Index       int               `json:"index" bson:"index"`
-	Lifecycle   *ActInstLifeCycle `json:"life_cycle" bson:"life_cycle"`
-	Messages    []Message         `json:"messages" bson:"messages"`
-	Content     string            `json:"content" bson:"content"`
-	PrivateData map[string]any    `json:"private_data" bson:"private_data"`
+	TriggerID   string         `json:"trigger_id" bson:"trigger_id"`
+	OperInstID  string         `json:"oper_inst_id" bson:"oper_inst_id"`
+	OperationID string         `json:"operation_id" bson:"operation_id"`
+	OperDefName string         `json:"oper_def_name" bson:"oper_def_name"`
+	Name        string         `json:"name" bson:"name"`
+	Index       int            `json:"index" bson:"index"`
+	TotalIndex  int            `json:"total_index" bson:"total_index"`
+	Lifecycle   *LifeCycle     `json:"life_cycle" bson:"life_cycle"`
+	Messages    []Message      `json:"messages" bson:"messages"`
+	Content     string         `json:"content" bson:"content"`
+	PrivateData map[string]any `json:"private_data" bson:"private_data"`
 }
 
 // Message represents a message.
 type Message struct {
 	Time time.Time `json:"time" bson:"time"`
 	Text string    `json:"text" bson:"text"`
-}
-
-// ActInstLifeCycle is the lifecycle of an action instance.
-type ActInstLifeCycle struct {
-	State     string    `json:"state" bson:"state"`
-	StartedAt time.Time `json:"started_at" bson:"started_at"`
-	EndedAt   time.Time `json:"ended_at" bson:"ended_at"`
-	StoppedAt time.Time `json:"stopped_at" bson:"stopped_at"`
 }
 
 // OperInstData represents a operation instance data.
@@ -59,11 +54,11 @@ type OperInstData struct {
 	ParentOperationID string                     `json:"parent_operation_id" bson:"parent_operation_id"`
 	Timeout           time.Duration              `json:"timeout" bson:"timeout"`
 	InitContent       string                     `json:"init_content" bson:"init_content"`
-	Lifecycle         *Lifecycle                 `json:"life_cycle" bson:"life_cycle"`
+	Lifecycle         *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
 }
 
 // Lifecycle is the lifecycle of an operation instance.
-type Lifecycle struct {
+type LifeCycle struct {
 	State     string    `json:"state" bson:"state"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	StartedAt time.Time `json:"started_at" bson:"started_at"`

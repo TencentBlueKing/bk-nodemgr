@@ -15,12 +15,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"runtime"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"io"
-	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -29,11 +30,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -157,27 +159,32 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.TopoStorage, err = topoStg.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageTopo, err = topo.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.TrigEngineStorage, err = trigengine.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageTrigger, err = trigger.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.OperInstStorage, err = operinstdataStorage.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageOperInst, err = operinstdataStorage.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.OperStorage, err = operation.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageOperation, err = operation.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.NodeDeploymentStorage, err = nodedeployment.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageNodeDeployment, err = nodedeployment.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.StorageNodeWorkflow, err = nodeworkflow.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -190,13 +197,15 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
 		CmdbHandler:           svc.Cap.CmdbHandler,
 		GSEHandler:            svc.Cap.GSEHandler,
-		TopoStorage:           svc.Cap.TopoStorage,
-		NodeDeploymentStorage: svc.Cap.NodeDeploymentStorage,
 		Provider:              svc.Cap.DiscoverProvider,
 		InstallerFileGroup:    svc.Cap.InstallerFileGroup,
 		LockerFactory:         svc.Cap.LockerFactory,
-		OperStorage:           svc.Cap.OperStorage,
-		OperInstStorage:       svc.Cap.OperInstStorage,
+		StorageTopo:           svc.Cap.StorageTopo,
+		StorageNodeDeployment: svc.Cap.StorageNodeDeployment,
+		StorageNodeWorkflow:   svc.Cap.StorageNodeWorkflow,
+		StorageTrigger:        svc.Cap.StorageTrigger,
+		StorageOperation:      svc.Cap.StorageOperation,
+		StorageOperInst:       svc.Cap.StorageOperInst,
 		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
@@ -213,7 +222,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	svc.watcher, err = watcher.NewWatcher(watcher.Config{
 		CmdbHandler: svc.Cap.CmdbHandler,
-		TopoStorage: svc.Cap.TopoStorage,
+		StorageTopo: svc.Cap.StorageTopo,
 		Manager:     svc.Cap.Manager,
 	}, svc.Cap.Logger)
 	if err != nil {

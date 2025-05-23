@@ -13,10 +13,13 @@ package manager
 
 import (
 	"errors"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -27,18 +30,20 @@ import (
 
 // Config defines the config of manager.
 type Config struct {
-	CmdbHandler           cmdb.IHandler
-	GSEHandler            gse.IHandler
-	TopoStorage           topoStg.IStorage
-	NodeDeploymentStorage nodedeployment.IStorage
-	Provider              discover.Provider
+	CmdbHandler cmdb.IHandler
+	GSEHandler  gse.IHandler
+	Provider    discover.Provider
 
 	InstallerFileGroup iface.FileGroup
 
 	LockerFactory locker.MutexFactory
 
-	OperStorage     operation.Storage
-	OperInstStorage operinstdataStorage.IStorage
+	StorageTopo           topo.IStorage
+	StorageNodeDeployment nodedeployment.IStorage
+	StorageNodeWorkflow   nodeworkflow.IStorage
+	StorageTrigger        trigger.IStorage
+	StorageOperation      operation.IStorage
+	StorageOperInst       operinstdata.IStorage
 
 	Crypter crypter.Crypter
 
@@ -87,7 +92,7 @@ func (conf *Config) Validate() error {
 	if conf.CmdbHandler == nil {
 		return errors.New("cmdb handler is nil")
 	}
-	if conf.TopoStorage == nil {
+	if conf.StorageTopo == nil {
 		return errors.New("topo storage is nil")
 	}
 

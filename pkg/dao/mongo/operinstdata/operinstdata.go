@@ -21,17 +21,24 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
-	d := &dao{client: client.Collection(TableName), logger: logger}
+// TableName the operinstdata table name.
+func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		logger:    logger,
+		tableName: tableName,
+	}
 	d.baseOrm = base.NewOrm[*OperInstData, OperInstData](d)
 
 	return d
 }
 
 type dao struct {
-	client  *mongo.Collection
-	logger  logger.Logger
-	baseOrm base.IOrm[*OperInstData, OperInstData]
+	client    *mongo.Collection
+	logger    logger.Logger
+	tableName string
+	baseOrm   base.IOrm[*OperInstData, OperInstData]
 }
 
 // GetClient get client.
@@ -46,7 +53,7 @@ func (d *dao) GetLogger() logger.Logger {
 
 // GetTableName get table name.
 func (d *dao) GetTableName() string {
-	return TableName
+	return d.tableName
 }
 
 // GetIndexes get indexes.
@@ -167,7 +174,7 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 	}
 
 	d.logger.Infof("pushed oper-inst-data field(%v), table(%s), value(%v), updated-count(%d)",
-		field, TableName, value, result.MatchedCount)
+		field, d.tableName, value, result.MatchedCount)
 
 	return nil
 }

@@ -13,7 +13,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
 	"io"
 	"log"
 	"os"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logreporter"
@@ -307,7 +307,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 		fmt.Println(agentID)
 
 		checkDeployStep := checkdeploy.NewStep(checkdeploy.StepArgs{
-			RunDir: GetRunDir(),
+			RunDir:   GetRunDir(),
+			NodeRole: GetNodeRole(),
 		})
 		if err := checkDeployStep.Run(cmd.Context()); err != nil {
 			return fmt.Errorf("check deploy failed, err: %v", err)

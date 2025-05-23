@@ -12,41 +12,11 @@
 package workflow
 
 import (
-	"time"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
 )
 
 // RetryOperation ...
 func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	req := new(RetryOperationReq)
-	if err := ctx.BindJSON(req); err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := req.Validate(); err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	err = h.manager.RetryOperation(sCtx, req.OperationID, &operengine.OperInstParam{
-		Timeout:     1 * time.Minute,
-		InitContent: map[string]any{},
-	})
-	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, err: %v", err)
-		return nil, err
-	}
-
-	h.logger.InfoCtxf(sCtx, "retried operation: %s", req.OperationID)
-
 	resp := new(RetryOperationResp)
 
 	return resp, nil

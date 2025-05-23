@@ -14,148 +14,237 @@ package trigger
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigengine"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler trigger handler interface.
-type Handler interface {
-	// Upsert update or insert a trigger
-	Upsert(ctx context.Context, trigger *trigengine.Trigger) error
+// IHandler trigger handler interface.
+type IHandler interface {
+	// Get get a specified trigger.
+	Get(ctx context.Context, triggerID string) (*trigger.Trigger, error)
 
-	// FindAll find all triggers
-	FindAll(ctx context.Context) ([]*trigengine.Trigger, error)
+	// List list triggers with options.
+	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error)
 
-	// Find trigger by options.
-	Find(ctx context.Context, opts ...OptFn) ([]*trigengine.Trigger, error)
+	// Create creates a trigger.
+	Create(ctx context.Context, trig *trigger.Trigger) error
 
-	// FindOne find one trigger by options.
-	FindOne(ctx context.Context, opts ...OptFn) (*trigengine.Trigger, error)
+	// Update updates trigger.
+	Update(ctx context.Context, trig *trigger.Trigger) error
+
+	// UpdateState updates trigger state.
+	UpdateState(ctx context.Context, triggerID string, state trigger.State) error
 }
 
 type handler struct {
-	dao *dao
+	client *mongo.Database
+	logger logger.Logger
+	// daoMap stores dao's containing tenant information.
+	// Do not edit the daoMap except with the tenantDao func.
+	daoMap sync.Map
 }
 
-// New create a new host handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func (h *handler) tenantDao(tenantID string) *dao {
+	if d, ok := h.daoMap.Load(tenantID); ok {
+		return d.(*dao) // nolint:forcetypeassert
+	}
+
+	newDaoClient := newDao(tenantID, h.client, h.logger)
+	if err := newDaoClient.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure trigger indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
+
+	// note: we can be sure that only the tenantDao func edit the daoMap,
+	// so we can just use the type assertion here.
+	return d.(*dao) // nolint:forcetypeassert
+}
+
+// New create a new trigger handler.
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
-		dao: newDao(client, logger),
+		client: client,
+		logger: logger,
+		daoMap: sync.Map{},
 	}
 }
 
-// Upsert ...
-func (h handler) Upsert(ctx context.Context, trigger *trigengine.Trigger) error {
-	if trigger == nil {
+// Get get a specified trigger.
+func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if triggerID == "" {
+		return nil, errors.New("trigger-id is empty")
+	}
+
+	filter := base.AliveFilter()
+	opt := base.WithStringValues(FieldKeyTriggerID, triggerID)
+	filter = opt(filter)
+
+	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertTriggerToTypes(data), nil
+}
+
+// List list triggers with options.
+func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := base.ParsePage(page)
+
+	trigs, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := make([]*trigger.Trigger, len(trigs))
+	for idx, trig := range trigs {
+		data[idx] = convertTriggerToTypes(trig)
+	}
+
+	return data, num, nil
+}
+
+// Create creates a trigger.
+func (h *handler) Create(ctx context.Context, trig *trigger.Trigger) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if trig == nil {
 		return errors.New("trigger is nil")
 	}
 
-	if err := trigger.Validate(); err != nil {
+	if err := trig.Validate(); err != nil {
 		return err
 	}
 
-	data := &Trigger{
-		TriggerID: trigger.TriggerID,
-		Category:  string(trigger.Category),
-		MetadataPeriodic: MetadataPeriodic{
-			IntervalSecond: trigger.MetadataPeriodic.IntervalSecond,
-		},
-		State:     string(trigger.State),
-		CreatedAt: trigger.CreatedAt,
-		UpdatedAt: trigger.UpdatedAt,
-	}
+	return h.tenantDao(tenantID).Create(ctx, convertTriggerFromTypes(trig))
+}
 
-	if err := h.dao.upsert(ctx, data); err != nil {
+// Update updates a trigger.
+func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
 		return err
 	}
-	return nil
-}
 
-// FindAll ...
-func (h handler) FindAll(ctx context.Context) ([]*trigengine.Trigger, error) {
-	triggers, err := h.dao.find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
-	if err != nil {
-		return nil, err
+	if trig == nil {
+		return errors.New("trigger is nil")
 	}
 
-	data := make([]*trigengine.Trigger, len(triggers))
-	for idx, trigger := range triggers {
-		data[idx] = &trigengine.Trigger{
-			TriggerID:        trigger.TriggerID,
-			Category:         trigengine.Category(trigger.Category),
-			MetadataOnce:     trigengine.MetadataOnce(trigger.MetadataOnce),
-			MetadataPeriodic: trigengine.MetadataPeriodic(trigger.MetadataPeriodic),
-			MetadataOrdered:  trigengine.MetadataOrdered(trigger.MetadataOrdered),
-			State:            trigengine.State(trigger.State),
-			CreatedAt:        trigger.CreatedAt,
-			UpdatedAt:        trigger.UpdatedAt,
+	if err := trig.Validate(); err != nil {
+		return err
+	}
+
+	return h.tenantDao(tenantID).update(ctx, convertTriggerFromTypes(trig))
+}
+
+// UpdateState updates a trigger's state.
+func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigger.State) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if triggerID == "" {
+		return errors.New("trigger-id is empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithTriggerID(triggerID)(filter)
+
+	return h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyState, string(state))
+}
+
+func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
+	t := &Trigger{
+		TriggerID:       trig.TriggerID,
+		Category:        string(trig.Category),
+		State:           string(trig.State),
+		CreatedAt:       trig.CreatedAt,
+		UpdatedAt:       trig.UpdatedAt,
+		LastTriggeredAt: trig.LastTriggeredAt,
+	}
+
+	switch trig.Category {
+	case trigger.CategoryOnce:
+		t.MetadataOnce = MetadataOnce{}
+
+	case trigger.CategoryOrdered:
+		meta, ok := trig.Metadata.(*trigger.MetadataOrdered)
+		if ok {
+			t.MetadataOrdered = MetadataOrdered{
+				MaxConcurrencyNum: meta.MaxConcurrencyNum,
+			}
+		}
+
+	case trigger.CategoryPeriodic:
+		meta, ok := trig.Metadata.(*trigger.MetadataPeriodic)
+		if ok {
+			t.MetadataPeriodic = MetadataPeriodic{
+				IntervalSec:        int64(meta.Interval.Seconds()),
+				AllowedConcurrency: meta.AllowedConcurrency,
+			}
 		}
 	}
 
-	return data, nil
+	return t
 }
 
-// Find ...
-func (h handler) Find(ctx context.Context, opts ...OptFn) ([]*trigengine.Trigger, error) {
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
+func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
+	typeTrigger := &trigger.Trigger{
+		TriggerID:       trig.TriggerID,
+		Category:        trigger.Category(trig.Category),
+		State:           trigger.State(trig.State),
+		CreatedAt:       trig.CreatedAt,
+		UpdatedAt:       trig.UpdatedAt,
+		LastTriggeredAt: trig.LastTriggeredAt,
 	}
 
-	triggers, err := h.dao.find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
+	switch trigger.Category(trig.Category) {
+	case trigger.CategoryOnce:
+		typeTrigger.Metadata = &trigger.MetadataOnce{}
 
-	data := make([]*trigengine.Trigger, len(triggers))
-	for idx, trigger := range triggers {
-		data[idx] = &trigengine.Trigger{
-			TriggerID:        trigger.TriggerID,
-			Category:         trigengine.Category(trigger.Category),
-			MetadataOnce:     trigengine.MetadataOnce(trigger.MetadataOnce),
-			MetadataPeriodic: trigengine.MetadataPeriodic(trigger.MetadataPeriodic),
-			MetadataOrdered:  trigengine.MetadataOrdered(trigger.MetadataOrdered),
-			State:            trigengine.State(trigger.State),
-			CreatedAt:        trigger.CreatedAt,
-			UpdatedAt:        trigger.UpdatedAt,
+	case trigger.CategoryOrdered:
+		typeTrigger.Metadata = &trigger.MetadataOrdered{
+			MaxConcurrencyNum: trig.MetadataOrdered.MaxConcurrencyNum,
+		}
+
+	case trigger.CategoryPeriodic:
+		typeTrigger.Metadata = &trigger.MetadataPeriodic{
+			Interval:           time.Duration(trig.MetadataPeriodic.IntervalSec) * time.Second,
+			AllowedConcurrency: trig.MetadataPeriodic.AllowedConcurrency,
 		}
 	}
 
-	return data, nil
-}
-
-// FindOne ...
-func (h handler) FindOne(ctx context.Context, opts ...OptFn) (*trigengine.Trigger, error) {
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	triggers, err := h.dao.find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(triggers) == 0 {
-		return nil, nil
-	}
-
-	trigger := triggers[0]
-
-	data := &trigengine.Trigger{
-		TriggerID:        trigger.TriggerID,
-		Category:         trigengine.Category(trigger.Category),
-		MetadataOnce:     trigengine.MetadataOnce(trigger.MetadataOnce),
-		MetadataPeriodic: trigengine.MetadataPeriodic(trigger.MetadataPeriodic),
-		MetadataOrdered:  trigengine.MetadataOrdered(trigger.MetadataOrdered),
-		State:            trigengine.State(trigger.State),
-		CreatedAt:        trigger.CreatedAt,
-		UpdatedAt:        trigger.UpdatedAt,
-	}
-
-	return data, nil
+	return typeTrigger
 }

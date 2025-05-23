@@ -12,34 +12,29 @@
 package operation
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn option of find.
-type OptFn func(f bson.D) bson.D
+type OptFn = base.OptFn
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	if len(triggerID) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.trigger_id", Value: triggerID[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.trigger_id", Value: bson.M{"$in": triggerID}})
-	}
+	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
 }
 
 // WithOperationID ...
 func WithOperationID(ids ...string) OptFn {
-	if len(ids) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.operation_id", Value: ids[0]})
-		}
-	}
+	return base.WithStringValues(FieldKeyOperationID, ids...)
+}
 
+// WithEmptyOperation filter by operation_instance.
+func WithEmptyOperation() OptFn {
 	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.operation_id", Value: bson.M{"$in": ids}})
+		return append(f, bson.E{
+			Key:   FieldKeyOperationInstanceEmpty,
+			Value: true,
+		})
 	}
 }

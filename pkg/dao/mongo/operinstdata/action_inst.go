@@ -17,29 +17,30 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // IActionInstData defines the interface for action instance data operations.
 type IActionInstData interface {
 	// GetActionInstData find one ActionInstData.
-	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*operengine.ActionInstData, error)
+	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*action.InstanceData, error)
 
 	// UpdateActionInstData updates or inserts an ActionInstData.
-	UpdateActionInstData(ctx context.Context, data *operengine.ActionInstData) error
+	UpdateActionInstData(ctx context.Context, data *action.InstanceData) error
 
 	// UpdateActInstMsg updates action inst data messages.
-	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []operengine.Message) error
+	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []action.Message) error
 
 	// GetActInstLifecycle get action inst data lifecycle.
-	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*operengine.ActInstLifeCycle, error)
+	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActInstLifecycle updates action inst data lifecycle.
 	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-		lifecycle *operengine.ActInstLifeCycle) error
+		lifecycle *action.Lifecycle) error
 
-	// PushActInstMsgs push a message to the action_inst_data's msg queue.
-	PushActInstMsgs(ctx context.Context, operInstID string, actionName string, msgs ...operengine.Message) error
+	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
+	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...action.Message) error
 
 	// AddActInstPrivateData add action inst data private data.
 	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
@@ -49,12 +50,14 @@ type IActionInstData interface {
 
 	// UpdateActionInstStatus updates the action_inst_data's status.
 	UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-		status operengine.ActionInstState) error
+		status action.State) error
 }
 
 // UpdateActInstMsg update action inst msg.
 func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
-	msgs []operengine.Message) error {
+	msgs []action.Message) error {
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -77,7 +80,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 	}
 
 	filed := FieldKeyActionInstMessages(actionName)
-	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
+	err := h.tenantDao(tenantID).updateField(ctx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
 	}
@@ -88,6 +91,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 // UpdateActionInstContent update action instance content.
 func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
 	content map[string]any) error {
+	tenantID, _ := tenant.GetID(ctx)
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -115,7 +119,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 	}
 
 	filed := FieldKeyActionInstContent(actionName)
-	err = h.dao.updateField(ctx, filter, filed, string(bytes))
+	err = h.tenantDao(tenantID).updateField(ctx, filter, filed, string(bytes))
 	if err != nil {
 		return err
 	}
@@ -130,6 +134,8 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
@@ -153,7 +159,7 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 
 	for k, v := range data {
 		field := fmt.Sprintf("%s.%s", FieldKeyActInstPrivateData(actionName), k)
-		err := h.dao.updateField(ctx, filter, field, v)
+		err := h.tenantDao(tenantID).updateField(ctx, filter, field, v)
 		if err != nil {
 			return err
 		}
@@ -162,33 +168,35 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 	return nil
 }
 
-// PushActInstMsgs push act inst msg.
-func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, actionName string,
-	msgs ...operengine.Message) error {
+// PushActionInstanceMessage push act inst msg.
+func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstanceID, actionName string,
+	messages ...action.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
 
-	if operInstID == "" {
+	tenantID, _ := tenant.GetID(ctx)
+
+	if operationInstanceID == "" {
 		return errors.New("operation instance id is empty")
 	}
 
-	if len(msgs) == 0 {
+	if len(messages) == 0 {
 		return errors.New("msgs is empty")
 	}
 
 	filter := base.AliveFilter()
 	opts := []OptFn{
-		WithOperInstID(operInstID),
+		WithOperInstID(operationInstanceID),
 	}
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
 	field := fmt.Sprintf("action_data.%s.messages", actionName)
-	for _, msg := range convMessageToDB(msgs) {
-		err := h.dao.pushField(ctx, filter, field, msg)
+	for _, msg := range convMessageToDB(messages) {
+		err := h.tenantDao(tenantID).pushField(ctx, filter, field, msg)
 		if err != nil {
 			return err
 		}
@@ -198,7 +206,8 @@ func (h *handler) PushActInstMsgs(ctx context.Context, operInstID string, action
 }
 
 // UpdateActionInstData upsert action inst data.
-func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *operengine.ActionInstData) error {
+func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
+	tenantID, _ := tenant.GetID(ctx)
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -207,39 +216,36 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *oper
 		return errors.New("actionInstData is nil")
 	}
 
-	if actionInstData.OperInstID == "" {
+	if actionInstData.OperationInstanceID == "" {
 		return errors.New("operation instance id is empty")
 	}
 
 	filter := base.AliveFilter()
 	opts := []OptFn{
-		WithOperInstID(actionInstData.OperInstID),
+		WithOperInstID(actionInstData.OperationInstanceID),
 	}
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	data, err := convActionInstDataToDB(actionInstData)
+	data, err := ConvActionInstDataToDB(actionInstData)
 	if err != nil {
 		return err
 	}
-
 	filed := FieldKeyActionInstData(actionInstData.Name)
-	err = h.dao.updateField(ctx, filter, filed, data)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return h.tenantDao(tenantID).updateField(ctx, filter, filed, data)
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
 func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-	lifecycle *operengine.ActInstLifeCycle) error {
+	lifecycle *action.Lifecycle) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
@@ -258,7 +264,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 	}
 
 	filed := FieldKeyActionInstLifeCycle(actionName)
-	err := h.dao.updateField(ctx, filter, filed, convActInstLifeCycleToDB(lifecycle))
+	err := h.tenantDao(tenantID).updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -268,11 +274,13 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 
 // GetActionInstData find one action inst data.
 func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
-	actionName string) (*operengine.ActionInstData, error) {
+	actionName string) (*action.InstanceData, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return nil, errors.New("operation instance id is empty")
@@ -291,7 +299,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstData(actionName)
-	operInstData, err := h.dao.get(ctx, filter, field)
+	operInstData, err := h.tenantDao(tenantID).get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -301,19 +309,24 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		return nil, errors.New("action inst data not found")
 	}
 
-	data := &operengine.ActionInstData{
-		TriggerID:   actionInstData.TriggerID,
-		OperInstID:  actionInstData.OperInstID,
-		OperationID: actionInstData.OperationID,
-		OperDefName: actionInstData.OperDefName,
-		Name:        actionInstData.Name,
-		Index:       actionInstData.Index,
-		PrivateData: actionInstData.PrivateData,
-		Lifecycle:   convActInstLifeCycleToCommon(actionInstData.Lifecycle),
+	data := &action.InstanceData{
+		TriggerID:           actionInstData.TriggerID,
+		OperationInstanceID: actionInstData.OperInstID,
+		OperationID:         actionInstData.OperationID,
+		OperationDefName:    actionInstData.OperDefName,
+		Name:                actionInstData.Name,
+		Index:               actionInstData.Index,
+		TotalIndex:          actionInstData.TotalIndex,
+		PrivateData:         actionInstData.PrivateData,
+		Lifecycle:           ConvActInstLifeCycleFromDB(actionInstData.Lifecycle),
+	}
+
+	for k, v := range actionInstData.PrivateData {
+		data.PrivateData[k] = v
 	}
 
 	for _, msg := range actionInstData.Messages {
-		data.Messages = append(data.Messages, operengine.Message{
+		data.Messages = append(data.Messages, action.Message{
 			Time: msg.Time,
 			Text: msg.Text,
 		})
@@ -329,11 +342,13 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 
 // GetActInstLifecycle find one action inst data.
 func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
-	actionName string) (*operengine.ActInstLifeCycle, error) {
+	actionName string) (*action.Lifecycle, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return nil, errors.New("operation instance id is empty")
@@ -352,7 +367,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstLifeCycle(actionName)
-	operInstData, err := h.dao.get(ctx, filter, field)
+	operInstData, err := h.tenantDao(tenantID).get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -362,14 +377,16 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 		return nil, errors.New("action inst data not found")
 	}
 
-	lifecycle := convActInstLifeCycleToCommon(actionInstData.Lifecycle)
+	lifecycle := ConvActInstLifeCycleFromDB(actionInstData.Lifecycle)
 
 	return lifecycle, nil
 }
 
 // UpdateActionInstStatus update action inst status.
 func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-	status operengine.ActionInstState) error {
+	status action.State) error {
+
+	tenantID, _ := tenant.GetID(ctx)
 
 	if ctx == nil {
 		return base.ErrInvalidContext()
@@ -390,7 +407,7 @@ func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string,
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstID)(filter)
 	field := FieldKeyActionInstState(actionName)
-	err := h.dao.updateField(ctx, filter, field, status)
+	err := h.tenantDao(tenantID).updateField(ctx, filter, field, status)
 	if err != nil {
 		return err
 	}

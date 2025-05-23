@@ -13,10 +13,11 @@ package nodeworkflow
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -38,31 +39,45 @@ type IHandler interface {
 
 // Handler this is a Handler to operate node workflow table.
 type Handler struct {
-	dao     *dao
-	logger  logger.Logger
-	counter counter.Handler
+	client *mongo.Database
+	logger logger.Logger
+
+	// daoMap stores dao's containing tenant information.
+	// Do not edit the daoMap except with the tenantDao func.
+	daoMap sync.Map
+}
+
+func (h *Handler) tenantDao(tenantID string) *dao {
+	if d, ok := h.daoMap.Load(tenantID); ok {
+		return d.(*dao)
+	}
+
+	newDaoClient := newDao(tenantID, h.client, h.logger)
+	if err := newDaoClient.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure node workflow indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
+
+	// note: we can be sure that only the tenantDao func edit the daoMap,
+	// so we can just use the type assertion here.
+	return d.(*dao)
 }
 
 // New new a Handler.
 func New(client *mongo.Database, logger logger.Logger) *Handler {
-	h := &Handler{
-		dao:     newDao(client, logger),
-		logger:  logger,
-		counter: counter.New(client, logger),
+	return &Handler{
+		client: client,
+		logger: logger,
+		daoMap: sync.Map{},
 	}
-
-	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure nodedeloyment indexes, err: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
-	}
-
-	return h
 }
 
 // Count counts node workflow by opts.
 func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	if ctx == nil {
-		return 0, base.ErrInvalidContext()
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
 	}
 
 	filter := base.AliveFilter()
@@ -70,13 +85,14 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.dao.Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(ctx, filter)
 }
 
 // List lists node workflow by page and opts.
 func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error) {
-	if ctx == nil {
-		return nil, 0, base.ErrInvalidContext()
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	filter := base.AliveFilter()
@@ -84,43 +100,31 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.dao.List(ctx, filter, findOpt)
+	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	workflows := make([]*types.NodeWorkflow, len(datas))
 	for idx, data := range datas {
-		workflows[idx] = convDataToWorkflow(data)
+		workflows[idx] = convertNodeWorkflowToTypes(data)
 	}
 
 	return workflows, num, nil
 }
 
-// Data is the data of node workflow.
-func convDataToWorkflow(data *Data) *types.NodeWorkflow {
-	return &types.NodeWorkflow{
-		WorkflowID:  data.WorkflowID,
-		TriggerID:   data.TriggerID,
-		Type:        types.NodeWorkflowType(data.Type),
-		BizIDs:      data.BizIDs,
-		ExecuteUser: data.ExecuteUser,
-		ExecuteTime: data.ExecuteTime,
-		Status:      types.NodeWorkflowStatus(data.Status),
-	}
-}
-
 // Create creates a new node workflow.
 func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) error {
-	if ctx == nil {
-		return base.ErrInvalidContext()
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
 	}
 
 	if workflow == nil {
@@ -135,38 +139,18 @@ func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 		return errors.New("status should be running")
 	}
 
-	var err error
-	data := ConvNodeWorkflowToData(workflow)
-	data.WorkflowID, err = h.counter.Generate(ctx, TableName)
-
-	if err != nil {
-		return err
-	}
-
-	if err := h.dao.Create(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).Create(ctx, convertNodeWorkflowFromTypes(workflow)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// ConvNodeWorkflowToData convert node workflow to data.
-func ConvNodeWorkflowToData(workflow *types.NodeWorkflow) *Data {
-	return &Data{
-		WorkflowID:  workflow.WorkflowID,
-		TriggerID:   workflow.TriggerID,
-		Type:        string(workflow.Type),
-		BizIDs:      workflow.BizIDs,
-		ExecuteUser: workflow.ExecuteUser,
-		ExecuteTime: workflow.ExecuteTime,
-		Status:      string(workflow.Status),
-	}
-}
-
 // UpdateStatus updates the status of a node workflow.
 func (h *Handler) UpdateStatus(ctx context.Context, workflowID int64, status types.NodeWorkflowStatus) error {
-	if ctx == nil {
-		return base.ErrInvalidContext()
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
 	}
 
 	if workflowID <= 0 {
@@ -179,9 +163,35 @@ func (h *Handler) UpdateStatus(ctx context.Context, workflowID int64, status typ
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	if err := h.dao.UpdateField(ctx, filter, FieldKeyStatus, string(status)); err != nil {
+	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyStatus, string(status)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// convertNodeWorkflowToTypes convert node workflow to types.
+func convertNodeWorkflowToTypes(data *Data) *types.NodeWorkflow {
+	return &types.NodeWorkflow{
+		WorkflowID:  data.WorkflowID,
+		TriggerID:   data.TriggerID,
+		Type:        types.NodeWorkflowType(data.Type),
+		BizIDs:      data.BizIDs,
+		Operator:    data.Operator,
+		OperateTime: data.OperateTime,
+		Status:      types.NodeWorkflowStatus(data.Status),
+	}
+}
+
+// convertNodeWorkflowFromTypes convert node workflow from types.
+func convertNodeWorkflowFromTypes(workflow *types.NodeWorkflow) *Data {
+	return &Data{
+		WorkflowID:  workflow.WorkflowID,
+		TriggerID:   workflow.TriggerID,
+		Type:        string(workflow.Type),
+		BizIDs:      workflow.BizIDs,
+		Operator:    workflow.Operator,
+		OperateTime: workflow.OperateTime,
+		Status:      string(workflow.Status),
+	}
 }

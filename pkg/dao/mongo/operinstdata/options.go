@@ -11,33 +11,25 @@
 // Package operinstdata ...
 package operinstdata
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+)
 
 // OptFn option of find.
-type OptFn func(f bson.D) bson.D
+type OptFn = base.OptFn
 
-// WithOperInstID ...
+// WithOperInstID filter by operation instance id.
 func WithOperInstID(id ...string) OptFn {
-	if len(id) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.oper_inst_id", Value: id[0]})
-		}
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.oper_inst_id", Value: bson.M{"$in": id}})
-	}
+	return base.WithStringValues(FieldKeyOperInstID, id...)
 }
 
-// WithTriggerID filter by trigger id
+// WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	if len(triggerID) == 1 {
-		return func(f bson.D) bson.D {
-			return append(f, bson.E{Key: "data.trigger_id", Value: triggerID[0]})
-		}
-	}
+	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
+}
 
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "data.trigger_id", Value: bson.M{"$in": triggerID}})
-	}
+// WithState filter by state.
+func WithState(states ...operation.State) OptFn {
+	return base.WithStringValues(FieldKeyState, operation.StateListToStringList(states)...)
 }

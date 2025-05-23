@@ -1,0 +1,730 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "node_workflow.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "NodeWorkflow"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/node/workflow/distinct": {
+      "post": {
+        "summary": "NodeWorkflowDistinct provides node workflow distinct.",
+        "operationId": "NodeWorkflow_NodeWorkflowDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowDistinctReq describes the node workflow distinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/list": {
+      "post": {
+        "summary": "NodeWorkflowList provides node workflow list.",
+        "operationId": "NodeWorkflow_NodeWorkflowList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowListReq describes the node workflow list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowListReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/operation/instance/list": {
+      "post": {
+        "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/operation/instance/log/get": {
+      "post": {
+        "summary": "NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceLogGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/operation/list": {
+      "post": {
+        "summary": "NodeWorkflowOperationList provides node workflow operation list.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationListReq describes the node operation list by workflow-id\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationListReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/statistics": {
+      "post": {
+        "summary": "NodeWorkflowStatistics provides node workflow statistics.",
+        "operationId": "NodeWorkflow_NodeWorkflowStatistics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowStatisticsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowStatisticReq describes the node workflow statistic request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowStatisticsReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "DataMessage": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "NodeWorflowOperationInstanceAction": {
+      "type": "object",
+      "properties": {
+        "action_name": {
+          "type": "string"
+        },
+        "action_status": {
+          "type": "string"
+        },
+        "cost_time_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "NodeWorkflowStatisticsRespStatisticsInfo": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "success_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "pending_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ignored_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3NodeWorflowOperationInstance": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "oper_inst_id": {
+          "type": "string"
+        },
+        "oper_inst_status": {
+          "type": "string"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "string"
+        },
+        "node_version": {
+          "type": "string"
+        },
+        "action": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NodeWorflowOperationInstanceAction"
+          }
+        }
+      },
+      "description": "NodeWorflowOperationInstance describes the node operation instance."
+    },
+    "v3NodeWorkflowDistinctReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+        }
+      },
+      "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."
+    },
+    "v3NodeWorkflowDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowDistinctRespData"
+        }
+      },
+      "description": "NodeWorkflowDistinctResp describes the node workflow distinct response."
+    },
+    "v3NodeWorkflowDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowExactConditions": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request."
+    },
+    "v3NodeWorkflowFuzzyConditions": {
+      "type": "object",
+      "description": "NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request."
+    },
+    "v3NodeWorkflowInfo": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "type": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "operator": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowInfo describes the node workflow information."
+    },
+    "v3NodeWorkflowListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "NodeWorkflowListReq describes the node workflow list request."
+    },
+    "v3NodeWorkflowListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowListRespData"
+        }
+      },
+      "description": "NodeWorkflowListResp describes the node workflow list response."
+    },
+    "v3NodeWorkflowListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowInfo"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceListReq": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request."
+    },
+    "v3NodeWorkflowOperationInstanceListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespData"
+        }
+      },
+      "description": "NodeWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response."
+    },
+    "v3NodeWorkflowOperationInstanceListRespData": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceLogGetReq": {
+      "type": "object",
+      "properties": {
+        "oper_inst_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request."
+    },
+    "v3NodeWorkflowOperationInstanceLogGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
+        }
+      },
+      "description": "NodeOperActionInstLogResp describes the node operation action instance log\nresponse."
+    },
+    "v3NodeWorkflowOperationInstanceLogGetRespData": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataMessage"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationListReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        }
+      },
+      "description": "NodeWorkflowOperationListReq describes the node operation list by workflow-id\nrequest."
+    },
+    "v3NodeWorkflowOperationListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
+        }
+      },
+      "description": "NodeWorkflowOperationListResp describes the node operation list by\nworkflow-id response."
+    },
+    "v3NodeWorkflowOperationListRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorflowOperationInstance"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowStatisticsReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeWorkflowStatisticReq describes the node workflow statistic request."
+    },
+    "v3NodeWorkflowStatisticsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowStatisticsRespData"
+        }
+      },
+      "description": "NodeWorkflowStatisticResp describes the node workflow statistic response."
+    },
+    "v3NodeWorkflowStatisticsRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NodeWorkflowStatisticsRespStatisticsInfo"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
+    }
+  }
+}

@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler networkunit handler interface.
-type Handler interface {
+// IHandler networkunit handler interface.
+type IHandler interface {
 	// Count counts networkunit by conditions.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -69,7 +69,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new networkunit handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
 		client: client,
 		logger: logger,

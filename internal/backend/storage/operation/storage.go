@@ -13,11 +13,11 @@ package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operengine"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
 // Storage defines the storage interface.
-type Storage interface {
+type IStorage interface {
 	base.Interface
-	operengine.OperationStorage
+	workflow.IStorageOperation
 }

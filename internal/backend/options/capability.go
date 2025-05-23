@@ -13,15 +13,17 @@ package options
 
 import (
 	"context"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/nodedeployment"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigengine"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
@@ -34,20 +36,23 @@ type Capability struct {
 	// Manager workflow management.
 	Manager manager.Manager
 
-	// TopoStorage bk nodeman topo storage.
-	TopoStorage topoStg.IStorage
+	// StorageTopo topo storage.
+	StorageTopo topo.IStorage
 
-	// TrigEngineStorage bk nodeman trigengine storage.
-	TrigEngineStorage trigengine.Storage
+	// StorageTrigger trigger storage.
+	StorageTrigger trigger.IStorage
 
-	// OperInstStorage bk nodeman operation_inst storage.
-	OperInstStorage operinstdataStorage.IStorage
+	// StorageOperInst operation_inst storage.
+	StorageOperInst operinstdataStorage.IStorage
 
-	// OperStorage bk nodeman operation storage.
-	OperStorage operation.Storage
+	// StorageOperation operation storage.
+	StorageOperation operation.IStorage
 
-	// NodeDeploymentStorage bk nodeman node deployment storage.
-	NodeDeploymentStorage nodedeployment.IStorage
+	// StorageNodeDeployment node deployment storage.
+	StorageNodeDeployment nodedeployment.IStorage
+
+	// StorageNodeWorkflow node workflow storage.
+	StorageNodeWorkflow nodeworkflow.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -64,7 +69,7 @@ type Capability struct {
 	// Crypter ...
 	Crypter crypter.Crypter
 
-	// InstallerFileGroup bk nodeman tool file group.
+	// InstallerFileGroup tool file group.
 	InstallerFileGroup iface.FileGroup
 
 	// Discover provides discover handler.
@@ -77,23 +82,27 @@ func (c *Capability) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := c.TopoStorage.Start(ctx); err != nil {
+	if err := c.StorageTopo.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.TrigEngineStorage.Start(ctx); err != nil {
+	if err := c.StorageTrigger.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.OperInstStorage.Start(ctx); err != nil {
+	if err := c.StorageOperInst.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.OperStorage.Start(ctx); err != nil {
+	if err := c.StorageOperation.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.NodeDeploymentStorage.Start(ctx); err != nil {
+	if err := c.StorageNodeDeployment.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageNodeWorkflow.Start(ctx); err != nil {
 		return err
 	}
 
