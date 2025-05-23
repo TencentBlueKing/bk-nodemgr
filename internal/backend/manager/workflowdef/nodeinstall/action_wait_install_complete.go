@@ -11,6 +11,7 @@
 package nodeinstall
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -93,6 +94,13 @@ func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 			act.logger.Infof("action is running, sleep 1 second, oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 			time.Sleep(1 * time.Second)
+
+		case action.StateFailed:
+			act.logger.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			return fmt.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
+
 		default:
 			return nil
 		}

@@ -48,7 +48,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
-			h.logger.Error("failed to install agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -70,6 +70,8 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 
 	resp := new(protoBackend.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)
+
+	h.logger.InfoCtxf(sCtx, "launched install agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }

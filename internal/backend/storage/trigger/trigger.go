@@ -99,6 +99,16 @@ func (s *storage) UpdateTrigger(ctx context.Context, trig *trigger.Trigger) erro
 	return nil
 }
 
+// UpdateTriggerState updates a trigger's state.
+func (s *storage) UpdateTriggerState(ctx context.Context, triggerID string, state trigger.State) error {
+	if err := s.triggerDao.UpdateState(ctx, triggerID, state); err != nil {
+		s.Logger.Errorf("failed to update trigger state. trigger-id: %s, err: %v", triggerID, err)
+		return err
+	}
+
+	return nil
+}
+
 // GetTrigger gets a trigger by triggerID.
 func (s *storage) GetTrigger(ctx context.Context, triggerID string) (*trigger.Trigger, error) {
 	data, err := s.triggerDao.Get(ctx, triggerID)

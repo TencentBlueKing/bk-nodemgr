@@ -51,7 +51,7 @@ const (
 )
 
 // NewManager creates a new manager.
-func NewManager(workerNum int, storage IStorage, opts ...OptionsFunc) IManager {
+func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 	mgr := &manager{
 		mConfig: &machineryConfig.Config{
 			DefaultQueue:    queueNameDefault,
@@ -60,7 +60,6 @@ func NewManager(workerNum int, storage IStorage, opts ...OptionsFunc) IManager {
 		},
 		isRunning:            false,
 		registeredActionDefs: make(map[string]action.Definition),
-		storage:              storage,
 		logger:               logger.LoggerDefault{},
 		WorkerNum:            workerNum,
 		launchWorkerErr:      make(chan error, 1),
@@ -107,6 +106,34 @@ func WithRedis(address, password string, db int) OptionsFunc {
 	}
 }
 
+// WithStorageTrigger sets the storage trigger for the manager.
+func WithStorageTrigger(storageTrigger IStorageTrigger) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.storageTrigger = storageTrigger
+	}
+}
+
+// WithStorageOperation sets the storage operation for the manager.
+func WithStorageOperation(storageOperation IStorageOperation) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.storageOperation = storageOperation
+	}
+}
+
+// WithStorageOperationInstance sets the storage operation instance for the manager.
+func WithStorageOperationInstance(storageOperationInstance IStorageOperationInstance) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.storageOperationInstance = storageOperationInstance
+	}
+}
+
+// WithStorageActionInstance sets the storage action instance for the manager.
+func WithStorageActionInstance(storageActionInst IStorageActionInstance) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.storageActionInstance = storageActionInst
+	}
+}
+
 // WithLocker sets the locker for the manager.
 func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	return func(mgr *manager) {
@@ -144,7 +171,10 @@ type manager struct {
 	server *machinery.Server
 	worker *machinery.Worker
 
-	storage IStorage
+	storageTrigger           IStorageTrigger
+	storageOperation         IStorageOperation
+	storageOperationInstance IStorageOperationInstance
+	storageActionInstance    IStorageActionInstance
 
 	logger logger.Logger
 
@@ -266,8 +296,20 @@ func (mgr *manager) initialize() error {
 		return errors.New("backend is nil")
 	}
 
-	if mgr.storage == nil {
-		return errors.New("storage is nil")
+	if mgr.storageTrigger == nil {
+		return errors.New("storage trigger is nil")
+	}
+
+	if mgr.storageOperation == nil {
+		return errors.New("storage operation is nil")
+	}
+
+	if mgr.storageOperationInstance == nil {
+		return errors.New("storage operation instance is nil")
+	}
+
+	if mgr.storageActionInstance == nil {
+		return errors.New("storage action instance is nil")
 	}
 
 	if mgr.globalLocker == nil {

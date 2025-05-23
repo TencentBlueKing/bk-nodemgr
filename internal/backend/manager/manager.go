@@ -19,8 +19,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -77,7 +75,11 @@ func NewManager(conf Config, logger logger.Logger) (Manager, error) {
 
 	mgr.workflowMgr = workflow.NewManager(
 		mgr.conf.WorkflowConfig.WorkNodeNum,
-		nil,
+		workflow.WithStorageTrigger(conf.StorageTrigger),
+		workflow.WithStorageOperation(conf.StorageOperation),
+		workflow.WithStorageOperationInstance(conf.StorageOperInst),
+		workflow.WithStorageActionInstance(conf.StorageOperInst),
+		workflow.WithLocker(conf.LockerFactory),
 		workflow.WithRedis(
 			mgr.conf.WorkflowConfig.Redis.Addr,
 			mgr.conf.WorkflowConfig.Redis.Password,
@@ -94,9 +96,7 @@ type manager struct {
 	// state
 	isRunning bool
 
-	workflowMgr           workflow.IManager
-	storageNodeDeployment nodedeployment.IStorageDomainInit
-	storageNodeWorkflow   nodeworkflow.IStorage
+	workflowMgr workflow.IManager
 
 	// config
 	conf Config
@@ -227,6 +227,10 @@ func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 		return "", err
 	}
 
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
 	mgr.logger.InfoCtxf(ctx, "launched sync biz and host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
@@ -247,6 +251,10 @@ func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (str
 	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.SyncHostFromCMDBParam{TenantID: tenantID, BizID: bizID})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -274,6 +282,10 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 		return "", err
 	}
 
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
 	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
@@ -293,7 +305,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.storageNodeWorkflow.CreateWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNodeWorkflow.CreateWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -310,7 +322,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			if err := mgr.storageNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
 						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
@@ -335,6 +347,10 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		})
 	}
 	gp.Wait()
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
 
 	return workflowID, nil
 }

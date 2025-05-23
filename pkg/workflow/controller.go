@@ -49,6 +49,12 @@ type ITriggerCtl interface {
 	// GetLastTriggeredAt returns the last triggered at.
 	GetLastTriggeredAt() time.Time
 
+	// RunTrigger runs the trigger.
+	RunTrigger(ctx context.Context) error
+
+	// TerminateTrigger terminates the trigger.
+	TerminateTrigger(ctx context.Context) error
+
 	// CreateOperation creates a new operation under trigger.
 	CreateOperation(
 		ctx context.Context, operationDef operation.Definition, param operation.Param) (IOperationCtl, error)
@@ -104,7 +110,7 @@ func (mgr *manager) CreateTrigger(ctx context.Context, category trigger.Category
 		UpdatedAt: time.Now(),
 	}
 
-	if err := mgr.storage.CreateTrigger(ctx, trig); err != nil {
+	if err := mgr.storageTrigger.CreateTrigger(ctx, trig); err != nil {
 		return nil, err
 	}
 
@@ -116,7 +122,7 @@ func (mgr *manager) CreateTrigger(ctx context.Context, category trigger.Category
 
 // GetTrigger returns the trigger.
 func (mgr *manager) GetTrigger(ctx context.Context, triggerID string) (ITriggerCtl, error) {
-	trig, err := mgr.storage.GetTrigger(ctx, triggerID)
+	trig, err := mgr.storageTrigger.GetTrigger(ctx, triggerID)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +163,16 @@ func (ctl *controller) GetLastTriggeredAt() time.Time {
 	return ctl.trig.LastTriggeredAt
 }
 
+// Run runs the trigger.
+func (ctl *controller) RunTrigger(ctx context.Context) error {
+	return ctl.mgr.storageTrigger.UpdateTriggerState(ctx, ctl.trig.TriggerID, trigger.StateRunning)
+}
+
+// Terminate terminates the trigger.
+func (ctl *controller) TerminateTrigger(ctx context.Context) error {
+	return ctl.mgr.storageTrigger.UpdateTriggerState(ctx, ctl.trig.TriggerID, trigger.StateTerminated)
+}
+
 // CreateOperation creates a new operation under trigger.
 func (ctl *controller) CreateOperation(
 	ctx context.Context, operationDef operation.Definition, param operation.Param) (IOperationCtl, error) {
@@ -171,7 +187,7 @@ func (ctl *controller) CreateOperation(
 		Param:       param,
 	}
 
-	if err := ctl.mgr.storage.UpsertOperation(ctx, oper); err != nil {
+	if err := ctl.mgr.storageOperation.UpsertOperation(ctx, oper); err != nil {
 		ctl.mgr.logger.ErrorCtxf(ctx,
 			"failed to create operation, failed to upsert. trigger-id(%s), operation-name(%s), param(%v), err(%v)",
 			ctl.trig.TriggerID, operationDef.Name(), param, err)
@@ -188,7 +204,7 @@ func (ctl *controller) CreateOperation(
 
 // GetOperation returns the operation.
 func (ctl *controller) GetOperation(ctx context.Context, operationID string) (IOperationCtl, error) {
-	oper, err := ctl.mgr.storage.GetOperation(ctx, operationID)
+	oper, err := ctl.mgr.storageOperation.GetOperation(ctx, operationID)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +224,7 @@ func (ctl *controller) GetOperation(ctx context.Context, operationID string) (IO
 // UpdateLastTriggeredTime updates the last triggered time.
 func (ctl *controller) UpdateLastTriggeredTime(ctx context.Context) error {
 	ctl.trig.LastTriggeredAt = time.Now()
-	if err := ctl.mgr.storage.UpdateTrigger(ctx, ctl.trig); err != nil {
+	if err := ctl.mgr.storageTrigger.UpdateTrigger(ctx, ctl.trig); err != nil {
 		ctl.mgr.logger.ErrorCtxf(ctx,
 			"failed to update last triggered time, failed to update. trigger-id(%s), err(%v)",
 			ctl.trig.TriggerID, err)
@@ -221,7 +237,7 @@ func (ctl *controller) UpdateLastTriggeredTime(ctx context.Context) error {
 
 // ListEmptyOperation returns the empty operation.
 func (ctl *controller) ListEmptyOperation(ctx context.Context, page types.Page) ([]IOperationCtl, error) {
-	opers, _, err := ctl.mgr.storage.ListEmptyOperation(ctx, page, ctl.trig.TriggerID)
+	opers, _, err := ctl.mgr.storageOperation.ListEmptyOperation(ctx, page, ctl.trig.TriggerID)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +258,7 @@ func (ctl *controller) ListEmptyOperation(ctx context.Context, page types.Page) 
 func (ctl *controller) ListOperationInstances(
 	ctx context.Context, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
 
-	instanceBriefData, err := ctl.mgr.storage.ListOperationInstanceBriefData(ctx, page, ctl.trig.TriggerID, states...)
+	instanceBriefData, err := ctl.mgr.storageOperationInstance.ListOperationInstanceBriefData(ctx, page, ctl.trig.TriggerID, states...)
 	if err != nil {
 		return nil, err
 	}
@@ -311,12 +327,12 @@ func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationI
 		ActionInstanceDataMap: actionInstanceDataMap,
 	}
 
-	if err := ctl.mgr.storage.UpsertOperationInstanceData(ctx, instanceData); err != nil {
+	if err := ctl.mgr.storageOperationInstance.UpsertOperationInstanceData(ctx, instanceData); err != nil {
 		return nil, err
 	}
 
 	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, operationInstanceID)
-	if err := ctl.mgr.storage.UpsertOperation(ctx, ctl.oper); err != nil {
+	if err := ctl.mgr.storageOperation.UpsertOperation(ctx, ctl.oper); err != nil {
 		return nil, err
 	}
 
@@ -332,7 +348,7 @@ func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationI
 func (ctl *controller) GetOperationInstance(
 	ctx context.Context, operationInstanceID string) (IOperationInstanceCtl, error) {
 
-	instanceBriefData, err := ctl.mgr.storage.GetOperationInstanceBriefData(ctx, operationInstanceID)
+	instanceBriefData, err := ctl.mgr.storageOperationInstance.GetOperationInstanceBriefData(ctx, operationInstanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -352,9 +368,32 @@ func (ctl *controller) GetOperationInstanceID() string {
 
 // LaunchOperationInstance launches the operation instance.
 func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
+	ctl.mgr.logger.InfoCtxf(ctx, "try to launch operation instance. oper-inst-id(%s)",
+		ctl.operInstanceBriefData.Metadata.OperationInstanceID)
+
 	if ctl.operInstanceBriefData.Lifecycle.State != operation.StateInit {
 		return errors.Join(common.ErrInvalidState(),
 			fmt.Errorf("operation instance is not in init state: %s", ctl.operInstanceBriefData.Lifecycle.State))
+	}
+
+	// ensure operation is not nil
+	if ctl.oper == nil {
+		var err error
+		ctl.oper, err = ctl.mgr.storageOperation.GetOperation(ctx, ctl.operInstanceBriefData.Metadata.OperationID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// update state.
+	ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
+	ctl.operInstanceBriefData.Lifecycle.State = operation.StateRunning
+	if err := ctl.mgr.storageOperationInstance.UpdateOperationInstanceLifecycle(
+		ctx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
+		ctl.mgr.logger.ErrorCtxf(ctx, "failed to update operation instance lifecycle. oper-inst-id(%s), err(%v)",
+			ctl.operInstanceBriefData.Metadata.OperationInstanceID, err)
+
+		return err
 	}
 
 	actionNames := ctl.oper.Definition.ActionDefNames()
@@ -389,6 +428,7 @@ func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
 		return err
 	}
 
+	ctl.mgr.logger.InfoCtxf(ctx, "send chain to machinery. oper-inst-id(%s)", ctl.operInstanceBriefData.Metadata.OperationInstanceID)
 	_, err = ctl.mgr.server.SendChainWithContext(ctx, chain)
 	if err != nil {
 		return fmt.Errorf("send chain to machinery failed, err: %v", err)

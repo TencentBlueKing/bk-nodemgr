@@ -256,7 +256,7 @@ func Test_storage_ListAliveTrigger(t *testing.T) {
 			s := testClient(t)
 			got, err := s.ListAliveTrigger(tt.args.ctx, tt.args.category)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AllPeriodicTrigger() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListAliveTrigger() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

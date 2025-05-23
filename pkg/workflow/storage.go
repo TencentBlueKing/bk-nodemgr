@@ -19,14 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// IStorage defines the storage handler.
-type IStorage interface {
-	IStorageActionInstance
-	IStorageOperation
-	IStorageOperationInstance
-	IStorageTrigger
-}
-
 // IStorageActionInstance defines the storage handler for action instance.
 type IStorageActionInstance interface {
 	// GetActionInstanceData gets full action instance data.
@@ -38,6 +30,9 @@ type IStorageActionInstance interface {
 	// UpdateActionInstanceLifecycle updates action instance lifecycle.
 	UpdateActionInstanceLifecycle(
 		ctx context.Context, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
+
+	// UpdateActionInstanceContent updates action instance content.
+	UpdateActionInstanceContent(ctx context.Context, operationInstanceID, actionName string, content map[string]any) error
 
 	// PushActionInstanceMessage pushes action instance message.
 	PushActionInstanceMessage(
@@ -95,6 +90,9 @@ type IStorageTrigger interface {
 
 	// UpdateTrigger updates trigger.
 	UpdateTrigger(ctx context.Context, trig *trigger.Trigger) error
+
+	// UpdateTriggerState updates trigger state.
+	UpdateTriggerState(ctx context.Context, triggerID string, state trigger.State) error
 
 	// ListAliveTrigger lists alive triggers by given category.
 	ListAliveTrigger(ctx context.Context, category trigger.Category) ([]*trigger.Trigger, error)

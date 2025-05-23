@@ -492,8 +492,8 @@ func (s *Storage) removeSubscription(key string) {
 	delete(s.stopEventSubsMap, key)
 }
 
-// UpdateActionInstContent update action instance content.
-func (s *Storage) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
+// UpdateActionInstanceContent update action instance content.
+func (s *Storage) UpdateActionInstanceContent(ctx context.Context, operInstID string, actionName string,
 	content map[string]any) error {
 
 	if ctx == nil {

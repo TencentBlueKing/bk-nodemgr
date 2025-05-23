@@ -19,6 +19,10 @@ import (
 // Validate check body.
 func (x *NodeProxyInstallReq) Validate() error {
 	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
 	for idx := range hosts {
 		if err := hosts[idx].Validate(); err != nil {
 			return err

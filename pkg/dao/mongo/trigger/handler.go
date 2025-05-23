@@ -38,6 +38,9 @@ type IHandler interface {
 
 	// Update updates trigger.
 	Update(ctx context.Context, trig *trigger.Trigger) error
+
+	// UpdateState updates trigger state.
+	UpdateState(ctx context.Context, triggerID string, state trigger.State) error
 }
 
 type handler struct {
@@ -82,7 +85,7 @@ func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, 
 	}
 
 	if triggerID == "" {
-		return nil, errors.New("triggerID is empty")
+		return nil, errors.New("trigger-id is empty")
 	}
 
 	filter := base.AliveFilter()
@@ -163,6 +166,23 @@ func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
 	}
 
 	return h.tenantDao(tenantID).update(ctx, convertTriggerFromTypes(trig))
+}
+
+// UpdateState updates a trigger's state.
+func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigger.State) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if triggerID == "" {
+		return errors.New("trigger-id is empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithTriggerID(triggerID)(filter)
+
+	return h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyState, string(state))
 }
 
 func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {

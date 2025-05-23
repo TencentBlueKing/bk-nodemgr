@@ -14,10 +14,11 @@ package checkdeploy
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
@@ -64,7 +65,8 @@ func ProxyPidFileList(runDirPath string) []string {
 
 // Run the step to check this gse node is deploy or not.
 func (step *Step) Run(_ context.Context) error {
-	logger.Infof(constant.StepCheckDeploy, constant.StateStart, "start check deploy result")
+	logger.Infof(constant.StepCheckDeploy, constant.StateStart, "start check deploy result. role(%s), run-dir(%s)",
+		step.nodeRole, step.runDir)
 
 	var pidFiles []string
 
@@ -74,6 +76,8 @@ func (step *Step) Run(_ context.Context) error {
 	case constant.NodeRoleProxy:
 		pidFiles = ProxyPidFileList(step.runDir)
 	default:
+		logger.Errorf(constant.StepCheckDeploy, constant.StateFailed, "invalid node role(%s)", step.nodeRole)
+
 		return fmt.Errorf("invalid node role(%s)", step.nodeRole)
 	}
 

@@ -18,7 +18,7 @@ import (
 
 // InstallAgent node agent.
 func (h *handler) InstallAgent(ctx context.Context, param *types.NodeAgentInstallParam) (string, error) {
-
+	return "", nil
 }
 
 // UninstallAgent node agent.

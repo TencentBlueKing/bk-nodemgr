@@ -13,4 +13,10 @@ package trigger
 const (
 	// FieldKeyTriggerID the trigger id field key.
 	FieldKeyTriggerID = "data.trigger_id"
+
+	// FieldKeyState the state field key.
+	FieldKeyState = "data.state"
+
+	// FieldKeyCategory the category field key.
+	FieldKeyCategory = "data.category"
 )

@@ -13,4 +13,10 @@ package operation
 const (
 	// FieldKeyOperationID the operation_id field key.
 	FieldKeyOperationID = "data.operation_id"
+
+	// FieldKeyTriggerID the trigger_id field key.
+	FieldKeyTriggerID = "data.trigger_id"
+
+	// FieldKeyOperationInstanceEmpty the oper_inst_empty field key.
+	FieldKeyOperationInstanceEmpty = "data.oper_inst_empty"
 )

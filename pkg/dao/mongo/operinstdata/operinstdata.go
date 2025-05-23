@@ -174,7 +174,7 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 	}
 
 	d.logger.Infof("pushed oper-inst-data field(%v), table(%s), value(%v), updated-count(%d)",
-		field, TableName, value, result.MatchedCount)
+		field, d.tableName, value, result.MatchedCount)
 
 	return nil
 }

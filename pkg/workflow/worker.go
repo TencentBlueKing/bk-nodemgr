@@ -68,7 +68,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// get action instance.
-	actionInstData, err := mgr.storage.GetActionInstanceData(ctx, operationInstanceID, actionName)
+	actionInstData, err := mgr.storageActionInstance.GetActionInstanceData(ctx, operationInstanceID, actionName)
 	if err != nil {
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
@@ -84,7 +84,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// get operation instance.
-	operInstBriefData, err := mgr.storage.GetOperationInstanceBriefData(ctx, operationInstanceID)
+	operInstBriefData, err := mgr.storageOperationInstance.GetOperationInstanceBriefData(ctx, operationInstanceID)
 	if err != nil {
 		return fmt.Errorf("failed to get operation instance brief data. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
@@ -112,7 +112,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	} else {
 		// not-first action should get content from previous action.
 		preActionName := operInstBriefData.Metadata.ActionNames[actionInstData.Index-1]
-		preActionInstData, err := mgr.storage.GetActionInstanceData(ctx, operationInstanceID, preActionName)
+		preActionInstData, err := mgr.storageActionInstance.GetActionInstanceData(ctx, operationInstanceID, preActionName)
 		if err != nil {
 			return fmt.Errorf("failed to get pre action instance data from operation instance. "+
 				"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, preActionName, err)
@@ -125,8 +125,12 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	executeErr := mgr.executeAndWatchAction(ctx, actionDef, operInstBriefData, actionInstData)
 
 	// updates action instance lifecycle.
-	if err = mgr.updateActionLifecycle(ctx,
-		operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+	if err = mgr.updateActionLifecycle(ctx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+		return err
+	}
+
+	// updates action content.
+	if err = mgr.updateActionContent(ctx, operationInstanceID, actionName, actionInstData.Content); err != nil {
 		return err
 	}
 
@@ -137,6 +141,9 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",
 				err, executeErr)
 		}
+
+		mgr.logger.InfoCtxf(ctx, "updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
+			operationInstanceID, operInstBriefData.Lifecycle)
 	}
 
 	return executeErr
@@ -148,9 +155,24 @@ func (mgr *manager) updateActionLifecycle(
 	actionName string,
 	actionInstLifecycle *action.Lifecycle) error {
 
-	if err := mgr.storage.UpdateActionInstanceLifecycle(ctx,
+	if err := mgr.storageActionInstance.UpdateActionInstanceLifecycle(ctx,
 		operationInstanceID, actionName, actionInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update action instance lifecycle. "+
+			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
+	}
+
+	return nil
+}
+
+func (mgr *manager) updateActionContent(
+	ctx context.Context,
+	operationInstanceID,
+	actionName string,
+	content map[string]any) error {
+
+	if err := mgr.storageActionInstance.UpdateActionInstanceContent(ctx,
+		operationInstanceID, actionName, content); err != nil {
+		return fmt.Errorf("failed to update action instance content. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
 	}
 
@@ -162,7 +184,7 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 	operationInstanceID string,
 	operInstLifecycle *operation.Lifecycle) error {
 
-	if err := mgr.storage.UpdateOperationInstanceLifecycle(ctx,
+	if err := mgr.storageOperationInstance.UpdateOperationInstanceLifecycle(ctx,
 		operationInstanceID, operInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update operation instance lifecycle. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
@@ -184,7 +206,7 @@ func (mgr *manager) executeAndWatchAction(ctx context.Context,
 	defer operationTimeoutCancel()
 
 	// watch storage for stopping event.
-	terminatingC := mgr.storage.WatchOperInstStopping(actionTimeoutCtx, operInstBriefData.Metadata.OperationID)
+	terminatingC := mgr.storageOperationInstance.WatchOperInstStopping(actionTimeoutCtx, operInstBriefData.Metadata.OperationID)
 
 	doResult := make(chan error, 1)
 	actionInstCtx := &action.InstanceContext{
@@ -275,7 +297,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 			msgs := data.Messages[idx:]
 
 			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
-			err := mgr.storage.PushActionInstanceMessage(mgr.ctx, data.OperationID, data.Name, msgs...) // nolint: contextcheck
+			err := mgr.storageActionInstance.PushActionInstanceMessage(mgr.ctx, data.OperationInstanceID, data.Name, msgs...) // nolint: contextcheck
 			if err != nil {
 				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)
@@ -288,7 +310,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 			idx += len(msgs)
 
 			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
-			err := mgr.storage.PushActionInstanceMessage(mgr.ctx, data.OperationID, data.Name, msgs...) // nolint: contextcheck
+			err := mgr.storageActionInstance.PushActionInstanceMessage(mgr.ctx, data.OperationInstanceID, data.Name, msgs...) // nolint: contextcheck
 			if err != nil {
 				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)

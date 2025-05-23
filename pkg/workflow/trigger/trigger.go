@@ -86,6 +86,26 @@ const (
 	CategoryOrdered Category = "ordered"
 )
 
+// StringListToCategoryList converts a category list to a string list.
+func CategoryListToStringList(categories []Category) []string {
+	data := make([]string, len(categories))
+	for idx, category := range categories {
+		data[idx] = string(category)
+	}
+
+	return data
+}
+
+// StringListToCategoryList converts a string list to a category list.
+func StringListToCategoryList(categories []string) []Category {
+	data := make([]Category, len(categories))
+	for idx, category := range categories {
+		data[idx] = Category(category)
+	}
+
+	return data
+}
+
 // State represents the state of a trigger.
 type State string
 
@@ -99,3 +119,23 @@ const (
 	// StateTerminated represents a trigger that has been terminated.
 	StateTerminated State = "terminated"
 )
+
+// StateListToStringList converts a state list to a string list.
+func StateListToStringList(states []State) []string {
+	data := make([]string, len(states))
+	for idx, state := range states {
+		data[idx] = string(state)
+	}
+
+	return data
+}
+
+// StringListToStateList converts a string list to a state list.
+func StringListToStateList(states []string) []State {
+	data := make([]State, len(states))
+	for idx, state := range states {
+		data[idx] = State(state)
+	}
+
+	return data
+}

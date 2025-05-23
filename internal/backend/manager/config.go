@@ -15,9 +15,11 @@ import (
 	"errors"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -38,6 +40,8 @@ type Config struct {
 
 	StorageTopo           topo.IStorage
 	StorageNodeDeployment nodedeployment.IStorage
+	StorageNodeWorkflow   nodeworkflow.IStorage
+	StorageTrigger        trigger.IStorage
 	StorageOperation      operation.IStorage
 	StorageOperInst       operinstdata.IStorage
 

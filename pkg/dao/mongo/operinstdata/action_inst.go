@@ -316,6 +316,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 		OperationDefName:    actionInstData.OperDefName,
 		Name:                actionInstData.Name,
 		Index:               actionInstData.Index,
+		TotalIndex:          actionInstData.TotalIndex,
 		PrivateData:         actionInstData.PrivateData,
 		Lifecycle:           ConvActInstLifeCycleFromDB(actionInstData.Lifecycle),
 	}

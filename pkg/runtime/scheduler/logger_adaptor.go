@@ -15,21 +15,26 @@ import (
 	"log"
 )
 
-// Logger ...
+// Logger defines the scheduler logger.
 type Logger interface {
+	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
 }
 
-// defaultLogger ...
 type defaultLogger struct{}
 
-// Infof ...
+// Debug prints debug logs.
+func (d defaultLogger) Debugf(format string, args ...interface{}) {
+	log.Printf(format, args...)
+}
+
+// Infof prints info logs.
 func (d defaultLogger) Infof(format string, args ...interface{}) {
 	log.Printf(format, args...)
 }
 
-// Errorf ...
+// Errorf prints error logs.
 func (d defaultLogger) Errorf(format string, args ...interface{}) {
 	log.Printf(format, args...)
 }
