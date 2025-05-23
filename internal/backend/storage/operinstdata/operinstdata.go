@@ -65,7 +65,7 @@ type Storage struct {
 	base.Storage
 
 	// dao
-	operinstdataDao operinstdata.IHandler
+	daoOperinstdata operinstdata.IHandler
 	stopoperinstDao stopoperinst.Handler
 
 	// stop event subscriptions
@@ -79,7 +79,7 @@ type Storage struct {
 }
 
 func (s *Storage) startFn() error {
-	s.operinstdataDao = operinstdata.New(s.Database, s.Logger)
+	s.daoOperinstdata = operinstdata.New(s.Database, s.Logger)
 	s.stopoperinstDao = stopoperinst.New(s.Database, s.Logger)
 
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
@@ -91,7 +91,7 @@ func (s *Storage) startFn() error {
 }
 
 func (s *Storage) check() error {
-	if s.operinstdataDao == nil {
+	if s.daoOperinstdata == nil {
 		return errors.New("operation instance dao is nil")
 	}
 
@@ -138,7 +138,7 @@ func (s *Storage) GetActionInstanceData(ctx context.Context, operationInstanceID
 		return nil, base.ErrEmptyActionName()
 	}
 
-	return s.operinstdataDao.GetActionInstData(ctx, operationInstanceID, actionName)
+	return s.daoOperinstdata.GetActionInstData(ctx, operationInstanceID, actionName)
 }
 
 // GetActionInstanceLifecycle gets action instance lifecycle.
@@ -157,7 +157,7 @@ func (s *Storage) GetActionInstanceLifecycle(ctx context.Context, operationInsta
 		return nil, errors.New("actionName is empty")
 	}
 
-	return s.operinstdataDao.GetActInstLifecycle(ctx, operationInstanceID, actionName)
+	return s.daoOperinstdata.GetActInstLifecycle(ctx, operationInstanceID, actionName)
 }
 
 // UpdateActionInstanceLifecycle updates action instance lifecycle.
@@ -184,7 +184,7 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 		return err
 	}
 
-	if err := s.operinstdataDao.UpdateActInstLifecycle(ctx, operationInstanceID, actionName, lifecycle); err != nil {
+	if err := s.daoOperinstdata.UpdateActInstLifecycle(ctx, operationInstanceID, actionName, lifecycle); err != nil {
 		return err
 	}
 
@@ -216,7 +216,7 @@ func (s *Storage) PushActionInstanceMessage(
 	}
 
 	for _, msg := range messages {
-		if err := s.operinstdataDao.PushActionInstanceMessage(ctx, operationInstanceID, actionName, msg); err != nil {
+		if err := s.daoOperinstdata.PushActionInstanceMessage(ctx, operationInstanceID, actionName, msg); err != nil {
 			return fmt.Errorf("push action instance msg failed, err(%v)", err)
 		}
 	}
@@ -225,18 +225,18 @@ func (s *Storage) PushActionInstanceMessage(
 }
 
 // GetOperationInstanceFullData gets full operation instance data.
-func (s *Storage) GetOperationInstanceFullData(ctx context.Context, operationID string) (
+func (s *Storage) GetOperationInstanceFullData(ctx context.Context, operationInstanceID string) (
 	*operation.InstanceData, error) {
 
 	if ctx == nil {
 		return nil, base.ErrNilContent()
 	}
 
-	if operationID == "" {
+	if operationInstanceID == "" {
 		return nil, errors.New("operation inst id is empty")
 	}
 
-	data, err := s.operinstdataDao.FindOne(ctx, operinstdata.WithOperInstID(operationID))
+	data, err := s.daoOperinstdata.FindOne(ctx, operinstdata.WithOperInstID(operationInstanceID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operation inst data: %v", err)
 	}
@@ -245,18 +245,18 @@ func (s *Storage) GetOperationInstanceFullData(ctx context.Context, operationID 
 }
 
 // GetOperationInstanceBriefData gets brief operation instance data.
-func (s *Storage) GetOperationInstanceBriefData(ctx context.Context, operationID string) (
+func (s *Storage) GetOperationInstanceBriefData(ctx context.Context, operationInstanceID string) (
 	*operation.InstanceBriefData, error) {
 
 	if ctx == nil {
 		return nil, base.ErrNilContent()
 	}
 
-	if operationID == "" {
+	if operationInstanceID == "" {
 		return nil, errors.New("operation inst id is empty")
 	}
 
-	data, err := s.operinstdataDao.FindOne(ctx, operinstdata.WithOperInstID(operationID))
+	data, err := s.daoOperinstdata.FindOne(ctx, operinstdata.WithOperInstID(operationInstanceID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operation inst data: %v", err)
 	}
@@ -277,7 +277,7 @@ func (s *Storage) ListOperationInstanceBriefData(
 		return nil, errors.New("trigger id is empty")
 	}
 
-	operInstData, num, err := s.operinstdataDao.ListWithoutActInst(ctx, types.Page{},
+	operInstData, num, err := s.daoOperinstdata.ListWithoutActInst(ctx, types.Page{},
 		operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
 	if err != nil {
 		return nil, err
@@ -302,7 +302,7 @@ func (s *Storage) CountOperationInstance(ctx context.Context, triggerID string,
 		return 0, errors.New("trigger id is empty")
 	}
 
-	num, err := s.operinstdataDao.Count(ctx, operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
+	num, err := s.daoOperinstdata.Count(ctx, operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
 	if err != nil {
 		return 0, fmt.Errorf("failed to count operation instance: %v", err)
 	}
@@ -322,7 +322,7 @@ func (s *Storage) UpsertOperationInstanceData(ctx context.Context,
 		return base.ErrUpsertNilData()
 	}
 
-	if err := s.operinstdataDao.Upsert(ctx, operationInstanceData); err != nil {
+	if err := s.daoOperinstdata.Upsert(ctx, operationInstanceData); err != nil {
 		return fmt.Errorf("failed to update operation inst data, operation-inst(%v), err: %v", operationInstanceData, err)
 	}
 
@@ -331,7 +331,7 @@ func (s *Storage) UpsertOperationInstanceData(ctx context.Context,
 
 // UpdateOperationInstanceLifecycle updates operation instance lifecycle.
 func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
-	operationID string, lifecycle *operation.Lifecycle) error {
+	operationInstanceID string, lifecycle *operation.Lifecycle) error {
 
 	if ctx == nil {
 		return base.ErrNilContent()
@@ -341,7 +341,7 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 		return errors.New("lifecycle is nil")
 	}
 
-	if err := s.operinstdataDao.UpdateLifeCycle(ctx, operationID, lifecycle); err != nil {
+	if err := s.daoOperinstdata.UpdateLifeCycle(ctx, operationInstanceID, lifecycle); err != nil {
 		return err
 	}
 
@@ -349,10 +349,10 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 }
 
 // WatchOperInstStopping watches operation instance stopping.
-func (s *Storage) WatchOperInstStopping(ctx context.Context, operationID string) <-chan struct{} {
+func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{} {
 	c := make(chan struct{}, 1)
 	subscription := &StopEventSubscription{
-		OperInstID: operationID,
+		OperInstID: operationInstanceID,
 		C:          c,
 	}
 
@@ -516,7 +516,7 @@ func (s *Storage) UpdateActionInstanceContent(ctx context.Context, operInstID st
 		return err
 	}
 
-	if err := s.operinstdataDao.UpdateActionInstContent(ctx, operInstID, actionName, content); err != nil {
+	if err := s.daoOperinstdata.UpdateActionInstContent(ctx, operInstID, actionName, content); err != nil {
 		return fmt.Errorf("update action instance content failed, err(%v)", err)
 	}
 
@@ -524,7 +524,7 @@ func (s *Storage) UpdateActionInstanceContent(ctx context.Context, operInstID st
 }
 
 func (s *Storage) existsAction(ctx context.Context, operInstID string, actionName string) error {
-	operation, err := s.operinstdataDao.FindOneWithoutActionData(ctx, operinstdata.WithOperInstID(operInstID))
+	operation, err := s.daoOperinstdata.FindOneWithoutActionData(ctx, operinstdata.WithOperInstID(operInstID))
 	if err != nil {
 		return err
 	}

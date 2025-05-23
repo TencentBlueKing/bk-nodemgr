@@ -13,7 +13,6 @@ package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn option of find.
@@ -31,10 +30,5 @@ func WithOperationID(ids ...string) OptFn {
 
 // WithEmptyOperation filter by operation_instance.
 func WithEmptyOperation() OptFn {
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{
-			Key:   FieldKeyOperationInstanceEmpty,
-			Value: true,
-		})
-	}
+	return base.WithValues(FieldKeyOperationInstanceEmpty, true)
 }

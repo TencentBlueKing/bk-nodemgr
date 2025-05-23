@@ -57,10 +57,10 @@ type IStorageOperation interface {
 // IStorageOperationInstance defines the storage handler for operation instance.
 type IStorageOperationInstance interface {
 	// GetOperationInstanceData gets full operation instance data.
-	GetOperationInstanceFullData(ctx context.Context, operationID string) (*operation.InstanceData, error)
+	GetOperationInstanceFullData(ctx context.Context, operationInstanceID string) (*operation.InstanceData, error)
 
 	// GetOperationInstanceBriefData gets brief operation instance data.
-	GetOperationInstanceBriefData(ctx context.Context, operationID string) (*operation.InstanceBriefData, error)
+	GetOperationInstanceBriefData(ctx context.Context, operationInstanceID string) (*operation.InstanceBriefData, error)
 
 	// ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
 	ListOperationInstanceBriefData(
@@ -74,10 +74,10 @@ type IStorageOperationInstance interface {
 	UpsertOperationInstanceData(ctx context.Context, operationInstanceData *operation.InstanceData) error
 
 	// UpdateOperationInstanceLifecycle updates operation instance lifecycle.
-	UpdateOperationInstanceLifecycle(ctx context.Context, operationID string, lifecycle *operation.Lifecycle) error
+	UpdateOperationInstanceLifecycle(ctx context.Context, operationInstanceID string, lifecycle *operation.Lifecycle) error
 
 	// WatchOperInstStopping watches operation instance stopping.
-	WatchOperInstStopping(ctx context.Context, operationID string) <-chan struct{}
+	WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{}
 }
 
 // IStorageTrigger defines the storage handler for trigger.

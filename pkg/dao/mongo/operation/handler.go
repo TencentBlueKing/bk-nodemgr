@@ -45,7 +45,7 @@ type handler struct {
 	daoMap sync.Map
 }
 
-func (h *handler) tenantDao(tenantID string) *dao {
+func (h *handler) daoTenant(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao)
 	}
@@ -57,7 +57,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 
 	daoclient, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
 
-	// note: we can be sure that only the tenantDao func edit the daoMap,
+	// note: we can be sure that only the daoTenant func edit the daoMap,
 	// so we can just use the type assertion here.
 	// return d.(*dao)
 	val, ok := daoclient.(*dao)
@@ -93,14 +93,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.daoTenant(tenantID).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	datas, err := h.daoTenant(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -129,7 +129,7 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Operat
 		filter = opt(filter)
 	}
 
-	operations, err := h.tenantDao(tenantID).find(ctx, filter)
+	operations, err := h.daoTenant(tenantID).find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (h *handler) Upsert(ctx context.Context, operation *operation.Operation) er
 
 	data := convertOperationToDB(operation)
 
-	if err := h.tenantDao(tenantID).upsert(ctx, data); err != nil {
+	if err := h.daoTenant(tenantID).upsert(ctx, data); err != nil {
 		return err
 	}
 

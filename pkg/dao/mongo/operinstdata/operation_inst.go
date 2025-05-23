@@ -64,7 +64,7 @@ func (h *handler) Upsert(ctx context.Context, data *operation.InstanceData) erro
 		return fmt.Errorf("convert oper inst data to db data error: %v", err)
 	}
 
-	err = h.tenantDao(tenantID).upsert(ctx, operInstData)
+	err = h.daoTenant(tenantID).upsert(ctx, operInstData)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 		filter = opt(filter)
 	}
 
-	operInstDatas, err := h.tenantDao(tenantID).find(ctx, filter)
+	operInstDatas, err := h.daoTenant(tenantID).find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -151,14 +151,14 @@ func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).baseOrm.Count(ctx, filter)
+	num, err := h.daoTenant(tenantID).baseOrm.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	operaInstDatas, err := h.tenantDao(tenantID).baseOrm.List(ctx, filter, findOpt)
+	operaInstDatas, err := h.daoTenant(tenantID).baseOrm.List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -219,8 +219,8 @@ func (h *handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	field := "action_data"
-	InstanceDatas, err := h.tenantDao(tenantID).findWithoutFields(ctx, filter, field)
+	field := FieldOfActionData
+	InstanceDatas, err := h.daoTenant(tenantID).findWithoutFields(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
-	num, err := h.tenantDao(tenantID).baseOrm.Count(ctx, filter)
+	num, err := h.daoTenant(tenantID).baseOrm.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -255,8 +255,8 @@ func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 		return nil, 0, nil
 	}
 
-	field := "action_data"
-	operaInstDatas, err := h.tenantDao(tenantID).findWithoutFields(ctx, filter, field)
+	field := FieldOfActionData
+	operaInstDatas, err := h.daoTenant(tenantID).findWithoutFields(ctx, filter, field)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -289,7 +289,7 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).baseOrm.Count(ctx, filter)
+	return h.daoTenant(tenantID).baseOrm.Count(ctx, filter)
 }
 
 // UpdateLifeCycle update operation instance's LifeCycle.
@@ -316,7 +316,7 @@ func (h *handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 		filter = opt(filter)
 	}
 
-	err := h.tenantDao(tenantID).updateField(ctx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
+	err := h.daoTenant(tenantID).updateField(ctx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
 	if err != nil {
 		return err
 	}

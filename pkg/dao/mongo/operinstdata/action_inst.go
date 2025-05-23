@@ -80,7 +80,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 	}
 
 	filed := FieldKeyActionInstMessages(actionName)
-	err := h.tenantDao(tenantID).updateField(ctx, filter, filed, convMessageToDB(msgs))
+	err := h.daoTenant(tenantID).updateField(ctx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 	}
 
 	filed := FieldKeyActionInstContent(actionName)
-	err = h.tenantDao(tenantID).updateField(ctx, filter, filed, string(bytes))
+	err = h.daoTenant(tenantID).updateField(ctx, filter, filed, string(bytes))
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 
 	for k, v := range data {
 		field := fmt.Sprintf("%s.%s", FieldKeyActInstPrivateData(actionName), k)
-		err := h.tenantDao(tenantID).updateField(ctx, filter, field, v)
+		err := h.daoTenant(tenantID).updateField(ctx, filter, field, v)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 
 	field := fmt.Sprintf("action_data.%s.messages", actionName)
 	for _, msg := range convMessageToDB(messages) {
-		err := h.tenantDao(tenantID).pushField(ctx, filter, field, msg)
+		err := h.daoTenant(tenantID).pushField(ctx, filter, field, msg)
 		if err != nil {
 			return err
 		}
@@ -234,7 +234,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 	}
 	filed := FieldKeyActionInstData(actionInstData.Name)
 
-	return h.tenantDao(tenantID).updateField(ctx, filter, filed, data)
+	return h.daoTenant(tenantID).updateField(ctx, filter, filed, data)
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
@@ -264,7 +264,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 	}
 
 	filed := FieldKeyActionInstLifeCycle(actionName)
-	err := h.tenantDao(tenantID).updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
+	err := h.daoTenant(tenantID).updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstData(actionName)
-	operInstData, err := h.tenantDao(tenantID).get(ctx, filter, field)
+	operInstData, err := h.daoTenant(tenantID).get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +367,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstLifeCycle(actionName)
-	operInstData, err := h.tenantDao(tenantID).get(ctx, filter, field)
+	operInstData, err := h.daoTenant(tenantID).get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +407,7 @@ func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string,
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstID)(filter)
 	field := FieldKeyActionInstState(actionName)
-	err := h.tenantDao(tenantID).updateField(ctx, filter, field, status)
+	err := h.daoTenant(tenantID).updateField(ctx, filter, field, status)
 	if err != nil {
 		return err
 	}

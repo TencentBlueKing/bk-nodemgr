@@ -50,7 +50,7 @@ func (s *Storage) UpdateOperInstActionStatus(ctx context.Context, operInstID str
 		return err
 	}
 
-	err := s.operinstdataDao.UpdateActionInstStatus(ctx, operInstID, actionName, status)
+	err := s.daoOperinstdata.UpdateActionInstStatus(ctx, operInstID, actionName, status)
 	if err != nil {
 		return fmt.Errorf("update oper inst action status error: %v", err)
 	}

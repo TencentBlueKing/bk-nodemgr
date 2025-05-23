@@ -202,7 +202,7 @@ func Test_storage_GetOperation(t *testing.T) {
 	}
 }
 
-// Test_storage_GetOperation ...
+// Test_storage_ListOperation ...
 func Test_storage_ListOperation(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	ctx, _ := tenant.SetID(context.Background(), "test")
@@ -265,9 +265,9 @@ func Test_storage_ListEmptyOpera(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing1",
 			SnapshotActionDefNames:    []string{"validate1", "charge1"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 10 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation1",
 			Timeout:           1 * time.Second,
 			InitContent:       map[string]any{"key": "value1"},
@@ -280,9 +280,9 @@ func Test_storage_ListEmptyOpera(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing1",
 			SnapshotActionDefNames:    []string{"validate1", "charge1"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 10 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation1",
 			Timeout:           1 * time.Second,
 			InitContent:       map[string]any{"key": "value1"},
@@ -296,9 +296,9 @@ func Test_storage_ListEmptyOpera(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing2",
 			SnapshotActionDefNames:    []string{"validate2", "charge2"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 20 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 20 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation2",
 			Timeout:           2 * time.Second,
 			InitContent:       map[string]any{"key": "value2"},
@@ -323,9 +323,9 @@ func Test_storage_ListEmptyOpera(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing",
 			SnapshotActionDefNames:    []string{"validate", "charge"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 50 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 50 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation",
 			Timeout:           60 * time.Second,
 			InitContent:       map[string]any{"key": "value"},

@@ -35,8 +35,8 @@ type handler struct {
 	daoMap sync.Map
 }
 
-// tenantDao get the dao by tenantID.
-func (h *handler) tenantDao(tenantID string) *dao {
+// daoTenant get the dao by tenantID.
+func (h *handler) daoTenant(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao) // nolint:forcetypeassert
 	}
@@ -48,7 +48,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
 
-	// note: we can be sure that only the tenantDao func edit the daoMap,
+	// note: we can be sure that only the daoTenant func edit the daoMap,
 	// so we can just use the type assertion here.
 	return d.(*dao) // nolint:forcetypeassert
 }

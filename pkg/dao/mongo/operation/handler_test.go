@@ -70,9 +70,9 @@ func Test_handler_List(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing1",
 			SnapshotActionDefNames:    []string{"validate1", "charge1"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 10 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 10 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation1",
 			Timeout:           1 * time.Second,
 			InitContent:       map[string]any{"key": "value1"},
@@ -86,9 +86,9 @@ func Test_handler_List(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing2",
 			SnapshotActionDefNames:    []string{"validate2", "charge2"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 20 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 20 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation2",
 			Timeout:           2 * time.Second,
 			InitContent:       map[string]any{"key": "value2"},
@@ -168,9 +168,9 @@ func Test_handler_FindOne(t *testing.T) {
 		Definition: &operation.DefinitionSnapshot{
 			SnapshotName:              "order_processing",
 			SnapshotActionDefNames:    []string{"validate", "charge"},
-			SnapshotDefaultParameters: operation.OperationParam{Timeout: 50 * time.Second},
+			SnapshotDefaultParameters: operation.Param{Timeout: 50 * time.Second},
 		},
-		Param: operation.OperationParam{
+		Param: operation.Param{
 			ParentOperationID: "parent_operation",
 			Timeout:           60 * time.Second,
 			InitContent:       map[string]any{"key": "value"},
@@ -238,8 +238,8 @@ func InvalidFilterFn() OptFn {
 		return append(filter, bson.E{
 			Key: "$and",
 			Value: []bson.D{
-				{{Key: "data.trigger_id", Value: "non_existent_value_1"}},
-				{{Key: "data.trigger_id", Value: "non_existent_value_2"}},
+				{{Key: FieldKeyTriggerID, Value: "non_existent_value_1"}},
+				{{Key: FieldKeyTriggerID, Value: "non_existent_value_2"}},
 			},
 		})
 	}

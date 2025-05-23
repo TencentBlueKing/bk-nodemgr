@@ -22,6 +22,9 @@ const (
 
 	// FieldKeyState is the field name for state.
 	FieldKeyState = "data.life_cycle.state"
+
+	// FieldOfActionData is the field name for action data.
+	FieldOfActionData = "action_data"
 )
 
 // FieldKeyActionInstState is the field name for action instance state.
