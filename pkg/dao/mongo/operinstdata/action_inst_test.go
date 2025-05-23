@@ -24,7 +24,6 @@ func testActionInstData(t *testing.T) IActionInstData {
 	return testHandler(t)
 }
 
-// TODO 这里如果actionName不存在，会新增一条数据，应该返回error
 // Test_handler_UpdateActionInstData ...
 func Test_handler_UpdateActionInstData(t *testing.T) {
 	//tenant.SetMode(tenant.ModeMultiple)
@@ -92,7 +91,6 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 	}
 }
 
-// TODO 这里如果actionName不存在，会新增一条数据，应该返回error
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_UpdateActionInstContent(t *testing.T) {
 	type args struct {
@@ -150,7 +148,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "normal",
@@ -159,7 +157,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 				operInstID: "op-instance-002",
 				actionName: "check-stock",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "nil context",
@@ -276,9 +274,6 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
 			got, err := h.GetActInstLifecycle(tt.args.ctx, tt.args.operInstID, tt.args.actionName)
-			if err != nil {
-				t.Logf("GetActInstLifecycle() error = %v", err)
-			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
 				return

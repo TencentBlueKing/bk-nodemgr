@@ -367,7 +367,7 @@ func Test_storage_UpdateActionInstanceLifecycle(t *testing.T) {
 				State:   action.StatePending,
 				EndedAt: time.Now(),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:            "error-1",
@@ -377,7 +377,7 @@ func Test_storage_UpdateActionInstanceLifecycle(t *testing.T) {
 				State:   action.StatePending,
 				EndedAt: time.Now(),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:            "error-2",
@@ -387,7 +387,7 @@ func Test_storage_UpdateActionInstanceLifecycle(t *testing.T) {
 				State:   action.StatePending,
 				EndedAt: time.Now(),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
@@ -432,7 +432,7 @@ func Test_storage_PushActionInstanceMessage(t *testing.T) {
 				Time: time.Now(),
 				Text: "test2",
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:            "error-2",
@@ -442,7 +442,7 @@ func Test_storage_PushActionInstanceMessage(t *testing.T) {
 				Time: time.Now(),
 				Text: "test3",
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
