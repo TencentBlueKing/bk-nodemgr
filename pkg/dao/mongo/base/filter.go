@@ -67,7 +67,7 @@ func WithoutInt64Values(key string, values ...int64) OptFn {
 }
 
 // WithStringValues filters by string value.
-// Deprecated: use WithStringValues instead.
+// Deprecated: use WithValues instead.
 func WithStringValues(key string, values ...string) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
