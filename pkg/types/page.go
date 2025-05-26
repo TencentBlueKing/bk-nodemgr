@@ -48,3 +48,11 @@ func UnlimitedPage() Page {
 		Limit:  math.MaxInt32,
 	}
 }
+
+// SingleItemPage is a single item page.
+func SingleItemPage() Page {
+	return Page{
+		Offset: 0,
+		Limit:  1,
+	}
+}
