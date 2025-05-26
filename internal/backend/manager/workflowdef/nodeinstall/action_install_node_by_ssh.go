@@ -57,8 +57,8 @@ func NewActionInstallNodeBySSH(
 	}
 }
 
-// InstallAgentParamBySSH ...
-type InstallAgentParamBySSH struct {
+// ActParamInstallAgentBySSH ...
+type ActParamInstallAgentBySSH struct {
 	Token string `json:"token"`
 }
 
@@ -125,7 +125,7 @@ func (act *actionInstallNodeBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
 func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(InstallAgentParamBySSH)
+	param := new(ActParamInstallAgentBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param, err: %w", err)

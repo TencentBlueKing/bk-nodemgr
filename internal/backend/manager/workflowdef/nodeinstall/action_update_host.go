@@ -41,8 +41,8 @@ func NewActionUpdateHost(
 	}
 }
 
-// UpdateHostParam ...
-type UpdateHostParam struct {
+// ActParamUpdateHost ...
+type ActParamUpdateHost struct {
 	Token string `json:"token"`
 }
 
@@ -92,7 +92,7 @@ func (act *actionUpdateHost) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
-	param := new(UpdateHostParam)
+	param := new(ActParamUpdateHost)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

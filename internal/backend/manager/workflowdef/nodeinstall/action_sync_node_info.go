@@ -42,8 +42,8 @@ func NewActionSyncNodeInfo(
 	}
 }
 
-// SyncNodeInfoParam ...
-type SyncNodeInfoParam struct {
+// ActParamSyncNodeInfo ...
+type ActParamSyncNodeInfo struct {
 	Token string `json:"token"`
 }
 
@@ -92,7 +92,7 @@ func (act *actionSyncNodeInfo) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
-	param := new(SyncNodeInfoParam)
+	param := new(ActParamSyncNodeInfo)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

@@ -43,8 +43,8 @@ func NewActionPushHostIdentifier(
 	}
 }
 
-// PushHostIdentifierParam ...
-type PushHostIdentifierParam struct {
+// ActParamPushHostIdentifier ...
+type ActParamPushHostIdentifier struct {
 	Token string `json:"token"`
 }
 
@@ -94,7 +94,7 @@ func (act *actionPushHostIdentifier) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
-	param := new(PushHostIdentifierParam)
+	param := new(ActParamPushHostIdentifier)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

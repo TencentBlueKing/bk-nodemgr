@@ -51,8 +51,8 @@ func NewActionRenderNodeDeployment(
 	}
 }
 
-// RenderNodeDeploymentParam this is the param for render deployment.
-type RenderNodeDeploymentParam struct {
+// ActParamRenderNodeDeployment this is the param for render deployment.
+type ActParamRenderNodeDeployment struct {
 	Token string `json:"token"`
 }
 
@@ -103,7 +103,7 @@ func (act *actionRenderNodeDeployment) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
-	param := new(RenderNodeDeploymentParam)
+	param := new(ActParamRenderNodeDeployment)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

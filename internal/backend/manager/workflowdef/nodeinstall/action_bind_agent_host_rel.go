@@ -46,8 +46,8 @@ func NewActionBindAgentHostRel(
 	}
 }
 
-// BindAgentHostRelParam ...
-type BindAgentHostRelParam struct {
+// ActParamBindAgentHostRel ...
+type ActParamBindAgentHostRel struct {
 	Token string `json:"token"`
 }
 
@@ -97,7 +97,7 @@ func (act *actionBindAgentHostRel) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
-	param := new(BindAgentHostRelParam)
+	param := new(ActParamBindAgentHostRel)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

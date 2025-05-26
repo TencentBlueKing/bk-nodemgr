@@ -32,7 +32,7 @@ const (
 	ActionNameUpsertHostToCMDB = "upsert_host_to_cmdb"
 )
 
-// NewActionUpsertHost get a new action.
+// NewActionUpsertHostToCMDB get a new action.
 func NewActionUpsertHostToCMDB(
 	cmdbHandler cmdb.IHandler,
 	storageHost topo.IStorageHost,
@@ -46,8 +46,8 @@ func NewActionUpsertHostToCMDB(
 	}
 }
 
-// UpsertHostParam ...
-type UpsertHostToCMDBParam struct {
+// ActParamUpsertHostToCMDB ...
+type ActParamUpsertHostToCMDB struct {
 	Token string `json:"token"`
 }
 
@@ -97,7 +97,7 @@ func (act *actionUpsertHostToCMDB) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
-	param := new(UpsertHostToCMDBParam)
+	param := new(ActParamUpsertHostToCMDB)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

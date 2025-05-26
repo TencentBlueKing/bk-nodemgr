@@ -43,8 +43,8 @@ func NewActionWaitGseReady(
 	}
 }
 
-// WaitGseReadyParam ...
-type WaitGseReadyParam struct {
+// ActParamWaitGseReady ...
+type ActParamWaitGseReady struct {
 	Token string `json:"token"`
 }
 
@@ -96,7 +96,7 @@ func (act *actionWaitGseReady) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
-	param := new(WaitGseReadyParam)
+	param := new(ActParamWaitGseReady)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

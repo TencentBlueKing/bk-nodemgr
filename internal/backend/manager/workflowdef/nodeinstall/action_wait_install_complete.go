@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	// ActionNameWaitComplete defines the action name.
+	// ActionNameWaitInstallComplete defines the action name.
 	ActionNameWaitInstallComplete = "wait_install_complete"
 )
 
