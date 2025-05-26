@@ -327,6 +327,8 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 					"failed to create node deployment. "+
 						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+
+				return err
 			}
 
 			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.InstallNodeBySSHParam{Token: deploy.Token})
@@ -341,12 +343,17 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 			}
 
 			mgr.logger.InfoCtxf(ctx,
-				"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s)",
+				"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
+					" node-deployment-token(%s)",
 				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+
 			return nil
 		})
 	}
-	gp.Wait()
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch install node task. err: %w", err)
+	}
 
 	if err = triggerCtl.RunTrigger(ctx); err != nil {
 		return "", err
