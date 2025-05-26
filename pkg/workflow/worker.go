@@ -63,7 +63,7 @@ func (mgr *manager) launchWorker() error {
 
 // do executes the action defined by actionName for the operation instance with operationInstanceID.
 // nolint: funlen
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {

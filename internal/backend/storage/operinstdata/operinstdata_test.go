@@ -66,7 +66,7 @@ func testClient(t *testing.T) IStorage {
 }
 
 // Test_storage_UpsertOperInstData ...
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func Test_storage_UpsertOperInstData(t *testing.T) {
 	now := time.Now()
 	type args struct {

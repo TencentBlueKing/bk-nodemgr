@@ -110,7 +110,7 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 
 // UpdateNetworkUnit updates networkunit.
 // nolint:funlen
-// // NOCC: golint/fnsize.
+// // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

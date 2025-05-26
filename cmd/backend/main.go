@@ -38,7 +38,7 @@ func init() {
 
 // backend service entrypoint.
 // nolint: funlen
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func main() {
 	// configPath of backend service.
 	var configPath string

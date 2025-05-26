@@ -18,7 +18,7 @@ import (
 )
 
 // TestRenderConfig ...
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func TestRenderConfig(t *testing.T) {
 	type args struct {
 		template Template

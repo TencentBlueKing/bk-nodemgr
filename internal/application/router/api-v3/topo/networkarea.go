@@ -135,7 +135,7 @@ func (h *handler) ListNetworkArea(ctx *rest.Context) (interface{}, error) {
 
 // StatisticsNetworkArea statistics network-area.
 // nolint: funlen, gocognit
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (h *handler) StatisticsNetworkArea(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

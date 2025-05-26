@@ -121,7 +121,7 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondit
 
 // DistinctHost distinct host fields.
 // nolint:funlen
-// NOCC: golint/fnsize.
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (s *Storage) DistinctHost(
 	ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 	*types.HostDistinctResult, error) {
