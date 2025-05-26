@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package operation defines the operation instance and its lifecycle.
 package operation
 
 import (
