@@ -85,7 +85,8 @@ func (step *Step) Run(_ context.Context) error {
 	for idx := range pidFiles {
 		pidFilePath := pidFiles[idx]
 		gp.Go(func() error {
-			logger.Infof(constant.StepCheckDeploy, constant.StateRunning, "pid-file-path(%s)", pidFilePath)
+			logger.Infof(constant.StepCheckDeploy, constant.StateRunning,
+				"start to check pid file pid-file-path(%s)", pidFilePath)
 
 			if err := step.checkPidFile(pidFilePath); err != nil {
 				logger.Errorf(constant.StepCheckDeploy, constant.StateFailed,
