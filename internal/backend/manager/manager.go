@@ -221,7 +221,7 @@ func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.SyncBizFromCMDBParam{TenantID: tenantID})
+	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.OperParamSyncBizAndHostFromCMDB{TenantID: tenantID})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -248,7 +248,7 @@ func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (str
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.SyncHostFromCMDBParam{TenantID: tenantID, BizID: bizID})
+	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.OperParamSyncHostFromCMDB{TenantID: tenantID, BizID: bizID})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -276,7 +276,7 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.SyncNetworkAreaFromCMDBParam{TenantID: tenantID})
+	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.OperParamSyncNetworkAreaFromCMDB{TenantID: tenantID})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -331,7 +331,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.InstallNodeBySSHParam{Token: deploy.Token})
+			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
 			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,

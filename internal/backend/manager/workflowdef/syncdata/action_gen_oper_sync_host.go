@@ -129,7 +129,7 @@ func (act *actionGenOperSyncHost) executeOper(
 		return err
 	}
 
-	operationDef := NewOperSyncHostFromCMDB(SyncHostFromCMDBParam{
+	operationDef := NewOperSyncHostFromCMDB(OperParamSyncHostFromCMDB{
 		TenantID: biz.TenantID,
 		BizID:    biz.BizID,
 	})

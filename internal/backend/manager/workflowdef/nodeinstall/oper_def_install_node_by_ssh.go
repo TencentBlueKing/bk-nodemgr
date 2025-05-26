@@ -23,16 +23,16 @@ const (
 )
 
 // NewOperInstallNodeBySSH new an operation.
-func NewOperInstallNodeBySSH(param InstallNodeBySSHParam) operation.Definition {
+func NewOperInstallNodeBySSH(param OperParamInstallNodeBySSH) operation.Definition {
 	return &operInstallNodeBySSH{param: param}
 }
 
 type operInstallNodeBySSH struct {
-	param InstallNodeBySSHParam
+	param OperParamInstallNodeBySSH
 }
 
-// InstallNodeBySSHParam defines the parameters for the operation.
-type InstallNodeBySSHParam struct {
+// OperParamInstallNodeBySSH defines the parameters for operInstallNodeBySSH.
+type OperParamInstallNodeBySSH struct {
 	Token string
 }
 

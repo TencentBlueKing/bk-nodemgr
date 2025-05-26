@@ -21,14 +21,19 @@ import (
 const OperDefNameSyncNetworkArea = "sync_networkarea_from_cmdb"
 
 // NewOperSyncNetworkAreaFromCMDB new an operation definition.
-func NewOperSyncNetworkAreaFromCMDB(param SyncNetworkAreaFromCMDBParam) operation.Definition {
+func NewOperSyncNetworkAreaFromCMDB(param OperParamSyncNetworkAreaFromCMDB) operation.Definition {
 	return &operSyncNetworkAreaFromCMDB{
 		param: param,
 	}
 }
 
 type operSyncNetworkAreaFromCMDB struct {
-	param SyncNetworkAreaFromCMDBParam
+	param OperParamSyncNetworkAreaFromCMDB
+}
+
+// OperParamSyncNetworkAreaFromCMDB defines the parameters for operSyncNetworkAreaFromCMDB.
+type OperParamSyncNetworkAreaFromCMDB struct {
+	TenantID string `json:"tenant_id"`
 }
 
 // Name returns the name.

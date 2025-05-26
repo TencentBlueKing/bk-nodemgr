@@ -21,14 +21,19 @@ import (
 const OperDefNameSyncBizAndHostFromCMDB = "sync_biz_and_host_from_cmdb"
 
 // NewOperSyncBizAndHostFromCMDB new an operation.
-func NewOperSyncBizAndHostFromCMDB(param SyncBizFromCMDBParam) operation.Definition {
+func NewOperSyncBizAndHostFromCMDB(param OperParamSyncBizAndHostFromCMDB) operation.Definition {
 	return &operSyncBizAndHostFromCMDB{
 		param: param,
 	}
 }
 
 type operSyncBizAndHostFromCMDB struct {
-	param SyncBizFromCMDBParam
+	param OperParamSyncBizAndHostFromCMDB
+}
+
+// OperParamSyncBizAndHostFromCMDB defines the parameters for operSyncBizAndHostFromCMDB.
+type OperParamSyncBizAndHostFromCMDB struct {
+	TenantID string `json:"tenant_id"`
 }
 
 // Name returns the name.
