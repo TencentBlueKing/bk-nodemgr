@@ -23,12 +23,17 @@ const (
 )
 
 // NewOperInstallNodeBySSH new an operation.
-func NewOperInstallNodeBySSH(param UpsertHostToCMDBParam) operation.Definition {
+func NewOperInstallNodeBySSH(param InstallNodeBySSHParam) operation.Definition {
 	return &operInstallNodeBySSH{param: param}
 }
 
 type operInstallNodeBySSH struct {
-	param UpsertHostToCMDBParam
+	param InstallNodeBySSHParam
+}
+
+// InstallNodeBySSHParam defines the parameters for the operation.
+type InstallNodeBySSHParam struct {
+	Token string
 }
 
 // Name returns the name.

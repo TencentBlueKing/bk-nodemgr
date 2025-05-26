@@ -329,7 +329,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
 			}
 
-			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.UpsertHostToCMDBParam{Token: deploy.Token})
+			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.InstallNodeBySSHParam{Token: deploy.Token})
 			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
