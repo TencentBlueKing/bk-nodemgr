@@ -665,7 +665,7 @@ linters-settings:
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment
         alias: nodedeployment
       # Using `nodeworkflow` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow`
-	    - pkg: "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+      - pkg: "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
         alias: nodeworkflow
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface
