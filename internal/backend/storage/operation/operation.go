@@ -14,6 +14,7 @@ package operation
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
@@ -50,7 +51,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	return s, nil
 }
 
-// storage implements the Storage interface.
+// Storage implements the Storage interface.
 type Storage struct {
 	base.Storage
 
@@ -77,12 +78,17 @@ func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workop
 		return nil, base.ErrNilContent()
 	}
 
-	oper, err := s.daoOperation.FindOne(ctx, operation.WithOperationID(operationID))
+	operations, count, err := s.daoOperation.List(ctx, types.SingleItemPage(), operation.WithOperationID(operationID))
 	if err != nil {
 		return nil, err
 	}
 
-	return oper, nil
+	if count != 1 || int64(len(operations)) != count {
+		return nil, fmt.Errorf("get operation failed, match num not 1, operationID: %s, count: %d",
+			operationID, count)
+	}
+
+	return operations[0], nil
 }
 
 // UpsertOperation ...
