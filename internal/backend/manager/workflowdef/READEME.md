@@ -1,10 +1,11 @@
 ## 文件定位
 
-| 文件名             | 功能描述                   | 备注                     |
-| ------------------ | -------------------------- | ------------------------ |
-| action_def.go      | 存储所有 action_def 的名称 | 需要找 action 从此处开始 |
-| oper_def.go        |                            |                          |
-| {{action_name}}.go |                            |                          |
+| 文件名                       | 功能描述                | 备注               |
+|---------------------------|---------------------|------------------|
+| action_def.go             | 存储所有 action_def 的名称 | 需要找 action 从此处开始 |
+| oper_def.go               |                     |                  |
+| action_{{action_name}}.go | 用于存储 action 的逻辑     |                  |                          |
+| oper_{{oper_name}}.go     | 用于存储 operation 的逻辑  |                  |                          |
 
 ## action 模板
 
@@ -34,8 +35,8 @@ func NewActionActionName() action.Definition {
 	return &ActionName{}
 }
 
-// ActionNameParam ...
-type ActionNameParam struct {
+// ActParamActionName ...
+type ActParamActionName struct {
 }
 
 // ActionName ...
@@ -81,7 +82,7 @@ func (act *ActionName) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *ActionName) Do(ctx *action.InstanceContext) error {
-	param := new(ActionNameParam)
+	param := new(ActParamActionName)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
