@@ -86,7 +86,7 @@ const (
 	CategoryOrdered Category = "ordered"
 )
 
-// StringListToCategoryList converts a category list to a string list.
+// CategoryListToStringList converts a category list to a string list.
 func CategoryListToStringList(categories []Category) []string {
 	data := make([]string, len(categories))
 	for idx, category := range categories {

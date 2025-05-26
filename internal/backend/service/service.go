@@ -92,6 +92,8 @@ type Service struct {
 }
 
 // NewService creates a new backend service.
+// nolint: funlen
+// NOCC: golint/fnsize.
 func NewService(conf *config.BackendService) (*Service, error) {
 	if err := loadSystemInfo(conf); err != nil {
 		return nil, err

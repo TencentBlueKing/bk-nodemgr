@@ -81,7 +81,10 @@ func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 		default:
 		}
 
-		lifecycle, err := act.storageActionInstance.GetActionInstanceLifecycle(ctx.Ctx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+		lifecycle, err := act.storageActionInstance.GetActionInstanceLifecycle(
+			ctx.Ctx,
+			ctx.Data.OperationInstanceID,
+			ctx.Data.Name)
 		if err != nil {
 			act.logger.Errorf("get action_inst_data lifecycle failed, err: %v", err)
 

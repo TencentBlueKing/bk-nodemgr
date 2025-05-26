@@ -108,8 +108,9 @@ func (h *handler) CreateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// nolint:funlen
 // UpdateNetworkUnit updates networkunit.
+// nolint:funlen
+// // NOCC: golint/fnsize.
 func (h *handler) UpdateNetworkUnit(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

@@ -260,6 +260,7 @@ func GseAgentSettingDefault() map[string]any {
 
 // GseProxySettingDefault return default gse proxy setting
 // nolint: mnd
+// NOCC: golint/fnsize.
 func GseProxySettingDefault() map[string]any {
 	return map[string]any{
 		"__BK_GSE_HOME_DIR__":                               "/usr/local/gse/proxy",
@@ -504,6 +505,7 @@ const (
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen
+// NOCC: golint/fnsize.
 func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 

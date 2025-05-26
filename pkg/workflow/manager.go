@@ -109,28 +109,28 @@ func WithRedis(address, password string, db int) OptionsFunc {
 // WithStorageTrigger sets the storage trigger for the manager.
 func WithStorageTrigger(storageTrigger IStorageTrigger) OptionsFunc {
 	return func(mgr *manager) {
-		mgr.storageTrigger = storageTrigger
+		mgr.stgTrigger = storageTrigger
 	}
 }
 
 // WithStorageOperation sets the storage operation for the manager.
 func WithStorageOperation(storageOperation IStorageOperation) OptionsFunc {
 	return func(mgr *manager) {
-		mgr.storageOperation = storageOperation
+		mgr.stgOperation = storageOperation
 	}
 }
 
 // WithStorageOperationInstance sets the storage operation instance for the manager.
 func WithStorageOperationInstance(storageOperationInstance IStorageOperationInstance) OptionsFunc {
 	return func(mgr *manager) {
-		mgr.storageOperationInstance = storageOperationInstance
+		mgr.stgOperationInstance = storageOperationInstance
 	}
 }
 
 // WithStorageActionInstance sets the storage action instance for the manager.
 func WithStorageActionInstance(storageActionInst IStorageActionInstance) OptionsFunc {
 	return func(mgr *manager) {
-		mgr.storageActionInstance = storageActionInst
+		mgr.stgActionInstance = storageActionInst
 	}
 }
 
@@ -171,10 +171,10 @@ type manager struct {
 	server *machinery.Server
 	worker *machinery.Worker
 
-	storageTrigger           IStorageTrigger
-	storageOperation         IStorageOperation
-	storageOperationInstance IStorageOperationInstance
-	storageActionInstance    IStorageActionInstance
+	stgTrigger           IStorageTrigger
+	stgOperation         IStorageOperation
+	stgOperationInstance IStorageOperationInstance
+	stgActionInstance    IStorageActionInstance
 
 	logger logger.Logger
 
@@ -296,19 +296,19 @@ func (mgr *manager) initialize() error {
 		return errors.New("backend is nil")
 	}
 
-	if mgr.storageTrigger == nil {
+	if mgr.stgTrigger == nil {
 		return errors.New("storage trigger is nil")
 	}
 
-	if mgr.storageOperation == nil {
+	if mgr.stgOperation == nil {
 		return errors.New("storage operation is nil")
 	}
 
-	if mgr.storageOperationInstance == nil {
+	if mgr.stgOperationInstance == nil {
 		return errors.New("storage operation instance is nil")
 	}
 
-	if mgr.storageActionInstance == nil {
+	if mgr.stgActionInstance == nil {
 		return errors.New("storage action instance is nil")
 	}
 

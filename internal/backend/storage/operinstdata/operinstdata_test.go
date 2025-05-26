@@ -66,6 +66,7 @@ func testClient(t *testing.T) IStorage {
 }
 
 // Test_storage_UpsertOperInstData ...
+// NOCC: golint/fnsize.
 func Test_storage_UpsertOperInstData(t *testing.T) {
 	now := time.Now()
 	type args struct {

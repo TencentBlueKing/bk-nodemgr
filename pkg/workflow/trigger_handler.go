@@ -183,7 +183,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 
 // syncOnceTrigger syncs once triggers from storage.
 func (handler *triggerHandler) syncOnceTrigger(ctx context.Context) error {
-	list, err := handler.mgr.storageTrigger.ListAliveTrigger(ctx, trigger.CategoryOnce)
+	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOnce)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.onceTriggers.set([]*trigger.Trigger{})
@@ -200,7 +200,7 @@ func (handler *triggerHandler) syncOnceTrigger(ctx context.Context) error {
 
 // syncOrderedTrigger syncs ordered triggers from storage.
 func (handler *triggerHandler) syncOrderedTrigger(ctx context.Context) error {
-	list, err := handler.mgr.storageTrigger.ListAliveTrigger(ctx, trigger.CategoryOrdered)
+	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOrdered)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.orderedTriggers.set([]*trigger.Trigger{})
@@ -217,7 +217,7 @@ func (handler *triggerHandler) syncOrderedTrigger(ctx context.Context) error {
 
 // syncPeriodicTrigger syncs periodic triggers from storage.
 func (handler *triggerHandler) syncPeriodicTrigger(ctx context.Context) error {
-	list, err := handler.mgr.storageTrigger.ListAliveTrigger(ctx, trigger.CategoryPeriodic)
+	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryPeriodic)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.periodicTriggers.set([]*trigger.Trigger{})
@@ -402,7 +402,8 @@ func (handler *triggerHandler) initEmptyOperation(ctx context.Context, trigCtl I
 		return err
 	}
 
-	handler.mgr.logger.DebugCtxf(ctx, "init empty operation, list empty operation(%d). trigger-id(%s), operation-count(%d)",
+	handler.mgr.logger.DebugCtxf(ctx,
+		"init empty operation, list empty operation(%d). trigger-id(%s), operation-count(%d)",
 		len(operList), trigCtl.GetTriggerID(), len(operList))
 
 	gp := gopool.NewPool()
@@ -455,7 +456,7 @@ func (handler *triggerHandler) doOrderedTrigger(
 				trigCtl.GetTriggerID(), metadata.MaxConcurrencyNum))
 	}
 
-	workingCount, err := handler.mgr.storageOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
+	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
 		operation.StateLaunched, operation.StateRunning)
 	if err != nil {
 		return nil, err
@@ -495,7 +496,7 @@ func (handler *triggerHandler) doPeriodicTrigger(
 	}
 
 	if !metadata.AllowedConcurrency {
-		workingCount, err := handler.mgr.storageOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
+		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
 			operation.StateLaunched, operation.StateRunning)
 		if err != nil {
 			return nil, err
@@ -507,7 +508,7 @@ func (handler *triggerHandler) doPeriodicTrigger(
 		}
 	}
 
-	operList, count, err := handler.mgr.storageOperation.ListOperation(ctx, types.UnlimitedPage(), trigCtl.GetTriggerID())
+	operList, count, err := handler.mgr.stgOperation.ListOperation(ctx, types.UnlimitedPage(), trigCtl.GetTriggerID())
 	if err != nil {
 		return nil, err
 	}

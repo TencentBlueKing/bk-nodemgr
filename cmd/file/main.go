@@ -87,6 +87,8 @@ func (l logger) Panicln(args ...interface{}) {
 }
 
 // file service entrypoint.
+// nolint: funlen
+// NOCC: golint/fnsize.
 func main() {
 	// configPath of file service.
 	var configPath string

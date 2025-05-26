@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package operation provides the dao for operation related constants.
 package operation
 
 const (

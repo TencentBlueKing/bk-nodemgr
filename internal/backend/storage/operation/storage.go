@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
-// Storage defines the storage interface.
+// IStorage defines the storage interface.
 type IStorage interface {
 	base.Interface
 	workflow.IStorageOperation

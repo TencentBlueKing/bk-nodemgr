@@ -70,7 +70,8 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		h.logger.Infof("report log get failed state, set action status to failed. oper-inst-id(%s), action-name(%s)",
 			info.OperInstID, info.BlockingActionName)
 
-		if err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, action.StateFailed); err != nil {
+		err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, action.StateFailed)
+		if err != nil {
 			h.logger.Errorf("report log failed, err: %s", err)
 			gCtx.JSON(http.StatusInternalServerError, err)
 

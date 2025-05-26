@@ -123,7 +123,8 @@ func (act *actionInstallNodeBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
+// nolint: perfsprint,funlen
+// NOCC: golint/fnsize.
 func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallAgentBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
@@ -192,12 +193,18 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	randSelector := discover.NewRandomSelector()
-	downloadEndpoint, err := act.provider.GetEndpoint(discover.ServiceNameFile, discover.EndpointNameFileBasic, randSelector)
+	downloadEndpoint, err := act.provider.GetEndpoint(
+		discover.ServiceNameFile,
+		discover.EndpointNameFileBasic,
+		randSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get file endpoint, err: %w", err)
 	}
 
-	callbackEndpoint, err := act.provider.GetEndpoint(discover.ServiceNameBackend, discover.EndpointNameBackendCallback, randSelector)
+	callbackEndpoint, err := act.provider.GetEndpoint(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		randSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}

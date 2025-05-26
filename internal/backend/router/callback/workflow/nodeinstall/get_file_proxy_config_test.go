@@ -17,6 +17,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// TestRenderConfig ...
+// NOCC: golint/fnsize.
 func TestRenderConfig(t *testing.T) {
 	type args struct {
 		template Template

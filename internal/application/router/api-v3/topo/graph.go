@@ -58,6 +58,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 }
 
 // CountGraphNode counts graph nodes.
+// NOCC: golint/fnsize.
 func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

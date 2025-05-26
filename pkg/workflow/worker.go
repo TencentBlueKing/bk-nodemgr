@@ -61,6 +61,9 @@ func (mgr *manager) launchWorker() error {
 	return nil
 }
 
+// do executes the action defined by actionName for the operation instance with operationInstanceID.
+// nolint: funlen
+// NOCC: golint/fnsize.
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
@@ -68,7 +71,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// get action instance.
-	actionInstData, err := mgr.storageActionInstance.GetActionInstanceData(ctx, operationInstanceID, actionName)
+	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(ctx, operationInstanceID, actionName)
 	if err != nil {
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
@@ -84,7 +87,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// get operation instance.
-	operInstBriefData, err := mgr.storageOperationInstance.GetOperationInstanceBriefData(ctx, operationInstanceID)
+	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(ctx, operationInstanceID)
 	if err != nil {
 		return fmt.Errorf("failed to get operation instance brief data. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
@@ -112,7 +115,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	} else {
 		// not-first action should get content from previous action.
 		preActionName := operInstBriefData.Metadata.ActionNames[actionInstData.Index-1]
-		preActionInstData, err := mgr.storageActionInstance.GetActionInstanceData(ctx, operationInstanceID, preActionName)
+		preActionInstData, err := mgr.stgActionInstance.GetActionInstanceData(ctx, operationInstanceID, preActionName)
 		if err != nil {
 			return fmt.Errorf("failed to get pre action instance data from operation instance. "+
 				"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, preActionName, err)
@@ -142,7 +145,8 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 				err, executeErr)
 		}
 
-		mgr.logger.InfoCtxf(ctx, "updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
+		mgr.logger.InfoCtxf(ctx,
+			"updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
 			operationInstanceID, operInstBriefData.Lifecycle)
 	}
 
@@ -155,7 +159,7 @@ func (mgr *manager) updateActionLifecycle(
 	actionName string,
 	actionInstLifecycle *action.Lifecycle) error {
 
-	if err := mgr.storageActionInstance.UpdateActionInstanceLifecycle(ctx,
+	if err := mgr.stgActionInstance.UpdateActionInstanceLifecycle(ctx,
 		operationInstanceID, actionName, actionInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update action instance lifecycle. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
@@ -170,7 +174,7 @@ func (mgr *manager) updateActionContent(
 	actionName string,
 	content map[string]any) error {
 
-	if err := mgr.storageActionInstance.UpdateActionInstanceContent(ctx,
+	if err := mgr.stgActionInstance.UpdateActionInstanceContent(ctx,
 		operationInstanceID, actionName, content); err != nil {
 		return fmt.Errorf("failed to update action instance content. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
@@ -184,7 +188,7 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 	operationInstanceID string,
 	operInstLifecycle *operation.Lifecycle) error {
 
-	if err := mgr.storageOperationInstance.UpdateOperationInstanceLifecycle(ctx,
+	if err := mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(ctx,
 		operationInstanceID, operInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update operation instance lifecycle. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
@@ -206,7 +210,8 @@ func (mgr *manager) executeAndWatchAction(ctx context.Context,
 	defer operationTimeoutCancel()
 
 	// watch storage for stopping event.
-	terminatingC := mgr.storageOperationInstance.WatchOperInstStopping(actionTimeoutCtx, operInstBriefData.Metadata.OperationID)
+	terminatingC := mgr.stgOperationInstance.WatchOperInstStopping(
+		actionTimeoutCtx, operInstBriefData.Metadata.OperationID)
 
 	doResult := make(chan error, 1)
 	actionInstCtx := &action.InstanceContext{
@@ -297,7 +302,11 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 			msgs := data.Messages[idx:]
 
 			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
-			err := mgr.storageActionInstance.PushActionInstanceMessage(mgr.ctx, data.OperationInstanceID, data.Name, msgs...) // nolint: contextcheck
+			// nolint: contextcheck
+			err := mgr.stgActionInstance.PushActionInstanceMessage(mgr.ctx,
+				data.OperationInstanceID,
+				data.Name,
+				msgs...)
 			if err != nil {
 				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)
@@ -310,7 +319,12 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 			idx += len(msgs)
 
 			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
-			err := mgr.storageActionInstance.PushActionInstanceMessage(mgr.ctx, data.OperationInstanceID, data.Name, msgs...) // nolint: contextcheck
+			// nolint: contextcheck
+			err := mgr.stgActionInstance.PushActionInstanceMessage(
+				mgr.ctx,
+				data.OperationInstanceID,
+				data.Name,
+				msgs...)
 			if err != nil {
 				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)

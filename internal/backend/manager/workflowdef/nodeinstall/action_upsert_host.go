@@ -96,6 +96,8 @@ func (act *actionUpsertHostToCMDB) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
+// nolint: funlen
+// NOCC: golint/fnsize.
 func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamUpsertHostToCMDB)
 	err := conv.MapToStruct(ctx.Data.Content, param)
