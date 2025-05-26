@@ -181,7 +181,7 @@ func (ctl *controller) CreateOperation(
 		ctl.trig.TriggerID, operationDef.Name(), param)
 
 	oper := &operation.Operation{
-		OperationID: operationDef.Name(),
+		OperationID: identifier.GenOperationID(),
 		TriggerID:   ctl.trig.TriggerID,
 		Definition:  operationDef,
 		Param:       param,
