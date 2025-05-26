@@ -109,24 +109,3 @@ func buildUpsertParams(operation *Operation) (bson.D, bson.D, *mongoOptions.Upda
 
 	return filter, update, opts
 }
-
-// find all operations.
-func (d *dao) find(ctx context.Context, filter bson.D) ([]*Operation, error) {
-	result, err := d.client.Find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	operations := make([]*Operation, 0)
-	for result.Next(ctx) {
-		table := &TableOperation{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode trigger, err %v", err)
-
-			continue
-		}
-		operations = append(operations, table.Data)
-	}
-
-	return operations, nil
-}

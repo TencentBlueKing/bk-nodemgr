@@ -15,17 +15,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
-// OptFn option of find.
+// OptFn provides filtering options.
 type OptFn = base.OptFn
 
 // WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
+	return base.WithValues(FieldKeyTriggerID, triggerID...)
 }
 
 // WithOperationID ...
 func WithOperationID(ids ...string) OptFn {
-	return base.WithStringValues(FieldKeyOperationID, ids...)
+	return base.WithValues(FieldKeyOperationID, ids...)
 }
 
 // WithEmptyOperation filter by operation_instance.

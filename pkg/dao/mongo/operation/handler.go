@@ -30,10 +30,7 @@ type IHandler interface {
 	// Upsert insert or update an operation.
 	Upsert(ctx context.Context, operation *operation.Operation) error
 
-	// FindOne if not specified, the first undeleted record is returned.
-	FindOne(ctx context.Context, opts ...OptFn) (*operation.Operation, error)
-
-	// Listlist operation by page and opts.
+	// List list operation by page and opts.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
 }
 
@@ -111,37 +108,6 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	}
 
 	return workflows, num, nil
-}
-
-// FindOne finds one operation by opts.
-func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Operation, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
-	}
-
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	operations, err := h.daoTenant(tenantID).find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(operations) == 0 {
-		return nil, nil
-	}
-	if operations[0] == nil {
-		return nil, errors.New("nil operation in result set")
-	}
-
-	return convertOperationFromDB(operations[0]), nil
 }
 
 // Upsert insert or update an operation.
