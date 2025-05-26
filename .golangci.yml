@@ -679,4 +679,4 @@ linters-settings:
       - pkg: github.com/RichardKnop/machinery/v2/config
         alias: machineryConfig
       - pkg: github.com/RichardKnop/machinery/v2/log
-        alias: machinerylog
+        alias: machineryLog

@@ -17,7 +17,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	machinerylog "github.com/RichardKnop/machinery/v2/log"
+	machineryLog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/service"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -36,7 +36,7 @@ func init() {
 		}
 	}
 
-	machinerylog.Set(logger{})
+	machineryLog.Set(logger{})
 }
 
 type logger struct{}

@@ -21,7 +21,7 @@ import (
 	brokerIface "github.com/RichardKnop/machinery/v2/brokers/iface"
 	brokerRedis "github.com/RichardKnop/machinery/v2/brokers/redis"
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
-	machinerylog "github.com/RichardKnop/machinery/v2/log"
+	machineryLog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -70,7 +70,7 @@ func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 	}
 
 	mgr.triggerHandler = newTriggerHandler(mgr, mgr.globalLocker)
-	machinerylog.Set(newLoggerAdaptor(mgr.logger))
+	machineryLog.Set(newLoggerAdaptor(mgr.logger))
 
 	return mgr
 }
