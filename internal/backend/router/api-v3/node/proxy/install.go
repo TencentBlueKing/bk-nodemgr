@@ -45,7 +45,7 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 	for idx := range hosts {
 		reqHost := hosts[idx]
 
-		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
+		nodeDeploy, err := h.genDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
 			h.logger.Error("failed to install proxy, failed to generate node deployment. err: %v", err)
 
@@ -73,7 +73,7 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func (h *handler) generatesDeploys(
+func (h *handler) genDeploys(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeProxyInstallReq_Host,
