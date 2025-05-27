@@ -238,7 +238,7 @@ service NodeWorkflow {
   // NodeAgentInstall provides node agent install.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
-      post : "/api/v3/node_workflow/agent/install"
+      post : "/api/v3/node/agent/install"
       body : "*"
     };
   }
@@ -246,7 +246,7 @@ service NodeWorkflow {
   // NodeProxyInstall provides node proxy install.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
     option (google.api.http) = {
-      post : "/api/v3/node_workflow/proxy/install"
+      post : "/api/v3/node/proxy/install"
       body : "*"
     };
   }
