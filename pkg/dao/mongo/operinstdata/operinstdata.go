@@ -134,7 +134,9 @@ func (d *dao) find(ctx context.Context, filter bson.D, fields ...string) ([]*Ope
 }
 
 // findWithoutFields find without fields.
-func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.Page, fields ...string) ([]*OperInstData, error) {
+func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.Page, fields ...string) (
+	[]*OperInstData, error) {
+
 	projection := bson.D{}
 	for _, field := range fields {
 		projection = append(projection, bson.E{Key: field, Value: 0})
