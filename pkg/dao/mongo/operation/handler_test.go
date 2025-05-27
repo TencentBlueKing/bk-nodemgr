@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
@@ -58,9 +57,6 @@ func testClient(t *testing.T) IHandler {
 
 // Test_handler_List tests the List method of the handler
 func Test_handler_List(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test_tenant")
-
 	// prepare test data
 	h := testClient(t)
 	baseOp1 := &operation.Operation{
@@ -95,14 +91,15 @@ func Test_handler_List(t *testing.T) {
 		},
 	}
 
-	if err := h.Upsert(ctx, baseOp1); err != nil {
+	if err := h.Upsert(context.Background(), baseOp1); err != nil {
 		t.Fatalf("prepare data failed: %v", err)
 	}
 
-	if err := h.Upsert(ctx, baseOp2); err != nil {
+	if err := h.Upsert(context.Background(), baseOp2); err != nil {
 		t.Fatalf("prepare data failed: %v", err)
 	}
 	tests := []struct {
+		ctx       context.Context
 		name      string
 		page      types.Page
 		opts      []OptFn
@@ -115,6 +112,7 @@ func Test_handler_List(t *testing.T) {
 			opts:      nil,
 			wantCount: 2,
 			wantErr:   false,
+			ctx:       context.Background(),
 		},
 		{
 			name:      "filter by non-existent trigger",
@@ -122,18 +120,27 @@ func Test_handler_List(t *testing.T) {
 			opts:      []OptFn{WithTriggerID("invalid_trigger")},
 			wantCount: 0,
 			wantErr:   false,
+			ctx:       context.Background(),
 		},
 		{
 			name:      "invalid page params",
 			page:      types.Page{Offset: -1, Limit: 0},
 			wantCount: 0,
 			wantErr:   true,
+			ctx:       context.Background(),
+		},
+		{
+			name:      "nil ctx",
+			page:      types.Page{Offset: -1, Limit: 0},
+			wantCount: 0,
+			wantErr:   true,
+			ctx:       nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ops, total, err := h.List(ctx, tt.page, tt.opts...)
+			ops, total, err := h.List(tt.ctx, tt.page, tt.opts...)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)

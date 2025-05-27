@@ -22,12 +22,11 @@ import (
 )
 
 // TableName the operation table name.
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	tableName := TableName(tenantID)
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	d := &dao{
-		client:    client.Collection(tableName),
+		client:    client.Collection(TableName),
 		logger:    logger,
-		tableName: tableName,
+		tableName: TableName,
 	}
 
 	d.IOrm = base.NewOrm[*Operation, Operation](d)

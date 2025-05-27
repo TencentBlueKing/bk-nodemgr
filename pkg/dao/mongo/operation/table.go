@@ -17,12 +17,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
-// TableName  tenantID table name.
-func TableName(tenantID string) string {
-	return "operation_" + tenantID
-}
+// TableName table name.
+const TableName = "operation"
 
-// Operation represents an operation under a tenant.
+// Operation represents an operation.
 // OperationID should be the unique key.
 type Operation struct {
 	OperationID   string      `json:"operation_id" bson:"operation_id"`

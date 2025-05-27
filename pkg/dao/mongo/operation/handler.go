@@ -13,12 +13,8 @@ package operation
 
 import (
 	"context"
-	"errors"
-	"sync"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
@@ -35,52 +31,20 @@ type IHandler interface {
 }
 
 type handler struct {
-	client *mongo.Database
 	logger logger.Logger
-	// daoMap stores dao's containing operation information.
-	// Do not edit the daoMap except with the operationDao func.
-	daoMap sync.Map
-}
-
-func (h *handler) daoTenant(tenantID string) *dao {
-	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao)
-	}
-
-	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure operation indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
-	}
-
-	daoclient, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
-
-	// note: we can be sure that only the daoTenant func edit the daoMap,
-	// so we can just use the type assertion here.
-	// return d.(*dao)
-	val, ok := daoclient.(*dao)
-	if !ok {
-		h.logger.Errorf("invalid type stored in daoMap: %T", daoclient)
-		return newDaoClient
-	}
-
-	return val
+	dao    *dao
 }
 
 // New new a handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
-		client: client,
 		logger: logger,
-		daoMap: sync.Map{},
+		dao:    newDao(client, logger),
 	}
 }
 
 // List lists operation by page and opts.
 func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
 	if err := page.Validate(); err != nil {
 		return nil, 0, err
 	}
@@ -90,14 +54,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.daoTenant(tenantID).Count(ctx, filter)
+	num, err := h.dao.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.daoTenant(tenantID).List(ctx, filter, findOpt)
+	datas, err := h.dao.List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -112,18 +76,13 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 
 // Upsert insert or update an operation.
 func (h *handler) Upsert(ctx context.Context, operation *operation.Operation) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
 	if operation == nil {
 		return base.ErrEmptyParamData()
 	}
 
 	data := convertOperationToDB(operation)
 
-	if err := h.daoTenant(tenantID).upsert(ctx, data); err != nil {
+	if err := h.dao.upsert(ctx, data); err != nil {
 		return err
 	}
 
