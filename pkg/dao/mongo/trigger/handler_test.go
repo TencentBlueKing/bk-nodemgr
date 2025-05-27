@@ -19,7 +19,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"github.com/joho/godotenv"
@@ -60,8 +59,6 @@ var globalTrigger *trigger.Trigger
 
 // Test_handler_Create tests handler Create.
 func Test_handler_Create(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-
 	type args struct {
 		ctx  context.Context
 		trig *trigger.Trigger
@@ -82,7 +79,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:  ctx,
+				ctx:  context.Background(),
 				trig: globalTrigger,
 			},
 			wantErr: false,
@@ -103,7 +100,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				ctx:  ctx,
+				ctx:  context.Background(),
 				trig: nil,
 			},
 			wantErr: true,
@@ -111,7 +108,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-category",
 					Category:  "test",
@@ -124,7 +121,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-state",
 					Category:  trigger.CategoryOnce,
@@ -137,7 +134,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "invalid state",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-state",
 					Category:  trigger.CategoryOnce,
@@ -161,8 +158,6 @@ func Test_handler_Create(t *testing.T) {
 
 // Test_handler_Get tests handler Get.
 func Test_handler_Get(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-
 	type args struct {
 		ctx         context.Context
 		wantTrigger *trigger.Trigger
@@ -176,7 +171,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:         ctx,
+				ctx:         context.Background(),
 				wantTrigger: globalTrigger,
 			},
 			wantErr: false,
@@ -184,7 +179,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "not found",
 			args: args{
-				ctx:         ctx,
+				ctx:         context.Background(),
 				wantTrigger: &trigger.Trigger{TriggerID: "not-found"},
 			},
 			wantErr: true,
@@ -220,8 +215,6 @@ func Test_handler_Get(t *testing.T) {
 
 // Test_handler_Update tests handler Update.
 func Test_handler_Update(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-
 	type args struct {
 		ctx     context.Context
 		trigger *trigger.Trigger
@@ -235,7 +228,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOrdered,
@@ -258,7 +251,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "not exist trigger",
 			args: args{
-				ctx:     ctx,
+				ctx:     context.Background(),
 				trigger: &trigger.Trigger{TriggerID: "not-exist"},
 			},
 			wantErr: true,
@@ -266,7 +259,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				ctx:     ctx,
+				ctx:     context.Background(),
 				trigger: nil,
 			},
 			wantErr: true,
@@ -274,7 +267,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  "test",
@@ -287,7 +280,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
@@ -300,7 +293,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid state",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
@@ -339,8 +332,6 @@ func Test_handler_Update(t *testing.T) {
 
 // Test_handler_List tests handler List.
 func Test_handler_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-
 	type args struct {
 		ctx   context.Context
 		page  types.Page
@@ -368,7 +359,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:   ctx,
+				ctx:   context.Background(),
 				page:  types.Page{Limit: 1},
 				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithState(trigger.StateRunning)},
 			},

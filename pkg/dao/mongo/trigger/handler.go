@@ -14,12 +14,10 @@ package trigger
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -44,44 +42,22 @@ type IHandler interface {
 }
 
 type handler struct {
-	client *mongo.Database
 	logger logger.Logger
-	// daoMap stores dao's containing tenant information.
-	// Do not edit the daoMap except with the tenantDao func.
-	daoMap sync.Map
-}
-
-func (h *handler) tenantDao(tenantID string) *dao {
-	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao) // nolint:forcetypeassert
-	}
-
-	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure trigger indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
-	}
-
-	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
-
-	// note: we can be sure that only the tenantDao func edit the daoMap,
-	// so we can just use the type assertion here.
-	return d.(*dao) // nolint:forcetypeassert
+	dao    *dao
 }
 
 // New create a new trigger handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
-		client: client,
 		logger: logger,
-		daoMap: sync.Map{},
+		dao:    newDao(client, logger),
 	}
 }
 
 // Get get a specified trigger.
 func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
+	if ctx == nil {
+		return nil, errors.New("ctx is nil")
 	}
 
 	if triggerID == "" {
@@ -92,7 +68,7 @@ func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, 
 	opt := base.WithStringValues(FieldKeyTriggerID, triggerID)
 	filter = opt(filter)
 
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.dao.Get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +78,8 @@ func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, 
 
 // List list triggers with options.
 func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, 0, err
+	if ctx == nil {
+		return nil, 0, errors.New("ctx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -112,14 +87,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.dao.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	trigs, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	trigs, err := h.dao.List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -134,9 +109,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 
 // Create creates a trigger.
 func (h *handler) Create(ctx context.Context, trig *trigger.Trigger) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
+	if ctx == nil {
+		return errors.New("ctx is nil")
 	}
 
 	if trig == nil {
@@ -147,14 +121,13 @@ func (h *handler) Create(ctx context.Context, trig *trigger.Trigger) error {
 		return err
 	}
 
-	return h.tenantDao(tenantID).Create(ctx, convertTriggerFromTypes(trig))
+	return h.dao.Create(ctx, convertTriggerFromTypes(trig))
 }
 
 // Update updates a trigger.
 func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
+	if ctx == nil {
+		return errors.New("ctx is nil")
 	}
 
 	if trig == nil {
@@ -165,14 +138,13 @@ func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
 		return err
 	}
 
-	return h.tenantDao(tenantID).update(ctx, convertTriggerFromTypes(trig))
+	return h.dao.update(ctx, convertTriggerFromTypes(trig))
 }
 
 // UpdateState updates a trigger's state.
 func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigger.State) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
+	if ctx == nil {
+		return errors.New("ctx is nil")
 	}
 
 	if triggerID == "" {
@@ -182,7 +154,7 @@ func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigg
 	filter := base.AliveFilter()
 	filter = WithTriggerID(triggerID)(filter)
 
-	return h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyState, string(state))
+	return h.dao.UpdateField(ctx, filter, FieldKeyState, string(state))
 }
 
 func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {

@@ -18,11 +18,9 @@ import (
 )
 
 // TableName trigger table name.
-func TableName(tenantID string) string {
-	return "trigger_" + tenantID
-}
+const TableName = "trigger"
 
-// Trigger represents a tenant.
+// Trigger represents a trigger.
 // TriggerID should be the unique key.
 type Trigger struct {
 	TriggerID        string           `json:"trigger_id" bson:"trigger_id"`
@@ -41,7 +39,7 @@ func (t *Trigger) UniqueKey() string {
 	return t.TriggerID
 }
 
-// TableTrigger represents the complete db structures of a tenant.
+// TableTrigger represents the complete db structures.
 type TableTrigger base.TableBroker[*Trigger]
 
 // MetadataOnce will store the metadata of a trigger.

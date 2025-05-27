@@ -21,12 +21,11 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	tableName := TableName(tenantID)
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	d := &dao{
-		client:    client.Collection(tableName),
+		client:    client.Collection(TableName),
 		logger:    logger,
-		tableName: tableName,
+		tableName: TableName,
 	}
 
 	d.IOrm = base.NewOrm[*Trigger, Trigger](d)
