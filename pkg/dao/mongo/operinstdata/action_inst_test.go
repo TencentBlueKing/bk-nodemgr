@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -26,9 +25,6 @@ func testActionInstData(t *testing.T) IActionInstData {
 
 // Test_handler_UpdateActionInstData ...
 func Test_handler_UpdateActionInstData(t *testing.T) {
-	//tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "single")
-
 	tests := []struct {
 		ctx     context.Context
 		name    string
@@ -84,7 +80,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.UpdateActionInstData(ctx, tt.data); (err != nil) != tt.wantErr {
+			if err := h.UpdateActionInstData(context.Background(), tt.data); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

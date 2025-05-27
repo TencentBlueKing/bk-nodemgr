@@ -13,21 +13,20 @@ package operinstdata
 
 import (
 	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // TableName the operinstdata table name.
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	tableName := TableName(tenantID)
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	d := &dao{
-		client:    client.Collection(tableName),
+		client:    client.Collection(TableName),
 		logger:    logger,
-		tableName: tableName,
+		tableName: TableName,
 	}
 	d.baseOrm = base.NewOrm[*OperInstData, OperInstData](d)
 
@@ -135,12 +134,14 @@ func (d *dao) find(ctx context.Context, filter bson.D, fields ...string) ([]*Ope
 }
 
 // findWithoutFields find without fields.
-func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, fields ...string) ([]*OperInstData, error) {
+func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.Page, fields ...string) ([]*OperInstData, error) {
 	projection := bson.D{}
 	for _, field := range fields {
 		projection = append(projection, bson.E{Key: field, Value: 0})
 	}
-	findOptions := mongoOptions.Find().SetProjection(projection)
+	findOptions := base.ParsePage(page)
+	findOptions = findOptions.SetProjection(projection)
+
 	result, err := d.client.Find(ctx, filter, findOptions)
 	if err != nil {
 		return nil, err

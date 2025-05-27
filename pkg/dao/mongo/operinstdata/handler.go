@@ -12,10 +12,6 @@
 package operinstdata
 
 import (
-	"errors"
-	"sync"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,36 +24,14 @@ type IHandler interface {
 
 // handler implements the IHandler interface.
 type handler struct {
-	client *mongo.Database
 	logger logger.Logger
-	// daoMap stores dao's containing operation information.
-	// Do not edit the daoMap except with the operationDao func.
-	daoMap sync.Map
-}
-
-// daoTenant get the dao by tenantID.
-func (h *handler) daoTenant(tenantID string) *dao {
-	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao) // nolint:forcetypeassert
-	}
-
-	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.baseOrm.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure trigger indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
-	}
-
-	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
-
-	// note: we can be sure that only the daoTenant func edit the daoMap,
-	// so we can just use the type assertion here.
-	return d.(*dao) // nolint:forcetypeassert
+	dao    *dao
 }
 
 // New create a new handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
 	return &handler{
-		client: client,
 		logger: logger,
-		daoMap: sync.Map{},
+		dao:    newDao(client, logger),
 	}
 }

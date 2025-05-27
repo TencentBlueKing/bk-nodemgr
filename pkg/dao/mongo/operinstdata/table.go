@@ -18,9 +18,7 @@ import (
 )
 
 // TableName operation instance data table name.
-func TableName(tenantID string) string {
-	return "oper_inst_data_" + tenantID
-}
+const TableName = "oper_inst_data"
 
 // ActionInstData represents a action data.
 type ActionInstData struct {

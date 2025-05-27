@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -57,8 +56,6 @@ type IActionInstData interface {
 func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
 	msgs []action.Message) error {
 
-	tenantID, _ := tenant.GetID(ctx)
-
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -80,7 +77,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 	}
 
 	filed := FieldKeyActionInstMessages(actionName)
-	err := h.daoTenant(tenantID).updateField(ctx, filter, filed, convMessageToDB(msgs))
+	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
 	}
@@ -91,7 +88,6 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 // UpdateActionInstContent update action instance content.
 func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
 	content map[string]any) error {
-	tenantID, _ := tenant.GetID(ctx)
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -119,7 +115,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 	}
 
 	filed := FieldKeyActionInstContent(actionName)
-	err = h.daoTenant(tenantID).updateField(ctx, filter, filed, string(bytes))
+	err = h.dao.updateField(ctx, filter, filed, string(bytes))
 	if err != nil {
 		return err
 	}
@@ -134,8 +130,6 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
@@ -159,7 +153,7 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 
 	for k, v := range data {
 		field := fmt.Sprintf("%s.%s", FieldKeyActInstPrivateData(actionName), k)
-		err := h.daoTenant(tenantID).updateField(ctx, filter, field, v)
+		err := h.dao.updateField(ctx, filter, field, v)
 		if err != nil {
 			return err
 		}
@@ -175,8 +169,6 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if operationInstanceID == "" {
 		return errors.New("operation instance id is empty")
@@ -196,7 +188,7 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 
 	field := fmt.Sprintf("action_data.%s.messages", actionName)
 	for _, msg := range convMessageToDB(messages) {
-		err := h.daoTenant(tenantID).pushField(ctx, filter, field, msg)
+		err := h.dao.pushField(ctx, filter, field, msg)
 		if err != nil {
 			return err
 		}
@@ -207,7 +199,6 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 
 // UpdateActionInstData upsert action inst data.
 func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
-	tenantID, _ := tenant.GetID(ctx)
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -234,7 +225,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 	}
 	filed := FieldKeyActionInstData(actionInstData.Name)
 
-	return h.daoTenant(tenantID).updateField(ctx, filter, filed, data)
+	return h.dao.updateField(ctx, filter, filed, data)
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
@@ -244,8 +235,6 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
@@ -264,7 +253,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 	}
 
 	filed := FieldKeyActionInstLifeCycle(actionName)
-	err := h.daoTenant(tenantID).updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
+	err := h.dao.updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -279,8 +268,6 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return nil, errors.New("operation instance id is empty")
@@ -299,7 +286,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstData(actionName)
-	operInstData, err := h.daoTenant(tenantID).get(ctx, filter, field)
+	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -348,8 +335,6 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 		return nil, errors.New("ctx is nil")
 	}
 
-	tenantID, _ := tenant.GetID(ctx)
-
 	if operInstID == "" {
 		return nil, errors.New("operation instance id is empty")
 	}
@@ -367,7 +352,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 	}
 
 	field := FieldKeyActionInstLifeCycle(actionName)
-	operInstData, err := h.daoTenant(tenantID).get(ctx, filter, field)
+	operInstData, err := h.dao.get(ctx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -385,8 +370,6 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 // UpdateActionInstStatus update action inst status.
 func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
 	status action.State) error {
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if ctx == nil {
 		return base.ErrInvalidContext()
@@ -407,7 +390,7 @@ func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string,
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstID)(filter)
 	field := FieldKeyActionInstState(actionName)
-	err := h.daoTenant(tenantID).updateField(ctx, filter, field, status)
+	err := h.dao.updateField(ctx, filter, field, status)
 	if err != nil {
 		return err
 	}
