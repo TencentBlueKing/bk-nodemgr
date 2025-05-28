@@ -192,6 +192,7 @@ func (mgr *manager) registerActionDefs() error {
 
 func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
+		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionBindAgentHostRel(
 			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,

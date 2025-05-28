@@ -44,6 +44,7 @@ func (oper *operInstallNodeBySSH) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 	return []string{
+		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeBySSH,

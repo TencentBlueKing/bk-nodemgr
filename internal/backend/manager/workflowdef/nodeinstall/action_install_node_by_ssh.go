@@ -229,6 +229,11 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		},
 	}
 
+	if !info.ReRegister && info.Dynamic.AgentID != "" {
+		installParams.AdditionArgs = append(installParams.AdditionArgs,
+			fmt.Sprintf("--agent_id %s", info.Dynamic.AgentID))
+	}
+
 	if installParams.TmpDir == "" {
 		installParams.TmpDir = targetDir
 	}

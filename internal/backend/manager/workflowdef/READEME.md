@@ -95,3 +95,8 @@ func (act *ActionName) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 ```
+
+## Action 日志注意事项
+
+1. err 无需手动使用 ctx.Data.Log 进行记录，框架会自动记录
+2. 框架会自动记录 Action 执行的开始和结束日志
