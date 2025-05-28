@@ -24,6 +24,7 @@ message NodeProxyInstallReq {
     string os_type = 12;
     string target_version = 13;
     optional int64 bk_host_id = 14;
+    bool re_register = 15;
   }
   repeated Host host = 1;
 }

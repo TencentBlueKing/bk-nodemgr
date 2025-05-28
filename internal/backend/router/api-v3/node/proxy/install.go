@@ -47,7 +47,7 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.genDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
-			h.logger.Error("failed to install proxy, failed to generate node deployment. err: %v", err)
+			h.logger.Errorf("failed to install proxy, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -104,9 +104,10 @@ func (h *handler) genDeploys(
 					NetworkUnitID:  networkUnit.ID,
 				},
 			},
-			LoginIP:   reqHost.GetLoginIp(),
-			LoginPort: reqHost.GetLoginPort(),
-			LoginUser: reqHost.GetLoginUser(),
+			ReRegister: reqHost.GetReRegister(),
+			LoginIP:    reqHost.GetLoginIp(),
+			LoginPort:  reqHost.GetLoginPort(),
+			LoginUser:  reqHost.GetLoginUser(),
 		})
 
 	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())

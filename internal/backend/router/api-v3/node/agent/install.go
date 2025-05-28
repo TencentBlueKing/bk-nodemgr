@@ -146,9 +146,10 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 				NetworkUnitID:  networkUnit.ID,
 			},
 		},
-		LoginIP:   reqHost.GetLoginIp(),
-		LoginPort: reqHost.GetLoginPort(),
-		LoginUser: reqHost.GetLoginUser(),
+		ReRegister: reqHost.GetReRegister(),
+		LoginIP:    reqHost.GetLoginIp(),
+		LoginPort:  reqHost.GetLoginPort(),
+		LoginUser:  reqHost.GetLoginUser(),
 	})
 
 	return nodeDeployment, nil

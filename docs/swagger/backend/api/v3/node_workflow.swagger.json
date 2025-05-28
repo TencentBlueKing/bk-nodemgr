@@ -16,6 +16,74 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/node/agent/install": {
+      "post": {
+        "summary": "NodeAgentInstall provides node agent install.",
+        "operationId": "NodeWorkflow_NodeAgentInstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentInstallReq describes the node agent install request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/proxy/install": {
+      "post": {
+        "summary": "NodeProxyInstall provides node proxy install.",
+        "operationId": "NodeWorkflow_NodeProxyInstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyInstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyInstallReq describes the node proxy install request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyInstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/distinct": {
       "post": {
         "summary": "NodeWorkflowDistinct provides node workflow distinct.",
@@ -219,74 +287,6 @@
           "NodeWorkflow"
         ]
       }
-    },
-    "/api/v3/node_workflow/agent/install": {
-      "post": {
-        "summary": "NodeAgentInstall provides node agent install.",
-        "operationId": "NodeWorkflow_NodeAgentInstall",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentInstallResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeAgentInstallReq describes the node agent install request.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentInstallReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
-    },
-    "/api/v3/node_workflow/proxy/install": {
-      "post": {
-        "summary": "NodeProxyInstall provides node proxy install.",
-        "operationId": "NodeWorkflow_NodeProxyInstall",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyInstallResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeProxyInstallReq describes the node proxy install request.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyInstallReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
     }
   },
   "definitions": {
@@ -440,6 +440,9 @@
         "bk_host_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "re_register": {
+          "type": "boolean"
         }
       }
     },
@@ -533,6 +536,9 @@
         "bk_host_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "re_register": {
+          "type": "boolean"
         }
       }
     },
