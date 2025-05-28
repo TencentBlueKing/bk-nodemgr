@@ -67,6 +67,7 @@ type DeploymentInfo struct {
 	BlockingActionName string
 	Host
 
+	ReRegister    bool
 	TmpDir        string
 	LoginIP       string
 	LoginPort     int64
