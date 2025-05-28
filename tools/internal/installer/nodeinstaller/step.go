@@ -24,6 +24,7 @@ import (
 
 // Step install agent.
 type Step struct {
+	agentID           string
 	reRegisterAgentID bool
 	setupDirPath      string
 	pkgPath           string
@@ -37,6 +38,7 @@ type Step struct {
 
 // StepArgs args for step.
 type StepArgs struct {
+	AgentID           string
 	ReRegisterAgentID bool
 	SetupDirPath      string
 	PkgPath           string
@@ -47,6 +49,7 @@ type StepArgs struct {
 // NewStep new a step.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
+		agentID:           args.AgentID,
 		reRegisterAgentID: args.ReRegisterAgentID,
 		setupDirPath:      args.SetupDirPath,
 		pkgPath:           args.PkgPath,
@@ -152,7 +155,7 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	}
 
 	// 3.2 register agent id
-	agentID, err := RegisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath)
+	agentID, err := RegisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath, step.agentID)
 	if err != nil {
 		logger.Error(constant.StepInstallNode, constant.StateFailed,
 			fmt.Sprintf("register agent failed: %v", err))

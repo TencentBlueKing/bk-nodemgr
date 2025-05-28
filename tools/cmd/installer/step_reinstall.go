@@ -50,6 +50,7 @@ func NewStepReinstall() *cobra.Command {
 			}
 
 			installStep := nodeinstaller.NewStep(nodeinstaller.StepArgs{
+				AgentID:           GetNodeAgentID(),
 				ReRegisterAgentID: unregister,
 				SetupDirPath:      GetSetupDir(),
 				PkgPath:           GetGsePkgPath(),

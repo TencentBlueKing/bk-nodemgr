@@ -169,11 +169,18 @@ func registerRootVars(rootCmd *cobra.Command) {
 		token             string
 		reinstall         bool
 		reRegisterAgentID bool
+		agentID           string
 	)
 	rootCmd.PreRunE = func(_ *cobra.Command, _ []string) error {
 		if gseRoot != "" {
 			if err := SetGseRoot(gseRoot); err != nil {
 				return fmt.Errorf("set gse root failed, err: %v", err)
+			}
+		}
+
+		if agentID != "" {
+			if err := SetNodeAgentID(agentID); err != nil {
+				return fmt.Errorf("set node agent id failed, err: %v", err)
 			}
 		}
 
@@ -282,6 +289,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		}
 
 		installAgentStep := nodeinstaller.NewStep(nodeinstaller.StepArgs{
+			AgentID:           GetNodeAgentID(),
 			ReRegisterAgentID: reRegisterAgentID && reinstall,
 			SetupDirPath:      GetSetupDir(),
 			PkgPath:           GetGsePkgPath(),
@@ -334,6 +342,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 	rootCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
 	rootCmd.Flags().StringVar(&pkgVersion, CmdFlagPkgVersion, "", "this gse node pkg version which will be installed")
 	rootCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "gse root")
+	rootCmd.Flags().StringVar(&agentID, CmdFlagAgentID, "", "gse agent id")
 	rootCmd.Flags().BoolVar(&reinstall, CmdFlagReinstall, false, "reinstall")
 	rootCmd.Flags().BoolVar(&reRegisterAgentID, CmdFlagReRegisterAgentID, false, "re register agent id")
 	_ = rootCmd.MarkFlagRequired(CmdFlagDownloadEndpoint)

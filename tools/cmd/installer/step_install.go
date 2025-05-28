@@ -41,6 +41,7 @@ func NewStepInstallAgent() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := nodeinstaller.NewStep(nodeinstaller.StepArgs{
+				AgentID:           GetNodeAgentID(),
 				ReRegisterAgentID: false,
 				SetupDirPath:      GetSetupDir(),
 				PkgPath:           GetGsePkgPath(),
