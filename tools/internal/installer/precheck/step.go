@@ -14,6 +14,7 @@ package precheck
 import (
 	"context"
 	"encoding/json"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -42,51 +43,39 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to precheck.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepPreCheck, constant.StateStart, "start precheck")
+	logger.Infof(constant.StepPreCheck, constant.StateStart, "start precheck with config(%s)", step.preCheckListPath)
 
 	list, err := loadCheckList(step.preCheckListPath)
 	if err != nil {
-		logger.Infof(constant.StepPreCheck, constant.StateFailed, "failed to load precheck list")
+		logger.Errorf(constant.StepPreCheck, constant.StateFailed,
+			"failed to load precheck list from (%s), err: %v", step.preCheckListPath, err)
 		return err
 	}
 	logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully loaded precheck list")
 
+	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	gp := gopool.NewPool()
-	gp.Go(func() error {
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "start check disk free space")
 
-		if err := CheckDiskFreeSpace(list.DiskRequires); err != nil {
-			return err
+	runCheck := func(name string, checkFn func() error) func() error {
+		return func() error {
+			logger.Infof(constant.StepPreCheck, constant.StateRunning, "start check %s", name)
+
+			if err := r.Do(ctx, func(_ int) error {
+				return checkFn()
+			}); err != nil {
+				logger.Infof(constant.StepPreCheck, constant.StateFailed,
+					"failed to check %s, err: %v", name, err)
+				return err
+			}
+
+			logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check %s", name)
+			return nil
 		}
+	}
 
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check disk free space")
-
-		return nil
-	})
-
-	gp.Go(func() error {
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "start check port policy")
-
-		if err := CheckPortPolicies(ctx, list.PortPolicies); err != nil {
-			return err
-		}
-
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check port policy")
-
-		return nil
-	})
-
-	gp.Go(func() error {
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "start check network policy")
-
-		if err := CheckNetworkPolicies(ctx, list.NetworkPolicies); err != nil {
-			return err
-		}
-
-		logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check network policy")
-
-		return nil
-	})
+	gp.Go(runCheck("disk free space", func() error { return CheckDiskFreeSpace(list.DiskRequires) }))
+	gp.Go(runCheck("port policy", func() error { return CheckPortPolicies(ctx, list.PortPolicies) }))
+	gp.Go(runCheck("network policy", func() error { return CheckNetworkPolicies(ctx, list.NetworkPolicies) }))
 
 	if err := gp.Wait(); err != nil {
 		logger.Infof(constant.StepPreCheck, constant.StateFailed, "failed to do all precheck, err: %s", err.Error())
