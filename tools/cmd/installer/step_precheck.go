@@ -40,6 +40,7 @@ func NewStepPreCheck() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := precheck.NewStep(precheck.StepArgs{
 				PreCheckListPath: GetPreCheckFilePath(),
+				SetupDirPath:     GetSetupDir(),
 			})
 			err := step.Run(cmd.Context())
 			if err != nil {

@@ -282,6 +282,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 		preCheckStep := precheck.NewStep(precheck.StepArgs{
 			PreCheckListPath: GetPreCheckFilePath(),
+			SetupDirPath:     GetSetupDir(),
 		})
 
 		if err := preCheckStep.Run(cmd.Context()); err != nil {

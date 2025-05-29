@@ -25,17 +25,20 @@ import (
 // Step precheck step.
 type Step struct {
 	preCheckListPath string
+	setupDirPath     string
 }
 
 // StepArgs define args for step.
 type StepArgs struct {
 	PreCheckListPath string
+	SetupDirPath     string
 }
 
 // NewStep ...
 func NewStep(args StepArgs) *Step {
 	step := &Step{
 		preCheckListPath: args.PreCheckListPath,
+		setupDirPath:     args.SetupDirPath,
 	}
 
 	return step
@@ -76,6 +79,9 @@ func (step *Step) Run(ctx context.Context) error {
 	gp.Go(runCheck("disk free space", func() error { return CheckDiskFreeSpace(list.DiskRequires) }))
 	gp.Go(runCheck("port policy", func() error { return CheckPortPolicies(ctx, list.PortPolicies) }))
 	gp.Go(runCheck("network policy", func() error { return CheckNetworkPolicies(ctx, list.NetworkPolicies) }))
+	gp.Go(runCheck("check gse process", func() error {
+		return CheckRemnantProcessInSetupDir(ctx, step.setupDirPath)
+	}))
 
 	if err := gp.Wait(); err != nil {
 		logger.Infof(constant.StepPreCheck, constant.StateFailed, "failed to do all precheck, err: %s", err.Error())
