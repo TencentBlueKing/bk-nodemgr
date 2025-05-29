@@ -15,11 +15,16 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"syscall"
 )
 
 // CheckPIDExist check whether the corresponding process exists.
 func CheckPIDExist(pid int) (bool, error) {
+	if pid <= 1 {
+		return false, fmt.Errorf("dangerous pid, are you sure, pid: %d", pid)
+	}
+
 	// Send signal 0, will not actually send signal, only check the existence of the process
 	err := syscall.Kill(pid, 0)
 	if err != nil {
