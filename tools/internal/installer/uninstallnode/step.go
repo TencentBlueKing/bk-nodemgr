@@ -48,7 +48,7 @@ func (step *Step) Run(ctx context.Context) error {
 
 	err := step.softUninstall(ctx)
 	if err != nil {
-		logger.Errorf(constant.StepUninstallNode, constant.StateRunning, "soft uninstall failed, err: %v", err)
+		logger.Warnf(constant.StepUninstallNode, constant.StateRunning, "soft uninstall failed, err: %v", err)
 
 		// try force uninstall
 		err = step.forceUninstall(ctx)
