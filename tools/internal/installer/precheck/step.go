@@ -79,7 +79,7 @@ func (step *Step) Run(ctx context.Context) error {
 	gp.Go(runCheck("disk free space", func() error { return CheckDiskFreeSpace(list.DiskRequires) }))
 	gp.Go(runCheck("port policy", func() error { return CheckPortPolicies(ctx, list.PortPolicies) }))
 	gp.Go(runCheck("network policy", func() error { return CheckNetworkPolicies(ctx, list.NetworkPolicies) }))
-	gp.Go(runCheck("check gse process", func() error {
+	gp.Go(runCheck("gse process", func() error {
 		return CheckRemnantProcessInSetupDir(ctx, step.setupDirPath)
 	}))
 
