@@ -55,6 +55,11 @@ func (step *Step) forceUninstall(_ context.Context) error {
 			continue
 		}
 
+		// check if the pid again, make sure the pid is not a system pid.
+		if p.PID <= 1 {
+			return fmt.Errorf("process pid is too dangerous, pid: %d", p.PID)
+		}
+
 		err = syscall.Kill(p.PID, syscall.SIGKILL)
 		if err != nil {
 			logger.Errorf(constant.StepUninstallNode, constant.StateFailed,
