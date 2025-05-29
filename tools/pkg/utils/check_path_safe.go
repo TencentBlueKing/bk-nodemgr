@@ -12,7 +12,6 @@ package utils
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -27,15 +26,6 @@ func CheckDirPathSafe(dirPath string) (bool, error) {
 	// compare the cleaned path with the original path
 	if cleanPath != dirPath {
 		return false, fmt.Errorf("dirPath is not a clean path, clean-path(%s), origin-path(%s)", cleanPath, dirPath)
-	}
-
-	fi, err := os.Stat(dirPath)
-	if os.IsNotExist(err) {
-		return false, fmt.Errorf("dirPath is not exist, dirPath(%s)", dirPath)
-	}
-
-	if !fi.IsDir() {
-		return false, fmt.Errorf("dirPath is not a dir, dirPath(%s)", dirPath)
 	}
 
 	if err := isDangerousPath(dirPath); err != nil {
