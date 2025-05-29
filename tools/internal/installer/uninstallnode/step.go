@@ -46,6 +46,25 @@ func NewStep(args StepArgs) *Step {
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepUninstallNode, constant.StateStart, "start to uninstall agent")
 
+	err := step.softUninstall(ctx)
+	if err != nil {
+		logger.Errorf(constant.StepUninstallNode, constant.StateRunning, "soft uninstall failed, err: %v", err)
+
+		// try force uninstall
+		err = step.forceUninstall(ctx)
+		if err != nil {
+			logger.Errorf(constant.StepUninstallNode, constant.StateRunning, "try force uninstall failed, err: %v", err)
+			return err
+		}
+	}
+
+	logger.Infof(constant.StepUninstallNode, constant.StateDone, "successfully uninstall agent")
+
+	return nil
+}
+
+// softUninstall uninstall agent by soft way.
+func (step *Step) softUninstall(ctx context.Context) error {
 	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "stop agent, gse-ctl(%s)", step.gseCtlPath)
 	if err := StopNode(ctx, step.gseCtlPath); err != nil {
 		logger.Infof(constant.StepUninstallNode, constant.StateFailed, "stop agent failed: %v", err)
@@ -56,12 +75,11 @@ func (step *Step) Run(ctx context.Context) error {
 
 	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "remove setup dir(%s)", step.setupDirPath)
 	if err := RemoveSetupDir(ctx, step.setupDirPath); err != nil {
+		// TODO: 将状态和日志分离
 		logger.Infof(constant.StepUninstallNode, constant.StateFailed, "remove setup dir failed: %v", err)
 
 		return err
 	}
-
-	logger.Infof(constant.StepUninstallNode, constant.StateDone, "successfully uninstall agent")
 
 	return nil
 }
