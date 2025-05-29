@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
@@ -31,12 +32,18 @@ func (step *Step) forceUninstall(_ context.Context) error {
 		return fmt.Errorf("get same space processes failed, err: %v", err)
 	}
 
+	setupDirPath := filepath.Clean(step.setupDirPath)
+
 	for _, p := range process {
 		if !isGseBin(p.Name) {
 			continue
 		}
 
-		if !strings.HasPrefix(p.FullPath, step.setupDirPath) {
+		if ok, err := utils.CheckDirPathSafe(setupDirPath); !ok || err != nil {
+			continue
+		}
+
+		if !strings.HasPrefix(p.FullPath, setupDirPath) {
 			continue
 		}
 
