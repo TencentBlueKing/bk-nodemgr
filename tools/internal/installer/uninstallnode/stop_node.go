@@ -52,7 +52,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 		if err != nil {
 			logger.Warnf(constant.StepUninstallNode, constant.StateRunning,
 				"stop agent failed, attempt: %d, stderr: %s, err: %v",
-				attempt, stdErr.String(), err)
+				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""), err)
 
 			return err
 		}
@@ -60,7 +60,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 		if stdErr.String() != "" {
 			logger.Warnf(constant.StepUninstallNode, constant.StateRunning,
 				"stop agent failed, attempt: %d, stderr: %s",
-				attempt, stdErr.String())
+				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""))
 		}
 
 		stdOutStr := stdOut.String()

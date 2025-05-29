@@ -31,20 +31,20 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 
 	var agentIDStr string
 	err := retrier.Do(ctx, func(attempt int) error {
-		var stdout, stderr bytes.Buffer
+		var stdout, stdErr bytes.Buffer
 
 		cmd := exec.CommandContext(ctx, agentPath,
 			"-f", configPath,
 			"--register", agentID,
 		)
 		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
+		cmd.Stderr = &stdErr
 
 		err := cmd.Run()
 		if err != nil {
 			logger.Warnf(constant.StepInstallNode, constant.StateFailed,
-				"register agent id failed, attempt(%d), stderr: %s, err: %v",
-				attempt, strings.ReplaceAll(stderr.String(), "\n", ""), err)
+				"register agent id failed, attempt(%d), stdErr: %s, err: %v",
+				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""), err)
 
 			return err
 		}
