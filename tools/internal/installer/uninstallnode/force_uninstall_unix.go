@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"strings"
+	"syscall"
 )
 
 // forceUninstall uninstall agent by force way.
@@ -31,21 +32,61 @@ func (step *Step) forceUninstall(_ context.Context) error {
 	}
 
 	for _, p := range process {
-		if strings.HasPrefix(p.FullPath, step.setupDirPath) {
-			logger.Infof(constant.StepUninstallNode, constant.StateRunning,
-				"remnant process found, process number: %d, file path: %s", p.PID, p.FullPath)
-
-			if err := utils.ForceKill(p.PID); err != nil {
-				logger.Errorf(constant.StepUninstallNode, constant.StateFailed,
-					"force kill process failed, err: %v", err)
-
-				return err
-			}
-
-			logger.Infof(constant.StepUninstallNode, constant.StateRunning,
-				"force kill process success, process number: %d, file path: %s", p.PID, p.FullPath)
+		if !isGseBin(p.Name) {
+			continue
 		}
+
+		if !strings.HasPrefix(p.FullPath, step.setupDirPath) {
+			continue
+		}
+
+		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+			"remnant process found, process number: %d, file path: %s", p.PID, p.FullPath)
+
+		exist, err := utils.CheckPIDExist(p.PID)
+		if err != nil {
+			return fmt.Errorf("force kill failed, pid: %d, err: %v", p.PID, err)
+		}
+
+		if !exist {
+			logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+				"process already exit, process number: %d, file path: %s", p.PID, p.FullPath)
+
+			continue
+		}
+
+		err = syscall.Kill(p.PID, syscall.SIGKILL)
+		if err != nil {
+			logger.Errorf(constant.StepUninstallNode, constant.StateFailed,
+				"force kill process failed, err: %v", err)
+
+			return fmt.Errorf("force kill failed, pid: %d, err: %v", p.PID, err)
+		}
+
+		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+			"force kill process success, process number: %d, file path: %s", p.PID, p.FullPath)
 	}
 
 	return nil
+}
+
+// gseBinList gse bin list.
+func gseBinList() []string {
+	return []string{
+		"gse_agent",
+		"gse_data",
+		"gse_file",
+	}
+}
+
+// isGseBin check if the name is a gse bin.
+// notice: in order to kill the process which is not belong gse bin, we need to check the process name.
+func isGseBin(name string) bool {
+	for _, bin := range gseBinList() {
+		if name == bin {
+			return true
+		}
+	}
+
+	return false
 }
