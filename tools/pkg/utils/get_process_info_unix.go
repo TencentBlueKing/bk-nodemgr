@@ -49,17 +49,40 @@ func GetSameSpaceProcesses() ([]ProcessInfo, error) {
 			continue
 		}
 
-		if selfProcessInfo.Namespaces[namespacePid] == process.Namespaces[namespacePid] {
-			sameSpaceProcesses = append(sameSpaceProcesses, process)
+		if err := areInSameNamespaces(selfProcessInfo, process); err != nil {
+			continue
 		}
+
+		sameSpaceProcesses = append(sameSpaceProcesses, process)
 	}
 
 	return sameSpaceProcesses, nil
 }
 
-const (
-	namespacePid = "pid"
-)
+func areInSameNamespaces(self, other ProcessInfo) error {
+	// If the number of namespaces is different, they are not in the same environment
+	if len(self.Namespaces) != len(other.Namespaces) {
+		return fmt.Errorf("different number of namespaces")
+	}
+
+	for nsType, selfNs := range self.Namespaces {
+		otherNs, exists := other.Namespaces[nsType]
+		if !exists {
+			return fmt.Errorf("namespace %s does not exist for process %d", nsType, other.PID)
+		}
+
+		// Skip namespaces that read the wrong thing
+		if strings.HasPrefix(selfNs, "err") || strings.HasPrefix(otherNs, "err") {
+			continue
+		}
+
+		if selfNs != otherNs {
+			return fmt.Errorf("namespace %s is not the same for process %d and %d", nsType, self.PID, other.PID)
+		}
+	}
+
+	return nil
+}
 
 // GetAllProcessInfos returns a list of all processes running on the system.
 // notice: this func shouldn't return a process map, because same name process is normal in linux system.
