@@ -3,9 +3,10 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"testing"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // TestScheduler tests the scheduler.

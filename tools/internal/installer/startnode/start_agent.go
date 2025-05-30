@@ -15,10 +15,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"

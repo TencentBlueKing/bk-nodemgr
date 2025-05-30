@@ -15,12 +15,13 @@ package uninstallnode
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
 // forceUninstall uninstall agent by force way.

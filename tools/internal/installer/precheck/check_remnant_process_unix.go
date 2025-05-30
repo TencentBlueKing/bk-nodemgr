@@ -15,8 +15,9 @@ package precheck
 import (
 	"context"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
 // CheckRemnantProcessInSetupDir check for any process remnants in SetupDir.

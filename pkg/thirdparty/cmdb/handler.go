@@ -15,8 +15,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
