@@ -13,6 +13,7 @@ package uninstallnode
 
 import (
 	"context"
+
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 )

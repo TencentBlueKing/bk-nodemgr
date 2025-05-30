@@ -104,6 +104,8 @@ spec:
           ports:
             - name: service-http
               containerPort: {{ .Values.file.config.httpServer.port }}
+            - name: admin-http
+              containerPort: {{ .Values.file.config.adminServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -211,6 +213,13 @@ spec:
               fi
             done
 
+            if [ -n "{{ .Values.backend.config.advertiseIPV4 }}" ]; then
+              ADVERTISE_IPV4={{ .Values.backend.config.advertiseIPV4 }}
+            fi
+            if [ -n "{{ .Values.backend.config.advertiseIPV6 }}" ]; then
+              ADVERTISE_IPV6={{ .Values.backend.config.advertiseIPV6 }}
+            fi
+
             # sed local config file.
             cp /tmp/file_conf.yaml {{ .Values.common.etcPath }}/file_conf.yaml
             sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/file_conf.yaml
@@ -232,7 +241,7 @@ spec:
               mountPath: /tmp
             - name: nodeman-etc
               mountPath: {{ .Values.common.etcPath }}
-          resources: {{- toYaml .Values.initContainerResources | nindent 10 }}
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       hostNetwork: {{ .Values.file.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:

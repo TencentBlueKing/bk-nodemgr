@@ -39,18 +39,33 @@ type EndpointName string
 const (
 	// EndpointNameBackendBasic the backend endpoint name.
 	EndpointNameBackendBasic EndpointName = "backend-basic"
+
 	// EndpointNameBackendAdmin the backend admin endpoint name.
 	EndpointNameBackendAdmin EndpointName = "backend-admin"
+
 	// EndpointNameBackendCallback the backend callback endpoint name.
 	EndpointNameBackendCallback EndpointName = "backend-callback"
+
+	// EndpointNameBackendPorxy the backend proxy endpoint name.
+	EndpointNameBackendPorxy EndpointName = "backend-proxy"
+
 	// EndpointNameApplicationBasic the application basic endpoint name.
 	EndpointNameApplicationBasic EndpointName = "application-basic"
+
 	// EndpointNameApplicationAdmin the application admin endpoint name.
 	EndpointNameApplicationAdmin EndpointName = "application-admin"
+
 	// EndpointNameFileBasic the file basic endpoint name.
 	EndpointNameFileBasic EndpointName = "file-basic"
+
 	// EndpointNameFileAdmin the file admin endpoint name.
 	EndpointNameFileAdmin EndpointName = "file-admin"
+
+	// EndpointNameProxyCallback the proxy callback endpoint name.
+	EndpointNameProxyCallback EndpointName = "proxy-callback"
+
+	// EndpointNameProxyFile the proxy file endpoint name.
+	EndpointNameProxyFile EndpointName = "proxy-file"
 )
 
 // Endpoint defines the exported endpoint of service on discover.

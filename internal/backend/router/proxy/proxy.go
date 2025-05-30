@@ -1,0 +1,132 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// package proxy provides the proxy API.
+package proxy
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/gin-gonic/gin"
+)
+
+type handler struct {
+	rg             *gin.RouterGroup
+	provider       discover.Provider
+	proxyMessanger relayhandler.ServerMessager
+	logger         logger.Logger
+}
+
+// newHandler ...
+func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+	return &handler{
+		// this is a sub router, so we can use some special middleware in it and not affect the father router.
+		rg:             rg.Group("/proxy"),
+		provider:       cap.DiscoverProvider,
+		proxyMessanger: cap.ProxyMessager,
+		logger:         cap.Logger,
+	}
+}
+
+// Load ter register the proxy router.
+func Load(rg *gin.RouterGroup, cap *options.Capability) {
+	h := newHandler(rg, cap)
+
+	h.rg.Any("", h.generalHandler)
+	h.rg.Any("/*path", h.generalHandler)
+}
+
+func (h *handler) generalHandler(gCtx *gin.Context) {
+	gCtx.Status(http.StatusOK)
+	ctx := gCtx.Request.Context()
+
+	body, err := io.ReadAll(gCtx.Request.Body)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to read request body. err: %v", err)
+		return
+	}
+
+	h.logger.InfoCtxf(ctx, "received proxy request: %s", string(body))
+
+	data, err := h.proxyMessanger.DecodeBaseRequest(body)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. err: %v", err)
+		return
+	}
+
+	switch data.MessageType {
+	case protoProxy.MessageTypeCallbackReq:
+		h.handleCallback(ctx, data)
+
+		return
+	}
+}
+
+func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerReceivedData) {
+	msg, err := h.proxyMessanger.DecodeCallbackRequest(data)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+			data.AgentID, err)
+		return
+	}
+
+	callbackEndpoint, err := h.provider.GetEndpoint(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		discover.NewRandomSelector())
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s), err: %v",
+			data.AgentID, err)
+		return
+	}
+
+	h.logger.InfoCtxf(ctx, "try to redirect request to callback endpoint(%s), agent-id(%s)",
+		callbackEndpoint.GetIPV4Address(), data.AgentID)
+	resp, err := http.Post(
+		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), strings.TrimLeft(msg.URL, "/")),
+		"application/json",
+		bytes.NewReader(msg.Body))
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), err: %v",
+			data.AgentID, err)
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to read response body. agent-id(%s), err: %v",
+			data.AgentID, err)
+		return
+	}
+
+	if err := h.proxyMessanger.RespondCallback(
+		context.Background(),
+		msg.MessageID,
+		resp.StatusCode,
+		body,
+		data.AgentID,
+	); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to respond proxy callback. agent-id(%s), err: %v",
+			data.AgentID, err)
+		return
+	}
+
+	h.logger.InfoCtxf(ctx, "responded proxy callback. agent-id(%s)", data.AgentID)
+}

@@ -186,6 +186,11 @@ type CallbackServer struct {
 	HTTPServer `yaml:",inline"`
 }
 
+// ProxyServer the config of proxy service.
+type ProxyServer struct {
+	HTTPServer `yaml:",inline"`
+}
+
 // APIGateway the config of api-gateway.
 type APIGateway struct {
 	// Endpoints is a seed list of host:port addresses of api gateway nodes.
@@ -242,6 +247,9 @@ type CMDB struct {
 // GSE the config of gse.
 type GSE struct {
 	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+
+	PluginSlotID    int    `yaml:"pluginSlotID"`
+	PluginSlotToken string `yaml:"pluginSlotToken"`
 }
 
 // Validate validates the config.
@@ -349,4 +357,11 @@ func (conf System) Validate() error {
 	}
 
 	return nil
+}
+
+// GSEPlugin the config of gse agent plugin.
+type GSEPlugin struct {
+	PidFile                 string `yaml:"pidFile" usage:"pid file to save pid"`
+	MessageDomainSocketPath string `yaml:"messageDomainSocketPath" usage:"message domain socket path of gse agent plugin"`
+	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
 }

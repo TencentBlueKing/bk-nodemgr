@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -41,6 +42,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
@@ -194,6 +196,16 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.ProxyMessager = relayhandler.NewServerMessager(relayhandler.ServerMessagerConfig{
+		SlotID:        conf.GSE.PluginSlotID,
+		Token:         conf.GSE.PluginSlotToken,
+		AppCode:       conf.GSE.AppCode,
+		AppSecret:     conf.GSE.AppSecret,
+		GSEBaseURL:    conf.GSE.Endpoints[0],
+		SkipTLSVerify: conf.GSE.TLS.InsecureSkipVerify,
+		Logger:        svc.Cap.Logger,
+	})
+
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
 		CmdbHandler:           svc.Cap.CmdbHandler,
 		GSEHandler:            svc.Cap.GSEHandler,
@@ -281,6 +293,24 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		IPV4: conf.CallbackServer.AdvertiseIPV4,
 		IPV6: conf.CallbackServer.AdvertiseIPV6,
 		Port: conf.CallbackServer.Port,
+	})
+
+	proxyServer := rest.NewServer(
+		svc.ctx,
+		rest.ServerOptions{
+			Name:      string(discover.EndpointNameBackendPorxy),
+			IP:        conf.ProxyServer.BindIP,
+			Port:      conf.ProxyServer.Port,
+			LogWriter: loggerWriterAdaptor{},
+		},
+		rest.WithPing(),
+		withProxy(svc.Cap),
+	)
+	svc.servers = append(svc.servers, proxyServer)
+	svc.instance.Update(discover.EndpointNameBackendPorxy, discover.Endpoint{
+		IPV4: conf.ProxyServer.AdvertiseIPV4,
+		IPV6: conf.ProxyServer.AdvertiseIPV6,
+		Port: conf.ProxyServer.Port,
 	})
 
 	adminServer := rest.NewServer(
@@ -384,6 +414,13 @@ func withAdmin(capability *options.Capability) rest.OptionFunc {
 func withCallback(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		callback.Load(rg, capability)
+	}
+}
+
+// withProxy load proxy.
+func withProxy(capability *options.Capability) rest.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		proxy.Load(rg, capability)
 	}
 }
 

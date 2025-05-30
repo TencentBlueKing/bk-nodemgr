@@ -575,6 +575,10 @@ backend:
     ## encryptKey: define the key used to encrypt the sensitive data.
     encryptKey: "1234567890abcdef"
 
+    ## defines the backend server advertise-ip, if not set then will use the pod-ip.
+    advertiseIPV4: ""
+    advertiseIPV6: ""
+
     ## defines the backend http server related settings.
     httpServer:
       bindIP: "0.0.0.0"
@@ -589,6 +593,11 @@ backend:
     callbackServer:
       bindIP: "0.0.0.0"
       port: 8002
+
+    ## defines the backend proxy server related settings.
+    proxyServer:
+      bindIP: "0.0.0.0"
+      port: 8003
 
     ## defines the workflow related settings.
     workflow:
@@ -658,6 +667,9 @@ backend:
       bkToken: ""
       # accessToken is the BlueKing access token of costops to request api gateway.
       accessToken: ""
+      # plugin SlotID and SlotToken
+      pluginSlotID: ""
+      pluginSlotToken: ""
       # defines tls related options.
       tls:
         # server should be accessed without verifying the TLS certificate.
@@ -850,6 +862,10 @@ file:
 
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
+
+    ## defines the file server advertise-ip, if not set then will use the pod-ip.
+    advertiseIPV4: ""
+    advertiseIPV6: ""
 
     ## defines the file http server related settings.
     httpServer:

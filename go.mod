@@ -5,6 +5,7 @@ go 1.21.13
 require (
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae
 	github.com/RichardKnop/machinery/v2 v2.0.13
+	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/docker/go-connections v0.5.0
 	github.com/gin-gonic/gin v1.10.0

@@ -30,6 +30,8 @@ const (
 	defaultBackendAdminPort      = 8001
 	defaultBackendCallbackBindIP = "127.0.0.1"
 	defaultBackendCallbackPort   = 8002
+	defaultBackendProxyBindIP    = "127.0.0.1"
+	defaultBackendProxyPort      = 8003
 	defaultBackendLogDir         = "/bk-nodeman/log/"
 	defaultBackendLogMaxNum      = 10
 	defaultBackendLogMaxSizeMB   = 200
@@ -75,6 +77,7 @@ type BackendService struct {
 	HTTPServer         HTTPServer      `yaml:"httpServer" usage:"http server config of backend service"`
 	AdminServer        AdminServer     `yaml:"adminServer" usage:"admin server config of backend service"`
 	CallbackServer     CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
+	ProxyServer        ProxyServer     `yaml:"proxyServer" usage:"proxy server config of backend service"`
 	Etcd               Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
 	Redis              Redis           `yaml:"redis" usage:"redis config of backend service"`
 	MongoDB            MongoDB         `yaml:"mongodb" usage:"mongodb config of backend service"`
@@ -101,9 +104,17 @@ func NewBackendService() *BackendService {
 			Port:   defaultBackendAdminPort,
 		},
 		CallbackServer: CallbackServer{
-			HTTPServer{
+			HTTPServer: HTTPServer{
 				BindIP:        defaultBackendCallbackBindIP,
 				Port:          defaultBackendCallbackPort,
+				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
+				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
+			},
+		},
+		ProxyServer: ProxyServer{
+			HTTPServer: HTTPServer{
+				BindIP:        defaultBackendProxyBindIP,
+				Port:          defaultBackendProxyPort,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},

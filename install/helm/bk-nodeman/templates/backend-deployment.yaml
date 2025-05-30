@@ -106,6 +106,8 @@ spec:
               containerPort: {{ .Values.backend.config.httpServer.port }}
             - name: callback-http
               containerPort: {{ .Values.backend.config.callbackServer.port }}
+            - name: proxy-http
+              containerPort: {{ .Values.backend.config.proxyServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -265,6 +267,13 @@ spec:
               fi
             done
 
+            if [ -n "{{ .Values.backend.config.advertiseIPV4 }}" ]; then
+              ADVERTISE_IPV4={{ .Values.backend.config.advertiseIPV4 }}
+            fi
+            if [ -n "{{ .Values.backend.config.advertiseIPV6 }}" ]; then
+              ADVERTISE_IPV6={{ .Values.backend.config.advertiseIPV6 }}
+            fi
+
             # sed local config file.
             cp /tmp/backend_conf.yaml {{ .Values.common.etcPath }}/backend_conf.yaml
             sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
@@ -286,7 +295,7 @@ spec:
               mountPath: /tmp
             - name: nodeman-etc
               mountPath: {{ .Values.common.etcPath }}
-          resources: {{- toYaml .Values.initContainerResources | nindent 10 }}
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       hostNetwork: {{ .Values.backend.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:

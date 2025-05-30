@@ -14,6 +14,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"runtime"
 
@@ -76,12 +77,12 @@ func NewService(conf *config.FileService) (*Service, error) {
 	var err error
 	svc.Cap.AgentFileGroup, err = local.NewLocalDir(conf.AgentFileGroup.FullPath, svc.Cap.Logger)
 	if err != nil {
-		return nil, errors.New("init agent file group failed")
+		return nil, fmt.Errorf("failed to init agent file group: %v", err)
 	}
 
 	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
 	if err != nil {
-		return nil, errors.New("init proxy file group failed")
+		return nil, fmt.Errorf("failed to init group file group: %v", err)
 	}
 
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,

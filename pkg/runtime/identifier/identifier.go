@@ -21,6 +21,7 @@ import (
 
 const (
 	tagRequestID           = "rid"
+	tagMessageID           = "mid"
 	tagWorkflowID          = "wf"
 	tagTriggerID           = "trig"
 	tagOperationID         = "oper"
@@ -36,6 +37,11 @@ func generateID(tag string) string {
 // GenRequestID generates a request id.
 func GenRequestID() string {
 	return generateID(tagRequestID)
+}
+
+// GenMessageID generates a message id.
+func GenMessageID() string {
+	return generateID(tagMessageID)
 }
 
 // GenWorkflowID generates a workflow id.

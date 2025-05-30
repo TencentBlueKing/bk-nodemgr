@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application front docker-build all clean doc tools
+.PHONY: tidy build test pre backend application file relay front docker-build all clean doc tools
 
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
@@ -47,6 +47,11 @@ file: pre
 	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-file $(ROOT_DIR)/cmd/file/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-file"
 
+relay: pre
+	@$(ECHO) "Building proxy $(VERSION)..."
+	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-relay $(ROOT_DIR)/cmd/relay/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-relay"
+
 front: pre
 	@$(ECHO) "Building frontend..."
 	@$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
@@ -68,7 +73,7 @@ docker-build: backend application file front tools
 	@$(ECHO) "Built successfully docker images bk-nodeman:v${VERSION}"
 
 
-all: backend application file front tools
+all: backend application file relay front tools
 
 clean:
 	@$(ECHO) "Cleaning build directory..."

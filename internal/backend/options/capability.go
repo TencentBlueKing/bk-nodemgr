@@ -15,6 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -74,6 +75,9 @@ type Capability struct {
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
+
+	// ProxyMessager provides the proxy messager.
+	ProxyMessager relayhandler.ServerMessager
 }
 
 // Start ...
@@ -103,6 +107,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.StorageNodeWorkflow.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.ProxyMessager.Start(ctx); err != nil {
 		return err
 	}
 

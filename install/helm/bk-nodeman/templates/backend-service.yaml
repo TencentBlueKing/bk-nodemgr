@@ -23,4 +23,7 @@ spec:
     - name: callback-http
       port: {{ .Values.backend.config.callbackServer.port }}
       targetPort: callback-http
+    - name: proxy-http
+      port: {{ .Values.backend.config.proxyServer.port }}
+      targetPort: proxy-http
 {{- end }}

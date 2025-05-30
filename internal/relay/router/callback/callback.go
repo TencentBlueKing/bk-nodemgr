@@ -8,34 +8,68 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package callback ...
+// Package callback handles the callback request.
 package callback
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow"
+	"context"
+	"io"
+	"net/http"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
+const (
+	defaultRequestTimeout = 5 * time.Second
+)
+
 type handler struct {
 	rg     *gin.RouterGroup
+	client relayhandler.CallbackClient
 	logger logger.Logger
 }
 
-// newHandler ...
+func (h *handler) request(gCtx *gin.Context) {
+	content, err := io.ReadAll(gCtx.Request.Body)
+	if err != nil {
+		gCtx.JSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	// create a new context with timeout
+	rctx, rcancel := context.WithTimeout(gCtx.Request.Context(), defaultRequestTimeout)
+	defer rcancel()
+
+	h.logger.InfoCtxf(rctx, "request to callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(content))
+	resp, statusCode, err := h.client.RequestCallback(rctx, gCtx.Request.URL.Path, content)
+	if err != nil {
+		h.logger.ErrorCtxf(rctx, "failed to request to callback, err: %v", err)
+		gCtx.JSON(statusCode, err)
+
+		return
+	}
+
+	h.logger.InfoCtxf(rctx, "response from callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(resp))
+	gCtx.Data(statusCode, "application/json; charset=utf-8", resp)
+}
+
 func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:     rg.Group("/callback"),
+		client: cap.Messager,
 		logger: cap.Logger,
 	}
 }
 
-// Load ter register the api v3 router.
+// Load register the callback router.
 func Load(rg *gin.RouterGroup, cap *options.Capability) {
 	h := newHandler(rg, cap)
 
-	workflow.Load(h.rg, cap)
+	h.rg.POST("/*path", h.request)
 }

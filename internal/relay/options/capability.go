@@ -8,34 +8,37 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package callback ...
-package callback
+// Package options provides the various capabilities the service supports.
+package options
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow"
+	"context"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/gin-gonic/gin"
 )
 
-// handler ...
-type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.Logger
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// Logger logger.
+	Logger logger.Logger
+
+	// AgentFileGroup agent file group.
+	AgentFileGroup iface.FileGroup
+
+	// ProxyFileGroup proxy file group.
+	ProxyFileGroup iface.FileGroup
+
+	// Messager messager.
+	Messager relayhandler.ClientMessager
 }
 
-// newHandler ...
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
-	return &handler{
-		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/callback"),
-		logger: cap.Logger,
+// Start start the capability.
+func (c *Capability) Start(ctx context.Context) error {
+	if err := c.Messager.Start(ctx); err != nil {
+		return err
 	}
-}
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
-
-	workflow.Load(h.rg, cap)
+	return nil
 }
