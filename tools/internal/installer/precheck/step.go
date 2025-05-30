@@ -14,11 +14,11 @@ package precheck
 import (
 	"context"
 	"encoding/json"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 )
 
@@ -68,10 +68,12 @@ func (step *Step) Run(ctx context.Context) error {
 			}); err != nil {
 				logger.Infof(constant.StepPreCheck, constant.StateFailed,
 					"failed to check %s, err: %v", name, err)
+
 				return err
 			}
 
 			logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check %s", name)
+
 			return nil
 		}
 	}

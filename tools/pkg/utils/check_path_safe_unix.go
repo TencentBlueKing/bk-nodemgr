@@ -13,6 +13,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,7 @@ import (
 // CheckDirPathSafe checks if the given dir path is safe to use.
 func CheckDirPathSafe(dirPath string) error {
 	if dirPath == "" {
-		return fmt.Errorf("dirPath is empty")
+		return errors.New("dirPath is empty")
 	}
 
 	cleanPath := filepath.Clean(dirPath)
@@ -41,7 +42,7 @@ func isDangerousPath(path string) error {
 	path = filepath.Clean(path)
 
 	if path == "/" {
-		return fmt.Errorf("dirPath is root path, too dangerous")
+		return errors.New("dirPath is root path, too dangerous")
 	}
 
 	// Check if the path contains any dangerous patterns

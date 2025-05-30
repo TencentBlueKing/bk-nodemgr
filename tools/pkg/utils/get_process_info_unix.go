@@ -13,12 +13,14 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 )
 
 // ProcessInfo represents information about a process.
@@ -62,7 +64,7 @@ func GetSameSpaceProcesses() ([]ProcessInfo, error) {
 func areInSameNamespaces(self, other ProcessInfo) error {
 	// If the number of namespaces is different, they are not in the same environment
 	if len(self.Namespaces) != len(other.Namespaces) {
-		return fmt.Errorf("different number of namespaces")
+		return errors.New("different number of namespaces")
 	}
 
 	for nsType, selfNs := range self.Namespaces {
