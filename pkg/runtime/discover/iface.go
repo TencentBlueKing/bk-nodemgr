@@ -61,11 +61,11 @@ const (
 	// EndpointNameFileAdmin the file admin endpoint name.
 	EndpointNameFileAdmin EndpointName = "file-admin"
 
-	// EndpointNameProxyCallback the proxy callback endpoint name.
-	EndpointNameProxyCallback EndpointName = "proxy-callback"
+	// EndpointNameRelayCallback the relay callback endpoint name.
+	EndpointNameRelayCallback EndpointName = "relay-callback"
 
-	// EndpointNameProxyFile the proxy file endpoint name.
-	EndpointNameProxyFile EndpointName = "proxy-file"
+	// EndpointNameRelayFile the relay file endpoint name.
+	EndpointNameRelayFile EndpointName = "relay-file"
 )
 
 // Endpoint defines the exported endpoint of service on discover.

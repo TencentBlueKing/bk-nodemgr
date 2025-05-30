@@ -81,7 +81,7 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	callbackServer := rest.NewServer(
 		svc.ctx,
 		rest.ServerOptions{
-			Name:      string(discover.EndpointNameProxyCallback),
+			Name:      string(discover.EndpointNameRelayCallback),
 			IP:        conf.CallbackServer.BindIP,
 			Port:      conf.CallbackServer.Port,
 			LogWriter: loggerWriterAdaptor{},
@@ -94,7 +94,7 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	fileServer := rest.NewServer(
 		svc.ctx,
 		rest.ServerOptions{
-			Name:      string(discover.EndpointNameProxyFile),
+			Name:      string(discover.EndpointNameRelayFile),
 			IP:        conf.FileServer.BindIP,
 			Port:      conf.FileServer.Port,
 			LogWriter: loggerWriterAdaptor{},
