@@ -39,7 +39,7 @@ func (step *Step) forceUninstall(_ context.Context) error {
 			continue
 		}
 
-		if ok, err := utils.CheckDirPathSafe(setupDirPath); !ok || err != nil {
+		if err := utils.CheckDirPathSafe(setupDirPath); err != nil {
 			continue
 		}
 

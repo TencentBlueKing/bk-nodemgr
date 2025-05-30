@@ -1,3 +1,5 @@
+//go:build linux || darwin || freebsd || aix
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -17,22 +19,22 @@ import (
 )
 
 // CheckDirPathSafe checks if the given dir path is safe to use.
-func CheckDirPathSafe(dirPath string) (bool, error) {
+func CheckDirPathSafe(dirPath string) error {
 	if dirPath == "" {
-		return false, fmt.Errorf("dirPath is empty")
+		return fmt.Errorf("dirPath is empty")
 	}
 
 	cleanPath := filepath.Clean(dirPath)
 	// compare the cleaned path with the original path
 	if cleanPath != dirPath {
-		return false, fmt.Errorf("dirPath is not a clean path, clean-path(%s), origin-path(%s)", cleanPath, dirPath)
+		return fmt.Errorf("dirPath is not a clean path, clean-path(%s), origin-path(%s)", cleanPath, dirPath)
 	}
 
 	if err := isDangerousPath(dirPath); err != nil {
-		return false, fmt.Errorf("dirPath is dangerous, dirPath(%s), err: %v", dirPath, err)
+		return fmt.Errorf("dirPath is dangerous, dirPath(%s), err: %v", dirPath, err)
 	}
 
-	return true, nil
+	return nil
 }
 
 func isDangerousPath(path string) error {
@@ -49,7 +51,7 @@ func isDangerousPath(path string) error {
 		"/dev/",
 	}
 	for _, dangerousDir := range dangerousDirPrefixs {
-		if strings.HasPrefix(path, dangerousDir) {
+		if strings.HasPrefix(path, filepath.Clean(dangerousDir)) {
 			return fmt.Errorf("dirPath is dangerous, dirPath(%s)", path)
 		}
 	}

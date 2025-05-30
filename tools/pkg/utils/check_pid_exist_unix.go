@@ -22,7 +22,7 @@ import (
 // CheckPIDExist check whether the corresponding process exists.
 func CheckPIDExist(pid int) (bool, error) {
 	if pid <= 1 {
-		return false, fmt.Errorf("dangerous pid, are you sure, pid: %d", pid)
+		return false, fmt.Errorf("dangerous pid, please make sure it's greater than 1")
 	}
 
 	// Send signal 0, will not actually send signal, only check the existence of the process
