@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package operation provide operation related structs.
 package operation
 
 import (
