@@ -60,8 +60,6 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 		return errors.New("ctx is nil")
 	}
 
-	tenantID, _ := tenant.GetID(ctx)
-
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
 	}
@@ -98,8 +96,6 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 	if operInstID == "" {
 		return errors.New("operation instance id is empty")
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if actionName == "" {
 		return errors.New("actionName is empty")
@@ -206,7 +202,6 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
-	tenantID, _ := tenant.GetID(ctx)
 
 	if actionInstData == nil {
 		return errors.New("actionInstData is nil")
@@ -379,8 +374,6 @@ func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string,
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
-
-	tenantID, _ := tenant.GetID(ctx)
 
 	if operInstID == "" {
 		return base.ErrInvalidID()
