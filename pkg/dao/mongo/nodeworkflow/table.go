@@ -31,6 +31,7 @@ type Data struct {
 	BizIDs      []int64   `json:"biz_ids" bson:"biz_ids"`
 	Operator    string    `json:"operator" bson:"operator"`
 	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
+	EndTime     time.Time `json:"end_time" bson:"end_time"`
 	Status      string    `json:"status" bson:"status"`
 }
 

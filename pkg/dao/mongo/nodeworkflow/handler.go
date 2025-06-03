@@ -22,8 +22,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// IHandler node workflow Handler interface.
+// IHandler node workflow handler interface.
 type IHandler interface {
+	// Get gets node workflow by id.
+	Get(ctx context.Context, workflowID string) (*types.NodeWorkflow, error)
+
 	// Count counts node workflow by opts.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -34,11 +37,29 @@ type IHandler interface {
 	Create(ctx context.Context, workflow *types.NodeWorkflow) error
 
 	// UpdateStatus updates the status of a node workflow.
-	UpdateStatus(ctx context.Context, workflowID int64, status types.NodeWorkflowStatus) error
+	UpdateStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error
+
+	// Distinct distincts node workflow fields.
+	IDistinctor
 }
 
-// Handler this is a Handler to operate node workflow table.
-type Handler struct {
+// IDistinctor node workflow distinctor interface.
+type IDistinctor interface {
+	// DistinctType distincts with field type.
+	DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowType, error)
+
+	// DistinctBkBizID distincts with field bk-biz-id.
+	DistinctNodeWorkflowBkBizID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
+	// DistinctOperator distincts with field operator.
+	DistinctNodeWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctNodeVersion distincts with field node-version.
+	DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowStatus, error)
+}
+
+// handler this is a handler to operate node workflow table.
+type handler struct {
 	client *mongo.Database
 	logger logger.Logger
 
@@ -47,7 +68,7 @@ type Handler struct {
 	daoMap sync.Map
 }
 
-func (h *Handler) tenantDao(tenantID string) *dao {
+func (h *handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
 		return d.(*dao)
 	}
@@ -64,9 +85,9 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 	return d.(*dao)
 }
 
-// New new a Handler.
-func New(client *mongo.Database, logger logger.Logger) *Handler {
-	return &Handler{
+// New new a handler.
+func New(client *mongo.Database, logger logger.Logger) *handler {
+	return &handler{
 		client: client,
 		logger: logger,
 		daoMap: sync.Map{},
@@ -74,7 +95,7 @@ func New(client *mongo.Database, logger logger.Logger) *Handler {
 }
 
 // Count counts node workflow by opts.
-func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return 0, err
@@ -89,7 +110,7 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 }
 
 // List lists node workflow by page and opts.
-func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error) {
+func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -121,7 +142,7 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Create creates a new node workflow.
-func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) error {
+func (h *handler) Create(ctx context.Context, workflow *types.NodeWorkflow) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -146,14 +167,34 @@ func (h *Handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 	return nil
 }
 
+// Get gets node workflow by id.
+func (h *handler) Get(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if workflowID == "" {
+		return nil, errors.New("workflow id should not be empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return convertNodeWorkflowToTypes(data), nil
+}
+
 // UpdateStatus updates the status of a node workflow.
-func (h *Handler) UpdateStatus(ctx context.Context, workflowID int64, status types.NodeWorkflowStatus) error {
+func (h *handler) UpdateStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
-	if workflowID <= 0 {
+	if workflowID == "" {
 		return errors.New("workflow id should not be empty")
 	}
 
@@ -168,6 +209,64 @@ func (h *Handler) UpdateStatus(ctx context.Context, workflowID int64, status typ
 	}
 
 	return nil
+}
+
+// DistinctNodeWorkflowType distincts with field type.
+func (h *handler) DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowType, error) {
+	result, err := h.distinctString(ctx, FieldKeyType, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringListToNodeWorkflowTypeList(result), nil
+}
+
+// DistinctNodeWorkflowBkBizID distincts with field bk-biz-id.
+func (h *handler) DistinctNodeWorkflowBkBizID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyBizID, opts...)
+}
+
+// DistinctNodeWorkflowOperator distincts with field operator.
+func (h *handler) DistinctNodeWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyOperator, opts...)
+}
+
+// DistinctNodeWorkflowStatus distincts with field node-version.
+func (h *handler) DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowStatus, error) {
+	result, err := h.distinctString(ctx, FieldKeyStatus, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringListToNodeWorkflowStatusList(result), nil
+}
+
+// distinctInt64 returns distinct values of specified field.
+func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) ([]int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+}
+
+// distinctString returns distinct values of specified field.
+func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
 }
 
 // convertNodeWorkflowToTypes convert node workflow to types.

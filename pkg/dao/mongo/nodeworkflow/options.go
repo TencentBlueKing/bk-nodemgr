@@ -19,7 +19,7 @@ import (
 type OptFn = base.OptFn
 
 // WithWorkflowID filters by workflow ID.
-func WithWorkflowID(workflowIDs ...int64) OptFn {
+func WithWorkflowID(workflowIDs ...string) OptFn {
 	return base.WithValues(FieldKeyWorkflowID, workflowIDs...)
 }
 

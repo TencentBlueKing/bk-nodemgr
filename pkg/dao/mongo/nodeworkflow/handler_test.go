@@ -13,7 +13,6 @@ package nodeworkflow
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -38,7 +37,7 @@ func TestAll(t *testing.T) {
 
 	testSuit := new(TestSuite)
 	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.Logger) {
-		testSuit.Dao = newDao(client, logger)
+		testSuit.Dao = newDao("", client, logger)
 		testSuit.Handler = New(client, logger)
 		testSuit.counter = counter.New(client, logger)
 		testSuit.TestDatas = testSuit.prepareTestData()
@@ -50,45 +49,33 @@ func TestAll(t *testing.T) {
 func (testSuit *TestSuite) prepareTestData() []*Data {
 	testDatas := []*Data{
 		{
-			WorkflowID:  0,
-			TriggerID:   "T-123456",
-			Type:        string(types.NodeWorkflowTypeInstallAgent),
-			BizIDs:      []int64{639},
-			ExecuteUser: "test1",
-			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-			Status:      "running",
+			WorkflowID: "1",
+			TriggerID:  "T-123456",
+			Type:       string(types.NodeWorkflowTypeInstallAgent),
+			BizIDs:     []int64{639},
+			Status:     "running",
 		},
 		{
-			WorkflowID:  1,
-			TriggerID:   "T-123457",
-			Type:        string(types.NodeWorkflowTypeInstallAgent),
-			BizIDs:      []int64{639},
-			ExecuteUser: "test2",
-			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-			Status:      "failed",
+			WorkflowID: "1",
+			TriggerID:  "T-123457",
+			Type:       string(types.NodeWorkflowTypeInstallAgent),
+			BizIDs:     []int64{639},
+			Status:     "failed",
 		},
 		{
-			WorkflowID:  2,
-			TriggerID:   "T-123458",
-			Type:        "uninstall",
-			BizIDs:      []int64{639},
-			ExecuteUser: "test3",
-			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-			Status:      "running",
+			WorkflowID: "2",
+			TriggerID:  "T-123458",
+			Type:       "uninstall",
+			BizIDs:     []int64{639},
+			Status:     "running",
 		},
 		{
-			WorkflowID:  3,
-			TriggerID:   "T-123459",
-			Type:        "uninstall",
-			BizIDs:      []int64{639},
-			ExecuteUser: "test3",
-			ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-			Status:      "failed",
+			WorkflowID: "2",
+			TriggerID:  "T-123459",
+			Type:       "uninstall",
+			BizIDs:     []int64{639},
+			Status:     "failed",
 		},
-	}
-
-	for idx := range testDatas {
-		testDatas[idx].WorkflowID, _ = testSuit.counter.Generate(context.Background(), TableName)
 	}
 
 	return testDatas
@@ -110,12 +97,10 @@ func (testSuit *TestSuite) TestCreate() {
 			args: args{
 				ctx: context.Background(),
 				nodeWorkflow: &types.NodeWorkflow{
-					WorkflowID:  0,
-					TriggerID:   "T-123459",
-					Type:        "install",
-					ExecuteUser: "test",
-					ExecuteTime: time.Time{},
-					Status:      types.NodeWorkflowStatusRunning,
+					WorkflowID: "1",
+					TriggerID:  "T-123459",
+					Type:       "install",
+					Status:     types.NodeWorkflowStatusRunning,
 				},
 			},
 			wantErr: false,
@@ -157,18 +142,16 @@ func (testSuit *TestSuite) TestList() {
 					Sort:   "",
 				},
 				opts: []OptFn{
-					WithWorkflowID(1),
+					WithWorkflowID("1"),
 				},
 			},
 			want: []*types.NodeWorkflow{
 				{
-					WorkflowID:  1,
-					TriggerID:   "T-123457",
-					Type:        "install",
-					BizIDs:      []int64{639},
-					ExecuteUser: "test2",
-					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-					Status:      "failed",
+					WorkflowID: "2",
+					TriggerID:  "T-123457",
+					Type:       "install",
+					BizIDs:     []int64{639},
+					Status:     "failed",
 				},
 			},
 			wantNum: 1,
@@ -189,22 +172,19 @@ func (testSuit *TestSuite) TestList() {
 			},
 			want: []*types.NodeWorkflow{
 				{
-					WorkflowID:  0,
-					TriggerID:   "T-123456",
-					Type:        "install",
-					BizIDs:      []int64{639},
-					ExecuteUser: "test1",
-					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-					Status:      "running",
+					WorkflowID: "0",
+					TriggerID:  "T-123456",
+					Type:       "install",
+					BizIDs:     []int64{639},
+
+					Status: "running",
 				},
 				{
-					WorkflowID:  2,
-					TriggerID:   "T-123458",
-					Type:        "uninstall",
-					BizIDs:      []int64{639},
-					ExecuteUser: "test3",
-					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-					Status:      "running",
+					WorkflowID: "0",
+					TriggerID:  "T-123458",
+					Type:       "uninstall",
+
+					Status: "running",
 				},
 			},
 			wantNum: 2,
@@ -219,19 +199,18 @@ func (testSuit *TestSuite) TestList() {
 					Limit:  1,
 				},
 				opts: []OptFn{
-					WithWorkflowID(1),
+					WithWorkflowID("1"),
 					WithType(types.NodeWorkflowTypeInstallAgent),
 				},
 			},
 			want: []*types.NodeWorkflow{
 				{
-					WorkflowID:  1,
-					TriggerID:   "T-123457",
-					Type:        types.NodeWorkflowTypeInstallAgent,
-					BizIDs:      []int64{639},
-					ExecuteUser: "test2",
-					ExecuteTime: time.Date(2023, 10, 1, 0, 0, 0, 0, time.UTC),
-					Status:      "failed",
+					WorkflowID: "1",
+					TriggerID:  "T-123457",
+					Type:       types.NodeWorkflowTypeInstallAgent,
+					BizIDs:     []int64{639},
+
+					Status: "failed",
 				},
 			},
 			wantNum: 1,
@@ -269,7 +248,7 @@ func (testSuit *TestSuite) TestCount() {
 			args: args{
 				ctx: context.Background(),
 				opts: []OptFn{
-					WithWorkflowID(1),
+					WithWorkflowID("1"),
 				},
 			},
 			want:    1,
@@ -293,7 +272,7 @@ func (testSuit *TestSuite) TestCount() {
 func (testSuit *TestSuite) TestUpdateStatus() {
 	type args struct {
 		ctx        context.Context
-		workflowID int64
+		workflowID string
 		status     types.NodeWorkflowStatus
 	}
 	tests := []struct {
@@ -305,7 +284,7 @@ func (testSuit *TestSuite) TestUpdateStatus() {
 			name: "normal",
 			args: args{
 				ctx:        context.Background(),
-				workflowID: 3,
+				workflowID: "1",
 				status:     types.NodeWorkflowStatusSuccess,
 			},
 			wantErr: false,

@@ -33,7 +33,7 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, e
 		return nil, errors.New("host id should be equal or greater than 0")
 	}
 
-	hosts, count, err := s.daoHost.List(ctx, types.Page{}, host.WithHostID(hostID))
+	hosts, count, err := s.daoHost.List(ctx, types.Page{Limit: 1}, host.WithHostID(hostID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host by id, host-id(%d), err: %w", hostID, err)
 	}
