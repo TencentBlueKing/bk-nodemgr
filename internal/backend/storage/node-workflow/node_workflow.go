@@ -196,7 +196,7 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 }
 
 // UpdateWorkflowStatus updates the status of a node workflow.
-func (s *Storage) UpdateWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
 	if ctx == nil {
 		return base.ErrNilContent()
 	}
