@@ -306,7 +306,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNodeWorkflow.CreateWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
