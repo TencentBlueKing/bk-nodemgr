@@ -77,20 +77,15 @@ func (s *Storage) check() error {
 func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
-	opts, err := convertNodeWorkflowConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, 0, err
-	}
+	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
 	return s.daoNodeWorkflow.List(ctx, page, opts...)
 }
 
 // CountNodeWorkflow counts node workflow by conditions.
 func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
-	opts, err := convertNodeWorkflowConditionsToOptions(conditions...)
-	if err != nil {
-		return 0, err
-	}
+
+	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
 	return s.daoNodeWorkflow.Count(ctx, opts...)
 }
@@ -100,10 +95,7 @@ func (s *Storage) DistinctNodeWorkflow(
 	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
-	opts, err := convertNodeWorkflowConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, err
-	}
+	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
 	result := new(types.NodeWorkflowDistinctResult)
 
@@ -195,7 +187,7 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 	return nil
 }
 
-// UpdateWorkflowStatus updates the status of a node workflow.
+// UpdateNodeWorkflowStatus updates the status of a node workflow.
 func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
 	if ctx == nil {
 		return base.ErrNilContent()
@@ -217,8 +209,7 @@ func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID strin
 }
 
 // convertNodeWorkflowConditionsToOptions converts node workflow conditions to options.
-func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) ([]nodeworkflow.OptFn, error) {
-
+func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) []nodeworkflow.OptFn {
 	opts := make([]nodeworkflow.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -245,5 +236,6 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 				nodeworkflow.WithoutStatus(condition.ExactExclude.Status...))
 		}
 	}
-	return opts, nil
+
+	return opts
 }

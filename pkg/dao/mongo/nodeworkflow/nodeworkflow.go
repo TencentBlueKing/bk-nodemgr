@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -71,14 +70,14 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 
 // distinctString distinct string field.
 func (d *dao) distinctString(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
+	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error) {
 
 	return d.DistinctString(ctx, key, filter, distinctOpt)
 }
 
 // distinctInt64 distinct int64 field.
 func (d *dao) distinctInt64(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
+	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error) {
 
 	return d.DistinctInt64(ctx, key, filter, distinctOpt)
 }

@@ -184,6 +184,7 @@ func (h *handler) Get(ctx context.Context, workflowID string) (*types.NodeWorkfl
 	if err != nil {
 		return nil, err
 	}
+
 	return convertNodeWorkflowToTypes(data), nil
 }
 
@@ -217,6 +218,7 @@ func (h *handler) DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) (
 	if err != nil {
 		return nil, err
 	}
+
 	return types.StringListToNodeWorkflowTypeList(result), nil
 }
 
@@ -236,6 +238,7 @@ func (h *handler) DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn)
 	if err != nil {
 		return nil, err
 	}
+
 	return types.StringListToNodeWorkflowStatusList(result), nil
 }
 
