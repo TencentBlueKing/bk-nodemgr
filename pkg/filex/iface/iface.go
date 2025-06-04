@@ -22,16 +22,16 @@ type FileGroup interface {
 	Name() string
 
 	// SubGroups the sub groups of file group.
-	SubGroups() []FileGroup
+	SubGroups(ctx context.Context) ([]FileGroup, error)
 
 	// GetFile get a file by name.
-	GetFile(name string) (File, error)
+	GetFile(ctx context.Context, name string) (File, error)
 
 	// AllFiles the all files of file group.
-	AllFiles() []File
+	AllFiles(ctx context.Context) ([]File, error)
 
 	// Store the func will store a file into the file group.
-	Store(ctx context.Context, info FileInfo, reader io.ReadCloser, overwrite bool) error
+	Store(ctx context.Context, info FileInfo, file io.ReadCloser, overwrite bool) error
 }
 
 // File file interface.
@@ -42,7 +42,7 @@ type File interface {
 	FileContent
 
 	// Info the info of file.
-	Info() FileInfo
+	Info(ctx context.Context) (FileInfo, error)
 }
 
 // FileInfo file info.
@@ -65,7 +65,7 @@ type FileInfo struct {
 
 // FileContent the content of file.
 type FileContent interface {
-	Content() (io.ReadCloser, error)
+	Content(ctx context.Context) (io.ReadCloser, error)
 }
 
 // FileObject define this file is local file or remote file.

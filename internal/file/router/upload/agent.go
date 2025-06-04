@@ -20,10 +20,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Agent download agent package.
-func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
+// Agent upload agent package.
+func (h *handler) Agent(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to upload agent, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	req := new(protoFile.UploadAgentReq)
-	fileHeader, err := rCtx.ParseFileForm(req)
+	fileHeader, err := ctx.ParseFileForm(req)
 	if err != nil {
 		h.logger.Errorf("parse file form failed", err)
 
@@ -37,7 +43,7 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	tenantCtx, err := rCtx.GetContext()
+	tenantCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Error("get context failed", err)
 
@@ -81,17 +87,18 @@ func (h *handler) Agent(rCtx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	localFile, err := h.agentFileGroup.GetFile(pkgName)
+	localFile, err := h.agentFileGroup.GetFile(sCtx, pkgName)
 	if err != nil {
 		h.logger.Error("get local uploadFile failed", err)
 
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
+	info, _ := localFile.Info(sCtx)
 	resp := &protoFile.UploadAgentResp{
-		Name: localFile.Info().Name,
-		Size: localFile.Info().Size,
-		Md5:  localFile.Info().Md5,
+		Name: info.Name,
+		Size: info.Size,
+		Md5:  info.Md5,
 	}
 
 	return resp, nil

@@ -12,6 +12,7 @@
 package local
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -56,7 +57,9 @@ func TestNewLocalFile(t *testing.T) {
 			}
 
 			t.Logf("NewLocalFile() = %v", got)
-			t.Logf("FileInfo = %v", got.Info())
+
+			info, _ := got.Info(context.Background())
+			t.Logf("FileInfo = %v", info)
 
 			file, err := os.Create(filepath.Join(filepath.Base(tt.args.fullPath), "test.txt"))
 			if err != nil {
@@ -64,7 +67,7 @@ func TestNewLocalFile(t *testing.T) {
 			}
 			defer file.Close()
 
-			reader, err := got.Content()
+			reader, err := got.Content(context.Background())
 			if err != nil {
 				t.Fatalf("Content() error = %v", err)
 			}

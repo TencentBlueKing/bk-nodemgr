@@ -166,14 +166,14 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	toolFile, err := act.installerGroup.GetFile(toolName)
+	toolFile, err := act.installerGroup.GetFile(ctx.Ctx, toolName)
 	if err != nil {
 		err = fmt.Errorf("failed to get file, err: %w", err)
 
 		return err
 	}
 
-	reader, err := toolFile.Content()
+	reader, err := toolFile.Content(ctx.Ctx)
 	if err != nil {
 		err = fmt.Errorf("failed to get file content, err: %w", err)
 

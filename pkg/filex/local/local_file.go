@@ -12,6 +12,7 @@ package local
 
 import (
 	"bufio"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -34,7 +35,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 		return nil, fmt.Errorf("file does not exist, fullPath(%s)", fullPath)
 	}
 
-	// 判断路径是否为文件夹
+	// check if it's a directory
 	info, err := rFs().Stat(fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file info, err: %w", err)
@@ -106,7 +107,7 @@ type LocalFile struct {
 }
 
 // Content returns LocalFile content.
-func (f *LocalFile) Content() (io.ReadCloser, error) {
+func (f *LocalFile) Content(_ context.Context) (io.ReadCloser, error) {
 	absPath, err := filepath.Abs(f.fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve absolute path: %w", err)
@@ -126,8 +127,8 @@ func (f *LocalFile) Content() (io.ReadCloser, error) {
 }
 
 // Info returns LocalFile info.
-func (f *LocalFile) Info() iface.FileInfo {
-	return f.info
+func (f *LocalFile) Info(_ context.Context) (iface.FileInfo, error) {
+	return f.info, nil
 }
 
 // FileObject returns LocalFile file object.

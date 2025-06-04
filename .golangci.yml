@@ -680,3 +680,5 @@ linters-settings:
         alias: machineryConfig
       - pkg: github.com/RichardKnop/machinery/v2/log
         alias: machineryLog
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header
+        alias: restheader

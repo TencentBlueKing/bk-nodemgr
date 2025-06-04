@@ -57,11 +57,12 @@ type Request struct {
 	// request capability.
 	capability *client.Capability
 
-	verb    VerbType
-	params  url.Values
-	headers http.Header
-	body    []byte
-	ctx     context.Context
+	verb       VerbType
+	params     url.Values
+	headers    http.Header
+	body       []byte
+	bodyReader io.Reader
+	ctx        context.Context
 
 	// prefixed url
 	baseURL string
@@ -166,6 +167,13 @@ func (r *Request) subResource(subPath string) *Request {
 // WithContentType add content type to request.
 func (r *Request) WithContentType(contentType header.ContentType) *Request {
 	r.contentType = contentType
+
+	return r
+}
+
+// BodyReader add reader to request.
+func (r *Request) BodyReader(reader io.Reader) *Request {
+	r.bodyReader = reader
 
 	return r
 }
@@ -312,13 +320,13 @@ func (r *Result) Into(obj interface{}) error {
 		return nil
 	}
 
-	if r.StatusCode >= http.StatusMultipleChoices {
+	if r.StatusCode >= http.StatusInternalServerError {
 		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, r.Body)
 	}
 
 	err := json.Unmarshal(r.Body, obj)
 	if nil != err {
-		if r.StatusCode >= http.StatusMultipleChoices {
+		if r.StatusCode >= http.StatusInternalServerError {
 			return fmt.Errorf("http request err: %s", string(r.Body))
 		}
 
@@ -326,6 +334,19 @@ func (r *Result) Into(obj interface{}) error {
 	}
 
 	return nil
+}
+
+// RawData get raw data.
+func (r *Result) RawData() ([]byte, error) {
+	if r.Err != nil {
+		return nil, r.Err
+	}
+
+	if r.StatusCode >= http.StatusInternalServerError {
+		return nil, fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, r.Body)
+	}
+
+	return r.Body, nil
 }
 
 // maxLatency max latency time.
@@ -405,8 +426,8 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 		r.tryThrottle(url)
 	}
 
-	r.client.capability.Logger.Infof("restful request, method(%s), url(%s), body(%s), rid(%s)",
-		r.verb, url, string(r.body), rid)
+	r.client.capability.Logger.Infof("restful request, method(%s), url(%s), header(%+v), body(%s), rid(%s)",
+		r.verb, url, r.headers, string(r.body), rid)
 
 	start := time.Now()
 	resp, err := client.Do(req)
@@ -458,7 +479,11 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 }
 
 func (r *Request) getRequest(url string, contentType header.ContentType) (*http.Request, error) {
-	req, err := http.NewRequest(string(r.verb), url, bytes.NewReader(r.body))
+	reader := r.bodyReader
+	if reader == nil {
+		reader = bytes.NewReader(r.body)
+	}
+	req, err := http.NewRequest(string(r.verb), url, reader)
 	if err != nil {
 		return nil, err
 	}

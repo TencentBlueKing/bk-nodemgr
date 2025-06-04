@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-const defaultBufferSize = 32 * 1024 // 32KB 通常更优
+const defaultBufferSize = 32 * 1024 // 32KB usually has better performance.
 
 // NewLocalDir creates a new LocalDir.
 func NewLocalDir(fullPath string, logger logger.Logger) (*LocalDir, error) {
@@ -95,6 +95,7 @@ func (group *LocalDir) loadContent() error {
 }
 
 // LocalDir local file group.
+// nolint: revive
 type LocalDir struct {
 	name     string
 	fileMap  map[string]*LocalFile
@@ -109,17 +110,17 @@ func (group *LocalDir) Name() string {
 }
 
 // SubGroups the sub groups of file group.
-func (group *LocalDir) SubGroups() []iface.FileGroup {
+func (group *LocalDir) SubGroups(_ context.Context) ([]iface.FileGroup, error) {
 	subGroups := make([]iface.FileGroup, 0, len(group.subDirs))
 	for _, subDir := range group.subDirs {
 		subGroups = append(subGroups, subDir)
 	}
 
-	return subGroups
+	return subGroups, nil
 }
 
 // GetFile the func will get a file from the file group.
-func (group *LocalDir) GetFile(name string) (iface.File, error) {
+func (group *LocalDir) GetFile(_ context.Context, name string) (iface.File, error) {
 	file, ok := group.fileMap[name]
 	if !ok {
 		return nil, fmt.Errorf("file not found, name(%s)", name)
@@ -129,18 +130,17 @@ func (group *LocalDir) GetFile(name string) (iface.File, error) {
 }
 
 // AllFiles the files of file group.
-func (group *LocalDir) AllFiles() []iface.File {
+func (group *LocalDir) AllFiles(_ context.Context) ([]iface.File, error) {
 	files := make([]iface.File, 0, len(group.fileMap))
 	for _, file := range group.fileMap {
 		files = append(files, file)
 	}
 
-	return files
+	return files, nil
 }
 
 // Store the func will store a file into the file group.
 func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io.ReadCloser, overwrite bool) error {
-
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -156,7 +156,7 @@ func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io
 	}
 
 	if !exists {
-		err = wFs().MkdirAll(group.fullPath, 0755)
+		err = wFs().MkdirAll(group.fullPath, 0755) // nolint:mnd
 		if err != nil {
 			return fmt.Errorf("create dir failed, err: %w", err)
 		}
@@ -186,10 +186,14 @@ func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io
 			return fmt.Errorf("lock file failed, err: %w", err)
 		}
 
-		defer flock.Unlock()
+		defer func() {
+			_ = flock.Unlock()
+		}()
 	}
 
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	// create file
 	lfile, err := wFs().Create(fileFullPath)
@@ -197,7 +201,9 @@ func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io
 		return fmt.Errorf("create file failed: %w", err)
 	}
 
-	defer lfile.Close()
+	defer func() {
+		_ = lfile.Close()
+	}()
 
 	if err := group.writeDataToFile(ctx, lfile, reader); err != nil {
 		return fmt.Errorf("write file content failed: %w", err)
@@ -217,7 +223,9 @@ func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io
 func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, reader io.ReadCloser) error {
 	// use bufio.NewWriter to improve performance.
 	writer := bufio.NewWriter(lfile)
-	defer writer.Flush()
+	defer func() {
+		_ = writer.Flush()
+	}()
 
 	// read file content.
 	buf := make([]byte, defaultBufferSize)
@@ -232,10 +240,13 @@ func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, re
 				if err == io.EOF {
 					if n > 0 {
 						_, err = writer.Write(buf[:n])
+
 						return fmt.Errorf("write final buffer failed: %w", err)
 					}
+
 					return nil
 				}
+
 				return fmt.Errorf("read content failed: %w", err)
 			}
 
