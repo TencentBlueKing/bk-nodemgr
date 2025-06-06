@@ -20,50 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// UploadOriginAgent upload origin agent.
-func (h *handler) UploadOriginAgent(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upload agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	req := new(protoFile.UploadOriginAgentReq)
-	fileHeader, err := ctx.ParseFileForm(req)
-	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload agent, failed to parse file form: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	file, err := fileHeader.Open()
-	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload agent, failed to open file. err: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	info, err := h.manager.UploadOriginAgent(sCtx, types.Generation(req.GetGeneration()), file)
-	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload agent: %v", err)
-
-		return nil, errf.ErrWrap(errf.Aborted, err)
-	}
-
-	h.logger.InfoCtxf(sCtx, "uploaded origin agent, generation: %d", req.GetGeneration)
-
-	resp := &protoFile.UploadOriginAgentResp{
-		Name: info.Name,
-		Size: info.Size,
-		Md5:  info.MD5,
-	}
-
-	return resp, nil
-}
-
 // Agent upload agent package.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).

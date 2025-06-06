@@ -20,6 +20,22 @@ message UploadAgentResp {
   string md5 = 3;
 }
 
+// UploadProxyReq is the request for upload proxy pkg.
+message UploadProxyReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  int64 generation = 3;
+  string version = 4;
+  bool overwrite = 5;
+}
+
+// UploadProxyResp is the response for upload proxy pkg.
+message UploadProxyResp {
+  string name = 1;
+  int64 size = 2;
+  string md5 = 3;
+}
+
 // UploadOriginAgentReq is the request for upload origin agent pkg.
 message UploadOriginAgentReq {
   int64 generation = 1;
@@ -33,17 +49,14 @@ message UploadOriginAgentResp {
   string md5 = 3;
 }
 
-// UploadProxyReq is the request for upload proxy pkg.
-message UploadProxyReq {
-  string os_type = 1;
-  string cpu_arch = 2;
-  int64 generation = 3;
-  string version = 4;
-  bool overwrite = 5;
+// UploadOriginServerReq is the request for upload origin server pkg.
+message UploadOriginServerReq {
+  int64 generation = 1;
+  bool overwrite = 2;
 }
 
-// UploadProxyResp is the response for upload proxy pkg.
-message UploadProxyResp {
+// UploadOriginServerResp is the response for upload origin server pkg.
+message UploadOriginServerResp {
   string name = 1;
   int64 size = 2;
   string md5 = 3;

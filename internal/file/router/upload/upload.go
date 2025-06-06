@@ -44,6 +44,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/origin/agent", rest.RestHandlerFunc(h.UploadOriginAgent))
+	h.rg.POST("/origin/server", rest.RestHandlerFunc(h.UploadOriginServer))
 	h.rg.POST("/agent", rest.RestHandlerFunc(h.Agent))
 	h.rg.POST("/proxy", rest.RestHandlerFunc(h.Proxy))
 }

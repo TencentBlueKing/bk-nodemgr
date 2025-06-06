@@ -28,8 +28,11 @@ type IManager interface {
 	// Start starts the manager
 	Start(ctx context.Context) error
 
-	// UploadOriginAgent uploads the agent.
+	// UploadOriginAgent uploads the origin agent.
 	UploadOriginAgent(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error)
+
+	// UploadOriginServer uploads the origin server.
+	UploadOriginServer(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error)
 }
 
 // New returns a new file manager.

@@ -25,7 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// UploadOriginAgent uploads the agent.
+// UploadOriginAgent uploads the origin agent.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginAgent(
@@ -135,7 +135,7 @@ func (m *Manager) UploadOriginAgent(
 }
 
 // checkGen2OriginAgentPkg check gen2 origin agent package.
-func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginPkgDetail, error) {
+func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginAgentPkgDetail, error) {
 	gzr, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader. err: %w", err)
@@ -162,7 +162,7 @@ func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginPkgDetail, error) {
 				return nil, fmt.Errorf("failed to read version file. err: %w", err)
 			}
 
-			return &OriginPkgDetail{
+			return &OriginAgentPkgDetail{
 				Version: strings.Trim(string(content), "\n\r\t "),
 			}, nil
 		}
@@ -171,7 +171,7 @@ func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginPkgDetail, error) {
 	return nil, errors.New("version file not found")
 }
 
-// OriginPkgDetail origin agent pkg detail.
-type OriginPkgDetail struct {
+// OriginAgentPkgDetail origin agent pkg detail.
+type OriginAgentPkgDetail struct {
 	Version string
 }
