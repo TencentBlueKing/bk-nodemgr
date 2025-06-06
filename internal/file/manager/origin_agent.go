@@ -27,6 +27,7 @@ import (
 
 // UploadOriginAgent uploads the agent.
 // nolint:funlen,fnsize
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginAgent(
 	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error) {
 

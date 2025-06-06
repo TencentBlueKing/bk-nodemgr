@@ -22,6 +22,7 @@ import (
 
 // Proxy upload proxy package.
 // nolint:funlen,fnsize
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (h *handler) Proxy(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

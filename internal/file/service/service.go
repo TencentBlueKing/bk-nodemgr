@@ -73,6 +73,7 @@ type Service struct {
 
 // NewService creates a new file service.
 // nolint:funlen,fnsize
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.FileService) (*Service, error) {
 	svc := &Service{
 		conf: conf,

@@ -66,6 +66,7 @@ func (h *handler) UploadOriginAgent(ctx *rest.Context) (interface{}, error) {
 
 // Agent upload agent package.
 // nolint:funlen,fnsize
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (h *handler) Agent(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
