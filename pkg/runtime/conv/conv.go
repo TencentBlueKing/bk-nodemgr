@@ -80,6 +80,8 @@ func convCustomTypeToInt64(value interface{}) (int64, error) {
 }
 
 // convNormalTypeToInt64 convert base type to int64.
+// nolint: gocognit,gocyclo,cyclop
+// NOCC: golint/gocyclo,cyclop (this function should be complex).
 func convNormalTypeToInt64(value interface{}) (int64, bool, error) {
 	// this is the most common case, but it can't handle custom types.
 	switch v := value.(type) {
