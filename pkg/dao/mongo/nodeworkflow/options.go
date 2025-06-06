@@ -23,6 +23,11 @@ func WithWorkflowID(workflowIDs ...string) OptFn {
 	return base.WithValues(FieldKeyWorkflowID, workflowIDs...)
 }
 
+// WithoutWorkflowID filters by not contains workflow ID.
+func WithoutWorkflowID(workflowIDs ...string) OptFn {
+	return base.WithoutValues(FieldKeyWorkflowID, workflowIDs...)
+}
+
 // WithStatus filters by status.
 func WithStatus(statuses ...types.NodeWorkflowStatus) OptFn {
 	return base.WithValues(FieldKeyStatus, types.NodeWorkflowStatusListToStringList(statuses)...)

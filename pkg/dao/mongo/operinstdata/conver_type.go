@@ -125,6 +125,7 @@ func ConvOpInstanceDataToDB(data *operation.InstanceData) (*OperInstData, error)
 		ActionNames:       data.Metadata.ActionNames,
 		OperationID:       data.Metadata.OperationID,
 		OperDefName:       data.Metadata.OperationDefName,
+		Index:             data.Metadata.Index,
 		ParentOperationID: data.Metadata.ParentOperationID,
 		Timeout:           data.Metadata.Timeout,
 		Lifecycle:         ConvOperaLifeCycleToDB(data.Lifecycle),
@@ -191,9 +192,9 @@ func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.Inst
 				OperationID:         opear.OperationID,
 				OperationDefName:    opear.OperDefName,
 				ActionNames:         opear.ActionNames,
-
-				ParentOperationID: opear.ParentOperationID,
-				Timeout:           opear.Timeout,
+				Index:               opear.Index,
+				ParentOperationID:   opear.ParentOperationID,
+				Timeout:             opear.Timeout,
 			},
 			Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 		},
@@ -222,9 +223,9 @@ func ConvAOpeInstBreiefDataFromDB(opear *OperInstData) (*operation.InstanceBrief
 			OperationID:         opear.OperationID,
 			OperationDefName:    opear.OperDefName,
 			ActionNames:         opear.ActionNames,
-
-			ParentOperationID: opear.ParentOperationID,
-			Timeout:           opear.Timeout,
+			Index:               opear.Index,
+			ParentOperationID:   opear.ParentOperationID,
+			Timeout:             opear.Timeout,
 		},
 		Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 	}

@@ -25,6 +25,7 @@ type InstanceMetadata struct {
 	OperationID         string
 	ActionNames         []string
 	ParentOperationID   string
+	Index               int
 	Timeout             time.Duration
 	InitContent         map[string]any
 }
@@ -53,6 +54,15 @@ type Lifecycle struct {
 	StartedAt time.Time
 	EndedAt   time.Time
 	StoppedAt time.Time
+}
+
+// InstanceStatus defines the status of operation instance.
+type InstanceStatus struct {
+	TriggerID           string
+	OperationInstanceID string
+	State               State
+	Index               int
+	OperationID         string
 }
 
 // Start starts the action instance lifecycle.
@@ -135,4 +145,23 @@ func StringListToStateList(states []string) []State {
 	}
 
 	return data
+}
+
+// GetAllStates returns all states.
+func GetAllStates() []State {
+	return []State{
+		StateInit,
+		StateLaunched,
+		StateRunning,
+		StateSuccess,
+		StateFailed,
+		StateTimeout,
+		StateTerminated,
+	}
+}
+
+// ListOperationInstanceCondition defines the condition of list operation instance.
+type ListOperationInstanceCondition struct {
+	TriggerIDs []string
+	States     []State
 }

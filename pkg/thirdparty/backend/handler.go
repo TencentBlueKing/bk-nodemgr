@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // Handler is interface for nodeman backend handler.
@@ -24,6 +25,7 @@ type Handler interface {
 	IHandlerNetworkArea
 	IHandlerNetworkUnit
 	IHandlerNodeAgent
+	IHandlerNodeWorkflow
 
 	// ListBusiness list business within specified tenant in context.
 	// @param ctx context, contains tenant-id.
@@ -171,6 +173,72 @@ type IHandlerNodeAgent interface {
 	// @param param the install param.
 	// @return the installing workflow-id and error.
 	InstallAgent(ctx context.Context, param *types.NodeAgentInstallParam) (string, error)
+}
+
+// IHandlerNodeWorkflow defines the node workflow handler.
+type IHandlerNodeWorkflow interface {
+	// ListNodeWorkflow list node workflow within specified tenant in context.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the node-workflow list with page and the total count with filter.
+	ListNodeWorkflow(ctx context.Context, page types.Page, condition *types.NodeWorkflowCondition) (
+		[]*types.NodeWorkflow, int64, error)
+
+	// CountNodeWorkflow count node workflow by conditions.
+	//	@param ctx context, contains tenant-id.
+	//	@param condition the filter conditions.
+	//	@return the node-workflow count with filter.
+	CountNodeWorkflow(ctx context.Context, condition *types.NodeWorkflowCondition) (int64, error)
+
+	// DistinctNodeWorkflow distinct node workflow by conditions.
+	// @param ctx context, contains tenant-id.
+	// @param request the node workflow distinct request.
+	// @param conditions the filter conditions.
+	// @return the node-workflow distinct result.
+	DistinctNodeWorkflow(ctx context.Context, request types.NodeWorkflowDistinctRequest,
+		condition *types.NodeWorkflowCondition) (*types.NodeWorkflowDistinctResult, error)
+
+	// ListOperation list network area operation.
+	// @param ctx context, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param workflowID the workflow id.
+	// @return the operation list with page and the total count with filter.
+	ListNodeWorkflowOperation(ctx context.Context, page types.Page, workflowID string) (
+		[]*operation.Operation, int64, error)
+
+	// CountOperation count network area operation.
+	// @param ctx context, contains tenant-id.
+	// @param workflowID the workflow id.
+	// @return the operation count with filter.
+	CountNodeWorkflowOperation(ctx context.Context, workflowID string) (int64, error)
+
+	// ListOperationInstance list network area operation instance.
+	// @param ctx context, contains tenant-id.
+	// @param operationID the operation id.
+	// @return the operation instance list with page and the total count with filter.
+	ListNodeWorkflowOperationInstance(ctx context.Context, operationID string) (
+		[]*operation.InstanceBriefData, int64, error)
+
+	// CountOperationInstance count network area operation instance.
+	// @param ctx context, contains tenant-id.
+	// @param operationID the operation id.
+	// @return the operation instance count with filter.
+	CountNodeWorkflowOperationInstance(ctx context.Context, operationID string) (int64, error)
+
+	// DistinctNodeWorkflow distinct node workflow by conditions.
+	// @param ctx context, contains tenant-id.
+	// @param request the node workflow distinct request.
+	// @param condition the filter conditions.
+	// @return the node-workflow distinct result.
+	GetNodeWorkflowOperationInstanceLog(ctx context.Context, instanceID string) (*operation.InstanceData, error)
+
+	// ListOperationInstanceStatus list network area operation instance status.
+	// @param ctx context, contains tenant-id.
+	// @param triggerID the trigger id.
+	// @return the operation instance status list.
+	ListNodeWorkflowOperationInstanceStatus(ctx context.Context,
+		condition *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
 }
 
 type handler struct {
@@ -436,6 +504,7 @@ func (h *handler) CreateNetworkUnit(
 	return resp.GetData().GetBkNetworkunitId(), nil
 }
 
+// UpdateNetworkUnit updates an existing networkunit.
 func (h *handler) UpdateNetworkUnit(
 	ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error {
 
@@ -643,4 +712,212 @@ func (h *handler) GetConstant(ctx context.Context, fields types.TopoConstantFiel
 	}
 
 	return resp.ConvertConstantToTypes(), nil
+}
+
+// ListNodeWorkflow list node workflow within specified tenant in context.
+func (h *handler) ListNodeWorkflow(ctx context.Context, page types.Page, condition *types.NodeWorkflowCondition) (
+	[]*types.NodeWorkflow, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listNodeWorkflow(ctx, tenantID, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result, num := resp.ConvertNodeWorkflowsToTypes()
+
+	return result, num, nil
+}
+
+// CountHost count host within specified tenant in context.
+func (h *handler) CountNodeWorkflow(ctx context.Context, condition *types.NodeWorkflowCondition) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listNodeWorkflow(ctx, tenantID, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// DistinctNodeWorkflow distinct node workflow by conditions.
+func (h *handler) DistinctNodeWorkflow(ctx context.Context, _ types.NodeWorkflowDistinctRequest,
+	conditions *types.NodeWorkflowCondition) (*types.NodeWorkflowDistinctResult, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &protoBackend.NodeWorkflowDistinctReq{}
+	if err := req.ConvertConditionsFromTypes(conditions); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctNodeWorkflow(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertWorkflowDistinctToTypes(), nil
+}
+
+// ListOperation list workflow  operation.
+func (h *handler) ListNodeWorkflowOperation(ctx context.Context, page types.Page, workflowID string) (
+	[]*operation.Operation, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationListReq{
+		Page:       convertPage(page),
+		WorkflowId: workflowID,
+		OnlyCount:  false,
+	}
+
+	resp, err := h.cli.listNodeWorkflowOperation(ctx, tenantID, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	operations, total := resp.ConvertWorkflowOperationToTypes()
+
+	return operations, total, nil
+}
+
+// CountOperation count workflow  operation.
+func (h *handler) CountNodeWorkflowOperation(ctx context.Context, workflowID string) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationListReq{
+		OnlyCount:  true,
+		WorkflowId: workflowID,
+	}
+	resp, err := h.cli.listNodeWorkflowOperation(ctx, tenantID, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotalCount(), nil
+}
+
+// ListOperationInstance list workflow operation instance.
+func (h *handler) ListNodeWorkflowOperationInstance(
+	ctx context.Context, operationID string) ([]*operation.InstanceBriefData, int64, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
+		OnlyCount:   false,
+		OperationId: operationID,
+	}
+
+	resp, err := h.cli.listNodeWorkflowOperationInstance(ctx, tenantID, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	operations, total := resp.ConvertWorkflowOperationInstanceToTypes()
+
+	return operations, total, nil
+}
+
+// CountOperationInstance count workflow operation instance.
+func (h *handler) CountNodeWorkflowOperationInstance(ctx context.Context, operationID string) (int64, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
+		OnlyCount:   true,
+		OperationId: operationID,
+	}
+
+	resp, err := h.cli.listNodeWorkflowOperationInstance(ctx, tenantID, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// GetOperationInstanceLog get workflow operation instance log.
+func (h *handler) GetNodeWorkflowOperationInstanceLog(ctx context.Context, instanceID string) (
+	*operation.InstanceData, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationInstanceLogGetReq{
+		OperInstId: instanceID,
+	}
+
+	resp, err := h.cli.getOperationInstanceLog(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	operations := resp.ConvertWorkflowOperationInstanceLogToTypes()
+
+	return operations, nil
+}
+
+// ListNodeWorkflowOpInstanceStatus list workflow operation instance status.
+func (h *handler) ListNodeWorkflowOperationInstanceStatus(ctx context.Context,
+	conditions *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationInstanceListStatusReq{
+		Page: &protoBackend.Page{},
+	}
+
+	if err := req.ConvertConditionsFromTypes(conditions); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.listNodeWorkflowOpInstanceStatus(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	instanceStatus := resp.ConvertWorkflowOperationInstanceStatusToTypes()
+
+	return instanceStatus, nil
 }

@@ -258,10 +258,12 @@ func (ctl *controller) ListEmptyOperation(ctx context.Context, page types.Page) 
 func (ctl *controller) ListOperationInstances(
 	ctx context.Context, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
 
-	instanceBriefData, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefData(
-		ctx, page,
-		ctl.trig.TriggerID,
-		states...)
+	condition := operation.ListOperationInstanceCondition{
+		TriggerIDs: []string{ctl.trig.TriggerID},
+		States:     states,
+	}
+
+	instanceBriefData, _, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefData(ctx, page, condition)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +320,7 @@ func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationI
 				OperationDefName:    ctl.oper.Definition.Name(),
 				OperationID:         ctl.oper.OperationID,
 				ActionNames:         actionNames,
+				Index:               len(ctl.oper.InstanceIDs),
 				ParentOperationID:   ctl.oper.Param.ParentOperationID,
 				Timeout:             ctl.oper.Param.Timeout,
 				InitContent:         ctl.oper.Param.InitContent,

@@ -10,7 +10,13 @@
 
 package v3
 
-import "errors"
+import (
+	"errors"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+)
 
 // Validate check body.
 func (x *NodeWorkflowListReq) Validate() error {
@@ -19,6 +25,11 @@ func (x *NodeWorkflowListReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeWorkflowListReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
 }
 
 // Validate check body.
@@ -30,8 +41,84 @@ func (x *NodeWorkflowStatisticsReq) Validate() error {
 	return nil
 }
 
+// ConvertNodeWorkflowsFromTypes convert node workflows from types.
+func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflows []*types.NodeWorkflow) {
+	items := make([]*NodeWorkflowInfo, 0, len(workflows))
+	for _, workflow := range workflows {
+		item := newEmptyNodeWorkflow()
+
+		*item.WorkflowId = workflow.WorkflowID
+		*item.TriggerId = workflow.TriggerID
+		item.BkBizId = workflow.BizIDs
+		*item.Type = string(workflow.Type)
+		*item.Status = string(workflow.Status)
+		*item.Operator = workflow.Operator
+		*item.OperateTime = workflow.OperateTime.UnixMilli()
+
+		items = append(items, item)
+	}
+
+	x.Data = &NodeWorkflowListResp_Data{
+		Total: num,
+		Items: items,
+	}
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWorkflowCondition) error {
+	exactCond, fuzzyCond, timeRange, err := convertNodeWorkConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+	x.OperateTimeRange = timeRange
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
+	return convertNodeWorkflowConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
 // AutoConvert auto convert.
 func (x *NodeWorkflowStatisticsReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() *types.NodeWorkflowCondition {
+	return convertNodeWorkflowConditionsToTypes(
+		&NodeWorkflowExactConditions{
+			WorkflowId: x.GetWorkflowId(),
+		}, nil, nil)
+}
+
+func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*types.NodeWorkflowOperationStatusList) {
+
+	items := make([]*NodeWorkflowStatisticsResp_StatisticsInfo, len(result))
+
+	for i, item := range result {
+		items[i] = newEmptyNodeWorkflowOperationStatus()
+		*items[i].WorkflowId = item.WorkflowID
+		*items[i].TotalCount = int64(item.TotalCount)
+		*items[i].InitCount = int64(item.InitCount)
+		*items[i].LaunchedCount = int64(item.LaunchedCount)
+		*items[i].RunningCount = int64(item.RunningCount)
+		*items[i].SuccessCount = int64(item.SuccessCount)
+		*items[i].FailedCount = int64(item.FailedCount)
+		*items[i].TimeoutCount = int64(item.TimeoutCount)
+		*items[i].TerminatedCount = int64(item.TerminatedCount)
+
+	}
+
+	x.Data = &NodeWorkflowStatisticsResp_Data{
+		Items: items,
+	}
 }
 
 // Validate check body.
@@ -43,26 +130,113 @@ func (x *NodeWorkflowDistinctReq) Validate() error {
 func (x *NodeWorkflowDistinctReq) AutoConvert() {
 }
 
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
+	return convertNodeWorkflowConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeWorkflowDistinctResp) ConvertResultFromTypes(result *types.NodeWorkflowDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &NodeWorkflowDistinctResp_Data{
+		Type:     formatRespSlice(types.NodeWorkflowTypeListToStringList(result.Type)),
+		BkBizId:  formatRespSlice(result.BizID),
+		Operator: formatRespSlice(result.Operator),
+		Status:   formatRespSlice(types.NodeWorkflowStatusListToStringList(result.Status)),
+	}
+}
+
 // Validate check body.
 func (x *NodeWorkflowOperationListReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
 	return validatePage(x.GetPage())
+}
+
+// ConvertConditionsToComm.
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToComm() string {
+	return x.GetWorkflowId()
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
 }
 
 // AutoConvert auto convert.
 func (x *NodeWorkflowOperationListReq) AutoConvert() {
 }
 
+// ConvertResultFromTypes convert workflow id to types.
+func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*operation.Operation) {
+	items := make([]*NodeWorkflowOperation, 0, total)
+	for _, op := range result {
+		item := &NodeWorkflowOperation{
+			OperationId: op.OperationID,
+			Definition: &OperationDefinition{
+				OpertionName: op.Definition.Name(),
+				ActionNames:  op.Definition.ActionDefNames(),
+			},
+			InstanceIds: op.InstanceIDs,
+			Param: &OperationParam{
+				TimeoutSecond: int64(op.Param.Timeout),
+			},
+		}
+		items = append(items, item)
+	}
+
+	x.Data = &NodeWorkflowOperationListResp_Data{
+		TotalCount: total,
+		Operations: items,
+	}
+}
+
 // Validate check body.
 func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
 	if x.GetOperationId() == "" {
-		return errors.New("operation_id is required and cannot be empty")
+		return errors.New("operation_id is required")
 	}
-
 	return nil
+}
+
+// ConvertConditionsToComm ...
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToComm() string {
+	return x.GetOperationId()
 }
 
 // AutoConvert auto convert.
 func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert node workflows from types.
+func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int64,
+	result []*operation.InstanceBriefData) {
+
+	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
+	for _, opinstance := range result {
+		oper := &NodeWorflowOperationInstanceData{
+			OperInstId:        opinstance.Metadata.OperationInstanceID,
+			OperationId:       opinstance.Metadata.OperationID,
+			OperInstStatus:    string(opinstance.Lifecycle.State),
+			OperationDefName:  opinstance.Metadata.OperationDefName,
+			ParentOperationId: opinstance.Metadata.ParentOperationID,
+			ActionNames:       opinstance.Metadata.ActionNames,
+		}
+
+		items = append(items, oper)
+	}
+
+	x.Data = &NodeWorkflowOperationInstanceListResp_Data{
+		OperInstData: items,
+		Total:        total,
+	}
 }
 
 // Validate check body.
@@ -76,4 +250,119 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeWorkflowOperationInstanceLogGetReq) AutoConvert() {
+
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result *operation.InstanceData) {
+	if result == nil {
+		return
+	}
+
+	operInstLogs := make(map[string]*ActionMessage)
+	for actionID, v := range result.ActionInstanceDataMap {
+		actionMsg := &ActionMessage{
+			Logs: make([]*ActionMessage_Message, 0, len(v.Messages)),
+		}
+		for _, msg := range v.Messages {
+			actionMsg.Logs = append(actionMsg.Logs, &ActionMessage_Message{
+				Time: msg.Time.Unix(),
+				Text: msg.Text,
+			})
+		}
+		operInstLogs[actionID] = actionMsg
+	}
+
+	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
+		OperInstLogs: operInstLogs,
+	}
+}
+
+func convertNodeWorkflowConditionsToTypes(
+	exactCond *NodeWorkflowExactConditions, _ *NodeWorkflowFuzzyConditions,
+	timeRange *TimeRange) *types.NodeWorkflowCondition {
+
+	condition := &types.NodeWorkflowCondition{}
+
+	if timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.NodeWorkflowExactFields{
+			BizID:      exactCond.GetBkBizId(),
+			Type:       types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
+			Status:     types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID: exactCond.GetWorkflowId(),
+			Operator:   exactCond.GetOperator(),
+		}
+	}
+
+	return condition
+}
+
+func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) (
+	*NodeWorkflowExactConditions, *NodeWorkflowFuzzyConditions, *TimeRange, error) {
+
+	if condition == nil {
+		return nil, nil, nil, nil
+	}
+
+	var timeRange *TimeRange
+	var exactCond *NodeWorkflowExactConditions
+	var fuzzyCond *NodeWorkflowFuzzyConditions
+
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
+
+	if condition.ExactInclude != nil {
+		exactCond = &NodeWorkflowExactConditions{
+			BkBizId:    condition.ExactInclude.BizID,
+			WorkflowId: condition.ExactInclude.WorkflowID,
+			Type:       types.NodeWorkflowTypeListToStringList(condition.ExactInclude.Type),
+			Status:     types.NodeWorkflowStatusListToStringList(condition.ExactInclude.Status),
+			Operator:   condition.ExactInclude.Operator,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, timeRange, nil
+}
+
+// newEmptyNodeWorkflow creates a new empty NodeWorkflowInfo.
+func newEmptyNodeWorkflow() *NodeWorkflowInfo {
+	return &NodeWorkflowInfo{
+		WorkflowId:  new(string),
+		TriggerId:   new(string),
+		Type:        new(string),
+		BkBizId:     make([]int64, 0),
+		Operator:    new(string),
+		OperateTime: new(int64),
+		Status:      new(string),
+	}
+}
+
+func newEmptyNodeWorkflowOperationStatus() *NodeWorkflowStatisticsResp_StatisticsInfo {
+	return &NodeWorkflowStatisticsResp_StatisticsInfo{
+		WorkflowId:      new(string),
+		TotalCount:      new(int64),
+		InitCount:       new(int64),
+		LaunchedCount:   new(int64),
+		RunningCount:    new(int64),
+		SuccessCount:    new(int64),
+		FailedCount:     new(int64),
+		TimeoutCount:    new(int64),
+		TerminatedCount: new(int64),
+	}
 }

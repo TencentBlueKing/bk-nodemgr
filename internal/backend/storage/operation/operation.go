@@ -105,7 +105,7 @@ func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Opera
 }
 
 // ListOperation lists operation by triggerid.
-func (s *Storage) ListOperation(ctx context.Context, page types.Page, triggerID string) (
+func (s *Storage) ListOperation(ctx context.Context, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	if ctx == nil {
@@ -116,11 +116,11 @@ func (s *Storage) ListOperation(ctx context.Context, page types.Page, triggerID 
 		return nil, 0, err
 	}
 
-	if triggerID == "" {
+	if len(triggerID) == 0 {
 		return nil, 0, base.ErrEmptyTriggerID()
 	}
 
-	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID))
+	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
 }
 
 // ListEmptyOperation lists empty operation by triggerid.

@@ -21,8 +21,8 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	tableName := TableName(tenantID)
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
+	tableName := TableName()
 	d := &dao{
 		client:    client.Collection(tableName),
 		logger:    logger,

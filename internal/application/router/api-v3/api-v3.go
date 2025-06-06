@@ -13,6 +13,7 @@ package apiv3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/topo"
 	"github.com/gin-gonic/gin"
 )
@@ -35,4 +36,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg)
 
 	topo.Load(h.rg, capability)
+	node.Load(h.rg, capability)
 }

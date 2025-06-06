@@ -11,15 +11,14 @@
 package nodeworkflow
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
 // TableName node workflow table name.
-func TableName(tenantID string) string {
-	return fmt.Sprintf("node_workflow_%s", tenantID)
+func TableName() string {
+	return "node_workflow_%s"
 }
 
 // Data represents the table of node workflow.

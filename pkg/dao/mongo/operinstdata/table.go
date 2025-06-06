@@ -49,6 +49,7 @@ type OperInstData struct {
 	ActionInstDataMap map[string]*ActionInstData `json:"action_data" bson:"action_data"`
 	OperDefName       string                     `json:"oper_def_name" bson:"oper_def_name"`
 	OperationID       string                     `json:"operation_id" bson:"operation_id"`
+	Index             int                        `json:"index" bson:"index"`
 	ParentOperationID string                     `json:"parent_operation_id" bson:"parent_operation_id"`
 	Timeout           time.Duration              `json:"timeout" bson:"timeout"`
 	InitContent       string                     `json:"init_content" bson:"init_content"`

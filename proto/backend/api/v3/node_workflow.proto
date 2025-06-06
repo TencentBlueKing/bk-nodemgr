@@ -11,17 +11,18 @@ import "google/api/annotations.proto";
 // NodeWorkflowInfo describes the node workflow information.
 message NodeWorkflowInfo {
   optional string workflow_id = 1;
-  optional string type = 2;
-  repeated int64 bk_biz_id = 3;
-  optional string operator = 4;
-  optional int64 operate_time = 5;
-  optional string status = 6;
+  optional string trigger_id = 2;
+  optional string type = 3;
+  repeated int64 bk_biz_id = 4;
+  optional string operator = 5;
+  optional int64 operate_time = 6;
+  optional string status = 7;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
 // list request.
 message NodeWorkflowExactConditions {
-  repeated int64 workflow_id = 1;
+  repeated string workflow_id = 1;
   repeated string type = 2;
   repeated int64 bk_biz_id = 3;
   repeated string status = 4;
@@ -55,8 +56,46 @@ message NodeWorkflowListResp {
   Data data = 4;
 }
 
+
+// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow
+// list request.
+message NodeWorkflowInstanceStatusExactConditions {
+  repeated string trigger_id = 1;
+}
+
+// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of node workflow
+// list request.
+message NodeWorkflowInstanceStatusFuzzyConditions {}
+
+
+//NodeWorkflowOperationInstanceStatusListReq ...
+message NodeWorkflowOperationInstanceListStatusReq{
+  Page page = 1;
+  NodeWorkflowInstanceStatusExactConditions exact_include_conditions = 3;
+  NodeWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
+}
+
+
+message NodeWorkflowOperationInstanceStatus{
+    int64   index=1;
+    string  operation_id=2;
+    string  status = 3;
+    string trigger_id =4;
+}
+
+message NodeWorkflowOperationInstanceListStatusResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated NodeWorkflowOperationInstanceStatus items = 1;
+  }
+  Data data = 4;
+}
+
 // NodeWorkflowStatisticReq describes the node workflow statistic request.
-message NodeWorkflowStatisticsReq { repeated int64 workflow_id = 1; }
+message NodeWorkflowStatisticsReq { repeated string workflow_id = 1; }
 
 // NodeWorkflowStatisticResp describes the node workflow statistic response.
 message NodeWorkflowStatisticsResp {
@@ -65,7 +104,7 @@ message NodeWorkflowStatisticsResp {
   string request_id = 3;
 
   message StatisticsInfo {
-    int64 workflow_id = 1;
+    optional string workflow_id = 1;
     int64 total_count = 2;
     int64 success_count = 3;
     int64 failed_count = 4;
@@ -99,12 +138,24 @@ message NodeWorkflowDistinctResp {
   Data data = 4;
 }
 
-// NodeOperInstLisByWorkflowIDReq describes the node operation instance list by
-// workflow ID request.
-message NodeOperInstLisByWorkflowIDReq {
-  int64 workflow_id = 1;
-  Page page = 2;
+// OperationDefinition ...
+message OperationDefinition {
+  string opertion_name = 1;
+  repeated string action_names = 2;
 }
+
+message OperationParam {
+  int64 timeout_second = 1;      
+}
+
+message NodeWorkflowOperation {   
+  string operation_id = 1;        
+  OperationDefinition definition = 2;
+  repeated string instance_ids = 3;  
+  OperationParam param = 4;
+  
+}
+
 
 // NodeWorflowOperationInstance describes the node operation instance.
 message NodeWorflowOperationInstance {
@@ -115,7 +166,7 @@ message NodeWorflowOperationInstance {
   string bk_networkunit_id = 5;
   string bk_biz_id = 6;
   string node_version = 7;
-
+  
   message Action {
     string action_name = 1;
     string action_status = 2;
@@ -124,12 +175,24 @@ message NodeWorflowOperationInstance {
   repeated Action action = 8;
 }
 
-// NodeWorkflowOperationListReq describes the node operation list by workflow-id
+message NodeWorflowOperationInstanceData{
+    string operation_id = 1;
+    string oper_inst_id = 2;
+    string oper_inst_status = 3;
+    string operation_def_name = 4;
+    string parent_operation_id = 5;
+    repeated string action_names = 6;
+}
+
+
+// NodeWorkflowOperationListReq describes the node operation list 
 // request.
 message NodeWorkflowOperationListReq {
-  int64 workflow_id = 1;
+  bool only_count = 1;
   Page page = 2;
+  string workflow_id = 3;
 }
+
 
 // NodeWorkflowOperationListResp describes the node operation list by
 // workflow-id response.
@@ -137,14 +200,20 @@ message NodeWorkflowOperationListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-
-  message Data { repeated NodeWorflowOperationInstance items = 1; }
+  message Data {
+    repeated NodeWorkflowOperation operations = 1;
+    int64 total_count = 2;
+  }
   Data data = 4;
 }
 
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
 // list by operation-id request.
-message NodeWorkflowOperationInstanceListReq { string operation_id = 1; }
+message NodeWorkflowOperationInstanceListReq {  
+  bool only_count = 1;
+  string operation_id = 2;
+}
+
 
 // NodeWorkflowOperationInstanceListResp describes the node operation instance
 // list by operation-id response.
@@ -153,7 +222,10 @@ message NodeWorkflowOperationInstanceListResp {
   string message = 2;
   string request_id = 3;
 
-  message Data { repeated string oper_inst_id = 1; }
+  message Data { 
+    int64 total = 1;
+    repeated  NodeWorflowOperationInstanceData oper_inst_data = 2; 
+  }
   Data data = 4;
 }
 
@@ -169,13 +241,18 @@ message NodeWorkflowOperationInstanceLogGetResp {
   string request_id = 3;
 
   message Data {
-    message Message {
-      string time = 1;
-      string text = 2;
-    }
-    repeated Message logs = 1;
+    int64 total = 1;
+    map<string, ActionMessage> oper_inst_logs = 2;  
   }
   Data data = 4;
+}
+
+message ActionMessage {
+  message Message {
+    int64 time = 1;
+    string text = 2;
+  }
+  repeated Message logs = 1;
 }
 
 service NodeWorkflow {
@@ -210,6 +287,15 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationListResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+    // NodeWorkflowOperationInstanceStatusList provides node workflow operation list status.
+  rpc NodeWorkflowOperationInstanceStatusList(NodeWorkflowOperationInstanceListStatusReq)
+      returns (NodeWorkflowOperationInstanceListStatusResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/instance/status/list"
       body : "*"
     };
   }

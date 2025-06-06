@@ -173,7 +173,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationListReq describes the node operation list by workflow-id\nrequest.",
+            "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest.",
             "in": "body",
             "required": true,
             "schema": {
@@ -222,29 +222,15 @@
     }
   },
   "definitions": {
-    "DataMessage": {
+    "ActionMessageMessage": {
       "type": "object",
       "properties": {
         "time": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "text": {
           "type": "string"
-        }
-      }
-    },
-    "NodeWorflowOperationInstanceAction": {
-      "type": "object",
-      "properties": {
-        "action_name": {
-          "type": "string"
-        },
-        "action_status": {
-          "type": "string"
-        },
-        "cost_time_sec": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -252,10 +238,21 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        },
+        "total_count": {
           "type": "integer",
           "format": "int64"
         },
-        "total_count": {
+        "init_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "launched_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_count": {
           "type": "integer",
           "format": "int64"
         },
@@ -267,15 +264,11 @@
           "type": "integer",
           "format": "int64"
         },
-        "running_count": {
+        "timeout_count": {
           "type": "integer",
           "format": "int64"
         },
-        "pending_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "ignored_count": {
+        "terminated_count": {
           "type": "integer",
           "format": "int64"
         }
@@ -309,7 +302,19 @@
         }
       }
     },
-    "v3NodeWorflowOperationInstance": {
+    "v3ActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ActionMessageMessage"
+          }
+        }
+      }
+    },
+    "v3NodeWorflowOperationInstanceData": {
       "type": "object",
       "properties": {
         "operation_id": {
@@ -321,27 +326,19 @@
         "oper_inst_status": {
           "type": "string"
         },
-        "bk_host_innerip": {
+        "operation_def_name": {
           "type": "string"
         },
-        "bk_networkunit_id": {
+        "parent_operation_id": {
           "type": "string"
         },
-        "bk_biz_id": {
-          "type": "string"
-        },
-        "node_version": {
-          "type": "string"
-        },
-        "action": {
+        "action_names": {
           "type": "array",
           "items": {
-            "type": "object",
-            "$ref": "#/definitions/NodeWorflowOperationInstanceAction"
+            "type": "string"
           }
         }
-      },
-      "description": "NodeWorflowOperationInstance describes the node operation instance."
+      }
     },
     "v3NodeWorkflowDistinctReq": {
       "type": "object",
@@ -351,6 +348,9 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
         }
       },
       "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."
@@ -410,8 +410,7 @@
         "workflow_id": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           }
         },
         "type": {
@@ -450,8 +449,10 @@
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "integer",
-          "format": "int64"
+          "type": "string"
+        },
+        "trigger_id": {
+          "type": "string"
         },
         "type": {
           "type": "string"
@@ -467,7 +468,8 @@
           "type": "string"
         },
         "operate_time": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "status": {
           "type": "string"
@@ -531,9 +533,32 @@
         }
       }
     },
+    "v3NodeWorkflowOperation": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "definition": {
+          "$ref": "#/definitions/v3OperationDefinition"
+        },
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "param": {
+          "$ref": "#/definitions/v3OperationParam"
+        }
+      }
+    },
     "v3NodeWorkflowOperationInstanceListReq": {
       "type": "object",
       "properties": {
+        "only_count": {
+          "type": "boolean"
+        },
         "operation_id": {
           "type": "string"
         }
@@ -562,10 +587,15 @@
     "v3NodeWorkflowOperationInstanceListRespData": {
       "type": "object",
       "properties": {
-        "oper_inst_id": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "oper_inst_data": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorflowOperationInstanceData"
           }
         }
       }
@@ -601,11 +631,14 @@
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
       "properties": {
-        "logs": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/DataMessage"
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3ActionMessage"
           }
         }
       }
@@ -613,15 +646,17 @@
     "v3NodeWorkflowOperationListReq": {
       "type": "object",
       "properties": {
-        "workflow_id": {
-          "type": "integer",
-          "format": "int64"
+        "only_count": {
+          "type": "boolean"
         },
         "page": {
           "$ref": "#/definitions/v3Page"
+        },
+        "workflow_id": {
+          "type": "string"
         }
       },
-      "description": "NodeWorkflowOperationListReq describes the node operation list by workflow-id\nrequest."
+      "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest."
     },
     "v3NodeWorkflowOperationListResp": {
       "type": "object",
@@ -645,12 +680,16 @@
     "v3NodeWorkflowOperationListRespData": {
       "type": "object",
       "properties": {
-        "items": {
+        "operations": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeWorflowOperationInstance"
+            "$ref": "#/definitions/v3NodeWorkflowOperation"
           }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -660,8 +699,7 @@
         "workflow_id": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           }
         }
       },
@@ -695,6 +733,30 @@
             "type": "object",
             "$ref": "#/definitions/NodeWorkflowStatisticsRespStatisticsInfo"
           }
+        }
+      }
+    },
+    "v3OperationDefinition": {
+      "type": "object",
+      "properties": {
+        "opertion_name": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "OperationDefinition ..."
+    },
+    "v3OperationParam": {
+      "type": "object",
+      "properties": {
+        "timeout_second": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },

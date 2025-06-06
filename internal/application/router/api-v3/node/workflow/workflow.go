@@ -18,7 +18,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	// not max limit in workflow.
+	// return all data in one request.
+	maxWorkflowLimit  = 500
+	maxOperationLimit = 500
 )
 
 type handler struct {
@@ -62,14 +70,35 @@ func (h *handler) List(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
-
 	resp := new(protoApplication.NodeWorkflowListResp)
-	// TODO: convert data from types.
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountNodeWorkflow(
+			sCtx,
+			req.ConvertConditionsToTypes())
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to list workflow, failed to count workflow. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+		resp.ConvertNodeWorkflowsFromTypes(num, nil)
+		// only count, no data.
+		return resp.GetData(), nil
+	}
+
+	workflows, num, err := h.backendHandler.ListNodeWorkflow(sCtx,
+		req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
+
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list workflow, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp.ConvertNodeWorkflowsFromTypes(num, workflows)
 
 	return resp.GetData(), nil
 }
 
+// TODO：如果数据量过大可能要分页或者拆协程查询
 // Statistics workflow statistics.
 func (h *handler) Statistics(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
@@ -84,10 +113,43 @@ func (h *handler) Statistics(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
+	workflows, _, err := h.backendHandler.ListNodeWorkflow(
+		sCtx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to statistics workflow, failed to list workflow. err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	instanceStatus, err := h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
+		sCtx, convertWorkflowToTriggerID(workflows))
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list workflow instance status, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	workflowStatusMap := make(map[string]map[string]*types.NodeWorkflowOperationStatus)
+	for _, instatus := range instanceStatus {
+		innerMap, exists := workflowStatusMap[instatus.TriggerID]
+		if !exists {
+			innerMap = make(map[string]*types.NodeWorkflowOperationStatus)
+			workflowStatusMap[instatus.TriggerID] = innerMap
+		}
+
+		current, exists := innerMap[instatus.OperationID]
+		if !exists || current.Index < instatus.Index {
+			innerMap[instatus.OperationID] = &types.NodeWorkflowOperationStatus{
+				OperationID: instatus.OperationID,
+				Index:       instatus.Index,
+				TriggerID:   instatus.TriggerID,
+				State:       types.OperationState(instatus.State),
+			}
+		}
+	}
+
+	result := calculateStats(workflows, workflowStatusMap, req.GetWorkflowId())
 
 	resp := new(protoApplication.NodeWorkflowStatisticsResp)
-	// TODO: convert data from types.
+	resp.ConvertNodeWorkflowsFromTypes(result)
 
 	return resp.GetData(), nil
 }
@@ -106,10 +168,17 @@ func (h *handler) Distinct(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
-
+	result, err := h.backendHandler.DistinctNodeWorkflow(
+		sCtx,
+		types.NewNodeWorkflowDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
 	resp := new(protoApplication.NodeWorkflowDistinctResp)
-	// TODO: convert data from types.
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to distinct workflow, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }
@@ -128,10 +197,35 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
+	if req.Validate() != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list operation, failed to validate request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, req.Validate())
+	}
 
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountNodeWorkflowOperation(
+			sCtx, req.ConvertConditionsToComm())
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to list operation, failed to count operation. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+		resp := new(protoApplication.NodeWorkflowOperationListResp)
+
+		resp.ConvertResultFromTypes(num, nil)
+		// only count, no data.
+		return resp.GetData(), nil
+	}
+
+	result, num, err := h.backendHandler.ListNodeWorkflowOperation(
+		sCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToComm())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list operation, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
 	resp := new(protoApplication.NodeWorkflowOperationListResp)
-	// TODO: convert data from types.
+
+	resp.ConvertResultFromTypes(num, result)
 
 	return resp.GetData(), nil
 }
@@ -150,10 +244,33 @@ func (h *handler) ListOperationInstance(ctx *rest.Context) (interface{}, error) 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
+	if req.Validate() != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list operation instance, failed to validate request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, req.Validate())
+	}
 
 	resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
-	// TODO: convert data from types.
+
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
+			sCtx, req.ConvertConditionsToComm())
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to list operation instance, failed to count operation instance. err: %v", err)
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+		resp.ConvertResultFromTypes(num, nil)
+		// only count, no data.
+		return resp.GetData(), nil
+	}
+
+	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
+		sCtx, req.ConvertConditionsToComm())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list operation instance, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp.ConvertResultFromTypes(num, instances)
 
 	return resp.GetData(), nil
 }
@@ -172,10 +289,77 @@ func (h *handler) GetOperationInstanceLog(ctx *rest.Context) (interface{}, error
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
+	logs, err := h.backendHandler.GetNodeWorkflowOperationInstanceLog(
+		sCtx,
+		req.GetOperInstId())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to get operation instance log, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
 
 	resp := new(protoApplication.NodeWorkflowOperationInstanceLogGetResp)
-	// TODO: convert data from types.
+
+	resp.ConvertResultFromTypes(logs)
 
 	return resp.GetData(), nil
+}
+
+func convertWorkflowToTriggerID(workflows []*types.NodeWorkflow) *types.NodeWorkflowOperInstanceStatusCondition {
+	triggerIDs := make([]string, len(workflows))
+	for i, workflow := range workflows {
+		triggerIDs[i] = workflow.TriggerID
+	}
+
+	return &types.NodeWorkflowOperInstanceStatusCondition{
+		ExactInclude: &types.NodeWorkflowOperInstanceStatusExactFields{
+			TriggerID: triggerIDs,
+		},
+	}
+}
+
+func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[string]*types.NodeWorkflowOperationStatus,
+	reqIDs []string,
+) []*types.NodeWorkflowOperationStatusList {
+
+	idIndexMap := make(map[string]int)
+	for i, id := range reqIDs {
+		idIndexMap[id] = i
+	}
+
+	result := make([]*types.NodeWorkflowOperationStatusList, len(reqIDs))
+	for i, id := range reqIDs {
+		result[i] = &types.NodeWorkflowOperationStatusList{WorkflowID: id}
+	}
+
+	for _, workflow := range workflows {
+		idx, exists := idIndexMap[workflow.WorkflowID]
+		if !exists {
+			continue
+		}
+
+		if innerMap, exists := statusMap[workflow.TriggerID]; exists {
+			statusList := result[idx]
+			for _, inst := range innerMap {
+				statusList.TotalCount++
+				switch inst.State {
+				case types.StateInit:
+					statusList.InitCount++
+				case types.StateRunning:
+					statusList.RunningCount++
+				case types.StateLaunched:
+					statusList.LaunchedCount++
+				case types.StateSuccess:
+					statusList.SuccessCount++
+				case types.StateFailed:
+					statusList.FailedCount++
+				case types.StateTimeout:
+					statusList.TimeoutCount++
+				case types.StateTerminated:
+					statusList.TerminatedCount++
+				}
+			}
+		}
+	}
+
+	return result
 }

@@ -266,28 +266,24 @@ func (s *Storage) GetOperationInstanceBriefData(ctx context.Context, operationIn
 
 // ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
 func (s *Storage) ListOperationInstanceBriefData(
-	ctx context.Context, _ types.Page, triggerID string, states ...operation.State) (
-	[]*operation.InstanceBriefData, error) {
+	ctx context.Context, _ types.Page, condition operation.ListOperationInstanceCondition) (
+	[]*operation.InstanceBriefData, int64, error) {
 
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, 0, base.ErrNilContent()
 	}
 
-	if triggerID == "" {
-		return nil, errors.New("trigger id is empty")
-	}
-
-	operInstData, num, err := s.daoOperinstdata.ListWithoutActInst(ctx, types.Page{},
-		operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
+	operInstData, num, err := s.daoOperinstdata.ListWithoutActInst(ctx, types.UnlimitedPage(),
+		operinstdata.WithTriggerID(condition.TriggerIDs...), operinstdata.WithState(condition.States...))
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if num == 0 {
-		return nil, nil
+		return nil, 0, nil
 	}
 
-	return operInstData, nil
+	return operInstData, num, nil
 }
 
 // CountOperationInstance counts operation instance.

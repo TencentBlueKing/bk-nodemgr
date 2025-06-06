@@ -115,3 +115,51 @@ func (nws NodeWorkflowStatus) Validate() error {
 
 	return fmt.Errorf("invalid node workflow status, status(%s)", nws)
 }
+
+// NodeWorkflowOperationStatus ...
+type NodeWorkflowOperationStatus struct {
+	Index       int
+	OperationID string
+	TriggerID   string
+	State       OperationState
+}
+
+// OperationState ...
+type OperationState string
+
+// NodeWorkflowOperationStatusList.
+const (
+	// StateInit operation instance state init.
+	StateInit OperationState = "init"
+
+	// StateLaunched operation instance state launched.
+	StateLaunched OperationState = "launched"
+
+	// StateRunning operation instance state running.
+	StateRunning OperationState = "running"
+
+	// StateSuccess operation instance state success.
+	StateSuccess OperationState = "success"
+
+	// StateFailed operation instance state failed.
+	StateFailed OperationState = "failed"
+
+	// StateTimeout operation instance state timeout.
+	StateTimeout OperationState = "timeout"
+
+	// StateTerminated operation instance state terminated.
+	StateTerminated OperationState = "terminated"
+)
+
+// NodeWorkflowOperationStatusList represents the status of operations in a node workflow.
+type NodeWorkflowOperationStatusList struct {
+	WorkflowID      string
+	TotalCount      int
+	InitCount       int
+	LaunchedCount   int
+	RunningCount    int
+	SuccessCount    int
+	FailedCount     int
+	TimeoutCount    int
+	TerminatedCount int
+}

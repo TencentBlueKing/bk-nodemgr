@@ -574,7 +574,11 @@ func Test_storage_ListOperationInstanceBriefData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			got, err := s.ListOperationInstanceBriefData(ctx, types.Page{}, tt.triggerID, operation.StateRunning, operation.StateSuccess)
+			condition := operation.ListOperationInstanceCondition{
+				TriggerIDs: []string{tt.triggerID},
+				States:     []operation.State{operation.StateRunning, operation.StateSuccess},
+			}
+			got, err := s.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(), condition)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListOperationInstanceBriefData() error = %v, wantErr %v", err, tt.wantErr)
 				return
