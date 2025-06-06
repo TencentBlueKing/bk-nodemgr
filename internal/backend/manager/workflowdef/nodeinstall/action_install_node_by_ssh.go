@@ -123,7 +123,7 @@ func (act *actionInstallNodeBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen
+// nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallAgentBySSH)

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// package proxy provides the proxy API.
+// Package proxy provides the proxy API.
 package proxy
 
 import (
@@ -35,19 +35,19 @@ type handler struct {
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/proxy"),
-		provider:       cap.DiscoverProvider,
-		proxyMessanger: cap.ProxyMessager,
-		logger:         cap.Logger,
+		provider:       capability.DiscoverProvider,
+		proxyMessanger: capability.ProxyMessager,
+		logger:         capability.Logger,
 	}
 }
 
 // Load ter register the proxy router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
 	h.rg.Any("", h.generalHandler)
 	h.rg.Any("/*path", h.generalHandler)
@@ -76,6 +76,9 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 		h.handleCallback(ctx, data)
 
 		return
+
+	default:
+		return
 	}
 }
 
@@ -84,6 +87,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
 			data.AgentID, err)
+
 		return
 	}
 
@@ -94,6 +98,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s), err: %v",
 			data.AgentID, err)
+
 		return
 	}
 
@@ -106,6 +111,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), err: %v",
 			data.AgentID, err)
+
 		return
 	}
 
@@ -113,6 +119,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to read response body. agent-id(%s), err: %v",
 			data.AgentID, err)
+
 		return
 	}
 
@@ -125,6 +132,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to respond proxy callback. agent-id(%s), err: %v",
 			data.AgentID, err)
+
 		return
 	}
 

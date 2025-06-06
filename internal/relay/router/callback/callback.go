@@ -58,18 +58,18 @@ func (h *handler) request(gCtx *gin.Context) {
 	gCtx.Data(statusCode, "application/json; charset=utf-8", resp)
 }
 
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:     rg.Group("/callback"),
-		client: cap.Messager,
-		logger: cap.Logger,
+		client: capability.Messager,
+		logger: capability.Logger,
 	}
 }
 
 // Load register the callback router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
 	h.rg.POST("/*path", h.request)
 }

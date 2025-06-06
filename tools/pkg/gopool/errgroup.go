@@ -17,7 +17,7 @@ import (
 
 type token struct{}
 
-// A Group is a collection of goroutines working on subtasks that are part of
+// Group is a collection of goroutines working on subtasks that are part of
 // the same overall task.
 //
 // A zero Group is valid, has no limit on the number of active goroutines,
@@ -47,6 +47,7 @@ func (g *Group) Wait() error {
 	if g.cancel != nil {
 		g.cancel(g.err)
 	}
+
 	return g.err
 }
 
@@ -103,6 +104,7 @@ func (g *Group) TryGo(f func() error) bool {
 			})
 		}
 	}()
+
 	return true
 }
 

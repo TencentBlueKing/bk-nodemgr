@@ -548,6 +548,10 @@ linters-settings:
       - n
       - err
       - p
+      - f
+      - x
+      - k
+      - v
     # Optional list of variable declarations that should be ignored completely.
     # Entries must be in one of the following forms (see below for examples):
     # - for variables, parameters, named return values, method receivers, or type parameters:
@@ -589,6 +593,7 @@ linters-settings:
       - s *Storage
       - p *ProviderDefault
       - m *operMgr
+      - g *Group
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
@@ -649,6 +654,8 @@ linters-settings:
         alias: protoBackend
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3
         alias: protoFile
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy
+        alias: protoProxy
       # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
       - pkg: github.com/testcontainers/testcontainers-go
         alias: tc

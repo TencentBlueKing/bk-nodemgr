@@ -161,9 +161,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
-	if err := act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf); err != nil {
-		return fmt.Errorf("set node deployment info failed, err: %w", err)
-	}
+	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
 
 	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
@@ -259,7 +257,7 @@ func GseAgentSettingDefault() map[string]any {
 }
 
 // GseProxySettingDefault return default gse proxy setting
-// nolint: mnd
+// nolint: mnd,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func GseProxySettingDefault() map[string]any {
 	return map[string]any{
@@ -504,7 +502,7 @@ const (
 )
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
-// nolint: nonamedreturns,funlen
+// nolint: nonamedreturns,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
@@ -694,7 +692,7 @@ func forbiddenKeys() []string {
 }
 
 // renderCustomSetting load custom setting to the config presetting.
-func (act *actionRenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, info *types.DeploymentInfo) error {
+func (act *actionRenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, _ *types.DeploymentInfo) error {
 	if conf.CustomSetting == nil {
 		return errors.New("lack custom setting")
 	}
@@ -743,7 +741,7 @@ func NewFileLink() *FileLink {
 
 const defaultFileLinkTargetPort = 28930
 
-func (action *actionRenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf, host *types.Host,
+func (act *actionRenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf, host *types.Host,
 	fileUpstreams []string) []FileLink {
 
 	reportIP := func() string {
@@ -783,10 +781,10 @@ const (
 	defaultKeyProxyFilePort = 28925
 )
 
-func (action *actionRenderNodeDeployment) renderNodeDeploymentInfo(
+func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	_ context.Context,
 	info *types.DeploymentInfo,
-	conf *types.NodeConf) error {
+	conf *types.NodeConf) {
 
 	info.Dynamic.ProxyClusterPort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
@@ -794,6 +792,4 @@ func (action *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 		conf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyProxyDataPort)
 	info.Dynamic.ProxyFilePort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
-
-	return nil
 }

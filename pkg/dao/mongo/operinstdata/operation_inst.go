@@ -43,7 +43,7 @@ type IOperationInstData interface {
 	FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error)
 
 	// UpdateLifeCycle updates or inserts an InstanceData's LifeCycle.
-	UpdateLifeCycle(ctx context.Context, operInstID string, LifeCycle *operation.Lifecycle) error
+	UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error
 }
 
 // Upsert updates or inserts an OperInstData.

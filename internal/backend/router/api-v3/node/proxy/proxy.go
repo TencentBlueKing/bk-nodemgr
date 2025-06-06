@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent defines the agent apis.
+// Package proxy defines the agent apis.
 package proxy
 
 import (

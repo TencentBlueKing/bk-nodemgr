@@ -23,10 +23,10 @@ import (
 // IHandler node deployment Handler interface.
 type IHandler interface {
 	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
-	GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error)
-	GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error)
-	SetNodeConf(ctx context.Context, Token string, nodeConf *types.NodeConf) error
-	UpdateInfo(ctx context.Context, Token string, info *types.DeploymentInfo) error
+	GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
+	GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
+	SetNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error
+	UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -51,17 +51,17 @@ func New(client *mongo.Database, logger logger.Logger) *Handler {
 }
 
 // GetInfo get a node deployment info.
-func (h *Handler) GetInfo(ctx context.Context, Token string) (*types.DeploymentInfo, error) {
+func (h *Handler) GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	if Token == "" {
+	if token == "" {
 		return nil, base.ErrInvalidID()
 	}
 
 	filter := base.AliveFilter()
-	filter = WithToken(Token)(filter)
+	filter = WithToken(token)(filter)
 	data, err := h.dao.Get(ctx, filter, FieldKeyInfo)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
@@ -173,17 +173,17 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 }
 
 // GetNodeConf get a node deployment node conf.
-func (h *Handler) GetNodeConf(ctx context.Context, Token string) (*types.NodeConf, error) {
+func (h *Handler) GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	if Token == "" {
+	if token == "" {
 		return nil, base.ErrInvalidID()
 	}
 
 	filter := base.AliveFilter()
-	filter = WithToken(Token)(filter)
+	filter = WithToken(token)(filter)
 	data, err := h.dao.Get(ctx, filter, FieldKeyNodeConf)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()

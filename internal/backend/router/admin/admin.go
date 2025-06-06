@@ -25,19 +25,19 @@ type handler struct {
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, cap *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:     rg.Group("/admin"),
-		logger: cap.Logger,
+		logger: capability.Logger,
 	}
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
-	h := newHandler(rg, cap)
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
 
 	// TODO: 设置权限封禁
 
-	workflow.Load(h.rg, cap)
+	workflow.Load(h.rg, capability)
 }

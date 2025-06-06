@@ -33,10 +33,10 @@ func newHandler(rg *gin.RouterGroup) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg)
 
-	sync.Load(h.rg, cap)
-	node.Load(h.rg, cap)
-	topo.Load(h.rg, cap)
+	sync.Load(h.rg, capability)
+	node.Load(h.rg, capability)
+	topo.Load(h.rg, capability)
 }

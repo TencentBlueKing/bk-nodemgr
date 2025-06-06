@@ -55,7 +55,7 @@ type OperInstData struct {
 	Lifecycle         *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
 }
 
-// Lifecycle is the lifecycle of an operation instance.
+// LifeCycle is the lifecycle of an operation instance.
 type LifeCycle struct {
 	State     string    `json:"state" bson:"state"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`

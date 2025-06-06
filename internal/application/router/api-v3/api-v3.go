@@ -31,8 +31,8 @@ func newHandler(rg *gin.RouterGroup) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, cap *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg)
 
-	topo.Load(h.rg, cap)
+	topo.Load(h.rg, capability)
 }
