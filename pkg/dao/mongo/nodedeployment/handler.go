@@ -92,7 +92,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				NodeRole:       types.NodeRole(info.NodeRole),
 				NodeStatus:     types.NodeStatus(info.NodeStatus),
 				NodeVersion:    info.NodeVersion,
-				NodeGeneration: types.NodeGeneration(info.NodeGeneration),
+				NodeGeneration: types.Generation(info.NodeGeneration),
 				NodeCPUArch:    info.NodeCPUArch,
 				NodeOsType:     info.NodeOsType,
 				AgentID:        info.AgentID,

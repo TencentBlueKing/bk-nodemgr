@@ -60,7 +60,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 		info: iface.FileInfo{
 			Name:         fileName,
 			Size:         stat.Size(),
-			Md5:          md5Str,
+			MD5:          md5Str,
 			Description:  "",
 			ExtendFields: nil,
 		},

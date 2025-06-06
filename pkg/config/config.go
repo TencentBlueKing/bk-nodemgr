@@ -265,6 +265,15 @@ func (conf CMDB) Validate() error {
 	return nil
 }
 
+// Repo the config of repo.
+type Repo struct {
+	Endpoint  string `yaml:"endpoint" usage:"endpoint of repo"`
+	ProjectID string `yaml:"projectID" usage:"projectID of repo"`
+	RepoName  string `yaml:"repoName" usage:"name of repo"`
+	AccessKey string `yaml:"accessKey" usage:"access key of repo"`
+	SecretKey string `yaml:"secretKey" usage:"secret key of repo"`
+}
+
 // TLSConfig defines tls related options.
 type TLSConfig struct {
 	// Server should be accessed without verifying the TLS certificate.

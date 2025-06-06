@@ -14,9 +14,12 @@ package options
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -32,11 +35,24 @@ type Capability struct {
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
+
+	// BKRepo provides bkrepo handler.
+	BKRepo bkrepo.IHandler
+
+	// DaoRelease provides dao release handler.
+	DaoRelease release.IHandler
+
+	// Manager provides manager handler.
+	Manager manager.IManager
 }
 
 // Start start the capability.
 func (c *Capability) Start(ctx context.Context) error {
 	if err := c.DiscoverProvider.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.Manager.Start(ctx); err != nil {
 		return err
 	}
 

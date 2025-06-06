@@ -120,7 +120,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	for idx := range svc.conf.GseDeployConfs {
 		deployConf := deployconstant.DeployConf{
-			Generation:    types.NodeGeneration(svc.conf.GseDeployConfs[idx].Generation),
+			Generation:    types.Generation(svc.conf.GseDeployConfs[idx].Generation),
 			OsType:        svc.conf.GseDeployConfs[idx].OsType,
 			HostIDPath:    svc.conf.GseDeployConfs[idx].HostIDPath,
 			GseDataIPC:    svc.conf.GseDeployConfs[idx].GseDataIPC,

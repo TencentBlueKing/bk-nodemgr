@@ -63,8 +63,10 @@ type FileService struct {
 	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
 	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer    AdminServer `yaml:"adminServer" usage:"admin server config of file service"`
+	TempFileGroup  FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
 	AgentFileGroup FileGroup   `yaml:"agentFileGroup" usage:"agent file group config of file service"`
 	ProxyFileGroup FileGroup   `yaml:"proxyFileGroup" usage:"proxy file group config of file service"`
+	Repo           Repo        `yaml:"repo" usage:"repo config of file service"`
 	MongoDB        MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
 	Log            Log         `yaml:"log" usage:"log config of file service"`
 }

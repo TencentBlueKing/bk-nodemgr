@@ -12,6 +12,7 @@
 package upload
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -21,6 +22,7 @@ import (
 
 type handler struct {
 	rg             *gin.RouterGroup
+	manager        manager.IManager
 	agentFileGroup iface.FileGroup
 	proxyFileGroup iface.FileGroup
 	logger         logger.Logger
@@ -30,6 +32,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/upload"),
+		manager:        opt.Manager,
 		agentFileGroup: opt.AgentFileGroup,
 		proxyFileGroup: opt.ProxyFileGroup,
 		logger:         opt.Logger,
@@ -40,6 +43,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
+	h.rg.POST("/origin/agent", rest.RestHandlerFunc(h.UploadOriginAgent))
 	h.rg.POST("/agent", rest.RestHandlerFunc(h.Agent))
 	h.rg.POST("/proxy", rest.RestHandlerFunc(h.Proxy))
 }

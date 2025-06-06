@@ -26,6 +26,8 @@ data:
 
     proxyFileGroup: {{ .Values.file.config.proxyFileGroup | toYaml | nindent 6 }}
 
+    tempFileGroup: {{ .Values.file.config.tempFileGroup | toYaml | nindent 6 }}
+
     log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 
     etcd:
@@ -59,4 +61,6 @@ data:
       authSource: {{ .Values.externalMongodb.authSource }}
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
+
+    repo: {{ .Values.file.config.repo | toYaml | nindent 6 }}
 {{- end }}

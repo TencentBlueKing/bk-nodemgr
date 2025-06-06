@@ -18,19 +18,28 @@ import (
 	"io"
 	"runtime"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.mongodb.org/mongo-driver/mongo"
+	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -77,18 +86,37 @@ func NewService(conf *config.FileService) (*Service, error) {
 	var err error
 	svc.Cap.AgentFileGroup, err = local.NewLocalDir(conf.AgentFileGroup.FullPath, svc.Cap.Logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init agent file group: %v", err)
+		return nil, fmt.Errorf("failed to init agent file group: %w", err)
 	}
 
 	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init group file group: %v", err)
+		return nil, fmt.Errorf("failed to init group file group: %w", err)
 	}
 
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
 		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
+
+	// init mongoclient.
+	mongoClient, err := initMongoDB(&conf.MongoDB)
+	if err != nil {
+		return nil, err
+	}
+	svc.Cap.DaoRelease = release.New(mongoClient.Database(conf.MongoDB.Database), svc.Cap.Logger)
+
+	// init bkrepo.
+	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init bkrepo: %w", err)
+	}
+
+	// init manager.
+	svc.Cap.Manager, err = initManager(conf, svc.Cap.BKRepo, svc.Cap.DaoRelease, svc.Cap.Logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init manager: %w", err)
+	}
 
 	httpServer := rest.NewServer(
 		svc.ctx,
@@ -221,4 +249,73 @@ func (svc *Service) GracefulShutdown() error {
 	blog.CloseLogs()
 
 	return nil
+}
+
+func initManager(conf *config.FileService, repo bkrepo.IHandler, daoRelease release.IHandler, logger logger.Logger) (manager.IManager, error) {
+	// init upstream file groups from bkrepo.
+	originAgentFG, err := repo.EnsureFileGroup(context.Background(), "origin_agent")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure origin agent file group: %w", err)
+	}
+	originServerFG, err := repo.EnsureFileGroup(context.Background(), "origin_server")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure origin server file group: %w", err)
+	}
+	tempFG, err := local.NewLocalDir(conf.TempFileGroup.FullPath, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init group file group: %w", err)
+	}
+
+	return manager.New(
+		manager.WithLogger(logger),
+		manager.WithUpstreamOriginAgentFileGroup(originAgentFG),
+		manager.WithUpstreamOriginServerFileGroup(originServerFG),
+		manager.WithLocalTempFileGroup(tempFG),
+		manager.WithDaoRelease(daoRelease),
+	), nil
+}
+
+func initBKRepo(conf *config.FileService, logger logger.Logger) (bkrepo.IHandler, error) {
+	// init repo
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to init http client: %w", err)
+	}
+
+	clientCap := &client.Capability{
+		Client:               httpClient,
+		Discover:             discovery.NewDiscovery("bkrepo", []string{conf.Repo.Endpoint}),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               logger,
+	}
+
+	return bkrepo.New(clientCap, &bkrepo.Config{
+		ProjectID: conf.Repo.ProjectID,
+		RepoName:  conf.Repo.RepoName,
+		Username:  conf.Repo.AccessKey,
+		Password:  conf.Repo.SecretKey,
+	})
+}
+
+func initMongoDB(conf *config.MongoDB) (*mongo.Client, error) {
+	mongoClient, err := mongo.Connect(
+		context.Background(),
+		&mongoOptions.ClientOptions{
+			Hosts: conf.Hosts,
+			Auth: &mongoOptions.Credential{
+				Username:      conf.Username,
+				Password:      conf.Password,
+				AuthSource:    conf.AuthSource,
+				AuthMechanism: conf.AuthMechanism,
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return mongoClient, nil
 }

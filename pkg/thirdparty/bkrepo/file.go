@@ -35,6 +35,17 @@ func (f File) Content(ctx context.Context) (io.ReadCloser, error) {
 }
 
 // Info return the info of the file.
-func (f File) Info(ctx context.Context) (iface.FileInfo, error) {
-	return f.handler.getFileInfo(ctx, f.info.FullPath)
+func (f File) Info(_ context.Context) (iface.FileInfo, error) {
+	var desc string
+	descValue, ok := f.info.Metadata["description"]
+	if ok {
+		desc, _ = descValue.(string)
+	}
+
+	return iface.FileInfo{
+		Name:        f.info.Name,
+		Size:        int64(f.info.Size),
+		MD5:         f.info.Md5,
+		Description: desc,
+	}, nil
 }

@@ -38,6 +38,19 @@ func (x *UploadAgentReq) AutoConvert() {
 }
 
 // Validate check request body.
+func (x *UploadOriginAgentReq) Validate() error {
+	if x.Generation == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginAgentReq) AutoConvert() {
+}
+
+// Validate check request body.
 func (x *UploadProxyReq) Validate() error {
 	if x.Generation == 0 {
 		return errors.New("generation is required")

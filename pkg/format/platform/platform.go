@@ -192,6 +192,11 @@ type Platform struct {
 	Arch string
 }
 
+// EmptyPlatform returns an empty platform.
+func EmptyPlatform() Platform {
+	return Platform{}
+}
+
 // Normalize standardize the platform into go standard naming.
 func Normalize(osName, arch string) (Platform, error) {
 	normalizedOS, osErr := NormalizeOS(osName)

@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -39,11 +40,13 @@ func (h *handler) Agent(ctx *rest.Context) (*rest.FileResponse, error) {
 	}
 
 	pkgName, err := nodepkg.FormatPkgName(
-		types.NodeRoleAgent,
-		types.NodeGeneration(req.GetGeneration()),
+		types.Generation(req.GetGeneration()),
+		types.ReleaseTypeAgent,
+		platform.Platform{
+			OS:   req.GetOsType(),
+			Arch: req.GetCpuArch(),
+		},
 		req.GetVersion(),
-		req.GetCpuArch(),
-		req.GetOsType(),
 	)
 	if err != nil {
 		h.logger.Error("format pkg name failed", err)

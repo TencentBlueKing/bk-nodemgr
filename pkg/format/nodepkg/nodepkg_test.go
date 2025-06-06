@@ -13,6 +13,7 @@ package nodepkg
 import (
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/test/basetest"
 )
@@ -33,11 +34,11 @@ func TestAll(t *testing.T) {
 // TestFormatPkgName ...
 func (suite *TestSuite) TestFormatPkgName() {
 	type args struct {
-		nodeRole   types.NodeRole
-		generation types.NodeGeneration
-		version    string
-		osType     string
-		cpuArch    string
+		releaseType types.ReleaseType
+		generation  types.Generation
+		version     string
+		osType      string
+		cpuArch     string
 	}
 
 	tests := []struct {
@@ -49,11 +50,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "valid agent package",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "linux",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "linux",
+				cpuArch:     "x86_64",
 			},
 			want:    "gse_agent-1-1.0.0-linux_x86_64.tgz",
 			wantErr: false,
@@ -61,11 +62,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "valid task package",
 			args: args{
-				nodeRole:   types.NodeRole("task"),
-				generation: types.NodeGeneration2,
-				version:    "2.1.0",
-				osType:     "windows",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseType("task"),
+				generation:  types.Generation2,
+				version:     "2.1.0",
+				osType:      "windows",
+				cpuArch:     "x86_64",
 			},
 			want:    "gse_task-2-2.1.0-windows_x86_64.tgz",
 			wantErr: true,
@@ -73,11 +74,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "valid proxy package",
 			args: args{
-				nodeRole:   types.NodeRoleProxy,
-				generation: types.NodeGeneration(3),
-				version:    "3.5.2",
-				osType:     "aix",
-				cpuArch:    "powerpc",
+				releaseType: types.ReleaseTypeProxy,
+				generation:  types.Generation(3),
+				version:     "3.5.2",
+				osType:      "aix",
+				cpuArch:     "powerpc",
 			},
 			want:    "gse_proxy-3-3.5.2-aix_powerpc.tgz",
 			wantErr: true,
@@ -85,11 +86,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "valid arm architecture",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "linux",
-				cpuArch:    "aarch64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "linux",
+				cpuArch:     "aarch64",
 			},
 			want:    "gse_agent-1-1.0.0-linux_aarch64.tgz",
 			wantErr: false,
@@ -97,11 +98,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "invalid node role",
 			args: args{
-				nodeRole:   types.NodeRole("invalid"),
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "linux",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseType("invalid"),
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "linux",
+				cpuArch:     "x86_64",
 			},
 			want:    "",
 			wantErr: true,
@@ -109,11 +110,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "invalid generation",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration(99),
-				version:    "1.0.0",
-				osType:     "linux",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation(99),
+				version:     "1.0.0",
+				osType:      "linux",
+				cpuArch:     "x86_64",
 			},
 			want:    "",
 			wantErr: true,
@@ -121,11 +122,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "empty version",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "",
-				osType:     "linux",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "",
+				osType:      "linux",
+				cpuArch:     "x86_64",
 			},
 			want:    "",
 			wantErr: true,
@@ -133,11 +134,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "empty os type",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "",
+				cpuArch:     "x86_64",
 			},
 			want:    "",
 			wantErr: true,
@@ -145,11 +146,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "empty cpu arch",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "linux",
-				cpuArch:    "",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "linux",
+				cpuArch:     "",
 			},
 			want:    "",
 			wantErr: true,
@@ -157,11 +158,11 @@ func (suite *TestSuite) TestFormatPkgName() {
 		{
 			name: "macos package",
 			args: args{
-				nodeRole:   types.NodeRoleAgent,
-				generation: types.NodeGeneration1,
-				version:    "1.0.0",
-				osType:     "darwin",
-				cpuArch:    "x86_64",
+				releaseType: types.ReleaseTypeAgent,
+				generation:  types.Generation1,
+				version:     "1.0.0",
+				osType:      "darwin",
+				cpuArch:     "x86_64",
 			},
 			want:    "gse_agent-1-1.0.0-darwin_x86_64.tgz",
 			wantErr: false,
@@ -170,11 +171,13 @@ func (suite *TestSuite) TestFormatPkgName() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			pkgName, err := FormatPkgName(
-				tt.args.nodeRole,
 				tt.args.generation,
+				tt.args.releaseType,
+				platform.Platform{
+					OS:   tt.args.osType,
+					Arch: tt.args.cpuArch,
+				},
 				tt.args.version,
-				tt.args.osType,
-				tt.args.cpuArch,
 			)
 
 			if tt.wantErr {

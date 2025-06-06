@@ -124,7 +124,7 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NodeRole:       types.NodeRole(state.GetNodeRole()),
 			NodeStatus:     types.NodeStatus(state.GetNodeStatus()),
 			NodeVersion:    state.GetNodeVersion(),
-			NodeGeneration: types.NodeGeneration(state.GetNodeGeneration()),
+			NodeGeneration: types.Generation(state.GetNodeGeneration()),
 			NetworkUnitID:  info.GetBkNetworkunitId(),
 		}
 

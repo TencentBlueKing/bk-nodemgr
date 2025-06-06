@@ -442,7 +442,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			NodeRole:       types.NodeRole(host.Dynamic.NodeRole),
 			NodeStatus:     types.NodeStatus(host.Dynamic.NodeStatus),
 			NodeVersion:    host.Dynamic.NodeVersion,
-			NodeGeneration: types.NodeGeneration(host.Dynamic.NodeGeneration),
+			NodeGeneration: types.Generation(host.Dynamic.NodeGeneration),
 			NodeCPUArch:    host.Dynamic.NodeCPUArch,
 			NodeOsType:     host.Dynamic.NodeOsType,
 			AgentID:        host.Dynamic.AgentID,

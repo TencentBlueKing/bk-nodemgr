@@ -877,6 +877,17 @@ file:
       bindIP: "0.0.0.0"
       port: 7001
 
+    ## defines the bkrepo related settings.
+    repo:
+      endpoint: ""
+      projectID: ""
+      repoName: ""
+      accessKey: ""
+      secretKey: ""
+
+    tempFileGroup:
+      fullPath: "/bk-nodeman/file/temp"
+
     agentFileGroup:
       fullPath: "/bk-nodeman/file/agent"
 

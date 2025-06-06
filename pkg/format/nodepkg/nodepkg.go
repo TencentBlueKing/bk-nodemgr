@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -23,18 +24,17 @@ const PkgExtension = "tgz"
 
 // FormatPkgName formats the package name based on the node role, generation, and version.
 func FormatPkgName(
-	nodeRole types.NodeRole,
-	generation types.NodeGeneration,
+	generation types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
 	version string,
-	osType string,
-	cpuArch string,
 ) (string, error) {
 
-	if err := nodeRole.Validate(); err != nil {
+	if err := generation.Validate(); err != nil {
 		return "", fmt.Errorf("format pkg name failed, err: %w", err)
 	}
 
-	if err := generation.Validate(); err != nil {
+	if err := releaseType.Validate(); err != nil {
 		return "", fmt.Errorf("format pkg name failed, err: %w", err)
 	}
 
@@ -42,21 +42,30 @@ func FormatPkgName(
 		return "", errors.New("format pkg name failed, version is empty")
 	}
 
-	if osType == "" {
-		return "", errors.New("format pkg name failed, os_type is empty")
+	// origin agent pkg contains all platforms in one pkg.
+	// so the pkg-name should not contain platform info.
+	if releaseType == types.ReleaseTypeOriginAgent {
+		pkgName := fmt.Sprintf(
+			"gse_%s-%d-%s-all.%s",
+			releaseType,
+			generation,
+			version,
+			PkgExtension)
+
+		return pkgName, nil
 	}
 
-	if cpuArch == "" {
-		return "", errors.New("format pkg name failed, cpu_arch is empty")
+	if !plat.Validate() {
+		return "", fmt.Errorf("format pkg name failed, platform is invalid: %s", plat.String())
 	}
 
 	pkgName := fmt.Sprintf(
 		"gse_%s-%d-%s-%s_%s.%s",
-		nodeRole,
+		releaseType,
 		generation,
 		version,
-		osType,
-		cpuArch,
+		plat.OS,
+		plat.Arch,
 		PkgExtension)
 
 	return pkgName, nil

@@ -54,7 +54,7 @@ type FileInfo struct {
 	Size int64
 
 	// Md5 the md5 of file.
-	Md5 string
+	MD5 string
 
 	// Description the description of file.
 	Description string

@@ -65,11 +65,13 @@ func (h *handler) Proxy(ctx *rest.Context) (interface{}, error) {
 	}
 
 	pkgName, err := nodepkg.FormatPkgName(
-		types.NodeRoleProxy,
-		types.NodeGeneration(req.GetGeneration()),
+		types.Generation(req.GetGeneration()),
+		types.ReleaseTypeProxy,
+		platform.Platform{
+			OS:   osType,
+			Arch: cpuArch,
+		},
 		req.GetVersion(),
-		cpuArch,
-		osType,
 	)
 	if err != nil {
 		h.logger.Error("format pkg name failed", err)
@@ -98,7 +100,7 @@ func (h *handler) Proxy(ctx *rest.Context) (interface{}, error) {
 	resp := &protoFile.UploadProxyResp{
 		Name: info.Name,
 		Size: info.Size,
-		Md5:  info.Md5,
+		Md5:  info.MD5,
 	}
 
 	return resp, nil

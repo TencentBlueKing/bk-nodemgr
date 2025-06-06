@@ -17,7 +17,8 @@ RUN mkdir -p \
     /bk-nodeman/file/agent \
     /bk-nodeman/file/proxy \
     /bk-nodeman/file/plugin \
-    /bk-nodeman/file/tools
+    /bk-nodeman/file/tools \
+    /bk-nodeman/file/temp
 
 COPY bk-nodeman-backend /bk-nodeman/bin/
 COPY bk-nodeman-application /bk-nodeman/bin/

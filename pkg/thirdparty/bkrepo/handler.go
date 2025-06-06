@@ -263,7 +263,7 @@ func (h *Handler) storeFile(
 	uploadFileReq := &UploadFileReq{
 		Path: uploadFilePath,
 		Info: UploadFileInfo{
-			Md5:        info.Md5,
+			Md5:        info.MD5,
 			Overwrite:  overwrite,
 			ExpireDays: 0,
 			Meta: map[string]string{
@@ -277,46 +277,16 @@ func (h *Handler) storeFile(
 		uploadFileReq.Info.Meta[key] = value
 	}
 
-	_, err = h.cli.UploadFile(ctx, uploadFileReq)
-	if err != nil {
-		return fmt.Errorf("upload file failed, err: %w", err)
-	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	return nil
-}
-
-func (h *Handler) getFileInfo(ctx context.Context, path string) (iface.FileInfo, error) {
-	if ctx == nil {
-		return iface.FileInfo{}, errInvalidContext
-	}
-	if path == "" {
-		return iface.FileInfo{}, errEmptyPathOrName
-	}
-
-	resp, err := h.cli.QueryNodeInfo(ctx, &QueryNodeInfoReq{Path: path})
+	_, err = h.cli.UploadFile(ctx, uploadFileReq)
 	if err != nil {
-		return iface.FileInfo{}, fmt.Errorf("query node info failed, err: %w", err)
+		return fmt.Errorf("upload file failed, err: %w", err)
 	}
 
-	if resp.NodeInfo.Folder {
-		return iface.FileInfo{}, errors.New("query node info failed, ths path is a folder")
-	}
-
-	var desc string
-	descValue, ok := resp.NodeInfo.Metadata["description"]
-	if ok {
-		desc, _ = descValue.(string)
-	}
-
-	return iface.FileInfo{
-		Name:        resp.NodeInfo.Name,
-		Size:        int64(resp.NodeInfo.Size),
-		Md5:         resp.NodeInfo.Md5,
-		Description: desc,
-	}, nil
+	return nil
 }
 
 func (h *Handler) getFileContent(ctx context.Context, path string) (io.ReadCloser, error) {

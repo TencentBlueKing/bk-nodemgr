@@ -69,7 +69,7 @@ type InstallParams struct {
 	CallbackEndpoint string
 	DownloadEndpoint string
 	PkgVersion       string
-	PkgGeneration    types.NodeGeneration
+	PkgGeneration    types.Generation
 	GseRoot          string
 	Token            string
 	TmpDir           string

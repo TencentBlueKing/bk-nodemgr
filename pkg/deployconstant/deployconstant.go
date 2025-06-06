@@ -20,7 +20,7 @@ import (
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
-	Generation    types.NodeGeneration
+	Generation    types.Generation
 	OsType        string
 	HostIDPath    string
 	GseDataIPC    string
@@ -78,10 +78,10 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[types.NodeGeneration]map[string]DeployConf)
+var deployConfMap = make(map[types.Generation]map[string]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(generation types.NodeGeneration, osType string) (DeployConf, error) {
+func GetDeployConf(generation types.Generation, osType string) (DeployConf, error) {
 	confMap, ok := deployConfMap[generation]
 	if !ok {
 		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)

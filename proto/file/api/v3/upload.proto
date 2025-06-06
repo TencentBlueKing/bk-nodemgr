@@ -20,6 +20,19 @@ message UploadAgentResp {
   string md5 = 3;
 }
 
+// UploadOriginAgentReq is the request for upload origin agent pkg.
+message UploadOriginAgentReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// UploadOriginAgentResp is the response for upload origin agent pkg.
+message UploadOriginAgentResp {
+  string name = 1;
+  int64 size = 2;
+  string md5 = 3;
+}
+
 // UploadProxyReq is the request for upload proxy pkg.
 message UploadProxyReq {
   string os_type = 1;
