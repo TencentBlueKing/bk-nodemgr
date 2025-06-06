@@ -11,7 +11,7 @@
 package v3
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -52,7 +52,10 @@ func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoEventListReq) ConvertConditionsToTypes() *types.TopoEventCondition {
-	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetOperateTimeRange())
+	return convertTopoEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
 }
 
 // ConvertConditionsFromTypes convert types to conditions.
@@ -132,7 +135,10 @@ func (x *TopoEventDistinctReq) AutoConvert() {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoEventDistinctReq) ConvertConditionsToTypes() *types.TopoEventCondition {
-	return convertTopoEventConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetOperateTimeRange())
+	return convertTopoEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
 }
 
 // ConvertConditionsFromTypes convert types to conditions.
@@ -180,7 +186,9 @@ func newEmptyTopoEvent() *TopoEvent {
 }
 
 func convertTopoEventConditionsToTypes(
-	exactCond *TopoEventExactConditions, fuzzyCond *TopoEventFuzzyConditions, timeRange *TimeRange) *types.TopoEventCondition {
+	exactCond *TopoEventExactConditions,
+	fuzzyCond *TopoEventFuzzyConditions,
+	timeRange *TimeRange) *types.TopoEventCondition {
 
 	condition := &types.TopoEventCondition{}
 
@@ -249,7 +257,7 @@ func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (
 	}
 
 	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, nil, fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
+		return nil, nil, nil, errors.New("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return exactCond, fuzzyCond, timeRange, nil

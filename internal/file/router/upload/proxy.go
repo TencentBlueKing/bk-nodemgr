@@ -21,6 +21,7 @@ import (
 )
 
 // Proxy upload proxy package.
+// nolint:funlen,fnsize
 func (h *handler) Proxy(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {

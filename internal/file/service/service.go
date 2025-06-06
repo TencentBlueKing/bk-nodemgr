@@ -72,6 +72,7 @@ type Service struct {
 }
 
 // NewService creates a new file service.
+// nolint:funlen,fnsize
 func NewService(conf *config.FileService) (*Service, error) {
 	svc := &Service{
 		conf: conf,

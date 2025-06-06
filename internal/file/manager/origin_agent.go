@@ -26,7 +26,7 @@ import (
 )
 
 // UploadOriginAgent uploads the agent.
-// nolint:funlen
+// nolint:funlen,fnsize
 func (m *Manager) UploadOriginAgent(
 	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error) {
 

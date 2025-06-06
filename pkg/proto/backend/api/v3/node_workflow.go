@@ -12,7 +12,6 @@ package v3
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -129,7 +128,9 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) AutoConvert() {
 }
 
 func convertNodeWorkflowConditionsToTypes(
-	exactCond *NodeWorkflowExactConditions, _ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
+	exactCond *NodeWorkflowExactConditions,
+	_ *NodeWorkflowFuzzyConditions,
+	timeRange *TimeRange) *types.NodeWorkflowCondition {
 
 	condition := &types.NodeWorkflowCondition{}
 
@@ -181,7 +182,7 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	}
 
 	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, nil, fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+		return nil, nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return exactCond, fuzzyCond, timeRange, nil
