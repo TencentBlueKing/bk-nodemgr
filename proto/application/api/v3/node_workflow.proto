@@ -209,7 +209,7 @@ message NodeWorkflowOperationInstanceStatus{
     int64     index=1;
     string    instance_id = 2;
     string    status = 3;
-    string    trigger_id =4;
+    string    trigger_id = 4;
 }
 
 message NodeWorkflowOperationInstanceListStatusResp {
