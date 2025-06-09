@@ -222,6 +222,7 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
+				nodeworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				nodeworkflow.WithBizID(condition.ExactInclude.BizID...),
 				nodeworkflow.WithType(condition.ExactInclude.Type...),
 				nodeworkflow.WithOperator(condition.ExactInclude.Operator...),
@@ -230,6 +231,7 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
+				nodeworkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
 				nodeworkflow.WithoutBizID(condition.ExactExclude.BizID...),
 				nodeworkflow.WithoutType(condition.ExactExclude.Type...),
 				nodeworkflow.WithoutOperator(condition.ExactExclude.Operator...),
