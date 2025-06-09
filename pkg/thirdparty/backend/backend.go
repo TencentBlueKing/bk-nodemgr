@@ -792,7 +792,7 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(ctx context.Context, tenantID str
 	}
 
 	err = c.client.Post().
-		SubResourcef("/node/workflow/operation/instance/list/status").
+		SubResourcef("/node/workflow/operation/instance/status/list/").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
