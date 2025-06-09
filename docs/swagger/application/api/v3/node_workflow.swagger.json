@@ -139,7 +139,6 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -348,9 +347,6 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
-        },
-        "operate_time_range": {
-          "$ref": "#/definitions/v3TimeRange"
         }
       },
       "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."
@@ -606,8 +602,7 @@
         "oper_inst_id": {
           "type": "string"
         }
-      },
-      "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request."
+      }
     },
     "v3NodeWorkflowOperationInstanceLogGetResp": {
       "type": "object",
@@ -626,7 +621,7 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
         }
       },
-      "description": "NodeOperActionInstLogResp describes the node operation action instance log\nresponse."
+      "title": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log"
     },
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
@@ -675,7 +670,7 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
         }
       },
-      "description": "NodeWorkflowOperationListResp describes the node operation list by\nworkflow-id response."
+      "title": "NodeWorkflowOperationListResp describes the node operation list by"
     },
     "v3NodeWorkflowOperationListRespData": {
       "type": "object",

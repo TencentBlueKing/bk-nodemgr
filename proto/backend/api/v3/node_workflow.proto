@@ -68,14 +68,14 @@ message NodeWorkflowInstanceStatusExactConditions {
 message NodeWorkflowInstanceStatusFuzzyConditions {}
 
 
-//NodeWorkflowOperationInstanceStatusListReq ...
+//NodeWorkflowOperationInstanceListStatusReq ...
 message NodeWorkflowOperationInstanceListStatusReq{
   Page page = 1;
   NodeWorkflowInstanceStatusExactConditions exact_include_conditions = 3;
   NodeWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
 }
 
-
+// NodeWorkflowOperationInstanceStatus ...
 message NodeWorkflowOperationInstanceStatus{
     int64   index=1;
     string  operation_id=2;
@@ -83,6 +83,7 @@ message NodeWorkflowOperationInstanceStatus{
     string trigger_id =4;
 }
 
+// NodeWorkflowOperationInstanceListStatusResp ...
 message NodeWorkflowOperationInstanceListStatusResp {
   int32 code = 1;
   string message = 2;
@@ -94,33 +95,11 @@ message NodeWorkflowOperationInstanceListStatusResp {
   Data data = 4;
 }
 
-// NodeWorkflowStatisticReq describes the node workflow statistic request.
-message NodeWorkflowStatisticsReq { repeated string workflow_id = 1; }
-
-// NodeWorkflowStatisticResp describes the node workflow statistic response.
-message NodeWorkflowStatisticsResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message StatisticsInfo {
-    optional string workflow_id = 1;
-    int64 total_count = 2;
-    int64 success_count = 3;
-    int64 failed_count = 4;
-    int64 running_count = 5;
-    int64 pending_count = 6;
-    int64 ignored_count = 7;
-  }
-  message Data { repeated StatisticsInfo items = 1; }
-  Data data = 4;
-}
 
 // NodeWorkflowDistinctReq describes the node workflow distinct request.
 message NodeWorkflowDistinctReq {
   NodeWorkflowExactConditions exact_include_conditions = 1;
   NodeWorkflowFuzzyConditions fuzzy_include_conditions = 2;
-  TimeRange operate_time_range = 3;
 }
 
 // NodeWorkflowDistinctResp describes the node workflow distinct response.
@@ -144,10 +123,12 @@ message OperationDefinition {
   repeated string action_names = 2;
 }
 
+//  OperationParam ...
 message OperationParam {
   int64 timeout_second = 1;      
 }
 
+// NodeWorkflowOperation ...
 message NodeWorkflowOperation {   
   string operation_id = 1;        
   OperationDefinition definition = 2;
@@ -175,6 +156,7 @@ message NodeWorflowOperationInstance {
   repeated Action action = 8;
 }
 
+// NodeWorflowOperationInstanceData ...
 message NodeWorflowOperationInstanceData{
     string operation_id = 1;
     string oper_inst_id = 2;
@@ -233,7 +215,7 @@ message NodeWorkflowOperationInstanceListResp {
 // log request.
 message NodeWorkflowOperationInstanceLogGetReq { string oper_inst_id = 1; }
 
-// NodeOperActionInstLogResp describes the node operation action instance log
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
 // response.
 message NodeWorkflowOperationInstanceLogGetResp {
   int32 code = 1;
@@ -260,15 +242,6 @@ service NodeWorkflow {
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/list"
-      body : "*"
-    };
-  }
-
-  // NodeWorkflowStatistics provides node workflow statistics.
-  rpc NodeWorkflowStatistics(NodeWorkflowStatisticsReq)
-      returns (NodeWorkflowStatisticsResp) {
-    option (google.api.http) = {
-      post : "/api/v3/node/workflow/statistics"
       body : "*"
     };
   }

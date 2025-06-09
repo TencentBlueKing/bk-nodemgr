@@ -23,8 +23,6 @@ import (
 )
 
 const (
-	// not max limit in workflow.
-	// return all data in one request.
 	maxWorkflowLimit  = 500
 	maxOperationLimit = 500
 )

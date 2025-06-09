@@ -287,40 +287,6 @@
           "NodeWorkflow"
         ]
       }
-    },
-    "/api/v3/node/workflow/statistics": {
-      "post": {
-        "summary": "NodeWorkflowStatistics provides node workflow statistics.",
-        "operationId": "NodeWorkflow_NodeWorkflowStatistics",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowStatisticsResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeWorkflowStatisticReq describes the node workflow statistic request.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowStatisticsReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
     }
   },
   "definitions": {
@@ -333,38 +299,6 @@
         },
         "text": {
           "type": "string"
-        }
-      }
-    },
-    "NodeWorkflowStatisticsRespStatisticsInfo": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "total_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "success_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "failed_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "running_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "pending_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "ignored_count": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -634,9 +568,6 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
-        },
-        "operate_time_range": {
-          "$ref": "#/definitions/v3TimeRange"
         }
       },
       "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."
@@ -933,7 +864,8 @@
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespData"
         }
-      }
+      },
+      "description": "NodeWorkflowOperationInstanceListStatusResp ..."
     },
     "v3NodeWorkflowOperationInstanceListStatusRespData": {
       "type": "object",
@@ -1006,7 +938,8 @@
         "trigger_id": {
           "type": "string"
         }
-      }
+      },
+      "description": "NodeWorkflowOperationInstanceStatus ..."
     },
     "v3NodeWorkflowOperationListReq": {
       "type": "object",
@@ -1055,49 +988,6 @@
         "total_count": {
           "type": "integer",
           "format": "int64"
-        }
-      }
-    },
-    "v3NodeWorkflowStatisticsReq": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "NodeWorkflowStatisticReq describes the node workflow statistic request."
-    },
-    "v3NodeWorkflowStatisticsResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeWorkflowStatisticsRespData"
-        }
-      },
-      "description": "NodeWorkflowStatisticResp describes the node workflow statistic response."
-    },
-    "v3NodeWorkflowStatisticsRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/NodeWorkflowStatisticsRespStatisticsInfo"
-          }
         }
       }
     },

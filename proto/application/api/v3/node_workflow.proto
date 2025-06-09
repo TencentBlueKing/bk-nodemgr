@@ -82,7 +82,6 @@ message NodeWorkflowStatisticsResp {
 message NodeWorkflowDistinctReq {
   NodeWorkflowExactConditions exact_include_conditions = 1;
   NodeWorkflowFuzzyConditions fuzzy_include_conditions = 2;
-  TimeRange operate_time_range = 3;
 }
 
 // NodeWorkflowDistinctResp describes the node workflow distinct response.
@@ -154,7 +153,6 @@ message NodeWorkflowOperationListReq {
 }
 
 // NodeWorkflowOperationListResp describes the node operation list by
-// workflow-id response.
 message NodeWorkflowOperationListResp {
   int32 code = 1;
   string message = 2;
@@ -190,7 +188,6 @@ message NodeWorkflowOperationInstanceListResp {
 
 
 // NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow
-// list request.
 message NodeWorkflowInstanceStatusExactConditions {
   repeated string trigger_id = 1;
 }
@@ -212,7 +209,7 @@ message NodeWorkflowOperationInstanceStatus{
     int64     index=1;
     string    instance_id = 2;
     string    status = 3;
-    string    trigger_id=4;
+    string    trigger_id =4;
 }
 
 message NodeWorkflowOperationInstanceListStatusResp {
@@ -228,11 +225,10 @@ message NodeWorkflowOperationInstanceListStatusResp {
 
 
 // NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
-// log request.
+
 message NodeWorkflowOperationInstanceLogGetReq { string oper_inst_id = 1; }
 
-// NodeOperActionInstLogResp describes the node operation action instance log
-// response.
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
 message NodeWorkflowOperationInstanceLogGetResp {
   int32 code = 1;
   string message = 2;

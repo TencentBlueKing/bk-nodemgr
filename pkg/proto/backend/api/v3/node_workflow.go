@@ -36,14 +36,13 @@ func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWorkflowCondition) error {
-	exactCond, fuzzyCond, timeRange, err := convertNodeWorkConditionsFromTypes(condition)
+	exactCond, fuzzyCond, err := convertNodeWorkConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.ExactIncludeConditions = exactCond
 	x.FuzzyIncludeConditions = fuzzyCond
-	x.OperateTimeRange = timeRange
 
 	return nil
 }
@@ -52,8 +51,7 @@ func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWo
 func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions(),
-		x.GetOperateTimeRange())
+		x.GetFuzzyIncludeConditions())
 }
 
 // ConvertNodeWorkflowsFromTypes convert node workflows from types.
@@ -116,14 +114,13 @@ func (x *NodeWorkflowDistinctReq) AutoConvert() {
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.NodeWorkflowCondition) error {
-	exactCond, fuzzyCond, timeRange, err := convertNodeWorkConditionsFromTypes(condition)
+	exactCond, fuzzyCond, err := convertNodeWorkConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.ExactIncludeConditions = exactCond
 	x.FuzzyIncludeConditions = fuzzyCond
-	x.OperateTimeRange = timeRange
 
 	return nil
 }
@@ -132,8 +129,7 @@ func (x *NodeWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.No
 func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions(),
-		x.GetOperateTimeRange())
+		x.GetFuzzyIncludeConditions())
 }
 
 // ConvertResultFromTypes convert result from types.
@@ -493,17 +489,9 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
-	_ *NodeWorkflowFuzzyConditions,
-	timeRange *TimeRange) *types.NodeWorkflowCondition {
+	_ *NodeWorkflowFuzzyConditions) *types.NodeWorkflowCondition {
 
 	condition := &types.NodeWorkflowCondition{}
-
-	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
-		}
-	}
 
 	// exact conditions.
 	if exactCond != nil {
@@ -520,22 +508,14 @@ func convertNodeWorkflowConditionsToTypes(
 }
 
 func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) (
-	*NodeWorkflowExactConditions, *NodeWorkflowFuzzyConditions, *TimeRange, error) {
+	*NodeWorkflowExactConditions, *NodeWorkflowFuzzyConditions, error) {
 
 	if condition == nil {
-		return nil, nil, nil, nil
+		return nil, nil, nil
 	}
 
-	var timeRange *TimeRange
 	var exactCond *NodeWorkflowExactConditions
 	var fuzzyCond *NodeWorkflowFuzzyConditions
-
-	if condition.OperateTimeRange != nil {
-		timeRange = &TimeRange{
-			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
-			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
-		}
-	}
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowExactConditions{
@@ -548,10 +528,10 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	}
 
 	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
-	return exactCond, fuzzyCond, timeRange, nil
+	return exactCond, fuzzyCond, nil
 }
 
 func convertNodeWorkOperaInstanceStatusConditionsFromTypes(condition *types.NodeWorkflowOperInstanceStatusCondition) (

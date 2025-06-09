@@ -496,7 +496,6 @@ type NodeWorkflowDistinctReq struct {
 	state                  protoimpl.MessageState       `protogen:"open.v1"`
 	ExactIncludeConditions *NodeWorkflowExactConditions `protobuf:"bytes,1,opt,name=exact_include_conditions,json=exactIncludeConditions,proto3" json:"exact_include_conditions"`
 	FuzzyIncludeConditions *NodeWorkflowFuzzyConditions `protobuf:"bytes,2,opt,name=fuzzy_include_conditions,json=fuzzyIncludeConditions,proto3" json:"fuzzy_include_conditions"`
-	OperateTimeRange       *TimeRange                   `protobuf:"bytes,3,opt,name=operate_time_range,json=operateTimeRange,proto3" json:"operate_time_range"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -541,13 +540,6 @@ func (x *NodeWorkflowDistinctReq) GetExactIncludeConditions() *NodeWorkflowExact
 func (x *NodeWorkflowDistinctReq) GetFuzzyIncludeConditions() *NodeWorkflowFuzzyConditions {
 	if x != nil {
 		return x.FuzzyIncludeConditions
-	}
-	return nil
-}
-
-func (x *NodeWorkflowDistinctReq) GetOperateTimeRange() *TimeRange {
-	if x != nil {
-		return x.OperateTimeRange
 	}
 	return nil
 }
@@ -1034,7 +1026,6 @@ func (x *NodeWorkflowOperationListReq) GetWorkflowId() string {
 }
 
 // NodeWorkflowOperationListResp describes the node operation list by
-// workflow-id response.
 type NodeWorkflowOperationListResp struct {
 	state         protoimpl.MessageState              `protogen:"open.v1"`
 	Code          int32                               `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
@@ -1228,7 +1219,6 @@ func (x *NodeWorkflowOperationInstanceListResp) GetData() *NodeWorkflowOperation
 }
 
 // NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow
-// list request.
 type NodeWorkflowInstanceStatusExactConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TriggerId     []string               `protobuf:"bytes,1,rep,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
@@ -1508,8 +1498,6 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) GetData() *NodeWorkflowOpe
 	return nil
 }
 
-// NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
-// log request.
 type NodeWorkflowOperationInstanceLogGetReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OperInstId    string                 `protobuf:"bytes,1,opt,name=oper_inst_id,json=operInstId,proto3" json:"oper_inst_id"`
@@ -1554,8 +1542,7 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) GetOperInstId() string {
 	return ""
 }
 
-// NodeOperActionInstLogResp describes the node operation action instance log
-// response.
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
 type NodeWorkflowOperationInstanceLogGetResp struct {
 	state         protoimpl.MessageState                        `protogen:"open.v1"`
 	Code          int32                                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
@@ -2329,11 +2316,10 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x0e_timeout_countB\x13\n" +
 	"\x11_terminated_count\x1aK\n" +
 	"\x04Data\x12C\n" +
-	"\x05items\x18\x01 \x03(\v2-.v3.NodeWorkflowStatisticsResp.StatisticsInfoR\x05items\"\x8c\x02\n" +
+	"\x05items\x18\x01 \x03(\v2-.v3.NodeWorkflowStatisticsResp.StatisticsInfoR\x05items\"\xcf\x01\n" +
 	"\x17NodeWorkflowDistinctReq\x12Y\n" +
 	"\x18exact_include_conditions\x18\x01 \x01(\v2\x1f.v3.NodeWorkflowExactConditionsR\x16exactIncludeConditions\x12Y\n" +
-	"\x18fuzzy_include_conditions\x18\x02 \x01(\v2\x1f.v3.NodeWorkflowFuzzyConditionsR\x16fuzzyIncludeConditions\x12;\n" +
-	"\x12operate_time_range\x18\x03 \x01(\v2\r.v3.TimeRangeR\x10operateTimeRange\"\x8a\x02\n" +
+	"\x18fuzzy_include_conditions\x18\x02 \x01(\v2\x1f.v3.NodeWorkflowFuzzyConditionsR\x16fuzzyIncludeConditions\"\x8a\x02\n" +
 	"\x18NodeWorkflowDistinctResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
@@ -2525,44 +2511,43 @@ var file_node_workflow_proto_depIdxs = []int32{
 	28, // 5: v3.NodeWorkflowStatisticsResp.data:type_name -> v3.NodeWorkflowStatisticsResp.Data
 	1,  // 6: v3.NodeWorkflowDistinctReq.exact_include_conditions:type_name -> v3.NodeWorkflowExactConditions
 	2,  // 7: v3.NodeWorkflowDistinctReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowFuzzyConditions
-	38, // 8: v3.NodeWorkflowDistinctReq.operate_time_range:type_name -> v3.TimeRange
-	29, // 9: v3.NodeWorkflowDistinctResp.data:type_name -> v3.NodeWorkflowDistinctResp.Data
-	9,  // 10: v3.NodeWorkflowOperation.definition:type_name -> v3.OperationDefinition
-	10, // 11: v3.NodeWorkflowOperation.param:type_name -> v3.OperationParam
-	30, // 12: v3.NodeWorflowOperationInstance.action:type_name -> v3.NodeWorflowOperationInstance.Action
-	37, // 13: v3.NodeWorkflowOperationListReq.page:type_name -> v3.Page
-	31, // 14: v3.NodeWorkflowOperationListResp.data:type_name -> v3.NodeWorkflowOperationListResp.Data
-	32, // 15: v3.NodeWorkflowOperationInstanceListResp.data:type_name -> v3.NodeWorkflowOperationInstanceListResp.Data
-	37, // 16: v3.NodeWorkflowOperationInstanceListStatusReq.page:type_name -> v3.Page
-	18, // 17: v3.NodeWorkflowOperationInstanceListStatusReq.exact_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusExactConditions
-	19, // 18: v3.NodeWorkflowOperationInstanceListStatusReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusFuzzyConditions
-	33, // 19: v3.NodeWorkflowOperationInstanceListStatusResp.data:type_name -> v3.NodeWorkflowOperationInstanceListStatusResp.Data
-	34, // 20: v3.NodeWorkflowOperationInstanceLogGetResp.data:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data
-	36, // 21: v3.ActionMessage.logs:type_name -> v3.ActionMessage.Message
-	0,  // 22: v3.NodeWorkflowListResp.Data.items:type_name -> v3.NodeWorkflowInfo
-	27, // 23: v3.NodeWorkflowStatisticsResp.Data.items:type_name -> v3.NodeWorkflowStatisticsResp.StatisticsInfo
-	11, // 24: v3.NodeWorkflowOperationListResp.Data.operations:type_name -> v3.NodeWorkflowOperation
-	13, // 25: v3.NodeWorkflowOperationInstanceListResp.Data.oper_inst_data:type_name -> v3.NodeWorflowOperationInstanceData
-	21, // 26: v3.NodeWorkflowOperationInstanceListStatusResp.Data.items:type_name -> v3.NodeWorkflowOperationInstanceStatus
-	35, // 27: v3.NodeWorkflowOperationInstanceLogGetResp.Data.oper_inst_logs:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
-	25, // 28: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry.value:type_name -> v3.ActionMessage
-	3,  // 29: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
-	5,  // 30: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
-	7,  // 31: v3.NodeWorkflow.NodeWorkflowDistinct:input_type -> v3.NodeWorkflowDistinctReq
-	14, // 32: v3.NodeWorkflow.NodeWorkflowOperationList:input_type -> v3.NodeWorkflowOperationListReq
-	16, // 33: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:input_type -> v3.NodeWorkflowOperationInstanceListReq
-	23, // 34: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:input_type -> v3.NodeWorkflowOperationInstanceLogGetReq
-	4,  // 35: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
-	6,  // 36: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticsResp
-	8,  // 37: v3.NodeWorkflow.NodeWorkflowDistinct:output_type -> v3.NodeWorkflowDistinctResp
-	15, // 38: v3.NodeWorkflow.NodeWorkflowOperationList:output_type -> v3.NodeWorkflowOperationListResp
-	17, // 39: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:output_type -> v3.NodeWorkflowOperationInstanceListResp
-	24, // 40: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:output_type -> v3.NodeWorkflowOperationInstanceLogGetResp
-	35, // [35:41] is the sub-list for method output_type
-	29, // [29:35] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	29, // 8: v3.NodeWorkflowDistinctResp.data:type_name -> v3.NodeWorkflowDistinctResp.Data
+	9,  // 9: v3.NodeWorkflowOperation.definition:type_name -> v3.OperationDefinition
+	10, // 10: v3.NodeWorkflowOperation.param:type_name -> v3.OperationParam
+	30, // 11: v3.NodeWorflowOperationInstance.action:type_name -> v3.NodeWorflowOperationInstance.Action
+	37, // 12: v3.NodeWorkflowOperationListReq.page:type_name -> v3.Page
+	31, // 13: v3.NodeWorkflowOperationListResp.data:type_name -> v3.NodeWorkflowOperationListResp.Data
+	32, // 14: v3.NodeWorkflowOperationInstanceListResp.data:type_name -> v3.NodeWorkflowOperationInstanceListResp.Data
+	37, // 15: v3.NodeWorkflowOperationInstanceListStatusReq.page:type_name -> v3.Page
+	18, // 16: v3.NodeWorkflowOperationInstanceListStatusReq.exact_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusExactConditions
+	19, // 17: v3.NodeWorkflowOperationInstanceListStatusReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusFuzzyConditions
+	33, // 18: v3.NodeWorkflowOperationInstanceListStatusResp.data:type_name -> v3.NodeWorkflowOperationInstanceListStatusResp.Data
+	34, // 19: v3.NodeWorkflowOperationInstanceLogGetResp.data:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data
+	36, // 20: v3.ActionMessage.logs:type_name -> v3.ActionMessage.Message
+	0,  // 21: v3.NodeWorkflowListResp.Data.items:type_name -> v3.NodeWorkflowInfo
+	27, // 22: v3.NodeWorkflowStatisticsResp.Data.items:type_name -> v3.NodeWorkflowStatisticsResp.StatisticsInfo
+	11, // 23: v3.NodeWorkflowOperationListResp.Data.operations:type_name -> v3.NodeWorkflowOperation
+	13, // 24: v3.NodeWorkflowOperationInstanceListResp.Data.oper_inst_data:type_name -> v3.NodeWorflowOperationInstanceData
+	21, // 25: v3.NodeWorkflowOperationInstanceListStatusResp.Data.items:type_name -> v3.NodeWorkflowOperationInstanceStatus
+	35, // 26: v3.NodeWorkflowOperationInstanceLogGetResp.Data.oper_inst_logs:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
+	25, // 27: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry.value:type_name -> v3.ActionMessage
+	3,  // 28: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
+	5,  // 29: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
+	7,  // 30: v3.NodeWorkflow.NodeWorkflowDistinct:input_type -> v3.NodeWorkflowDistinctReq
+	14, // 31: v3.NodeWorkflow.NodeWorkflowOperationList:input_type -> v3.NodeWorkflowOperationListReq
+	16, // 32: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:input_type -> v3.NodeWorkflowOperationInstanceListReq
+	23, // 33: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:input_type -> v3.NodeWorkflowOperationInstanceLogGetReq
+	4,  // 34: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
+	6,  // 35: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticsResp
+	8,  // 36: v3.NodeWorkflow.NodeWorkflowDistinct:output_type -> v3.NodeWorkflowDistinctResp
+	15, // 37: v3.NodeWorkflow.NodeWorkflowOperationList:output_type -> v3.NodeWorkflowOperationListResp
+	17, // 38: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:output_type -> v3.NodeWorkflowOperationInstanceListResp
+	24, // 39: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:output_type -> v3.NodeWorkflowOperationInstanceLogGetResp
+	34, // [34:40] is the sub-list for method output_type
+	28, // [28:34] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_node_workflow_proto_init() }

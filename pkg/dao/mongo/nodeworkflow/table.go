@@ -18,7 +18,7 @@ import (
 
 // TableName node workflow table name.
 func TableName() string {
-	return "node_workflow_%s"
+	return "node_workflow"
 }
 
 // Data represents the table of node workflow.
