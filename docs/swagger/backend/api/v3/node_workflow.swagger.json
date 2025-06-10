@@ -241,7 +241,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceStatusListReq ...",
+            "description": "NodeWorkflowOperationInstanceListStatusReq ...",
             "in": "body",
             "required": true,
             "schema": {
@@ -382,7 +382,8 @@
           "type": "string"
         },
         "login_mode": {
-          "type": "string",
+          "type": "integer",
+          "format": "int64",
           "title": "support: auto, password, keyfile, none"
         },
         "login_password": {
@@ -558,7 +559,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "description": "NodeWorflowOperationInstanceData ..."
     },
     "v3NodeWorkflowDistinctReq": {
       "type": "object",
@@ -784,7 +786,8 @@
         "param": {
           "$ref": "#/definitions/v3OperationParam"
         }
-      }
+      },
+      "description": "NodeWorkflowOperation ..."
     },
     "v3NodeWorkflowOperationInstanceListReq": {
       "type": "object",
@@ -846,7 +849,7 @@
           "$ref": "#/definitions/v3NodeWorkflowInstanceStatusFuzzyConditions"
         }
       },
-      "description": "NodeWorkflowOperationInstanceStatusListReq ..."
+      "description": "NodeWorkflowOperationInstanceListStatusReq ..."
     },
     "v3NodeWorkflowOperationInstanceListStatusResp": {
       "type": "object",
@@ -905,7 +908,7 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
         }
       },
-      "description": "NodeOperActionInstLogResp describes the node operation action instance log\nresponse."
+      "description": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log\nresponse."
     },
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
@@ -1013,7 +1016,8 @@
           "type": "integer",
           "format": "int64"
         }
-      }
+      },
+      "description": "OperationParam ..."
     },
     "v3Page": {
       "type": "object",

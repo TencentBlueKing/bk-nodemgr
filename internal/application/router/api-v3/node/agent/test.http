@@ -1,0 +1,85 @@
+
+
+POST http://127.0.0.1:7000/api/v3/node/agent/install HTTP/1.1
+content-type: application/json
+
+{
+  "host": [
+    {
+      "bk_host_innerip":"9.134.133.207",
+      "os_type":"linux",
+      "login_ip":"9.134.133.207",
+      "login_user":"root",
+      "login_port":36000,
+      "login_mode":"password",
+      "login_password":"Uuedr@9567RbHy",
+      "bk_biz_id":12,"target_version":"v2.1.6-beta.55",
+      "target_generation":2,
+      "bk_networkunit_id":0,
+      "node_role":"agent",
+      "tenant_id":"single",
+      "bk_addressing":"static"
+
+    }
+  ]
+}
+
+####
+
+POST http://127.0.0.1:7000/api/v3/node/agent/install HTTP/1.1
+content-type: application/json
+
+{
+  "host": [
+    {
+      "bk_addressing": "static",
+      "bk_host_innerip": "192.168.1.101",
+      "login_ip": "192.168.1.101",
+      "login_port": 22,
+      "bk_biz_id": 10001,
+      "login_user": "admin",
+      "login_mode": "password",
+      "login_password": "Admin@123",
+      "os_type": "linux",
+       "bk_networkunit_id": 2,
+      "target_version": "v1.2.3"
+    },
+    {
+      "bk_addressing": "static",
+      "bk_host_innerip": "192.168.1.101",
+      "login_ip": "192.168.1.101",
+      "login_port": 22,
+      "bk_biz_id": 10003,
+      "login_user": "admin",
+      "login_mode": "password",
+      "login_password": "Admin@123",
+      "os_type": "linux",
+      "bk_networkunit_id": 0,
+      "target_version": "v1.2.3"
+    }
+  ]
+}
+
+#####
+
+POST http://127.0.0.1:7000/api/v3/node/agent/install HTTP/1.1
+content-type: application/json
+
+{
+  "host": [
+    {
+      "bk_addressing": "static",
+      "bk_host_innerip": "192.168.2.200",
+      "login_ip": "192.168.2.200",
+      "login_port": 5985,
+      "login_user": "Administrator",
+      "login_mode": "password",
+      "login_password": "WinP@ssw0rd",
+      "bk_biz_id": 10003,
+      "bk_networkunit_id": 0,
+      "os_type": "windows",
+      "target_version": "v1.2.3-win",
+      "bk_host_id": 67890
+    }
+  ]
+}

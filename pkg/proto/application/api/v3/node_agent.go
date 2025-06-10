@@ -10,11 +10,109 @@
 
 package v3
 
+import (
+	"errors"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeAgentInstallReq_Host) Validate() error {
+	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
+		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
+	}
+
+	if x.GetBkBizId() < 0 {
+		return errors.New("biz_id must be equal or greater than 0")
+	}
+
+	if x.OsType == "" {
+		return errors.New("os_type can not be empty")
+	}
+
+	if err := types.Addressing(x.GetBkAddressing()).Validate(); err != nil {
+		return err
+	}
+
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("network_unit_id must be greater than or equal to 0")
+	}
+
+	if x.TargetVersion == "" {
+		return errors.New("target_version can not be empty")
+	}
+
+	if x.LoginIp == "" {
+		return errors.New("login_ip can not be empty")
+	}
+
+	if x.GetLoginPort() < 0 {
+		return errors.New("login_port must be greater than 0")
+	}
+
+	if len(x.GetLoginUser()) == 0 {
+		return errors.New("login_user can not be empty")
+	}
+
+	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // AutoConvert auto convert.
 func (x *NodeAgentInstallReq) AutoConvert() {
+}
+
+// ConvertAgentParamToTypes ...
+func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() []*types.NodeAgentInstallParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	result := make([]*types.NodeAgentInstallParam, len(hosts))
+
+	for idx, host := range hosts {
+		result[idx] = &types.NodeAgentInstallParam{
+			BizID:         host.GetBkBizId(),
+			InnerIP:       host.GetBkHostInnerip(),
+			InnerIPV6:     host.GetBkHostInneripV6(),
+			Addressing:    types.Addressing(host.GetBkAddressing()),
+			LoginIP:       host.GetLoginIp(),
+			LoginPort:     int64(host.GetLoginPort()),
+			LoginUser:     host.GetLoginUser(),
+			LoginMode:     types.LoginMode(host.GetLoginMode()),
+			LoginPassword: host.GetLoginPassword(),
+			LoginKeyFile:  host.GetLoginKeyFile(),
+			NetworkUnitID: host.GetBkNetworkunitId(),
+			OSType:        host.GetOsType(),
+			TargetVersion: host.GetTargetVersion(),
+		}
+	}
+
+	return result
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
 }

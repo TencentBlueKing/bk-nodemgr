@@ -12,12 +12,12 @@ package types
 
 // NodeAgentInstallParam describes the node agent install parameter.
 type NodeAgentInstallParam struct {
-	BizID         string
+	BizID         int64
 	InnerIP       string
 	InnerIPV6     string
 	Addressing    Addressing
 	LoginIP       string
-	LoginPort     int
+	LoginPort     int64
 	LoginUser     string
 	LoginMode     LoginMode
 	LoginPassword string

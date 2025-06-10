@@ -170,9 +170,9 @@ type IHandlerNetworkUnit interface {
 type IHandlerNodeAgent interface {
 	// InstallAgent node agent.
 	// @param ctx context, contains tenant-id.
-	// @param param the install param.
-	// @return the installing workflow-id and error.
-	InstallAgent(ctx context.Context, param *types.NodeAgentInstallParam) (string, error)
+	// @param hosts the install param.
+	// @return the installing workflow-ids and error.
+	InstallAgent(ctx context.Context, hostsParam []*types.NodeAgentInstallParam) (string, error)
 }
 
 // IHandlerNodeWorkflow defines the node workflow handler.

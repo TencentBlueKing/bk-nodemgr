@@ -24,23 +24,10 @@ const (
 
 // NodeAgentInstallReq describes the HTTP request body when install node agent.
 type NodeAgentInstallReq struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
-	BkBizId         *int64                 `protobuf:"varint,2,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id"`
-	BkHostInnerip   string                 `protobuf:"bytes,3,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
-	BkHostInneripV6 string                 `protobuf:"bytes,4,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
-	LoginIp         string                 `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip"`
-	LoginPort       *int64                 `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3,oneof" json:"login_port"`
-	LoginUser       string                 `protobuf:"bytes,7,opt,name=login_user,json=loginUser,proto3" json:"login_user"`
-	// support: auto, password, keyfile, none
-	LoginMode       string `protobuf:"bytes,8,opt,name=login_mode,json=loginMode,proto3" json:"login_mode"`
-	LoginPassword   string `protobuf:"bytes,9,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
-	LoginKeyFile    []byte `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
-	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
-	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
-	TargetVersion   string `protobuf:"bytes,13,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Host          []*NodeAgentInstallReq_Host `protobuf:"bytes,1,rep,name=host,proto3" json:"host"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NodeAgentInstallReq) Reset() {
@@ -73,98 +60,14 @@ func (*NodeAgentInstallReq) Descriptor() ([]byte, []int) {
 	return file_node_agent_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *NodeAgentInstallReq) GetBkAddressing() string {
+func (x *NodeAgentInstallReq) GetHost() []*NodeAgentInstallReq_Host {
 	if x != nil {
-		return x.BkAddressing
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetBkBizId() int64 {
-	if x != nil && x.BkBizId != nil {
-		return *x.BkBizId
-	}
-	return 0
-}
-
-func (x *NodeAgentInstallReq) GetBkHostInnerip() string {
-	if x != nil {
-		return x.BkHostInnerip
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetBkHostInneripV6() string {
-	if x != nil {
-		return x.BkHostInneripV6
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetLoginIp() string {
-	if x != nil {
-		return x.LoginIp
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetLoginPort() int64 {
-	if x != nil && x.LoginPort != nil {
-		return *x.LoginPort
-	}
-	return 0
-}
-
-func (x *NodeAgentInstallReq) GetLoginUser() string {
-	if x != nil {
-		return x.LoginUser
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetLoginMode() string {
-	if x != nil {
-		return x.LoginMode
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetLoginPassword() string {
-	if x != nil {
-		return x.LoginPassword
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetLoginKeyFile() []byte {
-	if x != nil {
-		return x.LoginKeyFile
+		return x.Host
 	}
 	return nil
 }
 
-func (x *NodeAgentInstallReq) GetBkNetworkunitId() int64 {
-	if x != nil && x.BkNetworkunitId != nil {
-		return *x.BkNetworkunitId
-	}
-	return 0
-}
-
-func (x *NodeAgentInstallReq) GetOsType() string {
-	if x != nil {
-		return x.OsType
-	}
-	return ""
-}
-
-func (x *NodeAgentInstallReq) GetTargetVersion() string {
-	if x != nil {
-		return x.TargetVersion
-	}
-	return ""
-}
-
-// NodeAgentInstallResp describes
+// NodeAgentInstallResp describes the node agent install response.
 type NodeAgentInstallResp struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
 	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
@@ -233,6 +136,163 @@ func (x *NodeAgentInstallResp) GetData() *NodeAgentInstallResp_Data {
 	return nil
 }
 
+type NodeAgentInstallReq_Host struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
+	BkBizId         *int64                 `protobuf:"varint,2,opt,name=bk_biz_id,json=bkBizId,proto3,oneof" json:"bk_biz_id"`
+	BkHostInnerip   string                 `protobuf:"bytes,3,opt,name=bk_host_innerip,json=bkHostInnerip,proto3" json:"bk_host_innerip"`
+	BkHostInneripV6 string                 `protobuf:"bytes,4,opt,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
+	LoginIp         string                 `protobuf:"bytes,5,opt,name=login_ip,json=loginIp,proto3" json:"login_ip"`
+	LoginPort       *int64                 `protobuf:"varint,6,opt,name=login_port,json=loginPort,proto3,oneof" json:"login_port"`
+	LoginUser       string                 `protobuf:"bytes,7,opt,name=login_user,json=loginUser,proto3" json:"login_user"`
+	// support: auto, password, keyfile, none
+	LoginMode       string `protobuf:"bytes,8,opt,name=login_mode,json=loginMode,proto3" json:"login_mode"`
+	LoginPassword   string `protobuf:"bytes,9,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
+	LoginKeyFile    []byte `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
+	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
+	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
+	TargetVersion   string `protobuf:"bytes,13,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
+	BkHostId        *int64 `protobuf:"varint,14,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
+	ReRegister      bool   `protobuf:"varint,15,opt,name=re_register,json=reRegister,proto3" json:"re_register"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *NodeAgentInstallReq_Host) Reset() {
+	*x = NodeAgentInstallReq_Host{}
+	mi := &file_node_agent_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentInstallReq_Host) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentInstallReq_Host) ProtoMessage() {}
+
+func (x *NodeAgentInstallReq_Host) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentInstallReq_Host.ProtoReflect.Descriptor instead.
+func (*NodeAgentInstallReq_Host) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkAddressing() string {
+	if x != nil {
+		return x.BkAddressing
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkBizId() int64 {
+	if x != nil && x.BkBizId != nil {
+		return *x.BkBizId
+	}
+	return 0
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkHostInnerip() string {
+	if x != nil {
+		return x.BkHostInnerip
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkHostInneripV6() string {
+	if x != nil {
+		return x.BkHostInneripV6
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginIp() string {
+	if x != nil {
+		return x.LoginIp
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginPort() int64 {
+	if x != nil && x.LoginPort != nil {
+		return *x.LoginPort
+	}
+	return 0
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginUser() string {
+	if x != nil {
+		return x.LoginUser
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginMode() string {
+	if x != nil {
+		return x.LoginMode
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginPassword() string {
+	if x != nil {
+		return x.LoginPassword
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetLoginKeyFile() []byte {
+	if x != nil {
+		return x.LoginKeyFile
+	}
+	return nil
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkNetworkunitId() int64 {
+	if x != nil && x.BkNetworkunitId != nil {
+		return *x.BkNetworkunitId
+	}
+	return 0
+}
+
+func (x *NodeAgentInstallReq_Host) GetOsType() string {
+	if x != nil {
+		return x.OsType
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetTargetVersion() string {
+	if x != nil {
+		return x.TargetVersion
+	}
+	return ""
+}
+
+func (x *NodeAgentInstallReq_Host) GetBkHostId() int64 {
+	if x != nil && x.BkHostId != nil {
+		return *x.BkHostId
+	}
+	return 0
+}
+
+func (x *NodeAgentInstallReq_Host) GetReRegister() bool {
+	if x != nil {
+		return x.ReRegister
+	}
+	return false
+}
+
 type NodeAgentInstallResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
@@ -242,7 +302,7 @@ type NodeAgentInstallResp_Data struct {
 
 func (x *NodeAgentInstallResp_Data) Reset() {
 	*x = NodeAgentInstallResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[2]
+	mi := &file_node_agent_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -254,7 +314,7 @@ func (x *NodeAgentInstallResp_Data) String() string {
 func (*NodeAgentInstallResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentInstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[2]
+	mi := &file_node_agent_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -281,8 +341,10 @@ var File_node_agent_proto protoreflect.FileDescriptor
 
 const file_node_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x10node_agent.proto\x12\x02v3\x1a\fcommon.proto\x1a\x1cgoogle/api/annotations.proto\"\x9e\x04\n" +
-	"\x13NodeAgentInstallReq\x12#\n" +
+	"\x10node_agent.proto\x12\x02v3\x1a\fcommon.proto\x1a\x1cgoogle/api/annotations.proto\"\xac\x05\n" +
+	"\x13NodeAgentInstallReq\x120\n" +
+	"\x04host\x18\x01 \x03(\v2\x1c.v3.NodeAgentInstallReq.HostR\x04host\x1a\xe2\x04\n" +
+	"\x04Host\x12#\n" +
 	"\rbk_addressing\x18\x01 \x01(\tR\fbkAddressing\x12\x1f\n" +
 	"\tbk_biz_id\x18\x02 \x01(\x03H\x00R\abkBizId\x88\x01\x01\x12&\n" +
 	"\x0fbk_host_innerip\x18\x03 \x01(\tR\rbkHostInnerip\x12+\n" +
@@ -299,11 +361,16 @@ const file_node_agent_proto_rawDesc = "" +
 	" \x01(\fR\floginKeyFile\x12/\n" +
 	"\x11bk_networkunit_id\x18\v \x01(\x03H\x02R\x0fbkNetworkunitId\x88\x01\x01\x12\x17\n" +
 	"\aos_type\x18\f \x01(\tR\x06osType\x12%\n" +
-	"\x0etarget_version\x18\r \x01(\tR\rtargetVersionB\f\n" +
+	"\x0etarget_version\x18\r \x01(\tR\rtargetVersion\x12!\n" +
+	"\n" +
+	"bk_host_id\x18\x0e \x01(\x03H\x03R\bbkHostId\x88\x01\x01\x12\x1f\n" +
+	"\vre_register\x18\x0f \x01(\bR\n" +
+	"reRegisterB\f\n" +
 	"\n" +
 	"_bk_biz_idB\r\n" +
 	"\v_login_portB\x14\n" +
-	"\x12_bk_networkunit_id\"\xbf\x01\n" +
+	"\x12_bk_networkunit_idB\r\n" +
+	"\v_bk_host_id\"\xbf\x01\n" +
 	"\x14NodeAgentInstallResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
@@ -328,21 +395,23 @@ func file_node_agent_proto_rawDescGZIP() []byte {
 	return file_node_agent_proto_rawDescData
 }
 
-var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_node_agent_proto_goTypes = []any{
 	(*NodeAgentInstallReq)(nil),       // 0: v3.NodeAgentInstallReq
 	(*NodeAgentInstallResp)(nil),      // 1: v3.NodeAgentInstallResp
-	(*NodeAgentInstallResp_Data)(nil), // 2: v3.NodeAgentInstallResp.Data
+	(*NodeAgentInstallReq_Host)(nil),  // 2: v3.NodeAgentInstallReq.Host
+	(*NodeAgentInstallResp_Data)(nil), // 3: v3.NodeAgentInstallResp.Data
 }
 var file_node_agent_proto_depIdxs = []int32{
-	2, // 0: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
-	0, // 1: v3.NodeAgent.NodeAgentInstall:input_type -> v3.NodeAgentInstallReq
-	1, // 2: v3.NodeAgent.NodeAgentInstall:output_type -> v3.NodeAgentInstallResp
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
+	3, // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
+	0, // 2: v3.NodeAgent.NodeAgentInstall:input_type -> v3.NodeAgentInstallReq
+	1, // 3: v3.NodeAgent.NodeAgentInstall:output_type -> v3.NodeAgentInstallResp
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_node_agent_proto_init() }
@@ -351,14 +420,14 @@ func file_node_agent_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_node_agent_proto_msgTypes[0].OneofWrappers = []any{}
+	file_node_agent_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_agent_proto_rawDesc), len(file_node_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -13,12 +13,30 @@ package backend
 import (
 	"context"
 
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // InstallAgent node agent.
-func (h *handler) InstallAgent(ctx context.Context, param *types.NodeAgentInstallParam) (string, error) {
-	return "", nil
+func (h *handler) InstallAgent(ctx context.Context, hostsParam []*types.NodeAgentInstallParam) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	req := &protoBackend.NodeAgentInstallReq{}
+
+	req.ConvertHostParamFromTypes(hostsParam)
+
+	resp, err := h.cli.installNodeAgent(ctx, tenantID, req)
+	if err != nil {
+		return "", err
+	}
+
+	result := resp.ConvertResultToComm()
+
+	return result, nil
 }
 
 // UninstallAgent node agent.

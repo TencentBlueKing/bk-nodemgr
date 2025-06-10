@@ -461,7 +461,7 @@ func (*NodeWorkflowInstanceStatusFuzzyConditions) Descriptor() ([]byte, []int) {
 	return file_node_workflow_proto_rawDescGZIP(), []int{6}
 }
 
-// NodeWorkflowOperationInstanceStatusListReq ...
+// NodeWorkflowOperationInstanceListStatusReq ...
 type NodeWorkflowOperationInstanceListStatusReq struct {
 	state                  protoimpl.MessageState                     `protogen:"open.v1"`
 	Page                   *Page                                      `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
@@ -835,6 +835,7 @@ func (x *OperationDefinition) GetActionNames() []string {
 	return nil
 }
 
+// OperationParam ...
 type OperationParam struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TimeoutSecond int64                  `protobuf:"varint,1,opt,name=timeout_second,json=timeoutSecond,proto3" json:"timeout_second"`
@@ -879,6 +880,7 @@ func (x *OperationParam) GetTimeoutSecond() int64 {
 	return 0
 }
 
+// NodeWorkflowOperation ...
 type NodeWorkflowOperation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
@@ -1048,6 +1050,7 @@ func (x *NodeWorflowOperationInstance) GetAction() []*NodeWorflowOperationInstan
 	return nil
 }
 
+// NodeWorflowOperationInstanceData ...
 type NodeWorflowOperationInstanceData struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	OperationId       string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
@@ -1434,7 +1437,7 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) GetOperInstId() string {
 	return ""
 }
 
-// NodeOperActionInstLogResp describes the node operation action instance log
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
 // response.
 type NodeWorkflowOperationInstanceLogGetResp struct {
 	state         protoimpl.MessageState                        `protogen:"open.v1"`

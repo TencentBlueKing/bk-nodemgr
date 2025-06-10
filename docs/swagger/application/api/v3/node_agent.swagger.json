@@ -91,6 +91,19 @@
     "v3NodeAgentInstallReq": {
       "type": "object",
       "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentInstallReq describes the HTTP request body when install node agent."
+    },
+    "v3NodeAgentInstallReqHost": {
+      "type": "object",
+      "properties": {
         "bk_addressing": {
           "type": "string"
         },
@@ -134,9 +147,15 @@
         },
         "target_version": {
           "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "re_register": {
+          "type": "boolean"
         }
-      },
-      "description": "NodeAgentInstallReq describes the HTTP request body when install node agent."
+      }
     },
     "v3NodeAgentInstallResp": {
       "type": "object",
@@ -155,7 +174,7 @@
           "$ref": "#/definitions/NodeAgentInstallRespData"
         }
       },
-      "title": "NodeAgentInstallResp describes"
+      "description": "NodeAgentInstallResp describes the node agent install response."
     }
   }
 }

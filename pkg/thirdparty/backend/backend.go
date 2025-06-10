@@ -814,3 +814,36 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(ctx context.Context, tenantID str
 
 	return resp, nil
 }
+
+func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoBackend.NodeAgentInstallReq) (
+	*protoBackend.NodeAgentInstallResp, error) {
+
+	resp := new(protoBackend.NodeAgentInstallResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/agent/install").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("install node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("install node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow describes the workflow router.
-package workflow
+// Package agent provides the agent API handler.
+package agent
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
@@ -40,7 +40,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/list", rest.RestHandlerFunc(h.Install))
+	h.rg.POST("/install", rest.RestHandlerFunc(h.Install))
 }
 
 // Install agent.
@@ -57,10 +57,19 @@ func (h *handler) Install(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// TODO: call thirdparty backend.
+	if err := req.Validate(); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to validate request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 
-	resp := new(protoApplication.NodeWorkflowListResp)
-	// TODO: convert data from types.
+	workflowID, err := h.backendHandler.InstallAgent(sCtx, req.ConvertAgentParamToTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		return nil, err
+	}
+	resp := new(protoApplication.NodeAgentInstallResp)
+
+	resp.ConvertWorkflowID(workflowID)
 
 	return resp.GetData(), nil
 }

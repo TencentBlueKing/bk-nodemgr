@@ -113,3 +113,31 @@ func (x *NodeAgentInstallReq_Host) AutoConvert() {
 func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
 }
+
+// ConvertHostParamFromTypes ...
+func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgentInstallParam) {
+	hostsParam := make([]*NodeAgentInstallReq_Host, len(hosts))
+	for idx, host := range hosts {
+		hostsParam[idx] = &NodeAgentInstallReq_Host{
+			BkBizId:         &host.BizID,
+			BkHostInnerip:   host.InnerIP,
+			BkHostInneripV6: host.InnerIPV6,
+			BkAddressing:    string(host.Addressing),
+			LoginIp:         host.LoginIP,
+			LoginPort:       &host.LoginPort,
+			LoginUser:       host.LoginUser,
+			LoginMode:       string(host.LoginMode),
+			LoginPassword:   host.LoginPassword,
+			LoginKeyFile:    host.LoginKeyFile,
+			BkNetworkunitId: &host.NetworkUnitID,
+			OsType:          host.OSType,
+			TargetVersion:   host.TargetVersion,
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+func (x *NodeAgentInstallResp) ConvertResultToComm() string {
+	return x.GetData().GetWorkflowId()
+}
