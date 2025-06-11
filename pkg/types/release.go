@@ -14,6 +14,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
@@ -78,4 +79,14 @@ type Release struct {
 	LocalDir    string
 	MD5         string
 	UpdatedAt   time.Time
+}
+
+// OriginPkgDetail defines the detail of origin package.
+type OriginPkgDetail struct {
+	iface.FileInfo
+
+	Version     string
+	Platforms   []platform.Platform
+	ChangeLogEN string
+	ChangeLogZH string
 }

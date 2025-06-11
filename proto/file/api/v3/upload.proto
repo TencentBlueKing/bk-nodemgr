@@ -1,7 +1,8 @@
 syntax = "proto3";
 package v3;
-option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
 
+import "common.proto";
 import "google/api/annotations.proto";
 
 // UploadAgentReq is the request for upload agent pkg.
@@ -44,9 +45,20 @@ message UploadOriginAgentReq {
 
 // UploadOriginAgentResp is the response for upload origin agent pkg.
 message UploadOriginAgentResp {
-  string name = 1;
-  int64 size = 2;
-  string md5 = 3;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    string name = 1;
+    int64 size = 2;
+    string md5 = 3;
+    string version = 4;
+    string changelog_en = 5;
+    string changelog_zh = 6;
+    repeated Platform platforms = 7;
+  }
+  Data data = 4;
 }
 
 // UploadOriginServerReq is the request for upload origin server pkg.
@@ -57,7 +69,16 @@ message UploadOriginServerReq {
 
 // UploadOriginServerResp is the response for upload origin server pkg.
 message UploadOriginServerResp {
-  string name = 1;
-  int64 size = 2;
-  string md5 = 3;
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    string name = 1;
+    int64 size = 2;
+    string md5 = 3;
+    string version = 4;
+    repeated Platform platforms = 5;
+  }
+  Data data = 4;
 }

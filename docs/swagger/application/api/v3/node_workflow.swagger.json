@@ -172,7 +172,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest.",
+            "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest.",
             "in": "body",
             "required": true,
             "schema": {
@@ -621,7 +621,7 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
         }
       },
-      "title": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log"
+      "title": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log"
     },
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
@@ -651,7 +651,7 @@
           "type": "string"
         }
       },
-      "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest."
+      "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest."
     },
     "v3NodeWorkflowOperationListResp": {
       "type": "object",

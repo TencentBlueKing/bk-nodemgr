@@ -29,10 +29,10 @@ type IManager interface {
 	Start(ctx context.Context) error
 
 	// UploadOriginAgent uploads the origin agent.
-	UploadOriginAgent(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error)
+	UploadOriginAgent(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// UploadOriginServer uploads the origin server.
-	UploadOriginServer(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error)
+	UploadOriginServer(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 }
 
 // New returns a new file manager.

@@ -7,3 +7,9 @@ message Page {
   uint32 offset = 1;
   uint32 limit = 2;
 }
+
+// Platform describes the platform informations.
+message Platform {
+  string os_type = 1;
+  string cpu_arch = 2;
+}

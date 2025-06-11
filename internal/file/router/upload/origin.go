@@ -43,20 +43,17 @@ func (h *handler) UploadOriginAgent(ctx *rest.Context) (interface{}, error) {
 		_ = file.Close()
 	}()
 
-	info, err := h.manager.UploadOriginAgent(sCtx, types.Generation(req.GetGeneration()), file)
+	detail, err := h.manager.UploadOriginAgent(sCtx, types.Generation(req.GetGeneration()), file)
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to upload agent: %v", err)
 
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin agent, generation: %d", req.GetGeneration)
+	h.logger.InfoCtxf(sCtx, "uploaded origin agent, generation: %d, detail: %v", req.GetGeneration, detail)
 
-	resp := &protoFile.UploadOriginAgentResp{
-		Name: info.Name,
-		Size: info.Size,
-		Md5:  info.MD5,
-	}
+	resp := new(protoFile.UploadOriginAgentResp)
+	resp.ConvertResultFromTypes(detail)
 
 	return resp, nil
 }
@@ -87,20 +84,17 @@ func (h *handler) UploadOriginServer(ctx *rest.Context) (interface{}, error) {
 		_ = file.Close()
 	}()
 
-	info, err := h.manager.UploadOriginServer(sCtx, types.Generation(req.GetGeneration()), file)
+	detail, err := h.manager.UploadOriginServer(sCtx, types.Generation(req.GetGeneration()), file)
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to upload server: %v", err)
 
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin server, generation: %d", req.GetGeneration)
+	h.logger.InfoCtxf(sCtx, "uploaded origin server, generation: %d, detail: %v", req.GetGeneration, detail)
 
-	resp := &protoFile.UploadOriginAgentResp{
-		Name: info.Name,
-		Size: info.Size,
-		Md5:  info.MD5,
-	}
+	resp := new(protoFile.UploadOriginServerResp)
+	resp.ConvertResultFromTypes(detail)
 
 	return resp, nil
 }
