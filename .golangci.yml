@@ -689,3 +689,5 @@ linters-settings:
         alias: machineryLog
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header
         alias: restheader
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base
+        alias: daoBase

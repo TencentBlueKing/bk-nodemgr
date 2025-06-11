@@ -11,5 +11,5 @@ require (
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	golang.org/dl v0.0.0-20250605183656-adc0b895dd06 // indirect
+	golang.org/dl v0.0.0-20250610155227-7cf92d882f68 // indirect
 )

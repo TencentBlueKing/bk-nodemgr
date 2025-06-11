@@ -43,7 +43,10 @@ type IOperationInstData interface {
 	FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error)
 
 	// UpdateLifeCycle updates or inserts an InstanceData's LifeCycle.
-	UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error
+	UpdateLifeCycle(ctx context.Context, operInstID string, LifeCycle *operation.Lifecycle) error
+
+	// ListAllLastOperInst find all last OperInstData in their operation.
+	ListAllLastOperInst(ctx context.Context, opts ...OptFn) ([]*operation.InstanceBriefData, error)
 }
 
 // Upsert updates or inserts an OperInstData.
@@ -256,7 +259,7 @@ func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 
 	data := make([]*operation.InstanceBriefData, len(operaInstDatas))
 	for idx, opera := range operaInstDatas {
-		data[idx], err = ConvAOpeInstBreiefDataFromDB(opera)
+		data[idx], err = ConvOpeInstBriefDataFromDB(opera)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -307,4 +310,32 @@ func (h *handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 	}
 
 	return nil
+}
+
+// ListAllLastOperInst find all last OperInstData in their operation.
+func (h *handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
+	[]*operation.InstanceBriefData, error) {
+
+	if ctx == nil {
+		return nil, errors.New("ctx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	operaInstDatas, err := h.dao.listALLLastOperInst(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*operation.InstanceBriefData, len(operaInstDatas))
+	for idx, opera := range operaInstDatas {
+		data[idx], err = ConvOpeInstBriefDataFromDB(opera)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return data, nil
 }

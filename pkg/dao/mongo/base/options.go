@@ -10,17 +10,9 @@
 
 package base
 
-const (
-	// GlobalNetworkAreaID defines the main area of network.
-	// it belongs to system tenant in multi-tenant mode.
-	// and can be detected and linked by all tenants.
-	GlobalNetworkAreaID = 0
-)
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-const (
-	// FieldKeyCreatedAt defines the key of create time.
-	FieldKeyCreatedAt = "basic.created_at"
-
-	// FieldKeyUpdatedAt defines the key of update time.
-	FieldKeyUpdatedAt = "basic.updated_at"
-)
+// WithUpdateAtTimeRange filters by basic.update_at.
+func WithUpdateAtTimeRange(timeRange types.TimeRange) OptFn {
+	return WithTimeRange(FieldKeyUpdatedAt, timeRange.StartTime, timeRange.EndTime)
+}

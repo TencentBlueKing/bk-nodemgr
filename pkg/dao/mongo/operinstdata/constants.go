@@ -11,6 +11,9 @@
 package operinstdata
 
 const (
+	// FieldKeyOperationID is the field name for operation id.
+	FieldKeyOperationID = "data.operation_id"
+
 	// FieldKeyOperInstID is the field name for oper inst id.
 	FieldKeyOperInstID = "data.oper_inst_id"
 

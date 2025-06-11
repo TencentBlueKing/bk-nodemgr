@@ -13,6 +13,8 @@ package operinstdata
 
 import (
 	"context"
+	"log"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -184,4 +186,41 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 
 func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
 	return d.baseOrm.Get(ctx, filter, fields...)
+}
+
+// listALLLastOperInst lists all last operation instances base on operation id.
+func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperInstData, error) {
+	pipeline := mongo.Pipeline{
+		{{"$match", filter}},
+		{{"$sort", bson.D{{base.FieldKeyCreatedAt, -1}}}},
+		{{"$group", bson.D{
+			{"_id", "$" + FieldKeyOperationID},
+			{"doc", bson.D{{"$first", "$$ROOT"}}},
+		}}},
+		{{"$replaceRoot", bson.D{{"newRoot", "$doc"}}}},
+	}
+
+	opts := mongoOptions.Aggregate().SetAllowDiskUse(true)
+	cursor, err := d.client.Aggregate(ctx, pipeline, opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			d.logger.Errorf("failed to close cursor, err %v", err)
+		}
+	}(cursor, ctx)
+
+	datas := make([]*OperInstData, 0)
+	for cursor.Next(ctx) {
+		table := &TableOperInstData{}
+		if err := cursor.Decode(table); err != nil {
+			d.logger.Errorf("failed to decode table, err %v", err)
+			continue
+		}
+		datas = append(datas, table.Data)
+	}
+
+	return datas, nil
 }

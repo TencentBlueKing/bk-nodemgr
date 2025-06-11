@@ -127,6 +127,16 @@ const (
 	StateTerminated State = "terminated"
 )
 
+// CheckStateFinished checks if the state is finished.
+func CheckStateFinished(state State) bool {
+	switch state {
+	case StateSuccess, StateFailed, StateTimeout, StateTerminated:
+		return true
+	default:
+		return false
+	}
+}
+
 // StateListToStringList converts a state list to a string list.
 func StateListToStringList(states []State) []string {
 	data := make([]string, len(states))

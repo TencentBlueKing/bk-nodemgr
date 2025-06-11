@@ -210,8 +210,8 @@ func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.Inst
 	return data, nil
 }
 
-// ConvAOpeInstBreiefDataFromDB convert oper inst data without action data to common.
-func ConvAOpeInstBreiefDataFromDB(opear *OperInstData) (*operation.InstanceBriefData, error) {
+// ConvOpeInstBriefDataFromDB convert oper inst data without action data to common.
+func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefData, error) {
 	if opear == nil {
 		return nil, errors.New("oper inst data is nil")
 	}

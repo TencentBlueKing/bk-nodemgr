@@ -14,18 +14,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // StorageName defines the storage name.
 const StorageName = "node_workflow"
+
+const (
+	recentMonitoredTime = 5 * time.Minute
+)
 
 // NewStorage creates a new node workflow storage handler.
 func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
@@ -49,6 +60,8 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 		return nil, err
 	}
 
+	s.registerScheduler()
+
 	return s, nil
 }
 
@@ -57,12 +70,131 @@ type Storage struct {
 	base.Storage
 
 	daoNodeWorkflow nodeworkflow.IHandler
+	daoOperInstData operinstdata.IHandler
+
+	monitoredWorkflows      map[string]*types.NodeWorkflow
+	monitoredWorkflowsMutex sync.RWMutex
 }
 
 func (s *Storage) initDao() error {
 	s.daoNodeWorkflow = nodeworkflow.New(s.Database, s.Logger)
+	s.daoOperInstData = operinstdata.New(s.Database, s.Logger)
 
 	return nil
+}
+
+func (s *Storage) registerScheduler() {
+	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5)) // nolint: mnd
+	s.Scheduler.RegisterTask(&scheduler.Task{
+		ID:       "obtain monitored workflows",
+		Interval: 5 * time.Second,  // nolint: mnd
+		Timeout:  20 * time.Second, // nolint: mnd
+		Fn:       s.obtainMonitoredWorkflows,
+	})
+
+	s.Scheduler.RegisterTask(&scheduler.Task{
+		ID:       "monitor workflow status",
+		Interval: 1 * time.Second,  // nolint: mnd
+		Timeout:  10 * time.Second, // nolint: mnd
+		Fn:       s.monitorWorkflowStatus,
+	})
+}
+
+// obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.
+func (s *Storage) obtainMonitoredWorkflows(ctx context.Context) error {
+	runningWorkflows, _, err := s.daoNodeWorkflow.List(
+		ctx,
+		types.UnlimitedPage(),
+		nodeworkflow.WithStatus(types.NodeWorkflowStatusRunning))
+	if err != nil {
+		return fmt.Errorf("query running workflows failed, err: %w", err)
+	}
+
+	recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
+		ctx,
+		types.UnlimitedPage(),
+		nodeworkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
+		daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
+	)
+	if err != nil {
+		return fmt.Errorf("query recent finished workflows failed, err: %w", err)
+	}
+
+	convFn := func(workflows []*types.NodeWorkflow) (map[string]*types.NodeWorkflow, error) {
+		return conv.SliceToMap(workflows, func(workflow *types.NodeWorkflow) string {
+			return workflow.WorkflowID
+		})
+	}
+
+	runningWorkflowMap, err := convFn(runningWorkflows)
+	if err != nil {
+		return fmt.Errorf("convert running workflows to map failed, err: %w", err)
+	}
+
+	recentFinishedWorkflowMap, err := convFn(recentFinishedWorkflows)
+	if err != nil {
+		return fmt.Errorf("convert recent finished workflows to map failed, err: %w", err)
+	}
+
+	s.monitoredWorkflowsMutex.Lock()
+
+	s.monitoredWorkflows = make(map[string]*types.NodeWorkflow, len(s.monitoredWorkflows))
+	for _, workflow := range runningWorkflowMap {
+		s.monitoredWorkflows[workflow.TriggerID] = workflow
+	}
+
+	// notice: When these maps intersect,
+	// you need to ensure that the workflow in the recentFinishedWorkflowMap has a higher priority
+	for _, workflow := range recentFinishedWorkflowMap {
+		s.monitoredWorkflows[workflow.TriggerID] = workflow
+	}
+
+	s.monitoredWorkflowsMutex.Unlock()
+
+	return nil
+}
+
+func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
+	s.monitoredWorkflowsMutex.RLock()
+	defer s.monitoredWorkflowsMutex.RUnlock()
+
+	operInst, err := s.daoOperInstData.ListAllLastOperInst(ctx,
+		operinstdata.WithTriggerID(conv.MapKeyToSlice(s.monitoredWorkflows)...))
+	if err != nil {
+		return fmt.Errorf("query last operation instance failed, err: %w", err)
+	}
+
+	unfinishedTriggerMap := make(map[string]struct{}, len(operInst))
+	for _, inst := range operInst {
+		if !operation.CheckStateFinished(inst.Lifecycle.State) {
+			unfinishedTriggerMap[inst.Metadata.TriggerID] = struct{}{}
+		}
+	}
+
+	finishedTriggerOperInstsMap := make(map[string][]*operation.InstanceBriefData, len(operInst))
+	for _, inst := range operInst {
+		if _, ok := unfinishedTriggerMap[inst.Metadata.TriggerID]; !ok {
+			finishedTriggerOperInstsMap[inst.Metadata.TriggerID] =
+				append(finishedTriggerOperInstsMap[inst.Metadata.TriggerID], inst)
+		}
+	}
+
+	for triggerID, operInsts := range finishedTriggerOperInstsMap {
+		status := calWorkflowStatus(operInsts)
+		if err := s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status); err != nil {
+			return fmt.Errorf("update node workflow status failed, err: %w", err)
+		}
+
+		delete(s.monitoredWorkflows, triggerID)
+	}
+
+	return nil
+}
+
+func calWorkflowStatus(_ []*operation.InstanceBriefData) types.NodeWorkflowStatus {
+	// TODO: need to consider the status of the operation instance
+
+	return types.NodeWorkflowStatusSuccess
 }
 
 func (s *Storage) check() error {
@@ -188,7 +320,9 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 }
 
 // UpdateNodeWorkflowStatus updates the status of a node workflow.
-func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+func (s *Storage) UpdateNodeWorkflowStatus(
+	ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+
 	if ctx == nil {
 		return base.ErrNilContent()
 	}

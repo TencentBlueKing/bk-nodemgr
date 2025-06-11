@@ -100,16 +100,24 @@ func StringListToNodeWorkflowStatusList(stringList []string) []NodeWorkflowStatu
 const (
 	// NodeWorkflowStatusRunning is the status when the workflow is running.
 	NodeWorkflowStatusRunning NodeWorkflowStatus = "running"
+
 	// NodeWorkflowStatusSuccess is the status when the workflow is successful.
 	NodeWorkflowStatusSuccess NodeWorkflowStatus = "success"
+
 	// NodeWorkflowStatusFailed is the status when the workflow has failed.
 	NodeWorkflowStatusFailed NodeWorkflowStatus = "failed"
+
+	// NodeWorkflowStatusPartialFailed is the status when the workflow has partially failed.
+	NodeWorkflowStatusPartialFailed NodeWorkflowStatus = "partial_failed"
 )
 
 // Validate checks if the NodeWorkflowStatus is valid.
 func (nws NodeWorkflowStatus) Validate() error {
 	switch nws {
-	case NodeWorkflowStatusRunning, NodeWorkflowStatusSuccess, NodeWorkflowStatusFailed:
+	case NodeWorkflowStatusRunning,
+		NodeWorkflowStatusSuccess,
+		NodeWorkflowStatusFailed,
+		NodeWorkflowStatusPartialFailed:
 		return nil
 	}
 
@@ -162,4 +170,13 @@ type NodeWorkflowOperationStatusList struct {
 	FailedCount     int
 	TimeoutCount    int
 	TerminatedCount int
+}
+
+// GetFinishedNodeWorkflowStatus returns the finished node workflow status.
+func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
+	return []NodeWorkflowStatus{
+		NodeWorkflowStatusSuccess,
+		NodeWorkflowStatusFailed,
+		NodeWorkflowStatusPartialFailed,
+	}
 }

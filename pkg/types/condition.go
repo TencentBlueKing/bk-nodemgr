@@ -18,6 +18,14 @@ type TimeRange struct {
 	EndTime   time.Time
 }
 
+// RecentTimeRange returns the time range.
+func RecentTimeRange(duration time.Duration) TimeRange {
+	return TimeRange{
+		StartTime: time.Now().Add(-duration),
+		EndTime:   time.Now(),
+	}
+}
+
 // BusinessExactFields defines the business exact fields.
 // support includes and excludes.
 type BusinessExactFields struct {
