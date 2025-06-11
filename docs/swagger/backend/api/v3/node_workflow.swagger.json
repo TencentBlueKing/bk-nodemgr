@@ -222,7 +222,7 @@
     },
     "/api/v3/node/workflow/operation/instance/status/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceStatusList provides node workflow operation list status.",
+        "summary": "NodeWorkflowOperationInstanceStatusList provides node workflow operation\nlist status.",
         "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceStatusList",
         "responses": {
           "200": {
@@ -275,7 +275,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest.",
+            "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest.",
             "in": "body",
             "required": true,
             "schema": {
@@ -382,8 +382,7 @@
           "type": "string"
         },
         "login_mode": {
-          "type": "integer",
-          "format": "int64",
+          "type": "string",
           "title": "support: auto, password, keyfile, none"
         },
         "login_password": {
@@ -706,11 +705,11 @@
           }
         }
       },
-      "description": "NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow\nlist request."
+      "description": "NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\nnode workflow list request."
     },
     "v3NodeWorkflowInstanceStatusFuzzyConditions": {
       "type": "object",
-      "description": "NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of node workflow\nlist request."
+      "description": "NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nnode workflow list request."
     },
     "v3NodeWorkflowListReq": {
       "type": "object",
@@ -908,7 +907,7 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
         }
       },
-      "description": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log\nresponse."
+      "description": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response."
     },
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
@@ -957,7 +956,7 @@
           "type": "string"
         }
       },
-      "description": "NodeWorkflowOperationListReq describes the node operation list \nrequest."
+      "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest."
     },
     "v3NodeWorkflowOperationListResp": {
       "type": "object",

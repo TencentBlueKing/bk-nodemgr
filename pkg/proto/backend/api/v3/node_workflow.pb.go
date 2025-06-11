@@ -377,8 +377,8 @@ func (x *NodeWorkflowListResp) GetData() *NodeWorkflowListResp_Data {
 	return nil
 }
 
-// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow
-// list request.
+// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of
+// node workflow list request.
 type NodeWorkflowInstanceStatusExactConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TriggerId     []string               `protobuf:"bytes,1,rep,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
@@ -423,8 +423,8 @@ func (x *NodeWorkflowInstanceStatusExactConditions) GetTriggerId() []string {
 	return nil
 }
 
-// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of node workflow
-// list request.
+// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of
+// node workflow list request.
 type NodeWorkflowInstanceStatusFuzzyConditions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1437,8 +1437,8 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) GetOperInstId() string {
 	return ""
 }
 
-// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
-// response.
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action
+// instance log response.
 type NodeWorkflowOperationInstanceLogGetResp struct {
 	state         protoimpl.MessageState                        `protogen:"open.v1"`
 	Code          int32                                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`

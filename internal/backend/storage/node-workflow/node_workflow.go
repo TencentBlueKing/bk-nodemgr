@@ -191,10 +191,29 @@ func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
 	return nil
 }
 
-func calWorkflowStatus(_ []*operation.InstanceBriefData) types.NodeWorkflowStatus {
-	// TODO: need to consider the status of the operation instance
+func calWorkflowStatus(operationInsts []*operation.InstanceBriefData) types.NodeWorkflowStatus {
+	successCount := 0
+	failedCount := 0
 
-	return types.NodeWorkflowStatusSuccess
+	for _, inst := range operationInsts {
+		switch inst.Lifecycle.State {
+		case operation.StateSuccess:
+			successCount++
+		case operation.StateFailed:
+			failedCount++
+		}
+	}
+
+	total := len(operationInsts)
+
+	switch {
+	case successCount == total:
+		return types.NodeWorkflowStatusSuccess
+	case failedCount == total:
+		return types.NodeWorkflowStatusFailed
+	default:
+		return types.NodeWorkflowStatusPartialFailed
+	}
 }
 
 func (s *Storage) check() error {

@@ -159,19 +159,6 @@ const (
 	StateTerminated OperationState = "terminated"
 )
 
-// NodeWorkflowOperationStatusList represents the status of operations in a node workflow.
-type NodeWorkflowOperationStatusList struct {
-	WorkflowID      string
-	TotalCount      int
-	InitCount       int
-	LaunchedCount   int
-	RunningCount    int
-	SuccessCount    int
-	FailedCount     int
-	TimeoutCount    int
-	TerminatedCount int
-}
-
 // GetFinishedNodeWorkflowStatus returns the finished node workflow status.
 func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 	return []NodeWorkflowStatus{

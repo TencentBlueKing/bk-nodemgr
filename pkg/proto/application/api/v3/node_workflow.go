@@ -31,6 +31,19 @@ func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
 	return generatePage(x.GetPage(), maxLimit)
 }
 
+// NodeWorkflowStatistics represents the status of operations in a node workflow.
+type NodeWorkflowStatistics struct {
+	WorkflowID      string
+	TotalCount      int
+	InitCount       int
+	LaunchedCount   int
+	RunningCount    int
+	SuccessCount    int
+	FailedCount     int
+	TimeoutCount    int
+	TerminatedCount int
+}
+
 // Validate check body.
 func (x *NodeWorkflowStatisticsReq) Validate() error {
 	if len(x.GetWorkflowId()) == 0 {
@@ -96,8 +109,8 @@ func (x *NodeWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() 
 		}, nil)
 }
 
-func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*types.NodeWorkflowOperationStatusList) {
-
+// ConvertNodeWorkflowsFromTypes convert node workflows from types.
+func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*NodeWorkflowStatistics) {
 	items := make([]*NodeWorkflowStatisticsResp_StatisticsInfo, len(result))
 
 	for i, item := range result {

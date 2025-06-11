@@ -316,17 +316,16 @@ func convertWorkflowToTriggerID(workflows []*types.NodeWorkflow) *types.NodeWork
 }
 
 func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[string]*types.NodeWorkflowOperationStatus,
-	reqIDs []string,
-) []*types.NodeWorkflowOperationStatusList {
+	reqIDs []string) []*protoApplication.NodeWorkflowStatistics {
 
 	idIndexMap := make(map[string]int)
 	for i, id := range reqIDs {
 		idIndexMap[id] = i
 	}
 
-	result := make([]*types.NodeWorkflowOperationStatusList, len(reqIDs))
+	result := make([]*protoApplication.NodeWorkflowStatistics, len(reqIDs))
 	for i, id := range reqIDs {
-		result[i] = &types.NodeWorkflowOperationStatusList{WorkflowID: id}
+		result[i] = &protoApplication.NodeWorkflowStatistics{WorkflowID: id}
 	}
 
 	for _, workflow := range workflows {

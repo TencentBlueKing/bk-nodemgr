@@ -68,7 +68,7 @@ message NodeWorkflowStatisticsResp {
     optional int64 total_count = 2;
     optional int64 init_count = 3;
     optional int64 launched_count = 4;
-    optional  int64 running_count = 5;
+    optional int64 running_count = 5;
     optional int64 success_count = 6;
     optional int64 failed_count = 7;
     optional int64 timeout_count = 8;
@@ -105,16 +105,13 @@ message OperationDefinition {
   repeated string action_names = 2;
 }
 
-message OperationParam {
-  int64 timeout_second = 1;      
-}
+message OperationParam { int64 timeout_second = 1; }
 
-message NodeWorkflowOperation {   
-  string operation_id = 1;        
+message NodeWorkflowOperation {
+  string operation_id = 1;
   OperationDefinition definition = 2;
-  repeated string instance_ids = 3;  
+  repeated string instance_ids = 3;
   OperationParam param = 4;
-   
 }
 
 // NodeWorflowOperationInstance describes the node operation instance.
@@ -135,16 +132,16 @@ message NodeWorflowOperationInstance {
   repeated Action action = 8;
 }
 
-message NodeWorflowOperationInstanceData{
-    string operation_id = 1;
-    string oper_inst_id = 2;
-    string oper_inst_status = 3;
-    string operation_def_name = 4;
-    string parent_operation_id = 5;
-    repeated string action_names = 6;
+message NodeWorflowOperationInstanceData {
+  string operation_id = 1;
+  string oper_inst_id = 2;
+  string oper_inst_status = 3;
+  string operation_def_name = 4;
+  string parent_operation_id = 5;
+  repeated string action_names = 6;
 }
 
-// NodeWorkflowOperationListReq describes the node operation list 
+// NodeWorkflowOperationListReq describes the node operation list
 // request.
 message NodeWorkflowOperationListReq {
   bool only_count = 1;
@@ -158,7 +155,7 @@ message NodeWorkflowOperationListResp {
   string message = 2;
   string request_id = 3;
 
- message Data {
+  message Data {
     repeated NodeWorkflowOperation operations = 1;
     int64 total_count = 2;
   }
@@ -167,7 +164,7 @@ message NodeWorkflowOperationListResp {
 
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
 // list by operation-id request.
-message NodeWorkflowOperationInstanceListReq {  
+message NodeWorkflowOperationInstanceListReq {
   bool only_count = 1;
   string operation_id = 2;
 }
@@ -179,37 +176,35 @@ message NodeWorkflowOperationInstanceListResp {
   string message = 2;
   string request_id = 3;
 
-  message Data { 
+  message Data {
     int64 total = 1;
-    repeated  NodeWorflowOperationInstanceData oper_inst_data = 2; 
+    repeated NodeWorflowOperationInstanceData oper_inst_data = 2;
   }
   Data data = 4;
 }
 
-
-// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of node workflow
+// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of
+// node workflow
 message NodeWorkflowInstanceStatusExactConditions {
   repeated string trigger_id = 1;
 }
 
-// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of node workflow
-// list request.
+// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of
+// node workflow list request.
 message NodeWorkflowInstanceStatusFuzzyConditions {}
 
-
-//NodeWorkflowOperationInstanceStatusListReq ...
-message NodeWorkflowOperationInstanceListStatusReq{
+// NodeWorkflowOperationInstanceStatusListReq ...
+message NodeWorkflowOperationInstanceListStatusReq {
   Page page = 1;
   NodeWorkflowInstanceStatusExactConditions exact_include_conditions = 3;
   NodeWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
 }
 
-
-message NodeWorkflowOperationInstanceStatus{
-    int64     index=1;
-    string    instance_id = 2;
-    string    status = 3;
-    string    trigger_id = 4;
+message NodeWorkflowOperationInstanceStatus {
+  int64 index = 1;
+  string instance_id = 2;
+  string status = 3;
+  string trigger_id = 4;
 }
 
 message NodeWorkflowOperationInstanceListStatusResp {
@@ -217,18 +212,16 @@ message NodeWorkflowOperationInstanceListStatusResp {
   string message = 2;
   string request_id = 3;
 
-  message Data {
-    repeated NodeWorkflowOperationInstanceStatus items = 1;
-  }
+  message Data { repeated NodeWorkflowOperationInstanceStatus items = 1; }
   Data data = 4;
 }
-
 
 // NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
 
 message NodeWorkflowOperationInstanceLogGetReq { string oper_inst_id = 1; }
 
-// NodeWorkflowOperationInstanceLogGetResp describes the node operation action instance log
+// NodeWorkflowOperationInstanceLogGetResp describes the node operation action
+// instance log
 message NodeWorkflowOperationInstanceLogGetResp {
   int32 code = 1;
   string message = 2;
@@ -236,7 +229,7 @@ message NodeWorkflowOperationInstanceLogGetResp {
 
   message Data {
     int64 total = 1;
-    map<string, ActionMessage> oper_inst_logs = 2;  
+    map<string, ActionMessage> oper_inst_logs = 2;
   }
   Data data = 4;
 }
@@ -248,7 +241,6 @@ message ActionMessage {
   }
   repeated Message logs = 1;
 }
-
 
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.

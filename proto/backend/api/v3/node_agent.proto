@@ -38,4 +38,3 @@ message NodeAgentInstallResp {
   message Data { string workflow_id = 1; }
   Data data = 4;
 }
-
