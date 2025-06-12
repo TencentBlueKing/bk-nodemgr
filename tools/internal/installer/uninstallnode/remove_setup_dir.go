@@ -24,7 +24,7 @@ import (
 
 // RemoveSetupDir ...
 func RemoveSetupDir(_ context.Context, setupDirPath string) error {
-	logger.Warnf(constant.StepUninstallNode, constant.StateRunning,
+	logger.Warnf(constant.StepUninstallNode,
 		"start to clean directory, dir-path(%s)", setupDirPath)
 
 	var err error
@@ -39,7 +39,7 @@ func RemoveSetupDir(_ context.Context, setupDirPath string) error {
 	}
 
 	if _, err := os.Stat(setupDirPath); os.IsNotExist(err) {
-		logger.Warnf(constant.StepUninstallNode, constant.StateDone, "directory not exist, dir-path(%s)", setupDirPath)
+		logger.Warnf(constant.StepUninstallNode, "directory not exist, dir-path(%s)", setupDirPath)
 
 		return nil
 	}
@@ -48,7 +48,7 @@ func RemoveSetupDir(_ context.Context, setupDirPath string) error {
 		return fmt.Errorf("remove setup dir failed, err: %v", err)
 	}
 
-	logger.Warnf(constant.StepUninstallNode, constant.StateRunning, "clean exist directory: %s", setupDirPath)
+	logger.Warnf(constant.StepUninstallNode, "clean exist directory: %s", setupDirPath)
 
 	return nil
 }

@@ -40,7 +40,7 @@ func NewStep(args StepArgs) *Step {
 
 // Run run step to start node.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepStartNode, constant.StateStart, "start to start node")
+	logger.Infof(constant.StepStartNode, "start to start node")
 
 	// start gse agent
 	if err := StartNode(ctx, step.gseCtlPath); err != nil {
@@ -48,9 +48,9 @@ func (step *Step) Run(ctx context.Context) error {
 
 		return fmt.Errorf("start agent failed, err: %v", err)
 	}
-	logger.Infof(constant.StepStartNode, constant.StateRunning, "successfully start agent")
+	logger.Infof(constant.StepStartNode, "successfully start agent")
 
-	logger.Infof(constant.StepStartNode, constant.StateDone, "successfully start node")
+	logger.Infof(constant.StepStartNode, "successfully start node")
 
 	return nil
 }

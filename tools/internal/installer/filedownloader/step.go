@@ -74,7 +74,7 @@ func NewStep(args StepArgs) *Step {
 // Run run the step to download files.
 // nolint: funlen,gocognit
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepDownloadFiles, constant.StateStart, "start to download files.")
+	logger.Infof(constant.StepDownloadFiles, "start to download files.")
 
 	gp := gopool.NewPool()
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -88,7 +88,7 @@ func (step *Step) Run(ctx context.Context) error {
 				string(step.nodeRole),
 				step.token)
 			if err != nil {
-				logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
+				logger.Errorf(constant.StepDownloadFiles,
 					"get agent config failed, attempt: %d, err: %v", attempt, err)
 
 				return fmt.Errorf("get agent config failed: %v", err)
@@ -100,7 +100,7 @@ func (step *Step) Run(ctx context.Context) error {
 			return err
 		}
 
-		logger.Infof(constant.StepDownloadFiles, constant.StateRunning, "successfully get agent config file.")
+		logger.Infof(constant.StepDownloadFiles, "successfully get agent config file.")
 
 		return nil
 	})
@@ -112,7 +112,7 @@ func (step *Step) Run(ctx context.Context) error {
 					string(step.nodeRole),
 					step.token,
 					step.callbackEndpoint); err != nil {
-					logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
+					logger.Errorf(constant.StepDownloadFiles,
 						"get gse file proxy config failed, attempt: %d, err: %v", attempt, err)
 
 					return fmt.Errorf("get gse file proxy config failed: %v", err)
@@ -124,7 +124,7 @@ func (step *Step) Run(ctx context.Context) error {
 				return err
 			}
 
-			logger.Infof(constant.StepDownloadFiles, constant.StateRunning, "successfully get gse file proxy config.")
+			logger.Infof(constant.StepDownloadFiles, "successfully get gse file proxy config.")
 
 			return nil
 		})
@@ -136,7 +136,7 @@ func (step *Step) Run(ctx context.Context) error {
 					string(step.nodeRole),
 					step.token,
 					step.callbackEndpoint); err != nil {
-					logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
+					logger.Errorf(constant.StepDownloadFiles,
 						"get gse data proxy config failed, attempt: %d, err: %v", attempt, err)
 
 					return fmt.Errorf("get gse data proxy config failed: %v", err)
@@ -148,7 +148,7 @@ func (step *Step) Run(ctx context.Context) error {
 				return err
 			}
 
-			logger.Infof(constant.StepDownloadFiles, constant.StateRunning, "successfully get gse data proxy config.")
+			logger.Infof(constant.StepDownloadFiles, "successfully get gse data proxy config.")
 
 			return nil
 		})
@@ -164,7 +164,7 @@ func (step *Step) Run(ctx context.Context) error {
 				step.downloadPoint,
 				string(step.nodeRole))
 			if err != nil {
-				logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
+				logger.Errorf(constant.StepDownloadFiles,
 					"download agent pkg failed, attempt: %d, err: %v", attempt, err)
 
 				return fmt.Errorf("download files failed: %v", err)
@@ -176,7 +176,7 @@ func (step *Step) Run(ctx context.Context) error {
 			return err
 		}
 
-		logger.Infof(constant.StepDownloadFiles, constant.StateRunning, "successfully download agent pkg.")
+		logger.Infof(constant.StepDownloadFiles, "successfully download agent pkg.")
 
 		return nil
 	})
@@ -189,7 +189,7 @@ func (step *Step) Run(ctx context.Context) error {
 				step.checkListPath,
 				step.token,
 				step.callbackEndpoint); err != nil {
-				logger.Errorf(constant.StepDownloadFiles, constant.StateRunning,
+				logger.Errorf(constant.StepDownloadFiles,
 					"download check list failed, attempt: %d, err: %v", attempt, err)
 
 				return fmt.Errorf("download check list failed: %v", err)
@@ -201,17 +201,17 @@ func (step *Step) Run(ctx context.Context) error {
 			return err
 		}
 
-		logger.Infof(constant.StepDownloadFiles, constant.StateRunning, "successfully download check list.")
+		logger.Infof(constant.StepDownloadFiles, "successfully download check list.")
 
 		return nil
 	})
 
 	if err := gp.Wait(); err != nil {
-		logger.Infof(constant.StepDownloadFiles, constant.StateFailed, "failed to download files, err: %v", err)
+		logger.Infof(constant.StepDownloadFiles, "failed to download files, err: %v", err)
 		return errors.New("failed to download files")
 	}
 
-	logger.Infof(constant.StepDownloadFiles, constant.StateDone, "download files done.")
+	logger.Infof(constant.StepDownloadFiles, "download files done.")
 
 	return nil
 }

@@ -78,6 +78,19 @@ func (x *ReportLogReq) Validate() error {
 func (x *ReportLogReq) AutoConvert() {
 }
 
+// AutoConvert auto convert.
+func (x *ReportStatusReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportStatusReq) Validate() error {
+	if x.GetToken() == "" {
+		return errors.New("token is required")
+	}
+
+	return nil
+}
+
 // Validate check request body.
 func (x *ReportDataReq) Validate() error {
 	if x.Token == "" {

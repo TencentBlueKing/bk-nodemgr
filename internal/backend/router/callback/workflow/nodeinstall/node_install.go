@@ -47,6 +47,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// TODO: 设置权限封禁
 	h.rg.POST("/report_log", h.ReportLog)
+	h.rg.POST("/report_status", h.ReportStatus)
 	h.rg.POST("/report_data", h.ReportData)
 	h.rg.POST("/get_check_list", h.GetCheckList)
 	h.rg.POST("/get_agent_config", h.GetAgentConfig)

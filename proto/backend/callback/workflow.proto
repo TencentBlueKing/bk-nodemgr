@@ -39,7 +39,7 @@ message GetCheckListReq {
 // ReportLogReq describes the HTTP request body when report log.
 message ReportLogReq {
   string token = 1;
-  repeated ReportLog logs = 3;
+  repeated ReportLog logs = 2;
 }
 
 // ReportLog
@@ -55,4 +55,10 @@ message ReportLog {
 message ReportDataReq {
   string token = 1;
   string agent_id = 2;
+}
+
+// ReportStatusReq describes the HTTP request body when report status.
+message ReportStatusReq {
+  string token = 1;
+  string status = 2;
 }

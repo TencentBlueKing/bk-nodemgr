@@ -45,12 +45,12 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 		cmd.Stdout = &stdOut
 		cmd.Stderr = &stdErr
 
-		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+		logger.Infof(constant.StepUninstallNode,
 			"run agent stop cmd: %s", cmd.String())
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Warnf(constant.StepUninstallNode, constant.StateRunning,
+			logger.Warnf(constant.StepUninstallNode,
 				"stop agent failed, attempt: %d, stderr: %s, err: %v",
 				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""), err)
 
@@ -58,7 +58,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 		}
 
 		if stdErr.String() != "" {
-			logger.Warnf(constant.StepUninstallNode, constant.StateRunning,
+			logger.Warnf(constant.StepUninstallNode,
 				"stop agent failed, attempt: %d, stderr: %s",
 				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""))
 		}
@@ -68,7 +68,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 			outputLines := strings.Split(strings.TrimSpace(stdOutStr), "\n")
 			for _, line := range outputLines {
 				if line != "" {
-					logger.Infof(constant.StepUninstallNode, constant.StateRunning, "agent output: %s", line)
+					logger.Infof(constant.StepUninstallNode, "agent output: %s", line)
 				}
 
 				if strings.Contains(line, "gse agent stop failed") {
@@ -76,7 +76,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 				}
 			}
 		} else {
-			logger.Infof(constant.StepUninstallNode, constant.StateRunning, "stop agent success (no output)")
+			logger.Infof(constant.StepUninstallNode, "stop agent success (no output)")
 		}
 
 		return nil

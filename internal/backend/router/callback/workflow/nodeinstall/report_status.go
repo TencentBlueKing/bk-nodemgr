@@ -8,33 +8,34 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package nodeinstall ...
 package nodeinstall
 
 import (
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
-// ReportData ...
-func (h *handler) ReportData(gCtx *gin.Context) {
-	req := new(proto.ReportDataReq)
+func (h *handler) ReportStatus(gCtx *gin.Context) {
+	req := new(protoBackend.ReportStatusReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report data failed, err: %s", err)
+		h.logger.Errorf("report status failed, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report data failed, err: %s", err)
+		h.logger.Errorf("report status failed, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	info, err := h.GetInfo(gCtx, req.Token)
+	info, err := h.GetInfo(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("token is invalid, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -42,16 +43,17 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 		return
 	}
 
-	info.Dynamic.AgentID = req.AgentId
-
-	err = h.UpdateInfo(gCtx, req.Token, info)
-	if err != nil {
-		h.logger.Errorf("update info failed, err: %s", err)
+	// `TODO`: 目前tools上报的状态只有两个: `success` 和 `failed`, 但是后续可能会有更多状态, 所以这里先不做校验
+	if err := h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName,
+		action.StateFailed); err != nil {
+		h.logger.Errorf("update action status failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
 	}
-	gCtx.JSON(http.StatusOK, nil)
+}
 
-	return
+// InstallStatus this is the report status.
+type InstallStatus struct {
+	Status string `json:"status"`
 }

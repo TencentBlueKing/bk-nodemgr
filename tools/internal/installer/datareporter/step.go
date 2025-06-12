@@ -53,7 +53,7 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepReportData, constant.StateStart, "start report data")
+	logger.Infof(constant.StepReportData, "start report data")
 	req := &ReportDataReq{
 		Token:   step.token,
 		AgentID: step.agentID,
@@ -62,7 +62,7 @@ func (step *Step) Run(ctx context.Context) error {
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
 		if err := ReportData(ctx, step.callbackEndpoint, req); err != nil {
-			logger.Infof(constant.StepReportData, constant.StateRunning,
+			logger.Infof(constant.StepReportData,
 				"retry report data, attempt: %d, err: %v", attempt, err)
 
 			return err
@@ -73,7 +73,7 @@ func (step *Step) Run(ctx context.Context) error {
 		return fmt.Errorf("report data failed, err: %v", err)
 	}
 
-	logger.Infof(constant.StepReportData, constant.StateDone, "report data success")
+	logger.Infof(constant.StepReportData, "report data success")
 
 	return nil
 }

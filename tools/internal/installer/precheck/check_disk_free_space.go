@@ -49,7 +49,7 @@ func CheckDiskFreeSpace(requires []DiskRequire) error {
 					req.DemandMB, req.DirPath, freeMB)
 			}
 
-			logger.Infof(constant.StepPreCheck, constant.StateRunning,
+			logger.Infof(constant.StepPreCheck,
 				"dir has enough free space, dir(%s), free-space(%dMB)",
 				req.DirPath, freeMB)
 

@@ -31,14 +31,14 @@ func GetFileProxyConf(ctx context.Context, tmpFileProxyConfPath, nodeRole, token
 
 	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_file_proxy_config")
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed,
+		logger.Errorf(constant.StepDownloadFiles,
 			"get file proxy config failed, err: %v", err)
 
 		return fmt.Errorf("get file proxy config failed, err: %v", err)
 	}
 
 	if err := DownloadFile(ctx, requestBody, downloadURL, tmpFileProxyConfPath); err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get file proxy conf failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get file proxy conf failed, err: %v", err)
 
 		return fmt.Errorf("get file proxy conf failed, err: %v", err)
 	}
@@ -65,13 +65,13 @@ func GetDataProxyConf(ctx context.Context, tmpDataProxyConfPath, nodeRole, token
 
 	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_data_proxy_config")
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get data proxy config failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get data proxy config failed, err: %v", err)
 
 		return fmt.Errorf("get data proxy config failed, err: %v", err)
 	}
 
 	if err := DownloadFile(ctx, requestBody, downloadURL, tmpDataProxyConfPath); err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get data proxy conf failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get data proxy conf failed, err: %v", err)
 
 		return fmt.Errorf("get data proxy conf failed, err: %v", err)
 	}

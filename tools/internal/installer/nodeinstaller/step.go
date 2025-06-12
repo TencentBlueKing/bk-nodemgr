@@ -107,7 +107,7 @@ func GetGseAgentCtlName() string {
 func (step *Step) Run(ctx context.Context) (string, error) {
 	logger.Info(constant.StepInstallNode, constant.StateStart, "start install node")
 
-	logger.Infof(constant.StepInstallNode, constant.StateRunning, "setup-dir-path(%s)", step.setupDirPath)
+	logger.Infof(constant.StepInstallNode, "setup-dir-path(%s)", step.setupDirPath)
 
 	// 1. prepare
 	// 1.1 try to create install dir.

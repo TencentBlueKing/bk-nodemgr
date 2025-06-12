@@ -46,33 +46,33 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to precheck.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepPreCheck, constant.StateStart, "start precheck with config(%s)", step.preCheckListPath)
+	logger.Infof(constant.StepPreCheck, "start precheck with config(%s)", step.preCheckListPath)
 
 	list, err := loadCheckList(step.preCheckListPath)
 	if err != nil {
-		logger.Errorf(constant.StepPreCheck, constant.StateFailed,
+		logger.Errorf(constant.StepPreCheck,
 			"failed to load precheck list from (%s), err: %v", step.preCheckListPath, err)
 		return err
 	}
-	logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully loaded precheck list")
+	logger.Infof(constant.StepPreCheck, "successfully loaded precheck list")
 
 	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	gp := gopool.NewPool()
 
 	runCheck := func(name string, checkFn func() error) func() error {
 		return func() error {
-			logger.Infof(constant.StepPreCheck, constant.StateRunning, "start check %s", name)
+			logger.Infof(constant.StepPreCheck, "start check %s", name)
 
 			if err := r.Do(ctx, func(_ int) error {
 				return checkFn()
 			}); err != nil {
-				logger.Infof(constant.StepPreCheck, constant.StateFailed,
+				logger.Infof(constant.StepPreCheck,
 					"failed to check %s, err: %v", name, err)
 
 				return err
 			}
 
-			logger.Infof(constant.StepPreCheck, constant.StateRunning, "successfully done check %s", name)
+			logger.Infof(constant.StepPreCheck, "successfully done check %s", name)
 
 			return nil
 		}
@@ -86,11 +86,11 @@ func (step *Step) Run(ctx context.Context) error {
 	}))
 
 	if err := gp.Wait(); err != nil {
-		logger.Infof(constant.StepPreCheck, constant.StateFailed, "failed to do all precheck, err: %s", err.Error())
+		logger.Infof(constant.StepPreCheck, "failed to do all precheck, err: %s", err.Error())
 		return err
 	}
 
-	logger.Infof(constant.StepPreCheck, constant.StateDone, "successfully done all precheck")
+	logger.Infof(constant.StepPreCheck, "successfully done all precheck")
 
 	return nil
 }

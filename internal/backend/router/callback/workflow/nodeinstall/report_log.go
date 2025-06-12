@@ -51,7 +51,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 	for idx, log := range req.Logs {
 		logs[idx] = action.Message{
 			Time: time.Unix(log.Timestamp, 0),
-			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t[%s]", log.Level, log.Step, log.Log, log.Status),
+			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t", log.GetLevel(), log.GetStep(), log.GetLog()),
 		}
 
 		// TODO: make status to fit both callback and tool.
@@ -88,5 +88,4 @@ type InstallLog struct {
 	Level     string    `json:"level"`
 	Step      string    `json:"step"`
 	Log       string    `json:"log"`
-	Status    string    `json:"status"`
 }

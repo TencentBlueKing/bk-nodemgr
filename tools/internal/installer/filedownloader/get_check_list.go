@@ -33,7 +33,7 @@ func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackE
 
 	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_check_list")
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get check list failed: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get check list failed: %v", err)
 		return fmt.Errorf("get check list failed: %v", err)
 	}
 
@@ -47,7 +47,7 @@ func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackE
 			"Content-Type": "application/json",
 		},
 	}
-	logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+	logger.Infof(constant.StepDownloadFiles,
 		"download check list, url(%s), file-path(%s)", downloadConfig.URL, downloadConfig.DestPath)
 
 	lastProgress := int64(0)
@@ -55,7 +55,7 @@ func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackE
 	// start progress report.
 	downloadConfig.ProgressFunc = func(current, total int64) {
 		if current == total {
-			logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+			logger.Infof(constant.StepDownloadFiles,
 				"get check list complete")
 		}
 
@@ -63,7 +63,7 @@ func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackE
 			return
 		}
 
-		logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+		logger.Infof(constant.StepDownloadFiles,
 			"get check list progress: %d/%d", current, total)
 		lastProgress = current
 	}
@@ -72,7 +72,7 @@ func GetCheckList(ctx context.Context, nodeRole, checkListPath, token, callbackE
 	err = d.Download(ctx, downloadConfig)
 
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "download check list failed: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "download check list failed: %v", err)
 
 		return fmt.Errorf("download check list failed: %v", err)
 	}

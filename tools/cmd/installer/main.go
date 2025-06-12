@@ -12,6 +12,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -28,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/precheck"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/uninstallnode"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -249,7 +251,10 @@ func registerRootVars(rootCmd *cobra.Command) {
 				GseCtlPath:   GetGseCtlPath(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
-				fmt.Printf("uninstall step failed, err: %v\n", err)
+				go reportStatus(cmd.Context(), constant.StateFailed)
+
+				return fmt.Errorf("uninstall step failed, err: %v", err)
+
 			}
 
 			return nil
@@ -270,6 +275,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 				CheckListPath:        GetPreCheckFilePath(),
 			})
 			if err := downloadFilesStep.Run(cmd.Context()); err != nil {
+				go reportStatus(cmd.Context(), constant.StateFailed)
+
 				return fmt.Errorf("download files failed, err: %v", err)
 			}
 
@@ -286,6 +293,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		})
 
 		if err := preCheckStep.Run(cmd.Context()); err != nil {
+			go reportStatus(cmd.Context(), constant.StateFailed)
 			return fmt.Errorf("precheck failed, err: %v", err)
 		}
 
@@ -299,6 +307,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		})
 		agentID, err := installAgentStep.Run(cmd.Context())
 		if err != nil {
+			go reportStatus(cmd.Context(), constant.StateFailed)
 			return fmt.Errorf("install agent failed, err: %v", err)
 		}
 
@@ -310,6 +319,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 			GseCtlPath: GetGseCtlPath(),
 		})
 		if err := startNodeStep.Run(cmd.Context()); err != nil {
+			go reportStatus(cmd.Context(), constant.StateFailed)
 			return err
 		}
 
@@ -320,6 +330,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 			NodeRole: GetNodeRole(),
 		})
 		if err := checkDeployStep.Run(cmd.Context()); err != nil {
+			go reportStatus(cmd.Context(), constant.StateFailed)
 			return fmt.Errorf("check deploy failed, err: %v", err)
 		}
 
@@ -329,9 +340,11 @@ func registerRootVars(rootCmd *cobra.Command) {
 			CallbackEndpoint: GetCallBackEndpoint(),
 		})
 		if err := reportDataStep.Run(cmd.Context()); err != nil {
+			go reportStatus(cmd.Context(), constant.StateFailed)
 			return fmt.Errorf("report data failed, err: %v", err)
 		}
 
+		go reportStatus(cmd.Context(), constant.StateDone)
 		return nil
 	}
 
@@ -352,4 +365,16 @@ func registerRootVars(rootCmd *cobra.Command) {
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
 	_ = rootCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
+}
+
+func reportStatus(ctx context.Context, status constant.State) {
+	reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
+		Token:            GetToken(),
+		Status:           status,
+		CallbackEndpoint: GetCallBackEndpoint(),
+	})
+	err := reportStatusStep.Run(ctx)
+	if err != nil {
+		logger.Errorf(constant.StepReportStatus, "report status failed, err: %v", err)
+	}
 }
