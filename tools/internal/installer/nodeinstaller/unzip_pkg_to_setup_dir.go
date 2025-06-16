@@ -170,7 +170,7 @@ func UnzipPkgToSetupDir(ctx context.Context, pkgPath, setupDir string) error {
 		}
 	}
 
-	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully unzip gse pkg to setup dir")
+	logger.Info(constant.StepInstallNode, "successfully unzip gse pkg to setup dir")
 
 	return nil
 }

@@ -113,12 +113,12 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	// 1.1 try to create install dir.
 	err := TryCreateInstallDir(ctx, step.setupDirPath, step.overwrite)
 	if err != nil {
-		logger.Error(constant.StepInstallNode, constant.StateFailed,
+		logger.Error(constant.StepInstallNode,
 			fmt.Sprintf("create install dir failed: %v", err))
 
 		return "", err
 	}
-	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully create install dir")
+	logger.Info(constant.StepInstallNode, "successfully create install dir")
 
 	// 2. cp files to install dir
 	// 2.1 copy gse pkg files to setup dir
@@ -146,25 +146,25 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	if step.reRegisterAgentID {
 		err = UnregisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath)
 		if err != nil {
-			logger.Error(constant.StepInstallNode, constant.StateFailed,
+			logger.Error(constant.StepInstallNode,
 				fmt.Sprintf("unregister agent failed: %s", err))
 
 			return "", err
 		}
-		logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully unregister agent")
+		logger.Info(constant.StepInstallNode, "successfully unregister agent")
 	}
 
 	// 3.2 register agent id
 	agentID, err := RegisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath, step.agentID)
 	if err != nil {
-		logger.Error(constant.StepInstallNode, constant.StateFailed,
+		logger.Error(constant.StepInstallNode,
 			fmt.Sprintf("register agent failed: %v", err))
 
 		return "", err
 	}
-	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully register agent")
+	logger.Info(constant.StepInstallNode, "successfully register agent")
 
-	logger.Info(constant.StepInstallNode, constant.StateDone, "success install node")
+	logger.Info(constant.StepInstallNode, "success install node")
 
 	return agentID, nil
 }

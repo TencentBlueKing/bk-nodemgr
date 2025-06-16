@@ -41,7 +41,7 @@ func CopyConfigFilesToSetupDir(srcConfigDir, dstConfigDir string) error {
 		return fmt.Errorf("copy config files to setup dir failed, err: %v", err)
 	}
 
-	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully copy config files to setup dir")
+	logger.Info(constant.StepInstallNode, "successfully copy config files to setup dir")
 
 	return nil
 }

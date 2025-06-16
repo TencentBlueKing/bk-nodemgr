@@ -28,7 +28,7 @@ import (
 func StopNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error(constant.StepUninstallNode, constant.StateFailed,
+			logger.Error(constant.StepUninstallNode,
 				fmt.Sprintf("stop agent panic: %s", r))
 		}
 	}()

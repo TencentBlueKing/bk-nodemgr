@@ -76,7 +76,7 @@ func (step *Step) softUninstall(ctx context.Context) error {
 
 	logger.Infof(constant.StepUninstallNode, "remove setup dir(%s)", step.setupDirPath)
 	if err := RemoveSetupDir(ctx, step.setupDirPath); err != nil {
-		// TODO: 将状态和日志分离
+
 		logger.Infof(constant.StepUninstallNode, "remove setup dir failed: %v", err)
 
 		return err

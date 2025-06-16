@@ -17,8 +17,8 @@ const (
 	// StateStart this state means the step is starting.
 	StateStart State = "start"
 
-	// StateDone this state means the step is done.
-	StateDone State = "done"
+	// StateSuccess this state means the step is success.
+	StateSuccess State = "success"
 
 	// StateFailed this state means the step is failed.
 	StateFailed State = "failed"

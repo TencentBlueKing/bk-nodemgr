@@ -30,7 +30,7 @@ import (
 func StartNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error(constant.StepStartNode, constant.StateFailed,
+			logger.Error(constant.StepStartNode,
 				fmt.Sprintf("start agent panic: %s", r))
 		}
 	}()

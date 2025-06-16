@@ -14,13 +14,13 @@ package nodeinstall
 import (
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) ReportStatus(gCtx *gin.Context) {
-	req := new(protoBackend.ReportStatusReq)
+	req := new(proto.ReportStatusReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report status failed, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -42,14 +42,13 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 
 		return
 	}
+	h.logger.Info("【DEBUG】operation instance:%s, action:%s ,report status: %s",
+		info.OperInstID, info.BlockingActionName, req.GetStatus())
 
-	// `TODO`: 目前tools上报的状态只有两个: `success` 和 `failed`, 但是后续可能会有更多状态, 所以这里先不做校验
 	if err := h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName,
-		action.StateFailed); err != nil {
+		action.State(req.GetStatus())); err != nil {
 		h.logger.Errorf("update action status failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
-
-		return
 	}
 }
 

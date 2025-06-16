@@ -73,6 +73,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewCheckDeploy())
 	rootCmd.AddCommand(NewStepReinstall())
 	rootCmd.AddCommand(NewStepReportData())
+	rootCmd.AddCommand(NewStepReportStatus())
 
 	return rootCmd
 }
@@ -210,6 +211,16 @@ func registerRootVars(rootCmd *cobra.Command) {
 	}
 
 	rootCmd.RunE = func(cmd *cobra.Command, _ []string) error {
+		var runErr error
+
+		defer func() {
+			state := constant.StateSuccess
+			if runErr != nil {
+				state = constant.StateFailed
+			}
+			go reportStatus(cmd.Context(), state)
+		}()
+
 		logFile, err := os.OpenFile(GetLogFilePath(), os.O_RDONLY, 0600) // nolint: mnd
 		if err != nil {
 			return fmt.Errorf("open log file failed, err: %v", err)
@@ -251,10 +262,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 				GseCtlPath:   GetGseCtlPath(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
-				go reportStatus(cmd.Context(), constant.StateFailed)
 
 				return fmt.Errorf("uninstall step failed, err: %v", err)
-
 			}
 
 			return nil
@@ -275,7 +284,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 				CheckListPath:        GetPreCheckFilePath(),
 			})
 			if err := downloadFilesStep.Run(cmd.Context()); err != nil {
-				go reportStatus(cmd.Context(), constant.StateFailed)
 
 				return fmt.Errorf("download files failed, err: %v", err)
 			}
@@ -283,8 +291,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 			return nil
 		})
 
-		if err := gp.Wait(); err != nil {
-			return err
+		if runErr := gp.Wait(); runErr != nil {
+			return fmt.Errorf("concurrent tasks failed: %w", runErr)
 		}
 
 		preCheckStep := precheck.NewStep(precheck.StepArgs{
@@ -292,9 +300,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 			SetupDirPath:     GetSetupDir(),
 		})
 
-		if err := preCheckStep.Run(cmd.Context()); err != nil {
-			go reportStatus(cmd.Context(), constant.StateFailed)
-			return fmt.Errorf("precheck failed, err: %v", err)
+		if runErr = preCheckStep.Run(cmd.Context()); runErr != nil {
+			return fmt.Errorf("precheck failed: %w", runErr)
 		}
 
 		installAgentStep := nodeinstaller.NewStep(nodeinstaller.StepArgs{
@@ -305,22 +312,20 @@ func registerRootVars(rootCmd *cobra.Command) {
 			SrcConfigDir:      GetTmpConfigDir(),
 			Overwrite:         false,
 		})
-		agentID, err := installAgentStep.Run(cmd.Context())
-		if err != nil {
-			go reportStatus(cmd.Context(), constant.StateFailed)
-			return fmt.Errorf("install agent failed, err: %v", err)
+		var agentID string
+		if agentID, runErr = installAgentStep.Run(cmd.Context()); runErr != nil {
+			return fmt.Errorf("install agent failed: %w", runErr)
 		}
 
-		if err := SetNodeAgentID(agentID); err != nil {
-			return fmt.Errorf("set node agent id failed, err: %v", err)
+		if runErr = SetNodeAgentID(agentID); runErr != nil {
+			return fmt.Errorf("set node agent id failed: %w", runErr)
 		}
 
 		startNodeStep := startnode.NewStep(startnode.StepArgs{
 			GseCtlPath: GetGseCtlPath(),
 		})
-		if err := startNodeStep.Run(cmd.Context()); err != nil {
-			go reportStatus(cmd.Context(), constant.StateFailed)
-			return err
+		if runErr = startNodeStep.Run(cmd.Context()); runErr != nil {
+			return fmt.Errorf("start node failed: %w", runErr)
 		}
 
 		fmt.Println(agentID)
@@ -329,9 +334,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 			RunDir:   GetRunDir(),
 			NodeRole: GetNodeRole(),
 		})
-		if err := checkDeployStep.Run(cmd.Context()); err != nil {
-			go reportStatus(cmd.Context(), constant.StateFailed)
-			return fmt.Errorf("check deploy failed, err: %v", err)
+		if runErr = checkDeployStep.Run(cmd.Context()); runErr != nil {
+			return fmt.Errorf("check deploy failed: %w", runErr)
 		}
 
 		reportDataStep := datareporter.NewStep(datareporter.StepArgs{
@@ -339,12 +343,10 @@ func registerRootVars(rootCmd *cobra.Command) {
 			AgentID:          GetNodeAgentID(),
 			CallbackEndpoint: GetCallBackEndpoint(),
 		})
-		if err := reportDataStep.Run(cmd.Context()); err != nil {
-			go reportStatus(cmd.Context(), constant.StateFailed)
-			return fmt.Errorf("report data failed, err: %v", err)
+		if runErr = reportDataStep.Run(cmd.Context()); runErr != nil {
+			return fmt.Errorf("report data failed: %w", runErr)
 		}
 
-		go reportStatus(cmd.Context(), constant.StateDone)
 		return nil
 	}
 
