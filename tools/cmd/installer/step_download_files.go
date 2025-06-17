@@ -14,7 +14,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
 	"github.com/spf13/cobra"
 )
@@ -56,16 +55,6 @@ func NewStepDownloadFiles() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			var runErr error
-
-			defer func() {
-				state := constant.StateSuccess
-				if runErr != nil {
-					state = constant.StateFailed
-				}
-				ReportStatus(cmd.Context(), GetToken(), GetCallBackEndpoint(), state)
-			}()
-
 			step := filedownloader.NewStep(filedownloader.StepArgs{
 				DownloadPoint:        GetDownloadEndPoint(),
 				CallbackEndpoint:     GetCallBackEndpoint(),
@@ -81,8 +70,7 @@ func NewStepDownloadFiles() *cobra.Command {
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
-				runErr = fmt.Errorf("file download failed: %w", err)
-				return runErr
+				return fmt.Errorf("file download failed: %w", err)
 			}
 
 			return nil

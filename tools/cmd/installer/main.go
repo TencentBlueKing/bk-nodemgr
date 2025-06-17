@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/precheck"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/uninstallnode"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -171,6 +172,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		reinstall         bool
 		reRegisterAgentID bool
 		agentID           string
+		runErr            error
 	)
 	rootCmd.PreRunE = func(_ *cobra.Command, _ []string) error {
 		if gseRoot != "" {
@@ -209,16 +211,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 	}
 
 	rootCmd.RunE = func(cmd *cobra.Command, _ []string) error {
-		var runErr error
-
-		defer func() {
-			state := constant.StateSuccess
-			if runErr != nil {
-				state = constant.StateFailed
-			}
-			go ReportStatus(cmd.Context(), token, callBackEndPoint, state)
-		}()
-
 		logFile, err := os.OpenFile(GetLogFilePath(), os.O_RDONLY, 0600) // nolint: mnd
 		if err != nil {
 			return fmt.Errorf("open log file failed, err: %v", err)
@@ -343,6 +335,25 @@ func registerRootVars(rootCmd *cobra.Command) {
 		})
 		if runErr = reportDataStep.Run(cmd.Context()); runErr != nil {
 			return fmt.Errorf("report data failed: %w", runErr)
+		}
+
+		return nil
+	}
+
+	// report status ...
+	rootCmd.PostRunE = func(cmd *cobra.Command, _ []string) error {
+		state := constant.StateSuccess
+		if runErr != nil {
+			state = constant.StateFailed
+		}
+		reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
+			Token:            GetToken(),
+			Status:           state,
+			CallbackEndpoint: callBackEndPoint,
+		})
+		if err := reportStatusStep.Run(cmd.Context()); err != nil {
+			logger.Errorf(constant.StepReportStatus, "status report failed: %v", err)
+			return err
 		}
 
 		return nil
