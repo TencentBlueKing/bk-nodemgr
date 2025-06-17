@@ -10,23 +10,27 @@
 
 package v3
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // Validate check request body.
 func (x *UploadAgentReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
-	if x.CpuArch == "" {
+	if x.GetCpuArch() == "" {
 		return errors.New("cpu_arch is required")
 	}
 
-	if x.OsType == "" {
+	if x.GetOsType() == "" {
 		return errors.New("os_type is required")
 	}
 
-	if x.Version == "" {
+	if x.GetVersion() == "" {
 		return errors.New("version is required")
 	}
 
@@ -39,19 +43,19 @@ func (x *UploadAgentReq) AutoConvert() {
 
 // Validate check request body.
 func (x *UploadProxyReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
-	if x.CpuArch == "" {
+	if x.GetCpuArch() == "" {
 		return errors.New("cpu_arch is required")
 	}
 
-	if x.OsType == "" {
+	if x.GetOsType() == "" {
 		return errors.New("os_type is required")
 	}
 
-	if x.Version == "" {
+	if x.GetVersion() == "" {
 		return errors.New("version is required")
 	}
 
@@ -75,9 +79,31 @@ func (x *UploadOriginAgentReq) Validate() error {
 func (x *UploadOriginAgentReq) AutoConvert() {
 }
 
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginAgentResp) ConvertResultFromTypes(detail *types.OriginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, convertPlatformFromTypes(plat))
+	}
+
+	x.Data = &UploadOriginAgentResp_Data{
+		Version:     detail.Version,
+		Name:        detail.Name,
+		Size:        detail.Size,
+		Md5:         detail.MD5,
+		ChangelogEn: detail.ChangeLogEN,
+		ChangelogZh: detail.ChangeLogZH,
+		Platforms:   plats,
+	}
+}
+
 // Validate check request body.
 func (x *UploadOriginServerReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
@@ -86,4 +112,24 @@ func (x *UploadOriginServerReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *UploadOriginServerReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginServerResp) ConvertResultFromTypes(detail *types.OriginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, convertPlatformFromTypes(plat))
+	}
+
+	x.Data = &UploadOriginServerResp_Data{
+		Version:   detail.Version,
+		Name:      detail.Name,
+		Size:      detail.Size,
+		Md5:       detail.MD5,
+		Platforms: plats,
+	}
 }

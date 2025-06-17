@@ -19,6 +19,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -29,23 +30,23 @@ import (
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginAgent(
-	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error) {
+	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 
 	// validation.
 	if err := gen.Validate(); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. invalid generation. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 	if gen == types.Generation1 {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. generation 1 is not supported")
 
-		return iface.FileInfo{}, errors.New("generation 1 is not supported")
+		return nil, errors.New("generation 1 is not supported")
 	}
 	if pkgFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. file is nil")
 
-		return iface.FileInfo{}, errors.New("file is nil")
+		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
@@ -53,21 +54,21 @@ func (m *Manager) UploadOriginAgent(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to save temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	checkingFile, err := m.getTempFile(ctx, tempFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	detail, err := checkGen2OriginAgentPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to check origin agent package. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	pkgName, err := nodepkg.FormatPkgName(
@@ -79,21 +80,21 @@ func (m *Manager) UploadOriginAgent(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package, failed to format package. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	uploadingFile, err := m.getTempFile(ctx, tempFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// upload to upstream.
 	if err := m.upstreamOriginAgent.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package, failed to upload to upstream. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// get file.
@@ -101,7 +102,7 @@ func (m *Manager) UploadOriginAgent(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get file from upstream. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// get info.
@@ -109,8 +110,9 @@ func (m *Manager) UploadOriginAgent(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get file info. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
+	detail.FileInfo = info
 
 	// save to db.
 	err = m.daoRelease.UpsertMany(ctx, &types.Release{
@@ -124,18 +126,18 @@ func (m *Manager) UploadOriginAgent(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to save to db. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	m.logger.InfoCtxf(ctx,
 		"uploaded origin agent package to upstream. generation(%d), version(%s), file-name(%s)",
 		gen, detail.Version, pkgName)
 
-	return info, nil
+	return detail, nil
 }
 
 // checkGen2OriginAgentPkg check gen2 origin agent package.
-func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginAgentPkgDetail, error) {
+func checkGen2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	gzr, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader. err: %w", err)
@@ -144,6 +146,9 @@ func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginAgentPkgDetail, error) 
 		_ = gzr.Close()
 		_ = file.Close()
 	}()
+
+	detail := new(types.OriginPkgDetail)
+	detail.Platforms = make([]platform.Platform, 0)
 
 	tr := tar.NewReader(gzr)
 	for {
@@ -156,22 +161,48 @@ func checkGen2OriginAgentPkg(file io.ReadCloser) (*OriginAgentPkgDetail, error) 
 			return nil, fmt.Errorf("failed to read tar header. err: %w", err)
 		}
 
-		if header.Name == "gse/VERSION" {
+		switch header.Name {
+		case "gse/VERSION":
 			content, err := io.ReadAll(tr)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read version file. err: %w", err)
 			}
 
-			return &OriginAgentPkgDetail{
-				Version: strings.Trim(string(content), "\n\r\t "),
-			}, nil
+			detail.Version = strings.Trim(string(content), "\n\r\t ")
+
+		case "gse/DESCRIPTION":
+			content, err := io.ReadAll(tr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read description file. err: %w", err)
+			}
+
+			detail.ChangeLogZH = string(content)
+
+		case "gse/DESCRIPTION_EN":
+			content, err := io.ReadAll(tr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read description-en file. err: %w", err)
+			}
+
+			detail.ChangeLogEN = string(content)
+
+		case "gse/agent_linux_x86_64/bin/gse_agent":
+			detail.Platforms = append(detail.Platforms, platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64})
+
+		case "gse/agent_linux_aarch64/bin/gse_agent":
+			detail.Platforms = append(detail.Platforms, platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64})
+
+		case "gse/agent_windows_x86_64/bin/gse_agent.exe":
+			detail.Platforms = append(detail.Platforms, platform.Platform{OS: criteria.OSWindows, Arch: criteria.CPUArchAmd64})
+
+		case "gse/agent_darwin_x86_64/bin/gse_agent":
+			detail.Platforms = append(detail.Platforms, platform.Platform{OS: criteria.OSDarwin, Arch: criteria.CPUArchAmd64})
 		}
 	}
 
-	return nil, errors.New("version file not found")
-}
+	if detail.Version == "" {
+		return nil, errors.New("version file not found")
+	}
 
-// OriginAgentPkgDetail origin agent pkg detail.
-type OriginAgentPkgDetail struct {
-	Version string
+	return detail, nil
 }

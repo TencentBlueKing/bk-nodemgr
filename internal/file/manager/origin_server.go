@@ -31,23 +31,23 @@ import (
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginServer(
-	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (iface.FileInfo, error) {
+	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 
 	// validation.
 	if err := gen.Validate(); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. invalid generation. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 	if gen == types.Generation1 {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. generation 1 is not supported")
 
-		return iface.FileInfo{}, errors.New("generation 1 is not supported")
+		return nil, errors.New("generation 1 is not supported")
 	}
 	if pkgFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. file is nil")
 
-		return iface.FileInfo{}, errors.New("file is nil")
+		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
@@ -55,47 +55,55 @@ func (m *Manager) UploadOriginServer(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to save temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	checkingFile, err := m.getTempFile(ctx, tempFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	detail, err := checkGen2OriginServerPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to check origin server package. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
+
+	// origin server package only have one platform.
+	if len(detail.Platforms) == 0 {
+		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get platform")
+
+		return nil, errors.New("failed to get platform")
+	}
+	plat := detail.Platforms[0]
 
 	pkgName, err := nodepkg.FormatPkgName(
 		gen,
 		types.ReleaseTypeOriginServer,
-		detail.Platform,
+		plat,
 		detail.Version,
 	)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package, failed to format package. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	uploadingFile, err := m.getTempFile(ctx, tempFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get temp file. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// upload to upstream.
 	if err := m.upstreamOriginServer.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package, failed to upload to upstream. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// get file.
@@ -103,7 +111,7 @@ func (m *Manager) UploadOriginServer(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get file from upstream. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	// get info.
@@ -111,33 +119,36 @@ func (m *Manager) UploadOriginServer(
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get file info. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
+	detail.FileInfo = info
 
 	// save to db.
 	err = m.daoRelease.UpsertMany(ctx, &types.Release{
 		Generation: gen,
 		Type:       types.ReleaseTypeOriginServer,
 		Version:    detail.Version,
-		Platform:   detail.Platform,
+		Platform:   plat,
 		FileName:   info.Name,
 		MD5:        info.MD5,
 	})
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to save to db. err: %v", err)
 
-		return iface.FileInfo{}, err
+		return nil, err
 	}
 
 	m.logger.InfoCtxf(ctx,
 		"uploaded origin server package to upstream. generation(%d), platform(%s), version(%s), file-name(%s)",
-		gen, detail.Platform, detail.Version, pkgName)
+		gen, plat, detail.Version, pkgName)
 
-	return info, nil
+	return detail, nil
 }
 
 // checkGen2OriginServerPkg check gen2 origin server package.
-func checkGen2OriginServerPkg(file io.ReadCloser) (*OriginServerPkgDetail, error) {
+// nolint: gocognit,gocyclo,cyclop
+// NOCC: golint/gocyclo,cyclop (this function should be complex).
+func checkGen2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	gzr, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader. err: %w", err)
@@ -148,7 +159,8 @@ func checkGen2OriginServerPkg(file io.ReadCloser) (*OriginServerPkgDetail, error
 	}()
 
 	var seenFile, seenData bool
-	detail := new(OriginServerPkgDetail)
+	detail := new(types.OriginPkgDetail)
+	detail.Platforms = make([]platform.Platform, 0)
 
 	tr := tar.NewReader(gzr)
 	for {
@@ -176,7 +188,10 @@ func checkGen2OriginServerPkg(file io.ReadCloser) (*OriginServerPkgDetail, error
 			if err != nil {
 				return nil, fmt.Errorf("failed to check server binary platform. err: %w", err)
 			}
-			detail.Platform = *plat
+
+			if len(detail.Platforms) == 0 {
+				detail.Platforms = append(detail.Platforms, *plat)
+			}
 
 		case "gse/server/bin/gse_data":
 			seenData = true
@@ -184,22 +199,19 @@ func checkGen2OriginServerPkg(file io.ReadCloser) (*OriginServerPkgDetail, error
 			if err != nil {
 				return nil, fmt.Errorf("failed to check server binary platform. err: %w", err)
 			}
-			detail.Platform = *plat
+
+			if len(detail.Platforms) == 0 {
+				detail.Platforms = append(detail.Platforms, *plat)
+			}
 		}
 
-		if seenFile && seenData && detail.Version != "" && detail.Platform.Validate() {
+		if seenFile && seenData && detail.Version != "" {
 			return detail, nil
 		}
 	}
 
-	return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%s)",
-		seenFile, seenData, detail.Version, detail.Platform)
-}
-
-// OriginServerPkgDetail origin server pkg detail.
-type OriginServerPkgDetail struct {
-	Version  string
-	Platform platform.Platform
+	return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%v)",
+		seenFile, seenData, detail.Version, detail.Platforms)
 }
 
 const (
