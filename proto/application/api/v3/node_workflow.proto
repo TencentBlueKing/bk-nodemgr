@@ -16,6 +16,7 @@ message NodeWorkflowInfo {
   optional int64 operate_time = 6;
   optional int64 finish_time = 7;
   optional string status = 8;
+  repeated string bk_biz_name = 9;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow

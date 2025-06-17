@@ -138,6 +138,7 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgent
 	x.Host = hostsParam
 }
 
+// ConvertResultToComm ...
 func (x *NodeAgentInstallResp) ConvertResultToComm() string {
 	return x.GetData().GetWorkflowId()
 }

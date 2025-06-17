@@ -99,7 +99,9 @@ func (s *Storage) check() error {
 }
 
 func (s *Storage) registerScheduler() {
-	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5))
+	s.Scheduler = scheduler.NewScheduler(
+		scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5))
+
 	s.Scheduler.RegisterTask(&scheduler.Task{
 		ID:       "sync stopping operation inst",
 		Interval: 10 * time.Second,

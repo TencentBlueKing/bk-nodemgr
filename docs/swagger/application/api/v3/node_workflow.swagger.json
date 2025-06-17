@@ -473,6 +473,12 @@
         },
         "status": {
           "type": "string"
+        },
+        "bk_biz_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "NodeWorkflowInfo describes the node workflow information."

@@ -54,7 +54,9 @@ func (x *NodeWorkflowStatisticsReq) Validate() error {
 }
 
 // ConvertNodeWorkflowsFromTypes convert node workflows from types.
-func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflows []*types.NodeWorkflow) {
+func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflows []*types.NodeWorkflow,
+	businessMap map[int64]string) {
+
 	items := make([]*NodeWorkflowInfo, 0, len(workflows))
 	for _, workflow := range workflows {
 		item := newEmptyNodeWorkflow()
@@ -62,11 +64,21 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		*item.WorkflowId = workflow.WorkflowID
 		*item.TriggerId = workflow.TriggerID
 		item.BkBizId = workflow.BizIDs
+
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.Operator = workflow.Operator
 		*item.OperateTime = workflow.OperateTime.UnixMilli()
 		*item.FinishTime = workflow.FinishTime.UnixMilli()
+		bizNames := make([]string, 0, len(workflow.BizIDs))
+		for _, bizID := range workflow.BizIDs {
+			if name, exists := businessMap[bizID]; exists {
+				bizNames = append(bizNames, name)
+			} else {
+				bizNames = append(bizNames, "")
+			}
+		}
+		item.BkBizName = bizNames
 
 		items = append(items, item)
 	}
@@ -102,7 +114,7 @@ func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCond
 func (x *NodeWorkflowStatisticsReq) AutoConvert() {
 }
 
-// ConvertConditionsToTypes convert conditions to types.
+// ConvertConditionsToWorkflowConditionTypes convert conditions to types.
 func (x *NodeWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() *types.NodeWorkflowCondition {
 	return convertNodeWorkflowConditionsToTypes(
 		&NodeWorkflowExactConditions{
@@ -171,7 +183,7 @@ func (x *NodeWorkflowOperationListReq) Validate() error {
 	return validatePage(x.GetPage())
 }
 
-// ConvertConditionsToComm.
+// ConvertConditionsToComm convert conditions to comm.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToComm() string {
 	return x.GetWorkflowId()
 }

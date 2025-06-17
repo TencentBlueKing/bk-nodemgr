@@ -78,7 +78,7 @@ func (h *handler) List(ctx *rest.Context) (interface{}, error) {
 			h.logger.ErrorCtxf(sCtx, "failed to list workflow, failed to count workflow. err: %v", err)
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 		}
-		resp.ConvertNodeWorkflowsFromTypes(num, nil)
+		resp.ConvertNodeWorkflowsFromTypes(num, nil, nil)
 		// only count, no data.
 		return resp.GetData(), nil
 	}
@@ -91,7 +91,13 @@ func (h *handler) List(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	resp.ConvertNodeWorkflowsFromTypes(num, workflows)
+	businessMap, err := h.listAllBusiness(ctx)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list business, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp.ConvertNodeWorkflowsFromTypes(num, workflows, businessMap)
 
 	return resp.GetData(), nil
 }
@@ -359,4 +365,24 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 	}
 
 	return result
+}
+
+func (h *handler) listAllBusiness(ctx *rest.Context) (map[int64]string, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+	businesses, num, err := h.backendHandler.ListBusiness(sCtx, types.UnlimitedPage(), nil)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list business, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	bizNameMap := make(map[int64]string, num)
+	for _, biz := range businesses {
+		bizNameMap[biz.BizID] = biz.BizName
+	}
+
+	return bizNameMap, nil
 }
