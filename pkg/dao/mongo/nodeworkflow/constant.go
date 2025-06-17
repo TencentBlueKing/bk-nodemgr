@@ -31,4 +31,7 @@ const (
 
 	// FieldKeyOperateTime the operate time field key.
 	FieldKeyOperateTime = "data.operate_time"
+
+	// FieldKeyFinishTime is the key for finish time.
+	FieldKeyFinishTime = "data.finish_time"
 )
