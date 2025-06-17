@@ -180,9 +180,15 @@ func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
 	}
 
 	for triggerID, operInsts := range finishedTriggerOperInstsMap {
-		status := calWorkflowStatus(operInsts)
+		status, finishTime := calWorkflowStatusAndTime(operInsts)
+
 		if err := s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status); err != nil {
 			return fmt.Errorf("update node workflow status failed, err: %w", err)
+		}
+
+		if err := s.daoNodeWorkflow.UpdateFinishTime(
+			ctx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime); err != nil {
+			return fmt.Errorf("update node workflow finish time failed, err: %w", err)
 		}
 
 		delete(s.monitoredWorkflows, triggerID)
@@ -191,11 +197,16 @@ func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
 	return nil
 }
 
-func calWorkflowStatus(operationInsts []*operation.InstanceBriefData) types.NodeWorkflowStatus {
+func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (types.NodeWorkflowStatus, time.Time) {
 	successCount := 0
 	failedCount := 0
+	var latestEndTime time.Time
 
 	for _, inst := range operationInsts {
+		if inst.Lifecycle.EndedAt.After(latestEndTime) {
+			latestEndTime = inst.Lifecycle.EndedAt
+		}
+
 		switch inst.Lifecycle.State {
 		case operation.StateSuccess:
 			successCount++
@@ -208,11 +219,11 @@ func calWorkflowStatus(operationInsts []*operation.InstanceBriefData) types.Node
 
 	switch {
 	case successCount == total:
-		return types.NodeWorkflowStatusSuccess
+		return types.NodeWorkflowStatusSuccess, latestEndTime
 	case failedCount == total:
-		return types.NodeWorkflowStatusFailed
+		return types.NodeWorkflowStatusFailed, latestEndTime
 	default:
-		return types.NodeWorkflowStatusPartialFailed
+		return types.NodeWorkflowStatusPartialFailed, latestEndTime
 	}
 }
 

@@ -64,7 +64,7 @@ func NewStepReportStatus() *cobra.Command {
 
 	stepCmd.Flags().StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
 	stepCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
-	stepCmd.Flags().StringVar(&status, CmdFlagAgentID, "", "status")
+	stepCmd.Flags().StringVar(&status, status, "faild", "status: faild or success")
 
 	return stepCmd
 }

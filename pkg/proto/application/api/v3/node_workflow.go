@@ -66,6 +66,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		*item.Status = string(workflow.Status)
 		*item.Operator = workflow.Operator
 		*item.OperateTime = workflow.OperateTime.UnixMilli()
+		*item.FinishTime = workflow.FinishTime.UnixMilli()
 
 		items = append(items, item)
 	}
@@ -350,6 +351,7 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 		BkBizId:     make([]int64, 0),
 		Operator:    new(string),
 		OperateTime: new(int64),
+		FinishTime:  new(int64),
 		Status:      new(string),
 	}
 }

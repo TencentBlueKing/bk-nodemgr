@@ -31,7 +31,8 @@ type NodeWorkflowInfo struct {
 	BkBizId       []int64                `protobuf:"varint,4,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
 	Operator      *string                `protobuf:"bytes,5,opt,name=operator,proto3,oneof" json:"operator"`
 	OperateTime   *int64                 `protobuf:"varint,6,opt,name=operate_time,json=operateTime,proto3,oneof" json:"operate_time"`
-	Status        *string                `protobuf:"bytes,7,opt,name=status,proto3,oneof" json:"status"`
+	FinishTime    *int64                 `protobuf:"varint,7,opt,name=finish_time,json=finishTime,proto3,oneof" json:"finish_time"`
+	Status        *string                `protobuf:"bytes,8,opt,name=status,proto3,oneof" json:"status"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -104,6 +105,13 @@ func (x *NodeWorkflowInfo) GetOperator() string {
 func (x *NodeWorkflowInfo) GetOperateTime() int64 {
 	if x != nil && x.OperateTime != nil {
 		return *x.OperateTime
+	}
+	return 0
+}
+
+func (x *NodeWorkflowInfo) GetFinishTime() int64 {
+	if x != nil && x.FinishTime != nil {
+		return *x.FinishTime
 	}
 	return 0
 }
@@ -2245,7 +2253,7 @@ var File_node_workflow_proto protoreflect.FileDescriptor
 
 const file_node_workflow_proto_rawDesc = "" +
 	"\n" +
-	"\x13node_workflow.proto\x12\x02v3\x1a\fcommon.proto\x1a\x1cgoogle/api/annotations.proto\"\xc8\x02\n" +
+	"\x13node_workflow.proto\x12\x02v3\x1a\fcommon.proto\x1a\x1cgoogle/api/annotations.proto\"\xfe\x02\n" +
 	"\x10NodeWorkflowInfo\x12$\n" +
 	"\vworkflow_id\x18\x01 \x01(\tH\x00R\n" +
 	"workflowId\x88\x01\x01\x12\"\n" +
@@ -2254,13 +2262,16 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x04type\x18\x03 \x01(\tH\x02R\x04type\x88\x01\x01\x12\x1a\n" +
 	"\tbk_biz_id\x18\x04 \x03(\x03R\abkBizId\x12\x1f\n" +
 	"\boperator\x18\x05 \x01(\tH\x03R\boperator\x88\x01\x01\x12&\n" +
-	"\foperate_time\x18\x06 \x01(\x03H\x04R\voperateTime\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\a \x01(\tH\x05R\x06status\x88\x01\x01B\x0e\n" +
+	"\foperate_time\x18\x06 \x01(\x03H\x04R\voperateTime\x88\x01\x01\x12$\n" +
+	"\vfinish_time\x18\a \x01(\x03H\x05R\n" +
+	"finishTime\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\b \x01(\tH\x06R\x06status\x88\x01\x01B\x0e\n" +
 	"\f_workflow_idB\r\n" +
 	"\v_trigger_idB\a\n" +
 	"\x05_typeB\v\n" +
 	"\t_operatorB\x0f\n" +
-	"\r_operate_timeB\t\n" +
+	"\r_operate_timeB\x0e\n" +
+	"\f_finish_timeB\t\n" +
 	"\a_status\"\xa2\x01\n" +
 	"\x1bNodeWorkflowExactConditions\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x03(\tR\n" +

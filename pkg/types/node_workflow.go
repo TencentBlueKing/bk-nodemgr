@@ -23,6 +23,7 @@ type NodeWorkflow struct {
 	BizIDs      []int64
 	Operator    string
 	OperateTime time.Time
+	FinishTime  time.Time
 	Status      NodeWorkflowStatus
 }
 

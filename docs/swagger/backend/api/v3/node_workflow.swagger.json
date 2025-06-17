@@ -689,6 +689,10 @@
           "type": "integer",
           "format": "int64"
         },
+        "finish_time": {
+          "type": "integer",
+          "format": "int64"
+        },
         "status": {
           "type": "string"
         }

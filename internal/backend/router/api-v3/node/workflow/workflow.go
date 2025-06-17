@@ -57,7 +57,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/distinct", rest.RestHandlerFunc(h.DistinctNodeWorkflow))
 	h.rg.POST("/operation/list", rest.RestHandlerFunc(h.ListOperation))
 	h.rg.POST("/operation/instance/list", rest.RestHandlerFunc(h.ListOperationInstance))
-	h.rg.POST("/operation/instance/status/list/", rest.RestHandlerFunc(h.ListOperationInstanceStatus))
+	h.rg.POST("/operation/instance/status/list", rest.RestHandlerFunc(h.ListOperationInstanceStatus))
 	h.rg.POST("/operation/instance/log/get", rest.RestHandlerFunc(h.GetOperationInstanceLog))
 }
 

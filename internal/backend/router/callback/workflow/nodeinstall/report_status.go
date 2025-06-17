@@ -42,7 +42,7 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 
 		return
 	}
-	h.logger.Info("【DEBUG】operation instance:%s, action:%s ,report status: %s",
+	h.logger.Infof("operation instance:%s, action:%s ,report status: %s",
 		info.OperInstID, info.BlockingActionName, req.GetStatus())
 
 	if err := h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName,

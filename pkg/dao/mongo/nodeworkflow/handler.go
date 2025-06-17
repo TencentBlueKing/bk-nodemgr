@@ -14,11 +14,13 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -38,6 +40,9 @@ type IHandler interface {
 
 	// UpdateStatus updates the status of a node workflow.
 	UpdateStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error
+
+	// UpdateFinishTime updates the finish time of a node workflow.
+	UpdateFinishTime(ctx context.Context, workflowID string, finishTime time.Time) error
 
 	// Distinct distincts node workflow fields.
 	IDistinctor
@@ -211,6 +216,30 @@ func (h *handler) UpdateStatus(ctx context.Context, workflowID string, status ty
 	return nil
 }
 
+// UpdateFinishTime updates the finish time of a node workflow.
+func (h *handler) UpdateFinishTime(ctx context.Context, workflowID string, finishTime time.Time) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	if finishTime.IsZero() {
+		return errors.New("finish time should not be zero")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyFinishTime, finishTime); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DistinctNodeWorkflowType distincts with field type.
 func (h *handler) DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowType, error) {
 	result, err := h.distinctString(ctx, FieldKeyType, opts...)
@@ -278,6 +307,7 @@ func convertNodeWorkflowToTypes(data *Data) *types.NodeWorkflow {
 		BizIDs:      data.BizIDs,
 		Operator:    data.Operator,
 		OperateTime: data.OperateTime,
+		FinishTime:  data.FinishTime,
 		Status:      types.NodeWorkflowStatus(data.Status),
 	}
 }

@@ -55,7 +55,8 @@ func NewStep(args StepArgs) *Step {
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepReportStatus, "start report status")
 	req := &ReportStatusReq{
-		Token: step.token,
+		Token:  step.token,
+		Status: step.status,
 	}
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
