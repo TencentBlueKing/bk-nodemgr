@@ -12,7 +12,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -29,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/precheck"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/uninstallnode"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -218,7 +216,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 			if runErr != nil {
 				state = constant.StateFailed
 			}
-			go reportStatus(cmd.Context(), state)
+			go ReportStatus(cmd.Context(), token, callBackEndPoint, state)
 		}()
 
 		logFile, err := os.OpenFile(GetLogFilePath(), os.O_RDONLY, 0600) // nolint: mnd
@@ -367,16 +365,4 @@ func registerRootVars(rootCmd *cobra.Command) {
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
 	_ = rootCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
-}
-
-func reportStatus(ctx context.Context, status constant.State) {
-	reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
-		Token:            GetToken(),
-		Status:           status,
-		CallbackEndpoint: GetCallBackEndpoint(),
-	})
-	err := reportStatusStep.Run(ctx)
-	if err != nil {
-		logger.Errorf(constant.StepReportStatus, "report status failed, err: %v", err)
-	}
 }

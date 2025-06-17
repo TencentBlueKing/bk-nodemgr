@@ -12,10 +12,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
 	"github.com/spf13/cobra"
 )
@@ -67,4 +69,16 @@ func NewStepReportStatus() *cobra.Command {
 	stepCmd.Flags().StringVar(&status, CmdFlagAgentID, "", "status")
 
 	return stepCmd
+}
+
+// ReportStatus report status.
+func ReportStatus(ctx context.Context, token string, callBackEndPoint string, status constant.State) {
+	reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
+		Token:            token,
+		Status:           status,
+		CallbackEndpoint: callBackEndPoint,
+	})
+	if err := reportStatusStep.Run(ctx); err != nil {
+		logger.Errorf(constant.StepReportStatus, "status report failed: %v", err)
+	}
 }

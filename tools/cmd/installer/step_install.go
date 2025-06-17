@@ -14,6 +14,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/spf13/cobra"
 )
@@ -40,6 +41,15 @@ func NewStepInstallAgent() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			var runErr error
+
+			defer func() {
+				state := constant.StateSuccess
+				if runErr != nil {
+					state = constant.StateFailed
+				}
+				ReportStatus(cmd.Context(), GetToken(), GetCallBackEndpoint(), state)
+			}()
 			step := nodeinstaller.NewStep(nodeinstaller.StepArgs{
 				AgentID:           GetNodeAgentID(),
 				ReRegisterAgentID: false,
@@ -48,9 +58,9 @@ func NewStepInstallAgent() *cobra.Command {
 				SrcConfigDir:      GetTmpConfigDir(),
 				Overwrite:         false,
 			})
-			agentID, err := step.Run(cmd.Context())
-			if err != nil {
-				return err
+			agentID, runErr := step.Run(cmd.Context())
+			if runErr != nil {
+				return runErr
 			}
 
 			fmt.Print(agentID)
