@@ -32,8 +32,14 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// StorageName ...
-const StorageName = "operinstdata"
+// constants ...
+const (
+	StorageName       = "operinstdata"
+	defaultInterval   = 5 * time.Second
+	taskInterval      = 10 * time.Second
+	taskTimeout       = 20 * time.Second
+	syncOperationTask = "sync stopping operation inst"
+)
 
 // NewStorage ...
 func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
@@ -100,12 +106,11 @@ func (s *Storage) check() error {
 
 func (s *Storage) registerScheduler() {
 	s.Scheduler = scheduler.NewScheduler(
-		scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5))
-
+		scheduler.WithLogger(s.Logger), scheduler.WithInterval(defaultInterval))
 	s.Scheduler.RegisterTask(&scheduler.Task{
-		ID:       "sync stopping operation inst",
-		Interval: 10 * time.Second,
-		Timeout:  20 * time.Second,
+		ID:       syncOperationTask,
+		Interval: taskInterval,
+		Timeout:  taskTimeout,
 		Fn:       s.syncStopOperInsts,
 	})
 

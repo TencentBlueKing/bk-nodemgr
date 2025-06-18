@@ -85,7 +85,7 @@ func (s *Storage) initDao() error {
 
 func (s *Storage) registerScheduler() {
 	s.Scheduler = scheduler.NewScheduler(
-		scheduler.WithLogger(s.Logger), scheduler.WithInterval(time.Second*5)) // nolint: mnd
+		scheduler.WithLogger(s.Logger), scheduler.WithInterval(5*time.Second)) // nolint: mnd
 	s.Scheduler.RegisterTask(&scheduler.Task{
 		ID:       "obtain monitored workflows",
 		Interval: 5 * time.Second,  // nolint: mnd
