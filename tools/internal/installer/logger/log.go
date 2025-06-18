@@ -55,7 +55,7 @@ func levelNames(level LogLevel) string {
 var currentLevel atomic.Int32 // nolint: gochecknoglobals
 
 // Pre-compute aligned format string for better performance.
-const logFormat = "| %-5s | %-15s | %-15s | %s"
+const logFormat = "| %-5s | %-15s | %s"
 
 // init default log level.
 func init() { // nolint: gochecknoinits
@@ -79,49 +79,49 @@ func GetLevel() LogLevel {
 }
 
 // Internal unified logging method to reduce code duplication.
-func logInternal(level LogLevel, step constant.Step, state constant.State, msg string) {
+func logInternal(level LogLevel, step constant.Step, msg string) {
 	if LogLevel(currentLevel.Load()) <= level {
 		// Ensure fixed width for each field to improve readability
-		log.Print(fmt.Sprintf(logFormat, levelNames(level), step, state, msg))
+		log.Print(fmt.Sprintf(logFormat, levelNames(level), step, msg))
 	}
 }
 
 // Debug logs messages at debug level.
-func Debug(step constant.Step, state constant.State, args ...interface{}) {
-	logInternal(LevelDebug, step, state, fmt.Sprint(args...))
+func Debug(step constant.Step, args ...interface{}) {
+	logInternal(LevelDebug, step, fmt.Sprint(args...))
 }
 
 // Debugf logs formatted messages at debug level.
-func Debugf(step constant.Step, state constant.State, format string, args ...interface{}) {
-	logInternal(LevelDebug, step, state, fmt.Sprintf(format, args...))
+func Debugf(step constant.Step, format string, args ...interface{}) {
+	logInternal(LevelDebug, step, fmt.Sprintf(format, args...))
 }
 
 // Info logs messages at info level.
-func Info(step constant.Step, state constant.State, args ...interface{}) {
-	logInternal(LevelInfo, step, state, fmt.Sprint(args...))
+func Info(step constant.Step, args ...interface{}) {
+	logInternal(LevelInfo, step, fmt.Sprint(args...))
 }
 
 // Infof logs formatted messages at info level.
-func Infof(step constant.Step, state constant.State, format string, args ...interface{}) {
-	logInternal(LevelInfo, step, state, fmt.Sprintf(format, args...))
+func Infof(step constant.Step, format string, args ...interface{}) {
+	logInternal(LevelInfo, step, fmt.Sprintf(format, args...))
 }
 
 // Warn logs messages at warning level.
-func Warn(step constant.Step, state constant.State, args ...interface{}) {
-	logInternal(LevelWarn, step, state, fmt.Sprint(args...))
+func Warn(step constant.Step, args ...interface{}) {
+	logInternal(LevelWarn, step, fmt.Sprint(args...))
 }
 
 // Warnf logs formatted messages at warning level.
-func Warnf(step constant.Step, state constant.State, format string, args ...interface{}) {
-	logInternal(LevelWarn, step, state, fmt.Sprintf(format, args...))
+func Warnf(step constant.Step, format string, args ...interface{}) {
+	logInternal(LevelWarn, step, fmt.Sprintf(format, args...))
 }
 
 // Error logs messages at error level.
-func Error(step constant.Step, state constant.State, args ...interface{}) {
-	logInternal(LevelError, step, state, fmt.Sprint(args...))
+func Error(step constant.Step, args ...interface{}) {
+	logInternal(LevelError, step, fmt.Sprint(args...))
 }
 
 // Errorf logs formatted messages at error level.
-func Errorf(step constant.Step, state constant.State, format string, args ...interface{}) {
-	logInternal(LevelError, step, state, fmt.Sprintf(format, args...))
+func Errorf(step constant.Step, format string, args ...interface{}) {
+	logInternal(LevelError, step, fmt.Sprintf(format, args...))
 }

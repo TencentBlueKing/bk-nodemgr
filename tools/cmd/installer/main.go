@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/precheck"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/uninstallnode"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -71,6 +72,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewCheckDeploy())
 	rootCmd.AddCommand(NewStepReinstall())
 	rootCmd.AddCommand(NewStepReportData())
+	rootCmd.AddCommand(NewStepReportStatus())
 
 	return rootCmd
 }
@@ -170,6 +172,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		reinstall         bool
 		reRegisterAgentID bool
 		agentID           string
+		runErr            error
 	)
 	rootCmd.PreRunE = func(_ *cobra.Command, _ []string) error {
 		if gseRoot != "" {
@@ -208,128 +211,153 @@ func registerRootVars(rootCmd *cobra.Command) {
 	}
 
 	rootCmd.RunE = func(cmd *cobra.Command, _ []string) error {
-		logFile, err := os.OpenFile(GetLogFilePath(), os.O_RDONLY, 0600) // nolint: mnd
-		if err != nil {
-			return fmt.Errorf("open log file failed, err: %v", err)
-		}
-
-		defer func() {
-			_ = logFile.Close()
-		}()
-
-		reporter := logreporter.NewReporter(logreporter.ReportLogsArgs{
-			Token:            GetToken(),
-			Reader:           logFile,
-			LogRptCnt:        0,
-			BulkSize:         defaultLogReportBulkSize,
-			CallbackEndpoint: GetCallBackEndpoint(),
-		})
-		errCh, stop := reporter.Watch(1 * time.Second)
-		go func() {
-			for err := range errCh {
-				fmt.Printf("log report failed, err: %v", err)
+		runErr = func() error {
+			logFile, err := os.OpenFile(GetLogFilePath(), os.O_RDONLY, 0600) // nolint: mnd
+			if err != nil {
+				return fmt.Errorf("open log file failed, err: %v", err)
 			}
-		}()
-		defer func() {
-			if err := stop(); err != nil {
-				fmt.Printf("stop log reporter failed, err: %v", err)
-			}
-		}()
 
-		gp := gopool.NewPool()
-		gp.Go(func() error {
-			if !reinstall {
-				// don't reinstall
+			defer func() {
+				_ = logFile.Close()
+			}()
+
+			reporter := logreporter.NewReporter(logreporter.ReportLogsArgs{
+				Token:            GetToken(),
+				Reader:           logFile,
+				LogRptCnt:        0,
+				BulkSize:         defaultLogReportBulkSize,
+				CallbackEndpoint: GetCallBackEndpoint(),
+			})
+			errCh, stop := reporter.Watch(1 * time.Second)
+			go func() {
+				for err := range errCh {
+					fmt.Printf("log report failed, err: %v", err)
+				}
+			}()
+			defer func() {
+				if err := stop(); err != nil {
+					fmt.Printf("stop log reporter failed, err: %v", err)
+				}
+			}()
+
+			gp := gopool.NewPool()
+			gp.Go(func() error {
+				if !reinstall {
+					// don't reinstall
+
+					return nil
+				}
+
+				uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
+					SetupDirPath: GetSetupDir(),
+					GseCtlPath:   GetGseCtlPath(),
+				})
+				if err := uninstallStep.Run(cmd.Context()); err != nil {
+
+					return fmt.Errorf("uninstall step failed, err: %v", err)
+				}
 
 				return nil
+			})
+
+			gp.Go(func() error {
+				downloadFilesStep := filedownloader.NewStep(filedownloader.StepArgs{
+					DownloadPoint:        GetDownloadEndPoint(),
+					CallbackEndpoint:     GetCallBackEndpoint(),
+					PkgGeneration:        GetNodePkgGeneration(),
+					PkgPath:              GetGsePkgPath(),
+					PkgVersion:           GetNodePkgVersion(),
+					NodeRole:             GetNodeRole(),
+					Token:                GetToken(),
+					TmpAgentConfPath:     GetTmpAgentConfPath(),
+					TmpFileProxyConfPath: GetTmpFileProxyConfPath(),
+					TmpDataProxyConfPath: GetTmpDataProxyConfPath(),
+					CheckListPath:        GetPreCheckFilePath(),
+				})
+				if err := downloadFilesStep.Run(cmd.Context()); err != nil {
+
+					return fmt.Errorf("download files failed, err: %v", err)
+				}
+
+				return nil
+			})
+
+			if err := gp.Wait(); err != nil {
+				return fmt.Errorf("concurrent tasks failed: %w", err)
 			}
 
-			uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
-				SetupDirPath: GetSetupDir(),
-				GseCtlPath:   GetGseCtlPath(),
+			preCheckStep := precheck.NewStep(precheck.StepArgs{
+				PreCheckListPath: GetPreCheckFilePath(),
+				SetupDirPath:     GetSetupDir(),
 			})
-			if err := uninstallStep.Run(cmd.Context()); err != nil {
-				fmt.Printf("uninstall step failed, err: %v\n", err)
+
+			if err := preCheckStep.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("precheck failed: %w", err)
+			}
+
+			installAgentStep := nodeinstaller.NewStep(nodeinstaller.StepArgs{
+				AgentID:           GetNodeAgentID(),
+				ReRegisterAgentID: reRegisterAgentID && reinstall,
+				SetupDirPath:      GetSetupDir(),
+				PkgPath:           GetGsePkgPath(),
+				SrcConfigDir:      GetTmpConfigDir(),
+				Overwrite:         false,
+			})
+
+			if agentID, err = installAgentStep.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("install agent failed: %w", err)
+			}
+
+			if err = SetNodeAgentID(agentID); err != nil {
+				return fmt.Errorf("set node agent id failed: %w", err)
+			}
+
+			startNodeStep := startnode.NewStep(startnode.StepArgs{
+				GseCtlPath: GetGseCtlPath(),
+			})
+			if err = startNodeStep.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("start node failed: %w", err)
+			}
+
+			fmt.Println(agentID)
+
+			checkDeployStep := checkdeploy.NewStep(checkdeploy.StepArgs{
+				RunDir:   GetRunDir(),
+				NodeRole: GetNodeRole(),
+			})
+			if err = checkDeployStep.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("check deploy failed: %w", err)
+			}
+
+			reportDataStep := datareporter.NewStep(datareporter.StepArgs{
+				Token:            GetToken(),
+				AgentID:          GetNodeAgentID(),
+				CallbackEndpoint: GetCallBackEndpoint(),
+			})
+			if err = reportDataStep.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("report data failed: %w", err)
 			}
 
 			return nil
-		})
+		}()
 
-		gp.Go(func() error {
-			downloadFilesStep := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadPoint:        GetDownloadEndPoint(),
-				CallbackEndpoint:     GetCallBackEndpoint(),
-				PkgGeneration:        GetNodePkgGeneration(),
-				PkgPath:              GetGsePkgPath(),
-				PkgVersion:           GetNodePkgVersion(),
-				NodeRole:             GetNodeRole(),
-				Token:                GetToken(),
-				TmpAgentConfPath:     GetTmpAgentConfPath(),
-				TmpFileProxyConfPath: GetTmpFileProxyConfPath(),
-				TmpDataProxyConfPath: GetTmpDataProxyConfPath(),
-				CheckListPath:        GetPreCheckFilePath(),
-			})
-			if err := downloadFilesStep.Run(cmd.Context()); err != nil {
-				return fmt.Errorf("download files failed, err: %v", err)
-			}
+		return runErr
+	}
 
-			return nil
-		})
-
-		if err := gp.Wait(); err != nil {
-			return err
+	// report status ...
+	rootCmd.PostRunE = func(cmd *cobra.Command, _ []string) error {
+		state := constant.StateSuccess
+		if runErr != nil {
+			state = constant.StateFailed
 		}
-
-		preCheckStep := precheck.NewStep(precheck.StepArgs{
-			PreCheckListPath: GetPreCheckFilePath(),
-			SetupDirPath:     GetSetupDir(),
-		})
-
-		if err := preCheckStep.Run(cmd.Context()); err != nil {
-			return fmt.Errorf("precheck failed, err: %v", err)
-		}
-
-		installAgentStep := nodeinstaller.NewStep(nodeinstaller.StepArgs{
-			AgentID:           GetNodeAgentID(),
-			ReRegisterAgentID: reRegisterAgentID && reinstall,
-			SetupDirPath:      GetSetupDir(),
-			PkgPath:           GetGsePkgPath(),
-			SrcConfigDir:      GetTmpConfigDir(),
-			Overwrite:         false,
-		})
-		agentID, err := installAgentStep.Run(cmd.Context())
-		if err != nil {
-			return fmt.Errorf("install agent failed, err: %v", err)
-		}
-
-		if err := SetNodeAgentID(agentID); err != nil {
-			return fmt.Errorf("set node agent id failed, err: %v", err)
-		}
-
-		startNodeStep := startnode.NewStep(startnode.StepArgs{
-			GseCtlPath: GetGseCtlPath(),
-		})
-		if err := startNodeStep.Run(cmd.Context()); err != nil {
-			return err
-		}
-
-		fmt.Println(agentID)
-
-		checkDeployStep := checkdeploy.NewStep(checkdeploy.StepArgs{
-			RunDir:   GetRunDir(),
-			NodeRole: GetNodeRole(),
-		})
-		if err := checkDeployStep.Run(cmd.Context()); err != nil {
-			return fmt.Errorf("check deploy failed, err: %v", err)
-		}
-
-		reportDataStep := datareporter.NewStep(datareporter.StepArgs{
+		reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
 			Token:            GetToken(),
-			AgentID:          GetNodeAgentID(),
-			CallbackEndpoint: GetCallBackEndpoint(),
+			Status:           state,
+			CallbackEndpoint: callBackEndPoint,
 		})
-		if err := reportDataStep.Run(cmd.Context()); err != nil {
-			return fmt.Errorf("report data failed, err: %v", err)
+		if err := reportStatusStep.Run(cmd.Context()); err != nil {
+			logger.Errorf(constant.StepReportStatus, "status report failed: %v", err)
+			return err
 		}
 
 		return nil

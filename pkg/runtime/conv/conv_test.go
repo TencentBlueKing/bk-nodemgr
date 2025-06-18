@@ -25,59 +25,281 @@ import (
 
 // TestToInt64 ...
 func TestToInt64(t *testing.T) {
-	type (
-		MyInt64   int64
-		MyFloat64 float64
-	)
+	type MyInt64 int64
+	type MyFloat64 float64
 
+	type args struct {
+		value interface{}
+	}
 	tests := []struct {
 		name    string
-		value   interface{}
+		args    args
 		want    int64
 		wantErr bool
 	}{
-		{name: "zero", value: 0, want: 0},
-		{name: "int", value: int(1), want: 1},
-		{name: "string_valid", value: "1", want: 1},
-		{name: "max_int64", value: int64(9223372036854775807), want: 9223372036854775807},
-		{name: "max_int32", value: int32(2147483647), want: 2147483647},
-		{name: "max_int16", value: int16(32767), want: 32767},
-		{name: "max_int8", value: int8(127), want: 127},
+		{
+			name: "zero",
+			args: args{
+				value: 0,
+			},
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name: "conv int to int64",
+			args: args{
+				value: int(1),
+			},
+			want:    int64(1),
+			wantErr: false,
+		},
+		{
+			name: "conv string to int64",
+			args: args{
+				value: "1",
+			},
+			want:    int64(1),
+			wantErr: false,
+		},
+		// base type test.
+		{
+			name: "conv int64 to int64",
+			args: args{
+				value: int64(9223372036854775807), // max int64
+			},
+			want:    9223372036854775807,
+			wantErr: false,
+		},
+		{
+			name: "conv int32 to int64",
+			args: args{
+				value: int32(2147483647), // max int32
+			},
+			want:    2147483647,
+			wantErr: false,
+		},
+		{
+			name: "conv int16 to int64",
+			args: args{
+				value: int16(32767), // max int16
+			},
+			want:    32767,
+			wantErr: false,
+		},
+		{
+			name: "conv int8 to int64",
+			args: args{
+				value: int8(127), // max int8
+			},
+			want:    127,
+			wantErr: false,
+		},
+		// unsigned number test
+		{
+			name: "conv uint to int64",
+			args: args{
+				value: uint(1),
+			},
+			want:    1,
+			wantErr: false,
+		},
+		{
+			name: "conv uint64 to int64",
+			args: args{
+				value: uint64(922337203685477580), // don't exceed int64 max positive value.
+			},
+			want:    922337203685477580,
+			wantErr: false,
+		},
+		// float number test
+		{
+			name: "conv float64 to int64",
+			args: args{
+				value: float64(1.9),
+			},
+			want:    1,
+			wantErr: false,
+		},
+		{
+			name: "conv float32 to int64",
+			args: args{
+				value: float32(1.9),
+			},
+			want:    1,
+			wantErr: false,
+		},
+		// string test
+		{
+			name: "conv string max int64 to int64",
+			args: args{
+				value: "9223372036854775807", // max int64
+			},
+			want:    9223372036854775807,
+			wantErr: false,
+		},
+		{
+			name: "conv invalid string to int64",
+			args: args{
+				value: "invalid",
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv empty string to int64",
+			args: args{
+				value: "",
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv MyInt64 to int64",
+			args: args{
+				value: MyInt64(123),
+			},
+			want:    123,
+			wantErr: false,
+		},
+		{
+			name: "conv MyInt64 to int64",
+			args: args{
+				value: MyInt64(123),
+			},
+			want:    123,
+			wantErr: false,
+		},
+		{
+			name: "conv MyFloat64 to int64",
+			args: args{
+				value: MyFloat64(123.0),
+			},
+			want:    123,
+			wantErr: false,
+		},
+		// pointer test
+		{
+			name: "conv *int64 to int64",
+			args: args{
+				value: func() interface{} {
+					v := int64(789)
+					return &v
+				}(),
+			},
+			want:    789,
+			wantErr: false,
+		},
+		{
+			name: "conv **int64 to int64",
+			args: args{
+				value: func() interface{} {
+					v := int64(789)
+					vv := &v
 
-		{name: "uint", value: uint(1), want: 1},
-		{name: "uint64_valid", value: uint64(922337203685477580), want: 922337203685477580},
-		{name: "uint64_overflow", value: uint64(1 << 63), want: 0, wantErr: true},
-
-		{name: "float64", value: 1.9, want: 1},
-		{name: "float32", value: float32(1.9), want: 1},
-		{name: "float64_overflow", value: float64(math.MaxInt64 + 1), want: 0, wantErr: true},
-		{name: "float64_underflow", value: float64(math.MinInt64 - 1), want: 0, wantErr: true},
-
-		{name: "string_max_int64", value: "9223372036854775807", want: 9223372036854775807},
-		{name: "string_overflow", value: "9223372036854775808", want: 0, wantErr: true},
-		{name: "string_underflow", value: "-9223372036854775809", want: 0, wantErr: true},
-		{name: "string_invalid", value: "invalid", want: 0, wantErr: true},
-		{name: "string_empty", value: "", want: 0, wantErr: true},
-
-		{name: "MyInt64", value: MyInt64(123), want: 123},
-		{name: "MyFloat64", value: MyFloat64(123.0), want: 123},
-
-		{name: "*int64", value: func() interface{} { v := int64(789); return &v }(), want: 789},
-		{name: "**int64", value: func() interface{} { v := int64(789); p := &v; return &p }(), want: 789},
-		{name: "nil_pointer", value: (*int64)(nil), want: 0, wantErr: true},
-		{name: "nil_value", value: nil, want: 0, wantErr: true},
-
-		{name: "json.Number", value: json.Number("123"), want: 123},
-		{name: "bool", value: true, want: 0, wantErr: true},
-		{name: "struct", value: struct{}{}, want: 0, wantErr: true},
+					return &vv
+				}(),
+			},
+			want:    789,
+			wantErr: false,
+		},
+		// nil pointer test
+		{
+			name: "conv nil to int64",
+			args: args{
+				value: nil,
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv nil pointer to int64",
+			args: args{
+				value: (*int64)(nil),
+			},
+			want:    0,
+			wantErr: true,
+		},
+		// json.Number test
+		{
+			name: "conv json.Number to int64",
+			args: args{
+				value: json.Number("123"),
+			},
+			want:    123,
+			wantErr: false,
+		},
+		// invalid type test
+		{
+			name: "conv bool to int64",
+			args: args{
+				value: true,
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv struct to int64",
+			args: args{
+				value: struct{}{},
+			},
+			want:    0,
+			wantErr: true,
+		},
+		// boundary value test
+		{
+			name: "conv overflow string to int64",
+			args: args{
+				value: "9223372036854775808", // max int64 + 1
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv underflow string to int64",
+			args: args{
+				value: "-9223372036854775809", // min int64 - 1
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv overflow uint64 to int64",
+			args: args{
+				value: uint64(1 << 63), // don't exceed int64 max positive value.
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv overflow float64 to int64",
+			args: args{
+				value: float64(math.MaxInt64 + 1), // don't exceed int64 max positive value.
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "conv underflow float64 to int64",
+			args: args{
+				value: float64(math.MinInt64 - 1), // don't less than int64 min positive value.
+			},
+			want:    0,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ToInt64(tt.value)
-			if (err != nil) != tt.wantErr || got != tt.want {
-				t.Errorf("ToInt64(%#v) = (%v, %v), want (%v, %v)",
-					tt.value, got, err, tt.want, tt.wantErr)
+			got, err := ToInt64(tt.args.value)
+			if err != nil {
+				t.Logf("ToInt64() error = %v", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ToInt64() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ToInt64() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -244,6 +466,7 @@ func TestToString(t *testing.T) {
 	type args struct {
 		value interface{}
 	}
+
 	var nilPtr *string
 	str := "test"
 	strPtr := &str
@@ -254,6 +477,7 @@ func TestToString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
+		// normal type test.
 		{
 			name:    "nil",
 			args:    args{value: nil},

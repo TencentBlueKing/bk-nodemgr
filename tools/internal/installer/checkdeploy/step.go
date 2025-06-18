@@ -65,7 +65,7 @@ func ProxyPidFileList(runDirPath string) []string {
 
 // Run the step to check this gse node is deploy or not.
 func (step *Step) Run(_ context.Context) error {
-	logger.Infof(constant.StepCheckDeploy, constant.StateStart, "start check deploy result. role(%s), run-dir(%s)",
+	logger.Infof(constant.StepCheckDeploy, "start check deploy result. role(%s), run-dir(%s)",
 		step.nodeRole, step.runDir)
 
 	var pidFiles []string
@@ -76,7 +76,7 @@ func (step *Step) Run(_ context.Context) error {
 	case constant.NodeRoleProxy:
 		pidFiles = ProxyPidFileList(step.runDir)
 	default:
-		logger.Errorf(constant.StepCheckDeploy, constant.StateFailed, "invalid node role(%s)", step.nodeRole)
+		logger.Errorf(constant.StepCheckDeploy, "invalid node role(%s)", step.nodeRole)
 
 		return fmt.Errorf("invalid node role(%s)", step.nodeRole)
 	}
@@ -85,28 +85,28 @@ func (step *Step) Run(_ context.Context) error {
 	for idx := range pidFiles {
 		pidFilePath := pidFiles[idx]
 		gp.Go(func() error {
-			logger.Infof(constant.StepCheckDeploy, constant.StateRunning,
+			logger.Infof(constant.StepCheckDeploy,
 				"start to check pid file pid-file-path(%s)", pidFilePath)
 
 			if err := step.checkPidFile(pidFilePath); err != nil {
-				logger.Errorf(constant.StepCheckDeploy, constant.StateFailed,
+				logger.Errorf(constant.StepCheckDeploy,
 					"check pid file failed, pid-file-path(%s), err: %v", pidFilePath, err)
 
 				return err
 			}
-			logger.Infof(constant.StepCheckDeploy, constant.StateRunning,
+			logger.Infof(constant.StepCheckDeploy,
 				"successfully check pid file, pid-file-path(%s)", pidFilePath)
 
 			return nil
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		logger.Errorf(constant.StepCheckDeploy, constant.StateFailed, "check pid file failed, err: %v", err)
+		logger.Errorf(constant.StepCheckDeploy, "check pid file failed, err: %v", err)
 
 		return err
 	}
 
-	logger.Infof(constant.StepCheckDeploy, constant.StateDone, "successfully check deploy result")
+	logger.Infof(constant.StepCheckDeploy, "successfully check deploy result")
 
 	return nil
 }

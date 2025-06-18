@@ -22,7 +22,7 @@ import (
 // forceUninstall uninstall agent by force way.
 func (step *Step) forceUninstall(_ context.Context) error {
 	// TODO: not implemented
-	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "not implemented")
+	logger.Infof(constant.StepUninstallNode, "not implemented")
 
 	return nil
 }

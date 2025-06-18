@@ -63,50 +63,60 @@ func Test_handler_Upsert(t *testing.T) {
 		data *operation.InstanceData
 	}
 
-	mockData := func(id, trigger, def string, actions []string, state string, content map[string]any) *operation.InstanceData {
-		return &operation.InstanceData{
-			InstanceBriefData: operation.InstanceBriefData{
-				Metadata: &operation.InstanceMetadata{
-					TriggerID:           trigger,
-					OperationInstanceID: id,
-					OperationDefName:    def,
-					ActionNames:         actions,
-				},
-				Lifecycle: &operation.Lifecycle{State: operation.State(state)},
-			},
-			ActionInstanceDataMap: map[string]*action.InstanceData{
-				actions[0]: {
-					TriggerID:           trigger,
-					OperationInstanceID: id,
-					Name:                actions[0],
-					Content:             content,
-					Lifecycle:           &action.Lifecycle{State: action.State(state)},
-				},
-			},
-		}
-	}
-
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "single_action",
+			name: "normal",
 			args: args{
 				ctx: context.Background(),
-				data: mockData(
-					"operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-					"trigger-1",
-					"operation-def-1",
-					[]string{"action-1"},
-					"success",
-					map[string]any{"biz": "1"},
-				),
+				data: &operation.InstanceData{
+					InstanceBriefData: operation.InstanceBriefData{
+						Metadata: &operation.InstanceMetadata{
+							TriggerID:           "trigger-1",
+							OperationInstanceID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+							OperationDefName:    "operation-def-1",
+							OperationID:         "",
+							ActionNames:         []string{"action-1"},
+							ParentOperationID:   "",
+							Timeout:             0,
+							InitContent:         map[string]any{},
+						},
+						Lifecycle: &operation.Lifecycle{
+							State:     "success",
+							StartedAt: time.Time{},
+							CreatedAt: time.Time{},
+							EndedAt:   time.Time{},
+							StoppedAt: time.Time{},
+						},
+					},
+					ActionInstanceDataMap: map[string]*action.InstanceData{
+						"action-1": {
+							TriggerID:           "trigger-1",
+							OperationInstanceID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+							Name:                "action-1",
+							Index:               0,
+							Messages:            nil,
+							Content: map[string]any{
+								"biz": "1",
+							},
+							Lifecycle: &action.Lifecycle{
+								State:     "success",
+								CreatedAt: time.Time{},
+								StartedAt: time.Time{},
+								EndedAt:   time.Time{},
+								StoppedAt: time.Time{},
+							},
+						},
+					},
+				},
 			},
+			wantErr: false,
 		},
 		{
-			name: "complex_workflow",
+			name: "normal",
 			args: args{
 				ctx: context.Background(),
 				data: &operation.InstanceData{
@@ -117,7 +127,9 @@ func Test_handler_Upsert(t *testing.T) {
 							OperationDefName:    "def-order-process",
 							ActionNames:         []string{"validate-order"},
 							Timeout:             30 * time.Minute,
-							InitContent:         map[string]any{"order_id": "ORD-1001"},
+							InitContent: map[string]any{
+								"order_id": "ORD-1001",
+							},
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -131,7 +143,10 @@ func Test_handler_Upsert(t *testing.T) {
 							TriggerID:           "trigger-001",
 							OperationInstanceID: "op-instance-001",
 							Name:                "validate-order",
-							Content:             map[string]any{"items": []string{"item-1", "item-2"}},
+							Index:               0,
+							Content: map[string]any{
+								"items": []string{"item-1", "item-2"},
+							},
 							Lifecycle: &action.Lifecycle{
 								State:     "success",
 								StartedAt: now.Add(-44 * time.Minute),
@@ -141,9 +156,10 @@ func Test_handler_Upsert(t *testing.T) {
 					},
 				},
 			},
+			wantErr: false,
 		},
 		{
-			name: "multi_action",
+			name: "multiple_actions_mixed_status",
 			args: args{
 				ctx: context.Background(),
 				data: &operation.InstanceData{
@@ -153,39 +169,75 @@ func Test_handler_Upsert(t *testing.T) {
 							OperationInstanceID: "op-instance-002",
 							OperationDefName:    "def-inventory-check",
 							ActionNames:         []string{"check-stock", "update-inventory"},
+							ParentOperationID:   "parent-op-001",
+							Timeout:             1 * time.Hour,
+							InitContent:         map[string]any{},
 						},
-						Lifecycle: &operation.Lifecycle{State: "running"},
+						Lifecycle: &operation.Lifecycle{
+							State:     "running",
+							CreatedAt: now.Add(-30 * time.Minute),
+							StartedAt: now.Add(-24 * time.Minute),
+						},
 					},
 					ActionInstanceDataMap: map[string]*action.InstanceData{
 						"check-stock": {
 							Name:                "check-stock",
 							TriggerID:           "trigger-002",
 							OperationInstanceID: "op-instance-002",
-							Lifecycle:           &action.Lifecycle{State: "success"},
+							Index:               0,
+							Lifecycle: &action.Lifecycle{
+								State:     "success",
+								StartedAt: now.Add(-24 * time.Minute),
+								EndedAt:   now.Add(-20 * time.Minute),
+							},
 						},
 						"update-inventory": {
 							Name:                "update-inventory",
 							TriggerID:           "trigger-002",
 							OperationInstanceID: "op-instance-002",
-							Content:             map[string]any{"sku": "SKU-1234", "quantity": 40},
-							Lifecycle:           &action.Lifecycle{State: "running"},
+							Index:               1,
+							Content: map[string]any{
+								"sku":      "SKU-1234",
+								"quantity": 40,
+							},
+							Lifecycle: &action.Lifecycle{
+								State:     "running",
+								StartedAt: now.Add(-18 * time.Minute),
+							},
 						},
 					},
 				},
 			},
+			wantErr: false,
 		},
 		{
-			name: "no_actions",
+			name: "empty_action_data",
 			args: args{
 				ctx: context.Background(),
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
-						Metadata:  &operation.InstanceMetadata{TriggerID: "trigger-003"},
-						Lifecycle: &operation.Lifecycle{State: "success"},
+						Metadata: &operation.InstanceMetadata{
+							TriggerID:           "trigger-003",
+							OperationInstanceID: "op-instance-003",
+							OperationDefName:    "operation-def-1",
+							OperationID:         "",
+							ActionNames:         []string{},
+							ParentOperationID:   "",
+							Timeout:             0,
+							InitContent:         map[string]any{},
+						},
+						Lifecycle: &operation.Lifecycle{
+							State:     "success",
+							StartedAt: time.Time{},
+							CreatedAt: time.Time{},
+							EndedAt:   time.Time{},
+							StoppedAt: time.Time{},
+						},
 					},
 					ActionInstanceDataMap: map[string]*action.InstanceData{},
 				},
 			},
+			wantErr: false,
 		},
 	}
 

@@ -46,16 +46,12 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		return
 	}
 
-	reportedFailed := false
 	logs := make([]action.Message, len(req.Logs))
 	for idx, log := range req.Logs {
 		logs[idx] = action.Message{
 			Time: time.Unix(log.Timestamp, 0),
-			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t[%s]", log.Level, log.Step, log.Log, log.Status),
+			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t", log.GetLevel(), log.GetStep(), log.GetLog()),
 		}
-
-		// TODO: make status to fit both callback and tool.
-		reportedFailed = reportedFailed || log.Status == "failed"
 	}
 
 	if err = h.PushActionInstanceMessage(gCtx, info.OperInstID, info.BlockingActionName, logs...); err != nil {
@@ -63,20 +59,6 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
-	}
-
-	// set action status failed.
-	if reportedFailed {
-		h.logger.Infof("report log get failed state, set action status to failed. oper-inst-id(%s), action-name(%s)",
-			info.OperInstID, info.BlockingActionName)
-
-		err = h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName, action.StateFailed)
-		if err != nil {
-			h.logger.Errorf("report log failed, err: %s", err)
-			gCtx.JSON(http.StatusInternalServerError, err)
-
-			return
-		}
 	}
 
 	gCtx.JSON(http.StatusOK, nil)
@@ -88,5 +70,4 @@ type InstallLog struct {
 	Level     string    `json:"level"`
 	Step      string    `json:"step"`
 	Log       string    `json:"log"`
-	Status    string    `json:"status"`
 }

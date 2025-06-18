@@ -302,7 +302,7 @@ func (x *GetCheckListReq) GetToken() string {
 type ReportLogReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token"`
-	Logs          []*ReportLog           `protobuf:"bytes,3,rep,name=logs,proto3" json:"logs"`
+	Logs          []*ReportLog           `protobuf:"bytes,2,rep,name=logs,proto3" json:"logs"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -481,6 +481,59 @@ func (x *ReportDataReq) GetAgentId() string {
 	return ""
 }
 
+// ReportStatusReq describes the HTTP request body when report status.
+type ReportStatusReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportStatusReq) Reset() {
+	*x = ReportStatusReq{}
+	mi := &file_workflow_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportStatusReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportStatusReq) ProtoMessage() {}
+
+func (x *ReportStatusReq) ProtoReflect() protoreflect.Message {
+	mi := &file_workflow_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportStatusReq.ProtoReflect.Descriptor instead.
+func (*ReportStatusReq) Descriptor() ([]byte, []int) {
+	return file_workflow_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ReportStatusReq) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *ReportStatusReq) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 var File_workflow_proto protoreflect.FileDescriptor
 
 const file_workflow_proto_rawDesc = "" +
@@ -508,7 +561,7 @@ const file_workflow_proto_rawDesc = "" +
 	"\x05token\x18\x04 \x01(\tR\x05token\"M\n" +
 	"\fReportLogReq\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12'\n" +
-	"\x04logs\x18\x03 \x03(\v2\x13.callback.ReportLogR\x04logs\"}\n" +
+	"\x04logs\x18\x02 \x03(\v2\x13.callback.ReportLogR\x04logs\"}\n" +
 	"\tReportLog\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\tR\x05level\x12\x12\n" +
@@ -517,7 +570,10 @@ const file_workflow_proto_rawDesc = "" +
 	"\x06status\x18\x05 \x01(\tR\x06status\"@\n" +
 	"\rReportDataReq\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x19\n" +
-	"\bagent_id\x18\x02 \x01(\tR\aagentIdBEZCgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/callbackb\x06proto3"
+	"\bagent_id\x18\x02 \x01(\tR\aagentId\"?\n" +
+	"\x0fReportStatusReq\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06statusBEZCgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/callbackb\x06proto3"
 
 var (
 	file_workflow_proto_rawDescOnce sync.Once
@@ -531,7 +587,7 @@ func file_workflow_proto_rawDescGZIP() []byte {
 	return file_workflow_proto_rawDescData
 }
 
-var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_workflow_proto_goTypes = []any{
 	(*GetAgentConfReq)(nil),     // 0: callback.GetAgentConfReq
 	(*GetFileProxyConfReq)(nil), // 1: callback.GetFileProxyConfReq
@@ -540,6 +596,7 @@ var file_workflow_proto_goTypes = []any{
 	(*ReportLogReq)(nil),        // 4: callback.ReportLogReq
 	(*ReportLog)(nil),           // 5: callback.ReportLog
 	(*ReportDataReq)(nil),       // 6: callback.ReportDataReq
+	(*ReportStatusReq)(nil),     // 7: callback.ReportStatusReq
 }
 var file_workflow_proto_depIdxs = []int32{
 	5, // 0: callback.ReportLogReq.logs:type_name -> callback.ReportLog
@@ -561,7 +618,7 @@ func file_workflow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflow_proto_rawDesc), len(file_workflow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

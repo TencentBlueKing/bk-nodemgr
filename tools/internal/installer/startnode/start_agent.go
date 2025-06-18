@@ -30,7 +30,7 @@ import (
 func StartNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error(constant.StepStartNode, constant.StateFailed,
+			logger.Error(constant.StepStartNode,
 				fmt.Sprintf("start agent panic: %s", r))
 		}
 	}()
@@ -52,7 +52,7 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 			return fmt.Errorf("failed to create stderr pipe, err: %w", err)
 		}
 
-		logger.Debugf(constant.StepStartNode, constant.StateRunning,
+		logger.Debugf(constant.StepStartNode,
 			"run agent start cmd: %s", cmd.String())
 
 		if err := cmd.Start(); err != nil {
@@ -66,7 +66,7 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 			scanner := bufio.NewScanner(stderrPipe)
 			for scanner.Scan() {
 				line := scanner.Text()
-				logger.Warn(constant.StepStartNode, constant.StateRunning,
+				logger.Warn(constant.StepStartNode,
 					"agent stderr: %s", line)
 
 				errOutput.WriteString(line)
@@ -83,7 +83,7 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 				line := scanner.Text()
 				if line != "" {
 					hasOutput = true
-					logger.Infof(constant.StepStartNode, constant.StateRunning,
+					logger.Infof(constant.StepStartNode,
 						"agent output: %s", line)
 				}
 			}
@@ -96,23 +96,23 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 		_ = gp.Wait()
 
 		if err != nil {
-			logger.Warn(constant.StepStartNode, constant.StateRunning,
+			logger.Warn(constant.StepStartNode,
 				"start agent failed, attempt: %d, err: %v",
 				attempt, err)
 			if errStr := errOutput.String(); errStr != "" {
-				logger.Warn(constant.StepStartNode, constant.StateRunning,
+				logger.Warn(constant.StepStartNode,
 					"start agent error output: %s", errStr)
 			}
 			return err
 		}
 
 		if errStr := errOutput.String(); errStr != "" {
-			logger.Warn(constant.StepStartNode, constant.StateRunning,
+			logger.Warn(constant.StepStartNode,
 				"agent produced warnings: %s", errStr)
 		}
 
 		if !hasOutput {
-			logger.Infof(constant.StepStartNode, constant.StateRunning,
+			logger.Infof(constant.StepStartNode,
 				"start agent success (no output)")
 		}
 

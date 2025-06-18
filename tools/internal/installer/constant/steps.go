@@ -26,6 +26,9 @@ const (
 	// StepReportData this is the step to report data.
 	StepReportData Step = "report_data"
 
+	// StepReportStatus this is the step to report status.
+	StepReportStatus Step = "report_status"
+
 	// StepStartNode this is the step to start node.
 	StepStartNode Step = "start_node"
 

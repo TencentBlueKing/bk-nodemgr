@@ -24,17 +24,17 @@ import (
 // DownloadPkg ...
 func DownloadPkg(ctx context.Context, pkgGeneration int, pkgPath, pkgVersion, downloadPoint, nodeRole string) error {
 	if pkgPath == "" {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "pkg path is empty")
+		logger.Errorf(constant.StepDownloadFiles, "pkg path is empty")
 		return errors.New("pkg path is empty")
 	}
 
 	downloadURL, err := url.JoinPath(downloadPoint, "/download", nodeRole)
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "download agent pkg failed: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "download agent pkg failed: %v", err)
 		return fmt.Errorf("download agent pkg failed: %v", err)
 	}
 
-	logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+	logger.Infof(constant.StepDownloadFiles,
 		"download node pkg, download-url(%s), pkg-path(%s)", downloadURL, pkgPath)
 
 	requestBody := struct {
@@ -49,11 +49,11 @@ func DownloadPkg(ctx context.Context, pkgGeneration int, pkgPath, pkgVersion, do
 		Version:    pkgVersion,
 	}
 
-	logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+	logger.Infof(constant.StepDownloadFiles,
 		"download agent pkg request body: %v", requestBody)
 
 	if err := DownloadFile(ctx, requestBody, downloadURL, pkgPath); err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "download node pkg failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "download node pkg failed, err: %v", err)
 
 		return fmt.Errorf("download node pkg failed, err: %v", err)
 	}

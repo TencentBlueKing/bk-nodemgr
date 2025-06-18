@@ -31,12 +31,12 @@ func GetAgentConfig(ctx context.Context, callbackEndpoint, tmpAgentConfPath, nod
 
 	downloadURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/get_agent_config")
 	if err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get agent config failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get agent config failed, err: %v", err)
 		return fmt.Errorf("get agent config failed, err: %v", err)
 	}
 
 	if err := DownloadFile(ctx, requestBody, downloadURL, tmpAgentConfPath); err != nil {
-		logger.Errorf(constant.StepDownloadFiles, constant.StateFailed, "get agent conf failed, err: %v", err)
+		logger.Errorf(constant.StepDownloadFiles, "get agent conf failed, err: %v", err)
 
 		return fmt.Errorf("get agent conf failed, err: %v", err)
 	}

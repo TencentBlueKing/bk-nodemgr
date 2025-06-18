@@ -237,21 +237,19 @@ type LogEntry struct {
 	Level     string `json:"level"`
 	Step      string `json:"step"`
 	Log       string `json:"log"`
-	Status    string `json:"status"`
 }
 
 // convLogLineToLogEntry converts a log line to a log entry.
 func convLogLineToLogEntry(logLine string) (*LogEntry, error) {
 	fields := strings.Split(logLine, "|")
 
-	if len(fields) < 5 { // nolint: mnd
+	if len(fields) < 4 { // nolint: mnd
 		return nil, fmt.Errorf("invalid log line: %s", logLine)
 	}
 
 	datetime := strings.TrimSpace(fields[0])
 	logLevel := strings.TrimSpace(fields[1])
 	step := strings.TrimSpace(fields[2])
-	status := strings.TrimSpace(fields[3])
 
 	// merge remaining fields into a single log message
 	message := strings.Join(fields[4:], " ")
@@ -266,7 +264,6 @@ func convLogLineToLogEntry(logLine string) (*LogEntry, error) {
 		Level:     logLevel,
 		Step:      step,
 		Log:       message,
-		Status:    status,
 	}
 
 	return logEntry, nil

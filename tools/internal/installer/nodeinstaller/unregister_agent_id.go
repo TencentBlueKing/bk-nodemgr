@@ -33,7 +33,7 @@ func UnregisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, 
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Warnf(constant.StepInstallNode, constant.StateRunning,
+			logger.Warnf(constant.StepInstallNode,
 				"unregister agent id failed, attempt(%d), err: %v", attempt, err)
 
 			return err
@@ -45,7 +45,7 @@ func UnregisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, 
 		return err
 	}
 
-	logger.Infof(constant.StepInstallNode, constant.StateRunning, "unregister agent id success")
+	logger.Infof(constant.StepInstallNode, "unregister agent id success")
 
 	return nil
 }

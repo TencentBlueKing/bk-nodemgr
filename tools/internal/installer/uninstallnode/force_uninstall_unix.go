@@ -26,7 +26,7 @@ import (
 
 // forceUninstall uninstall agent by force way.
 func (step *Step) forceUninstall(_ context.Context) error {
-	logger.Infof(constant.StepUninstallNode, constant.StateRunning, "force uninstalling ...")
+	logger.Infof(constant.StepUninstallNode, "force uninstalling ...")
 
 	process, err := utils.GetSameSpaceProcesses()
 	if err != nil {
@@ -48,7 +48,7 @@ func (step *Step) forceUninstall(_ context.Context) error {
 			continue
 		}
 
-		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+		logger.Infof(constant.StepUninstallNode,
 			"remnant process found, process number: %d, file path: %s", p.PID, p.FullPath)
 
 		exist, err := utils.CheckPIDExist(p.PID)
@@ -57,7 +57,7 @@ func (step *Step) forceUninstall(_ context.Context) error {
 		}
 
 		if !exist {
-			logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+			logger.Infof(constant.StepUninstallNode,
 				"process already exit, process number: %d, file path: %s", p.PID, p.FullPath)
 
 			continue
@@ -70,13 +70,13 @@ func (step *Step) forceUninstall(_ context.Context) error {
 
 		err = syscall.Kill(p.PID, syscall.SIGKILL)
 		if err != nil {
-			logger.Errorf(constant.StepUninstallNode, constant.StateFailed,
+			logger.Errorf(constant.StepUninstallNode,
 				"force kill process failed, err: %v", err)
 
 			return fmt.Errorf("force kill failed, pid: %d, err: %v", p.PID, err)
 		}
 
-		logger.Infof(constant.StepUninstallNode, constant.StateRunning,
+		logger.Infof(constant.StepUninstallNode,
 			"force kill process success, process number: %d, file path: %s", p.PID, p.FullPath)
 	}
 

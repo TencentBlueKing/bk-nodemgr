@@ -22,7 +22,7 @@ import (
 func MakeGseBinFileExecutable(_ context.Context, binDir string) error {
 	binFiles, err := utils.ListFiles(binDir)
 	if err != nil {
-		logger.Errorf(constant.StepInstallNode, constant.StateRunning,
+		logger.Errorf(constant.StepInstallNode,
 			"list files failed, dir-path(%s), err(%s)", binDir, err)
 
 		return err
@@ -30,12 +30,12 @@ func MakeGseBinFileExecutable(_ context.Context, binDir string) error {
 
 	for _, binFile := range binFiles {
 		if err := utils.MakeExecutable(binFile); err != nil {
-			logger.Errorf(constant.StepInstallNode, constant.StateRunning,
+			logger.Errorf(constant.StepInstallNode,
 				"make file executable failed, file-path(%s), err(%s)", binFile, err)
 
 			return err
 		}
-		logger.Infof(constant.StepInstallNode, constant.StateRunning,
+		logger.Infof(constant.StepInstallNode,
 			"successfully make file executable, file-path(%s)", binFile)
 	}
 

@@ -22,26 +22,26 @@ import (
 // CopyConfigFilesToSetupDir copy config files to setup dir.
 func CopyConfigFilesToSetupDir(srcConfigDir, dstConfigDir string) error {
 	if srcConfigDir == "" {
-		logger.Errorf(constant.StepInstallNode, constant.StateFailed, "src config dir is empty")
+		logger.Errorf(constant.StepInstallNode, "src config dir is empty")
 
 		return errors.New("src config dir is empty")
 	}
 
 	if dstConfigDir == "" {
-		logger.Errorf(constant.StepInstallNode, constant.StateFailed, "dst config dir is empty")
+		logger.Errorf(constant.StepInstallNode, "dst config dir is empty")
 
 		return errors.New("dst config dir is empty")
 	}
 
 	err := utils.CopyDir(srcConfigDir, dstConfigDir)
 	if err != nil {
-		logger.Errorf(constant.StepInstallNode, constant.StateFailed,
+		logger.Errorf(constant.StepInstallNode,
 			"copy config files to setup dir failed, err: %v", err)
 
 		return fmt.Errorf("copy config files to setup dir failed, err: %v", err)
 	}
 
-	logger.Info(constant.StepInstallNode, constant.StateRunning, "successfully copy config files to setup dir")
+	logger.Info(constant.StepInstallNode, "successfully copy config files to setup dir")
 
 	return nil
 }

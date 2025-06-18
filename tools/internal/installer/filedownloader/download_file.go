@@ -43,7 +43,7 @@ func DownloadFile(ctx context.Context, reqBody any, downloadURL, filePath string
 	// start progress report.
 	downloadConfig.ProgressFunc = func(current, total int64) {
 		if current == total {
-			logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+			logger.Infof(constant.StepDownloadFiles,
 				"download file complete, file-path(%s)", filePath)
 		}
 
@@ -51,7 +51,7 @@ func DownloadFile(ctx context.Context, reqBody any, downloadURL, filePath string
 			return
 		}
 
-		logger.Infof(constant.StepDownloadFiles, constant.StateRunning,
+		logger.Infof(constant.StepDownloadFiles,
 			"download file running, file-path(%s),progress(%d/%d)", filePath, current, total)
 
 		lastProgress = current

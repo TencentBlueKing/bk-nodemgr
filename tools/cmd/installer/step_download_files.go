@@ -12,6 +12,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
 	"github.com/spf13/cobra"
 )
@@ -66,9 +68,9 @@ func NewStepDownloadFiles() *cobra.Command {
 				TmpDataProxyConfPath: GetTmpDataProxyConfPath(),
 				CheckListPath:        GetPreCheckFilePath(),
 			})
-			err := step.Run(cmd.Context())
-			if err != nil {
-				return err
+
+			if err := step.Run(cmd.Context()); err != nil {
+				return fmt.Errorf("file download failed: %w", err)
 			}
 
 			return nil

@@ -25,7 +25,7 @@ import (
 
 // TryCreateInstallDir try to create install dir.
 func TryCreateInstallDir(_ context.Context, setupPath string, overwrite bool) error {
-	logger.Infof(constant.StepInstallNode, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode,
 		"try to create install dir, path(%s), overwrite(%t)", setupPath, overwrite)
 
 	// 1. check setup path is valid.
@@ -46,7 +46,7 @@ func TryCreateInstallDir(_ context.Context, setupPath string, overwrite bool) er
 			}
 		}
 
-		logger.Warnf(constant.StepInstallNode, constant.StateRunning,
+		logger.Warnf(constant.StepInstallNode,
 			"start to clean directory, dir-path(%s)", setupPath)
 		paths, err := utils.CleanDirectory(setupPath)
 		if err != nil {
@@ -54,7 +54,7 @@ func TryCreateInstallDir(_ context.Context, setupPath string, overwrite bool) er
 		}
 
 		for _, path := range paths {
-			logger.Warnf(constant.StepInstallNode, constant.StateRunning, "clean exist directory: %s", path)
+			logger.Warnf(constant.StepInstallNode, "clean exist directory: %s", path)
 		}
 	}
 
@@ -70,7 +70,7 @@ func backupExistedSetupDir(setupPath string) error {
 	backDir, errs := utils.BackupExistingDirIgnoreErr(setupPath)
 	if len(errs) > 0 {
 		for _, err := range errs {
-			logger.Warnf(constant.StepInstallNode, constant.StateRunning,
+			logger.Warnf(constant.StepInstallNode,
 				"ignore err, err: %s", err)
 		}
 	}
@@ -79,7 +79,7 @@ func backupExistedSetupDir(setupPath string) error {
 		return errors.New("failed to backup exist setup files")
 	}
 
-	logger.Infof(constant.StepInstallNode, constant.StateRunning,
+	logger.Infof(constant.StepInstallNode,
 		"backup exist setup files to %s", backDir)
 
 	return nil
