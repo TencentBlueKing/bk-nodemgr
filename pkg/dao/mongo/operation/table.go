@@ -30,6 +30,8 @@ type Operation struct {
 	DefSnapshot   DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
 
 	Parameters Parameters `json:"parameters" bson:"parameters"`
+
+	Extras map[string]any `json:"extras" bson:"extras" description:"extra data for Upper query"`
 }
 
 // DefSnapshot represents the snapshot of the operation definition.

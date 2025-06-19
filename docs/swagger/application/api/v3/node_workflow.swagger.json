@@ -221,7 +221,7 @@
     }
   },
   "definitions": {
-    "ActionMessageMessage": {
+    "NodeWorkflowActionMessageMessage": {
       "type": "object",
       "properties": {
         "time": {
@@ -301,15 +301,23 @@
         }
       }
     },
-    "v3ActionMessage": {
+    "v3LifeCycle": {
       "type": "object",
       "properties": {
-        "logs": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/ActionMessageMessage"
-          }
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -335,6 +343,29 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3LifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3NodeWorkflowActionMessage"
+        }
+      }
+    },
+    "v3NodeWorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NodeWorkflowActionMessageMessage"
           }
         }
       }
@@ -556,6 +587,9 @@
         },
         "param": {
           "$ref": "#/definitions/v3OperationParam"
+        },
+        "status": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationStatus"
         }
       }
     },
@@ -643,7 +677,7 @@
         "oper_inst_logs": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/v3ActionMessage"
+            "$ref": "#/definitions/v3NodeWorkflowActionData"
           }
         }
       }
@@ -693,6 +727,18 @@
           }
         },
         "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeWorkflowOperationStatus": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "total_time_second": {
           "type": "integer",
           "format": "int64"
         }
@@ -762,6 +808,19 @@
         "timeout_second": {
           "type": "integer",
           "format": "int64"
+        },
+        "area_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "inner_ipv4": {
+          "type": "string"
+        },
+        "inner_ipv6": {
+          "type": "string"
+        },
+        "node_version": {
+          "type": "string"
         }
       }
     },

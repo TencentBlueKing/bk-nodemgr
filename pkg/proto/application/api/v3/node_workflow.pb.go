@@ -685,6 +685,10 @@ func (x *OperationDefinition) GetActionNames() []string {
 type OperationParam struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TimeoutSecond int64                  `protobuf:"varint,1,opt,name=timeout_second,json=timeoutSecond,proto3" json:"timeout_second"`
+	AreaId        int64                  `protobuf:"varint,2,opt,name=area_id,json=areaId,proto3" json:"area_id"`
+	InnerIpv4     string                 `protobuf:"bytes,3,opt,name=inner_ipv4,json=innerIpv4,proto3" json:"inner_ipv4"`
+	InnerIpv6     string                 `protobuf:"bytes,4,opt,name=inner_ipv6,json=innerIpv6,proto3" json:"inner_ipv6"`
+	NodeVersion   string                 `protobuf:"bytes,5,opt,name=node_version,json=nodeVersion,proto3" json:"node_version"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -726,12 +730,41 @@ func (x *OperationParam) GetTimeoutSecond() int64 {
 	return 0
 }
 
+func (x *OperationParam) GetAreaId() int64 {
+	if x != nil {
+		return x.AreaId
+	}
+	return 0
+}
+
+func (x *OperationParam) GetInnerIpv4() string {
+	if x != nil {
+		return x.InnerIpv4
+	}
+	return ""
+}
+
+func (x *OperationParam) GetInnerIpv6() string {
+	if x != nil {
+		return x.InnerIpv6
+	}
+	return ""
+}
+
+func (x *OperationParam) GetNodeVersion() string {
+	if x != nil {
+		return x.NodeVersion
+	}
+	return ""
+}
+
 type NodeWorkflowOperation struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
-	Definition    *OperationDefinition   `protobuf:"bytes,2,opt,name=definition,proto3" json:"definition"`
-	InstanceIds   []string               `protobuf:"bytes,3,rep,name=instance_ids,json=instanceIds,proto3" json:"instance_ids"`
-	Param         *OperationParam        `protobuf:"bytes,4,opt,name=param,proto3" json:"param"`
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	OperationId   string                       `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
+	Definition    *OperationDefinition         `protobuf:"bytes,2,opt,name=definition,proto3" json:"definition"`
+	InstanceIds   []string                     `protobuf:"bytes,3,rep,name=instance_ids,json=instanceIds,proto3" json:"instance_ids"`
+	Param         *OperationParam              `protobuf:"bytes,4,opt,name=param,proto3" json:"param"`
+	Status        *NodeWorkflowOperationStatus `protobuf:"bytes,5,opt,name=status,proto3" json:"status"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -794,6 +827,125 @@ func (x *NodeWorkflowOperation) GetParam() *OperationParam {
 	return nil
 }
 
+func (x *NodeWorkflowOperation) GetStatus() *NodeWorkflowOperationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+type NodeWorkflowOperationStatus struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	State           string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state"`
+	TotalTimeSecond int64                  `protobuf:"varint,2,opt,name=total_time_second,json=totalTimeSecond,proto3" json:"total_time_second"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *NodeWorkflowOperationStatus) Reset() {
+	*x = NodeWorkflowOperationStatus{}
+	mi := &file_node_workflow_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeWorkflowOperationStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeWorkflowOperationStatus) ProtoMessage() {}
+
+func (x *NodeWorkflowOperationStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeWorkflowOperationStatus.ProtoReflect.Descriptor instead.
+func (*NodeWorkflowOperationStatus) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NodeWorkflowOperationStatus) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *NodeWorkflowOperationStatus) GetTotalTimeSecond() int64 {
+	if x != nil {
+		return x.TotalTimeSecond
+	}
+	return 0
+}
+
+type Lifecycle struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state"`
+	OperateTime   int64                  `protobuf:"varint,2,opt,name=operate_time,json=operateTime,proto3" json:"operate_time"`
+	FinishTime    int64                  `protobuf:"varint,3,opt,name=finish_time,json=finishTime,proto3" json:"finish_time"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Lifecycle) Reset() {
+	*x = Lifecycle{}
+	mi := &file_node_workflow_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Lifecycle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Lifecycle) ProtoMessage() {}
+
+func (x *Lifecycle) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Lifecycle.ProtoReflect.Descriptor instead.
+func (*Lifecycle) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Lifecycle) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *Lifecycle) GetOperateTime() int64 {
+	if x != nil {
+		return x.OperateTime
+	}
+	return 0
+}
+
+func (x *Lifecycle) GetFinishTime() int64 {
+	if x != nil {
+		return x.FinishTime
+	}
+	return 0
+}
+
 // NodeWorflowOperationInstance describes the node operation instance.
 type NodeWorflowOperationInstance struct {
 	state           protoimpl.MessageState                 `protogen:"open.v1"`
@@ -811,7 +963,7 @@ type NodeWorflowOperationInstance struct {
 
 func (x *NodeWorflowOperationInstance) Reset() {
 	*x = NodeWorflowOperationInstance{}
-	mi := &file_node_workflow_proto_msgTypes[12]
+	mi := &file_node_workflow_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -823,7 +975,7 @@ func (x *NodeWorflowOperationInstance) String() string {
 func (*NodeWorflowOperationInstance) ProtoMessage() {}
 
 func (x *NodeWorflowOperationInstance) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[12]
+	mi := &file_node_workflow_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -836,7 +988,7 @@ func (x *NodeWorflowOperationInstance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeWorflowOperationInstance.ProtoReflect.Descriptor instead.
 func (*NodeWorflowOperationInstance) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{12}
+	return file_node_workflow_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *NodeWorflowOperationInstance) GetOperationId() string {
@@ -909,7 +1061,7 @@ type NodeWorflowOperationInstanceData struct {
 
 func (x *NodeWorflowOperationInstanceData) Reset() {
 	*x = NodeWorflowOperationInstanceData{}
-	mi := &file_node_workflow_proto_msgTypes[13]
+	mi := &file_node_workflow_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -921,7 +1073,7 @@ func (x *NodeWorflowOperationInstanceData) String() string {
 func (*NodeWorflowOperationInstanceData) ProtoMessage() {}
 
 func (x *NodeWorflowOperationInstanceData) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[13]
+	mi := &file_node_workflow_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -934,7 +1086,7 @@ func (x *NodeWorflowOperationInstanceData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeWorflowOperationInstanceData.ProtoReflect.Descriptor instead.
 func (*NodeWorflowOperationInstanceData) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{13}
+	return file_node_workflow_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *NodeWorflowOperationInstanceData) GetOperationId() string {
@@ -992,7 +1144,7 @@ type NodeWorkflowOperationListReq struct {
 
 func (x *NodeWorkflowOperationListReq) Reset() {
 	*x = NodeWorkflowOperationListReq{}
-	mi := &file_node_workflow_proto_msgTypes[14]
+	mi := &file_node_workflow_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1004,7 +1156,7 @@ func (x *NodeWorkflowOperationListReq) String() string {
 func (*NodeWorkflowOperationListReq) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[14]
+	mi := &file_node_workflow_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1017,7 +1169,7 @@ func (x *NodeWorkflowOperationListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeWorkflowOperationListReq.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationListReq) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{14}
+	return file_node_workflow_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *NodeWorkflowOperationListReq) GetOnlyCount() bool {
@@ -1054,7 +1206,7 @@ type NodeWorkflowOperationListResp struct {
 
 func (x *NodeWorkflowOperationListResp) Reset() {
 	*x = NodeWorkflowOperationListResp{}
-	mi := &file_node_workflow_proto_msgTypes[15]
+	mi := &file_node_workflow_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1218,7 @@ func (x *NodeWorkflowOperationListResp) String() string {
 func (*NodeWorkflowOperationListResp) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[15]
+	mi := &file_node_workflow_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1231,7 @@ func (x *NodeWorkflowOperationListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeWorkflowOperationListResp.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationListResp) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{15}
+	return file_node_workflow_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *NodeWorkflowOperationListResp) GetCode() int32 {
@@ -1122,7 +1274,7 @@ type NodeWorkflowOperationInstanceListReq struct {
 
 func (x *NodeWorkflowOperationInstanceListReq) Reset() {
 	*x = NodeWorkflowOperationInstanceListReq{}
-	mi := &file_node_workflow_proto_msgTypes[16]
+	mi := &file_node_workflow_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1134,7 +1286,7 @@ func (x *NodeWorkflowOperationInstanceListReq) String() string {
 func (*NodeWorkflowOperationInstanceListReq) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[16]
+	mi := &file_node_workflow_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1147,7 +1299,7 @@ func (x *NodeWorkflowOperationInstanceListReq) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use NodeWorkflowOperationInstanceListReq.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListReq) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{16}
+	return file_node_workflow_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *NodeWorkflowOperationInstanceListReq) GetOnlyCount() bool {
@@ -1178,7 +1330,7 @@ type NodeWorkflowOperationInstanceListResp struct {
 
 func (x *NodeWorkflowOperationInstanceListResp) Reset() {
 	*x = NodeWorkflowOperationInstanceListResp{}
-	mi := &file_node_workflow_proto_msgTypes[17]
+	mi := &file_node_workflow_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1190,7 +1342,7 @@ func (x *NodeWorkflowOperationInstanceListResp) String() string {
 func (*NodeWorkflowOperationInstanceListResp) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[17]
+	mi := &file_node_workflow_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1203,7 +1355,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use NodeWorkflowOperationInstanceListResp.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListResp) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{17}
+	return file_node_workflow_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *NodeWorkflowOperationInstanceListResp) GetCode() int32 {
@@ -1245,7 +1397,7 @@ type NodeWorkflowInstanceStatusExactConditions struct {
 
 func (x *NodeWorkflowInstanceStatusExactConditions) Reset() {
 	*x = NodeWorkflowInstanceStatusExactConditions{}
-	mi := &file_node_workflow_proto_msgTypes[18]
+	mi := &file_node_workflow_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1257,7 +1409,7 @@ func (x *NodeWorkflowInstanceStatusExactConditions) String() string {
 func (*NodeWorkflowInstanceStatusExactConditions) ProtoMessage() {}
 
 func (x *NodeWorkflowInstanceStatusExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[18]
+	mi := &file_node_workflow_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1270,7 +1422,7 @@ func (x *NodeWorkflowInstanceStatusExactConditions) ProtoReflect() protoreflect.
 
 // Deprecated: Use NodeWorkflowInstanceStatusExactConditions.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowInstanceStatusExactConditions) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{18}
+	return file_node_workflow_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *NodeWorkflowInstanceStatusExactConditions) GetTriggerId() []string {
@@ -1290,7 +1442,7 @@ type NodeWorkflowInstanceStatusFuzzyConditions struct {
 
 func (x *NodeWorkflowInstanceStatusFuzzyConditions) Reset() {
 	*x = NodeWorkflowInstanceStatusFuzzyConditions{}
-	mi := &file_node_workflow_proto_msgTypes[19]
+	mi := &file_node_workflow_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1302,7 +1454,7 @@ func (x *NodeWorkflowInstanceStatusFuzzyConditions) String() string {
 func (*NodeWorkflowInstanceStatusFuzzyConditions) ProtoMessage() {}
 
 func (x *NodeWorkflowInstanceStatusFuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[19]
+	mi := &file_node_workflow_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1315,7 +1467,7 @@ func (x *NodeWorkflowInstanceStatusFuzzyConditions) ProtoReflect() protoreflect.
 
 // Deprecated: Use NodeWorkflowInstanceStatusFuzzyConditions.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowInstanceStatusFuzzyConditions) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{19}
+	return file_node_workflow_proto_rawDescGZIP(), []int{21}
 }
 
 // NodeWorkflowOperationInstanceStatusListReq ...
@@ -1330,7 +1482,7 @@ type NodeWorkflowOperationInstanceListStatusReq struct {
 
 func (x *NodeWorkflowOperationInstanceListStatusReq) Reset() {
 	*x = NodeWorkflowOperationInstanceListStatusReq{}
-	mi := &file_node_workflow_proto_msgTypes[20]
+	mi := &file_node_workflow_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1342,7 +1494,7 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) String() string {
 func (*NodeWorkflowOperationInstanceListStatusReq) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListStatusReq) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[20]
+	mi := &file_node_workflow_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1355,7 +1507,7 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ProtoReflect() protoreflect
 
 // Deprecated: Use NodeWorkflowOperationInstanceListStatusReq.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListStatusReq) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{20}
+	return file_node_workflow_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *NodeWorkflowOperationInstanceListStatusReq) GetPage() *Page {
@@ -1391,7 +1543,7 @@ type NodeWorkflowOperationInstanceStatus struct {
 
 func (x *NodeWorkflowOperationInstanceStatus) Reset() {
 	*x = NodeWorkflowOperationInstanceStatus{}
-	mi := &file_node_workflow_proto_msgTypes[21]
+	mi := &file_node_workflow_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1555,7 @@ func (x *NodeWorkflowOperationInstanceStatus) String() string {
 func (*NodeWorkflowOperationInstanceStatus) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[21]
+	mi := &file_node_workflow_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1416,7 +1568,7 @@ func (x *NodeWorkflowOperationInstanceStatus) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use NodeWorkflowOperationInstanceStatus.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceStatus) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{21}
+	return file_node_workflow_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *NodeWorkflowOperationInstanceStatus) GetIndex() int64 {
@@ -1459,7 +1611,7 @@ type NodeWorkflowOperationInstanceListStatusResp struct {
 
 func (x *NodeWorkflowOperationInstanceListStatusResp) Reset() {
 	*x = NodeWorkflowOperationInstanceListStatusResp{}
-	mi := &file_node_workflow_proto_msgTypes[22]
+	mi := &file_node_workflow_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1471,7 +1623,7 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) String() string {
 func (*NodeWorkflowOperationInstanceListStatusResp) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListStatusResp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[22]
+	mi := &file_node_workflow_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +1636,7 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) ProtoReflect() protoreflec
 
 // Deprecated: Use NodeWorkflowOperationInstanceListStatusResp.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListStatusResp) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{22}
+	return file_node_workflow_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *NodeWorkflowOperationInstanceListStatusResp) GetCode() int32 {
@@ -1524,7 +1676,7 @@ type NodeWorkflowOperationInstanceLogGetReq struct {
 
 func (x *NodeWorkflowOperationInstanceLogGetReq) Reset() {
 	*x = NodeWorkflowOperationInstanceLogGetReq{}
-	mi := &file_node_workflow_proto_msgTypes[23]
+	mi := &file_node_workflow_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1536,7 +1688,7 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) String() string {
 func (*NodeWorkflowOperationInstanceLogGetReq) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceLogGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[23]
+	mi := &file_node_workflow_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1549,7 +1701,7 @@ func (x *NodeWorkflowOperationInstanceLogGetReq) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use NodeWorkflowOperationInstanceLogGetReq.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceLogGetReq) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{23}
+	return file_node_workflow_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *NodeWorkflowOperationInstanceLogGetReq) GetOperInstId() string {
@@ -1573,7 +1725,7 @@ type NodeWorkflowOperationInstanceLogGetResp struct {
 
 func (x *NodeWorkflowOperationInstanceLogGetResp) Reset() {
 	*x = NodeWorkflowOperationInstanceLogGetResp{}
-	mi := &file_node_workflow_proto_msgTypes[24]
+	mi := &file_node_workflow_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1585,7 +1737,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) String() string {
 func (*NodeWorkflowOperationInstanceLogGetResp) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceLogGetResp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[24]
+	mi := &file_node_workflow_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1598,7 +1750,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use NodeWorkflowOperationInstanceLogGetResp.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceLogGetResp) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{24}
+	return file_node_workflow_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *NodeWorkflowOperationInstanceLogGetResp) GetCode() int32 {
@@ -1629,28 +1781,31 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) GetData() *NodeWorkflowOperati
 	return nil
 }
 
-type ActionMessage struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Logs          []*ActionMessage_Message `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs"`
+type LifeCycle struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state"`
+	CreateTime    int64                  `protobuf:"varint,2,opt,name=create_time,json=createTime,proto3" json:"create_time"`
+	StartTime     int64                  `protobuf:"varint,3,opt,name=start_time,json=startTime,proto3" json:"start_time"`
+	EndTime       int64                  `protobuf:"varint,4,opt,name=end_time,json=endTime,proto3" json:"end_time"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ActionMessage) Reset() {
-	*x = ActionMessage{}
-	mi := &file_node_workflow_proto_msgTypes[25]
+func (x *LifeCycle) Reset() {
+	*x = LifeCycle{}
+	mi := &file_node_workflow_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ActionMessage) String() string {
+func (x *LifeCycle) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ActionMessage) ProtoMessage() {}
+func (*LifeCycle) ProtoMessage() {}
 
-func (x *ActionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[25]
+func (x *LifeCycle) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1661,14 +1816,131 @@ func (x *ActionMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ActionMessage.ProtoReflect.Descriptor instead.
-func (*ActionMessage) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{25}
+// Deprecated: Use LifeCycle.ProtoReflect.Descriptor instead.
+func (*LifeCycle) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{27}
 }
 
-func (x *ActionMessage) GetLogs() []*ActionMessage_Message {
+func (x *LifeCycle) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *LifeCycle) GetCreateTime() int64 {
+	if x != nil {
+		return x.CreateTime
+	}
+	return 0
+}
+
+func (x *LifeCycle) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *LifeCycle) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
+}
+
+type NodeWorkflowActionMessage struct {
+	state         protoimpl.MessageState               `protogen:"open.v1"`
+	Logs          []*NodeWorkflowActionMessage_Message `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeWorkflowActionMessage) Reset() {
+	*x = NodeWorkflowActionMessage{}
+	mi := &file_node_workflow_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeWorkflowActionMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeWorkflowActionMessage) ProtoMessage() {}
+
+func (x *NodeWorkflowActionMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeWorkflowActionMessage.ProtoReflect.Descriptor instead.
+func (*NodeWorkflowActionMessage) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *NodeWorkflowActionMessage) GetLogs() []*NodeWorkflowActionMessage_Message {
 	if x != nil {
 		return x.Logs
+	}
+	return nil
+}
+
+type NodeWorkflowActionData struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	LifeCycle     *LifeCycle                 `protobuf:"bytes,1,opt,name=life_cycle,json=lifeCycle,proto3" json:"life_cycle"`
+	Message       *NodeWorkflowActionMessage `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeWorkflowActionData) Reset() {
+	*x = NodeWorkflowActionData{}
+	mi := &file_node_workflow_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeWorkflowActionData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeWorkflowActionData) ProtoMessage() {}
+
+func (x *NodeWorkflowActionData) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeWorkflowActionData.ProtoReflect.Descriptor instead.
+func (*NodeWorkflowActionData) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *NodeWorkflowActionData) GetLifeCycle() *LifeCycle {
+	if x != nil {
+		return x.LifeCycle
+	}
+	return nil
+}
+
+func (x *NodeWorkflowActionData) GetMessage() *NodeWorkflowActionMessage {
+	if x != nil {
+		return x.Message
 	}
 	return nil
 }
@@ -1683,7 +1955,7 @@ type NodeWorkflowListResp_Data struct {
 
 func (x *NodeWorkflowListResp_Data) Reset() {
 	*x = NodeWorkflowListResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[26]
+	mi := &file_node_workflow_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1967,7 @@ func (x *NodeWorkflowListResp_Data) String() string {
 func (*NodeWorkflowListResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[26]
+	mi := &file_node_workflow_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1742,7 +2014,7 @@ type NodeWorkflowStatisticsResp_StatisticsInfo struct {
 
 func (x *NodeWorkflowStatisticsResp_StatisticsInfo) Reset() {
 	*x = NodeWorkflowStatisticsResp_StatisticsInfo{}
-	mi := &file_node_workflow_proto_msgTypes[27]
+	mi := &file_node_workflow_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1754,7 +2026,7 @@ func (x *NodeWorkflowStatisticsResp_StatisticsInfo) String() string {
 func (*NodeWorkflowStatisticsResp_StatisticsInfo) ProtoMessage() {}
 
 func (x *NodeWorkflowStatisticsResp_StatisticsInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[27]
+	mi := &file_node_workflow_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1842,7 +2114,7 @@ type NodeWorkflowStatisticsResp_Data struct {
 
 func (x *NodeWorkflowStatisticsResp_Data) Reset() {
 	*x = NodeWorkflowStatisticsResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[28]
+	mi := &file_node_workflow_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1854,7 +2126,7 @@ func (x *NodeWorkflowStatisticsResp_Data) String() string {
 func (*NodeWorkflowStatisticsResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowStatisticsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[28]
+	mi := &file_node_workflow_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1889,7 +2161,7 @@ type NodeWorkflowDistinctResp_Data struct {
 
 func (x *NodeWorkflowDistinctResp_Data) Reset() {
 	*x = NodeWorkflowDistinctResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[29]
+	mi := &file_node_workflow_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1901,7 +2173,7 @@ func (x *NodeWorkflowDistinctResp_Data) String() string {
 func (*NodeWorkflowDistinctResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowDistinctResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[29]
+	mi := &file_node_workflow_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1956,7 +2228,7 @@ type NodeWorflowOperationInstance_Action struct {
 
 func (x *NodeWorflowOperationInstance_Action) Reset() {
 	*x = NodeWorflowOperationInstance_Action{}
-	mi := &file_node_workflow_proto_msgTypes[30]
+	mi := &file_node_workflow_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1968,7 +2240,7 @@ func (x *NodeWorflowOperationInstance_Action) String() string {
 func (*NodeWorflowOperationInstance_Action) ProtoMessage() {}
 
 func (x *NodeWorflowOperationInstance_Action) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[30]
+	mi := &file_node_workflow_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1981,7 +2253,7 @@ func (x *NodeWorflowOperationInstance_Action) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use NodeWorflowOperationInstance_Action.ProtoReflect.Descriptor instead.
 func (*NodeWorflowOperationInstance_Action) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{12, 0}
+	return file_node_workflow_proto_rawDescGZIP(), []int{14, 0}
 }
 
 func (x *NodeWorflowOperationInstance_Action) GetActionName() string {
@@ -2015,7 +2287,7 @@ type NodeWorkflowOperationListResp_Data struct {
 
 func (x *NodeWorkflowOperationListResp_Data) Reset() {
 	*x = NodeWorkflowOperationListResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[31]
+	mi := &file_node_workflow_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2027,7 +2299,7 @@ func (x *NodeWorkflowOperationListResp_Data) String() string {
 func (*NodeWorkflowOperationListResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[31]
+	mi := &file_node_workflow_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2040,7 +2312,7 @@ func (x *NodeWorkflowOperationListResp_Data) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use NodeWorkflowOperationListResp_Data.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationListResp_Data) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{15, 0}
+	return file_node_workflow_proto_rawDescGZIP(), []int{17, 0}
 }
 
 func (x *NodeWorkflowOperationListResp_Data) GetOperations() []*NodeWorkflowOperation {
@@ -2067,7 +2339,7 @@ type NodeWorkflowOperationInstanceListResp_Data struct {
 
 func (x *NodeWorkflowOperationInstanceListResp_Data) Reset() {
 	*x = NodeWorkflowOperationInstanceListResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[32]
+	mi := &file_node_workflow_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2079,7 +2351,7 @@ func (x *NodeWorkflowOperationInstanceListResp_Data) String() string {
 func (*NodeWorkflowOperationInstanceListResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[32]
+	mi := &file_node_workflow_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2092,7 +2364,7 @@ func (x *NodeWorkflowOperationInstanceListResp_Data) ProtoReflect() protoreflect
 
 // Deprecated: Use NodeWorkflowOperationInstanceListResp_Data.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListResp_Data) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{17, 0}
+	return file_node_workflow_proto_rawDescGZIP(), []int{19, 0}
 }
 
 func (x *NodeWorkflowOperationInstanceListResp_Data) GetTotal() int64 {
@@ -2118,7 +2390,7 @@ type NodeWorkflowOperationInstanceListStatusResp_Data struct {
 
 func (x *NodeWorkflowOperationInstanceListStatusResp_Data) Reset() {
 	*x = NodeWorkflowOperationInstanceListStatusResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[33]
+	mi := &file_node_workflow_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2130,7 +2402,7 @@ func (x *NodeWorkflowOperationInstanceListStatusResp_Data) String() string {
 func (*NodeWorkflowOperationInstanceListStatusResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceListStatusResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[33]
+	mi := &file_node_workflow_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2143,7 +2415,7 @@ func (x *NodeWorkflowOperationInstanceListStatusResp_Data) ProtoReflect() protor
 
 // Deprecated: Use NodeWorkflowOperationInstanceListStatusResp_Data.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceListStatusResp_Data) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{22, 0}
+	return file_node_workflow_proto_rawDescGZIP(), []int{24, 0}
 }
 
 func (x *NodeWorkflowOperationInstanceListStatusResp_Data) GetItems() []*NodeWorkflowOperationInstanceStatus {
@@ -2154,16 +2426,16 @@ func (x *NodeWorkflowOperationInstanceListStatusResp_Data) GetItems() []*NodeWor
 }
 
 type NodeWorkflowOperationInstanceLogGetResp_Data struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Total         int64                     `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
-	OperInstLogs  map[string]*ActionMessage `protobuf:"bytes,2,rep,name=oper_inst_logs,json=operInstLogs,proto3" json:"oper_inst_logs" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Total         int64                              `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	OperInstLogs  map[string]*NodeWorkflowActionData `protobuf:"bytes,2,rep,name=oper_inst_logs,json=operInstLogs,proto3" json:"oper_inst_logs" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NodeWorkflowOperationInstanceLogGetResp_Data) Reset() {
 	*x = NodeWorkflowOperationInstanceLogGetResp_Data{}
-	mi := &file_node_workflow_proto_msgTypes[34]
+	mi := &file_node_workflow_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2175,7 +2447,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp_Data) String() string {
 func (*NodeWorkflowOperationInstanceLogGetResp_Data) ProtoMessage() {}
 
 func (x *NodeWorkflowOperationInstanceLogGetResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[34]
+	mi := &file_node_workflow_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2460,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp_Data) ProtoReflect() protorefle
 
 // Deprecated: Use NodeWorkflowOperationInstanceLogGetResp_Data.ProtoReflect.Descriptor instead.
 func (*NodeWorkflowOperationInstanceLogGetResp_Data) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{24, 0}
+	return file_node_workflow_proto_rawDescGZIP(), []int{26, 0}
 }
 
 func (x *NodeWorkflowOperationInstanceLogGetResp_Data) GetTotal() int64 {
@@ -2198,14 +2470,14 @@ func (x *NodeWorkflowOperationInstanceLogGetResp_Data) GetTotal() int64 {
 	return 0
 }
 
-func (x *NodeWorkflowOperationInstanceLogGetResp_Data) GetOperInstLogs() map[string]*ActionMessage {
+func (x *NodeWorkflowOperationInstanceLogGetResp_Data) GetOperInstLogs() map[string]*NodeWorkflowActionData {
 	if x != nil {
 		return x.OperInstLogs
 	}
 	return nil
 }
 
-type ActionMessage_Message struct {
+type NodeWorkflowActionMessage_Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Time          int64                  `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
 	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text"`
@@ -2213,21 +2485,21 @@ type ActionMessage_Message struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ActionMessage_Message) Reset() {
-	*x = ActionMessage_Message{}
-	mi := &file_node_workflow_proto_msgTypes[36]
+func (x *NodeWorkflowActionMessage_Message) Reset() {
+	*x = NodeWorkflowActionMessage_Message{}
+	mi := &file_node_workflow_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ActionMessage_Message) String() string {
+func (x *NodeWorkflowActionMessage_Message) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ActionMessage_Message) ProtoMessage() {}
+func (*NodeWorkflowActionMessage_Message) ProtoMessage() {}
 
-func (x *ActionMessage_Message) ProtoReflect() protoreflect.Message {
-	mi := &file_node_workflow_proto_msgTypes[36]
+func (x *NodeWorkflowActionMessage_Message) ProtoReflect() protoreflect.Message {
+	mi := &file_node_workflow_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2238,19 +2510,19 @@ func (x *ActionMessage_Message) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ActionMessage_Message.ProtoReflect.Descriptor instead.
-func (*ActionMessage_Message) Descriptor() ([]byte, []int) {
-	return file_node_workflow_proto_rawDescGZIP(), []int{25, 0}
+// Deprecated: Use NodeWorkflowActionMessage_Message.ProtoReflect.Descriptor instead.
+func (*NodeWorkflowActionMessage_Message) Descriptor() ([]byte, []int) {
+	return file_node_workflow_proto_rawDescGZIP(), []int{28, 0}
 }
 
-func (x *ActionMessage_Message) GetTime() int64 {
+func (x *NodeWorkflowActionMessage_Message) GetTime() int64 {
 	if x != nil {
 		return x.Time
 	}
 	return 0
 }
 
-func (x *ActionMessage_Message) GetText() string {
+func (x *NodeWorkflowActionMessage_Message) GetText() string {
 	if x != nil {
 		return x.Text
 	}
@@ -2355,16 +2627,31 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x06status\x18\x04 \x03(\tR\x06status\"]\n" +
 	"\x13OperationDefinition\x12#\n" +
 	"\ropertion_name\x18\x01 \x01(\tR\fopertionName\x12!\n" +
-	"\faction_names\x18\x02 \x03(\tR\vactionNames\"7\n" +
+	"\faction_names\x18\x02 \x03(\tR\vactionNames\"\xb1\x01\n" +
 	"\x0eOperationParam\x12%\n" +
-	"\x0etimeout_second\x18\x01 \x01(\x03R\rtimeoutSecond\"\xc0\x01\n" +
+	"\x0etimeout_second\x18\x01 \x01(\x03R\rtimeoutSecond\x12\x17\n" +
+	"\aarea_id\x18\x02 \x01(\x03R\x06areaId\x12\x1d\n" +
+	"\n" +
+	"inner_ipv4\x18\x03 \x01(\tR\tinnerIpv4\x12\x1d\n" +
+	"\n" +
+	"inner_ipv6\x18\x04 \x01(\tR\tinnerIpv6\x12!\n" +
+	"\fnode_version\x18\x05 \x01(\tR\vnodeVersion\"\xf9\x01\n" +
 	"\x15NodeWorkflowOperation\x12!\n" +
 	"\foperation_id\x18\x01 \x01(\tR\voperationId\x127\n" +
 	"\n" +
 	"definition\x18\x02 \x01(\v2\x17.v3.OperationDefinitionR\n" +
 	"definition\x12!\n" +
 	"\finstance_ids\x18\x03 \x03(\tR\vinstanceIds\x12(\n" +
-	"\x05param\x18\x04 \x01(\v2\x12.v3.OperationParamR\x05param\"\xd5\x03\n" +
+	"\x05param\x18\x04 \x01(\v2\x12.v3.OperationParamR\x05param\x127\n" +
+	"\x06status\x18\x05 \x01(\v2\x1f.v3.NodeWorkflowOperationStatusR\x06status\"_\n" +
+	"\x1bNodeWorkflowOperationStatus\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12*\n" +
+	"\x11total_time_second\x18\x02 \x01(\x03R\x0ftotalTimeSecond\"e\n" +
+	"\tLifecycle\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
+	"\foperate_time\x18\x02 \x01(\x03R\voperateTime\x12\x1f\n" +
+	"\vfinish_time\x18\x03 \x01(\x03R\n" +
+	"finishTime\"\xd5\x03\n" +
 	"\x1cNodeWorflowOperationInstance\x12!\n" +
 	"\foperation_id\x18\x01 \x01(\tR\voperationId\x12 \n" +
 	"\foper_inst_id\x18\x02 \x01(\tR\n" +
@@ -2444,24 +2731,35 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2'.v3.NodeWorkflowOperationInstanceStatusR\x05items\"J\n" +
 	"&NodeWorkflowOperationInstanceLogGetReq\x12 \n" +
 	"\foper_inst_id\x18\x01 \x01(\tR\n" +
-	"operInstId\"\x99\x03\n" +
+	"operInstId\"\xa2\x03\n" +
 	"'NodeWorkflowOperationInstanceLogGetResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x12D\n" +
-	"\x04data\x18\x04 \x01(\v20.v3.NodeWorkflowOperationInstanceLogGetResp.DataR\x04data\x1a\xda\x01\n" +
+	"\x04data\x18\x04 \x01(\v20.v3.NodeWorkflowOperationInstanceLogGetResp.DataR\x04data\x1a\xe3\x01\n" +
 	"\x04Data\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\x03R\x05total\x12h\n" +
-	"\x0eoper_inst_logs\x18\x02 \x03(\v2B.v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntryR\foperInstLogs\x1aR\n" +
+	"\x0eoper_inst_logs\x18\x02 \x03(\v2B.v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntryR\foperInstLogs\x1a[\n" +
 	"\x11OperInstLogsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
-	"\x05value\x18\x02 \x01(\v2\x11.v3.ActionMessageR\x05value:\x028\x01\"q\n" +
-	"\rActionMessage\x12-\n" +
-	"\x04logs\x18\x01 \x03(\v2\x19.v3.ActionMessage.MessageR\x04logs\x1a1\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.v3.NodeWorkflowActionDataR\x05value:\x028\x01\"|\n" +
+	"\tLifeCycle\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12\x1f\n" +
+	"\vcreate_time\x18\x02 \x01(\x03R\n" +
+	"createTime\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x03 \x01(\x03R\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x04 \x01(\x03R\aendTime\"\x89\x01\n" +
+	"\x19NodeWorkflowActionMessage\x129\n" +
+	"\x04logs\x18\x01 \x03(\v2%.v3.NodeWorkflowActionMessage.MessageR\x04logs\x1a1\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04time\x18\x01 \x01(\x03R\x04time\x12\x12\n" +
-	"\x04text\x18\x02 \x01(\tR\x04text2\x88\a\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"\x7f\n" +
+	"\x16NodeWorkflowActionData\x12,\n" +
+	"\n" +
+	"life_cycle\x18\x01 \x01(\v2\r.v3.LifeCycleR\tlifeCycle\x127\n" +
+	"\amessage\x18\x02 \x01(\v2\x1d.v3.NodeWorkflowActionMessageR\amessage2\x88\a\n" +
 	"\fNodeWorkflow\x12l\n" +
 	"\x10NodeWorkflowList\x12\x17.v3.NodeWorkflowListReq\x1a\x18.v3.NodeWorkflowListResp\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v3/node/workflow/list\x12\x84\x01\n" +
 	"\x16NodeWorkflowStatistics\x12\x1d.v3.NodeWorkflowStatisticsReq\x1a\x1e.v3.NodeWorkflowStatisticsResp\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v3/node/workflow/statistics\x12|\n" +
@@ -2482,7 +2780,7 @@ func file_node_workflow_proto_rawDescGZIP() []byte {
 	return file_node_workflow_proto_rawDescData
 }
 
-var file_node_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_node_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_node_workflow_proto_goTypes = []any{
 	(*NodeWorkflowInfo)(nil),                                 // 0: v3.NodeWorkflowInfo
 	(*NodeWorkflowExactConditions)(nil),                      // 1: v3.NodeWorkflowExactConditions
@@ -2496,80 +2794,87 @@ var file_node_workflow_proto_goTypes = []any{
 	(*OperationDefinition)(nil),                              // 9: v3.OperationDefinition
 	(*OperationParam)(nil),                                   // 10: v3.OperationParam
 	(*NodeWorkflowOperation)(nil),                            // 11: v3.NodeWorkflowOperation
-	(*NodeWorflowOperationInstance)(nil),                     // 12: v3.NodeWorflowOperationInstance
-	(*NodeWorflowOperationInstanceData)(nil),                 // 13: v3.NodeWorflowOperationInstanceData
-	(*NodeWorkflowOperationListReq)(nil),                     // 14: v3.NodeWorkflowOperationListReq
-	(*NodeWorkflowOperationListResp)(nil),                    // 15: v3.NodeWorkflowOperationListResp
-	(*NodeWorkflowOperationInstanceListReq)(nil),             // 16: v3.NodeWorkflowOperationInstanceListReq
-	(*NodeWorkflowOperationInstanceListResp)(nil),            // 17: v3.NodeWorkflowOperationInstanceListResp
-	(*NodeWorkflowInstanceStatusExactConditions)(nil),        // 18: v3.NodeWorkflowInstanceStatusExactConditions
-	(*NodeWorkflowInstanceStatusFuzzyConditions)(nil),        // 19: v3.NodeWorkflowInstanceStatusFuzzyConditions
-	(*NodeWorkflowOperationInstanceListStatusReq)(nil),       // 20: v3.NodeWorkflowOperationInstanceListStatusReq
-	(*NodeWorkflowOperationInstanceStatus)(nil),              // 21: v3.NodeWorkflowOperationInstanceStatus
-	(*NodeWorkflowOperationInstanceListStatusResp)(nil),      // 22: v3.NodeWorkflowOperationInstanceListStatusResp
-	(*NodeWorkflowOperationInstanceLogGetReq)(nil),           // 23: v3.NodeWorkflowOperationInstanceLogGetReq
-	(*NodeWorkflowOperationInstanceLogGetResp)(nil),          // 24: v3.NodeWorkflowOperationInstanceLogGetResp
-	(*ActionMessage)(nil),                                    // 25: v3.ActionMessage
-	(*NodeWorkflowListResp_Data)(nil),                        // 26: v3.NodeWorkflowListResp.Data
-	(*NodeWorkflowStatisticsResp_StatisticsInfo)(nil),        // 27: v3.NodeWorkflowStatisticsResp.StatisticsInfo
-	(*NodeWorkflowStatisticsResp_Data)(nil),                  // 28: v3.NodeWorkflowStatisticsResp.Data
-	(*NodeWorkflowDistinctResp_Data)(nil),                    // 29: v3.NodeWorkflowDistinctResp.Data
-	(*NodeWorflowOperationInstance_Action)(nil),              // 30: v3.NodeWorflowOperationInstance.Action
-	(*NodeWorkflowOperationListResp_Data)(nil),               // 31: v3.NodeWorkflowOperationListResp.Data
-	(*NodeWorkflowOperationInstanceListResp_Data)(nil),       // 32: v3.NodeWorkflowOperationInstanceListResp.Data
-	(*NodeWorkflowOperationInstanceListStatusResp_Data)(nil), // 33: v3.NodeWorkflowOperationInstanceListStatusResp.Data
-	(*NodeWorkflowOperationInstanceLogGetResp_Data)(nil),     // 34: v3.NodeWorkflowOperationInstanceLogGetResp.Data
-	nil,                           // 35: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
-	(*ActionMessage_Message)(nil), // 36: v3.ActionMessage.Message
-	(*Page)(nil),                  // 37: v3.Page
-	(*TimeRange)(nil),             // 38: v3.TimeRange
+	(*NodeWorkflowOperationStatus)(nil),                      // 12: v3.NodeWorkflowOperationStatus
+	(*Lifecycle)(nil),                                        // 13: v3.Lifecycle
+	(*NodeWorflowOperationInstance)(nil),                     // 14: v3.NodeWorflowOperationInstance
+	(*NodeWorflowOperationInstanceData)(nil),                 // 15: v3.NodeWorflowOperationInstanceData
+	(*NodeWorkflowOperationListReq)(nil),                     // 16: v3.NodeWorkflowOperationListReq
+	(*NodeWorkflowOperationListResp)(nil),                    // 17: v3.NodeWorkflowOperationListResp
+	(*NodeWorkflowOperationInstanceListReq)(nil),             // 18: v3.NodeWorkflowOperationInstanceListReq
+	(*NodeWorkflowOperationInstanceListResp)(nil),            // 19: v3.NodeWorkflowOperationInstanceListResp
+	(*NodeWorkflowInstanceStatusExactConditions)(nil),        // 20: v3.NodeWorkflowInstanceStatusExactConditions
+	(*NodeWorkflowInstanceStatusFuzzyConditions)(nil),        // 21: v3.NodeWorkflowInstanceStatusFuzzyConditions
+	(*NodeWorkflowOperationInstanceListStatusReq)(nil),       // 22: v3.NodeWorkflowOperationInstanceListStatusReq
+	(*NodeWorkflowOperationInstanceStatus)(nil),              // 23: v3.NodeWorkflowOperationInstanceStatus
+	(*NodeWorkflowOperationInstanceListStatusResp)(nil),      // 24: v3.NodeWorkflowOperationInstanceListStatusResp
+	(*NodeWorkflowOperationInstanceLogGetReq)(nil),           // 25: v3.NodeWorkflowOperationInstanceLogGetReq
+	(*NodeWorkflowOperationInstanceLogGetResp)(nil),          // 26: v3.NodeWorkflowOperationInstanceLogGetResp
+	(*LifeCycle)(nil),                                        // 27: v3.LifeCycle
+	(*NodeWorkflowActionMessage)(nil),                        // 28: v3.NodeWorkflowActionMessage
+	(*NodeWorkflowActionData)(nil),                           // 29: v3.NodeWorkflowActionData
+	(*NodeWorkflowListResp_Data)(nil),                        // 30: v3.NodeWorkflowListResp.Data
+	(*NodeWorkflowStatisticsResp_StatisticsInfo)(nil),        // 31: v3.NodeWorkflowStatisticsResp.StatisticsInfo
+	(*NodeWorkflowStatisticsResp_Data)(nil),                  // 32: v3.NodeWorkflowStatisticsResp.Data
+	(*NodeWorkflowDistinctResp_Data)(nil),                    // 33: v3.NodeWorkflowDistinctResp.Data
+	(*NodeWorflowOperationInstance_Action)(nil),              // 34: v3.NodeWorflowOperationInstance.Action
+	(*NodeWorkflowOperationListResp_Data)(nil),               // 35: v3.NodeWorkflowOperationListResp.Data
+	(*NodeWorkflowOperationInstanceListResp_Data)(nil),       // 36: v3.NodeWorkflowOperationInstanceListResp.Data
+	(*NodeWorkflowOperationInstanceListStatusResp_Data)(nil), // 37: v3.NodeWorkflowOperationInstanceListStatusResp.Data
+	(*NodeWorkflowOperationInstanceLogGetResp_Data)(nil),     // 38: v3.NodeWorkflowOperationInstanceLogGetResp.Data
+	nil, // 39: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
+	(*NodeWorkflowActionMessage_Message)(nil), // 40: v3.NodeWorkflowActionMessage.Message
+	(*Page)(nil),      // 41: v3.Page
+	(*TimeRange)(nil), // 42: v3.TimeRange
 }
 var file_node_workflow_proto_depIdxs = []int32{
-	37, // 0: v3.NodeWorkflowListReq.page:type_name -> v3.Page
+	41, // 0: v3.NodeWorkflowListReq.page:type_name -> v3.Page
 	1,  // 1: v3.NodeWorkflowListReq.exact_include_conditions:type_name -> v3.NodeWorkflowExactConditions
 	2,  // 2: v3.NodeWorkflowListReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowFuzzyConditions
-	38, // 3: v3.NodeWorkflowListReq.operate_time_range:type_name -> v3.TimeRange
-	26, // 4: v3.NodeWorkflowListResp.data:type_name -> v3.NodeWorkflowListResp.Data
-	28, // 5: v3.NodeWorkflowStatisticsResp.data:type_name -> v3.NodeWorkflowStatisticsResp.Data
+	42, // 3: v3.NodeWorkflowListReq.operate_time_range:type_name -> v3.TimeRange
+	30, // 4: v3.NodeWorkflowListResp.data:type_name -> v3.NodeWorkflowListResp.Data
+	32, // 5: v3.NodeWorkflowStatisticsResp.data:type_name -> v3.NodeWorkflowStatisticsResp.Data
 	1,  // 6: v3.NodeWorkflowDistinctReq.exact_include_conditions:type_name -> v3.NodeWorkflowExactConditions
 	2,  // 7: v3.NodeWorkflowDistinctReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowFuzzyConditions
-	29, // 8: v3.NodeWorkflowDistinctResp.data:type_name -> v3.NodeWorkflowDistinctResp.Data
+	33, // 8: v3.NodeWorkflowDistinctResp.data:type_name -> v3.NodeWorkflowDistinctResp.Data
 	9,  // 9: v3.NodeWorkflowOperation.definition:type_name -> v3.OperationDefinition
 	10, // 10: v3.NodeWorkflowOperation.param:type_name -> v3.OperationParam
-	30, // 11: v3.NodeWorflowOperationInstance.action:type_name -> v3.NodeWorflowOperationInstance.Action
-	37, // 12: v3.NodeWorkflowOperationListReq.page:type_name -> v3.Page
-	31, // 13: v3.NodeWorkflowOperationListResp.data:type_name -> v3.NodeWorkflowOperationListResp.Data
-	32, // 14: v3.NodeWorkflowOperationInstanceListResp.data:type_name -> v3.NodeWorkflowOperationInstanceListResp.Data
-	37, // 15: v3.NodeWorkflowOperationInstanceListStatusReq.page:type_name -> v3.Page
-	18, // 16: v3.NodeWorkflowOperationInstanceListStatusReq.exact_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusExactConditions
-	19, // 17: v3.NodeWorkflowOperationInstanceListStatusReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusFuzzyConditions
-	33, // 18: v3.NodeWorkflowOperationInstanceListStatusResp.data:type_name -> v3.NodeWorkflowOperationInstanceListStatusResp.Data
-	34, // 19: v3.NodeWorkflowOperationInstanceLogGetResp.data:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data
-	36, // 20: v3.ActionMessage.logs:type_name -> v3.ActionMessage.Message
-	0,  // 21: v3.NodeWorkflowListResp.Data.items:type_name -> v3.NodeWorkflowInfo
-	27, // 22: v3.NodeWorkflowStatisticsResp.Data.items:type_name -> v3.NodeWorkflowStatisticsResp.StatisticsInfo
-	11, // 23: v3.NodeWorkflowOperationListResp.Data.operations:type_name -> v3.NodeWorkflowOperation
-	13, // 24: v3.NodeWorkflowOperationInstanceListResp.Data.oper_inst_data:type_name -> v3.NodeWorflowOperationInstanceData
-	21, // 25: v3.NodeWorkflowOperationInstanceListStatusResp.Data.items:type_name -> v3.NodeWorkflowOperationInstanceStatus
-	35, // 26: v3.NodeWorkflowOperationInstanceLogGetResp.Data.oper_inst_logs:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
-	25, // 27: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry.value:type_name -> v3.ActionMessage
-	3,  // 28: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
-	5,  // 29: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
-	7,  // 30: v3.NodeWorkflow.NodeWorkflowDistinct:input_type -> v3.NodeWorkflowDistinctReq
-	14, // 31: v3.NodeWorkflow.NodeWorkflowOperationList:input_type -> v3.NodeWorkflowOperationListReq
-	16, // 32: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:input_type -> v3.NodeWorkflowOperationInstanceListReq
-	23, // 33: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:input_type -> v3.NodeWorkflowOperationInstanceLogGetReq
-	4,  // 34: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
-	6,  // 35: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticsResp
-	8,  // 36: v3.NodeWorkflow.NodeWorkflowDistinct:output_type -> v3.NodeWorkflowDistinctResp
-	15, // 37: v3.NodeWorkflow.NodeWorkflowOperationList:output_type -> v3.NodeWorkflowOperationListResp
-	17, // 38: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:output_type -> v3.NodeWorkflowOperationInstanceListResp
-	24, // 39: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:output_type -> v3.NodeWorkflowOperationInstanceLogGetResp
-	34, // [34:40] is the sub-list for method output_type
-	28, // [28:34] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	12, // 11: v3.NodeWorkflowOperation.status:type_name -> v3.NodeWorkflowOperationStatus
+	34, // 12: v3.NodeWorflowOperationInstance.action:type_name -> v3.NodeWorflowOperationInstance.Action
+	41, // 13: v3.NodeWorkflowOperationListReq.page:type_name -> v3.Page
+	35, // 14: v3.NodeWorkflowOperationListResp.data:type_name -> v3.NodeWorkflowOperationListResp.Data
+	36, // 15: v3.NodeWorkflowOperationInstanceListResp.data:type_name -> v3.NodeWorkflowOperationInstanceListResp.Data
+	41, // 16: v3.NodeWorkflowOperationInstanceListStatusReq.page:type_name -> v3.Page
+	20, // 17: v3.NodeWorkflowOperationInstanceListStatusReq.exact_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusExactConditions
+	21, // 18: v3.NodeWorkflowOperationInstanceListStatusReq.fuzzy_include_conditions:type_name -> v3.NodeWorkflowInstanceStatusFuzzyConditions
+	37, // 19: v3.NodeWorkflowOperationInstanceListStatusResp.data:type_name -> v3.NodeWorkflowOperationInstanceListStatusResp.Data
+	38, // 20: v3.NodeWorkflowOperationInstanceLogGetResp.data:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data
+	40, // 21: v3.NodeWorkflowActionMessage.logs:type_name -> v3.NodeWorkflowActionMessage.Message
+	27, // 22: v3.NodeWorkflowActionData.life_cycle:type_name -> v3.LifeCycle
+	28, // 23: v3.NodeWorkflowActionData.message:type_name -> v3.NodeWorkflowActionMessage
+	0,  // 24: v3.NodeWorkflowListResp.Data.items:type_name -> v3.NodeWorkflowInfo
+	31, // 25: v3.NodeWorkflowStatisticsResp.Data.items:type_name -> v3.NodeWorkflowStatisticsResp.StatisticsInfo
+	11, // 26: v3.NodeWorkflowOperationListResp.Data.operations:type_name -> v3.NodeWorkflowOperation
+	15, // 27: v3.NodeWorkflowOperationInstanceListResp.Data.oper_inst_data:type_name -> v3.NodeWorflowOperationInstanceData
+	23, // 28: v3.NodeWorkflowOperationInstanceListStatusResp.Data.items:type_name -> v3.NodeWorkflowOperationInstanceStatus
+	39, // 29: v3.NodeWorkflowOperationInstanceLogGetResp.Data.oper_inst_logs:type_name -> v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry
+	29, // 30: v3.NodeWorkflowOperationInstanceLogGetResp.Data.OperInstLogsEntry.value:type_name -> v3.NodeWorkflowActionData
+	3,  // 31: v3.NodeWorkflow.NodeWorkflowList:input_type -> v3.NodeWorkflowListReq
+	5,  // 32: v3.NodeWorkflow.NodeWorkflowStatistics:input_type -> v3.NodeWorkflowStatisticsReq
+	7,  // 33: v3.NodeWorkflow.NodeWorkflowDistinct:input_type -> v3.NodeWorkflowDistinctReq
+	16, // 34: v3.NodeWorkflow.NodeWorkflowOperationList:input_type -> v3.NodeWorkflowOperationListReq
+	18, // 35: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:input_type -> v3.NodeWorkflowOperationInstanceListReq
+	25, // 36: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:input_type -> v3.NodeWorkflowOperationInstanceLogGetReq
+	4,  // 37: v3.NodeWorkflow.NodeWorkflowList:output_type -> v3.NodeWorkflowListResp
+	6,  // 38: v3.NodeWorkflow.NodeWorkflowStatistics:output_type -> v3.NodeWorkflowStatisticsResp
+	8,  // 39: v3.NodeWorkflow.NodeWorkflowDistinct:output_type -> v3.NodeWorkflowDistinctResp
+	17, // 40: v3.NodeWorkflow.NodeWorkflowOperationList:output_type -> v3.NodeWorkflowOperationListResp
+	19, // 41: v3.NodeWorkflow.NodeWorkflowOperationInstanceList:output_type -> v3.NodeWorkflowOperationInstanceListResp
+	26, // 42: v3.NodeWorkflow.NodeWorkflowOperationInstanceLogGet:output_type -> v3.NodeWorkflowOperationInstanceLogGetResp
+	37, // [37:43] is the sub-list for method output_type
+	31, // [31:37] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_node_workflow_proto_init() }
@@ -2579,14 +2884,14 @@ func file_node_workflow_proto_init() {
 	}
 	file_common_proto_init()
 	file_node_workflow_proto_msgTypes[0].OneofWrappers = []any{}
-	file_node_workflow_proto_msgTypes[27].OneofWrappers = []any{}
+	file_node_workflow_proto_msgTypes[31].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_workflow_proto_rawDesc), len(file_node_workflow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

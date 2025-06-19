@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -157,7 +156,7 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	result, num, err := h.storageOperation.ListOperation(sCtx,
+	result, num, err := h.storageOperation.ListOperationByTrigger(sCtx,
 		req.ConvertPageToTypes(maxOperationLimit), workflow.TriggerID)
 	if err != nil {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -196,14 +195,8 @@ func (h *handler) ListOperationInstance(ctx *rest.Context) (interface{}, error) 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	opera, err := h.storageOperation.GetOperation(sCtx, req.ConvertConditionsToComm())
-	if err != nil {
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
-	}
-
-	result, num, err := h.storageOperInstData.ListOperationInstanceBriefData(sCtx, types.UnlimitedPage(),
-		operation.ListOperationInstanceCondition{TriggerIDs: []string{opera.TriggerID}})
-
+	result, num, err := h.storageOperInstData.ListOperInstanceBriefByOperation(
+		sCtx, types.UnlimitedPage(), req.GetOperationId()...)
 	if err != nil {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}

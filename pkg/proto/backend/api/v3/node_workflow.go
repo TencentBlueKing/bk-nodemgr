@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -188,13 +189,17 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 	for _, op := range result {
 		item := &NodeWorkflowOperation{
 			OperationId: op.OperationID,
-			Definition: &OperationDefinition{
+			Definition: &NodeWorkflowOperationDefinition{
 				OpertionName: op.Definition.Name(),
 				ActionNames:  op.Definition.ActionDefNames(),
 			},
 			InstanceIds: op.InstanceIDs,
-			Param: &OperationParam{
+			Param: &NodeWorkflowOperationParam{
 				TimeoutSecond: int64(op.Definition.DefaultParameters().Timeout.Seconds()),
+				AreaId:        safeGetInt64(op.Param.ExtraContent, "areaID", -1),
+				InnerIpv4:     safeGetString(op.Param.ExtraContent, "innerIPV4", ""),
+				InnerIpv6:     safeGetString(op.Param.ExtraContent, "innerIPV6", ""),
+				NodeVersion:   safeGetString(op.Param.ExtraContent, "nodeVersion", ""),
 			},
 		}
 		items = append(items, item)
@@ -226,6 +231,12 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*op
 			InstanceIDs: item.GetInstanceIds(),
 			Param: operation.Param{
 				Timeout: time.Duration(item.GetParam().GetTimeoutSecond()),
+				ExtraContent: map[string]interface{}{
+					"areaID":      item.GetParam().GetAreaId(),
+					"innerIPV4":   item.GetParam().GetInnerIpv4(),
+					"innerIPV6":   item.GetParam().GetInnerIpv6(),
+					"nodeVersion": item.GetParam().GetNodeVersion(),
+				},
 			},
 		}
 
@@ -237,14 +248,15 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*op
 
 // Validate check body.
 func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
-	if x.GetOperationId() == "" {
+	if len(x.GetOperationId()) == 0 && x.GetOperationId()[0] == "" {
 		return errors.New("operation id is required")
 	}
+
 	return nil
 }
 
 // ConvertConditionsToComm ...
-func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToComm() string {
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToComm() []string {
 	return x.GetOperationId()
 }
 
@@ -258,6 +270,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 
 	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
 	for _, opinstance := range result {
+		fmt.Printf("ConvertResultFromTypes life_cycle: %+v\n", opinstance.Lifecycle)
 		oper := &NodeWorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
@@ -265,8 +278,14 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 			OperationDefName:  opinstance.Metadata.OperationDefName,
 			ParentOperationId: opinstance.Metadata.ParentOperationID,
 			ActionNames:       opinstance.Metadata.ActionNames,
+			LifeCycle: &LifeCycle{
+				State:      string(opinstance.Lifecycle.State),
+				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
+				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
+				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
+			},
 		}
-
+		fmt.Println("ConvertResultFromTypes life_cycle: ", oper.LifeCycle)
 		items = append(items, oper)
 	}
 
@@ -321,7 +340,10 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstance
 				ActionNames:         item.GetActionNames(),
 			},
 			Lifecycle: &operation.Lifecycle{
-				State: operation.State(item.GetOperInstStatus()),
+				State:     operation.State(item.GetOperInstStatus()),
+				CreatedAt: time.Unix(item.GetLifeCycle().GetCreateTime(), 0),
+				StartedAt: time.Unix(item.GetLifeCycle().GetStartTime(), 0),
+				EndedAt:   time.Unix(item.GetLifeCycle().GetEndTime(), 0),
 			},
 		}
 
@@ -431,18 +453,28 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		return
 	}
 
-	operInstLogs := make(map[string]*ActionMessage)
+	operInstLogs := make(map[string]*NodeWorkflowActionData)
 	for actionID, v := range result.ActionInstanceDataMap {
-		actionMsg := &ActionMessage{
-			Logs: make([]*ActionMessage_Message, 0, len(v.Messages)),
+
+		lifecycle := &LifeCycle{
+			State:      string(v.Lifecycle.State),
+			CreateTime: v.Lifecycle.CreatedAt.Unix(),
+			StartTime:  v.Lifecycle.StartedAt.Unix(),
+			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
+
+		messages := make([]*NodeWorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
-			actionMsg.Logs = append(actionMsg.Logs, &ActionMessage_Message{
+			messages = append(messages, &NodeWorkflowActionMessage_Message{
 				Time: msg.Time.Unix(),
 				Text: msg.Text,
 			})
 		}
-		operInstLogs[actionID] = actionMsg
+
+		operInstLogs[actionID] = &NodeWorkflowActionData{
+			LifeCycle: lifecycle,
+			Message:   &NodeWorkflowActionMessage{Logs: messages},
+		}
 	}
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
@@ -461,27 +493,34 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		ActionInstanceDataMap: make(map[string]*action.InstanceData),
 	}
 
-	for actionID, actionMsg := range data.GetOperInstLogs() {
-		if actionMsg == nil {
+	for actionID, actionData := range x.GetData().GetOperInstLogs() {
+		if actionData == nil {
 			continue
 		}
 
-		actionData := &action.InstanceData{
-			Messages: make([]action.Message, 0, len(actionMsg.GetLogs())),
+		instance := &action.InstanceData{
+			Lifecycle: &action.Lifecycle{
+				State:     action.State(actionData.GetLifeCycle().GetState()),
+				CreatedAt: time.Unix(actionData.GetLifeCycle().GetCreateTime(), 0),
+				StartedAt: time.Unix(actionData.GetLifeCycle().GetStartTime(), 0),
+				EndedAt:   time.Unix(actionData.GetLifeCycle().GetEndTime(), 0),
+			},
 		}
 
-		for _, msg := range actionMsg.GetLogs() {
-			if msg == nil {
-				continue
+		if actionData.GetMessage() != nil {
+			instance.Messages = make([]action.Message, 0, len(actionData.GetMessage().GetLogs()))
+			for _, msg := range actionData.GetMessage().GetLogs() {
+				if msg == nil {
+					continue
+				}
+				instance.Messages = append(instance.Messages, action.Message{
+					Time: time.Unix(msg.GetTime(), 0),
+					Text: msg.GetText(),
+				})
 			}
-
-			actionData.Messages = append(actionData.Messages, action.Message{
-				Time: time.Unix(msg.GetTime(), 0),
-				Text: msg.GetText(),
-			})
 		}
 
-		result.ActionInstanceDataMap[actionID] = actionData
+		result.ActionInstanceDataMap[actionID] = instance
 	}
 
 	return result
@@ -567,4 +606,28 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 		OperateTime: new(int64),
 		Status:      new(string),
 	}
+}
+
+func safeGetInt64(m map[string]interface{}, key string, def int64) int64 {
+	v, ok := m[key]
+	if !ok || v == nil {
+		return def
+	}
+	if val, ok := v.(int64); ok {
+		return val
+	}
+
+	return def
+}
+
+func safeGetString(m map[string]interface{}, key string, def string) string {
+	v, ok := m[key]
+	if !ok || v == nil {
+		return def
+	}
+	if val, ok := v.(string); ok {
+		return val
+	}
+
+	return def
 }

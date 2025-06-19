@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -198,9 +199,11 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert workflow id to types.
-func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*operation.Operation) {
+func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
+	total int64, result []*operation.Operation, operationsSummary []*types.OperationSummary) {
+
 	items := make([]*NodeWorkflowOperation, 0, total)
-	for _, op := range result {
+	for idx, op := range result {
 		item := &NodeWorkflowOperation{
 			OperationId: op.OperationID,
 			Definition: &OperationDefinition{
@@ -209,9 +212,19 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 			},
 			InstanceIds: op.InstanceIDs,
 			Param: &OperationParam{
-				TimeoutSecond: int64(op.Param.Timeout),
+				TimeoutSecond: int64(op.Definition.DefaultParameters().Timeout.Seconds()),
+				AreaId:        safeGetInt64(op.Param.ExtraContent, "areaID", -1),
+				InnerIpv4:     safeGetString(op.Param.ExtraContent, "innerIPV4", ""),
+				InnerIpv6:     safeGetString(op.Param.ExtraContent, "innerIPV6", ""),
+				NodeVersion:   safeGetString(op.Param.ExtraContent, "nodeVersion", ""),
+			},
+			Status: &NodeWorkflowOperationStatus{
+				State:           operationsSummary[idx].LastStatus,
+				TotalTimeSecond: operationsSummary[idx].TotalDuration,
 			},
 		}
+		fmt.Println("[debug]total time:", operationsSummary[idx].TotalDuration)
+
 		items = append(items, item)
 	}
 
@@ -282,18 +295,28 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		return
 	}
 
-	operInstLogs := make(map[string]*ActionMessage)
+	operInstLogs := make(map[string]*NodeWorkflowActionData)
 	for actionID, v := range result.ActionInstanceDataMap {
-		actionMsg := &ActionMessage{
-			Logs: make([]*ActionMessage_Message, 0, len(v.Messages)),
+
+		lifecycle := &LifeCycle{
+			State:      string(v.Lifecycle.State),
+			CreateTime: v.Lifecycle.CreatedAt.Unix(),
+			StartTime:  v.Lifecycle.StartedAt.Unix(),
+			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
+
+		messages := make([]*NodeWorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
-			actionMsg.Logs = append(actionMsg.Logs, &ActionMessage_Message{
+			messages = append(messages, &NodeWorkflowActionMessage_Message{
 				Time: msg.Time.Unix(),
 				Text: msg.Text,
 			})
 		}
-		operInstLogs[actionID] = actionMsg
+
+		operInstLogs[actionID] = &NodeWorkflowActionData{
+			LifeCycle: lifecycle,
+			Message:   &NodeWorkflowActionMessage{Logs: messages},
+		}
 	}
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
@@ -380,4 +403,28 @@ func newEmptyNodeWorkflowOperationStatus() *NodeWorkflowStatisticsResp_Statistic
 		TimeoutCount:    new(int64),
 		TerminatedCount: new(int64),
 	}
+}
+
+func safeGetInt64(m map[string]interface{}, key string, def int64) int64 {
+	v, ok := m[key]
+	if !ok || v == nil {
+		return def
+	}
+	if val, ok := v.(int64); ok {
+		return val
+	}
+
+	return def
+}
+
+func safeGetString(m map[string]interface{}, key string, def string) string {
+	v, ok := m[key]
+	if !ok || v == nil {
+		return def
+	}
+	if val, ok := v.(string); ok {
+		return val
+	}
+
+	return def
 }

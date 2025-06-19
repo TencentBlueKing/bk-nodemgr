@@ -168,3 +168,9 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 		NodeWorkflowStatusPartialFailed,
 	}
 }
+
+// OperationSummary ...
+type OperationSummary struct {
+	TotalDuration int64
+	LastStatus    string
+}

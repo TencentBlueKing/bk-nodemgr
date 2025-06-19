@@ -313,6 +313,32 @@ func (s *Storage) CountOperationInstance(ctx context.Context, triggerID string,
 	return num, nil
 }
 
+// ListOperInstanceBriefByOperation lists operation instance brief data.
+func (s *Storage) ListOperInstanceBriefByOperation(
+	ctx context.Context, page types.Page, operationID ...string) (
+	[]*operation.InstanceBriefData, int64, error) {
+
+	if ctx == nil {
+		return nil, 0, base.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	operationData, num, err := s.daoOperinstdata.ListWithoutActInst(ctx, page,
+		operinstdata.WithOperationID(operationID...))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if num == 0 {
+		return nil, 0, nil
+	}
+
+	return operationData, num, nil
+}
+
 // UpsertOperationInstanceData upserts operation instance data.
 func (s *Storage) UpsertOperationInstanceData(ctx context.Context,
 	operationInstanceData *operation.InstanceData) error {

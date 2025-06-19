@@ -12,6 +12,9 @@
 package workflow
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -19,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -216,7 +220,7 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		}
 		resp := new(protoApplication.NodeWorkflowOperationListResp)
 
-		resp.ConvertResultFromTypes(num, nil)
+		resp.ConvertResultFromTypes(num, nil, nil)
 		// only count, no data.
 		return resp.GetData(), nil
 	}
@@ -227,9 +231,30 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		h.logger.ErrorCtxf(sCtx, "failed to list operation, err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
+
+	// list operation instance.
+	operationIDs := make([]string, 0, len(result))
+
+	for _, operation := range result {
+		operationIDs = append(operationIDs, operation.OperationID)
+	}
+
+	allinstances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(sCtx, operationIDs...)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list operation instance, err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+	for _, instance := range allinstances {
+		fmt.Println("instance lifecycle:", instance.Lifecycle)
+	}
+
+	instancesByOpID := groupInstancesByOperationID(allinstances)
+
+	summaries := calculateOperationSummaries(operationIDs, instancesByOpID)
+
 	resp := new(protoApplication.NodeWorkflowOperationListResp)
 
-	resp.ConvertResultFromTypes(num, result)
+	resp.ConvertResultFromTypes(num, result, summaries)
 
 	return resp.GetData(), nil
 }
@@ -385,4 +410,64 @@ func (h *handler) listAllBusiness(ctx *rest.Context) (map[int64]string, error) {
 	}
 
 	return bizNameMap, nil
+}
+
+func groupInstancesByOperationID(
+	instances []*operation.InstanceBriefData) map[string][]*operation.InstanceBriefData {
+
+	grouped := make(map[string][]*operation.InstanceBriefData)
+
+	for _, instance := range instances {
+		opID := instance.Metadata.OperationID
+
+		if _, exists := grouped[opID]; !exists {
+			grouped[opID] = make([]*operation.InstanceBriefData, 0)
+		}
+
+		grouped[opID] = append(grouped[opID], instance)
+	}
+
+	return grouped
+}
+
+func calculateOperationSummaries(operationIDs []string,
+	instancesByOpID map[string][]*operation.InstanceBriefData) []*types.OperationSummary {
+
+	summaries := make([]*types.OperationSummary, len(operationIDs))
+
+	for idx, opID := range operationIDs {
+		instances, exists := instancesByOpID[opID]
+
+		if !exists || len(instances) == 0 {
+			summaries[idx] = &types.OperationSummary{
+				TotalDuration: 0,
+				LastStatus:    "empty_instances",
+			}
+
+			continue
+		}
+
+		sort.Slice(instances, func(i, j int) bool {
+			return instances[i].Lifecycle.CreatedAt.Before(instances[j].Lifecycle.CreatedAt)
+		})
+
+		var totalSeconds int64
+		for _, inst := range instances {
+			fmt.Printf("life_cycle: %v\n", inst.Lifecycle)
+			if !inst.Lifecycle.CreatedAt.IsZero() && !inst.Lifecycle.EndedAt.IsZero() {
+				durationSec := inst.Lifecycle.EndedAt.Unix() - inst.Lifecycle.CreatedAt.Unix()
+
+				totalSeconds += durationSec
+			}
+		}
+		lastInstance := instances[len(instances)-1]
+		lastStatus := string(lastInstance.Lifecycle.State)
+
+		summaries[idx] = &types.OperationSummary{
+			TotalDuration: totalSeconds,
+			LastStatus:    lastStatus,
+		}
+	}
+
+	return summaries
 }

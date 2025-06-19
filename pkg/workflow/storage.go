@@ -47,8 +47,9 @@ type IStorageOperation interface {
 	// GetOperation gets operation.
 	GetOperation(ctx context.Context, operationID string) (*operation.Operation, error)
 
-	// ListOperation lists operation.
-	ListOperation(ctx context.Context, page types.Page, triggerID ...string) ([]*operation.Operation, int64, error)
+	// ListOperationByTrigger lists operation.
+	ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
+		[]*operation.Operation, int64, error)
 
 	// ListEmptyOperation lists empty operation.
 	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
@@ -65,6 +66,10 @@ type IStorageOperationInstance interface {
 	// ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
 	ListOperationInstanceBriefData(
 		ctx context.Context, page types.Page, condition operation.ListOperationInstanceCondition) (
+		[]*operation.InstanceBriefData, int64, error)
+
+	// ListOperInstanceBriefByOperation lists operation instance brief data.
+	ListOperInstanceBriefByOperation(ctx context.Context, page types.Page, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// CountOperationInstance counts operation instance.

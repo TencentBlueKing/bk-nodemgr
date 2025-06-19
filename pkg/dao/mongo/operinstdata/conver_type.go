@@ -238,6 +238,5 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 	if err != nil {
 		return nil, err
 	}
-
 	return data, nil
 }

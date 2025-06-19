@@ -105,7 +105,7 @@ func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Opera
 }
 
 // ListOperation lists operation by triggerid.
-func (s *Storage) ListOperation(ctx context.Context, page types.Page, triggerID ...string) (
+func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	if ctx == nil {

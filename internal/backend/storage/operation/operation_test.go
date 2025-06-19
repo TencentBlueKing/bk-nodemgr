@@ -235,7 +235,7 @@ func Test_storage_ListOperation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			got, num, err := s.ListOperation(ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
+			got, num, err := s.ListOperationByTrigger(ctx, types.Page{Offset: 0, Limit: 10}, tt.trigger_id)
 			if err != nil {
 				t.Logf("GetOperation() error = %v", err)
 			}

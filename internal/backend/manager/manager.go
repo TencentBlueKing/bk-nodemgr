@@ -333,7 +333,10 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 			}
 
 			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
-			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+			operationParam := operationDef.DefaultParameters()
+			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to launch install node task. "+
@@ -361,4 +364,13 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	}
 
 	return workflowID, nil
+}
+
+func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
+	return map[string]any{
+		"areaID":      info.Host.Static.NetworkAreaID,
+		"innerIPV4":   info.Host.Static.InnerIP,
+		"innerIPV6":   info.Host.Static.InnerIPV6,
+		"nodeVersion": info.Host.Dynamic.NodeVersion,
+	}
 }

@@ -107,13 +107,31 @@ message OperationDefinition {
   repeated string action_names = 2;
 }
 
-message OperationParam { int64 timeout_second = 1; }
+message OperationParam {
+  int64 timeout_second = 1;
+  int64 area_id = 2;
+  string inner_ipv4 = 3;
+  string inner_ipv6 = 4;
+  string node_version = 5;
+}
 
 message NodeWorkflowOperation {
   string operation_id = 1;
   OperationDefinition definition = 2;
   repeated string instance_ids = 3;
   OperationParam param = 4;
+  NodeWorkflowOperationStatus status = 5;
+}
+
+message NodeWorkflowOperationStatus {
+  string state = 1;
+  int64 total_time_second = 2;
+}
+
+message Lifecycle {
+  string state = 1;
+  int64 operate_time = 2;
+  int64 finish_time = 3;
 }
 
 // NodeWorflowOperationInstance describes the node operation instance.
@@ -231,17 +249,29 @@ message NodeWorkflowOperationInstanceLogGetResp {
 
   message Data {
     int64 total = 1;
-    map<string, ActionMessage> oper_inst_logs = 2;
+    map<string, NodeWorkflowActionData> oper_inst_logs = 2;
   }
   Data data = 4;
 }
 
-message ActionMessage {
+message LifeCycle {
+  string state = 1;
+  int64 create_time = 2;
+  int64 start_time = 3;
+  int64 end_time = 4;
+}
+
+message NodeWorkflowActionMessage {
   message Message {
     int64 time = 1;
     string text = 2;
   }
   repeated Message logs = 1;
+}
+
+message NodeWorkflowActionData {
+  LifeCycle life_cycle = 1;
+  NodeWorkflowActionMessage message = 2;
 }
 
 service NodeWorkflow {

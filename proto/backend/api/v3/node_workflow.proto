@@ -113,21 +113,27 @@ message NodeWorkflowDistinctResp {
   Data data = 4;
 }
 
-// OperationDefinition ...
-message OperationDefinition {
+// NodeWorkflowOperationDefinition ...
+message NodeWorkflowOperationDefinition {
   string opertion_name = 1;
   repeated string action_names = 2;
 }
 
-//  OperationParam ...
-message OperationParam { int64 timeout_second = 1; }
+//  NodeWorkflowOperationParam ...
+message NodeWorkflowOperationParam {
+  int64 timeout_second = 1;
+  int64 area_id = 2;
+  string inner_ipv4 = 3;
+  string inner_ipv6 = 4;
+  string node_version = 5;
+}
 
 // NodeWorkflowOperation ...
 message NodeWorkflowOperation {
   string operation_id = 1;
-  OperationDefinition definition = 2;
+  NodeWorkflowOperationDefinition definition = 2;
   repeated string instance_ids = 3;
-  OperationParam param = 4;
+  NodeWorkflowOperationParam param = 4;
 }
 
 // NodeWorflowOperationInstance describes the node operation instance.
@@ -156,6 +162,7 @@ message NodeWorflowOperationInstanceData {
   string operation_def_name = 4;
   string parent_operation_id = 5;
   repeated string action_names = 6;
+  LifeCycle life_cycle = 7;
 }
 
 // NodeWorkflowOperationListReq describes the node operation list
@@ -183,7 +190,7 @@ message NodeWorkflowOperationListResp {
 // list by operation-id request.
 message NodeWorkflowOperationInstanceListReq {
   bool only_count = 1;
-  string operation_id = 2;
+  repeated string operation_id = 2;
 }
 
 // NodeWorkflowOperationInstanceListResp describes the node operation instance
@@ -213,17 +220,29 @@ message NodeWorkflowOperationInstanceLogGetResp {
 
   message Data {
     int64 total = 1;
-    map<string, ActionMessage> oper_inst_logs = 2;
+    map<string, NodeWorkflowActionData> oper_inst_logs = 2;
   }
   Data data = 4;
 }
 
-message ActionMessage {
+message LifeCycle {
+  string state = 1;
+  int64 create_time = 2;
+  int64 start_time = 3;
+  int64 end_time = 4;
+}
+
+message NodeWorkflowActionMessage {
   message Message {
     int64 time = 1;
     string text = 2;
   }
   repeated Message logs = 1;
+}
+
+message NodeWorkflowActionData {
+  LifeCycle life_cycle = 1;
+  NodeWorkflowActionMessage message = 2;
 }
 
 service NodeWorkflow {

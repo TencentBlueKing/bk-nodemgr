@@ -217,14 +217,14 @@ type IHandlerNodeWorkflow interface {
 	// @param ctx context, contains tenant-id.
 	// @param operationID the operation id.
 	// @return the operation instance list with page and the total count with filter.
-	ListNodeWorkflowOperationInstance(ctx context.Context, operationID string) (
+	ListNodeWorkflowOperationInstance(ctx context.Context, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// CountOperationInstance count network area operation instance.
 	// @param ctx context, contains tenant-id.
 	// @param operationID the operation id.
 	// @return the operation instance count with filter.
-	CountNodeWorkflowOperationInstance(ctx context.Context, operationID string) (int64, error)
+	CountNodeWorkflowOperationInstance(ctx context.Context, operationID ...string) (int64, error)
 
 	// DistinctNodeWorkflow distinct node workflow by conditions.
 	// @param ctx context, contains tenant-id.
@@ -828,9 +828,9 @@ func (h *handler) CountNodeWorkflowOperation(ctx context.Context, workflowID str
 	return resp.GetData().GetTotalCount(), nil
 }
 
-// ListOperationInstance list workflow operation instance.
+// ListNodeWorkflowOperationInstance list workflow operation instance.
 func (h *handler) ListNodeWorkflowOperationInstance(
-	ctx context.Context, operationID string) ([]*operation.InstanceBriefData, int64, error) {
+	ctx context.Context, operationID ...string) ([]*operation.InstanceBriefData, int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
@@ -839,7 +839,7 @@ func (h *handler) ListNodeWorkflowOperationInstance(
 
 	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
 		OnlyCount:   false,
-		OperationId: operationID,
+		OperationId: []string(operationID),
 	}
 
 	resp, err := h.cli.listNodeWorkflowOperationInstance(ctx, tenantID, req)
@@ -853,7 +853,7 @@ func (h *handler) ListNodeWorkflowOperationInstance(
 }
 
 // CountOperationInstance count workflow operation instance.
-func (h *handler) CountNodeWorkflowOperationInstance(ctx context.Context, operationID string) (int64, error) {
+func (h *handler) CountNodeWorkflowOperationInstance(ctx context.Context, operationID ...string) (int64, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return 0, err
@@ -861,7 +861,7 @@ func (h *handler) CountNodeWorkflowOperationInstance(ctx context.Context, operat
 
 	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
 		OnlyCount:   true,
-		OperationId: operationID,
+		OperationId: []string(operationID),
 	}
 
 	resp, err := h.cli.listNodeWorkflowOperationInstance(ctx, tenantID, req)

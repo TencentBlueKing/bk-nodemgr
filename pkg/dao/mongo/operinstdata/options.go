@@ -24,6 +24,11 @@ func WithOperInstID(id ...string) OptFn {
 	return base.WithStringValues(FieldKeyOperInstID, id...)
 }
 
+// WithOperationID filter by operation id.
+func WithOperationID(id ...string) OptFn {
+	return base.WithStringValues(FieldKeyOperationID, id...)
+}
+
 // WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
 	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
