@@ -102,12 +102,12 @@ message NodeWorkflowDistinctResp {
 }
 
 // OperationDefinition ...
-message OperationDefinition {
+message NodeWorkflowOperationDefinition {
   string opertion_name = 1;
   repeated string action_names = 2;
 }
 
-message OperationParam {
+message NodeWorkflowOperationParam {
   int64 timeout_second = 1;
   int64 area_id = 2;
   string inner_ipv4 = 3;
@@ -117,9 +117,9 @@ message OperationParam {
 
 message NodeWorkflowOperation {
   string operation_id = 1;
-  OperationDefinition definition = 2;
+  NodeWorkflowOperationDefinition definition = 2;
   repeated string instance_ids = 3;
-  OperationParam param = 4;
+  NodeWorkflowOperationParam param = 4;
   NodeWorkflowOperationStatus status = 5;
 }
 

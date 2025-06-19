@@ -206,12 +206,12 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 	for idx, op := range result {
 		item := &NodeWorkflowOperation{
 			OperationId: op.OperationID,
-			Definition: &OperationDefinition{
+			Definition: &NodeWorkflowOperationDefinition{
 				OpertionName: op.Definition.Name(),
 				ActionNames:  op.Definition.ActionDefNames(),
 			},
 			InstanceIds: op.InstanceIDs,
-			Param: &OperationParam{
+			Param: &NodeWorkflowOperationParam{
 				TimeoutSecond: int64(op.Definition.DefaultParameters().Timeout.Seconds()),
 				AreaId:        safeGetInt64(op.Param.ExtraContent, "areaID", -1),
 				InnerIpv4:     safeGetString(op.Param.ExtraContent, "innerIPV4", ""),

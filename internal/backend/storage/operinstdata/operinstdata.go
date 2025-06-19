@@ -319,7 +319,7 @@ func (s *Storage) ListOperInstanceBriefByOperation(
 	[]*operation.InstanceBriefData, int64, error) {
 
 	if ctx == nil {
-		return nil, 0, base.ErrNilContent()
+		return nil, 0, basestorage.ErrNilContent()
 	}
 
 	if err := page.Validate(); err != nil {

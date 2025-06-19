@@ -577,7 +577,7 @@
           "type": "string"
         },
         "definition": {
-          "$ref": "#/definitions/v3OperationDefinition"
+          "$ref": "#/definitions/v3NodeWorkflowOperationDefinition"
         },
         "instance_ids": {
           "type": "array",
@@ -586,12 +586,27 @@
           }
         },
         "param": {
-          "$ref": "#/definitions/v3OperationParam"
+          "$ref": "#/definitions/v3NodeWorkflowOperationParam"
         },
         "status": {
           "$ref": "#/definitions/v3NodeWorkflowOperationStatus"
         }
       }
+    },
+    "v3NodeWorkflowOperationDefinition": {
+      "type": "object",
+      "properties": {
+        "opertion_name": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "OperationDefinition ..."
     },
     "v3NodeWorkflowOperationInstanceListReq": {
       "type": "object",
@@ -732,6 +747,28 @@
         }
       }
     },
+    "v3NodeWorkflowOperationParam": {
+      "type": "object",
+      "properties": {
+        "timeout_second": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "area_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "inner_ipv4": {
+          "type": "string"
+        },
+        "inner_ipv6": {
+          "type": "string"
+        },
+        "node_version": {
+          "type": "string"
+        }
+      }
+    },
     "v3NodeWorkflowOperationStatus": {
       "type": "object",
       "properties": {
@@ -784,43 +821,6 @@
             "type": "object",
             "$ref": "#/definitions/NodeWorkflowStatisticsRespStatisticsInfo"
           }
-        }
-      }
-    },
-    "v3OperationDefinition": {
-      "type": "object",
-      "properties": {
-        "opertion_name": {
-          "type": "string"
-        },
-        "action_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "OperationDefinition ..."
-    },
-    "v3OperationParam": {
-      "type": "object",
-      "properties": {
-        "timeout_second": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "area_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "inner_ipv4": {
-          "type": "string"
-        },
-        "inner_ipv6": {
-          "type": "string"
-        },
-        "node_version": {
-          "type": "string"
         }
       }
     },
