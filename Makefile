@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build all clean doc tools
+.PHONY: tidy build test pre backend application file relay front docker-build all clean doc tools script_tools
 
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
@@ -24,6 +24,7 @@ CD    = cd
 CP    = cp
 RM    = rm
 SH    = sh
+TAR   = tar -zcf
 NPM   = pnpm
 
 default: all
@@ -66,14 +67,41 @@ tools: pre
 	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools
 	@$(ECHO) "Built successfully tools"
 
+script_tools: pre
+	@$(ECHO) "Building script tools..."
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_linux_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_linux_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_linux_arm64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_linux_arm64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_darwin_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/darwin/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_darwin_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_windows_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/windows/gsectl.bat $(OUTPUT_DIR)/script_tools/bintool/agent_windows_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/proxy/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_arm64
+	@$(CP) $(ROOT_DIR)/script_tools/gsectl/proxy/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_arm64
+
+	@$(CD) $(OUTPUT_DIR)/script_tools/ && $(TAR) bintool.tgz bintool/
+
+	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/bintool.tgz"
+	@$(ECHO) "Built successfully script tools"
+
 docker-build: backend application file front tools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodeman:v${VERSION}"
 
-
-all: backend application file relay front tools
+all: backend application file relay front tools script_tools
 
 clean:
 	@$(ECHO) "Cleaning build directory..."

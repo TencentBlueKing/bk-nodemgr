@@ -74,9 +74,6 @@ type Request struct {
 	// request timeout value
 	timeout time.Duration
 
-	// contentType http content type
-	contentType header.ContentType
-
 	err error
 }
 
@@ -160,13 +157,6 @@ func (r *Request) SubResourcef(subPath string, args ...interface{}) *Request {
 func (r *Request) subResource(subPath string) *Request {
 	subPath = strings.TrimLeft(subPath, "/")
 	r.subPath = subPath
-
-	return r
-}
-
-// WithContentType add content type to request.
-func (r *Request) WithContentType(contentType header.ContentType) *Request {
-	r.contentType = contentType
 
 	return r
 }
@@ -396,7 +386,7 @@ func (r *Request) Do() *Result {
 	}
 
 	return &Result{
-		Err: errors.New("unexpected error"),
+		Err: errors.New("request unexpected error"),
 	}
 }
 
@@ -405,19 +395,8 @@ const retryDelay = 20 * time.Millisecond
 
 // doWithHost http request do with specific host.
 func (r *Request) doWithHost(client client.HTTPClient, host string, retries int, rid string) (*Result, bool) {
-	contentType := r.contentType
-
-	switch r.contentType {
-	case header.FormDataContent:
-		r.body = []byte(r.params.Encode())
-		r.params = url.Values{}
-	case header.JsonContent:
-	default:
-		contentType = header.JsonContent
-	}
-
 	url := host + r.FullURL().String()
-	req, err := r.getRequest(url, contentType)
+	req, err := r.getRequest(url)
 	if err != nil {
 		return &Result{Err: err, Rid: rid}, true
 	}
@@ -478,7 +457,7 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 	}, true
 }
 
-func (r *Request) getRequest(url string, contentType header.ContentType) (*http.Request, error) {
+func (r *Request) getRequest(url string) (*http.Request, error) {
 	reader := r.bodyReader
 	if reader == nil {
 		reader = bytes.NewReader(r.body)
@@ -498,8 +477,10 @@ func (r *Request) getRequest(url string, contentType header.ContentType) (*http.
 	}
 
 	req.Header.Del("Accept-Encoding")
-	req.Header.Set("Content-Type", string(contentType))
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept", "*/*")
+	if req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
 	return req, nil
 }

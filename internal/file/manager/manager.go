@@ -14,10 +14,17 @@ package manager
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -29,10 +36,29 @@ type IManager interface {
 	Start(ctx context.Context) error
 
 	// UploadOriginAgent uploads the origin agent.
-	UploadOriginAgent(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+	UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// UploadOriginServer uploads the origin server.
-	UploadOriginServer(ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+	UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+
+	// UploadOriginCert uploads the origin cert.
+	UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+
+	// UploadOriginBinTool upload origin bintool package.
+	UploadOriginBinTool(ctx context.Context, binToolFile io.ReadCloser) (
+		*types.OriginBinToolPkgDetail, error)
+
+	// PublishReleaseAgent generates release agent by upload-id.
+	PublishReleaseAgent(ctx context.Context, uploadID string) error
+
+	// PublishReleaseProxy generates release proxy by upload-id.
+	PublishReleaseProxy(ctx context.Context, uploadID string) error
+
+	// PublishReleaseCert generates release cert by upload-id.
+	PublishReleaseCert(ctx context.Context, uploadID string) error
+
+	// PublishReleaseBinTool generate release bintool package.
+	PublishReleaseBinTool(ctx context.Context, uploadID string) error
 }
 
 // New returns a new file manager.
@@ -72,10 +98,53 @@ func WithUpstreamOriginAgentFileGroup(fileGroup iface.FileGroup) OptionFn {
 	}
 }
 
+// WithUpstreamOriginCertFileGroup sets the upstream file group.
+func WithUpstreamOriginCertFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginCert = fileGroup
+	}
+}
+
+// WithUpstreamOriginBinToolFileGroup sets the upstream file group.
+func WithUpstreamOriginBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginBinTool = fileGroup
+	}
+}
+
+// WithUpstreamReleaseAgentFileGroup sets the upstream file group.
+func WithUpstreamReleaseAgentFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleaseAgent = fileGroup
+	}
+}
+
+// WithUpstreamReleaseProxyFileGroup sets the upstream file group.
+func WithUpstreamReleaseProxyFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleaseProxy = fileGroup
+	}
+}
+
+// WithUpstreamReleaseCertFileGroup sets the upstream file group.
+func WithUpstreamReleaseCertFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleaseCert = fileGroup
+	}
+}
+
+// WithUpstreamReleaseBinToolFileGroup sets the upstream file group.
+func WithUpstreamReleaseBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleaseBinTool = fileGroup
+	}
+}
+
 // WithLocalTempFileGroup sets the local file group.
-func WithLocalTempFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithLocalTempFileGroup(fileGroup iface.FileGroup, tempDir string) OptionFn {
 	return func(manager *Manager) {
 		manager.temp = fileGroup
+		manager.tempDir = tempDir
 	}
 }
 
@@ -86,27 +155,42 @@ func WithLocalFileGroup(fileGroup iface.FileGroup) OptionFn {
 	}
 }
 
-// WithDaoRelease sets the dao for release.
-func WithDaoRelease(daoRelease release.IHandler) OptionFn {
+// WithStorageUpload sets the storage for upload.
+func WithStorageUpload(storageUpload upload.IStorage) OptionFn {
 	return func(manager *Manager) {
-		manager.daoRelease = daoRelease
+		manager.storageUpload = storageUpload
+	}
+}
+
+// WithStorageRelease sets the storage for release.
+func WithStorageRelease(storageRelease release.IStorage) OptionFn {
+	return func(manager *Manager) {
+		manager.storageRelease = storageRelease
 	}
 }
 
 // Manager provides the file manager.
 type Manager struct {
 	// upstream file group is regarded as the file source.
-	upstreamOriginAgent  iface.FileGroup
-	upstreamOriginServer iface.FileGroup
+	upstreamOriginAgent    iface.FileGroup
+	upstreamOriginServer   iface.FileGroup
+	upstreamOriginCert     iface.FileGroup
+	upstreamOriginBinTool  iface.FileGroup
+	upstreamReleaseAgent   iface.FileGroup
+	upstreamReleaseProxy   iface.FileGroup
+	upstreamReleaseCert    iface.FileGroup
+	upstreamReleaseBinTool iface.FileGroup
 
 	// local file group is regarded as the file cache.
 	local iface.FileGroup
 
 	// temp file group is regarded as the file temp.
-	temp iface.FileGroup
+	temp    iface.FileGroup
+	tempDir string
 
-	// dao for release.
-	daoRelease release.IHandler
+	// storages.
+	storageUpload  upload.IStorage
+	storageRelease release.IStorage
 
 	// logger.
 	logger logger.Logger
@@ -114,16 +198,44 @@ type Manager struct {
 
 // Start starts the manager.
 func (m *Manager) Start(_ context.Context) error {
-	if m.daoRelease == nil {
-		return errors.New("invalid dao release")
-	}
-
 	if m.upstreamOriginAgent == nil {
 		return errors.New("invalid upstream origin agent")
 	}
 
 	if m.upstreamOriginServer == nil {
 		return errors.New("invalid upstream origin server")
+	}
+
+	if m.upstreamOriginCert == nil {
+		return errors.New("invalid upstream origin cert")
+	}
+
+	if m.upstreamOriginBinTool == nil {
+		return errors.New("invalid upstream origin bintool")
+	}
+
+	if m.upstreamReleaseAgent == nil {
+		return errors.New("invalid upstream release agent")
+	}
+
+	if m.upstreamReleaseProxy == nil {
+		return errors.New("invalid upstream release proxy")
+	}
+
+	if m.upstreamReleaseCert == nil {
+		return errors.New("invalid upstream release cert")
+	}
+
+	if m.upstreamReleaseBinTool == nil {
+		return errors.New("invalid upstream release bintool")
+	}
+
+	if m.storageUpload == nil {
+		return errors.New("invalid storage upload")
+	}
+
+	if m.storageRelease == nil {
+		return errors.New("invalid storage release")
 	}
 
 	m.logger.Infof("started manager")
@@ -149,4 +261,96 @@ func (m *Manager) getTempFile(ctx context.Context, tempFileName string) (io.Read
 	}
 
 	return fileToCheck.Content(ctx)
+}
+
+func (m *Manager) createTempFile(ctx context.Context) (string, error) {
+	return m.saveTempFile(ctx, io.NopCloser(strings.NewReader("")))
+}
+
+func (m *Manager) openTempFile(_ context.Context, tempFileName string) (io.ReadWriteCloser, error) {
+	return os.OpenFile(filepath.Join(m.tempDir, tempFileName), os.O_RDWR|os.O_TRUNC, 0666) // nolint: gosec, mnd
+}
+
+func (m *Manager) wrapOriginPackageName(name string) string {
+	return name + "-" + time.Now().Format("0102150405")
+}
+
+func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, error) {
+	// get cert.
+	cert, err := m.storageRelease.GetReleaseCert(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release cert: %w", err)
+	}
+
+	file, err := m.upstreamReleaseCert.GetFile(ctx, cert.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release cert file. err: %w", err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release cert content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release cert to temp file: %w", err)
+	}
+
+	return m.temp.GetFile(ctx, localFileName)
+}
+
+func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, error) {
+	// get bintool.
+	bintool, err := m.storageRelease.GetReleaseBinTool(ctx, types.Generation2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release bintool: %w", err)
+	}
+
+	file, err := m.upstreamReleaseBinTool.GetFile(ctx, bintool.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release bintool file: %w", err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release bintool content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release bintool to temp file: %w", err)
+	}
+
+	return m.temp.GetFile(ctx, localFileName)
+}
+
+func (m *Manager) fetchReleaseAgentLocal(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (iface.File, error) {
+
+	// get agent.
+	agent, err := m.storageRelease.GetRelease(ctx,
+		types.Generation2, types.ReleaseTypeAgent, plat, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get agent release. platform(%s), version(%s): %w", plat.String(),
+			version, err)
+	}
+
+	file, err := m.upstreamReleaseAgent.GetFile(ctx, agent.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get agent file from upstream. file(%s), platform(%s), version(%s): %w",
+			agent.FileName, plat.String(), version, err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release agent content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release agent to temp file: %w", err)
+	}
+
+	return m.temp.GetFile(ctx, localFileName)
 }

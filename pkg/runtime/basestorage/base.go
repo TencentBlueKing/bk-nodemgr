@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package base define the Storage basic interface.
-package base
+// Package basestorage define the Storage basic interface.
+package basestorage
 
 import (
 	"context"

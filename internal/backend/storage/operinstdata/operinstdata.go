@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -48,16 +48,16 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	}
 
 	s := &Storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
 
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.startFn),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.startFn),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new Storage failed, err: %v", err)
 		return nil, err
@@ -68,7 +68,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 
 // Storage defines the storage interface for operinstdata.
 type Storage struct {
-	base.Storage
+	basestorage.Storage
 
 	// dao
 	daoOperinstdata operinstdata.IHandler
@@ -134,15 +134,15 @@ func (s *Storage) GetActionInstanceData(ctx context.Context, operationInstanceID
 	*action.InstanceData, error) {
 
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
-		return nil, base.ErrEmptyOperaInstID()
+		return nil, basestorage.ErrEmptyOperaInstID()
 	}
 
 	if actionName == "" {
-		return nil, base.ErrEmptyActionName()
+		return nil, basestorage.ErrEmptyActionName()
 	}
 
 	return s.daoOperinstdata.GetActionInstData(ctx, operationInstanceID, actionName)
@@ -153,7 +153,7 @@ func (s *Storage) GetActionInstanceLifecycle(ctx context.Context, operationInsta
 	*action.Lifecycle, error) {
 
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
@@ -172,7 +172,7 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 	ctx context.Context, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
@@ -203,7 +203,7 @@ func (s *Storage) PushActionInstanceMessage(
 	ctx context.Context, operationInstanceID, actionName string, messages ...action.Message) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
@@ -236,7 +236,7 @@ func (s *Storage) GetOperationInstanceFullData(ctx context.Context, operationIns
 	*operation.InstanceData, error) {
 
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
@@ -256,7 +256,7 @@ func (s *Storage) GetOperationInstanceBriefData(ctx context.Context, operationIn
 	*operation.InstanceBriefData, error) {
 
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if operationInstanceID == "" {
@@ -277,7 +277,7 @@ func (s *Storage) ListOperationInstanceBriefData(
 	[]*operation.InstanceBriefData, int64, error) {
 
 	if ctx == nil {
-		return nil, 0, base.ErrNilContent()
+		return nil, 0, basestorage.ErrNilContent()
 	}
 
 	operInstData, num, err := s.daoOperinstdata.ListWithoutActInst(ctx, types.UnlimitedPage(),
@@ -298,7 +298,7 @@ func (s *Storage) CountOperationInstance(ctx context.Context, triggerID string,
 	states ...operation.State) (int64, error) {
 
 	if ctx == nil {
-		return 0, base.ErrNilContent()
+		return 0, basestorage.ErrNilContent()
 	}
 
 	if triggerID == "" {
@@ -318,11 +318,11 @@ func (s *Storage) UpsertOperationInstanceData(ctx context.Context,
 	operationInstanceData *operation.InstanceData) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if operationInstanceData == nil {
-		return base.ErrUpsertNilData()
+		return basestorage.ErrUpsertNilData()
 	}
 
 	if err := s.daoOperinstdata.Upsert(ctx, operationInstanceData); err != nil {
@@ -337,7 +337,7 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 	operationInstanceID string, lifecycle *operation.Lifecycle) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if lifecycle == nil {
@@ -386,7 +386,7 @@ func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID
 // MarkOperInstStopping mark task stopping.
 func (s *Storage) MarkOperInstStopping(ctx context.Context, operationInstID string) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	err := s.stopoperinstDao.Upsert(ctx, operationInstID)
@@ -500,7 +500,7 @@ func (s *Storage) UpdateActionInstanceContent(ctx context.Context, operInstID st
 	content map[string]any) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if operInstID == "" {

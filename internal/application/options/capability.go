@@ -14,8 +14,10 @@ package options
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -23,12 +25,22 @@ type Capability struct {
 	// BackendHandler the backend api hanler.
 	BackendHandler backend.Handler
 
+	// FileHandler the file handler.
+	FileHandler file.IHandler
+
+	// Discover provides discover handler.
+	DiscoverProvider discover.Provider
+
 	// Logger logger
 	Logger logger.Logger
 }
 
 // Start starts all services in capability.
-func (c *Capability) Start(_ context.Context) error {
+func (c *Capability) Start(ctx context.Context) error {
+	if err := c.DiscoverProvider.Start(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -11,8 +11,6 @@
 package manager
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"encoding/binary"
 	"errors"
@@ -30,20 +28,7 @@ import (
 // UploadOriginServer uploads the origin server.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(
-	ctx context.Context, gen types.Generation, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
-
-	// validation.
-	if err := gen.Validate(); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. invalid generation. err: %v", err)
-
-		return nil, err
-	}
-	if gen == types.Generation1 {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. generation 1 is not supported")
-
-		return nil, errors.New("generation 1 is not supported")
-	}
+func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 	if pkgFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. file is nil")
 
@@ -81,7 +66,7 @@ func (m *Manager) UploadOriginServer(
 	plat := detail.Platforms[0]
 
 	pkgName, err := nodepkg.FormatPkgName(
-		gen,
+		types.Generation2,
 		types.ReleaseTypeOriginServer,
 		plat,
 		detail.Version,
@@ -91,6 +76,7 @@ func (m *Manager) UploadOriginServer(
 
 		return nil, err
 	}
+	pkgName = m.wrapOriginPackageName(pkgName)
 
 	uploadingFile, err := m.getTempFile(ctx, tempFileName)
 	if err != nil {
@@ -123,24 +109,21 @@ func (m *Manager) UploadOriginServer(
 	}
 	detail.FileInfo = info
 
-	// save to db.
-	err = m.daoRelease.UpsertMany(ctx, &types.Release{
-		Generation: gen,
-		Type:       types.ReleaseTypeOriginServer,
-		Version:    detail.Version,
-		Platform:   plat,
-		FileName:   info.Name,
-		MD5:        info.MD5,
+	// create the upload record.
+	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{
+		Category:  types.UploadCategoryOriginServer,
+		SavedName: pkgName,
 	})
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to save to db. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload origin server package, failed to create upload: %v", err)
 
 		return nil, err
 	}
+	detail.UploadID = uploadID
 
 	m.logger.InfoCtxf(ctx,
-		"uploaded origin server package to upstream. generation(%d), platform(%s), version(%s), file-name(%s)",
-		gen, plat, detail.Version, pkgName)
+		"uploaded origin server package to upstream. platform(%s), version(%s), file-name(%s)",
+		plat, detail.Version, pkgName)
 
 	return detail, nil
 }
@@ -149,69 +132,64 @@ func (m *Manager) UploadOriginServer(
 // nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
 func checkGen2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
-	gzr, err := gzip.NewReader(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gzip reader. err: %w", err)
-	}
-	defer func() {
-		_ = gzr.Close()
-		_ = file.Close()
-	}()
-
-	var seenFile, seenData bool
 	detail := new(types.OriginPkgDetail)
-	detail.Platforms = make([]platform.Platform, 0)
+	var seenFile, seenData bool
+	if err := checkTgz(file, []tgzReadRule{
+		{
+			filePath: []string{tgzPathNameAny1, "VERSION"},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read version file. err: %w", err)
+				}
 
-	tr := tar.NewReader(gzr)
-	for {
-		header, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
+				detail.Version = strings.Trim(string(content), "\n\r\t ")
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to read tar header. err: %w", err)
-		}
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "server", "bin", "gse_file"},
+			callback: func(_ []string, r io.Reader) error {
+				seenFile = true
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check server binary platform. err: %w", err)
+				}
 
-		switch header.Name {
-		case "gse/VERSION":
-			content, err := io.ReadAll(tr)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read version file. err: %w", err)
-			}
+				if len(detail.Platforms) == 0 {
+					detail.Platforms = append(detail.Platforms, *plat)
+				}
 
-			detail.Version = strings.Trim(string(content), "\n\r\t ")
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "server", "bin", "gse_data"},
+			callback: func(_ []string, r io.Reader) error {
+				seenData = true
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check server binary platform. err: %w", err)
+				}
 
-		case "gse/server/bin/gse_file":
-			seenFile = true
-			plat, err := checkServerBinaryPlatform(tr)
-			if err != nil {
-				return nil, fmt.Errorf("failed to check server binary platform. err: %w", err)
-			}
+				if len(detail.Platforms) == 0 {
+					detail.Platforms = append(detail.Platforms, *plat)
+				}
 
-			if len(detail.Platforms) == 0 {
-				detail.Platforms = append(detail.Platforms, *plat)
-			}
-
-		case "gse/server/bin/gse_data":
-			seenData = true
-			plat, err := checkServerBinaryPlatform(tr)
-			if err != nil {
-				return nil, fmt.Errorf("failed to check server binary platform. err: %w", err)
-			}
-
-			if len(detail.Platforms) == 0 {
-				detail.Platforms = append(detail.Platforms, *plat)
-			}
-		}
-
-		if seenFile && seenData && detail.Version != "" {
-			return detail, nil
-		}
+				return nil
+			},
+		},
+	}); err != nil {
+		return nil, fmt.Errorf("failed to check origin server package. err: %w", err)
 	}
 
-	return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%v)",
-		seenFile, seenData, detail.Version, detail.Platforms)
+	if !seenFile || !seenData || detail.Version == "" {
+		return nil, fmt.Errorf("invalid origin server package. gse-file(%t) gse-data(%t) version(%s) platform(%v)",
+			seenFile, seenData, detail.Version, detail.Platforms)
+	}
+
+	return detail, nil
 }
 
 const (

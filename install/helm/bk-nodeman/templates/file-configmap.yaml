@@ -21,6 +21,8 @@ data:
       advertiseIPV6: __ADVERTISE_IPV6__
 
     adminServer: {{ .Values.file.config.adminServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
 
     agentFileGroup: {{ .Values.file.config.agentFileGroup | toYaml | nindent 6 }}
 

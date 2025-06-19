@@ -32,6 +32,9 @@ type FileGroup interface {
 
 	// Store the func will store a file into the file group.
 	Store(ctx context.Context, info FileInfo, file io.ReadCloser, overwrite bool) error
+
+	// Remove the func will delete a file from the file group.
+	// Remove(ctx context.Context, name string) error
 }
 
 // File file interface.

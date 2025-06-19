@@ -75,7 +75,7 @@ type BackendService struct {
 	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
 	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
 	HTTPServer         HTTPServer      `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer        AdminServer     `yaml:"adminServer" usage:"admin server config of backend service"`
+	AdminServer        HTTPServer      `yaml:"adminServer" usage:"admin server config of backend service"`
 	CallbackServer     CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
 	ProxyServer        ProxyServer     `yaml:"proxyServer" usage:"proxy server config of backend service"`
 	Etcd               Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
@@ -99,7 +99,7 @@ func NewBackendService() *BackendService {
 			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
-		AdminServer: AdminServer{
+		AdminServer: HTTPServer{
 			BindIP: defaultBackendAdminBindIP,
 			Port:   defaultBackendAdminPort,
 		},

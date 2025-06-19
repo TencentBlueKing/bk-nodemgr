@@ -50,13 +50,16 @@ message UploadOriginAgentResp {
   string request_id = 3;
 
   message Data {
-    string name = 1;
-    int64 size = 2;
-    string md5 = 3;
-    string version = 4;
-    string changelog_en = 5;
-    string changelog_zh = 6;
-    repeated Platform platforms = 7;
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string changelog_en = 8;
+    optional string changelog_zh = 9;
+    repeated Platform platforms = 10;
   }
   Data data = 4;
 }
@@ -74,11 +77,60 @@ message UploadOriginServerResp {
   string request_id = 3;
 
   message Data {
-    string name = 1;
-    int64 size = 2;
-    string md5 = 3;
-    string version = 4;
-    repeated Platform platforms = 5;
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    repeated Platform platforms = 8;
+  }
+  Data data = 4;
+}
+
+// UploadOriginCertResp is the response for upload origin cert pkg.
+message UploadOriginCertReq { bool overwrite = 1; }
+
+// UploadOriginCertResp is the response for upload origin cert pkg.
+message UploadOriginCertResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    repeated string cert_files = 7;
+  }
+  Data data = 4;
+}
+
+// UploadOriginBinToolReq is the request for upload origin bin tool pkg.
+message UploadOriginBinToolReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// UploadOriginBinToolResp is the response for upload origin bin tool pkg.
+message UploadOriginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    repeated Platform agent_platforms = 7;
+    repeated Platform proxy_platforms = 8;
   }
   Data data = 4;
 }

@@ -68,7 +68,7 @@ func (x *UploadProxyReq) AutoConvert() {
 
 // Validate check request body.
 func (x *UploadOriginAgentReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
@@ -80,7 +80,7 @@ func (x *UploadOriginAgentReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginAgentResp) ConvertResultFromTypes(detail *types.OriginPkgDetail) {
+func (x *UploadOriginAgentResp) ConvertResultFromTypes(generated bool, detail *types.OriginPkgDetail) {
 	if detail == nil {
 		return
 	}
@@ -90,15 +90,30 @@ func (x *UploadOriginAgentResp) ConvertResultFromTypes(detail *types.OriginPkgDe
 		plats = append(plats, convertPlatformFromTypes(plat))
 	}
 
-	x.Data = &UploadOriginAgentResp_Data{
-		Version:     detail.Version,
-		Name:        detail.Name,
-		Size:        detail.Size,
-		Md5:         detail.MD5,
-		ChangelogEn: detail.ChangeLogEN,
-		ChangelogZh: detail.ChangeLogZH,
-		Platforms:   plats,
+	data := &UploadOriginAgentResp_Data{
+		UploadId:    new(string),
+		Existed:     new(bool),
+		Generated:   new(bool),
+		Name:        new(string),
+		Size:        new(int64),
+		Md5:         new(string),
+		Version:     new(string),
+		ChangelogEn: new(string),
+		ChangelogZh: new(string),
 	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.ChangelogEn = detail.ChangeLogEN
+	*data.ChangelogZh = detail.ChangeLogZH
+	data.Platforms = plats
+
+	x.Data = data
 }
 
 // Validate check request body.
@@ -115,7 +130,7 @@ func (x *UploadOriginServerReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginServerResp) ConvertResultFromTypes(detail *types.OriginPkgDetail) {
+func (x *UploadOriginServerResp) ConvertResultFromTypes(generated bool, detail *types.OriginPkgDetail) {
 	if detail == nil {
 		return
 	}
@@ -125,11 +140,106 @@ func (x *UploadOriginServerResp) ConvertResultFromTypes(detail *types.OriginPkgD
 		plats = append(plats, convertPlatformFromTypes(plat))
 	}
 
-	x.Data = &UploadOriginServerResp_Data{
-		Version:   detail.Version,
-		Name:      detail.Name,
-		Size:      detail.Size,
-		Md5:       detail.MD5,
-		Platforms: plats,
+	data := &UploadOriginServerResp_Data{
+		UploadId:  new(string),
+		Existed:   new(bool),
+		Generated: new(bool),
+		Name:      new(string),
+		Size:      new(int64),
+		Md5:       new(string),
+		Version:   new(string),
 	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// Validate check request body.
+func (x *UploadOriginCertReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginCertReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginCertResp) ConvertResultFromTypes(generated bool, detail *types.OriginCertPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	data := &UploadOriginCertResp_Data{
+		UploadId:  new(string),
+		Existed:   new(bool),
+		Generated: new(bool),
+		Name:      new(string),
+		Size:      new(int64),
+		Md5:       new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	data.CertFiles = detail.CertFiles
+
+	x.Data = data
+}
+
+// Validate check request body.
+func (x *UploadOriginBinToolReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginBinToolReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail *types.OriginBinToolPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	agentPlats := make([]*Platform, 0)
+	for _, plat := range detail.AgentPlatforms {
+		agentPlats = append(agentPlats, convertPlatformFromTypes(plat))
+	}
+	proxyPlats := make([]*Platform, 0)
+	for _, plat := range detail.ProxyPlatforms {
+		proxyPlats = append(proxyPlats, convertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginBinToolResp_Data{
+		UploadId:       new(string),
+		Existed:        new(bool),
+		Generated:      new(bool),
+		Name:           new(string),
+		Size:           new(int64),
+		Md5:            new(string),
+		AgentPlatforms: agentPlats,
+		ProxyPlatforms: proxyPlats,
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	data.AgentPlatforms = agentPlats
+	data.ProxyPlatforms = proxyPlats
+
+	x.Data = data
 }

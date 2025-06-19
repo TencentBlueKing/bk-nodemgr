@@ -1,0 +1,58 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// PublishReleaseAgentReq is the request for upload release agent pkg.
+message PublishReleaseAgentReq { string upload_id = 1; }
+
+// PublishReleaseAgentResp is the response for upload release agent pkg.
+message PublishReleaseAgentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PublishReleaseProxyReq is the request for upload release proxy pkg.
+message PublishReleaseProxyReq { string upload_id = 1; }
+
+// PublishReleaseProxyResp is the response for upload release proxy pkg.
+message PublishReleaseProxyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PublishReleaseCertReq is the request for upload release cert pkg.
+message PublishReleaseCertReq { string upload_id = 1; }
+
+// PublishReleaseCertResp is the response for upload release cert pkg.
+message PublishReleaseCertResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PublishReleaseBinToolReq is the request for upload release bintool pkg.
+message PublishReleaseBinToolReq { string upload_id = 1; }
+
+// PublishReleaseBinToolResp is the response for upload release bintool pkg.
+message PublishReleaseBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}

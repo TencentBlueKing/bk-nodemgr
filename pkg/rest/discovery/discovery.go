@@ -13,7 +13,11 @@ package discovery
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"sync"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 )
 
 // Interface discovery interface.
@@ -56,4 +60,42 @@ func (d *Discovery) GetServers() ([]string, error) {
 	d.index = 0
 
 	return append(d.servers[num-1:], d.servers[:num-1]...), nil
+}
+
+// ServiceDiscovery discovery with specific service in discover provider.
+type ServiceDiscovery struct {
+	discover     discover.Discover
+	serviceName  discover.ServiceName
+	endpointName discover.EndpointName
+}
+
+// NewServiceDiscovery create a service discovery.
+func NewServiceDiscovery(
+	discov discover.Discover, serviceName discover.ServiceName, endpointName discover.EndpointName) Interface {
+
+	return &ServiceDiscovery{
+		discover:     discov,
+		serviceName:  serviceName,
+		endpointName: endpointName,
+	}
+}
+
+// GetServers get server host.
+func (sd *ServiceDiscovery) GetServers() ([]string, error) {
+	endpoints, err := sd.discover.GetAllEndpoint(sd.serviceName, sd.endpointName)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(endpoints) == 0 {
+		return nil, fmt.Errorf("there is no endpoint can be used. service(%s), endpoint(%s)",
+			sd.serviceName, sd.endpointName)
+	}
+
+	data := make([]string, len(endpoints))
+	for idx, ep := range endpoints {
+		data[idx] = "http://" + net.JoinHostPort(ep.IPV4, strconv.Itoa(ep.Port))
+	}
+
+	return data, nil
 }

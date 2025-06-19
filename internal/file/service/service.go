@@ -22,10 +22,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
+	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -106,7 +108,16 @@ func NewService(conf *config.FileService) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	svc.Cap.DaoRelease = release.New(mongoClient.Database(conf.MongoDB.Database), svc.Cap.Logger)
+
+	svc.Cap.StorageUpload, err = storageUpload.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.StorageRelease, err = storageRelease.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
 
 	// init bkrepo.
 	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
@@ -115,7 +126,11 @@ func NewService(conf *config.FileService) (*Service, error) {
 	}
 
 	// init manager.
-	svc.Cap.Manager, err = initManager(conf, svc.Cap.BKRepo, svc.Cap.DaoRelease, svc.Cap.Logger)
+	svc.Cap.Manager, err = initManager(conf,
+		svc.Cap.BKRepo,
+		svc.Cap.StorageUpload,
+		svc.Cap.StorageRelease,
+		svc.Cap.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init manager: %w", err)
 	}
@@ -152,8 +167,14 @@ func NewService(conf *config.FileService) (*Service, error) {
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withUpload(svc.Cap),
+		withPublish(svc.Cap),
 	)
 	svc.servers = append(svc.servers, adminServer)
+	svc.instance.Update(discover.EndpointNameFileAdmin, discover.Endpoint{
+		IPV4: conf.AdminServer.AdvertiseIPV4,
+		IPV6: conf.AdminServer.AdvertiseIPV6,
+		Port: conf.AdminServer.Port,
+	})
 
 	return svc, nil
 }
@@ -196,6 +217,13 @@ func withDownload(capability *options.Capability) rest.OptionFunc {
 func withUpload(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		upload.Load(rg, capability)
+	}
+}
+
+// withPublish load publish.
+func withPublish(capability *options.Capability) rest.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		publish.Load(rg, capability)
 	}
 }
 
@@ -253,16 +281,49 @@ func (svc *Service) GracefulShutdown() error {
 	return nil
 }
 
-func initManager(conf *config.FileService, repo bkrepo.IHandler, daoRelease release.IHandler, logger logger.Logger) (manager.IManager, error) {
-	// init upstream file groups from bkrepo.
-	originAgentFG, err := repo.EnsureFileGroup(context.Background(), "origin_agent")
+func initManager(conf *config.FileService,
+	repo bkrepo.IHandler,
+	storageUpload storageUpload.IStorage,
+	storageRelease storageRelease.IStorage,
+	logger logger.Logger) (manager.IManager, error) {
+
+	// init upstream origin file groups from bkrepo.
+	upstreamOriginAgentFG, err := repo.EnsureFileGroup(context.Background(), "origin/agent")
 	if err != nil {
-		return nil, fmt.Errorf("failed to ensure origin agent file group: %w", err)
+		return nil, fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
 	}
-	originServerFG, err := repo.EnsureFileGroup(context.Background(), "origin_server")
+	upstreamOriginServerFG, err := repo.EnsureFileGroup(context.Background(), "origin/server")
 	if err != nil {
-		return nil, fmt.Errorf("failed to ensure origin server file group: %w", err)
+		return nil, fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
 	}
+	upstreamOriginCertFG, err := repo.EnsureFileGroup(context.Background(), "origin/cert")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
+	}
+	upstreamOriginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "origin/bintool")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
+	}
+
+	// init upstream release file groups from bkrepo.
+	upstreamReleaseAgentFG, err := repo.EnsureFileGroup(context.Background(), "release/agent")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
+	}
+	upstreamReleaseProxyFg, err := repo.EnsureFileGroup(context.Background(), "release/proxy")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
+	}
+	upstreamRealseCertFG, err := repo.EnsureFileGroup(context.Background(), "release/cert")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
+	}
+	upstreamReleaseBintoolFG, err := repo.EnsureFileGroup(context.Background(), "release/bintool")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
+	}
+
+	// init local temp file group.
 	tempFG, err := local.NewLocalDir(conf.TempFileGroup.FullPath, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init group file group: %w", err)
@@ -270,10 +331,17 @@ func initManager(conf *config.FileService, repo bkrepo.IHandler, daoRelease rele
 
 	return manager.New(
 		manager.WithLogger(logger),
-		manager.WithUpstreamOriginAgentFileGroup(originAgentFG),
-		manager.WithUpstreamOriginServerFileGroup(originServerFG),
-		manager.WithLocalTempFileGroup(tempFG),
-		manager.WithDaoRelease(daoRelease),
+		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
+		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
+		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
+		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
+		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
+		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
+		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
+		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
+		manager.WithLocalTempFileGroup(tempFG, conf.TempFileGroup.FullPath),
+		manager.WithStorageUpload(storageUpload),
+		manager.WithStorageRelease(storageRelease),
 	), nil
 }
 

@@ -43,7 +43,7 @@ func NewFileService() *FileService {
 			BindIP: defaultFileHTTPBindIP,
 			Port:   defaultFileHTTPPort,
 		},
-		AdminServer: AdminServer{
+		AdminServer: HTTPServer{
 			BindIP: defaultFileAdminBindIP,
 			Port:   defaultFileAdminPort,
 		},
@@ -62,7 +62,7 @@ type FileService struct {
 	TenantMode     tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
 	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
 	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
-	AdminServer    AdminServer `yaml:"adminServer" usage:"admin server config of file service"`
+	AdminServer    HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
 	TempFileGroup  FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
 	AgentFileGroup FileGroup   `yaml:"agentFileGroup" usage:"agent file group config of file service"`
 	ProxyFileGroup FileGroup   `yaml:"proxyFileGroup" usage:"proxy file group config of file service"`

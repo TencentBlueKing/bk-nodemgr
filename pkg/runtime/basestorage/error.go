@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package base ...
-package base
+// Package basestorage ...
+package basestorage
 
 import "errors"
 

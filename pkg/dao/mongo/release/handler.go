@@ -32,8 +32,19 @@ type IHandler interface {
 		version string) (
 		*types.Release, error)
 
+	// Exist checks if a release exists.
+	Exist(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) (
+		bool, error)
+
 	// List lists releases.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
+
+	// Count counts releases.
+	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
 	// UpsertMany upserts a release.
 	UpsertMany(ctx context.Context, releases ...*types.Release) error
@@ -91,6 +102,33 @@ func (h *handler) Get(ctx context.Context,
 	return convertReleaseToTypes(data), nil
 }
 
+// Exist checks if a release exists.
+func (h *handler) Exist(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) (
+	bool, error) {
+
+	if ctx == nil {
+		return false, errors.New("ctx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gen),
+		WithType(releaseType),
+		WithCPUArch(plat.Arch),
+		WithOSType(plat.OS),
+		WithVersion(version),
+	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.dao.Exist(ctx, filter)
+}
+
 // List lists releases.
 func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Release, int64, error) {
 	if ctx == nil {
@@ -120,6 +158,25 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	}
 
 	return data, num, nil
+}
+
+// Count counts releases.
+func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+	if ctx == nil {
+		return 0, errors.New("ctx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.dao.Count(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // Upsert upserts a release.

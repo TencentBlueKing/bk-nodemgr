@@ -15,8 +15,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -33,15 +33,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IS
 	}
 
 	s := &storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.initDao),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new storage failed, err: %v", err)
 		return nil, err
@@ -51,7 +51,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IS
 }
 
 type storage struct {
-	base.Storage
+	basestorage.Storage
 
 	// dao
 	triggerDao daoTrigger.IHandler

@@ -17,11 +17,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -45,16 +45,16 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	}
 
 	s := &Storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
 
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.initDao),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new storage failed, err: %v", err)
 		return nil, err
@@ -67,7 +67,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 
 // Storage provides a node workflow storage handler.
 type Storage struct {
-	base.Storage
+	basestorage.Storage
 
 	daoNodeWorkflow nodeworkflow.IHandler
 	daoOperInstData operinstdata.IHandler
@@ -306,7 +306,7 @@ func (s *Storage) DistinctNodeWorkflow(
 // GetNodeWorkflow gets a node workflow by workflow-id.
 func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if workflowID == "" {
@@ -328,7 +328,7 @@ func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*type
 // CreateNodeWorkflow creates a new node workflow.
 func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if workflow == nil {
@@ -355,7 +355,7 @@ func (s *Storage) UpdateNodeWorkflowStatus(
 	ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
 
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if workflowID == "" {
