@@ -16,13 +16,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,15 +38,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	}
 
 	s := &Storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.initDao),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new storage failed, err: %v", err)
 		return nil, err
@@ -57,7 +57,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 
 // Storage implements the IStorage interface.
 type Storage struct {
-	base.Storage
+	basestorage.Storage
 
 	daoBusiness business.IHandler
 
@@ -94,11 +94,11 @@ func (s *Storage) check() error {
 // UpsertManyBusiness updates or inserts many business.
 func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if biz == nil {
-		return base.ErrUpsertNilData()
+		return basestorage.ErrUpsertNilData()
 	}
 
 	if err := s.daoBusiness.UpsertMany(ctx, biz...); err != nil {

@@ -46,8 +46,9 @@ type ApplicationService struct {
 	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
 	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
 	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
+	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
 	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
-	AdminServer AdminServer    `yaml:"adminServer" usage:"admin server config of application service"`
+	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
 	Log         Log            `yaml:"log" usage:"log config of application service"`
 }
 
@@ -61,7 +62,7 @@ func NewApplicationService() *ApplicationService {
 			Port:      defaultApplicationHTTPPort,
 			StaticDir: defaultApplicationHTTPStaticDir,
 		},
-		AdminServer: AdminServer{
+		AdminServer: HTTPServer{
 			BindIP: defaultApplicationAdminBindIP,
 			Port:   defaultApplicationAdminPort,
 		},

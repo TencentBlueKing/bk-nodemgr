@@ -43,16 +43,7 @@ const (
 	BKAuthKey = "Authorization"
 )
 
-// ContentType http request content type
-type ContentType string
-
-// ContentType http request content type
-const (
-	FormDataContent ContentType = "application/x-www-form-urlencoded"
-	JsonContent     ContentType = "application/json"
-)
-
-// BKRIDGetter request id value
+// BKRIDGetter request id value.
 func BKRIDGetter(req *http.Request, autoGen bool) string {
 	id := req.Header.Get(BKRIDKey)
 	if id == "" && autoGen {
@@ -61,7 +52,7 @@ func BKRIDGetter(req *http.Request, autoGen bool) string {
 	return id
 }
 
-// BKRIDGenerator generate request id
+// BKRIDGenerator generate request id.
 func BKRIDGenerator() string {
 	return identifier.GenRequestID()
 }

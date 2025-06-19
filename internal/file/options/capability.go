@@ -15,7 +15,8 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -39,8 +40,11 @@ type Capability struct {
 	// BKRepo provides bkrepo handler.
 	BKRepo bkrepo.IHandler
 
-	// DaoRelease provides dao release handler.
-	DaoRelease release.IHandler
+	// StorageUpload provides storage upload handler.
+	StorageUpload upload.IStorage
+
+	// StorageRelease provides storage release handler.
+	StorageRelease release.IStorage
 
 	// Manager provides manager handler.
 	Manager manager.IManager
@@ -49,6 +53,14 @@ type Capability struct {
 // Start start the capability.
 func (c *Capability) Start(ctx context.Context) error {
 	if err := c.DiscoverProvider.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageUpload.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageRelease.Start(ctx); err != nil {
 		return err
 	}
 

@@ -46,12 +46,16 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 }
 
 // IOrm this defines the orm interface.
+// nolint: interfacebloat
 type IOrm[P Pointer[T], T any] interface {
 	// EnsureIndexes ensure the indexes of given table.
 	EnsureIndexes() error
 
 	// Get single data by given filter.
 	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
+
+	// Exist check if the data by given filter exist.
+	Exist(ctx context.Context, filter bson.D) (bool, error)
 
 	// Create single data.
 	Create(ctx context.Context, data P) error
@@ -111,6 +115,16 @@ func (orm *Orm[P, T]) Get(ctx context.Context, filter bson.D, fields ...string) 
 	}
 
 	return table.Data, nil
+}
+
+// Exist check if the data by given filter exist.
+func (orm *Orm[P, T]) Exist(ctx context.Context, filter bson.D) (bool, error) {
+	count, err := orm.dao.GetClient().CountDocuments(ctx, filter)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
 // CreateMany this is a common operation for mongo db.

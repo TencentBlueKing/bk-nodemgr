@@ -16,9 +16,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -26,7 +26,7 @@ import (
 // GetHostByID get host by id.
 func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, error) {
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if hostID < 0 {
@@ -49,7 +49,7 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, e
 // UpsertManyHost upserts many hosts.
 func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if len(hosts) == 0 {
@@ -66,7 +66,7 @@ func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) erro
 // UpsertManyHostStatic updates or inserts host statics.
 func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if len(hosts) == 0 {
@@ -83,7 +83,7 @@ func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host
 // UpdateManyHostDynamic updates host dynamics.
 func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if len(hosts) == 0 {

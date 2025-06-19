@@ -12,7 +12,9 @@ package release
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn provides filtering options.
@@ -20,14 +22,7 @@ type OptFn = base.OptFn
 
 // WithGeneration provides filtering by generation.
 func WithGeneration(gen ...types.Generation) OptFn {
-	return base.WithValues(FieldKeyGeneration, func() []int64 {
-		res := make([]int64, len(gen))
-		for idx, v := range gen {
-			res[idx] = int64(v)
-		}
-
-		return res
-	}()...)
+	return base.WithValues(FieldKeyGeneration, types.GenerationListToInt64List(gen)...)
 }
 
 // WithType provides filtering by release type.
@@ -48,4 +43,36 @@ func WithCPUArch(cpuArch ...string) OptFn {
 // WithOSType provides filtering by os type.
 func WithOSType(osType ...string) OptFn {
 	return base.WithValues(FieldKeyOSType, osType...)
+}
+
+// WithPlatform provides filtering by platform.
+func WithPlatform(platform ...platform.Platform) OptFn {
+	if len(platform) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+
+	if len(platform) == 1 {
+		return func(f bson.D) bson.D {
+			return append(f,
+				bson.E{Key: FieldKeyCPUArch, Value: platform[0].Arch},
+				bson.E{Key: FieldKeyOSType, Value: platform[0].OS})
+		}
+	}
+
+	values := make(bson.A, 0)
+	for _, plat := range platform {
+		values = append(values, bson.D{
+			{Key: FieldKeyCPUArch, Value: plat.Arch},
+			{Key: FieldKeyOSType, Value: plat.OS},
+		})
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{
+			Key:   "$or",
+			Value: values,
+		})
+	}
 }

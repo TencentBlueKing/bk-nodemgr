@@ -16,7 +16,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -102,6 +104,8 @@ type LocalDir struct {
 	fullPath string
 	subDirs  []*LocalDir
 	logger   logger.Logger
+
+	mutex sync.Mutex
 }
 
 // Name the name of file group.
@@ -121,6 +125,9 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]iface.FileGroup, error) {
 
 // GetFile the func will get a file from the file group.
 func (group *LocalDir) GetFile(_ context.Context, name string) (iface.File, error) {
+	group.mutex.Lock()
+	defer group.mutex.Unlock()
+
 	file, ok := group.fileMap[name]
 	if !ok {
 		return nil, fmt.Errorf("file not found, name(%s)", name)
@@ -131,6 +138,9 @@ func (group *LocalDir) GetFile(_ context.Context, name string) (iface.File, erro
 
 // AllFiles the files of file group.
 func (group *LocalDir) AllFiles(_ context.Context) ([]iface.File, error) {
+	group.mutex.Lock()
+	defer group.mutex.Unlock()
+
 	files := make([]iface.File, 0, len(group.fileMap))
 	for _, file := range group.fileMap {
 		files = append(files, file)
@@ -141,6 +151,9 @@ func (group *LocalDir) AllFiles(_ context.Context) ([]iface.File, error) {
 
 // Store the func will store a file into the file group.
 func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+	group.mutex.Lock()
+	defer group.mutex.Unlock()
+
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -256,4 +269,24 @@ func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, re
 			}
 		}
 	}
+}
+
+// Remove the func will delete a file from the file group.
+func (group *LocalDir) Remove(ctx context.Context, name string) error {
+	group.mutex.Lock()
+	defer group.mutex.Unlock()
+
+	file, ok := group.fileMap[name]
+	if !ok {
+		return fmt.Errorf("file not found, name(%s)", name)
+	}
+
+	if file.fullPath == "" {
+		return fmt.Errorf("file full path is empty, name(%s)", name)
+	}
+
+	// delete file whether the remove successfully.
+	delete(group.fileMap, name)
+
+	return os.Remove(file.fullPath)
 }

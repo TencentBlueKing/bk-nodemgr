@@ -23,14 +23,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -78,7 +81,17 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 
 	var err error
 
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
+		etcddiscover.WithLogger(svc.Cap.Logger),
+		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
+	)
+
 	svc.Cap.BackendHandler, err = newBackendHandler(svc.conf.Backend)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +181,38 @@ func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
 	}
 
 	return backendHandler, nil
+}
+
+type emptyHeaderSetter struct{}
+
+// GetAuthHeader returns auth header.
+func (emptyHeaderSetter) GetAuthHeader() (string, error) {
+	return "", nil
+}
+
+// newFileHandler creates a new file handler.
+func newFileHandler(discov discover.Discover) (file.IHandler, error) {
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	clientCap := &client.Capability{
+		Client: httpClient,
+		Discover: discovery.NewServiceDiscovery(
+			discov,
+			discover.ServiceNameFile,
+			discover.EndpointNameFileAdmin),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	return file.New(clientCap, &file.Config{
+		HeaderSetter: &emptyHeaderSetter{},
+	})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

@@ -1,0 +1,724 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "package.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Package"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/package/publish/release/agent": {
+      "post": {
+        "summary": "PublishReleaseAgent provides release agent publish.",
+        "operationId": "Package_PublishReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleaseAgentReq is the request for upload release agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/publish/release/bintool": {
+      "post": {
+        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "operationId": "Package_PublishReleaseBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleaseBinToolReq is the request for upload release bintool\npkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/publish/release/cert": {
+      "post": {
+        "summary": "PublishReleaseCert provides release cert publish.",
+        "operationId": "Package_PublishReleaseCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseCertResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleaseCertReq is the request for upload release cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/publish/release/server": {
+      "post": {
+        "summary": "PublishReleaseServer provides release server publish.",
+        "operationId": "Package_PublishReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseProxyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleaseProxyReq is the request for upload release proxy pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/upload/origin/agent": {
+      "post": {
+        "summary": "UploadOriginAgent provides origin agent upload.",
+        "operationId": "Package_UploadOriginAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginAgentReq is the request for upload origin agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/upload/origin/bintool": {
+      "post": {
+        "summary": "UploadOriginBinTool provides origin bintool upload.",
+        "operationId": "Package_UploadOriginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginBinToolReq is the request for upload origin bin tool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/upload/origin/cert": {
+      "post": {
+        "summary": "UploadOriginCert provides origin cert upload.",
+        "operationId": "Package_UploadOriginCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginCertResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginCertResp is the response for upload origin cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/upload/origin/server": {
+      "post": {
+        "summary": "UploadOriginServer provides origin server upload.",
+        "operationId": "Package_UploadOriginServer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginServerResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginServerReq is the request for upload origin server pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginServerReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3PackagePublishReleaseAgentReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleaseAgentReq is the request for upload release agent pkg."
+    },
+    "v3PackagePublishReleaseAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleaseAgentRespData"
+        }
+      },
+      "description": "PackagePublishReleaseAgentResp is the response for upload release agent pkg."
+    },
+    "v3PackagePublishReleaseAgentRespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleaseBinToolReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleaseBinToolReq is the request for upload release bintool\npkg."
+    },
+    "v3PackagePublishReleaseBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleaseBinToolRespData"
+        }
+      },
+      "description": "PackagePublishReleaseBinToolResp is the response for upload release bintool\npkg."
+    },
+    "v3PackagePublishReleaseBinToolRespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleaseCertReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleaseCertReq is the request for upload release cert pkg."
+    },
+    "v3PackagePublishReleaseCertResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleaseCertRespData"
+        }
+      },
+      "description": "PackagePublishReleaseCertResp is the response for upload release cert pkg."
+    },
+    "v3PackagePublishReleaseCertRespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleaseProxyReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleaseProxyReq is the request for upload release proxy pkg."
+    },
+    "v3PackagePublishReleaseProxyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleaseProxyRespData"
+        }
+      },
+      "description": "PackagePublishReleaseProxyResp is the response for upload release proxy pkg."
+    },
+    "v3PackagePublishReleaseProxyRespData": {
+      "type": "object"
+    },
+    "v3PackageUploadOriginAgentReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginAgentReq is the request for upload origin agent pkg."
+    },
+    "v3PackageUploadOriginAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginAgentRespData"
+        }
+      },
+      "description": "PackageUploadOriginAgentResp is the response for upload origin agent pkg."
+    },
+    "v3PackageUploadOriginAgentRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "changelog_en": {
+          "type": "string"
+        },
+        "changelog_zh": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginBinToolReq is the request for upload origin bin tool pkg."
+    },
+    "v3PackageUploadOriginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginBinToolRespData"
+        }
+      },
+      "description": "PackageUploadOriginBinToolResp is the response for upload origin bin tool\npkg."
+    },
+    "v3PackageUploadOriginBinToolRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "agent_platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        },
+        "proxy_platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginCertReq": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginCertResp is the response for upload origin cert pkg."
+    },
+    "v3PackageUploadOriginCertResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginCertRespData"
+        }
+      },
+      "description": "PackageUploadOriginCertResp is the response for upload origin cert pkg."
+    },
+    "v3PackageUploadOriginCertRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "cert_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginServerReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginServerReq is the request for upload origin server pkg."
+    },
+    "v3PackageUploadOriginServerResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginServerRespData"
+        }
+      },
+      "description": "PackageUploadOriginServerResp is the response for upload origin server pkg."
+    },
+    "v3PackageUploadOriginServerRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3Platform": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "Platform describes the platform informations."
+    }
+  }
+}

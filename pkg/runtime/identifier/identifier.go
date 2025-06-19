@@ -28,6 +28,7 @@ const (
 	tagOperationInstanceID = "oper-inst"
 	tagActionInstanceID    = "act-inst"
 	tagServiceID           = "svc"
+	tagUploadID            = "up"
 )
 
 func generateID(tag string) string {
@@ -72,6 +73,11 @@ func GenActionInstanceID() string {
 // GenServiceID generates a service id.
 func GenServiceID() string {
 	return generateID(tagServiceID)
+}
+
+// GenUploadID generates a upload id.
+func GenUploadID() string {
+	return generateID(tagUploadID)
 }
 
 // GetRequestID gets the request id from context.

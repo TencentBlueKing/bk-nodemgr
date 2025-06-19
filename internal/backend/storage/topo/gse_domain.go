@@ -16,9 +16,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -47,7 +47,7 @@ func (s *Storage) getAgentAccessEndpoints(
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
 	if ctx == nil {
-		return nil, nil, nil, base.ErrNilContent()
+		return nil, nil, nil, basestorage.ErrNilContent()
 	}
 
 	if networkUnitID < 0 {
@@ -106,7 +106,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
 	if ctx == nil {
-		return nil, nil, nil, base.ErrNilContent()
+		return nil, nil, nil, basestorage.ErrNilContent()
 	}
 
 	if networkUnitID < 0 {
@@ -166,7 +166,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 // NeedStaticAccess check host is need static access or not.
 func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (bool, error) {
 	if ctx == nil {
-		return false, base.ErrNilContent()
+		return false, basestorage.ErrNilContent()
 	}
 
 	if networkUnitID < 0 {

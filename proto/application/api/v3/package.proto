@@ -1,0 +1,234 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// PackageUploadOriginAgentReq is the request for upload origin agent pkg.
+message PackageUploadOriginAgentReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// PackageUploadOriginAgentResp is the response for upload origin agent pkg.
+message PackageUploadOriginAgentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string changelog_en = 8;
+    optional string changelog_zh = 9;
+    repeated Platform platforms = 10;
+  }
+  Data data = 4;
+}
+
+// PackageUploadOriginServerReq is the request for upload origin server pkg.
+message PackageUploadOriginServerReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// PackageUploadOriginServerResp is the response for upload origin server pkg.
+message PackageUploadOriginServerResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    repeated Platform platforms = 8;
+  }
+  Data data = 4;
+}
+
+// PackageUploadOriginCertResp is the response for upload origin cert pkg.
+message PackageUploadOriginCertReq { bool overwrite = 1; }
+
+// PackageUploadOriginCertResp is the response for upload origin cert pkg.
+message PackageUploadOriginCertResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    repeated string cert_files = 7;
+  }
+  Data data = 4;
+}
+
+// PackageUploadOriginBinToolReq is the request for upload origin bin tool pkg.
+message PackageUploadOriginBinToolReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// PackageUploadOriginBinToolResp is the response for upload origin bin tool
+// pkg.
+message PackageUploadOriginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    repeated Platform agent_platforms = 7;
+    repeated Platform proxy_platforms = 8;
+  }
+  Data data = 4;
+}
+
+// PackagePublishReleaseAgentReq is the request for upload release agent pkg.
+message PackagePublishReleaseAgentReq { string upload_id = 1; }
+
+// PackagePublishReleaseAgentResp is the response for upload release agent pkg.
+message PackagePublishReleaseAgentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackagePublishReleaseProxyReq is the request for upload release proxy pkg.
+message PackagePublishReleaseProxyReq { string upload_id = 1; }
+
+// PackagePublishReleaseProxyResp is the response for upload release proxy pkg.
+message PackagePublishReleaseProxyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackagePublishReleaseCertReq is the request for upload release cert pkg.
+message PackagePublishReleaseCertReq { string upload_id = 1; }
+
+// PackagePublishReleaseCertResp is the response for upload release cert pkg.
+message PackagePublishReleaseCertResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackagePublishReleaseBinToolReq is the request for upload release bintool
+// pkg.
+message PackagePublishReleaseBinToolReq { string upload_id = 1; }
+
+// PackagePublishReleaseBinToolResp is the response for upload release bintool
+// pkg.
+message PackagePublishReleaseBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+service Package {
+  // UploadOriginAgent provides origin agent upload.
+  rpc UploadOriginAgent(PackageUploadOriginAgentReq)
+      returns (PackageUploadOriginAgentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/agent"
+      body : "*"
+    };
+  }
+
+  // UploadOriginServer provides origin server upload.
+  rpc UploadOriginServer(PackageUploadOriginServerReq)
+      returns (PackageUploadOriginServerResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/server"
+      body : "*"
+    };
+  }
+
+  // UploadOriginCert provides origin cert upload.
+  rpc UploadOriginCert(PackageUploadOriginCertReq)
+      returns (PackageUploadOriginCertResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/cert"
+      body : "*"
+    };
+  }
+
+  // UploadOriginBinTool provides origin bintool upload.
+  rpc UploadOriginBinTool(PackageUploadOriginBinToolReq)
+      returns (PackageUploadOriginBinToolResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/bintool"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseAgent provides release agent publish.
+  rpc PublishReleaseAgent(PackagePublishReleaseAgentReq)
+      returns (PackagePublishReleaseAgentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/agent"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseServer provides release server publish.
+  rpc PublishReleaseProxy(PackagePublishReleaseProxyReq)
+      returns (PackagePublishReleaseProxyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/server"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseCert provides release cert publish.
+  rpc PublishReleaseCert(PackagePublishReleaseCertReq)
+      returns (PackagePublishReleaseCertResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/cert"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseBinTool provides release bintool publish.
+  rpc PublishReleaseBinTool(PackagePublishReleaseBinToolReq)
+      returns (PackagePublishReleaseBinToolResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/bintool"
+      body : "*"
+    };
+  }
+}

@@ -484,6 +484,7 @@ mongodb:
     username: "nodeman"
     password: "defaultpassword"
     database: "nodeman"
+    authSource: "nodeman"
     ## @param auth.replicaSetKey Key used for authentication in the replicaset (only when `architecture=replicaset`)
     ##
     replicaSetKey: ""
@@ -761,6 +762,10 @@ application:
 
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
+
+    ## defines the backend server advertise-ip, if not set then will use the pod-ip.
+    advertiseIPV4: ""
+    advertiseIPV6: ""
 
     # defines the nodeman backend (BK API gateway) related settings.
     backend:

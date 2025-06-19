@@ -16,6 +16,9 @@ import "errors"
 type Generation int64
 
 const (
+	// GenerationAll means it is for all generation.
+	GenerationAll Generation = 0
+
 	// Generation1 means this node is the first generation.
 	Generation1 Generation = 1
 
@@ -31,4 +34,24 @@ func (gen Generation) Validate() error {
 	default:
 		return errors.New("invalid generation")
 	}
+}
+
+// GenerationListToInt64List converts a generation list to a int64 list.
+func GenerationListToInt64List(genList []Generation) []int64 {
+	data := make([]int64, len(genList))
+	for idx, gen := range genList {
+		data[idx] = int64(gen)
+	}
+
+	return data
+}
+
+// Int64ListToGenerationList converts a int64 list to a generation list.
+func Int64ListToGenerationList(genList []int64) []Generation {
+	data := make([]Generation, len(genList))
+	for idx, gen := range genList {
+		data[idx] = Generation(gen)
+	}
+
+	return data
 }

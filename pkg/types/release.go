@@ -33,6 +33,12 @@ const (
 
 	// ReleaseTypeProxy defines the release of nodemgr proxy package transformed from origin gse agent+server package.
 	ReleaseTypeProxy ReleaseType = "proxy"
+
+	// ReleaseTypeCert defines the release of nodemgr cert package.
+	ReleaseTypeCert ReleaseType = "cert"
+
+	// ReleaseTypeBinTool defines the release of nodemgr bin tool package.
+	ReleaseTypeBinTool ReleaseType = "bintool"
 )
 
 // Validate validates the release type.
@@ -81,12 +87,50 @@ type Release struct {
 	UpdatedAt   time.Time
 }
 
+// ReleaseCert defines the cert, it is kind of Release.
+type ReleaseCert struct {
+	FileName string
+	MD5      string
+}
+
+// ReleaseBinTool defines the bin tool, it is kind of Release.
+type ReleaseBinTool struct {
+	Generation Generation
+	FileName   string
+	MD5        string
+}
+
 // OriginPkgDetail defines the detail of origin package.
 type OriginPkgDetail struct {
 	iface.FileInfo
 
+	UploadID    string
+	Existed     bool
 	Version     string
 	Platforms   []platform.Platform
 	ChangeLogEN string
 	ChangeLogZH string
+}
+
+// TargetPkgDetail defines the detail of target package.
+type TargetPkgDetail struct {
+}
+
+// OriginCertPkgDetail defines the detail of cert package.
+type OriginCertPkgDetail struct {
+	iface.FileInfo
+
+	UploadID  string
+	Existed   bool
+	CertFiles []string
+}
+
+// OriginBinToolPkgDetail defines the detail of bin tool package.
+type OriginBinToolPkgDetail struct {
+	iface.FileInfo
+
+	UploadID       string
+	Existed        bool
+	AgentPlatforms []platform.Platform
+	ProxyPlatforms []platform.Platform
 }

@@ -542,22 +542,261 @@ func (x *UploadOriginServerResp) GetData() *UploadOriginServerResp_Data {
 	return nil
 }
 
+// UploadOriginCertResp is the response for upload origin cert pkg.
+type UploadOriginCertReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Overwrite     bool                   `protobuf:"varint,1,opt,name=overwrite,proto3" json:"overwrite"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOriginCertReq) Reset() {
+	*x = UploadOriginCertReq{}
+	mi := &file_upload_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginCertReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginCertReq) ProtoMessage() {}
+
+func (x *UploadOriginCertReq) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginCertReq.ProtoReflect.Descriptor instead.
+func (*UploadOriginCertReq) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UploadOriginCertReq) GetOverwrite() bool {
+	if x != nil {
+		return x.Overwrite
+	}
+	return false
+}
+
+// UploadOriginCertResp is the response for upload origin cert pkg.
+type UploadOriginCertResp struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                     `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                     `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *UploadOriginCertResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOriginCertResp) Reset() {
+	*x = UploadOriginCertResp{}
+	mi := &file_upload_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginCertResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginCertResp) ProtoMessage() {}
+
+func (x *UploadOriginCertResp) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginCertResp.ProtoReflect.Descriptor instead.
+func (*UploadOriginCertResp) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UploadOriginCertResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UploadOriginCertResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UploadOriginCertResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UploadOriginCertResp) GetData() *UploadOriginCertResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// UploadOriginBinToolReq is the request for upload origin bin tool pkg.
+type UploadOriginBinToolReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Generation    int64                  `protobuf:"varint,1,opt,name=generation,proto3" json:"generation"`
+	Overwrite     bool                   `protobuf:"varint,2,opt,name=overwrite,proto3" json:"overwrite"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOriginBinToolReq) Reset() {
+	*x = UploadOriginBinToolReq{}
+	mi := &file_upload_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginBinToolReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginBinToolReq) ProtoMessage() {}
+
+func (x *UploadOriginBinToolReq) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginBinToolReq.ProtoReflect.Descriptor instead.
+func (*UploadOriginBinToolReq) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UploadOriginBinToolReq) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *UploadOriginBinToolReq) GetOverwrite() bool {
+	if x != nil {
+		return x.Overwrite
+	}
+	return false
+}
+
+// UploadOriginBinToolResp is the response for upload origin bin tool pkg.
+type UploadOriginBinToolResp struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Code          int32                         `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                        `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *UploadOriginBinToolResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOriginBinToolResp) Reset() {
+	*x = UploadOriginBinToolResp{}
+	mi := &file_upload_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginBinToolResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginBinToolResp) ProtoMessage() {}
+
+func (x *UploadOriginBinToolResp) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginBinToolResp.ProtoReflect.Descriptor instead.
+func (*UploadOriginBinToolResp) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UploadOriginBinToolResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UploadOriginBinToolResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UploadOriginBinToolResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UploadOriginBinToolResp) GetData() *UploadOriginBinToolResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type UploadOriginAgentResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
-	Size          int64                  `protobuf:"varint,2,opt,name=size,proto3" json:"size"`
-	Md5           string                 `protobuf:"bytes,3,opt,name=md5,proto3" json:"md5"`
-	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version"`
-	ChangelogEn   string                 `protobuf:"bytes,5,opt,name=changelog_en,json=changelogEn,proto3" json:"changelog_en"`
-	ChangelogZh   string                 `protobuf:"bytes,6,opt,name=changelog_zh,json=changelogZh,proto3" json:"changelog_zh"`
-	Platforms     []*Platform            `protobuf:"bytes,7,rep,name=platforms,proto3" json:"platforms"`
+	UploadId      *string                `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3,oneof" json:"upload_id"`
+	Existed       *bool                  `protobuf:"varint,2,opt,name=existed,proto3,oneof" json:"existed"`
+	Generated     *bool                  `protobuf:"varint,3,opt,name=generated,proto3,oneof" json:"generated"`
+	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name"`
+	Size          *int64                 `protobuf:"varint,5,opt,name=size,proto3,oneof" json:"size"`
+	Md5           *string                `protobuf:"bytes,6,opt,name=md5,proto3,oneof" json:"md5"`
+	Version       *string                `protobuf:"bytes,7,opt,name=version,proto3,oneof" json:"version"`
+	ChangelogEn   *string                `protobuf:"bytes,8,opt,name=changelog_en,json=changelogEn,proto3,oneof" json:"changelog_en"`
+	ChangelogZh   *string                `protobuf:"bytes,9,opt,name=changelog_zh,json=changelogZh,proto3,oneof" json:"changelog_zh"`
+	Platforms     []*Platform            `protobuf:"bytes,10,rep,name=platforms,proto3" json:"platforms"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UploadOriginAgentResp_Data) Reset() {
 	*x = UploadOriginAgentResp_Data{}
-	mi := &file_upload_proto_msgTypes[8]
+	mi := &file_upload_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -569,7 +808,7 @@ func (x *UploadOriginAgentResp_Data) String() string {
 func (*UploadOriginAgentResp_Data) ProtoMessage() {}
 
 func (x *UploadOriginAgentResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_upload_proto_msgTypes[8]
+	mi := &file_upload_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -585,44 +824,65 @@ func (*UploadOriginAgentResp_Data) Descriptor() ([]byte, []int) {
 	return file_upload_proto_rawDescGZIP(), []int{5, 0}
 }
 
+func (x *UploadOriginAgentResp_Data) GetUploadId() string {
+	if x != nil && x.UploadId != nil {
+		return *x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadOriginAgentResp_Data) GetExisted() bool {
+	if x != nil && x.Existed != nil {
+		return *x.Existed
+	}
+	return false
+}
+
+func (x *UploadOriginAgentResp_Data) GetGenerated() bool {
+	if x != nil && x.Generated != nil {
+		return *x.Generated
+	}
+	return false
+}
+
 func (x *UploadOriginAgentResp_Data) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UploadOriginAgentResp_Data) GetSize() int64 {
-	if x != nil {
-		return x.Size
+	if x != nil && x.Size != nil {
+		return *x.Size
 	}
 	return 0
 }
 
 func (x *UploadOriginAgentResp_Data) GetMd5() string {
-	if x != nil {
-		return x.Md5
+	if x != nil && x.Md5 != nil {
+		return *x.Md5
 	}
 	return ""
 }
 
 func (x *UploadOriginAgentResp_Data) GetVersion() string {
-	if x != nil {
-		return x.Version
+	if x != nil && x.Version != nil {
+		return *x.Version
 	}
 	return ""
 }
 
 func (x *UploadOriginAgentResp_Data) GetChangelogEn() string {
-	if x != nil {
-		return x.ChangelogEn
+	if x != nil && x.ChangelogEn != nil {
+		return *x.ChangelogEn
 	}
 	return ""
 }
 
 func (x *UploadOriginAgentResp_Data) GetChangelogZh() string {
-	if x != nil {
-		return x.ChangelogZh
+	if x != nil && x.ChangelogZh != nil {
+		return *x.ChangelogZh
 	}
 	return ""
 }
@@ -636,18 +896,21 @@ func (x *UploadOriginAgentResp_Data) GetPlatforms() []*Platform {
 
 type UploadOriginServerResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
-	Size          int64                  `protobuf:"varint,2,opt,name=size,proto3" json:"size"`
-	Md5           string                 `protobuf:"bytes,3,opt,name=md5,proto3" json:"md5"`
-	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version"`
-	Platforms     []*Platform            `protobuf:"bytes,5,rep,name=platforms,proto3" json:"platforms"`
+	UploadId      *string                `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3,oneof" json:"upload_id"`
+	Existed       *bool                  `protobuf:"varint,2,opt,name=existed,proto3,oneof" json:"existed"`
+	Generated     *bool                  `protobuf:"varint,3,opt,name=generated,proto3,oneof" json:"generated"`
+	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name"`
+	Size          *int64                 `protobuf:"varint,5,opt,name=size,proto3,oneof" json:"size"`
+	Md5           *string                `protobuf:"bytes,6,opt,name=md5,proto3,oneof" json:"md5"`
+	Version       *string                `protobuf:"bytes,7,opt,name=version,proto3,oneof" json:"version"`
+	Platforms     []*Platform            `protobuf:"bytes,8,rep,name=platforms,proto3" json:"platforms"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UploadOriginServerResp_Data) Reset() {
 	*x = UploadOriginServerResp_Data{}
-	mi := &file_upload_proto_msgTypes[9]
+	mi := &file_upload_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -659,7 +922,7 @@ func (x *UploadOriginServerResp_Data) String() string {
 func (*UploadOriginServerResp_Data) ProtoMessage() {}
 
 func (x *UploadOriginServerResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_upload_proto_msgTypes[9]
+	mi := &file_upload_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,30 +938,51 @@ func (*UploadOriginServerResp_Data) Descriptor() ([]byte, []int) {
 	return file_upload_proto_rawDescGZIP(), []int{7, 0}
 }
 
+func (x *UploadOriginServerResp_Data) GetUploadId() string {
+	if x != nil && x.UploadId != nil {
+		return *x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadOriginServerResp_Data) GetExisted() bool {
+	if x != nil && x.Existed != nil {
+		return *x.Existed
+	}
+	return false
+}
+
+func (x *UploadOriginServerResp_Data) GetGenerated() bool {
+	if x != nil && x.Generated != nil {
+		return *x.Generated
+	}
+	return false
+}
+
 func (x *UploadOriginServerResp_Data) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UploadOriginServerResp_Data) GetSize() int64 {
-	if x != nil {
-		return x.Size
+	if x != nil && x.Size != nil {
+		return *x.Size
 	}
 	return 0
 }
 
 func (x *UploadOriginServerResp_Data) GetMd5() string {
-	if x != nil {
-		return x.Md5
+	if x != nil && x.Md5 != nil {
+		return *x.Md5
 	}
 	return ""
 }
 
 func (x *UploadOriginServerResp_Data) GetVersion() string {
-	if x != nil {
-		return x.Version
+	if x != nil && x.Version != nil {
+		return *x.Version
 	}
 	return ""
 }
@@ -706,6 +990,198 @@ func (x *UploadOriginServerResp_Data) GetVersion() string {
 func (x *UploadOriginServerResp_Data) GetPlatforms() []*Platform {
 	if x != nil {
 		return x.Platforms
+	}
+	return nil
+}
+
+type UploadOriginCertResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadId      *string                `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3,oneof" json:"upload_id"`
+	Existed       *bool                  `protobuf:"varint,2,opt,name=existed,proto3,oneof" json:"existed"`
+	Generated     *bool                  `protobuf:"varint,3,opt,name=generated,proto3,oneof" json:"generated"`
+	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name"`
+	Size          *int64                 `protobuf:"varint,5,opt,name=size,proto3,oneof" json:"size"`
+	Md5           *string                `protobuf:"bytes,6,opt,name=md5,proto3,oneof" json:"md5"`
+	CertFiles     []string               `protobuf:"bytes,7,rep,name=cert_files,json=certFiles,proto3" json:"cert_files"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOriginCertResp_Data) Reset() {
+	*x = UploadOriginCertResp_Data{}
+	mi := &file_upload_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginCertResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginCertResp_Data) ProtoMessage() {}
+
+func (x *UploadOriginCertResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginCertResp_Data.ProtoReflect.Descriptor instead.
+func (*UploadOriginCertResp_Data) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{9, 0}
+}
+
+func (x *UploadOriginCertResp_Data) GetUploadId() string {
+	if x != nil && x.UploadId != nil {
+		return *x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadOriginCertResp_Data) GetExisted() bool {
+	if x != nil && x.Existed != nil {
+		return *x.Existed
+	}
+	return false
+}
+
+func (x *UploadOriginCertResp_Data) GetGenerated() bool {
+	if x != nil && x.Generated != nil {
+		return *x.Generated
+	}
+	return false
+}
+
+func (x *UploadOriginCertResp_Data) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *UploadOriginCertResp_Data) GetSize() int64 {
+	if x != nil && x.Size != nil {
+		return *x.Size
+	}
+	return 0
+}
+
+func (x *UploadOriginCertResp_Data) GetMd5() string {
+	if x != nil && x.Md5 != nil {
+		return *x.Md5
+	}
+	return ""
+}
+
+func (x *UploadOriginCertResp_Data) GetCertFiles() []string {
+	if x != nil {
+		return x.CertFiles
+	}
+	return nil
+}
+
+type UploadOriginBinToolResp_Data struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UploadId       *string                `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3,oneof" json:"upload_id"`
+	Existed        *bool                  `protobuf:"varint,2,opt,name=existed,proto3,oneof" json:"existed"`
+	Generated      *bool                  `protobuf:"varint,3,opt,name=generated,proto3,oneof" json:"generated"`
+	Name           *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name"`
+	Size           *int64                 `protobuf:"varint,5,opt,name=size,proto3,oneof" json:"size"`
+	Md5            *string                `protobuf:"bytes,6,opt,name=md5,proto3,oneof" json:"md5"`
+	AgentPlatforms []*Platform            `protobuf:"bytes,7,rep,name=agent_platforms,json=agentPlatforms,proto3" json:"agent_platforms"`
+	ProxyPlatforms []*Platform            `protobuf:"bytes,8,rep,name=proxy_platforms,json=proxyPlatforms,proto3" json:"proxy_platforms"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UploadOriginBinToolResp_Data) Reset() {
+	*x = UploadOriginBinToolResp_Data{}
+	mi := &file_upload_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOriginBinToolResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOriginBinToolResp_Data) ProtoMessage() {}
+
+func (x *UploadOriginBinToolResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_upload_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOriginBinToolResp_Data.ProtoReflect.Descriptor instead.
+func (*UploadOriginBinToolResp_Data) Descriptor() ([]byte, []int) {
+	return file_upload_proto_rawDescGZIP(), []int{11, 0}
+}
+
+func (x *UploadOriginBinToolResp_Data) GetUploadId() string {
+	if x != nil && x.UploadId != nil {
+		return *x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadOriginBinToolResp_Data) GetExisted() bool {
+	if x != nil && x.Existed != nil {
+		return *x.Existed
+	}
+	return false
+}
+
+func (x *UploadOriginBinToolResp_Data) GetGenerated() bool {
+	if x != nil && x.Generated != nil {
+		return *x.Generated
+	}
+	return false
+}
+
+func (x *UploadOriginBinToolResp_Data) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *UploadOriginBinToolResp_Data) GetSize() int64 {
+	if x != nil && x.Size != nil {
+		return *x.Size
+	}
+	return 0
+}
+
+func (x *UploadOriginBinToolResp_Data) GetMd5() string {
+	if x != nil && x.Md5 != nil {
+		return *x.Md5
+	}
+	return ""
+}
+
+func (x *UploadOriginBinToolResp_Data) GetAgentPlatforms() []*Platform {
+	if x != nil {
+		return x.AgentPlatforms
+	}
+	return nil
+}
+
+func (x *UploadOriginBinToolResp_Data) GetProxyPlatforms() []*Platform {
+	if x != nil {
+		return x.ProxyPlatforms
 	}
 	return nil
 }
@@ -743,38 +1219,124 @@ const file_upload_proto_rawDesc = "" +
 	"\n" +
 	"generation\x18\x01 \x01(\x03R\n" +
 	"generation\x12\x1c\n" +
-	"\toverwrite\x18\x02 \x01(\bR\toverwrite\"\xe7\x02\n" +
+	"\toverwrite\x18\x02 \x01(\bR\toverwrite\"\xd9\x04\n" +
 	"\x15UploadOriginAgentResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x122\n" +
-	"\x04data\x18\x04 \x01(\v2\x1e.v3.UploadOriginAgentResp.DataR\x04data\x1a\xcc\x01\n" +
-	"\x04Data\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04size\x18\x02 \x01(\x03R\x04size\x12\x10\n" +
-	"\x03md5\x18\x03 \x01(\tR\x03md5\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\tR\aversion\x12!\n" +
-	"\fchangelog_en\x18\x05 \x01(\tR\vchangelogEn\x12!\n" +
-	"\fchangelog_zh\x18\x06 \x01(\tR\vchangelogZh\x12*\n" +
-	"\tplatforms\x18\a \x03(\v2\f.v3.PlatformR\tplatforms\"U\n" +
+	"\x04data\x18\x04 \x01(\v2\x1e.v3.UploadOriginAgentResp.DataR\x04data\x1a\xbe\x03\n" +
+	"\x04Data\x12 \n" +
+	"\tupload_id\x18\x01 \x01(\tH\x00R\buploadId\x88\x01\x01\x12\x1d\n" +
+	"\aexisted\x18\x02 \x01(\bH\x01R\aexisted\x88\x01\x01\x12!\n" +
+	"\tgenerated\x18\x03 \x01(\bH\x02R\tgenerated\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04size\x18\x05 \x01(\x03H\x04R\x04size\x88\x01\x01\x12\x15\n" +
+	"\x03md5\x18\x06 \x01(\tH\x05R\x03md5\x88\x01\x01\x12\x1d\n" +
+	"\aversion\x18\a \x01(\tH\x06R\aversion\x88\x01\x01\x12&\n" +
+	"\fchangelog_en\x18\b \x01(\tH\aR\vchangelogEn\x88\x01\x01\x12&\n" +
+	"\fchangelog_zh\x18\t \x01(\tH\bR\vchangelogZh\x88\x01\x01\x12*\n" +
+	"\tplatforms\x18\n" +
+	" \x03(\v2\f.v3.PlatformR\tplatformsB\f\n" +
+	"\n" +
+	"_upload_idB\n" +
+	"\n" +
+	"\b_existedB\f\n" +
+	"\n" +
+	"_generatedB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_sizeB\x06\n" +
+	"\x04_md5B\n" +
+	"\n" +
+	"\b_versionB\x0f\n" +
+	"\r_changelog_enB\x0f\n" +
+	"\r_changelog_zh\"U\n" +
 	"\x15UploadOriginServerReq\x12\x1e\n" +
 	"\n" +
 	"generation\x18\x01 \x01(\x03R\n" +
 	"generation\x12\x1c\n" +
-	"\toverwrite\x18\x02 \x01(\bR\toverwrite\"\xa3\x02\n" +
+	"\toverwrite\x18\x02 \x01(\bR\toverwrite\"\xe9\x03\n" +
 	"\x16UploadOriginServerResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x123\n" +
-	"\x04data\x18\x04 \x01(\v2\x1f.v3.UploadOriginServerResp.DataR\x04data\x1a\x86\x01\n" +
-	"\x04Data\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04size\x18\x02 \x01(\x03R\x04size\x12\x10\n" +
-	"\x03md5\x18\x03 \x01(\tR\x03md5\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\tR\aversion\x12*\n" +
-	"\tplatforms\x18\x05 \x03(\v2\f.v3.PlatformR\tplatformsB@Z>github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3b\x06proto3"
+	"\x04data\x18\x04 \x01(\v2\x1f.v3.UploadOriginServerResp.DataR\x04data\x1a\xcc\x02\n" +
+	"\x04Data\x12 \n" +
+	"\tupload_id\x18\x01 \x01(\tH\x00R\buploadId\x88\x01\x01\x12\x1d\n" +
+	"\aexisted\x18\x02 \x01(\bH\x01R\aexisted\x88\x01\x01\x12!\n" +
+	"\tgenerated\x18\x03 \x01(\bH\x02R\tgenerated\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04size\x18\x05 \x01(\x03H\x04R\x04size\x88\x01\x01\x12\x15\n" +
+	"\x03md5\x18\x06 \x01(\tH\x05R\x03md5\x88\x01\x01\x12\x1d\n" +
+	"\aversion\x18\a \x01(\tH\x06R\aversion\x88\x01\x01\x12*\n" +
+	"\tplatforms\x18\b \x03(\v2\f.v3.PlatformR\tplatformsB\f\n" +
+	"\n" +
+	"_upload_idB\n" +
+	"\n" +
+	"\b_existedB\f\n" +
+	"\n" +
+	"_generatedB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_sizeB\x06\n" +
+	"\x04_md5B\n" +
+	"\n" +
+	"\b_version\"3\n" +
+	"\x13UploadOriginCertReq\x12\x1c\n" +
+	"\toverwrite\x18\x01 \x01(\bR\toverwrite\"\xad\x03\n" +
+	"\x14UploadOriginCertResp\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.v3.UploadOriginCertResp.DataR\x04data\x1a\x94\x02\n" +
+	"\x04Data\x12 \n" +
+	"\tupload_id\x18\x01 \x01(\tH\x00R\buploadId\x88\x01\x01\x12\x1d\n" +
+	"\aexisted\x18\x02 \x01(\bH\x01R\aexisted\x88\x01\x01\x12!\n" +
+	"\tgenerated\x18\x03 \x01(\bH\x02R\tgenerated\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04size\x18\x05 \x01(\x03H\x04R\x04size\x88\x01\x01\x12\x15\n" +
+	"\x03md5\x18\x06 \x01(\tH\x05R\x03md5\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"cert_files\x18\a \x03(\tR\tcertFilesB\f\n" +
+	"\n" +
+	"_upload_idB\n" +
+	"\n" +
+	"\b_existedB\f\n" +
+	"\n" +
+	"_generatedB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_sizeB\x06\n" +
+	"\x04_md5\"V\n" +
+	"\x16UploadOriginBinToolReq\x12\x1e\n" +
+	"\n" +
+	"generation\x18\x01 \x01(\x03R\n" +
+	"generation\x12\x1c\n" +
+	"\toverwrite\x18\x02 \x01(\bR\toverwrite\"\x82\x04\n" +
+	"\x17UploadOriginBinToolResp\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x124\n" +
+	"\x04data\x18\x04 \x01(\v2 .v3.UploadOriginBinToolResp.DataR\x04data\x1a\xe3\x02\n" +
+	"\x04Data\x12 \n" +
+	"\tupload_id\x18\x01 \x01(\tH\x00R\buploadId\x88\x01\x01\x12\x1d\n" +
+	"\aexisted\x18\x02 \x01(\bH\x01R\aexisted\x88\x01\x01\x12!\n" +
+	"\tgenerated\x18\x03 \x01(\bH\x02R\tgenerated\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04size\x18\x05 \x01(\x03H\x04R\x04size\x88\x01\x01\x12\x15\n" +
+	"\x03md5\x18\x06 \x01(\tH\x05R\x03md5\x88\x01\x01\x125\n" +
+	"\x0fagent_platforms\x18\a \x03(\v2\f.v3.PlatformR\x0eagentPlatforms\x125\n" +
+	"\x0fproxy_platforms\x18\b \x03(\v2\f.v3.PlatformR\x0eproxyPlatformsB\f\n" +
+	"\n" +
+	"_upload_idB\n" +
+	"\n" +
+	"\b_existedB\f\n" +
+	"\n" +
+	"_generatedB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_sizeB\x06\n" +
+	"\x04_md5B@Z>github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3b\x06proto3"
 
 var (
 	file_upload_proto_rawDescOnce sync.Once
@@ -788,30 +1350,40 @@ func file_upload_proto_rawDescGZIP() []byte {
 	return file_upload_proto_rawDescData
 }
 
-var file_upload_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_upload_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_upload_proto_goTypes = []any{
-	(*UploadAgentReq)(nil),              // 0: v3.UploadAgentReq
-	(*UploadAgentResp)(nil),             // 1: v3.UploadAgentResp
-	(*UploadProxyReq)(nil),              // 2: v3.UploadProxyReq
-	(*UploadProxyResp)(nil),             // 3: v3.UploadProxyResp
-	(*UploadOriginAgentReq)(nil),        // 4: v3.UploadOriginAgentReq
-	(*UploadOriginAgentResp)(nil),       // 5: v3.UploadOriginAgentResp
-	(*UploadOriginServerReq)(nil),       // 6: v3.UploadOriginServerReq
-	(*UploadOriginServerResp)(nil),      // 7: v3.UploadOriginServerResp
-	(*UploadOriginAgentResp_Data)(nil),  // 8: v3.UploadOriginAgentResp.Data
-	(*UploadOriginServerResp_Data)(nil), // 9: v3.UploadOriginServerResp.Data
-	(*Platform)(nil),                    // 10: v3.Platform
+	(*UploadAgentReq)(nil),               // 0: v3.UploadAgentReq
+	(*UploadAgentResp)(nil),              // 1: v3.UploadAgentResp
+	(*UploadProxyReq)(nil),               // 2: v3.UploadProxyReq
+	(*UploadProxyResp)(nil),              // 3: v3.UploadProxyResp
+	(*UploadOriginAgentReq)(nil),         // 4: v3.UploadOriginAgentReq
+	(*UploadOriginAgentResp)(nil),        // 5: v3.UploadOriginAgentResp
+	(*UploadOriginServerReq)(nil),        // 6: v3.UploadOriginServerReq
+	(*UploadOriginServerResp)(nil),       // 7: v3.UploadOriginServerResp
+	(*UploadOriginCertReq)(nil),          // 8: v3.UploadOriginCertReq
+	(*UploadOriginCertResp)(nil),         // 9: v3.UploadOriginCertResp
+	(*UploadOriginBinToolReq)(nil),       // 10: v3.UploadOriginBinToolReq
+	(*UploadOriginBinToolResp)(nil),      // 11: v3.UploadOriginBinToolResp
+	(*UploadOriginAgentResp_Data)(nil),   // 12: v3.UploadOriginAgentResp.Data
+	(*UploadOriginServerResp_Data)(nil),  // 13: v3.UploadOriginServerResp.Data
+	(*UploadOriginCertResp_Data)(nil),    // 14: v3.UploadOriginCertResp.Data
+	(*UploadOriginBinToolResp_Data)(nil), // 15: v3.UploadOriginBinToolResp.Data
+	(*Platform)(nil),                     // 16: v3.Platform
 }
 var file_upload_proto_depIdxs = []int32{
-	8,  // 0: v3.UploadOriginAgentResp.data:type_name -> v3.UploadOriginAgentResp.Data
-	9,  // 1: v3.UploadOriginServerResp.data:type_name -> v3.UploadOriginServerResp.Data
-	10, // 2: v3.UploadOriginAgentResp.Data.platforms:type_name -> v3.Platform
-	10, // 3: v3.UploadOriginServerResp.Data.platforms:type_name -> v3.Platform
-	4,  // [4:4] is the sub-list for method output_type
-	4,  // [4:4] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	12, // 0: v3.UploadOriginAgentResp.data:type_name -> v3.UploadOriginAgentResp.Data
+	13, // 1: v3.UploadOriginServerResp.data:type_name -> v3.UploadOriginServerResp.Data
+	14, // 2: v3.UploadOriginCertResp.data:type_name -> v3.UploadOriginCertResp.Data
+	15, // 3: v3.UploadOriginBinToolResp.data:type_name -> v3.UploadOriginBinToolResp.Data
+	16, // 4: v3.UploadOriginAgentResp.Data.platforms:type_name -> v3.Platform
+	16, // 5: v3.UploadOriginServerResp.Data.platforms:type_name -> v3.Platform
+	16, // 6: v3.UploadOriginBinToolResp.Data.agent_platforms:type_name -> v3.Platform
+	16, // 7: v3.UploadOriginBinToolResp.Data.proxy_platforms:type_name -> v3.Platform
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_upload_proto_init() }
@@ -820,13 +1392,17 @@ func file_upload_proto_init() {
 		return
 	}
 	file_common_proto_init()
+	file_upload_proto_msgTypes[12].OneofWrappers = []any{}
+	file_upload_proto_msgTypes[13].OneofWrappers = []any{}
+	file_upload_proto_msgTypes[14].OneofWrappers = []any{}
+	file_upload_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_upload_proto_rawDesc), len(file_upload_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

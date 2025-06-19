@@ -10,7 +10,11 @@
 
 package types
 
-import "time"
+import (
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+)
 
 // TimeRange defines the time range.
 type TimeRange struct {
@@ -269,4 +273,31 @@ type NodeWorkflowOperInstanceStatusCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *NodeWorkflowOperInstanceStatusFuzzyFields
+}
+
+// ReleaseExactFields defines the release exact fields.
+type ReleaseExactFields struct {
+	Generation []Generation
+	Platform   []platform.Platform
+	Type       []ReleaseType
+	Version    []string
+}
+
+// ReleaseFuzzyFields defines the release fuzzy fields.
+type ReleaseFuzzyFields struct {
+}
+
+// ReleaseCondition defines the release condition.
+type ReleaseCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ReleaseExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ReleaseFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ReleaseExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ReleaseFuzzyFields
 }

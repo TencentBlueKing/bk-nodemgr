@@ -174,13 +174,6 @@ type HTTPServer struct {
 	StaticDir     string `yaml:"staticDir"`
 }
 
-// AdminServer the config of admin service.
-type AdminServer struct {
-	BindIP    string `yaml:"bindIP"`
-	Port      int    `yaml:"port"`
-	StaticDir string `yaml:"staticDir"`
-}
-
 // CallbackServer the config of callback service.
 type CallbackServer struct {
 	HTTPServer `yaml:",inline"`

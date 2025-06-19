@@ -17,12 +17,29 @@ data:
     tenantMode: {{ .Values.application.config.tenantMode }}
 
     httpServer: {{ .Values.application.config.httpServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
 
     adminServer: {{ .Values.application.config.adminServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
 
     backend: {{ .Values.application.config.backend | toYaml | nindent 6 }}
 
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}
+
+    etcd:
+      {{- if .Values.etcd.enabled }}
+      endpoints:
+        - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
+      {{- else }}
+      endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
+      username: {{ .Values.externalEtcd.username }}
+      password: {{ .Values.externalEtcd.password }}
+      ca: {{ .Values.externalEtcd.ca }}
+      cert: {{ .Values.externalEtcd.cert }}
+      key: {{ .Values.externalEtcd.key }}
+      {{- end}}
 
     mongodb:
       {{- if .Values.mongodb.enabled }}

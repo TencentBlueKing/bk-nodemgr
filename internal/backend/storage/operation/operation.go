@@ -16,8 +16,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -34,15 +34,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	}
 
 	s := &Storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.initDao),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new storage failed, err: %v", err)
 		return nil, err
@@ -53,7 +53,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 
 // Storage implements the Storage interface.
 type Storage struct {
-	base.Storage
+	basestorage.Storage
 
 	daoOperation operation.IHandler
 }
@@ -75,7 +75,7 @@ func (s *Storage) check() error {
 // GetOperation ...
 func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workoper.Operation, error) {
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	operations, count, err := s.daoOperation.List(ctx, types.SingleItemPage(), operation.WithOperationID(operationID))
@@ -94,11 +94,11 @@ func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workop
 // UpsertOperation ...
 func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if operation == nil {
-		return base.ErrUpsertNilData()
+		return basestorage.ErrUpsertNilData()
 	}
 
 	return s.daoOperation.Upsert(ctx, operation)
@@ -109,7 +109,7 @@ func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, t
 	[]*workoper.Operation, int64, error) {
 
 	if ctx == nil {
-		return nil, 0, base.ErrNilContent()
+		return nil, 0, basestorage.ErrNilContent()
 	}
 
 	if err := page.Validate(); err != nil {
@@ -117,7 +117,7 @@ func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, t
 	}
 
 	if len(triggerID) == 0 {
-		return nil, 0, base.ErrEmptyTriggerID()
+		return nil, 0, basestorage.ErrEmptyTriggerID()
 	}
 
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
@@ -128,7 +128,7 @@ func (s *Storage) ListEmptyOperation(
 	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
 
 	if ctx == nil {
-		return nil, 0, base.ErrNilContent()
+		return nil, 0, basestorage.ErrNilContent()
 	}
 
 	if err := page.Validate(); err != nil {
@@ -136,7 +136,7 @@ func (s *Storage) ListEmptyOperation(
 	}
 
 	if triggerID == "" {
-		return nil, 0, base.ErrEmptyTriggerID()
+		return nil, 0, basestorage.ErrEmptyTriggerID()
 	}
 
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation())

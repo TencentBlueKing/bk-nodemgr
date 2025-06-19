@@ -147,3 +147,9 @@ message TimeRange {
   int64 start_timestamp_sec = 1;
   int64 end_timestamp_sec = 2;
 }
+
+// Platform describes the platform informations.
+message Platform {
+  string os_type = 1;
+  string cpu_arch = 2;
+}

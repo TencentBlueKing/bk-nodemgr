@@ -12,12 +12,12 @@
 package operation
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
 // IStorage defines the storage interface.
 type IStorage interface {
-	base.Interface
+	basestorage.Interface
 	workflow.IStorageOperation
 }

@@ -15,8 +15,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodedeployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -32,15 +32,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 	}
 
 	s := &Storage{
-		Storage: base.Storage{
+		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
 			Logger:   logger,
 		},
 	}
-	err := base.InitStorage(&s.Storage,
-		base.WithStartFunc(s.initDao),
-		base.WithCheckFunc(s.check))
+	err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check))
 	if err != nil {
 		s.Logger.Errorf("new storage failed, err: %v", err)
 		return nil, err
@@ -51,7 +51,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 
 // Storage this is a storage to operate node deployment table.
 type Storage struct {
-	base.Storage
+	basestorage.Storage
 
 	// dao
 	nodeDeploymentDao nodedeployment.IHandler
@@ -74,11 +74,11 @@ func (s *Storage) check() error {
 // GetNodeConf get gse node conf.
 func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if token == "" {
-		return nil, base.ErrEmptyUniqueKey()
+		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
 	nodeConf, err := s.nodeDeploymentDao.GetNodeConf(ctx, token)
@@ -92,11 +92,11 @@ func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeCon
 // GetInfo get node deployment info.
 func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
 	if ctx == nil {
-		return nil, base.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if token == "" {
-		return nil, base.ErrEmptyUniqueKey()
+		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
 	info, err := s.nodeDeploymentDao.GetInfo(ctx, token)
@@ -110,11 +110,11 @@ func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentI
 // SetNodeConf set gse node conf.
 func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if token == "" {
-		return base.ErrEmptyUniqueKey()
+		return basestorage.ErrEmptyUniqueKey()
 	}
 
 	if conf == nil {
@@ -131,11 +131,11 @@ func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.Nod
 // UpdateInfo update node deployment info.
 func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if token == "" {
-		return base.ErrEmptyUniqueKey()
+		return basestorage.ErrEmptyUniqueKey()
 	}
 
 	if info == nil {
@@ -152,7 +152,7 @@ func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.Depl
 // Create create a node deployment.
 func (s *Storage) Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
 	if ctx == nil {
-		return base.ErrNilContent()
+		return basestorage.ErrNilContent()
 	}
 
 	if nodeDeployment == nil {

@@ -14,13 +14,13 @@ package nodeworkflow
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines the interface of node workflow storage.
 type IStorage interface {
-	base.Interface
+	basestorage.Interface
 
 	// ListNodeWorkflow lists node workflow by page and conditions.
 	ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
