@@ -79,7 +79,7 @@ type DeploymentInfo struct {
 
 // Validate this is the validate for node deployment.
 // nolint: gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (info DeploymentInfo) Validate() error {
 	if info.OperInstID == "" {
 		return errors.New("oper_inst_id shouldn't not be empty")
