@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release models.
 package release
 
 import (

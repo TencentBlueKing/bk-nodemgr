@@ -28,7 +28,7 @@ import (
 
 // UploadOriginAgent uploads the origin agent.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 	// validation.
 	if pkgFile == nil {
@@ -132,7 +132,7 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 
 // checkGen2OriginAgentPkg check gen2 origin agent package.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGen2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	plats := make(map[string]platform.Platform)
 	detail := new(types.OriginPkgDetail)
@@ -223,7 +223,7 @@ func checkGen2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 
 // PublishReleaseAgent generates release agent packages by upload-id.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) error {
 	up, err := m.storageUpload.GetUpload(ctx, uploadID)
 	if err != nil {
@@ -368,7 +368,7 @@ type releaseAgentPkg struct {
 
 // generateAgentPkg generates agent package.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
-// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generateAgentPkg(ctx context.Context,
 	originDetail *types.OriginPkgDetail,
 	originLocalFileName string) ([]*releaseAgentPkg, error) {
