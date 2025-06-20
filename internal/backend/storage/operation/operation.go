@@ -72,7 +72,7 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// GetOperation ...
+// GetOperation get operation by operationID.
 func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workoper.Operation, error) {
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
@@ -91,7 +91,7 @@ func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workop
 	return operations[0], nil
 }
 
-// UpsertOperation ...
+// UpsertOperation upsert operation.
 func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
@@ -104,7 +104,7 @@ func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Opera
 	return s.daoOperation.Upsert(ctx, operation)
 }
 
-// ListOperation lists operation by triggerid.
+// ListOperationByTrigger lists operation by triggerid.
 func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 

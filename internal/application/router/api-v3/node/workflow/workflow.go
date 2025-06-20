@@ -453,7 +453,6 @@ func calculateOperationSummaries(operationIDs []string,
 
 		var totalSeconds int64
 		for _, inst := range instances {
-			fmt.Printf("life_cycle: %v\n", inst.Lifecycle)
 			if !inst.Lifecycle.CreatedAt.IsZero() && !inst.Lifecycle.EndedAt.IsZero() {
 				durationSec := inst.Lifecycle.EndedAt.Unix() - inst.Lifecycle.CreatedAt.Unix()
 

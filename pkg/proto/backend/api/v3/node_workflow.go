@@ -12,7 +12,6 @@ package v3
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -270,7 +269,6 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 
 	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
 	for _, opinstance := range result {
-		fmt.Printf("ConvertResultFromTypes life_cycle: %+v\n", opinstance.Lifecycle)
 		oper := &NodeWorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
@@ -285,7 +283,6 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
 			},
 		}
-		fmt.Println("ConvertResultFromTypes life_cycle: ", oper.LifeCycle)
 		items = append(items, oper)
 	}
 

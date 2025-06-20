@@ -25,8 +25,8 @@ import (
 )
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
-// nolint:funlen,fnsize,gocognit
-// NOCC: golint/fnsize/gocognit(func design is not suitable for splitting).
+// nolint:funlen,fnsize,gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize/gocognit/gocyclo/cyclop(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) error {
 	up, err := m.storageUpload.GetUpload(ctx, uploadID)
 	if err != nil {
