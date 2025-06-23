@@ -10,6 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package wmiexec provides a WMI executor to run commands on Windows hosts.
 package wmiexec
 
 import (
