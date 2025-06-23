@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database, logger logger.Logger) *dao {
@@ -36,6 +37,7 @@ type dao struct {
 	client    *mongo.Collection
 	tableName string
 	logger    logger.Logger
+
 	base.IOrm[*Release, Release]
 }
 
@@ -56,7 +58,19 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	return []mongo.IndexModel{}
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: FieldKeyGeneration, Value: 1},
+				{Key: FieldKeyType, Value: 1},
+				{Key: FieldKeyCPUArch, Value: 1},
+				{Key: FieldKeyOSType, Value: 1},
+				{Key: FieldKeyVersion, Value: 1}},
+			Options: mongoOptions.Index().SetUnique(true),
+		},
+	}
+
+	return indexes
 }
 
 func (d *dao) upsertMany(ctx context.Context, releases []*Release) error {

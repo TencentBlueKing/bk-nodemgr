@@ -81,10 +81,11 @@ type Release struct {
 	ChangeLogEN string
 	ChangeLogZH string
 	FileName    string
-	UpstreamDir string
-	LocalDir    string
 	MD5         string
+	Enabled     bool
+	AsDefault   bool
 	UpdatedAt   time.Time
+	Operator    string
 }
 
 // ReleaseCert defines the cert, it is kind of Release.

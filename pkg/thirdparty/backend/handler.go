@@ -13,6 +13,7 @@ package backend
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -21,11 +22,13 @@ import (
 )
 
 // Handler is interface for nodeman backend handler.
+// nolint: interfacebloat
 type Handler interface {
 	IHandlerNetworkArea
 	IHandlerNetworkUnit
 	IHandlerNodeAgent
 	IHandlerNodeWorkflow
+	IHandlerRelease
 
 	// ListBusiness list business within specified tenant in context.
 	// @param ctx context, contains tenant-id.
@@ -239,6 +242,59 @@ type IHandlerNodeWorkflow interface {
 	// @return the operation instance status list.
 	ListNodeWorkflowOperationInstanceStatus(ctx context.Context,
 		condition *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
+}
+
+// IHandlerRelease defines the backend handler for release.
+type IHandlerRelease interface {
+	// ListRelease lists release by page and conditions.
+	ListRelease(ctx context.Context, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.Release, int64, error)
+
+	// CountRelease counts release by conditions.
+	CountRelease(ctx context.Context, condition *types.ReleaseCondition) (int64, error)
+
+	// SetReleaseLabels sets release labels.
+	SetReleaseLabels(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		labels []string) error
+
+	// EnableRelease enables release active by generation, release type, platform and version.
+	EnableRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) error
+
+	// DisableRelease disables release disactive by generation, release type, platform and version.
+	DisableRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) error
+
+	// SetAsDefaultRelease sets the release as default.
+	SetAsDefaultRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) error
+
+	// CancelAsDefaultRelease cancels the release as default.
+	CancelAsDefaultRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) error
+
+	// 	DeleteRelease deletes release by generation, release type, platform and version.
+	DeleteRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) error
 }
 
 type handler struct {
@@ -920,4 +976,121 @@ func (h *handler) ListNodeWorkflowOperationInstanceStatus(ctx context.Context,
 	instanceStatus := resp.ConvertWorkflowOperationInstanceStatusToTypes()
 
 	return instanceStatus, nil
+}
+
+// ListRelease lists release by page and conditions.
+func (h *handler) ListRelease(ctx context.Context, page types.Page, condition *types.ReleaseCondition) (
+	[]*types.Release, int64, error) {
+
+	req := &protoBackend.PackageReleaseListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listRelease(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, releases := resp.ConvertReleasesToTypes()
+
+	return releases, total, nil
+}
+
+// CountRelease counts release by conditions.
+func (h *handler) CountRelease(ctx context.Context, condition *types.ReleaseCondition) (int64, error) {
+	req := &protoBackend.PackageReleaseListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listRelease(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// SetReleaseLabels sets release labels.
+func (h *handler) SetReleaseLabels(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	labels []string) error {
+
+	req := &protoBackend.PackageReleaseSetLabelsReq{Labels: labels}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.setReleaseLabels(ctx, req)
+}
+
+// EnableRelease enables release active by generation, release type, platform and version.
+func (h *handler) EnableRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) error {
+
+	req := &protoBackend.PackageReleaseEnableReq{}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.enableRelease(ctx, req)
+}
+
+// DisableRelease disables release disactive by generation, release type, platform and version.
+func (h *handler) DisableRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) error {
+
+	req := &protoBackend.PackageReleaseDisableReq{}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.disableRelease(ctx, req)
+}
+
+// SetAsDefaultRelease sets the release as default.
+func (h *handler) SetAsDefaultRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) error {
+
+	req := &protoBackend.PackageReleaseSetAsDefaultReq{}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.setAsDefaultRelease(ctx, req)
+}
+
+// CancelAsDefaultRelease cancels the release as default.
+func (h *handler) CancelAsDefaultRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) error {
+
+	req := &protoBackend.PackageReleaseCancelAsDefaultReq{}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.cancelAsDefaultRelease(ctx, req)
+}
+
+// DeleteRelease deletes release by generation, release type, platform and version.
+func (h *handler) DeleteRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) error {
+
+	req := &protoBackend.PackageReleaseDeleteReq{}
+	req.SetIdentifer(gen, releaseType, plat, version)
+
+	return h.cli.deleteRelease(ctx, req)
 }

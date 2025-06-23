@@ -1,0 +1,221 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// PackageReleaseExactConditions describes release exact conditions.
+message PackageReleaseExactConditions {
+  repeated int64 generation = 1;
+  repeated string release_type = 2;
+  repeated Platform platform = 3;
+  repeated string version = 4;
+}
+
+// PackageReleaseListReq describes the HTTP request body when list package
+// release.
+message PackageReleaseListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  PackageReleaseExactConditions exact_include_conditions = 3;
+}
+
+// PackageReleaseListResp describes the HTTP response body when list package
+// release.
+message PackageReleaseListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated Release items = 2;
+  }
+  Data data = 4;
+}
+
+// PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
+message PackageReleaseSetLabelsReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+  repeated string labels = 5;
+}
+
+// PackageReleaseSetLabelsResp describes the HTTP response body when set
+// labels.
+message PackageReleaseSetLabelsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackageReleaseEnableReq describes the HTTP request body when enable package
+// release.
+message PackageReleaseEnableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseEnableResp describes the HTTP response body when enable package
+// release.
+message PackageReleaseEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackageReleaseDisableReq describes the HTTP request body when disable package
+// release.
+message PackageReleaseDisableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseDisableResp describes the HTTP response body when disable
+// package release.
+message PackageReleaseDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackageReleaseSetAsDefaultReq describes the HTTP request body when set
+// default package release.
+message PackageReleaseSetAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseSetAsDefaultResp describes the HTTP response body when set
+// default package release.
+message PackageReleaseSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel
+// default package release.
+message PackageReleaseCancelAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseCancelAsDefaultResp describes the HTTP response body when
+// cancel default package release.
+message PackageReleaseCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PackageReleaseDeleteReq describes the HTTP request body when delete release.
+message PackageReleaseDeleteReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseDeleteResp describes the HTTP response body when delete
+// release.
+message PackageReleaseDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+service Package {
+  // ListRelease lists releases.
+  rpc ListRelease(PackageReleaseListReq) returns (PackageReleaseListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/list"
+      body : "*"
+    };
+  }
+
+  // SetReleaseLabels sets release labels.
+  rpc SetReleaseLabels(PackageReleaseSetLabelsReq)
+      returns (PackageReleaseSetLabelsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/set_labels"
+      body : "*"
+    };
+  }
+
+  // EnableRelease enables release.
+  rpc EnableRelease(PackageReleaseEnableReq)
+      returns (PackageReleaseEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/enable"
+      body : "*"
+    };
+  }
+
+  // DisableRelease disables release.
+  rpc DisableRelease(PackageReleaseDisableReq)
+      returns (PackageReleaseDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultRelease sets release as default.
+  rpc SetAsDefaultRelease(PackageReleaseSetAsDefaultReq)
+      returns (PackageReleaseSetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultRelease cancels release as default.
+  rpc CancelAsDefaultRelease(PackageReleaseCancelAsDefaultReq)
+      returns (PackageReleaseCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteRelease deletes release.
+  rpc DeleteRelease(PackageReleaseDeleteReq)
+      returns (PackageReleaseDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/delete"
+      body : "*"
+    };
+  }
+}

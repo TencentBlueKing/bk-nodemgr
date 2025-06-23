@@ -25,4 +25,13 @@ const (
 
 	// FieldKeyOSType defines the field key of os type.
 	FieldKeyOSType = "data.os_type"
+
+	// FieldKeyLabels defines the field key of labels.
+	FieldKeyLabels = "data.labels"
+
+	// FieldKeyEnabled defines the field key of enabled.
+	FieldKeyEnabled = "data.enabled"
+
+	// FieldKeyAsDefault defines the field key of as default.
+	FieldKeyAsDefault = "data.as_default"
 )

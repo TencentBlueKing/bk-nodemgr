@@ -11,7 +11,7 @@
 package v3
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -185,6 +185,7 @@ func (x *TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult 
 	}
 
 	data := x.GetData()
+
 	return &types.HostDistinctResult{
 		NodeRole:      types.StringListToNodeRoleList(data.GetNodeRole()),
 		NodeStatus:    types.StringListToNodeStatusList(data.GetNodeStatus()),
@@ -298,7 +299,7 @@ func convertHostConditionsFromTypes(
 	}
 
 	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, fmt.Errorf("exact-exclude and fuzzy-exclude not supported")
+		return nil, nil, errors.New("exact-exclude and fuzzy-exclude not supported")
 	}
 
 	return exactCond, fuzzyCond, nil

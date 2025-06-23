@@ -28,13 +28,14 @@ type Release struct {
 	CPUArch     string    `json:"cpu_arch" bson:"cpu_arch"`
 	OSType      string    `json:"os_type" bson:"os_type"`
 	Labels      []string  `json:"labels" bson:"labels"`
+	Enabled     bool      `json:"enabled" bson:"enabled"`
+	AsDefault   bool      `json:"as_default" bson:"as_default"`
 	ChangeLogEN string    `json:"change_log_en" bson:"change_log_en"`
 	ChangeLogZH string    `json:"change_log_zh" bson:"change_log_zh"`
 	FileName    string    `json:"filename" bson:"filename"`
-	UpstreamDir string    `json:"upstream_dir" bson:"upstream_dir"`
-	LocalDir    string    `json:"local_dir" bson:"local_dir"`
 	MD5         string    `json:"md5" bson:"md5"`
 	UpdatedAt   time.Time `json:"updated_at" bson:"updated_at"`
+	Operator    string    `json:"operator" bson:"operator"`
 }
 
 // UniqueKey unique key of the table.

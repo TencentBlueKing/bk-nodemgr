@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -86,4 +87,20 @@ func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
 	}
 
 	return nil
+}
+
+// convertPlatformToTypes convert platform to types.
+func convertPlatformToTypes(plat *Platform) platform.Platform {
+	return platform.Platform{
+		OS:   plat.GetOsType(),
+		Arch: plat.GetCpuArch(),
+	}
+}
+
+// convertPlatformFromTypes convert platform from types.
+func convertPlatformFromTypes(plat platform.Platform) *Platform {
+	return &Platform{
+		OsType:  plat.OS,
+		CpuArch: plat.Arch,
+	}
 }

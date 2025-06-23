@@ -43,6 +43,30 @@ type IHandler interface {
 	// List lists releases.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
 
+	// SetLabels sets a release's labels.
+	SetLabels(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		labels ...string) error
+
+	// SetEnabled sets a release's enabled.
+	SetEnabled(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		enabled bool) error
+
+	// SetAsDefault sets a release's asDefault.
+	SetAsDefault(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		asDefault bool) error
+
 	// Count counts releases.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -160,6 +184,87 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	return data, num, nil
 }
 
+// SetLabels sets a release's labels.
+func (h *handler) SetLabels(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	labels ...string) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gen),
+		WithType(releaseType),
+		WithCPUArch(plat.Arch),
+		WithOSType(plat.OS),
+		WithVersion(version),
+	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.dao.UpdateField(ctx, filter, FieldKeyLabels, labels)
+}
+
+// SetEnabled sets a release's enabled.
+func (h *handler) SetEnabled(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	enabled bool) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gen),
+		WithType(releaseType),
+		WithCPUArch(plat.Arch),
+		WithOSType(plat.OS),
+		WithVersion(version),
+	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.dao.UpdateField(ctx, filter, FieldKeyEnabled, enabled)
+}
+
+// SetAsDefault sets a release as default.
+func (h *handler) SetAsDefault(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	asDefault bool) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gen),
+		WithType(releaseType),
+		WithCPUArch(plat.Arch),
+		WithOSType(plat.OS),
+		WithVersion(version),
+	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.dao.UpdateField(ctx, filter, FieldKeyAsDefault, asDefault)
+}
+
 // Count counts releases.
 func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	if ctx == nil {
@@ -236,10 +341,11 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		ChangeLogEN: release.ChangeLogEN,
 		ChangeLogZH: release.ChangeLogZH,
 		FileName:    release.FileName,
-		UpstreamDir: release.UpstreamDir,
-		LocalDir:    release.LocalDir,
 		MD5:         release.MD5,
+		Enabled:     release.Enabled,
+		AsDefault:   release.AsDefault,
 		UpdatedAt:   release.UpdatedAt,
+		Operator:    release.Operator,
 	}
 }
 
@@ -254,9 +360,10 @@ func convertReleaseFromTypes(release *types.Release) *Release {
 		ChangeLogEN: release.ChangeLogEN,
 		ChangeLogZH: release.ChangeLogZH,
 		FileName:    release.FileName,
-		UpstreamDir: release.UpstreamDir,
-		LocalDir:    release.LocalDir,
 		MD5:         release.MD5,
+		Enabled:     release.Enabled,
+		AsDefault:   release.AsDefault,
 		UpdatedAt:   release.UpdatedAt,
+		Operator:    release.Operator,
 	}
 }

@@ -847,3 +847,150 @@ func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoB
 
 	return resp, nil
 }
+
+func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseListReq) (
+	*protoBackend.PackageReleaseListResp, error) {
+
+	resp := new(protoBackend.PackageReleaseListResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/list").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list release failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageReleaseSetLabelsReq) error {
+
+	resp := new(protoBackend.PackageReleaseSetLabelsResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/set_labels").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set release labels failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) enableRelease(ctx context.Context, req *protoBackend.PackageReleaseEnableReq) error {
+
+	resp := new(protoBackend.PackageReleaseEnableResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/enable").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("enable release failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableRelease(ctx context.Context, req *protoBackend.PackageReleaseDisableReq) error {
+
+	resp := new(protoBackend.PackageReleaseDisableResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/disable").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("disable release failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
+
+	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/set_as_default").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set release as default failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseCancelAsDefaultReq) error {
+
+	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/cancel_as_default").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteRelease(ctx context.Context, req *protoBackend.PackageReleaseDeleteReq) error {
+
+	resp := new(protoBackend.PackageReleaseDeleteResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/delete").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete release failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return nil
+}

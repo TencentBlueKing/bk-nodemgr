@@ -14,6 +14,7 @@ package pkg
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/publish"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -44,4 +45,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	publish.Load(h.rg, capability)
 	upload.Load(h.rg, capability)
+	release.Load(h.rg, capability)
 }

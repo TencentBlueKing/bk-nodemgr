@@ -128,3 +128,27 @@ message TimeRange {
   int64 start_timestamp_sec = 1;
   int64 end_timestamp_sec = 2;
 }
+
+// Release describes the release.
+message Release {
+  optional int64 generation = 1;
+  optional string release_type = 2;
+  optional string os_type = 3;
+  optional string cpu_arch = 4;
+  optional string version = 5;
+  optional string file_name = 6;
+  repeated string labels = 7;
+  optional bool enabled = 8;
+  optional bool as_default = 9;
+  optional string md5 = 10;
+  optional uint64 updated_at = 11;
+  optional string operator = 12;
+  optional string change_log_en = 13;
+  optional string change_log_zh = 14;
+}
+
+// Platform describes the platform informations.
+message Platform {
+  string os_type = 1;
+  string cpu_arch = 2;
+}
