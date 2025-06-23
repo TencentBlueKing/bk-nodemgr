@@ -876,7 +876,6 @@ func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseL
 }
 
 func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageReleaseSetLabelsReq) error {
-
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_labels").
@@ -896,7 +895,6 @@ func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageRel
 }
 
 func (c *cli) enableRelease(ctx context.Context, req *protoBackend.PackageReleaseEnableReq) error {
-
 	resp := new(protoBackend.PackageReleaseEnableResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/enable").
@@ -916,7 +914,6 @@ func (c *cli) enableRelease(ctx context.Context, req *protoBackend.PackageReleas
 }
 
 func (c *cli) disableRelease(ctx context.Context, req *protoBackend.PackageReleaseDisableReq) error {
-
 	resp := new(protoBackend.PackageReleaseDisableResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/disable").
@@ -936,7 +933,6 @@ func (c *cli) disableRelease(ctx context.Context, req *protoBackend.PackageRelea
 }
 
 func (c *cli) setAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
-
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_as_default").
@@ -956,7 +952,6 @@ func (c *cli) setAsDefaultRelease(ctx context.Context, req *protoBackend.Package
 }
 
 func (c *cli) cancelAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseCancelAsDefaultReq) error {
-
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/cancel_as_default").
@@ -976,7 +971,6 @@ func (c *cli) cancelAsDefaultRelease(ctx context.Context, req *protoBackend.Pack
 }
 
 func (c *cli) deleteRelease(ctx context.Context, req *protoBackend.PackageReleaseDeleteReq) error {
-
 	resp := new(protoBackend.PackageReleaseDeleteResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/delete").
