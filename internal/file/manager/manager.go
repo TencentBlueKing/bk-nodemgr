@@ -22,10 +22,12 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
@@ -59,11 +61,24 @@ type IManager interface {
 
 	// PublishReleaseBinTool generate release bintool package.
 	PublishReleaseBinTool(ctx context.Context, uploadID string) error
+
+	// EnsureFileToLocal ensure the file to local.
+	EnsureFileToLocal(ctx context.Context,
+		gen types.Generation,
+		rt types.ReleaseType,
+		plat platform.Platform,
+		version string) (iface.File, error)
+
+	// EnsureReleaseToLocal ensure the release to local.
+	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, error)
 }
 
 // New returns a new file manager.
 func New(opts ...OptionFn) *Manager {
 	manager := &Manager{
+		localFilePool: &localFilePool{
+			files: map[string]*localFile{},
+		},
 		logger: logger.LoggerDefault{},
 	}
 
@@ -140,18 +155,18 @@ func WithUpstreamReleaseBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
 	}
 }
 
-// WithLocalTempFileGroup sets the local file group.
-func WithLocalTempFileGroup(fileGroup iface.FileGroup, tempDir string) OptionFn {
+// WithTempFileGroup sets the temp file group.
+func WithTempFileGroup(fileGroup iface.FileGroup, tempDir string) OptionFn {
 	return func(manager *Manager) {
 		manager.temp = fileGroup
 		manager.tempDir = tempDir
 	}
 }
 
-// WithLocalFileGroup sets the local file group.
-func WithLocalFileGroup(fileGroup iface.FileGroup) OptionFn {
+// WithLocalFileGroupDir sets the local file group dir.
+func WithLocalFileGroupDir(fileGroupDir string) OptionFn {
 	return func(manager *Manager) {
-		manager.local = fileGroup
+		manager.localDir = fileGroupDir
 	}
 }
 
@@ -169,6 +184,34 @@ func WithStorageRelease(storageRelease release.IStorage) OptionFn {
 	}
 }
 
+// WithStorageTopo sets the storage for topo.
+func WithStorageTopo(storageTopo topo.IStorage) OptionFn {
+	return func(manager *Manager) {
+		manager.storageTopo = storageTopo
+	}
+}
+
+// WithAdvertiseIPV4 sets the host advertise ipv4.
+func WithAdvertiseIPV4(ipv4 string) OptionFn {
+	return func(manager *Manager) {
+		manager.hostAdvertiseIPV4 = ipv4
+	}
+}
+
+// WithAdvertiseIPV6 sets the host advertise ipv4.
+func WithAdvertiseIPV6(ipv6 string) OptionFn {
+	return func(manager *Manager) {
+		manager.hostAdvertiseIPV6 = ipv6
+	}
+}
+
+// WithInContainer sets the in container.
+func WithInContainer(inContainer bool) OptionFn {
+	return func(manager *Manager) {
+		manager.inContainer = inContainer
+	}
+}
+
 // Manager provides the file manager.
 type Manager struct {
 	// upstream file group is regarded as the file source.
@@ -182,15 +225,29 @@ type Manager struct {
 	upstreamReleaseBinTool iface.FileGroup
 
 	// local file group is regarded as the file cache.
-	local iface.FileGroup
+	localDir string
+
+	// local file pool.
+	localFilePool *localFilePool
 
 	// temp file group is regarded as the file temp.
 	temp    iface.FileGroup
 	tempDir string
 
+	// host inner ip.
+	hostAdvertiseIPV4 string
+	hostAdvertiseIPV6 string
+
+	// in container.
+	inContainer bool
+
+	// gse handler.
+	gseHandler gse.IHandler
+
 	// storages.
 	storageUpload  upload.IStorage
 	storageRelease release.IStorage
+	storageTopo    topo.IStorage
 
 	// logger.
 	logger logger.Logger
@@ -236,6 +293,10 @@ func (m *Manager) Start(_ context.Context) error {
 
 	if m.storageRelease == nil {
 		return errors.New("invalid storage release")
+	}
+
+	if m.storageTopo == nil {
+		return errors.New("invalid storage topo")
 	}
 
 	m.logger.Infof("started manager")
@@ -326,7 +387,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, e
 }
 
 func (m *Manager) fetchReleaseAgentLocal(
-	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (iface.File, error) {
+	ctx context.Context, plat platform.Platform, version string) (iface.File, error) {
 
 	// get agent.
 	agent, err := m.storageRelease.GetRelease(ctx,

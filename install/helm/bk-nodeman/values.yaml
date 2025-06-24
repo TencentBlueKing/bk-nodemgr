@@ -893,11 +893,8 @@ file:
     tempFileGroup:
       fullPath: "/bk-nodeman/file/temp"
 
-    agentFileGroup:
-      fullPath: "/bk-nodeman/file/agent"
-
-    proxyFileGroup:
-      fullPath: "/bk-nodeman/file/proxy"
+    localFileGroup:
+      fullPath: "/bk-nodeman/file/local"
 
     ## defines the log related settings.
     log:

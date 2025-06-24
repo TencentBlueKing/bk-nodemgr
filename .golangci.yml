@@ -594,6 +594,7 @@ linters-settings:
       - p *ProviderDefault
       - m *operMgr
       - g *Group
+      - t *Transfer
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false

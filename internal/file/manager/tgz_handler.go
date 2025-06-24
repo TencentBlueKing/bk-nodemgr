@@ -136,7 +136,8 @@ func generateTgz(
 				continue
 			}
 
-			paths := strings.Split(header.Name, "/")
+			// trim the heading '.' and '/'
+			paths := strings.Split(strings.TrimLeft(header.Name, "./"), "/")
 
 			// validates if the paths match the rules.
 			for _, rule := range fileRules {
@@ -234,7 +235,8 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 			return fmt.Errorf("failed to read tar header. err: %w", err)
 		}
 
-		paths := strings.Split(header.Name, "/")
+		// trim the heading '.' and '/'
+		paths := strings.Split(strings.TrimLeft(header.Name, "./"), "/")
 
 		// validates if the paths match the rules.
 		for _, rule := range rules {

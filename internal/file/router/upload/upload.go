@@ -14,28 +14,23 @@ package upload
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg             *gin.RouterGroup
-	manager        manager.IManager
-	agentFileGroup iface.FileGroup
-	proxyFileGroup iface.FileGroup
-	logger         logger.Logger
+	rg      *gin.RouterGroup
+	manager manager.IManager
+	logger  logger.Logger
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:             rg.Group("/upload"),
-		manager:        opt.Manager,
-		agentFileGroup: opt.AgentFileGroup,
-		proxyFileGroup: opt.ProxyFileGroup,
-		logger:         opt.Logger,
+		rg:      rg.Group("/upload"),
+		manager: opt.Manager,
+		logger:  opt.Logger,
 	}
 }
 
@@ -47,6 +42,4 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/origin/server", rest.RestHandlerFunc(h.UploadOriginServer))
 	h.rg.POST("/origin/cert", rest.RestHandlerFunc(h.UploadOriginCert))
 	h.rg.POST("/origin/bintool", rest.RestHandlerFunc(h.UploadOriginBinTool))
-	h.rg.POST("/agent", rest.RestHandlerFunc(h.Agent))
-	h.rg.POST("/proxy", rest.RestHandlerFunc(h.Proxy))
 }

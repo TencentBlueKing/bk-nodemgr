@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -87,21 +88,12 @@ func NewService(conf *config.FileService) (*Service, error) {
 
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
 
-	var err error
-	svc.Cap.AgentFileGroup, err = local.NewLocalDir(conf.AgentFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init agent file group: %w", err)
-	}
-
-	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init group file group: %w", err)
-	}
-
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
 		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
+
+	var err error
 
 	// init mongoclient.
 	mongoClient, err := initMongoDB(&conf.MongoDB)
@@ -119,6 +111,11 @@ func NewService(conf *config.FileService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.StorageTopo, err = storageTopo.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
 	// init bkrepo.
 	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
 	if err != nil {
@@ -130,6 +127,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		svc.Cap.BKRepo,
 		svc.Cap.StorageUpload,
 		svc.Cap.StorageRelease,
+		svc.Cap.StorageTopo,
 		svc.Cap.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init manager: %w", err)
@@ -285,6 +283,7 @@ func initManager(conf *config.FileService,
 	repo bkrepo.IHandler,
 	storageUpload storageUpload.IStorage,
 	storageRelease storageRelease.IStorage,
+	storageTopo storageTopo.IStorage,
 	logger logger.Logger) (manager.IManager, error) {
 
 	// init upstream origin file groups from bkrepo.
@@ -339,9 +338,14 @@ func initManager(conf *config.FileService,
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
-		manager.WithLocalTempFileGroup(tempFG, conf.TempFileGroup.FullPath),
+		manager.WithTempFileGroup(tempFG, conf.TempFileGroup.FullPath),
+		manager.WithLocalFileGroupDir(conf.LocalFileGroup.FullPath),
 		manager.WithStorageUpload(storageUpload),
 		manager.WithStorageRelease(storageRelease),
+		manager.WithStorageTopo(storageTopo),
+		manager.WithAdvertiseIPV4(conf.HTTPServer.AdvertiseIPV4),
+		manager.WithAdvertiseIPV6(conf.HTTPServer.AdvertiseIPV6),
+		manager.WithInContainer(conf.InContainer),
 	), nil
 }
 

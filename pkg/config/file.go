@@ -60,12 +60,12 @@ func NewFileService() *FileService {
 type FileService struct {
 	RunMode        RunMode     `yaml:"runMode" usage:"run mode of service"`
 	TenantMode     tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
+	InContainer    bool        `yaml:"inContainer" usage:"whether in container"`
 	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
 	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer    HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
 	TempFileGroup  FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
-	AgentFileGroup FileGroup   `yaml:"agentFileGroup" usage:"agent file group config of file service"`
-	ProxyFileGroup FileGroup   `yaml:"proxyFileGroup" usage:"proxy file group config of file service"`
+	LocalFileGroup FileGroup   `yaml:"localFileGroup" usage:"local file group config of file service"`
 	Repo           Repo        `yaml:"repo" usage:"repo config of file service"`
 	MongoDB        MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
 	Log            Log         `yaml:"log" usage:"log config of file service"`
@@ -93,11 +93,11 @@ func (svc *FileService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *FileService) Validate() error {
-	if err := svc.AgentFileGroup.Validate(); err != nil {
+	if err := svc.TempFileGroup.Validate(); err != nil {
 		return err
 	}
 
-	if err := svc.ProxyFileGroup.Validate(); err != nil {
+	if err := svc.LocalFileGroup.Validate(); err != nil {
 		return err
 	}
 

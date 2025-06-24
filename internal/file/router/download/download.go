@@ -12,27 +12,25 @@
 package download
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg             *gin.RouterGroup
-	agentFileGroup iface.FileGroup
-	proxyFileGroup iface.FileGroup
-	logger         logger.Logger
+	rg      *gin.RouterGroup
+	manager manager.IManager
+	logger  logger.Logger
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:             rg.Group("/download"),
-		agentFileGroup: opt.AgentFileGroup,
-		proxyFileGroup: opt.ProxyFileGroup,
-		logger:         opt.Logger,
+		rg:      rg.Group("/download"),
+		manager: opt.Manager,
+		logger:  opt.Logger,
 	}
 }
 

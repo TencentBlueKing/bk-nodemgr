@@ -424,7 +424,8 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
-					{targetFilePath: []string{"gse", "bin"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
 				},
 				[]*tgzWriteRuleStream{
 					// get things from origin agent.
@@ -451,7 +452,7 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 
 									return ""
 								}(), "bin", tgzPathNameAny2},
-								targetFilePath: []string{"gse", "bin", tgzPathNameAny2},
+								targetFilePath: []string{"bin", tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -462,22 +463,22 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 						fileRules: []tgzWriteRuleFile{
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gseca.crt"},
-								targetFilePath: []string{"gse", "cert", "gseca.crt"},
+								targetFilePath: []string{"cert", "gseca.crt"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.crt"},
-								targetFilePath: []string{"gse", "cert", "gse_agent.crt"},
+								targetFilePath: []string{"cert", "gse_agent.crt"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.key"},
-								targetFilePath: []string{"gse", "cert", "gse_agent.key"},
+								targetFilePath: []string{"cert", "gse_agent.key"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
-								targetFilePath: []string{"gse", "cert", "cert_encrypt.key"},
+								targetFilePath: []string{"cert", "cert_encrypt.key"},
 								targetFileMode: tgzModeFile,
 							},
 						},
@@ -506,7 +507,7 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 
 									return ""
 								}(), tgzPathNameAny2},
-								targetFilePath: []string{"gse", "bin", tgzPathNameAny2},
+								targetFilePath: []string{"bin", tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},

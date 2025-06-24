@@ -16,8 +16,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
@@ -27,12 +27,6 @@ import (
 type Capability struct {
 	// Logger logger
 	Logger logger.Logger
-
-	// AgentFileGroup agent file group.
-	AgentFileGroup iface.FileGroup
-
-	// ProxyFileGroup proxy file group.
-	ProxyFileGroup iface.FileGroup
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
@@ -45,6 +39,9 @@ type Capability struct {
 
 	// StorageRelease provides storage release handler.
 	StorageRelease release.IStorage
+
+	// StorageTopo provides storage topo handler.
+	StorageTopo topo.IStorage
 
 	// Manager provides manager handler.
 	Manager manager.IManager
@@ -61,6 +58,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.StorageRelease.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageTopo.Start(ctx); err != nil {
 		return err
 	}
 

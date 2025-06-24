@@ -171,6 +171,22 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
+			filePath: []string{tgzPathNameAny1, "gse_api_client.crt"},
+			callback: func(_ []string, _ io.Reader) error {
+				detail.CertFiles = append(detail.CertFiles, "gse_api_client.crt")
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "gse_api_client.key"},
+			callback: func(_ []string, _ io.Reader) error {
+				detail.CertFiles = append(detail.CertFiles, "gse_api_client.key")
+
+				return nil
+			},
+		},
+		{
 			filePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "cert_encrypt.key")
@@ -308,6 +324,16 @@ func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser)
 				{
 					sourceFilePath: []string{"gse_server.key"},
 					targetFilePath: []string{"cert", "gse_server.key"},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{"gse_api_client.crt"},
+					targetFilePath: []string{"cert", "gse_api_client.crt"},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{"gse_api_client.key"},
+					targetFilePath: []string{"cert", "gse_api_client.key"},
 					targetFileMode: tgzModeFile,
 				},
 				{

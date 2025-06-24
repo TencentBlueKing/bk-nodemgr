@@ -51,7 +51,6 @@ type ActParamUpsertHostToCMDB struct {
 	Token string `json:"token"`
 }
 
-// UpsertHost ...
 type actionUpsertHostToCMDB struct {
 	cmdbHandler           cmdb.IHost
 	storageHost           topo.IStorageHost

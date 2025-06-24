@@ -201,7 +201,7 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 		plat := originDetail.Platforms[idx]
 
 		// local release agent.
-		localAgent, err := m.fetchReleaseAgentLocal(ctx, types.Generation2, plat, originDetail.Version)
+		localAgent, err := m.fetchReleaseAgentLocal(ctx, plat, originDetail.Version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate release proxy, failed to fetch release agent: %w", err)
 		}
@@ -237,7 +237,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
-					{targetFilePath: []string{"gse", "bin"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
 				},
 				[]*tgzWriteRuleStream{
 					// get things from origin server.
@@ -246,12 +247,12 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						fileRules: []tgzWriteRuleFile{
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "server", "bin", "gse_file"},
-								targetFilePath: []string{"gse", "bin", "gse_file"},
+								targetFilePath: []string{"bin", "gse_file"},
 								targetFileMode: tgzModeExe,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "server", "bin", "gse_data"},
-								targetFilePath: []string{"gse", "bin", "gse_data"},
+								targetFilePath: []string{"bin", "gse_data"},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -262,32 +263,42 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						fileRules: []tgzWriteRuleFile{
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gseca.crt"},
-								targetFilePath: []string{"gse", "cert", "gseca.crt"},
+								targetFilePath: []string{"cert", "gseca.crt"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.crt"},
-								targetFilePath: []string{"gse", "cert", "gse_agent.crt"},
+								targetFilePath: []string{"cert", "gse_agent.crt"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.key"},
-								targetFilePath: []string{"gse", "cert", "gse_agent.key"},
+								targetFilePath: []string{"cert", "gse_agent.key"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_server.crt"},
-								targetFilePath: []string{"gse", "cert", "gse_server.crt"},
+								targetFilePath: []string{"cert", "gse_server.crt"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "gse_server.key"},
-								targetFilePath: []string{"gse", "cert", "gse_server.key"},
+								targetFilePath: []string{"cert", "gse_server.key"},
+								targetFileMode: tgzModeFile,
+							},
+							{
+								sourceFilePath: []string{tgzPathNameAny1, "gse_api_client.crt"},
+								targetFilePath: []string{"cert", "gse_api_client.crt"},
+								targetFileMode: tgzModeFile,
+							},
+							{
+								sourceFilePath: []string{tgzPathNameAny1, "gse_api_client.key"},
+								targetFilePath: []string{"cert", "gse_api_client.key"},
 								targetFileMode: tgzModeFile,
 							},
 							{
 								sourceFilePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
-								targetFilePath: []string{"gse", "cert", "cert_encrypt.key"},
+								targetFilePath: []string{"cert", "cert_encrypt.key"},
 								targetFileMode: tgzModeFile,
 							},
 						},
@@ -308,7 +319,7 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 
 									return ""
 								}(), tgzPathNameAny2},
-								targetFilePath: []string{"gse", "bin", tgzPathNameAny2},
+								targetFilePath: []string{"bin", tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -318,8 +329,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						sourceFile: releaseAgentFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{"gse", "bin", "gse_agent"},
-								targetFilePath: []string{"gse", "bin", "gse_agent"},
+								sourceFilePath: []string{"bin", "gse_agent"},
+								targetFilePath: []string{"bin", "gse_agent"},
 								targetFileMode: tgzModeExe,
 							},
 						},

@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -37,22 +36,13 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	pkgName, err := nodepkg.FormatPkgName(
+	file, err := h.manager.EnsureFileToLocal(sCtx,
 		types.Generation(req.GetGeneration()),
-		types.ReleaseTypeProxy,
+		types.ReleaseTypeAgent,
 		platform.Platform{
 			OS:   req.GetOsType(),
 			Arch: req.GetCpuArch(),
-		},
-		req.GetVersion(),
-	)
-	if err != nil {
-		h.logger.Error("format pkg name failed", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	file, err := h.proxyFileGroup.GetFile(sCtx, pkgName)
+		}, req.GetVersion())
 	if err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
 	}

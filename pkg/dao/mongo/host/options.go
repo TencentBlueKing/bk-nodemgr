@@ -225,6 +225,16 @@ func WithStaticInnerIP(ips ...string) OptFn {
 	return base.WithRegexMatch(FieldKeyStaticInnerIP, regexs...)
 }
 
+// WithStaticInnerIPV6 filters by contains inner ipv6.
+func WithStaticInnerIPV6(ips ...string) OptFn {
+	regexs := make([]string, len(ips))
+	for idx, ip := range ips {
+		regexs[idx] = fmt.Sprintf("(^|,)%s($|,)", ip)
+	}
+
+	return base.WithRegexMatch(FieldKeyStaticInnerIPV6, regexs...)
+}
+
 // WithoutAgentID filters by not contains agent id.
 func WithoutAgentID(agentIDs ...string) OptFn {
 	return base.WithoutValues(FieldKeyDynamicAgentID, agentIDs...)
