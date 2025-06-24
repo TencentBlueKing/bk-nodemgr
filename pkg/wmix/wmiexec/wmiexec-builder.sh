@@ -3,7 +3,8 @@
 # make sure buildx is available
 echo "Make sure Docker buildx is available..."
 docker buildx version || { echo "Please install Docker buildx"; exit 1; }
-docker buildx create --name wmiexec-multiarch --use --bootstrap || true
+docker buildx create --name wmiexec-multiarch --platform linux/amd64,linux/arm64,linux/arm/v7 --use --bootstrap || true
+docker buildx use wmiexec-multiarch
 
 mkdir -p binaries
 

@@ -1,4 +1,3 @@
-#!/data/home/xyuzou/items/test/impacket_env/bin/python3.13
 # Impacket - Collection of Python classes for working with network protocols.
 #
 # Copyright Fortra, LLC and its affiliated companies

@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     automake \
     libffi-dev \
     libssl-dev \
-    upx \
     git \
     wget \
     scons \
@@ -41,17 +40,21 @@ ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         staticx --strip dist/wmiexec dist/wmiexec-static \
             -l /lib/x86_64-linux-gnu/libnss_dns.so.2 \
-            -l /lib/x86_64-linux-gnu/libresolv.so.2; \
+            -l /lib/x86_64-linux-gnu/libresolv.so.2 \
+            -l /lib/x86_64-linux-gnu/libgcc_s.so.1; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
         staticx --strip dist/wmiexec dist/wmiexec-static \
             -l /lib/aarch64-linux-gnu/libnss_dns.so.2 \
-            -l /lib/aarch64-linux-gnu/libresolv.so.2; \
+            -l /lib/aarch64-linux-gnu/libresolv.so.2 \
+            -l /lib/aarch64-linux-gnu/libgcc_s.so.1; \
     elif [ "$TARGETARCH" = "arm" ]; then \
         staticx --strip dist/wmiexec dist/wmiexec-static \
             -l /lib/arm-linux-gnueabihf/libnss_dns.so.2 \
-            -l /lib/arm-linux-gnueabihf/libresolv.so.2; \
+            -l /lib/arm-linux-gnueabihf/libresolv.so.2 \
+            -l /lib/arm-linux-gnueabihf/libgcc_s.so.1; \
     else \
         staticx --strip dist/wmiexec dist/wmiexec-static \
             -l /lib/x86_64-linux-gnu/libnss_dns.so.2 \
-            -l /lib/x86_64-linux-gnu/libresolv.so.2; \
+            -l /lib/x86_64-linux-gnu/libresolv.so.2 \
+            -l /lib/x86_64-linux-gnu/libgcc_s.so.1; \
     fi
