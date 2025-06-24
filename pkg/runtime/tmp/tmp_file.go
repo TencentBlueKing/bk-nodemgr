@@ -40,7 +40,13 @@ func (f *File) CleanUp() error {
 }
 
 // NewTempFile creates a temporary file and returns its path.
-func NewTempFile(data io.ReadCloser, name string) (*File, error) {
+func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("create temporary file panic, recover(%v)", r)
+		}
+	}()
+
 	tmpDir, err := GetTmpDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file, err: %w", err)
@@ -74,7 +80,7 @@ func NewTempFile(data io.ReadCloser, name string) (*File, error) {
 		return nil, fmt.Errorf("failed to close temporary file, err: %w", err)
 	}
 
-	file := &File{
+	file = &File{
 		path: tmpFilePath,
 	}
 

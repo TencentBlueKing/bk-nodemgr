@@ -38,12 +38,53 @@ func Test(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "nil data",
+			args: args{
+				data: nil,
+				name: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "empty name",
+			args: args{
+				data: func() io.ReadCloser {
+					str := "hello this is a test"
+					return io.NopCloser(strings.NewReader(str))
+				}(),
+				name: "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "close data",
+			args: args{
+				data: func() io.ReadCloser {
+					str := "hello this is a test"
+					data := io.NopCloser(strings.NewReader(str))
+					data.Close()
+
+					return data
+				}(),
+				name: "close_data",
+			},
+			wantErr: false,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			file, err := NewTempFile(tt.args.data, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTempFile() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+			}
+
+			if err != nil {
+				t.Logf("err: %v", err)
+
 				return
 			}
 
