@@ -337,7 +337,12 @@ func (handler *triggerHandler) checkFeasibility(_ context.Context, trig *trigger
 		}
 
 		// not enough interval yet.
-		if trig.LastTriggeredAt.Add(metadata.Interval).After(time.Now()) {
+		nextTime, err := scheduler.NextActiveTime(metadata.Interval, trig.LastTriggeredAt)
+		if err != nil {
+			return err
+		}
+
+		if nextTime.After(time.Now()) {
 			return common.ErrTriggerNotReady()
 		}
 
@@ -499,7 +504,12 @@ func (handler *triggerHandler) doPeriodicTrigger(
 	}
 
 	// not enough interval yet.
-	if trigCtl.GetLastTriggeredAt().Add(metadata.Interval).After(time.Now()) {
+	nextTime, err := scheduler.NextActiveTime(metadata.Interval, trigCtl.GetLastTriggeredAt())
+	if err != nil {
+		return nil, err
+	}
+
+	if nextTime.After(time.Now()) {
 		return nil, nil
 	}
 

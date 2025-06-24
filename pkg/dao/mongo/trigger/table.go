@@ -48,8 +48,8 @@ type MetadataOnce struct {
 
 // MetadataPeriodic will store the metadata of a trigger.
 type MetadataPeriodic struct {
-	IntervalSec        int64 `json:"interval_sec" bson:"interval_sec"`
-	AllowedConcurrency bool  `json:"allowed_concurrency" bson:"allowed_concurrency"`
+	Interval           string `json:"interval" bson:"interval"`
+	AllowedConcurrency bool   `json:"allowed_concurrency" bson:"allowed_concurrency"`
 }
 
 // MetadataOrdered will store the metadata of a trigger.

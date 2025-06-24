@@ -11,8 +11,10 @@
 package trigger
 
 import (
-	"errors"
+	"fmt"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 )
 
 // Metadata defines the trigger metadata.
@@ -42,15 +44,40 @@ func (m *MetadataOrdered) Validate() error {
 
 // MetadataPeriodic will store the metadata of periodic trigger.
 type MetadataPeriodic struct {
-	Interval           time.Duration
+	Interval           string
 	AllowedConcurrency bool
 }
 
 // Validate validates the metadata.
 func (m *MetadataPeriodic) Validate() error {
-	if m.Interval <= 0 {
-		return errors.New("interval must be greater than 0")
+	_, err := scheduler.CronParser().Parse(m.Interval)
+	if err != nil {
+		return fmt.Errorf("invalid interval: %w", err)
 	}
 
 	return nil
+}
+
+// NewMetadataPeriodic creates a new MetadataPeriodic instance.
+// The interval can be a time.Duration or a cron expression string.
+// If a time.Duration is provided, it will be converted to a cron expression using "@every <duration>" format.
+func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrency bool) (*MetadataPeriodic, error) {
+	var cronExpr string
+	switch t := any(interval).(type) {
+	case time.Duration:
+		cronExpr = "@every " + t.String()
+	case string:
+		cronExpr = t
+	}
+
+	meta := &MetadataPeriodic{
+		Interval:           cronExpr,
+		AllowedConcurrency: allowedConcurrency,
+	}
+
+	if err := meta.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid metadata periodic: %w", err)
+	}
+
+	return meta, nil
 }

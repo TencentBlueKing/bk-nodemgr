@@ -14,7 +14,6 @@ package trigger
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -183,7 +182,7 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 		meta, ok := trig.Metadata.(*trigger.MetadataPeriodic)
 		if ok {
 			t.MetadataPeriodic = MetadataPeriodic{
-				IntervalSec:        int64(meta.Interval.Seconds()),
+				Interval:           meta.Interval,
 				AllowedConcurrency: meta.AllowedConcurrency,
 			}
 		}
@@ -213,7 +212,7 @@ func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
 
 	case trigger.CategoryPeriodic:
 		typeTrigger.Metadata = &trigger.MetadataPeriodic{
-			Interval:           time.Duration(trig.MetadataPeriodic.IntervalSec) * time.Second,
+			Interval:           trig.MetadataPeriodic.Interval,
 			AllowedConcurrency: trig.MetadataPeriodic.AllowedConcurrency,
 		}
 	}
