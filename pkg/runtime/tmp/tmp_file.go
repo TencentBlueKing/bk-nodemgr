@@ -40,6 +40,7 @@ func (f *File) CleanUp() error {
 }
 
 // NewTempFile creates a temporary file and returns its path.
+// nolint: nonamedreturns
 func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 	defer func() {
 		if r := recover(); r != nil {
