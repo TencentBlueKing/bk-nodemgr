@@ -1,0 +1,48 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package tmp
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
+)
+
+// tmpDirInstance is the instance of tmpDir.
+// nolint: gochecknoglobals
+var tmpDirInstance struct {
+	once sync.Once
+	dir  string
+}
+
+// GetTmpDir returns the system's temporary directory path.
+func GetTmpDir() (string, error) {
+	tmpDirInstance.dir = filepath.Join(os.TempDir(), runtime.System+"_"+time.Now().Format("20060102150405"))
+
+	dirInfo, err := os.Stat(tmpDirInstance.dir)
+	if err != nil && os.IsNotExist(err) {
+		if err := os.MkdirAll(tmpDirInstance.dir, 0700); err != nil { // nolint:mnd,gomnd
+			return "", fmt.Errorf("failed to create tmp dir, err: %w", err)
+		}
+
+		return tmpDirInstance.dir, nil
+	}
+
+	if !dirInfo.IsDir() {
+		return "", fmt.Errorf("tmp dir is not a dir, dir(%s) info(%+v)", tmpDirInstance.dir, dirInfo)
+	}
+
+	return tmpDirInstance.dir, nil
+}
