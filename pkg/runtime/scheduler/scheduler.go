@@ -17,38 +17,90 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/sync/singleflight"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/robfig/cron/v3"
 )
+
+// CronParser returns a cron parser that supports seconds, minutes, hours, day, month, day of week, and descriptors.
+func CronParser() cron.Parser {
+	return cron.NewParser(
+		cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	)
+}
+
+// NextActiveTime calculates the next active time for a given cron expression starting from a specified time.
+func NextActiveTime(cronExpr string, from time.Time) (time.Time, error) {
+	parser := CronParser()
+	schedule, err := parser.Parse(cronExpr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parser cron-expr(%s), err: %v", cronExpr, err)
+	}
+
+	nextTime := schedule.Next(from)
+	if nextTime.IsZero() {
+		return time.Time{}, fmt.Errorf("no next active time found for cron-expr(%s)", cronExpr)
+	}
+
+	return nextTime, nil
+}
 
 // Scheduler ...
 type Scheduler interface {
-	RegisterTask(task *Task)
+	RegisterTask(task *Task) error
 	Start()
 	Terminate()
+	RemoveTask(id string)
+	ListTask() map[string]*Task
 }
 
-// Task ...
+// Task defines a Task that can be scheduled.
+// Interval can be a time.Duration or a cron expression string.
 type Task struct {
 	ID       string
-	Interval time.Duration
+	Interval string
 	Timeout  time.Duration
 	Fn       func(context.Context) error
 }
 
+// NewTask creates a new Task with the given ID, interval, timeout, and function.
+// The interval can be a string representing a cron expression or a time.Duration.
+func NewTask[T string | time.Duration](
+	id string,
+	interval T,
+	timeout time.Duration,
+	fn func(context.Context) error,
+) *Task {
+
+	var cronExpr string
+	switch t := any(interval).(type) {
+	case time.Duration:
+		cronExpr = "@every " + t.String()
+	case string:
+		cronExpr = t
+	}
+
+	return &Task{
+		ID:       id,
+		Interval: cronExpr,
+		Timeout:  timeout,
+		Fn:       fn,
+	}
+}
+
 // scheduler ...
 type scheduler struct {
-	tasks    map[string]*scheduledTask
-	mu       sync.Mutex
-	ctx      context.Context
-	cancel   context.CancelFunc
-	group    singleflight.Group
-	interval time.Duration
-	logger   Logger
+	tasks  map[string]*scheduledTask
+	mu     sync.Mutex
+	ctx    context.Context
+	cancel context.CancelFunc
+	cron   *cron.Cron
+	logger logger.Logger
 }
 
 // scheduledTask ...
 type scheduledTask struct {
 	*Task
+	entryID      cron.EntryID
 	lastExecuted time.Time
 }
 
@@ -56,16 +108,9 @@ type scheduledTask struct {
 type OptionFn func(*scheduler)
 
 // WithLogger this func will set the logger of the scheduler.
-func WithLogger(logger Logger) OptionFn {
+func WithLogger(logger logger.Logger) OptionFn {
 	return func(s *scheduler) {
 		s.logger = logger
-	}
-}
-
-// WithInterval this func will set the interval of the scheduler.
-func WithInterval(interval time.Duration) OptionFn {
-	return func(s *scheduler) {
-		s.interval = interval
 	}
 }
 
@@ -74,59 +119,58 @@ func NewScheduler(opts ...OptionFn) Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &scheduler{
-		tasks:    make(map[string]*scheduledTask),
-		ctx:      ctx,
-		cancel:   cancel,
-		logger:   &defaultLogger{},
-		interval: time.Second,
-		group:    singleflight.Group{},
+		tasks:  make(map[string]*scheduledTask),
+		ctx:    ctx,
+		cancel: cancel,
+		logger: logger.LoggerDefault{},
 	}
 
 	for _, opt := range opts {
 		opt(s)
 	}
 
+	s.cron = cron.New(
+		cron.WithSeconds(),
+		// skips the task if it is still running when the next scheduled time arrives.
+		cron.WithChain(
+			cron.SkipIfStillRunning(LoggerAdapter{s.logger}),
+			cron.Recover(LoggerAdapter{s.logger}),
+		),
+	)
+
 	return s
 }
 
 // RegisterTask register a task
-func (s *scheduler) RegisterTask(task *Task) {
+func (s *scheduler) RegisterTask(task *Task) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if s.tasks[task.ID] != nil {
+		return fmt.Errorf("task already exists, task-id(%s)", task.ID)
+	}
 
 	s.tasks[task.ID] = &scheduledTask{
 		Task: task,
 	}
+
+	entryID, err := s.cron.AddFunc(task.Interval, func() {
+		s.executeTask(s.tasks[task.ID])
+	})
+	if err != nil {
+		s.logger.Errorf("failed to add cron task, task-id(%s), err: %v", task.ID, err)
+		return err
+	}
+
+	s.tasks[task.ID].entryID = entryID
+	s.logger.Infof("add task into cron list succeed, task-id(%s), entry-id(%v)", task.ID, entryID)
+
+	return nil
 }
 
 // Start ...
 func (s *scheduler) Start() {
-	go func() {
-		ticker := time.NewTicker(s.interval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-s.ctx.Done():
-				return
-			case <-ticker.C:
-				s.runTasks()
-			}
-		}
-	}()
-}
-
-// runTasks ...
-func (s *scheduler) runTasks() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	now := time.Now()
-	for _, task := range s.tasks {
-		if now.Sub(task.lastExecuted) >= task.Interval {
-			go s.executeTask(task)
-		}
-	}
+	s.cron.Start()
 }
 
 // executeTask ...
@@ -134,32 +178,47 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 	ctx, cancel := context.WithTimeout(s.ctx, task.Timeout)
 	defer cancel()
 
-	// use singleflight to prevent repeated calls.
-	// nolint: dogsled,nonamedreturns
-	_, _, _ = s.group.Do(task.ID, func() (result interface{}, err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				result = false
-				err = fmt.Errorf("task execution panic, scheduler-task-id(%s), err: %v", task.ID, r)
-			}
-
-			task.lastExecuted = time.Now()
-		}()
-
-		err = task.Fn(ctx)
-		if err != nil {
-			s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
-
-			return false, err
+	defer func() {
+		if r := recover(); r != nil {
+			s.logger.Errorf("task execution panic, scheduler-task-id(%s), err: %v", task.ID, r)
 		}
 
-		s.logger.Debugf("task execution completed, scheduler-task-id(%s)", task.ID)
+		task.lastExecuted = time.Now()
+	}()
 
-		return true, nil
-	})
+	if err := task.Fn(ctx); err != nil {
+		s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
+		return
+	}
+
+	s.logger.Infof("task execution completed, scheduler-task-id(%s)", task.ID)
 }
 
 // Terminate ...
 func (s *scheduler) Terminate() {
+	s.cron.Stop()
 	s.cancel()
+}
+
+// RemoveTask removes a task by its ID.
+func (s *scheduler) RemoveTask(taskID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if task, ok := s.tasks[taskID]; ok {
+		s.cron.Remove(task.entryID)
+		delete(s.tasks, taskID)
+	}
+}
+
+// ListTask returns a map of all registered tasks.
+func (s *scheduler) ListTask() map[string]*Task {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	tasks := make(map[string]*Task, len(s.tasks))
+	for id, task := range s.tasks {
+		tasks[id] = task.Task
+	}
+
+	return tasks
 }

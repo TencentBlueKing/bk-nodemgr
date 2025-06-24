@@ -15,6 +15,7 @@ require (
 	github.com/pkg/sftp v1.13.7
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.4.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.12.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
@@ -108,7 +109,6 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

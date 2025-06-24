@@ -35,7 +35,6 @@ import (
 // constants ...
 const (
 	StorageName       = "operinstdata"
-	defaultInterval   = 5 * time.Second
 	taskInterval      = 10 * time.Second
 	taskTimeout       = 20 * time.Second
 	syncOperationTask = "sync stopping operation inst"
@@ -91,7 +90,11 @@ func (s *Storage) startFn() error {
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
 
-	s.registerScheduler()
+	err := s.registerScheduler()
+	if err != nil {
+		s.Logger.Errorf("failed to register scheduler, err: %v", err)
+		return fmt.Errorf("failed to register scheduler, err: %w", err)
+	}
 
 	return nil
 }
@@ -104,15 +107,18 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) registerScheduler() {
-	s.Scheduler = scheduler.NewScheduler(
-		scheduler.WithLogger(s.Logger), scheduler.WithInterval(defaultInterval))
-	s.Scheduler.RegisterTask(&scheduler.Task{
-		ID:       syncOperationTask,
-		Interval: taskInterval,
-		Timeout:  taskTimeout,
-		Fn:       s.syncStopOperInsts,
-	})
+func (s *Storage) registerScheduler() error {
+	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger))
+	err := s.Scheduler.RegisterTask(scheduler.NewTask(
+		syncOperationTask,
+		taskInterval,
+		taskTimeout,
+		s.syncStopOperInsts,
+	))
+	if err != nil {
+		s.Logger.Errorf("failed to register sync stopping operation inst task, err: %v", err)
+		return fmt.Errorf("failed to register sync stopping operation inst task, err: %w", err)
+	}
 
 	go s.stopoperinstDao.WatchInsert(func(stopInstID string) {
 		s.stopOperInstsMutex.Lock()
@@ -121,6 +127,8 @@ func (s *Storage) registerScheduler() {
 
 		go s.checkNotifyStopping(s.Ctx)
 	})
+
+	return nil
 }
 
 // StopEventSubscription represents the stop event subscription.

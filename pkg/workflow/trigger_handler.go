@@ -120,64 +120,72 @@ const (
 func (handler *triggerHandler) initSchedulerTasks() {
 	// init syncing.
 	syncingTasks := []*scheduler.Task{
-		{
-			ID:       taskIDSyncOnceTrigger,
-			Interval: onceTriggersSyncIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		scheduler.NewTask(
+			taskIDSyncOnceTrigger,
+			onceTriggersSyncIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.syncOnceTrigger(ctx)
 			},
-		},
-		{
-			ID:       taskIDSyncOrderedTrigger,
-			Interval: orderedTriggersSyncIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		),
+		scheduler.NewTask(
+			taskIDSyncOrderedTrigger,
+			orderedTriggersSyncIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.syncOrderedTrigger(ctx)
 			},
-		},
-		{
-			ID:       taskIDSyncPeriodicTrigger,
-			Interval: periodicTriggersSyncIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		),
+		scheduler.NewTask(
+			taskIDSyncPeriodicTrigger,
+			periodicTriggersSyncIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.syncPeriodicTrigger(ctx)
 			},
-		},
+		),
 	}
 	for _, task := range syncingTasks {
-		handler.scheduler.RegisterTask(task)
+		err := handler.scheduler.RegisterTask(task)
+		if err != nil {
+			handler.mgr.logger.Errorf("failed to register task, task-id(%s), err: %v", task.ID, err)
+			continue
+		}
 	}
 
 	// init checking.
 	checkingTasks := []*scheduler.Task{
-		{
-			ID:       taskIDCheckOnceTrigger,
-			Interval: onceTriggersCheckIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		scheduler.NewTask(
+			taskIDCheckOnceTrigger,
+			onceTriggersCheckIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.checkTriggerList(ctx, handler.onceTriggers.get())
 			},
-		},
-		{
-			ID:       taskIDCheckOrderedTrigger,
-			Interval: orderedTriggersCheckIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		),
+		scheduler.NewTask(
+			taskIDCheckOrderedTrigger,
+			orderedTriggersCheckIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.checkTriggerList(ctx, handler.orderedTriggers.get())
 			},
-		},
-		{
-			ID:       taskIDCheckPeriodicTrigger,
-			Interval: periodicTriggersCheckIntervalDefault,
-			Timeout:  defaultTimeout,
-			Fn: func(ctx context.Context) error {
+		),
+		scheduler.NewTask(
+			taskIDCheckPeriodicTrigger,
+			periodicTriggersCheckIntervalDefault,
+			defaultTimeout,
+			func(ctx context.Context) error {
 				return handler.checkTriggerList(ctx, handler.periodicTriggers.get())
 			},
-		},
+		),
 	}
 	for _, task := range checkingTasks {
-		handler.scheduler.RegisterTask(task)
+		err := handler.scheduler.RegisterTask(task)
+		if err != nil {
+			handler.mgr.logger.Errorf("failed to register task, task-id(%s), err: %v", task.ID, err)
+			continue
+		}
 	}
 }
 

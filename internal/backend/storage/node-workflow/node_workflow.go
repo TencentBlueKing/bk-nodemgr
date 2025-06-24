@@ -60,7 +60,11 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 		return nil, err
 	}
 
-	s.registerScheduler()
+	err = s.registerScheduler()
+	if err != nil {
+		s.Logger.Errorf("register scheduler failed, err: %v", err)
+		return nil, fmt.Errorf("register scheduler failed, err: %w", err)
+	}
 
 	return s, nil
 }
@@ -83,22 +87,31 @@ func (s *Storage) initDao() error {
 	return nil
 }
 
-func (s *Storage) registerScheduler() {
-	s.Scheduler = scheduler.NewScheduler(
-		scheduler.WithLogger(s.Logger), scheduler.WithInterval(5*time.Second)) // nolint: mnd
-	s.Scheduler.RegisterTask(&scheduler.Task{
-		ID:       "obtain monitored workflows",
-		Interval: 5 * time.Second,  // nolint: mnd
-		Timeout:  20 * time.Second, // nolint: mnd
-		Fn:       s.obtainMonitoredWorkflows,
-	})
+func (s *Storage) registerScheduler() error {
+	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger))
+	err := s.Scheduler.RegisterTask(scheduler.NewTask(
+		"obtain monitored workflows",
+		5*time.Second,  // nolint: mnd
+		20*time.Second, // nolint: mnd
+		s.obtainMonitoredWorkflows,
+	))
+	if err != nil {
+		s.Logger.Errorf("register obtain monitored workflows task failed, err: %v", err)
+		return fmt.Errorf("register obtain monitored workflows task failed, err: %w", err)
+	}
 
-	s.Scheduler.RegisterTask(&scheduler.Task{
-		ID:       "monitor workflow status",
-		Interval: 1 * time.Second,  // nolint: mnd
-		Timeout:  10 * time.Second, // nolint: mnd
-		Fn:       s.monitorWorkflowStatus,
-	})
+	err = s.Scheduler.RegisterTask(scheduler.NewTask(
+		"monitor workflow status",
+		1*time.Second,  // nolint: mnd
+		10*time.Second, // nolint: mnd
+		s.monitorWorkflowStatus,
+	))
+	if err != nil {
+		s.Logger.Errorf("register monitor workflow status task failed, err: %v", err)
+		return fmt.Errorf("register monitor workflow status task failed, err: %w", err)
+	}
+
+	return nil
 }
 
 // obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.

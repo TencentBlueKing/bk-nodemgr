@@ -184,42 +184,56 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 		opt(h)
 	}
 
-	h.initEnumKeepers()
+	err = h.initEnumKeepers()
+	if err != nil {
+		h.logger.Errorf("failed to init enum keepers, err: %v", err)
+		return nil, err
+	}
 
 	return h, nil
 }
 
-func (h *Handler) initEnumKeepers() {
+func (h *Handler) initEnumKeepers() error {
 	h.logger.Infof("initializing enum keepers from cmdb")
 
+	if h.scheduler != nil {
+		h.scheduler.Terminate()
+	}
 	h.scheduler = scheduler.NewScheduler(scheduler.WithLogger(h.logger))
+	syncTasks := []*scheduler.Task{
+		scheduler.NewTask(
+			"sync_cloud_vendor",
+			enumResourceSyncInterval,
+			enumResourceSyncTimeout,
+			func(ctx context.Context) error {
+				return h.cloudVendorKeeper.update(ctx)
+			},
+		),
+		scheduler.NewTask(
+			"sync_os_type",
+			enumResourceSyncInterval,
+			enumResourceSyncTimeout,
+			func(ctx context.Context) error {
+				return h.osTypeKeeper.update(ctx)
+			},
+		),
+		scheduler.NewTask(
+			"sync_cpu_arch",
+			enumResourceSyncInterval,
+			enumResourceSyncTimeout,
+			func(ctx context.Context) error {
+				return h.cpuArchKeeper.update(ctx)
+			},
+		),
+	}
 
-	h.scheduler.RegisterTask(&scheduler.Task{
-		ID:       "sync_cloud_vendor",
-		Interval: enumResourceSyncInterval,
-		Timeout:  enumResourceSyncTimeout,
-		Fn: func(ctx context.Context) error {
-			return h.cloudVendorKeeper.update(ctx)
-		},
-	})
-
-	h.scheduler.RegisterTask(&scheduler.Task{
-		ID:       "sync_os_type",
-		Interval: enumResourceSyncInterval,
-		Timeout:  enumResourceSyncTimeout,
-		Fn: func(ctx context.Context) error {
-			return h.osTypeKeeper.update(ctx)
-		},
-	})
-
-	h.scheduler.RegisterTask(&scheduler.Task{
-		ID:       "sync_cpu_arch",
-		Interval: enumResourceSyncInterval,
-		Timeout:  enumResourceSyncTimeout,
-		Fn: func(ctx context.Context) error {
-			return h.cpuArchKeeper.update(ctx)
-		},
-	})
+	for _, task := range syncTasks {
+		err := h.scheduler.RegisterTask(task)
+		if err != nil {
+			h.logger.Errorf("failed to register sync task, task-id(%s), err: %v", task.ID, err)
+			return err
+		}
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
 	defer cancel()
@@ -234,7 +248,10 @@ func (h *Handler) initEnumKeepers() {
 		h.logger.Warnf("failed to sync cpu arch, err: %v", err)
 	}
 
-	h.logger.Infof("initialized enum keepers from cmdb")
+	h.scheduler.Start()
+	h.logger.Infof("start schedule enum resource sync tasks")
+
+	return nil
 }
 
 // ListBizHosts list biz hosts.

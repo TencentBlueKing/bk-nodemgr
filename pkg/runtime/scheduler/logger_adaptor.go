@@ -12,29 +12,69 @@
 package scheduler
 
 import (
-	"log"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-// Logger defines the scheduler logger.
-type Logger interface {
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
+// LoggerAdapter adapts a logger.Logger to the cron.Logger interface.
+type LoggerAdapter struct {
+	Logger logger.Logger
 }
 
-type defaultLogger struct{}
-
-// Debug prints debug logs.
-func (d defaultLogger) Debugf(format string, args ...interface{}) {
-	log.Printf(format, args...)
+// Info logs an informational message with additional context.
+func (la LoggerAdapter) Info(msg string, keysAndValues ...interface{}) {
+	var formatMsg string
+	if len(keysAndValues) > 0 {
+		formatMsg = fmt.Sprintf(formatString(len(keysAndValues)),
+			append([]interface{}{msg}, formatTimes(keysAndValues)...)...)
+	} else {
+		la.Logger.Info(msg)
+	}
+	la.Logger.Infof("scheduler task running %s", formatMsg)
 }
 
-// Infof prints info logs.
-func (d defaultLogger) Infof(format string, args ...interface{}) {
-	log.Printf(format, args...)
+// Error logs an error message with additional context.
+func (la LoggerAdapter) Error(err error, msg string, keysAndValues ...interface{}) {
+	var formatMsg string
+	if len(keysAndValues) > 0 {
+		formatMsg = fmt.Sprintf(fmt.Sprintf(formatString(len(keysAndValues)),
+			append([]interface{}{msg}, formatTimes(keysAndValues)...)...), "err(%v)", err)
+	} else {
+		formatMsg = fmt.Sprintf("%s, err(%v)", msg, err)
+	}
+	la.Logger.Errorf("scheduler task run error in cron, %s", formatMsg)
 }
 
-// Errorf prints error logs.
-func (d defaultLogger) Errorf(format string, args ...interface{}) {
-	log.Printf(format, args...)
+// formatString returns a logfmt-like format string for the number of
+// key/values.
+func formatString(numKeysAndValues int) string {
+	var sb strings.Builder
+	sb.WriteString("%s")
+	if numKeysAndValues > 0 {
+		sb.WriteString(", ")
+	}
+	for i := 0; i < numKeysAndValues/2; i++ {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString("%v(%v)")
+	}
+
+	return sb.String()
+}
+
+// formatTimes formats any time.Time values as RFC3339.
+func formatTimes(keysAndValues []any) []any {
+	formattedArgs := make([]any, 0, len(keysAndValues))
+	for _, arg := range keysAndValues {
+		if t, ok := arg.(time.Time); ok {
+			arg = t.Format(time.RFC3339)
+		}
+		formattedArgs = append(formattedArgs, arg)
+	}
+
+	return formattedArgs
 }

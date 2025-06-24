@@ -13,6 +13,7 @@ package watcher
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -28,6 +29,9 @@ import (
 const (
 	// HandleResourceEvent is the watcher handle event.
 	HandleResourceEvent = "handle_resource_event"
+
+	// HandleResourceEventInterval is the interval of handle resource event.
+	HandleResourceEventInterval = 10 * time.Second
 )
 
 // Config defines the configuration of watcher.
@@ -71,32 +75,32 @@ func (w *Watcher) Start(ctx context.Context) error {
 
 	watcher, err := w.conf.CmdbHandler.NewWatcher()
 	if err != nil {
-		w.logger.Errorf("failed to create a new watcher, error: %v", err)
-		return err
+		w.logger.Errorf("failed to create a new watcher, err: %v", err)
+		return fmt.Errorf("failed to create a new watcher, err: %w", err)
 	}
 
 	hostChannel, err := watcher.WatchHost()
 	if err != nil {
-		w.logger.Errorf("watch host failed, error: %v", err)
-		return err
+		w.logger.Errorf("watch host failed, err: %v", err)
+		return fmt.Errorf("watch host failed, err: %w", err)
 	}
 
 	hostRelChannel, err := watcher.WatchHostRelation()
 	if err != nil {
-		w.logger.Errorf("watch host relation failed, error: %v", err)
-		return err
+		w.logger.Errorf("watch host relation failed, err: %v", err)
+		return fmt.Errorf("watch host relation failed, err: %w", err)
 	}
 
 	err = watcher.Start(ctx)
 	if err != nil {
-		w.logger.Errorf("start watcher failed, error: %v", err)
-		return err
+		w.logger.Errorf("start watcher failed, err: %v", err)
+		return fmt.Errorf("start watcher failed, err: %w", err)
 	}
 
-	err = w.registerHandleEventTask(ctx)
+	err = w.registerHandleEventTask()
 	if err != nil {
-		w.logger.Errorf("register handle event task failed, error: %v", err)
-		return err
+		w.logger.Errorf("register handle event task failed, err: %v", err)
+		return fmt.Errorf("register handle event task failed, err: %w", err)
 	}
 
 	go w.collectEvents(ctx, hostChannel, hostRelChannel)
@@ -114,10 +118,10 @@ func (w *Watcher) collectEvents(ctx context.Context, hostChannel <-chan *types.C
 			switch event.ChangeType {
 			// Only handle update events which do not involve changes in biz IDs
 			case types.ChangeTypeUpdate:
-				w.logger.Infof("update host event: %v", event)
+				w.logger.Infof("update host event(%v)", event)
 				host, err := w.conf.StorageTopo.GetHostByID(ctx, event.Detail.HostID)
 				if err != nil {
-					w.logger.Errorf("get host by id failed, error: %v", err)
+					w.logger.Errorf("get host by id failed, host-id(%s), err: %v", event.Detail.HostID, err)
 					continue
 				}
 
@@ -131,7 +135,7 @@ func (w *Watcher) collectEvents(ctx context.Context, hostChannel <-chan *types.C
 			switch event.ChangeType {
 			// Only handle create and delete event which indicates a change in the host under the biz
 			case types.ChangeTypeCreate, types.ChangeTypeDelete:
-				w.logger.Infof("host relation event: %v", event)
+				w.logger.Infof("host relation event(%v)", event)
 
 				w.mu.Lock()
 				w.needSyncBizIDSet[event.Detail.BizID] = struct{}{}
@@ -147,13 +151,12 @@ func (w *Watcher) collectEvents(ctx context.Context, hostChannel <-chan *types.C
 }
 
 // registerHandleEventTask registers the handle event task.
-func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
-
-	w.scheduler.RegisterTask(&scheduler.Task{
-		ID:       HandleResourceEvent,
-		Interval: 10 * time.Second, // nolint: mnd
-		Timeout:  time.Minute,
-		Fn: func(ctx context.Context) error {
+func (w *Watcher) registerHandleEventTask() error {
+	err := w.scheduler.RegisterTask(scheduler.NewTask(
+		HandleResourceEvent,
+		HandleResourceEventInterval,
+		time.Minute,
+		func(ctx context.Context) error {
 			w.mu.Lock()
 			bizSet := conv.MapKeyToSlice(w.needSyncBizIDSet)
 			// clean up the need sync biz id set
@@ -163,16 +166,20 @@ func (w *Watcher) registerHandleEventTask(ctx context.Context) error {
 			for _, bizID := range bizSet {
 				triggerID, err := w.conf.Manager.LaunchSyncHostByBizID(ctx, bizID)
 				if err != nil {
-					w.logger.Errorf("failed to launch sync host. biz-id(%d), err(%v)", bizID, err)
+					w.logger.Errorf("failed to launch sync host, biz-id(%d), err(%v)", bizID, err)
 					continue
 				}
 
-				w.logger.Infof("start sync cmdb host operation. trigger-id(%s), biz-id(%d)", triggerID, bizID)
+				w.logger.Infof("start sync cmdb host operation, trigger-id(%s), biz-id(%d)", triggerID, bizID)
 			}
 
 			return nil
 		},
-	})
+	))
+	if err != nil {
+		w.logger.Errorf("register handle resource event task failed, err: %v", err)
+		return fmt.Errorf("register handle resource event task failed, err: %w", err)
+	}
 
 	return nil
 }

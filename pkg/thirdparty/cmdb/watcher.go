@@ -122,11 +122,11 @@ func (w *Watcher) Start(ctx context.Context) error {
 	}
 
 	if registerHost {
-		w.scheduler.RegisterTask(&scheduler.Task{
-			ID:       WatchResourceHost,
-			Interval: time.Second,
-			Timeout:  time.Minute,
-			Fn: func(ctx context.Context) error {
+		err := w.scheduler.RegisterTask(scheduler.NewTask(
+			WatchResourceHost,
+			time.Second,
+			time.Minute,
+			func(ctx context.Context) error {
 				ctx, err := tenant.SetID(ctx, tenantID)
 				if err != nil {
 					return fmt.Errorf("set tenant id failed, err: %v", err)
@@ -151,15 +151,18 @@ func (w *Watcher) Start(ctx context.Context) error {
 
 				return nil
 			},
-		})
+		))
+		if err != nil {
+			return fmt.Errorf("register host watch task failed, err: %v", err)
+		}
 	}
 
 	if registerHostRel {
-		w.scheduler.RegisterTask(&scheduler.Task{
-			ID:       WatchResourceHostRelation,
-			Interval: time.Second,
-			Timeout:  time.Minute,
-			Fn: func(ctx context.Context) error {
+		err := w.scheduler.RegisterTask(scheduler.NewTask(
+			WatchResourceHostRelation,
+			time.Second,
+			time.Minute,
+			func(ctx context.Context) error {
 				ctx, err := tenant.SetID(ctx, tenantID)
 				if err != nil {
 					return fmt.Errorf("set tenant id failed, err: %v", err)
@@ -184,7 +187,10 @@ func (w *Watcher) Start(ctx context.Context) error {
 
 				return nil
 			},
-		})
+		))
+		if err != nil {
+			return fmt.Errorf("register host relation watch task failed, err: %v", err)
+		}
 	}
 
 	w.scheduler.Start()

@@ -21,16 +21,19 @@ import (
 func main() {
 	s := scheduler.NewScheduler()
 
-	s.RegisterTask(&scheduler.Task{
-		ID:       "test1",
-		Interval: 1 * time.Second,
-		Timeout:  5 * time.Second,
-		Fn: func(_ context.Context) error {
+	err := s.RegisterTask(scheduler.NewTask(
+		"test1",
+		1*time.Second,
+		5*time.Second, // nolint: mnd
+		func(_ context.Context) error {
 			time.Sleep(10 * time.Second)
 
 			return nil
 		},
-	})
+	))
+	if err != nil {
+		panic(err)
+	}
 
 	s.Start()
 
