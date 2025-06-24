@@ -14,5 +14,7 @@ package wmiexec
 
 import _ "embed"
 
-//go:embed binaries/wmiexec-arm64
-var binary []byte
+// Binary is the embedded binary for wmiexec on Linux amd64.
+//
+//go:embed binaries/wmiexec-amd64
+var Binary []byte
