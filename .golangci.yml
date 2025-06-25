@@ -692,3 +692,5 @@ linters-settings:
         alias: restheader
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base
         alias: daoBase
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo
+        alias: storageTopo
