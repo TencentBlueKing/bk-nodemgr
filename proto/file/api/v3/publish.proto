@@ -56,3 +56,42 @@ message PublishReleaseBinToolResp {
   message Data {}
   Data data = 4;
 }
+
+// Publish service.
+service Publish {
+  // PublishReleaseAgent provides release agent publish.
+  rpc PublishReleaseAgent(PublishReleaseAgentReq)
+      returns (PublishReleaseAgentResp) {
+    option (google.api.http) = {
+      post : "/publish/release/agent"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseServer provides release server publish.
+  rpc PublishReleaseProxy(PublishReleaseProxyReq)
+      returns (PublishReleaseProxyResp) {
+    option (google.api.http) = {
+      post : "/publish/release/server"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseCert provides release cert publish.
+  rpc PublishReleaseCert(PublishReleaseCertReq)
+      returns (PublishReleaseCertResp) {
+    option (google.api.http) = {
+      post : "/publish/release/cert"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseBinTool provides release bintool publish.
+  rpc PublishReleaseBinTool(PublishReleaseBinToolReq)
+      returns (PublishReleaseBinToolResp) {
+    option (google.api.http) = {
+      post : "/publish/release/bintool"
+      body : "*"
+    };
+  }
+}

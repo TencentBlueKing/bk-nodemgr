@@ -4,13 +4,155 @@
     "title": "publish.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "Publish"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/publish/release/agent": {
+      "post": {
+        "summary": "PublishReleaseAgent provides release agent publish.",
+        "operationId": "Publish_PublishReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseAgentReq is the request for upload release agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/bintool": {
+      "post": {
+        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "operationId": "Publish_PublishReleaseBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseBinToolReq is the request for upload release bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/cert": {
+      "post": {
+        "summary": "PublishReleaseCert provides release cert publish.",
+        "operationId": "Publish_PublishReleaseCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseCertResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseCertReq is the request for upload release cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/server": {
+      "post": {
+        "summary": "PublishReleaseServer provides release server publish.",
+        "operationId": "Publish_PublishReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseProxyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseProxyReq is the request for upload release proxy pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -39,6 +181,130 @@
           }
         }
       }
+    },
+    "v3PublishReleaseAgentReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseAgentReq is the request for upload release agent pkg."
+    },
+    "v3PublishReleaseAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseAgentRespData"
+        }
+      },
+      "description": "PublishReleaseAgentResp is the response for upload release agent pkg."
+    },
+    "v3PublishReleaseAgentRespData": {
+      "type": "object"
+    },
+    "v3PublishReleaseBinToolReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseBinToolReq is the request for upload release bintool pkg."
+    },
+    "v3PublishReleaseBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseBinToolRespData"
+        }
+      },
+      "description": "PublishReleaseBinToolResp is the response for upload release bintool pkg."
+    },
+    "v3PublishReleaseBinToolRespData": {
+      "type": "object"
+    },
+    "v3PublishReleaseCertReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseCertReq is the request for upload release cert pkg."
+    },
+    "v3PublishReleaseCertResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseCertRespData"
+        }
+      },
+      "description": "PublishReleaseCertResp is the response for upload release cert pkg."
+    },
+    "v3PublishReleaseCertRespData": {
+      "type": "object"
+    },
+    "v3PublishReleaseProxyReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseProxyReq is the request for upload release proxy pkg."
+    },
+    "v3PublishReleaseProxyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseProxyRespData"
+        }
+      },
+      "description": "PublishReleaseProxyResp is the response for upload release proxy pkg."
+    },
+    "v3PublishReleaseProxyRespData": {
+      "type": "object"
     }
   }
 }

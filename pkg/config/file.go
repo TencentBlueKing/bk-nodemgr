@@ -62,6 +62,7 @@ type FileService struct {
 	TenantMode     tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
 	InContainer    bool        `yaml:"inContainer" usage:"whether in container"`
 	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
+	GSE            GSE         `yaml:"gse" usage:"gse config of backend service"`
 	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer    HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
 	TempFileGroup  FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`

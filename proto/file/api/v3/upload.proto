@@ -134,3 +134,40 @@ message UploadOriginBinToolResp {
   }
   Data data = 4;
 }
+
+// Upload service.
+service Upload {
+  // UploadOriginAgent provides origin agent upload.
+  rpc UploadOriginAgent(UploadOriginAgentReq) returns (UploadOriginAgentResp) {
+    option (google.api.http) = {
+      post : "/upload/origin/agent"
+      body : "*"
+    };
+  }
+
+  // UploadOriginServer provides origin server upload.
+  rpc UploadOriginServer(UploadOriginServerReq)
+      returns (UploadOriginServerResp) {
+    option (google.api.http) = {
+      post : "/upload/origin/server"
+      body : "*"
+    };
+  }
+
+  // UploadOriginCert provides origin cert upload.
+  rpc UploadOriginCert(UploadOriginCertReq) returns (UploadOriginCertResp) {
+    option (google.api.http) = {
+      post : "/upload/origin/cert"
+      body : "*"
+    };
+  }
+
+  // UploadOriginBinTool provides origin bintool upload.
+  rpc UploadOriginBinTool(UploadOriginBinToolReq)
+      returns (UploadOriginBinToolResp) {
+    option (google.api.http) = {
+      post : "/upload/origin/bintool"
+      body : "*"
+    };
+  }
+}

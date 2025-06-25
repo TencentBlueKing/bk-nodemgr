@@ -896,6 +896,46 @@ file:
     localFileGroup:
       fullPath: "/bk-nodeman/file/local"
 
+    # defines the gse related settings.
+    gse:
+      # endpoints is a seed list of host:port addresses of esb nodes.
+      endpoints:
+        - "https://example.com/api/gse/prod"
+      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request api gateway.
+      user: ""
+      # authMode is the mode to do api auth verification,
+      # it support 'oa' and 'ee' and 'at' mode for now.
+      # 1. oa use bkTicket auth.
+      # 2. ee use bkToken auth.
+      # 3. at use accessToken auth.
+      # 4. un use no user authentication required
+      authMode: "un"
+      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      bkTicket: ""
+      # bkToken is the BlueKing user token of costops to request api gateway.
+      bkToken: ""
+      # accessToken is the BlueKing access token of costops to request api gateway.
+      accessToken: ""
+      # plugin SlotID and SlotToken
+      pluginSlotID: ""
+      pluginSlotToken: ""
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
     ## defines the log related settings.
     log:
       dir: "/bk-nodeman/log"

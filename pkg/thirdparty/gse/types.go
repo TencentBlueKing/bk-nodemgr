@@ -67,7 +67,7 @@ type EndpointWithAuth struct {
 // RespCommon describes the common response.
 type RespCommon struct {
 	Code    int    `json:"code"`
-	Message string `json:"messaage"`
+	Message string `json:"message"`
 }
 
 // BaseBroker describe the base broker.
@@ -82,7 +82,7 @@ const CodeOK = 0
 // IsFailed returns the code of response.
 func (resp *BaseBroker[T]) IsFailed() error {
 	if resp.Code != CodeOK {
-		return fmt.Errorf("code(%d) , msg(%s) ", resp.Code, resp.Message)
+		return fmt.Errorf("code(%d), msg(%s)", resp.Code, resp.Message)
 	}
 
 	return nil

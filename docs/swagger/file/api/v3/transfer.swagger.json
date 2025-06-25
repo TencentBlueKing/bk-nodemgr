@@ -1,0 +1,260 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "transfer.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Transfer"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/transfer/release/launch": {
+      "post": {
+        "summary": "TransferRelease provides transferring release package.",
+        "operationId": "Transfer_TransferRelease",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3TransferReleaseLaunchResp"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3TransferReleaseLaunchResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TransferReleaseLaunchReq describes the HTTP request body when launch transfer\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TransferReleaseLaunchReq"
+            }
+          }
+        ],
+        "tags": [
+          "Transfer"
+        ]
+      }
+    },
+    "/transfer/release/query": {
+      "get": {
+        "operationId": "Transfer_TransferReleaseQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TransferReleaseQueryResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Transfer"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Platform": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "Platform describes the platform informations."
+    },
+    "v3TransferProgress": {
+      "type": "object",
+      "properties": {
+        "error_code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "terminated": {
+          "type": "boolean"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "speed_kbytes_per_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TransferProgress describes the transfer progress."
+    },
+    "v3TransferReleaseLaunchReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        },
+        "target_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_dir": {
+          "type": "string"
+        }
+      },
+      "description": "TransferReleaseLaunchReq describes the HTTP request body when launch transfer\nrelease."
+    },
+    "v3TransferReleaseLaunchResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TransferReleaseLaunchRespData"
+        }
+      },
+      "description": "TransferReleaseLaunchResp describes the HTTP response body when launch\ntransfer release."
+    },
+    "v3TransferReleaseLaunchRespData": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "release_file_name": {
+          "type": "string"
+        },
+        "release_file_size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_file_md5": {
+          "type": "string"
+        }
+      }
+    },
+    "v3TransferReleaseQueryResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TransferReleaseQueryRespData"
+        }
+      },
+      "description": "TransferReleaseQueryResp describes the HTTP response body when query transfer\nrelease."
+    },
+    "v3TransferReleaseQueryRespData": {
+      "type": "object",
+      "properties": {
+        "upload": {
+          "$ref": "#/definitions/v3TransferProgress"
+        },
+        "download": {
+          "$ref": "#/definitions/v3TransferProgress"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    }
+  }
+}

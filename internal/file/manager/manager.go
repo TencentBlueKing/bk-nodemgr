@@ -33,6 +33,7 @@ import (
 )
 
 // IManager defines the file manager interface.
+// nolint: interfacebloat
 type IManager interface {
 	// Start starts the manager
 	Start(ctx context.Context) error
@@ -63,14 +64,29 @@ type IManager interface {
 	PublishReleaseBinTool(ctx context.Context, uploadID string) error
 
 	// EnsureFileToLocal ensure the file to local.
+	// returns file, local-file-dir, error.
 	EnsureFileToLocal(ctx context.Context,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
-		version string) (iface.File, error)
+		version string) (iface.File, string, error)
 
 	// EnsureReleaseToLocal ensure the release to local.
-	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, error)
+	// returns file, local-file-dir, error.
+	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error)
+
+	// LaunchTransferRelease launch transfer release.
+	LaunchTransferRelease(ctx context.Context,
+		gen types.Generation,
+		rt types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		dstDir string,
+		dstHost *types.Host) (ITransfer, error)
+
+	// QueryTransferRelease query transfer release.
+	// return upload result, download result and error.
+	QueryTransferRelease(ctx context.Context, taskID string) (*types.TransferResult, *types.TransferResult, error)
 }
 
 // New returns a new file manager.
@@ -209,6 +225,13 @@ func WithAdvertiseIPV6(ipv6 string) OptionFn {
 func WithInContainer(inContainer bool) OptionFn {
 	return func(manager *Manager) {
 		manager.inContainer = inContainer
+	}
+}
+
+// WithGSEHandler sets the gse handler.
+func WithGSEHandler(gseHander gse.IHandler) OptionFn {
+	return func(manager *Manager) {
+		manager.gseHandler = gseHander
 	}
 }
 

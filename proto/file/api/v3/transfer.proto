@@ -1,0 +1,81 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// TransferReleaseLaunchReq describes the HTTP request body when launch transfer
+// release.
+message TransferReleaseLaunchReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+  int64 target_host_id = 5;
+  string target_dir = 6;
+}
+
+// TransferReleaseLaunchResp describes the HTTP response body when launch
+// transfer release.
+message TransferReleaseLaunchResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string task_id = 1;
+    optional string release_file_name = 2;
+    optional int64 release_file_size = 3;
+    optional string release_file_md5 = 4;
+  }
+  Data data = 4;
+}
+
+// TransferReleaseQueryReq describes the HTTP request body when query transfer
+// release.
+message TransferReleaseQueryReq { string task_id = 1; }
+
+// TransferProgress describes the transfer progress.
+message TransferProgress {
+  optional int64 error_code = 1;
+  optional string error_message = 2;
+  optional bool terminated = 3;
+  optional int64 progress = 4;
+  optional int64 speed_kbytes_per_sec = 5;
+};
+
+// TransferReleaseQueryResp describes the HTTP response body when query transfer
+// release.
+message TransferReleaseQueryResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional TransferProgress upload = 1;
+    optional TransferProgress download = 2;
+    optional int64 start_time = 3;
+    optional int64 end_time = 4;
+  };
+  Data data = 4;
+}
+
+// Transfer service.
+service Transfer {
+  // TransferRelease provides transferring release package.
+  rpc TransferRelease(TransferReleaseLaunchReq)
+      returns (stream TransferReleaseLaunchResp) {
+    option (google.api.http) = {
+      post : "/transfer/release/launch"
+      body : "*"
+    };
+  };
+
+  rpc TransferReleaseQuery(TransferReleaseQueryReq)
+      returns (TransferReleaseQueryResp) {
+    option (google.api.http) = {
+      get : "/transfer/release/query"
+    };
+  };
+}

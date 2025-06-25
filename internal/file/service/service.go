@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
@@ -38,7 +39,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -116,6 +119,9 @@ func NewService(conf *config.FileService) (*Service, error) {
 		return nil, err
 	}
 
+	// init gse handler.
+	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
+
 	// init bkrepo.
 	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
 	if err != nil {
@@ -128,6 +134,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		svc.Cap.StorageUpload,
 		svc.Cap.StorageRelease,
 		svc.Cap.StorageTopo,
+		svc.Cap.GSEHandler,
 		svc.Cap.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init manager: %w", err)
@@ -166,6 +173,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		withMetrics(svc.Cap),
 		withUpload(svc.Cap),
 		withPublish(svc.Cap),
+		withTransfer(svc.Cap),
 	)
 	svc.servers = append(svc.servers, adminServer)
 	svc.instance.Update(discover.EndpointNameFileAdmin, discover.Endpoint{
@@ -175,6 +183,63 @@ func NewService(conf *config.FileService) (*Service, error) {
 	})
 
 	return svc, nil
+}
+
+// newGSEHandler.
+func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	if err != nil {
+		return nil, err
+	}
+
+	apiGwClientCapability.Name = "gse"
+	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
+		HeaderSetter: apiGwHeaderSetter,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return gseHandler, nil
+}
+
+// newAPIGwClientCapability creates a new api-gateway client capability.
+func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
+		CertFile:           conf.TLS.CertFile,
+		KeyFile:            conf.TLS.KeyFile,
+		CAFile:             conf.TLS.CAFile,
+		Password:           conf.TLS.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	clientCap := &client.Capability{
+		Client:               httpClient,
+		Discover:             discovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               blog.GlobalLogger{},
+	}
+
+	return clientCap, nil
+}
+
+// newAPIGwHeaderSetter creates a new api-gateway header setter.
+func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
+	return &apigw.Config{
+		Endpoints:   conf.Endpoints,
+		AppCode:     conf.AppCode,
+		AppSecret:   conf.AppSecret,
+		User:        conf.User,
+		AuthMode:    apigw.AuthMode(conf.AuthMode),
+		BkTicket:    conf.BkTicket,
+		BkToken:     conf.BkToken,
+		AccessToken: conf.AccessToken,
+	}
 }
 
 // loggerWriterAdaptor implements rest.LoggerWriter.
@@ -222,6 +287,13 @@ func withUpload(capability *options.Capability) rest.OptionFunc {
 func withPublish(capability *options.Capability) rest.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		publish.Load(rg, capability)
+	}
+}
+
+// withTransfer load transfer.
+func withTransfer(capability *options.Capability) rest.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		transfer.Load(rg, capability)
 	}
 }
 
@@ -284,6 +356,7 @@ func initManager(conf *config.FileService,
 	storageUpload storageUpload.IStorage,
 	storageRelease storageRelease.IStorage,
 	storageTopo storageTopo.IStorage,
+	gseHandler gse.IHandler,
 	logger logger.Logger) (manager.IManager, error) {
 
 	// init upstream origin file groups from bkrepo.
@@ -346,6 +419,7 @@ func initManager(conf *config.FileService,
 		manager.WithAdvertiseIPV4(conf.HTTPServer.AdvertiseIPV4),
 		manager.WithAdvertiseIPV6(conf.HTTPServer.AdvertiseIPV6),
 		manager.WithInContainer(conf.InContainer),
+		manager.WithGSEHandler(gseHandler),
 	), nil
 }
 

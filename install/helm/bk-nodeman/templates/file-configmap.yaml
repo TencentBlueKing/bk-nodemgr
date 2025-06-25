@@ -30,6 +30,8 @@ data:
 
     localFileGroup: {{ .Values.file.config.localFileGroup | toYaml | nindent 6 }}
 
+    gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
+
     log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 
     etcd:
