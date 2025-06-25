@@ -50,6 +50,8 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 			Database: client.Database(database),
 			Logger:   logger,
 		},
+		monitoredWorkflows:      make(map[string]*types.NodeWorkflow),
+		monitoredWorkflowsMutex: sync.RWMutex{},
 	}
 
 	err := basestorage.InitStorage(&s.Storage,
@@ -172,6 +174,10 @@ func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
 	s.monitoredWorkflowsMutex.RLock()
 	defer s.monitoredWorkflowsMutex.RUnlock()
 
+	if len(s.monitoredWorkflows) == 0 {
+		return nil
+	}
+
 	operInst, err := s.daoOperInstData.ListAllLastOperInst(ctx,
 		operinstdata.WithTriggerID(conv.MapKeyToSlice(s.monitoredWorkflows)...))
 	if err != nil {
@@ -196,12 +202,14 @@ func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
 	for triggerID, operInsts := range finishedTriggerOperInstsMap {
 		status, finishTime := calWorkflowStatusAndTime(operInsts)
 
-		if err := s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status); err != nil {
+		err = s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status)
+		if err != nil {
 			return fmt.Errorf("update node workflow status failed, err: %w", err)
 		}
 
-		if err := s.daoNodeWorkflow.UpdateFinishTime(
-			ctx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime); err != nil {
+		err = s.daoNodeWorkflow.UpdateFinishTime(
+			ctx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime)
+		if err != nil {
 			return fmt.Errorf("update node workflow finish time failed, err: %w", err)
 		}
 
