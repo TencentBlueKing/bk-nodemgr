@@ -12,8 +12,10 @@
 package scheduler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -180,7 +182,16 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			s.logger.Errorf("task execution panic, scheduler-task-id(%s), err: %v", task.ID, r)
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 {
+				stack = stack[line+1:]
+			}
+
+			s.logger.Errorf("task execution panic, scheduler-task-id(%s), err: %v, stack: \n%s", task.ID, r, stack)
 		}
 
 		task.lastExecuted = time.Now()
