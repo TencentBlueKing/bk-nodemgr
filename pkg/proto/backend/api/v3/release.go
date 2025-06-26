@@ -54,7 +54,7 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 
 	plats := make([]platform.Platform, 0)
 	for _, plat := range exactCond.GetPlatform() {
-		plats = append(plats, convertPlatformToTypes(plat))
+		plats = append(plats, ConvertPlatformToTypes(plat))
 	}
 
 	// exact conditions.
@@ -83,7 +83,7 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.ReleaseType = types.ReleaseTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Platform = make([]*Platform, 0)
 		for _, plat := range conditions.ExactInclude.Platform {
-			exactCond.Platform = append(exactCond.Platform, convertPlatformFromTypes(plat))
+			exactCond.Platform = append(exactCond.Platform, ConvertPlatformFromTypes(plat))
 		}
 		exactCond.Version = conditions.ExactInclude.Version
 	}
@@ -172,7 +172,7 @@ func (x *PackageReleaseSetLabelsReq) AutoConvert() {
 func (x *PackageReleaseSetLabelsReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -182,7 +182,7 @@ func (x *PackageReleaseSetLabelsReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 
@@ -199,7 +199,7 @@ func (x *PackageReleaseEnableReq) AutoConvert() {
 func (x *PackageReleaseEnableReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -209,7 +209,7 @@ func (x *PackageReleaseEnableReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 
@@ -226,7 +226,7 @@ func (x *PackageReleaseDisableReq) AutoConvert() {
 func (x *PackageReleaseDisableReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -236,7 +236,7 @@ func (x *PackageReleaseDisableReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 
@@ -255,7 +255,7 @@ func (x *PackageReleaseSetAsDefaultReq) GetIdentifier() (
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -265,7 +265,7 @@ func (x *PackageReleaseSetAsDefaultReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 
@@ -284,7 +284,7 @@ func (x *PackageReleaseCancelAsDefaultReq) GetIdentifier() (
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -294,7 +294,7 @@ func (x *PackageReleaseCancelAsDefaultReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 
@@ -313,7 +313,7 @@ func (x *PackageReleaseDeleteReq) GetIdentifier() (
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
@@ -323,7 +323,7 @@ func (x *PackageReleaseDeleteReq) SetIdentifer(
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
-	x.Platform = convertPlatformFromTypes(plat)
+	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
 }
 

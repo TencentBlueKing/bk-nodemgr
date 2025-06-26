@@ -136,6 +136,120 @@ func (x *NodeAgentInstallResp) GetData() *NodeAgentInstallResp_Data {
 	return nil
 }
 
+// NodeAgentUpgradeReq describes the node agent upgrade request.
+type NodeAgentUpgradeReq struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Host          []*NodeAgentUpgradeReq_Host `protobuf:"bytes,1,rep,name=host,proto3" json:"host"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUpgradeReq) Reset() {
+	*x = NodeAgentUpgradeReq{}
+	mi := &file_node_agent_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUpgradeReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUpgradeReq) ProtoMessage() {}
+
+func (x *NodeAgentUpgradeReq) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUpgradeReq.ProtoReflect.Descriptor instead.
+func (*NodeAgentUpgradeReq) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *NodeAgentUpgradeReq) GetHost() []*NodeAgentUpgradeReq_Host {
+	if x != nil {
+		return x.Host
+	}
+	return nil
+}
+
+// NodeAgentUpgradeResp describes the node agent upgrade response.
+type NodeAgentUpgradeResp struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                     `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                     `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *NodeAgentUpgradeResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUpgradeResp) Reset() {
+	*x = NodeAgentUpgradeResp{}
+	mi := &file_node_agent_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUpgradeResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUpgradeResp) ProtoMessage() {}
+
+func (x *NodeAgentUpgradeResp) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUpgradeResp.ProtoReflect.Descriptor instead.
+func (*NodeAgentUpgradeResp) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NodeAgentUpgradeResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NodeAgentUpgradeResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NodeAgentUpgradeResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *NodeAgentUpgradeResp) GetData() *NodeAgentUpgradeResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type NodeAgentInstallReq_Host struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
@@ -160,7 +274,7 @@ type NodeAgentInstallReq_Host struct {
 
 func (x *NodeAgentInstallReq_Host) Reset() {
 	*x = NodeAgentInstallReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[2]
+	mi := &file_node_agent_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -172,7 +286,7 @@ func (x *NodeAgentInstallReq_Host) String() string {
 func (*NodeAgentInstallReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentInstallReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[2]
+	mi := &file_node_agent_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -302,7 +416,7 @@ type NodeAgentInstallResp_Data struct {
 
 func (x *NodeAgentInstallResp_Data) Reset() {
 	*x = NodeAgentInstallResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[3]
+	mi := &file_node_agent_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +428,7 @@ func (x *NodeAgentInstallResp_Data) String() string {
 func (*NodeAgentInstallResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentInstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[3]
+	mi := &file_node_agent_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -331,6 +445,118 @@ func (*NodeAgentInstallResp_Data) Descriptor() ([]byte, []int) {
 }
 
 func (x *NodeAgentInstallResp_Data) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+type NodeAgentUpgradeReq_Host struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	BkHostId                  int64                  `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	TargetVersion             string                 `protobuf:"bytes,2,opt,name=target_version,json=targetVersion,proto3" json:"target_version"`
+	Force                     bool                   `protobuf:"varint,3,opt,name=force,proto3" json:"force"`
+	GracefulRestartTimeoutSec int64                  `protobuf:"varint,4,opt,name=graceful_restart_timeout_sec,json=gracefulRestartTimeoutSec,proto3" json:"graceful_restart_timeout_sec"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *NodeAgentUpgradeReq_Host) Reset() {
+	*x = NodeAgentUpgradeReq_Host{}
+	mi := &file_node_agent_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUpgradeReq_Host) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUpgradeReq_Host) ProtoMessage() {}
+
+func (x *NodeAgentUpgradeReq_Host) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUpgradeReq_Host.ProtoReflect.Descriptor instead.
+func (*NodeAgentUpgradeReq_Host) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{2, 0}
+}
+
+func (x *NodeAgentUpgradeReq_Host) GetBkHostId() int64 {
+	if x != nil {
+		return x.BkHostId
+	}
+	return 0
+}
+
+func (x *NodeAgentUpgradeReq_Host) GetTargetVersion() string {
+	if x != nil {
+		return x.TargetVersion
+	}
+	return ""
+}
+
+func (x *NodeAgentUpgradeReq_Host) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
+func (x *NodeAgentUpgradeReq_Host) GetGracefulRestartTimeoutSec() int64 {
+	if x != nil {
+		return x.GracefulRestartTimeoutSec
+	}
+	return 0
+}
+
+type NodeAgentUpgradeResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUpgradeResp_Data) Reset() {
+	*x = NodeAgentUpgradeResp_Data{}
+	mi := &file_node_agent_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUpgradeResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUpgradeResp_Data) ProtoMessage() {}
+
+func (x *NodeAgentUpgradeResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUpgradeResp_Data.ProtoReflect.Descriptor instead.
+func (*NodeAgentUpgradeResp_Data) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{3, 0}
+}
+
+func (x *NodeAgentUpgradeResp_Data) GetWorkflowId() string {
 	if x != nil {
 		return x.WorkflowId
 	}
@@ -399,11 +625,39 @@ var file_node_agent_proto_rawDesc = string([]byte{
 	0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x27, 0x0a, 0x04, 0x44, 0x61,
 	0x74, 0x61, 0x12, 0x1f, 0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69,
 	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f,
-	0x77, 0x49, 0x64, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e,
-	0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67,
-	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e,
-	0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x77, 0x49, 0x64, 0x22, 0xec, 0x01, 0x0a, 0x13, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e,
+	0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x71, 0x12, 0x30, 0x0a, 0x04, 0x68,
+	0x6f, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x4e,
+	0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52,
+	0x65, 0x71, 0x2e, 0x48, 0x6f, 0x73, 0x74, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x1a, 0xa2, 0x01,
+	0x0a, 0x04, 0x48, 0x6f, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73,
+	0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f,
+	0x73, 0x74, 0x49, 0x64, 0x12, 0x25, 0x0a, 0x0e, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x5f, 0x76,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x74, 0x61,
+	0x72, 0x67, 0x65, 0x74, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x66,
+	0x6f, 0x72, 0x63, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x66, 0x6f, 0x72, 0x63,
+	0x65, 0x12, 0x3f, 0x0a, 0x1c, 0x67, 0x72, 0x61, 0x63, 0x65, 0x66, 0x75, 0x6c, 0x5f, 0x72, 0x65,
+	0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65,
+	0x63, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x19, 0x67, 0x72, 0x61, 0x63, 0x65, 0x66, 0x75,
+	0x6c, 0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x53,
+	0x65, 0x63, 0x22, 0xbf, 0x01, 0x0a, 0x14, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74,
+	0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63,
+	0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12,
+	0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
+	0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x27, 0x0a, 0x04, 0x44,
+	0x61, 0x74, 0x61, 0x12, 0x1f, 0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c,
+	0x6f, 0x77, 0x49, 0x64, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69,
+	0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b,
+	0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65,
+	0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 })
 
 var (
@@ -418,21 +672,27 @@ func file_node_agent_proto_rawDescGZIP() []byte {
 	return file_node_agent_proto_rawDescData
 }
 
-var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_node_agent_proto_goTypes = []any{
 	(*NodeAgentInstallReq)(nil),       // 0: v3.NodeAgentInstallReq
 	(*NodeAgentInstallResp)(nil),      // 1: v3.NodeAgentInstallResp
-	(*NodeAgentInstallReq_Host)(nil),  // 2: v3.NodeAgentInstallReq.Host
-	(*NodeAgentInstallResp_Data)(nil), // 3: v3.NodeAgentInstallResp.Data
+	(*NodeAgentUpgradeReq)(nil),       // 2: v3.NodeAgentUpgradeReq
+	(*NodeAgentUpgradeResp)(nil),      // 3: v3.NodeAgentUpgradeResp
+	(*NodeAgentInstallReq_Host)(nil),  // 4: v3.NodeAgentInstallReq.Host
+	(*NodeAgentInstallResp_Data)(nil), // 5: v3.NodeAgentInstallResp.Data
+	(*NodeAgentUpgradeReq_Host)(nil),  // 6: v3.NodeAgentUpgradeReq.Host
+	(*NodeAgentUpgradeResp_Data)(nil), // 7: v3.NodeAgentUpgradeResp.Data
 }
 var file_node_agent_proto_depIdxs = []int32{
-	2, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
-	3, // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
+	5, // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
+	6, // 2: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
+	7, // 3: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_node_agent_proto_init() }
@@ -441,14 +701,14 @@ func file_node_agent_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_node_agent_proto_msgTypes[2].OneofWrappers = []any{}
+	file_node_agent_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_agent_proto_rawDesc), len(file_node_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -21,63 +21,63 @@ import (
 
 const (
 	// ActionNameUpgradeNode defines the action name.
-	ActionNameUpgradeNode = "upgrade_node"
+	ActionNameRestartNode = "restart_node"
 )
 
-// NewActionUpgradeNode get a new action.
-func NewActionUpgradeNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+// NewActionStartNode get a new action.
+func NewActionStartNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.Logger) action.Definition {
-	return &actionUpgradeNode{
+	return &actionRestartNode{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
 		logger:                logger,
 	}
 }
 
-// ActionParamUpgradeNode defines the action param.
-type ActionParamUpgradeNode struct {
+// ActionParamRestartNode defines the action param.
+type ActionParamRestartNode struct {
 	Token string `json:"token"`
 }
 
-type actionUpgradeNode struct {
+type actionRestartNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *actionUpgradeNode) Name() string {
+func (act *actionRestartNode) Name() string {
 	return ActionNameUpgradeNode
 }
 
 // Version returns the version of the action.
-func (act *actionUpgradeNode) Version() string {
+func (act *actionRestartNode) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionUpgradeNode) Description() string {
-	return "upgrade node"
+func (act *actionRestartNode) Description() string {
+	return "restart node"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionUpgradeNode) Timeout() time.Duration {
+func (act *actionRestartNode) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionUpgradeNode) Tags() []action.Tag {
+func (act *actionRestartNode) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionUpgradeNode) MaxRetryCount() uint {
+func (act *actionRestartNode) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradeNode) DelayFn() func() {
+func (act *actionRestartNode) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -86,6 +86,6 @@ func (act *actionUpgradeNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,fnsize,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradeNode) Do(_ *action.InstanceContext) (err error) {
+func (act *actionRestartNode) Do(_ *action.InstanceContext) (err error) {
 	return nil
 }

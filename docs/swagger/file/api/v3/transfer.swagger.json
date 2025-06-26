@@ -131,7 +131,7 @@
       },
       "description": "Platform describes the platform informations."
     },
-    "v3TransferProgress": {
+    "v3SimpleTransferResult": {
       "type": "object",
       "properties": {
         "error_code": {
@@ -153,7 +153,7 @@
           "format": "int64"
         }
       },
-      "description": "TransferProgress describes the transfer progress."
+      "description": "SimpleTransferResult describes the simple transfer result."
     },
     "v3TransferReleaseLaunchReq": {
       "type": "object",
@@ -241,10 +241,10 @@
       "type": "object",
       "properties": {
         "upload": {
-          "$ref": "#/definitions/v3TransferProgress"
+          "$ref": "#/definitions/v3SimpleTransferResult"
         },
         "download": {
-          "$ref": "#/definitions/v3TransferProgress"
+          "$ref": "#/definitions/v3SimpleTransferResult"
         },
         "start_time": {
           "type": "integer",

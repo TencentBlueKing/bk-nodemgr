@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -64,6 +65,9 @@ type Capability struct {
 
 	// GSEHandler gse handler.
 	GSEHandler gse.IHandler
+
+	// FileHandler file handler.
+	FileHandler file.IHandler
 
 	// Logger logger
 	Logger logger.Logger

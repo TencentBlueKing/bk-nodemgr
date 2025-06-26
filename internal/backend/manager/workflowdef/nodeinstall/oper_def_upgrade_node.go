@@ -46,10 +46,10 @@ func (oper *operUpgradeNode) ActionDefNames() []string {
 	return []string{
 		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
-		ActionNameUpgradeNode,
-		ActionNameWaitGseReady,
-		ActionNameSyncNodeInfo,
-		ActionNameUpdateHost,
+		// ActionNameUpgradeNode,
+		// ActionNameWaitGseReady,
+		// ActionNameSyncNodeInfo,
+		// ActionNameUpdateHost,
 	}
 }
 

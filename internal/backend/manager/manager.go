@@ -51,10 +51,21 @@ type Manager interface {
 
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
 	LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error)
+
+	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
+	LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error)
 }
 
 // InstallNodeParam install node param.
 type InstallNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
+}
+
+// UpgradeNodeParam upgrade node param.
+type UpgradeNodeParam struct {
 	Type            types.NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
@@ -207,6 +218,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
 		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
 	)
 }
 
@@ -357,6 +369,82 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 
 	if err := gp.Wait(); err != nil {
 		return "", fmt.Errorf("failed to launch install node task. err: %w", err)
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
+func (mgr *manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launching upgrade node task. tenant-id(%s), trigger-id(%s), node-deployments(%d)",
+		tenantID, triggerCtl.GetTriggerID(), len(param.NodeDeployments))
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to create node deployment. "+
+						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+
+				return err
+			}
+
+			operationDef := nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{Token: deploy.Token})
+			operationParam := operationDef.DefaultParameters()
+			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
+			if err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to launch upgrade node task. "+
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+				return err
+			}
+
+			mgr.logger.InfoCtxf(ctx,
+				"launched upgrade node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
+					" node-deployment-token(%s)",
+				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch upgrade node task. err: %w", err)
 	}
 
 	if err = triggerCtl.RunTrigger(ctx); err != nil {

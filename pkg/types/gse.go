@@ -10,7 +10,12 @@
 
 package types
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+)
 
 // AgentStatusCode represents the gse agent status code.
 type AgentStatusCode int
@@ -268,4 +273,44 @@ type TransferResult struct {
 
 	StartTime time.Time
 	EndTime   time.Time
+}
+
+// ISimpleTransferHandler defines single transfer handler interface.
+// in simple transfer, there are only one file from one source to one target.
+type ISimpleTransferHandler interface {
+	// GetTaskID get task id.
+	GetTaskID() string
+
+	// GetFileInfo get file info.
+	GetFileInfo() iface.FileInfo
+
+	// WaitUntilDone wait until done.
+	WaitUntilDone(ctx context.Context) (*SimpleTransferResult, error)
+}
+
+// SimpleTransferResult represents the simple transfer result.
+type SimpleTransferResult struct {
+	Mode          TransferMode
+	ErrorCode     int
+	ErrorMessage  string
+	Terminated    bool
+	Progress      uint
+	SpeedKBPerSec uint64
+	StartTime     time.Time
+	EndTime       time.Time
+}
+
+// ConvertTransferResultToSimple convert transfer result to simple transfer result.
+func ConvertTransferResultToSimple(result *TransferResult) *SimpleTransferResult {
+	return &SimpleTransferResult{
+		Mode:         result.Mode,
+		ErrorCode:    result.ErrorCode,
+		ErrorMessage: result.ErrorMessage,
+		Terminated: result.Mode == TransferModeUpload && result.StatusCode == TransferStatusEndUploading ||
+			result.Mode == TransferModeDownload && result.StatusCode == TransferStatusEndDownloading,
+		Progress:      result.Progress,
+		SpeedKBPerSec: result.SpeedKBPerSec,
+		StartTime:     result.StartTime,
+		EndTime:       result.EndTime,
+	}
 }

@@ -46,7 +46,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	for idx := range hosts {
 		reqHost := hosts[idx]
 
-		nodeDeploy, err := h.generatesDeploys(sCtx, ctx.TenantID, reqHost)
+		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost)
 		if err != nil {
 			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
@@ -76,7 +76,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) generatesDeploys(
+func (h *handler) generatesInstallDeploys(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host) (*types.NodeDeployment, error) {

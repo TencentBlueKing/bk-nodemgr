@@ -36,18 +36,6 @@ const (
 	transferQueryContinuesFailedTimes = 5
 )
 
-// ITransfer defines transfer interface.
-type ITransfer interface {
-	// GetTaskID get task id.
-	GetTaskID() string
-
-	// GetFileInfo get file info.
-	GetFileInfo() iface.FileInfo
-
-	// WaitUntilDone wait until done.
-	WaitUntilDone(ctx context.Context) (*types.TransferResult, error)
-}
-
 // Transfer provides transfer.
 type Transfer struct {
 	taskID string
@@ -71,7 +59,7 @@ func (t *Transfer) GetFileInfo() iface.FileInfo {
 }
 
 // WaitUntilDone wait until done.
-func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, error) {
+func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResult, error) {
 	ticker := time.NewTicker(transferQueryTickTime)
 	failedCnt := 0
 	for {
@@ -80,10 +68,6 @@ func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, er
 			return nil, errors.New("context done")
 		case <-ticker.C:
 			src, dst, err := t.query(ctx)
-			if errors.Is(err, errEndpointNotFound) {
-				continue
-			}
-
 			if err != nil {
 				failedCnt++
 				if failedCnt > transferQueryContinuesFailedTimes {
@@ -96,14 +80,16 @@ func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, er
 			failedCnt = 0
 
 			if dst.StatusCode == types.TransferStatusEndDownloading {
-				return dst, nil
+				return types.ConvertTransferResultToSimple(dst), nil
 			}
 
 			if src.StatusCode == types.TransferStatusEndUploading && src.ErrorCode != 0 {
-				dst.ErrorCode = src.ErrorCode
-				dst.ErrorMessage = src.ErrorMessage
+				// if upload failed, set the upload error info into simple result.
+				result := types.ConvertTransferResultToSimple(dst)
+				result.ErrorCode = src.ErrorCode
+				result.ErrorMessage = src.ErrorMessage
 
-				return dst, nil
+				return result, nil
 			}
 		}
 	}
@@ -136,20 +122,12 @@ func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *t
 		}
 	}
 
-	if src == nil || dst == nil {
-		return nil, nil, errEndpointNotFound
-	}
-
 	return src, dst, nil
 }
 
-var (
-	errEndpointNotFound = errors.New("endpoint not found")
-)
-
 // QueryTransferRelease query transfer release.
 func (m *Manager) QueryTransferRelease(
-	ctx context.Context, taskID string) (*types.TransferResult, *types.TransferResult, error) {
+	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
 	results, err := m.gseHandler.QueryFileTransmissionResult(ctx, taskID)
 	if err != nil {
@@ -160,12 +138,15 @@ func (m *Manager) QueryTransferRelease(
 		return nil, nil, fmt.Errorf("unexpected transfer result count(%d), results(%+v)", len(results), results)
 	}
 
-	if results[0].Mode == types.TransferModeUpload && results[1].Mode == types.TransferModeDownload {
-		return results[0], results[1], nil
+	sr1 := types.ConvertTransferResultToSimple(results[0])
+	sr2 := types.ConvertTransferResultToSimple(results[1])
+
+	if sr1.Mode == types.TransferModeUpload && sr2.Mode == types.TransferModeDownload {
+		return sr1, sr2, nil
 	}
 
-	if results[1].Mode == types.TransferModeUpload && results[0].Mode == types.TransferModeDownload {
-		return results[1], results[0], nil
+	if sr2.Mode == types.TransferModeUpload && sr1.Mode == types.TransferModeDownload {
+		return sr2, sr1, nil
 	}
 
 	return nil, nil, fmt.Errorf("unexpected transfer result: (%v), (%v)", results[0], results[1])
@@ -178,7 +159,7 @@ func (m *Manager) LaunchTransferRelease(ctx context.Context,
 	plat platform.Platform,
 	version string,
 	dstDir string,
-	dstHost *types.Host) (ITransfer, error) {
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
 	file, dir, err := m.EnsureFileToLocal(ctx, gen, rt, plat, version)
 	if err != nil {

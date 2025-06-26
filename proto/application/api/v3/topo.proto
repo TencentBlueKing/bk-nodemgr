@@ -319,6 +319,7 @@ message TopoHostDistinctResp {
     repeated string addressing = 7;
     repeated int64 bk_networkarea_id = 8;
     repeated int64 bk_networkunit_id = 9;
+    repeated int64 bk_biz_id = 10;
   }
   Data data = 4;
 }

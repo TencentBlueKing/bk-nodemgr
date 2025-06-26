@@ -11,7 +11,6 @@
 package v3
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -31,12 +30,12 @@ func (x *TransferReleaseLaunchReq) GetIdentifier() (
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
-		convertPlatformToTypes(x.GetPlatform()),
+		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
 
 // ConvertResult convert result.
-func (x *TransferReleaseLaunchResp) ConvertResult(tf manager.ITransfer) {
+func (x *TransferReleaseLaunchResp) ConvertResult(tf types.ISimpleTransferHandler) {
 	data := &TransferReleaseLaunchResp_Data{
 		TaskId:          new(string),
 		ReleaseFileName: new(string),
@@ -64,24 +63,10 @@ func (x *TransferReleaseQueryReq) AutoConvert() {
 }
 
 // ConvertResult convert result.
-func (x *TransferReleaseQueryResp) ConvertResult(upload, download *types.TransferResult) {
-	uploadData := newEmptyTransferProgress()
-	*uploadData.ErrorCode = int64(upload.ErrorCode)
-	*uploadData.ErrorMessage = upload.ErrorMessage
-	*uploadData.Progress = int64(upload.Progress)
-	*uploadData.SpeedKbytesPerSec = int64(upload.SpeedKBPerSec)
-	*uploadData.Terminated = upload.StatusCode == types.TransferStatusEndUploading
-
-	downloadData := newEmptyTransferProgress()
-	*downloadData.ErrorCode = int64(download.ErrorCode)
-	*downloadData.ErrorMessage = download.ErrorMessage
-	*downloadData.Progress = int64(download.Progress)
-	*downloadData.SpeedKbytesPerSec = int64(download.SpeedKBPerSec)
-	*downloadData.Terminated = download.StatusCode == types.TransferStatusEndDownloading
-
+func (x *TransferReleaseQueryResp) ConvertResult(upload, download *types.SimpleTransferResult) {
 	data := &TransferReleaseQueryResp_Data{
-		Upload:    uploadData,
-		Download:  downloadData,
+		Upload:    ConvertSimpleTransferFromTypes(upload),
+		Download:  ConvertSimpleTransferFromTypes(download),
 		StartTime: new(int64),
 		EndTime:   new(int64),
 	}
@@ -92,8 +77,31 @@ func (x *TransferReleaseQueryResp) ConvertResult(upload, download *types.Transfe
 	x.Data = data
 }
 
-func newEmptyTransferProgress() *TransferProgress {
-	return &TransferProgress{
+// ConvertSimpleTransferToTypes convert simple transfer to types.
+func ConvertSimpleTransferToTypes(result *SimpleTransferResult) *types.SimpleTransferResult {
+	return &types.SimpleTransferResult{
+		ErrorCode:     int(result.GetErrorCode()),
+		ErrorMessage:  result.GetErrorMessage(),
+		Terminated:    result.GetTerminated(),
+		Progress:      uint(result.GetProgress()),
+		SpeedKBPerSec: uint64(result.GetSpeedKbytesPerSec()),
+	}
+}
+
+// ConvertSimpleTransferFromTypes convert types to simple transfer.
+func ConvertSimpleTransferFromTypes(result *types.SimpleTransferResult) *SimpleTransferResult {
+	data := newEmptySimpleTransferResult()
+	*data.ErrorCode = int64(result.ErrorCode)
+	*data.ErrorMessage = result.ErrorMessage
+	*data.Terminated = result.Terminated
+	*data.Progress = int64(result.Progress)
+	*data.SpeedKbytesPerSec = int64(result.SpeedKBPerSec)
+
+	return data
+}
+
+func newEmptySimpleTransferResult() *SimpleTransferResult {
+	return &SimpleTransferResult{
 		ErrorCode:         new(int64),
 		ErrorMessage:      new(string),
 		Terminated:        new(bool),

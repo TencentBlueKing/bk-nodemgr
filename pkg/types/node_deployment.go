@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -67,14 +68,16 @@ type DeploymentInfo struct {
 	BlockingActionName string
 	Host
 
-	ReRegister    bool
-	TmpDir        string
-	LoginIP       string
-	LoginPort     int64
-	LoginUser     string
-	LoginMode     LoginMode
-	LoginPassword []byte
-	LoginKeyFile  []byte
+	ReRegister             bool
+	TmpDir                 string
+	LoginIP                string
+	LoginPort              int64
+	LoginUser              string
+	LoginMode              LoginMode
+	LoginPassword          []byte
+	LoginKeyFile           []byte
+	ForceRestart           bool
+	GracefulRestartTimeout time.Duration
 }
 
 // Validate this is the validate for node deployment.

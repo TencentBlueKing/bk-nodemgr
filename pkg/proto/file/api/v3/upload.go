@@ -87,7 +87,7 @@ func (x *UploadOriginAgentResp) ConvertResultFromTypes(generated bool, detail *t
 
 	plats := make([]*Platform, 0)
 	for _, plat := range detail.Platforms {
-		plats = append(plats, convertPlatformFromTypes(plat))
+		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &UploadOriginAgentResp_Data{
@@ -137,7 +137,7 @@ func (x *UploadOriginServerResp) ConvertResultFromTypes(generated bool, detail *
 
 	plats := make([]*Platform, 0)
 	for _, plat := range detail.Platforms {
-		plats = append(plats, convertPlatformFromTypes(plat))
+		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &UploadOriginServerResp_Data{
@@ -214,11 +214,11 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 
 	agentPlats := make([]*Platform, 0)
 	for _, plat := range detail.AgentPlatforms {
-		agentPlats = append(agentPlats, convertPlatformFromTypes(plat))
+		agentPlats = append(agentPlats, ConvertPlatformFromTypes(plat))
 	}
 	proxyPlats := make([]*Platform, 0)
 	for _, plat := range detail.ProxyPlatforms {
-		proxyPlats = append(proxyPlats, convertPlatformFromTypes(plat))
+		proxyPlats = append(proxyPlats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &UploadOriginBinToolResp_Data{

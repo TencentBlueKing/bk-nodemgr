@@ -12,7 +12,10 @@ package file
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -50,7 +53,26 @@ type IHandler interface {
 
 	// PublishReleaseBinTool publish release bintool.
 	PublishReleaseBinTool(ctx context.Context, uploadID string) error
+
+	// LaunchTransferRelease launch transfer release.
+	LaunchTransferRelease(ctx context.Context,
+		gen types.Generation,
+		rt types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// QueryTransferRelease query transfer release.
+	// return upload result, download result and error.
+	QueryTransferRelease(
+		ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
+
+const (
+	transferQueryTickTime             = 1 * time.Second
+	transferQueryContinuesFailedTimes = 5
+)
 
 type handler struct {
 	cli *cli
@@ -234,4 +256,106 @@ func (h *handler) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 	}
 
 	return nil
+}
+
+// LaunchTransferRelease launch transfer release.
+func (h *handler) LaunchTransferRelease(ctx context.Context,
+	gen types.Generation,
+	rt types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	resp, err := h.cli.launchTransferRelease(ctx, &protoFile.TransferReleaseLaunchReq{
+		Generation:   int64(gen),
+		ReleaseType:  string(rt),
+		Platform:     protoFile.ConvertPlatformFromTypes(plat),
+		Version:      version,
+		TargetDir:    dstDir,
+		TargetHostId: dstHost.HostID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to launch transfer release: %w", err)
+	}
+
+	data := resp.GetData()
+	return &simpleTransferHandler{
+		taskID: data.GetTaskId(),
+		fileInfo: iface.FileInfo{
+			Name: data.GetReleaseFileName(),
+			Size: data.GetReleaseFileSize(),
+			MD5:  data.GetReleaseFileMd5(),
+		},
+		handler: h,
+	}, nil
+}
+
+// QueryTransferRelease query transfer release.
+// return upload result, download result and error.
+func (h *handler) QueryTransferRelease(
+	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
+
+	resp, err := h.cli.queryTransferRelease(ctx, &protoFile.TransferReleaseQueryReq{
+		TaskId: taskID,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to query transfer release: %w", err)
+	}
+
+	data := resp.GetData()
+	return protoFile.ConvertSimpleTransferToTypes(data.GetUpload()),
+		protoFile.ConvertSimpleTransferToTypes(data.GetDownload()),
+		nil
+}
+
+type simpleTransferHandler struct {
+	taskID   string
+	fileInfo iface.FileInfo
+	handler  *handler
+}
+
+// GetTaskID get task id.
+func (handler *simpleTransferHandler) GetTaskID() string {
+	return handler.taskID
+}
+
+// GetFileInfo get file info.
+func (handler *simpleTransferHandler) GetFileInfo() iface.FileInfo {
+	return handler.fileInfo
+}
+
+// WaitUntilDone wait until done.
+func (handler *simpleTransferHandler) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResult, error) {
+	ticker := time.NewTicker(transferQueryTickTime)
+	failedCnt := 0
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("context done")
+		case <-ticker.C:
+			src, dst, err := handler.handler.QueryTransferRelease(ctx, handler.taskID)
+			if err != nil {
+				failedCnt++
+				if failedCnt > transferQueryContinuesFailedTimes {
+					return nil, fmt.Errorf("failed to query transfer release. task-id(%s): %w", handler.taskID, err)
+				}
+
+				continue
+			}
+			failedCnt = 0
+
+			if dst.Terminated {
+				return dst, nil
+			}
+
+			if src.Terminated && src.ErrorCode != 0 {
+				// if upload failed, set the upload error info into simple result.
+				dst.ErrorCode = src.ErrorCode
+				dst.ErrorMessage = src.ErrorMessage
+
+				return dst, nil
+			}
+		}
+	}
 }

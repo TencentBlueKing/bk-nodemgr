@@ -42,6 +42,13 @@ type Config struct {
 	HeaderSetter HeaderSetter
 }
 
+type emptyHeaderSetter struct{}
+
+// GetAuthHeader returns auth header.
+func (emptyHeaderSetter) GetAuthHeader() (string, error) {
+	return "", nil
+}
+
 // cli client for backend.
 type cli struct {
 	client rest.ClientInterface
@@ -53,6 +60,10 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 	restCli, err := rest.NewClient(c, "/")
 	if err != nil {
 		return nil, err
+	}
+
+	if conf.HeaderSetter == nil {
+		conf.HeaderSetter = &emptyHeaderSetter{}
 	}
 
 	return &cli{
@@ -387,4 +398,66 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, req *protoFile.PublishR
 	}
 
 	return resp.GetData(), nil
+}
+
+func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.TransferReleaseLaunchReq) (
+	*protoFile.TransferReleaseLaunchResp, error) {
+
+	resp := new(protoFile.TransferReleaseLaunchResp)
+	header, err := c.getCommonHeader("")
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/transfer/release/launch").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to transfer release launch. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to transfer release launch. data is nil")
+	}
+
+	return resp, nil
+}
+
+func (c *cli) queryTransferRelease(ctx context.Context, req *protoFile.TransferReleaseQueryReq) (
+	*protoFile.TransferReleaseQueryResp, error) {
+
+	resp := new(protoFile.TransferReleaseQueryResp)
+	header, err := c.getCommonHeader("")
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/transfer/release/query").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query transfer release. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to query transfer release. data is nil")
+	}
+
+	return resp, nil
 }

@@ -309,7 +309,7 @@ func (handler *triggerHandler) tryLockTrigger(ctx context.Context, trig *trigger
 	if handler.checkFeasibility(ctx, trig) != nil {
 		_ = mutex.Unlock()
 
-		handler.mgr.logger.ErrorCtxf(ctx, "trigger is not feasible. trigger-id:(%s), state(%s)",
+		handler.mgr.logger.DebugCtxf(ctx, "trigger is not feasible. trigger-id:(%s), state(%s)",
 			trig.TriggerID, trig.State)
 
 		return nil

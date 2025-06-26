@@ -82,11 +82,12 @@ type IManager interface {
 		plat platform.Platform,
 		version string,
 		dstDir string,
-		dstHost *types.Host) (ITransfer, error)
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// QueryTransferRelease query transfer release.
 	// return upload result, download result and error.
-	QueryTransferRelease(ctx context.Context, taskID string) (*types.TransferResult, *types.TransferResult, error)
+	QueryTransferRelease(ctx context.Context, taskID string) (
+		*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
 // New returns a new file manager.

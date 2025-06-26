@@ -168,6 +168,7 @@ func (x *TopoHostDistinctResp) ConvertResultFromTypes(result *types.HostDistinct
 	}
 
 	x.Data = &TopoHostDistinctResp_Data{
+		BkBizId:         formatRespSlice(result.BizID),
 		NodeRole:        formatRespSlice(types.NodeRoleListToStringList(result.NodeRole)),
 		NodeStatus:      formatRespSlice(types.NodeStatusListToStringList(result.NodeStatus)),
 		NodeVersion:     formatRespSlice(result.NodeVersion),
@@ -187,7 +188,9 @@ func (x *TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult 
 	}
 
 	data := x.GetData()
+
 	return &types.HostDistinctResult{
+		BizID:         data.GetBkBizId(),
 		NodeRole:      types.StringListToNodeRoleList(data.GetNodeRole()),
 		NodeStatus:    types.StringListToNodeStatusList(data.GetNodeStatus()),
 		NodeVersion:   data.GetNodeVersion(),

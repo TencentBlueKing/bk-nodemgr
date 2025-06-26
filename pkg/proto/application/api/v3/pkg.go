@@ -37,7 +37,7 @@ func (x *PackageUploadOriginAgentResp) ConvertResultFromTypes(generated bool, de
 
 	plats := make([]*Platform, 0)
 	for _, plat := range detail.Platforms {
-		plats = append(plats, convertPlatformFromTypes(plat))
+		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &PackageUploadOriginAgentResp_Data{
@@ -87,7 +87,7 @@ func (x *PackageUploadOriginServerResp) ConvertResultFromTypes(generated bool, d
 
 	plats := make([]*Platform, 0)
 	for _, plat := range detail.Platforms {
-		plats = append(plats, convertPlatformFromTypes(plat))
+		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &PackageUploadOriginServerResp_Data{
@@ -164,11 +164,11 @@ func (x *PackageUploadOriginBinToolResp) ConvertResultFromTypes(generated bool, 
 
 	agentPlats := make([]*Platform, 0)
 	for _, plat := range detail.AgentPlatforms {
-		agentPlats = append(agentPlats, convertPlatformFromTypes(plat))
+		agentPlats = append(agentPlats, ConvertPlatformFromTypes(plat))
 	}
 	proxyPlats := make([]*Platform, 0)
 	for _, plat := range detail.ProxyPlatforms {
-		proxyPlats = append(proxyPlats, convertPlatformFromTypes(plat))
+		proxyPlats = append(proxyPlats, ConvertPlatformFromTypes(plat))
 	}
 
 	data := &PackageUploadOriginBinToolResp_Data{

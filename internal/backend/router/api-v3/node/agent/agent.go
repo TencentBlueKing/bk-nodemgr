@@ -26,6 +26,7 @@ type handler struct {
 	rg                 *gin.RouterGroup
 	manager            manager.Manager
 	storageNetworkUnit topo.IStorageNetworkUnit
+	storageHost        topo.IStorageHost
 	logger             logger.Logger
 	crypter            crypter.Crypter
 }
@@ -37,6 +38,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:                 rg.Group("/agent"),
 		manager:            capability.Manager,
 		storageNetworkUnit: capability.StorageTopo,
+		storageHost:        capability.StorageTopo,
 		logger:             capability.Logger,
 		crypter:            capability.Crypter,
 	}

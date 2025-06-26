@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -152,6 +153,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
+	if err != nil {
+		return nil, err
+	}
+
 	redisClient, err := initRedis(&conf.Redis)
 	if err != nil {
 		return nil, err
@@ -226,6 +232,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
+		FileHandler:           svc.Cap.FileHandler,
 		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
@@ -469,6 +476,29 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 	}
 
 	return gseHandler, nil
+}
+
+// newFileHandler creates a new file handler.
+func newFileHandler(discov discover.Discover) (file.IHandler, error) {
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	clientCap := &client.Capability{
+		Client: httpClient,
+		Discover: discovery.NewServiceDiscovery(
+			discov,
+			discover.ServiceNameFile,
+			discover.EndpointNameFileAdmin),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	return file.New(clientCap, &file.Config{})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

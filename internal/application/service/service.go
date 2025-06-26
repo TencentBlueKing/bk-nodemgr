@@ -183,13 +183,6 @@ func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
 	return backendHandler, nil
 }
 
-type emptyHeaderSetter struct{}
-
-// GetAuthHeader returns auth header.
-func (emptyHeaderSetter) GetAuthHeader() (string, error) {
-	return "", nil
-}
-
 // newFileHandler creates a new file handler.
 func newFileHandler(discov discover.Discover) (file.IHandler, error) {
 	httpClient, err := client.NewClient(&ssl.TLSConfig{
@@ -210,9 +203,7 @@ func newFileHandler(discov discover.Discover) (file.IHandler, error) {
 		Logger:               logger.LoggerDefault{},
 	}
 
-	return file.New(clientCap, &file.Config{
-		HeaderSetter: &emptyHeaderSetter{},
-	})
+	return file.New(clientCap, &file.Config{})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

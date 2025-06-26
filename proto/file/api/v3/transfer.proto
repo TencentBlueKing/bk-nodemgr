@@ -36,8 +36,8 @@ message TransferReleaseLaunchResp {
 // release.
 message TransferReleaseQueryReq { string task_id = 1; }
 
-// TransferProgress describes the transfer progress.
-message TransferProgress {
+// SimpleTransferResult describes the simple transfer result.
+message SimpleTransferResult {
   optional int64 error_code = 1;
   optional string error_message = 2;
   optional bool terminated = 3;
@@ -53,8 +53,8 @@ message TransferReleaseQueryResp {
   string request_id = 3;
 
   message Data {
-    optional TransferProgress upload = 1;
-    optional TransferProgress download = 2;
+    optional SimpleTransferResult upload = 1;
+    optional SimpleTransferResult download = 2;
     optional int64 start_time = 3;
     optional int64 end_time = 4;
   };
