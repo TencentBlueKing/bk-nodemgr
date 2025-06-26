@@ -31,9 +31,9 @@ func (la LoggerAdapter) Info(msg string, keysAndValues ...interface{}) {
 		formatMsg = fmt.Sprintf(formatString(len(keysAndValues)),
 			append([]interface{}{msg}, formatTimes(keysAndValues)...)...)
 	} else {
-		la.Logger.Info(msg)
+		la.Logger.Debug(msg)
 	}
-	la.Logger.Infof("scheduler task running %s", formatMsg)
+	la.Logger.Debugf("scheduler task running %s", formatMsg)
 }
 
 // Error logs an error message with additional context.

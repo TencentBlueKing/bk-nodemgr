@@ -202,7 +202,7 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 		return
 	}
 
-	s.logger.Infof("task execution completed, scheduler-task-id(%s)", task.ID)
+	s.logger.Debugf("task execution completed, scheduler-task-id(%s)", task.ID)
 }
 
 // Terminate ...
