@@ -121,6 +121,9 @@ func NewService(conf *config.FileService) (*Service, error) {
 
 	// init gse handler.
 	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
+	if err != nil {
+		return nil, err
+	}
 
 	// init bkrepo.
 	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
