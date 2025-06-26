@@ -280,6 +280,7 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 	}
 
 	data := resp.GetData()
+
 	return &simpleTransferHandler{
 		taskID: data.GetTaskId(),
 		fileInfo: iface.FileInfo{
@@ -304,6 +305,7 @@ func (h *handler) QueryTransferRelease(
 	}
 
 	data := resp.GetData()
+
 	return protoFile.ConvertSimpleTransferToTypes(data.GetUpload()),
 		protoFile.ConvertSimpleTransferToTypes(data.GetDownload()),
 		nil

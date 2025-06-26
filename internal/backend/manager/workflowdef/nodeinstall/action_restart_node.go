@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	// ActionNameUpgradeNode defines the action name.
+	// ActionNameRestartNode defines the action name.
 	ActionNameRestartNode = "restart_node"
 )
 
@@ -28,6 +28,7 @@ const (
 func NewActionStartNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.Logger) action.Definition {
+
 	return &actionRestartNode{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,

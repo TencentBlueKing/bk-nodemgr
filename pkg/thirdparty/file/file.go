@@ -15,6 +15,7 @@ package file
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -425,7 +426,7 @@ func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.Transfer
 	}
 
 	if resp.GetData() == nil {
-		return nil, fmt.Errorf("failed to transfer release launch. data is nil")
+		return nil, errors.New("failed to transfer release launch. data is nil")
 	}
 
 	return resp, nil
@@ -456,7 +457,7 @@ func (c *cli) queryTransferRelease(ctx context.Context, req *protoFile.TransferR
 	}
 
 	if resp.GetData() == nil {
-		return nil, fmt.Errorf("failed to query transfer release. data is nil")
+		return nil, errors.New("failed to query transfer release. data is nil")
 	}
 
 	return resp, nil

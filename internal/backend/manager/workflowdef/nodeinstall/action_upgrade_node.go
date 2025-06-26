@@ -28,6 +28,7 @@ const (
 func NewActionUpgradeNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.Logger) action.Definition {
+
 	return &actionUpgradeNode{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
