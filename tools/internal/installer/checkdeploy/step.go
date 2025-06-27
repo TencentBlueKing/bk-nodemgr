@@ -13,6 +13,7 @@ package checkdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
@@ -20,21 +21,24 @@ import (
 
 // Step this step is used to check this gse node is deploy or not.
 type Step struct {
-	runDir   string
-	nodeRole constant.NodeRole
+	runDir    string
+	nodeRole  constant.NodeRole
+	deployEnv string
 }
 
 // StepArgs ...
 type StepArgs struct {
-	RunDir   string
-	NodeRole constant.NodeRole
+	RunDir    string
+	NodeRole  constant.NodeRole
+	DeployEnv string
 }
 
 // NewStep new step to check this gse node is deploy or not.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
-		runDir:   args.RunDir,
-		nodeRole: args.NodeRole,
+		runDir:    args.RunDir,
+		nodeRole:  args.NodeRole,
+		deployEnv: args.DeployEnv,
 	}
 
 	return step
@@ -47,7 +51,8 @@ func (step *Step) Run(ctx context.Context) error {
 
 	err := step.checkDeploy(ctx)
 	if err != nil {
-		return err
+		logger.Errorf(constant.StepCheckDeploy, "check deploy result failed, err: %s", err.Error())
+		return fmt.Errorf("check deploy result failed, err: %w", err)
 	}
 
 	logger.Infof(constant.StepCheckDeploy, "successfully check deploy result")

@@ -12,9 +12,74 @@ package checkdeploy
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"os/exec"
+	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/winapi"
 )
 
-func (step *Step) checkDeploy(_ context.Context) error {
-	return errors.New("not implemented")
+const gseAgentDaemonName = "gse_agent_daemon"
+
+// TODO: make this configurable
+const gseProxyPort = 28668
+
+func (step *Step) checkDeploy(ctx context.Context) error {
+	gseAgentDaemonSvcName := gseAgentDaemonName
+	if step.deployEnv != "gse" {
+		gseAgentDaemonSvcName = gseAgentDaemonSvcName + "_" + step.deployEnv
+	}
+
+	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	err := r.Do(ctx, func(attempt int) error {
+		status, err := winapi.GetServiceStatus(gseAgentDaemonSvcName)
+		if err != nil {
+			return fmt.Errorf("check service status failed, err: %w", err)
+		}
+
+		if status != winapi.WinSvcStatusRunning {
+			return fmt.Errorf("check service status failed, status: %s", status)
+		}
+
+		logger.Infof(constant.StepCheckDeploy, "windows-service(%s), status: %s", gseAgentDaemonSvcName, status)
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = r.Do(ctx, func(attempt int) error {
+		cmd := exec.Command("netstat", "-an")
+		output, err := cmd.Output()
+		if err != nil {
+			return fmt.Errorf("check netstat status failed, err: %w", err)
+		}
+
+		portStr := fmt.Sprintf(":%d", gseProxyPort)
+		linkStrs := []string{}
+		for _, line := range strings.Split(string(output), "\n") {
+			if strings.Contains(line, portStr) && strings.Contains(line, "ESTABLISHED") {
+				linkStrs = append(linkStrs, line)
+			}
+		}
+
+		if len(linkStrs) == 0 {
+			return fmt.Errorf("no found established connections on port %d", gseProxyPort)
+		}
+
+		for _, linkStr := range linkStrs {
+			logger.Infof(constant.StepCheckDeploy, "established link:%s", linkStr)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

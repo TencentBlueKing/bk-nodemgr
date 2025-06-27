@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -42,6 +43,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 			gseCtlPath,
 			"stop",
 		)
+		cmd.Dir = filepath.Dir(gseCtlPath)
 		cmd.Stdout = &stdOut
 		cmd.Stderr = &stdErr
 
