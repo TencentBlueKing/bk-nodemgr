@@ -20,16 +20,17 @@ import (
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
-	Generation    types.Generation
-	OsType        string
-	HostIDPath    string
-	GseDataIPC    string
-	GsePluginIPC  string
-	GseHomeDir    string
-	GseDataDir    string
-	GseRunDir     string
-	GseLogDir     string
-	GseEnvironDir string
+	Generation         types.Generation
+	OsType             string
+	HostIDPath         string
+	InstallerWorkspace string
+	GseDataIPC         string
+	GsePluginIPC       string
+	GseHomeDir         string
+	GseDataDir         string
+	GseRunDir          string
+	GseLogDir          string
+	GseEnvironDir      string
 }
 
 // Validate checks if the deployment configuration is valid.

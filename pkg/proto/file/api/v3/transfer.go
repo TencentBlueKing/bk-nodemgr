@@ -16,16 +16,16 @@ import (
 )
 
 // Validate check request body.
-func (x *TransferReleaseLaunchReq) Validate() error {
+func (x *TransferLaunchReleaseReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *TransferReleaseLaunchReq) AutoConvert() {
+func (x *TransferLaunchReleaseReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *TransferReleaseLaunchReq) GetIdentifier() (
+func (x *TransferLaunchReleaseReq) GetIdentifier() (
 	types.Generation, types.ReleaseType, platform.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
@@ -35,8 +35,8 @@ func (x *TransferReleaseLaunchReq) GetIdentifier() (
 }
 
 // ConvertResult convert result.
-func (x *TransferReleaseLaunchResp) ConvertResult(tf types.ISimpleTransferHandler) {
-	data := &TransferReleaseLaunchResp_Data{
+func (x *TransferLaunchReleaseResp) ConvertResult(tf types.ISimpleTransferHandler) {
+	data := &TransferLaunchReleaseResp_Data{
 		TaskId:          new(string),
 		ReleaseFileName: new(string),
 		ReleaseFileSize: new(int64),
@@ -54,17 +54,45 @@ func (x *TransferReleaseLaunchResp) ConvertResult(tf types.ISimpleTransferHandle
 }
 
 // Validate check request body.
-func (x *TransferReleaseQueryReq) Validate() error {
+func (x *TransferLaunchInstallerReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *TransferReleaseQueryReq) AutoConvert() {
+func (x *TransferLaunchInstallerReq) AutoConvert() {
 }
 
 // ConvertResult convert result.
-func (x *TransferReleaseQueryResp) ConvertResult(upload, download *types.SimpleTransferResult) {
-	data := &TransferReleaseQueryResp_Data{
+func (x *TransferLaunchInstallerResp) ConvertResult(tf types.ISimpleTransferHandler) {
+	data := &TransferLaunchInstallerResp_Data{
+		TaskId:            new(string),
+		InstallerFileName: new(string),
+		InstallerFileSize: new(int64),
+		InstallerFileMd5:  new(string),
+	}
+
+	*data.TaskId = tf.GetTaskID()
+
+	info := tf.GetFileInfo()
+	*data.InstallerFileName = info.Name
+	*data.InstallerFileSize = info.Size
+	*data.InstallerFileMd5 = info.MD5
+
+	x.Data = data
+}
+
+// Validate check request body.
+func (x *TransferQueryReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TransferQueryReq) AutoConvert() {
+}
+
+// ConvertResult convert result.
+func (x *TransferQueryResp) ConvertResult(upload, download *types.SimpleTransferResult) {
+	data := &TransferQueryResp_Data{
 		Upload:    ConvertSimpleTransferFromTypes(upload),
 		Download:  ConvertSimpleTransferFromTypes(download),
 		StartTime: new(int64),

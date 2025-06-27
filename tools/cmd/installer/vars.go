@@ -23,7 +23,7 @@ import (
 
 // ToolPrefix tool prefix.
 // this prefix is used to identify the file or directory created by this tool.
-const ToolPrefix = "bknm"
+const ToolPrefix = "installer_data"
 
 // logFilePath log file path.
 // nolint: gochecknoglobals
@@ -194,24 +194,24 @@ func SetRunDir(dirPath string) error {
 }
 
 // nolint: gochecknoglobals
-var tmpDir = struct {
+var workspaceDir = struct {
 	sync.Once
 	dirPath string
 }{}
 
-// SetTmpDir set tmp dir.
-func SetTmpDir(dir string) error {
+// SetWorkspaceDir workspace tmp dir.
+func SetWorkspaceDir(dir string) error {
 	var err error
-	tmpDir.Do(func() {
+	workspaceDir.Do(func() {
 		dir, err = filepath.Abs(dir)
 		if err != nil {
 			return
 		}
 
-		tmpDir.dirPath = filepath.Clean(filepath.FromSlash(dir))
+		workspaceDir.dirPath = filepath.Clean(filepath.FromSlash(dir))
 	})
 	if err != nil {
-		return fmt.Errorf("set tmp dir failed, err: %w", err)
+		return fmt.Errorf("set workspace dir failed, err: %w", err)
 	}
 
 	return nil
@@ -219,7 +219,7 @@ func SetTmpDir(dir string) error {
 
 // GetTmpDir get tmp dir.
 func GetTmpDir() string {
-	return filepath.Join(tmpDir.dirPath, ToolPrefix)
+	return filepath.Join(workspaceDir.dirPath, ToolPrefix)
 }
 
 // GetTmpConfigDir get tmp config dir.

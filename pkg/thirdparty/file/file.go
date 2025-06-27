@@ -401,17 +401,17 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, req *protoFile.PublishR
 	return resp.GetData(), nil
 }
 
-func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.TransferReleaseLaunchReq) (
-	*protoFile.TransferReleaseLaunchResp, error) {
+func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.TransferLaunchReleaseReq) (
+	*protoFile.TransferLaunchReleaseResp, error) {
 
-	resp := new(protoFile.TransferReleaseLaunchResp)
+	resp := new(protoFile.TransferLaunchReleaseResp)
 	header, err := c.getCommonHeader("")
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.client.Post().
-		SubResourcef("/transfer/release/launch").
+		SubResourcef("/transfer/launch/release").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -432,17 +432,17 @@ func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.Transfer
 	return resp, nil
 }
 
-func (c *cli) queryTransferRelease(ctx context.Context, req *protoFile.TransferReleaseQueryReq) (
-	*protoFile.TransferReleaseQueryResp, error) {
+func (c *cli) launchTransferInstaller(ctx context.Context, req *protoFile.TransferLaunchInstallerReq) (
+	*protoFile.TransferLaunchInstallerResp, error) {
 
-	resp := new(protoFile.TransferReleaseQueryResp)
+	resp := new(protoFile.TransferLaunchInstallerResp)
 	header, err := c.getCommonHeader("")
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.client.Post().
-		SubResourcef("/transfer/release/query").
+		SubResourcef("/transfer/launch/installer").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -452,12 +452,43 @@ func (c *cli) queryTransferRelease(ctx context.Context, req *protoFile.TransferR
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("failed to query transfer release. code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("failed to transfer installer launch. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
-		return nil, errors.New("failed to query transfer release. data is nil")
+		return nil, errors.New("failed to transfer installer launch. data is nil")
+	}
+
+	return resp, nil
+}
+
+func (c *cli) queryTransfer(ctx context.Context, req *protoFile.TransferQueryReq) (
+	*protoFile.TransferQueryResp, error) {
+
+	resp := new(protoFile.TransferQueryResp)
+	header, err := c.getCommonHeader("")
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/transfer/query").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to query transfer. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, errors.New("failed to query transfer. data is nil")
 	}
 
 	return resp, nil

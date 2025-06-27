@@ -401,7 +401,15 @@ func initManager(conf *config.FileService,
 	// init local temp file group.
 	tempFG, err := local.NewLocalDir(conf.TempFileGroup.FullPath, logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init group file group: %w", err)
+		return nil, fmt.Errorf("failed to init temp file group: %w", err)
+	}
+	installerFG, err := local.NewLocalDir(conf.InstallerFileGroup.FullPath, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init installer file group: %w", err)
+	}
+	cacheFG, err := local.NewLocalDir(conf.CacheFileGroup.FullPath, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init cache file group: %w", err)
 	}
 
 	return manager.New(
@@ -414,8 +422,9 @@ func initManager(conf *config.FileService,
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
-		manager.WithTempFileGroup(tempFG, conf.TempFileGroup.FullPath),
-		manager.WithLocalFileGroupDir(conf.LocalFileGroup.FullPath),
+		manager.WithTempFileGroup(tempFG),
+		manager.WithInstallerFileGroup(installerFG),
+		manager.WithCacheFileGroup(cacheFG),
 		manager.WithStorageUpload(storageUpload),
 		manager.WithStorageRelease(storageRelease),
 		manager.WithStorageTopo(storageTopo),

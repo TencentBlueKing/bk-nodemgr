@@ -330,7 +330,7 @@ func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadClos
 		return nil, err
 	}
 
-	file, err := m.temp.GetFile(ctx, tempFileName)
+	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
 	if err != nil {
 		return nil, err
 	}

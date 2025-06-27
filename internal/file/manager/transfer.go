@@ -23,7 +23,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -125,8 +127,8 @@ func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *t
 	return src, dst, nil
 }
 
-// QueryTransferRelease query transfer release.
-func (m *Manager) QueryTransferRelease(
+// QueryTransfer query transfer.
+func (m *Manager) QueryTransfer(
 	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
 	results, err := m.gseHandler.QueryFileTransmissionResult(ctx, taskID)
@@ -175,6 +177,33 @@ func (m *Manager) LaunchTransferRelease(ctx context.Context,
 	}
 
 	tf.fileInfo = info
+
+	return tf, nil
+}
+
+// LaunchTransferInstaller launch transfer installer.
+func (m *Manager) LaunchTransferInstaller(ctx context.Context,
+	plat platform.Platform,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	toolName, err := tool.FormatInstallerName(plat.OS, plat.Arch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to format installer name: %w", err)
+	}
+
+	toolFile, err := m.installerFileGroup.GetFile(ctx, toolName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file, err: %w", err)
+	}
+
+	fp := local.GetLocalFileAbsFilePath(toolFile)
+	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to transfer package: %w", err)
+	}
+
+	tf.fileInfo = toolFile.Info()
 
 	return tf, nil
 }

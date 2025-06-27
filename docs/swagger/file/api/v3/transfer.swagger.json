@@ -16,10 +16,10 @@
     "application/json"
   ],
   "paths": {
-    "/transfer/release/launch": {
+    "/transfer/launch/installler": {
       "post": {
-        "summary": "TransferRelease provides transferring release package.",
-        "operationId": "Transfer_TransferRelease",
+        "summary": "TransferInstaller provides transferring installer package.",
+        "operationId": "Transfer_TransferInstaller",
         "responses": {
           "200": {
             "description": "A successful response.(streaming responses)",
@@ -27,13 +27,13 @@
               "type": "object",
               "properties": {
                 "result": {
-                  "$ref": "#/definitions/v3TransferReleaseLaunchResp"
+                  "$ref": "#/definitions/v3TransferLaunchInstallerResp"
                 },
                 "error": {
                   "$ref": "#/definitions/rpcStatus"
                 }
               },
-              "title": "Stream result of v3TransferReleaseLaunchResp"
+              "title": "Stream result of v3TransferLaunchInstallerResp"
             }
           },
           "default": {
@@ -46,11 +46,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "TransferReleaseLaunchReq describes the HTTP request body when launch transfer\nrelease.",
+            "description": "TransferLaunchInstallerReq describes the HTTP request body when launch\ntransfer installer.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3TransferReleaseLaunchReq"
+              "$ref": "#/definitions/v3TransferLaunchInstallerReq"
             }
           }
         ],
@@ -59,14 +59,58 @@
         ]
       }
     },
-    "/transfer/release/query": {
+    "/transfer/launch/release": {
+      "post": {
+        "summary": "TransferLaunchRelease provides transferring release package.",
+        "operationId": "Transfer_TransferLaunchRelease",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3TransferLaunchReleaseResp"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3TransferLaunchReleaseResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TransferLaunchReleaseReq describes the HTTP request body when launch transfer\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TransferLaunchReleaseReq"
+            }
+          }
+        ],
+        "tags": [
+          "Transfer"
+        ]
+      }
+    },
+    "/transfer/query": {
       "get": {
-        "operationId": "Transfer_TransferReleaseQuery",
+        "summary": "TransferQuery provides querying transfer release.",
+        "operationId": "Transfer_TransferQuery",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3TransferReleaseQueryResp"
+              "$ref": "#/definitions/v3TransferQueryResp"
             }
           },
           "default": {
@@ -155,7 +199,64 @@
       },
       "description": "SimpleTransferResult describes the simple transfer result."
     },
-    "v3TransferReleaseLaunchReq": {
+    "v3TransferLaunchInstallerReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "target_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_dir": {
+          "type": "string"
+        }
+      },
+      "description": "TransferLaunchInstallerReq describes the HTTP request body when launch\ntransfer installer."
+    },
+    "v3TransferLaunchInstallerResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TransferLaunchInstallerRespData"
+        }
+      },
+      "description": "TransferLaunchInstallerResp describes the HTTP response body when launch\ntransfer installter."
+    },
+    "v3TransferLaunchInstallerRespData": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "installer_file_name": {
+          "type": "string"
+        },
+        "installer_file_size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "installer_file_md5": {
+          "type": "string"
+        }
+      }
+    },
+    "v3TransferLaunchReleaseReq": {
       "type": "object",
       "properties": {
         "generation": {
@@ -179,9 +280,9 @@
           "type": "string"
         }
       },
-      "description": "TransferReleaseLaunchReq describes the HTTP request body when launch transfer\nrelease."
+      "description": "TransferLaunchReleaseReq describes the HTTP request body when launch transfer\nrelease."
     },
-    "v3TransferReleaseLaunchResp": {
+    "v3TransferLaunchReleaseResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -195,12 +296,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3TransferReleaseLaunchRespData"
+          "$ref": "#/definitions/v3TransferLaunchReleaseRespData"
         }
       },
-      "description": "TransferReleaseLaunchResp describes the HTTP response body when launch\ntransfer release."
+      "description": "TransferLaunchReleaseResp describes the HTTP response body when launch\ntransfer release."
     },
-    "v3TransferReleaseLaunchRespData": {
+    "v3TransferLaunchReleaseRespData": {
       "type": "object",
       "properties": {
         "task_id": {
@@ -218,7 +319,7 @@
         }
       }
     },
-    "v3TransferReleaseQueryResp": {
+    "v3TransferQueryResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -232,12 +333,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3TransferReleaseQueryRespData"
+          "$ref": "#/definitions/v3TransferQueryRespData"
         }
       },
-      "description": "TransferReleaseQueryResp describes the HTTP response body when query transfer\nrelease."
+      "description": "TransferQueryResp describes the HTTP response body when query transfer."
     },
-    "v3TransferReleaseQueryRespData": {
+    "v3TransferQueryRespData": {
       "type": "object",
       "properties": {
         "upload": {

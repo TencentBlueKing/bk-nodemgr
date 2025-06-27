@@ -69,7 +69,7 @@ type DeploymentInfo struct {
 	Host
 
 	ReRegister             bool
-	TmpDir                 string
+	InstallerWorkspace     string
 	LoginIP                string
 	LoginPort              int64
 	LoginUser              string

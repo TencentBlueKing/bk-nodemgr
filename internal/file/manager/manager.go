@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -84,9 +84,15 @@ type IManager interface {
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
-	// QueryTransferRelease query transfer release.
+	// LaunchTransferInstaller launch transfer installer.
+	LaunchTransferInstaller(ctx context.Context,
+		plat platform.Platform,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// QueryTransfer query transfer.
 	// return upload result, download result and error.
-	QueryTransferRelease(ctx context.Context, taskID string) (
+	QueryTransfer(ctx context.Context, taskID string) (
 		*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
@@ -173,17 +179,23 @@ func WithUpstreamReleaseBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
 }
 
 // WithTempFileGroup sets the temp file group.
-func WithTempFileGroup(fileGroup iface.FileGroup, tempDir string) OptionFn {
+func WithTempFileGroup(fileGroup iface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.temp = fileGroup
-		manager.tempDir = tempDir
+		manager.tempFileGroup = fileGroup
 	}
 }
 
-// WithLocalFileGroupDir sets the local file group dir.
-func WithLocalFileGroupDir(fileGroupDir string) OptionFn {
+// WithInstallerFileGroup sets the installer file group.
+func WithInstallerFileGroup(fileGroup iface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.localDir = fileGroupDir
+		manager.installerFileGroup = fileGroup
+	}
+}
+
+// WithCacheFileGroup sets the cache file group.
+func WithCacheFileGroup(fileGroup iface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.cacheFileGroup = fileGroup
 	}
 }
 
@@ -248,15 +260,17 @@ type Manager struct {
 	upstreamReleaseCert    iface.FileGroup
 	upstreamReleaseBinTool iface.FileGroup
 
-	// local file group is regarded as the file cache.
-	localDir string
+	// cache file group.
+	cacheFileGroup iface.FileGroup
+
+	// installter file group.
+	installerFileGroup iface.FileGroup
+
+	// temp file group is regarded as the file temp.
+	tempFileGroup iface.FileGroup
 
 	// local file pool.
 	localFilePool *localFilePool
-
-	// temp file group is regarded as the file temp.
-	temp    iface.FileGroup
-	tempDir string
 
 	// host inner ip.
 	hostAdvertiseIPV4 string
@@ -331,7 +345,7 @@ func (m *Manager) Start(_ context.Context) error {
 func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string, error) {
 	tempFileName := uuid.NewString() + ".tgz"
 
-	err := m.temp.Store(ctx, iface.FileInfo{Name: tempFileName}, file, true)
+	err := m.tempFileGroup.Store(ctx, iface.FileInfo{Name: tempFileName}, file, true)
 	if err != nil {
 		return "", err
 	}
@@ -340,7 +354,7 @@ func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string,
 }
 
 func (m *Manager) getTempFile(ctx context.Context, tempFileName string) (io.ReadCloser, error) {
-	fileToCheck, err := m.temp.GetFile(ctx, tempFileName)
+	fileToCheck, err := m.tempFileGroup.GetFile(ctx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +367,12 @@ func (m *Manager) createTempFile(ctx context.Context) (string, error) {
 }
 
 func (m *Manager) openTempFile(_ context.Context, tempFileName string) (io.ReadWriteCloser, error) {
-	return os.OpenFile(filepath.Join(m.tempDir, tempFileName), os.O_RDWR|os.O_TRUNC, 0666) // nolint: gosec, mnd
+	// nolint: gosec, mnd
+	return os.OpenFile(
+		local.GetLocalFileGroupAbsFilePath(m.tempFileGroup, tempFileName),
+		os.O_RDWR|os.O_TRUNC,
+		0644,
+	)
 }
 
 func (m *Manager) wrapOriginPackageName(name string) string {
@@ -382,7 +401,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, erro
 		return nil, fmt.Errorf("failed to save release cert to temp file: %w", err)
 	}
 
-	return m.temp.GetFile(ctx, localFileName)
+	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
 func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, error) {
@@ -407,7 +426,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, e
 		return nil, fmt.Errorf("failed to save release bintool to temp file: %w", err)
 	}
 
-	return m.temp.GetFile(ctx, localFileName)
+	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
 func (m *Manager) fetchReleaseAgentLocal(
@@ -437,5 +456,5 @@ func (m *Manager) fetchReleaseAgentLocal(
 		return nil, fmt.Errorf("failed to save release agent to temp file: %w", err)
 	}
 
-	return m.temp.GetFile(ctx, localFileName)
+	return m.tempFileGroup.GetFile(ctx, localFileName)
 }

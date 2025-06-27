@@ -336,7 +336,7 @@ func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser)
 		return nil, err
 	}
 
-	file, err := m.temp.GetFile(ctx, tempFileName)
+	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
 	if err != nil {
 		return nil, err
 	}

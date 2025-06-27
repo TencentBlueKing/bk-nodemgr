@@ -311,7 +311,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			file, err := m.temp.GetFile(ctx, pkg.tempFileName)
+			file, err := m.tempFileGroup.GetFile(ctx, pkg.tempFileName)
 			if err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get temp file. err: %v", err)
 
@@ -361,7 +361,7 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 	originLocalFileName string) ([]*releaseAgentPkg, error) {
 
 	// local origin agent.
-	localOrigin, err := m.temp.GetFile(ctx, originLocalFileName)
+	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
 	if err != nil {
 		return nil, err
 	}
