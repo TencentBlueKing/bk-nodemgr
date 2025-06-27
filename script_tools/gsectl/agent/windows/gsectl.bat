@@ -185,10 +185,6 @@ goto :EOF
         :: stop related processes
         wmic process where name="'gse_agent_daemon.exe' and ExecutablePath='%gse_winagent_home:"=%\\agent\\bin\\gse_agent_daemon.exe'" call terminate 1>nul 2>&1
         wmic process where name="'gse_agent.exe' and ExecutablePath='%gse_winagent_home:"=%\\agent\\bin\\gse_agent.exe'" call terminate 1>nul 2>&1
-        wmic process where name="'basereport.exe' and ExecutablePath='%gse_winagent_home:"=%\\plugins\\bin\\basereport.exe'" call terminate 1>nul 2>&1
-        wmic process where name="'bkmetricbeat.exe' and ExecutablePath='%gse_winagent_home:"=%\\plugins\\bin\\bkmetricbeat.exe'" call terminate 1>nul 2>&1
-        wmic process where name="'gsecmdline.exe' and ExecutablePath='%gse_winagent_home:"=%\\plugins\\bin\\gsecmdline.exe'" call terminate 1>nul 2>&1
-        wmic process where name="'processbeat.exe' and ExecutablePath='%gse_winagent_home:"=%\\plugins\\bin\\processbeat.exe'" call terminate 1>nul 2>&1
     )
 
     :: check if gse_agent_daemon service stopped
