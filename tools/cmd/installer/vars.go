@@ -156,6 +156,21 @@ func SetSetupDir(dirPath string) error {
 }
 
 // nolint:gochecknoglobals
+var binDirPath = struct {
+	sync.Once
+	dirPath string
+}{}
+
+// GetBinDir get bin dir.
+func GetBinDir() string {
+	binDirPath.Do(func() {
+		binDirPath.dirPath = filepath.Join(GetSetupDir(), "bin")
+	})
+
+	return binDirPath.dirPath
+}
+
+// nolint:gochecknoglobals
 var runDirPath = struct {
 	sync.Once
 	dirPath string
@@ -164,7 +179,7 @@ var runDirPath = struct {
 // GetRunDir get run dir.
 func GetRunDir() string {
 	runDirPath.Do(func() {
-		runDirPath.dirPath = filepath.Join(GetSetupDir(), "bin", "run")
+		runDirPath.dirPath = filepath.Join(GetBinDir(), "run")
 	})
 
 	return runDirPath.dirPath
@@ -249,7 +264,7 @@ var gseAgentPath = struct {
 // GetGseAgentPath get gse agent path.
 func GetGseAgentPath() string {
 	gseAgentPath.Do(func() {
-		gseAgentPath.filePath = filepath.Join(GetSetupDir(), "bin", GetGseAgentName())
+		gseAgentPath.filePath = filepath.Join(GetBinDir(), GetGseAgentName())
 	})
 
 	return gseAgentPath.filePath
@@ -277,7 +292,7 @@ var gseAgentCtlPath = struct {
 // GetGseCtlPath get gse agent ctl path.
 func GetGseCtlPath() string {
 	gseAgentCtlPath.Do(func() {
-		gseAgentCtlPath.filePath = filepath.Join(GetSetupDir(), "bin", GetGseAgentCtlName())
+		gseAgentCtlPath.filePath = filepath.Join(GetBinDir(), GetGseAgentCtlName())
 	})
 
 	return gseAgentCtlPath.filePath

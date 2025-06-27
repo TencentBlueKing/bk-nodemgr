@@ -13,16 +13,121 @@
 package uninstallnode
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/winapi"
+)
+
+const (
+	gseAgentDaemonName     = "gse_agent_daemon"
+	gseAgentName           = "gse_agent"
+	gseAgentDaemonFileName = "gse_agent_daemon.exe"
+	gseAgentFileName       = "gse_agent.exe"
 )
 
 // forceUninstall uninstall agent by force way.
-func (step *Step) forceUninstall(_ context.Context) error {
-	// TODO: not implemented
-	logger.Infof(constant.StepUninstallNode, "not implemented")
+func (step *Step) forceUninstall(ctx context.Context) error {
+	gseAgentDaemonSvcName := gseAgentDaemonName
+	if step.deployEnv != "gse" {
+		gseAgentDaemonSvcName = gseAgentDaemonSvcName + "_" + step.deployEnv
+	}
+
+	// delete registry
+	err := winapi.DelRegistryCurrentUserStartRun(gseAgentName)
+	if err != nil {
+		return fmt.Errorf("delete registry failed, err: %v", err)
+	}
+
+	// stop service
+	status, err := winapi.GetServiceStatus(gseAgentDaemonSvcName)
+	if err != nil {
+		return fmt.Errorf("get service status failed, err: %v", err)
+	}
+
+	gseAgentDaemonFilePath := filepath.Join(step.binDirPath, gseAgentDaemonFileName)
+	if status != winapi.WinSvcStatusStopped {
+		err = step.stopGseAgentDaemonSvc(ctx, gseAgentDaemonFilePath, gseAgentDaemonSvcName)
+		if err != nil {
+			logger.Infof(constant.StepUninstallNode, "stop by service failed, err: %v", err)
+
+			logger.Infof(constant.StepUninstallNode, "start to stop by force kill")
+
+			gseAgentFilePath := filepath.Join(step.binDirPath, gseAgentFileName)
+
+			err = winapi.KillProcessByNameAndPath(gseAgentDaemonFileName, gseAgentDaemonFilePath)
+			if err != nil {
+				return fmt.Errorf("kill gse_agent_daemon failed, err: %v", err)
+			}
+
+			err = winapi.KillProcessByNameAndPath(gseAgentFileName, gseAgentFilePath)
+			if err != nil {
+				return fmt.Errorf("kill gse_agent failed, err: %v", err)
+			}
+		}
+	}
+
+	cmd := exec.CommandContext(ctx,
+		gseAgentDaemonFilePath,
+		"--uninstall",
+		"--name",
+		gseAgentDaemonSvcName,
+	)
+	cmd.Dir = step.binDirPath
+	stdOut := &bytes.Buffer{}
+	stdErr := &bytes.Buffer{}
+	cmd.Stdout = stdOut
+	cmd.Stderr = stdErr
+
+	logger.Infof(constant.StepUninstallNode, "run command: %s", cmd.String())
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("uninstall service failed, err: %v", err)
+	}
+
+	if stdErr.String() != "" {
+		return fmt.Errorf("uninstall service failed, stdOut(%s), stdErr(%s)",
+			strings.ReplaceAll(stdOut.String(), "\n", ""),
+			strings.ReplaceAll(stdErr.String(), "\n", ""))
+	}
+
+	logger.Infof(constant.StepUninstallNode, "uninstall service success, stdOut(%s)",
+		strings.ReplaceAll(stdOut.String(), "\n", ""))
+
+	return nil
+}
+
+func (step *Step) stopGseAgentDaemonSvc(ctx context.Context, gseAgentDaemonPath string, gseAgentDaemonSvcName string) error {
+	cmd := exec.CommandContext(ctx,
+		gseAgentDaemonPath,
+		"--quit",
+		"--name",
+		gseAgentDaemonSvcName,
+	)
+	cmd.Dir = step.binDirPath
+	stdOut := &bytes.Buffer{}
+	stdErr := &bytes.Buffer{}
+	cmd.Stdout = stdOut
+	cmd.Stderr = stdErr
+
+	logger.Infof(constant.StepUninstallNode, "run command: %s", cmd.String())
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("stop service failed, err: %v", err)
+	}
+
+	if stdErr.String() != "" {
+		return fmt.Errorf("stop service failed, stdOut(%s), stdErr(%s)",
+			strings.ReplaceAll(stdOut.String(), "\n", ""),
+			strings.ReplaceAll(stdErr.String(), "\n", ""))
+	}
+
+	logger.Infof(constant.StepUninstallNode, "stop service success, stdOut(%s)",
+		strings.ReplaceAll(stdOut.String(), "\n", ""))
 
 	return nil
 }

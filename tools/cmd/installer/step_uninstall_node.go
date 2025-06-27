@@ -36,7 +36,9 @@ func NewStepUninstallAgent() *cobra.Command {
 		Run: func(cmd *cobra.Command, _ []string) {
 			step := uninstallnode.NewStep(uninstallnode.StepArgs{
 				SetupDirPath: GetSetupDir(),
+				BinDirPath:   GetBinDir(),
 				GseCtlPath:   GetGseCtlPath(),
+				DeployEnv:    GetDeployEnv(),
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {

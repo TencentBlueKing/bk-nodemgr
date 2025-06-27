@@ -263,7 +263,9 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 			uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
 				SetupDirPath: GetSetupDir(),
+				BinDirPath:   GetBinDir(),
 				GseCtlPath:   GetGseCtlPath(),
+				DeployEnv:    GetDeployEnv(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
 				return fmt.Errorf("uninstall step failed, err: %v", err)

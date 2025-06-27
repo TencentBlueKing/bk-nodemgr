@@ -21,20 +21,26 @@ import (
 // Step uninstall agent step.
 type Step struct {
 	setupDirPath string
+	binDirPath   string
 	gseCtlPath   string
+	deployEnv    string
 }
 
 // StepArgs define args for step.
 type StepArgs struct {
 	SetupDirPath string
+	BinDirPath   string
 	GseCtlPath   string
+	DeployEnv    string
 }
 
 // NewStep new a step.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
 		setupDirPath: args.SetupDirPath,
+		binDirPath:   args.BinDirPath,
 		gseCtlPath:   args.GseCtlPath,
+		deployEnv:    args.DeployEnv,
 	}
 
 	// 1. stop agent

@@ -13,8 +13,10 @@
 package winapi
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
@@ -152,4 +154,43 @@ func GetService(svcName string) (*ServiceInfo, error) {
 	}
 
 	return serviceInfo, nil
+}
+
+// StopService stop service.
+func StopService(ctx context.Context, svcName string) error {
+	m, err := mgr.Connect()
+	if err != nil {
+		return fmt.Errorf("failed to connect to service manager, err: %w", err)
+	}
+	defer m.Disconnect()
+
+	s, err := m.OpenService(svcName)
+	if err != nil {
+		return fmt.Errorf("failed to open service, svcName(%s), err: %w", svcName, err)
+	}
+	defer s.Close()
+
+	_, err = s.Control(svc.Stop)
+	if err != nil {
+		return fmt.Errorf("failed to stop service, svcName(%s), err: %w", svcName, err)
+	}
+
+	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	err = r.Do(ctx, func(attempt int) error {
+		status, err := s.Query()
+		if err != nil {
+			return fmt.Errorf("failed to get status for service, svcName(%s), err: %v", svcName, err)
+		}
+
+		if status.State != svc.Stopped {
+			return fmt.Errorf("service not stopped, svcName(%s), status: %s", svcName, status.State)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to stop service, svcName(%s), err: %w", svcName, err)
+	}
+
+	return nil
 }
