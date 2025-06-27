@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStaticsReq, TopoNetworkAreaStaticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp } from '@/@types/topo';
+import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStatisticsReq, TopoNetworkAreaStatisticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp } from '@/@types/topo';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -13,7 +13,8 @@ export const TopoService = {
   BusinessList: async <Request = TopoBusinessListReq, ResponseData = TopoBusinessListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/business/list')(params, config),
   // NetworkAreaList provides network-area listing.
   NetworkAreaList: async <Request = TopoNetworkAreaListReq, ResponseData = TopoNetworkAreaListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkarea/list')(params, config),
-  NetworkAreaStatics: async <Request = TopoNetworkAreaStaticsReq, ResponseData = TopoNetworkAreaStaticsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkarea/statistics')(params, config),
+  // NetworkAreaStatistics provides network-area statistics.
+  NetworkAreaStatistics: async <Request = TopoNetworkAreaStatisticsReq, ResponseData = TopoNetworkAreaStatisticsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkarea/statistics')(params, config),
   // NetworkAreaCreate provides creating a new network-area.
   NetworkAreaCreate: async <Request = TopoNetworkAreaCreateReq, ResponseData = TopoNetworkAreaCreateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkarea/create')(params, config),
   // NetworkAreaGet provides getting an existing network-area by id.

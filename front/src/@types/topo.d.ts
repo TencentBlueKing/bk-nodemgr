@@ -62,30 +62,32 @@ export interface TopoNetworkAreaListRespData {
   items: NetworkArea[];
 }
 
-// TopoNetworkAreaStaticsReq describes the HTTP request body when query
+// TopoNetworkAreaStatisticsReq describes the HTTP request body when query
 // network-area statics in topo service.
-export interface TopoNetworkAreaStaticsReq {
+export interface TopoNetworkAreaStatisticsReq {
   bk_networkarea_id: number[];
 }
 
-// TopoNetworkAreaStaticsResp describes the HTTP response body when query
+// TopoNetworkAreaStatisticsResp describes the HTTP response body when query
 // network-area statics in topo service.
-export interface TopoNetworkAreaStaticsResp {
+export interface TopoNetworkAreaStatisticsResp {
   code: number;
   message: string;
   request_id: string;
-  data: TopoNetworkAreaStaticsRespData;
+  data: TopoNetworkAreaStatisticsRespData;
 }
 
-export interface TopoNetworkAreaStaticsRespStaticsInfo {
+export interface TopoNetworkAreaStatisticsRespStatisticsInfo {
   bk_networkarea_id: number;
   networkunit_count: number;
   proxy_count: number;
   agent_count: number;
+  last_operator: string;
+  last_operate_time: number;
 }
 
-export interface TopoNetworkAreaStaticsRespData {
-  items: StaticsInfo[];
+export interface TopoNetworkAreaStatisticsRespData {
+  items: StatisticsInfo[];
 }
 
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
@@ -342,6 +344,7 @@ export interface TopoHostDistinctRespData {
   addressing: string[];
   bk_networkarea_id: number[];
   bk_networkunit_id: number[];
+  bk_biz_id: number[];
 }
 
 // TopoGraphGetReq describes the HTTP request body when get graph in topo
@@ -396,12 +399,19 @@ export interface TopoEventExactConditions {
   operator: string[];
 }
 
+// TopoEventFuzzyConditions describes the conditions when list event
+export interface TopoEventFuzzyConditions {
+  bk_networkarea_name: string[];
+  bk_networkunit_name: string[];
+}
+
 // TopoEventListReq describes the HTTP request body when get host in topo
 // service.
 export interface TopoEventListReq {
   page: Page;
   only_count: boolean;
   exact_include_conditions: TopoEventExactConditions;
+  fuzzy_include_conditions: TopoEventFuzzyConditions;
   operate_time_range: TimeRange;
 }
 
@@ -423,6 +433,7 @@ export interface TopoEventListRespData {
 // in topo service.
 export interface TopoEventDistinctReq {
   exact_include_conditions: TopoEventExactConditions;
+  fuzzy_include_conditions: TopoEventFuzzyConditions;
   operate_time_range: TimeRange;
 }
 
