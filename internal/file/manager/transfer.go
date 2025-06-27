@@ -166,7 +166,7 @@ func (m *Manager) LaunchTransferRelease(ctx context.Context,
 		return nil, fmt.Errorf("failed to get release file: %w", err)
 	}
 
-	info, _ := file.Info(ctx)
+	info := file.Info()
 	fp := filepath.Join(dir, info.Name)
 
 	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)

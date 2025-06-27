@@ -52,7 +52,7 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
 	}
 
-	info, _ := file.Info(sCtx)
+	info := file.Info()
 	resp := &rest.FileResponse{
 		Data:        reader,
 		Size:        info.Size,

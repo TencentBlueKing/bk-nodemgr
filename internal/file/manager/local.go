@@ -70,7 +70,7 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
-		info, _ := cache.file.Info(ctx)
+		info := cache.file.Info()
 
 		// hit cache. return local file.
 		if info.MD5 == release.MD5 {

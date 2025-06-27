@@ -95,13 +95,7 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 	}
 
 	// get info.
-	info, err := file.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get file info. err: %v", err)
-
-		return nil, err
-	}
-	detail.FileInfo = info
+	detail.FileInfo = file.Info()
 
 	// check if release existed.
 	existed, err := m.storageRelease.ExistReleaseAgent(ctx, detail.Version, detail.Platforms...)
@@ -324,20 +318,13 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			releaseInfo, err := file.Info(ctx)
-			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get file info. err: %v", err)
-
-				return err
-			}
-
 			releasesMap[pkg.platform.String()] = &types.Release{
 				Generation: types.Generation2,
 				Type:       types.ReleaseTypeAgent,
 				Platform:   pkg.platform,
 				Version:    detail.Version,
 				FileName:   pkgName,
-				MD5:        releaseInfo.MD5,
+				MD5:        file.Info().MD5,
 			}
 
 			return nil

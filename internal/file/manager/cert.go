@@ -83,13 +83,7 @@ func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, cer
 	}
 
 	// get info.
-	info, err := file.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get file info. err: %v", err)
-
-		return nil, err
-	}
-	detail.FileInfo = info
+	detail.FileInfo = file.Info()
 
 	// check if release existed.
 	existed, err := m.storageRelease.ExistReleaseCert(ctx)
@@ -261,12 +255,7 @@ func (m *Manager) PublishReleaseCert(ctx context.Context, uploadID string) error
 	}
 
 	// get release info.
-	releaseInfo, err := releaseFile.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get release info. err: %v", err)
-
-		return err
-	}
+	releaseInfo := releaseFile.Info()
 
 	// upsert release cert.
 	if err = m.storageRelease.UpsertReleaseCert(ctx, types.ReleaseCert{

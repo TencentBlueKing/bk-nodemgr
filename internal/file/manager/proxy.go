@@ -127,20 +127,13 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			releaseInfo, err := file.Info(ctx)
-			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get file info. err: %v", err)
-
-				return err
-			}
-
 			releasesMap[pkg.platform.String()] = &types.Release{
 				Generation: types.Generation2,
 				Type:       types.ReleaseTypeProxy,
 				Platform:   pkg.platform,
 				Version:    detail.Version,
 				FileName:   pkgName,
-				MD5:        releaseInfo.MD5,
+				MD5:        file.Info().MD5,
 			}
 
 			return nil

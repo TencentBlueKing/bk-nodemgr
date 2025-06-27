@@ -14,6 +14,7 @@ package iface
 import (
 	"context"
 	"io"
+	"strings"
 )
 
 // FileGroup directory interface.
@@ -33,6 +34,9 @@ type FileGroup interface {
 	// Store the func will store a file into the file group.
 	Store(ctx context.Context, info FileInfo, file io.ReadCloser, overwrite bool) error
 
+	// AbsDir the func will return the abs dirs of file group.
+	AbsDirs() []string
+
 	// Remove the func will delete a file from the file group.
 	// Remove(ctx context.Context, name string) error
 }
@@ -45,7 +49,10 @@ type File interface {
 	FileContent
 
 	// Info the info of file.
-	Info(ctx context.Context) (FileInfo, error)
+	Info() FileInfo
+
+	// AbsDir the func will return the abs dirs of file.
+	AbsDirs() []string
 }
 
 // FileInfo file info.
@@ -81,3 +88,15 @@ const (
 	// RemoteFile means this file is get from remote.
 	RemoteFile FileObject = "remote"
 )
+
+// ConvertAbsPathToAbsDirs convert abs path to abs dirs.
+func ConvertAbsPathToAbsDirs(path string) []string {
+	dirs := make([]string, 0)
+	for _, item := range strings.Split(strings.ReplaceAll(path, "\\", "/"), "/") {
+		if item != "" {
+			dirs = append(dirs, item)
+		}
+	}
+
+	return dirs
+}

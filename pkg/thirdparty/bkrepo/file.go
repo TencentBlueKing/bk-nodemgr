@@ -19,7 +19,8 @@ import (
 
 // File is the file object.
 type File struct {
-	info NodeInfo
+	info    NodeInfo
+	absDirs []string
 
 	handler *Handler
 }
@@ -35,7 +36,7 @@ func (f File) Content(ctx context.Context) (io.ReadCloser, error) {
 }
 
 // Info return the info of the file.
-func (f File) Info(_ context.Context) (iface.FileInfo, error) {
+func (f File) Info() iface.FileInfo {
 	var desc string
 	descValue, ok := f.info.Metadata["description"]
 	if ok {
@@ -47,5 +48,10 @@ func (f File) Info(_ context.Context) (iface.FileInfo, error) {
 		Size:        int64(f.info.Size),
 		MD5:         f.info.Md5,
 		Description: desc,
-	}, nil
+	}
+}
+
+// AbsDirs the func will return the abs dirs of file.
+func (f File) AbsDirs() []string {
+	return f.absDirs
 }

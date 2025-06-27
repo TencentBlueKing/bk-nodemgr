@@ -20,7 +20,8 @@ import (
 
 // FileGroup defines the file group.
 type FileGroup struct {
-	info NodeInfo
+	info    NodeInfo
+	absDirs []string
 
 	handler *Handler
 }
@@ -48,4 +49,9 @@ func (group *FileGroup) AllFiles(ctx context.Context) ([]iface.File, error) {
 // Store store a file to the file group.
 func (group *FileGroup) Store(ctx context.Context, info iface.FileInfo, reader io.ReadCloser, overwrite bool) error {
 	return group.handler.storeFile(ctx, group.info.FullPath, info, reader, overwrite)
+}
+
+// AbsDirs the func will return the abs dirs of file group.
+func (group *FileGroup) AbsDirs() []string {
+	return group.absDirs
 }
