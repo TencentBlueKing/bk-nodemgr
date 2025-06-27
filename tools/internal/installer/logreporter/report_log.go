@@ -252,7 +252,7 @@ func convLogLineToLogEntry(logLine string) (*LogEntry, error) {
 	step := strings.TrimSpace(fields[2])
 
 	// merge remaining fields into a single log message
-	message := strings.Join(fields[4:], " ")
+	message := strings.Join(fields[3:], " ")
 
 	t, err := time.Parse("2006/01/02 15:04:05", datetime)
 	if err != nil {
