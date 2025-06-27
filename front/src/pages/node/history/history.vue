@@ -30,41 +30,60 @@
         :settings="settings"
         @setting-change="handleSettingChange"
       >
-        <TableColumn field="bk_task_id" :title="t('任务ID')" width="150" fixed="left">
+        <TableColumn field="workflow_id" :title="t('任务ID')" width="300" fixed="left">
           <template #default="{ row }">
-            <Button text theme="primary" @click="handleTaskDetail(row.bk_task_id)">{{ row.bk_task_id }}</Button>
+            <Button text theme="primary" @click="detailHandle(row, row.status)">{{ row.workflow_id }}</Button>
           </template>
         </TableColumn>
-        <TableColumn field="bk_operate_type" :title="t('操作类型')" :filter="operateFilterOption"></TableColumn>
-        <TableColumn field="bk_task_type" :title="t('任务类型')" :filter="taskFilterOption"></TableColumn>
-        <TableColumn field="bk_bussiness" :title="t('业务')" width="150"></TableColumn>
-        <TableColumn field="bk_policy_name" :title="t('部署策略')"></TableColumn>
-        <TableColumn field="created_by" :title="t('执行人')" :filter="createdFilterOption"></TableColumn>
-        <TableColumn field="start_time" :title="t('执行时间')">
+        <TableColumn field="type" :title="t('任务类型')" :filter="taskFilterOption" width="150"></TableColumn>
+        <TableColumn field="bk_biz_name" :title="t('业务')" width="200"></TableColumn>
+        <TableColumn field="operator" :title="t('执行人')" :filter="createdFilterOption"></TableColumn>
+        <TableColumn field="operate_time" :title="t('执行时间')">
           <template #default={row}>
-            <span>{{ timeFormatter(row.start_time) }}</span>
+            <span>{{ timeFormatter(row.operate_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="cost_time" :title="t('总耗时')"></TableColumn>
-        <TableColumn field="task_status" :title="t('执行状态')" width="150" :filter="statusFilterOption">
+        <TableColumn field="cost_time" :title="t('总耗时')">
+          <template #default={row}>
+            <span>{{ formatTimeToMS(row.cost_time) }}</span>
+          </template>
+        </TableColumn>
+        <TableColumn field="status" :title="t('执行状态')" width="150" :filter="statusFilterOption">
           <template #default="{ row }">
-            <div class="flex items-center" v-if="row.node_status">
-              <span :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"></span>
-              <span>{{ row.node_status }}</span>
+            <div class="flex items-center" v-if="row.status">
+              <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
+              <template v-else>
+                <i :class="`nodeman-icon nc-${statusMap[row.status].icon} status-icon`"></i>
+              </template>
+              <span>{{ statusMap[row.status].text }}</span>
             </div>
             <div class="flex items-center" v-else>
               <span class="nodeman-icon nc-unknown status-icon"></span>
-              <span>{{ row.node_status }}</span>
+              <span>{{ row.status }}</span>
             </div>
           </template>
         </TableColumn>
-        <TableColumn field="count" :title="t('总数/成功/失败/忽略')"></TableColumn>
+        <TableColumn field="count" :title="t('总数/成功/失败/忽略')">
+          <template #default="{ row }">
+            <template v-if="row.statistics">
+              <span class="pr-[4px]">{{ row.statistics.totalCount || 0 }}</span>/
+              <a class="text-[#2dcb56] pr-[4px]"
+                @click.stop="detailHandle(row, 'success')">{{ row.statistics.successCount || 0 }}</a>/
+              <a class="text-[#ea3636] pr-[4px]"
+                @click.stop="detailHandle(row, 'failed')">{{ row.statistics.failedCount || 0 }}</a>/
+              <a class="text-[#ff9c01] pr-[4px]"
+                @click.stop="detailHandle(row, 'ignored')">{{ row.statistics.ignoredCount || 0 }}</a>
+            </template>
+            <span v-else>--</span>
+          </template>
+        </TableColumn>
       </Table>
     </bk-loading>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
+import { Spinner } from 'bkui-vue/lib/icon';
 import { Table, TableColumn } from '@blueking/table';
 import { useI18n } from 'vue-i18n';
 import { toLower } from 'lodash';
@@ -72,16 +91,16 @@ import { useRoute, useRouter } from 'vue-router';
 import { InfoBox, Button, Dropdown, Cascader, SearchSelect, DatePicker, Checkbox } from 'bkui-vue';
 import usePage from '@/composables/use-page';
 import { useMainStore } from '@/stores/main';
-import { WorkflowService } from '@/api/modules/workflow';
-import { TopoService } from '@/api/modules/topo';
+import { useNodeManageStore } from '@/stores/node-manage';
+import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import useTableSetting from '@/composables/use-table-setting';
-
 import dayjs from 'dayjs';
 
 const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
-const tableData = ref<Host[]>([]);
+const nodeManageStore = useNodeManageStore();
+const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 // 分页
 const {
@@ -129,6 +148,24 @@ const shortcutsRange = reactive([
     },
   },
 ]);
+const statusMap = {
+  running: {
+    text: t('执行中')
+  },
+  failed: {
+    text: t('失败'),
+    icon: 'terminated'
+  },
+  success: {
+    text: t('成功'),
+    icon: 'running'
+  },
+  partial_failed: {
+    text: t('部分失败'),
+    icon: 'warning'
+  },
+
+}
 const dateChange = (val: string[]) => {
   console.log(val);
 }
@@ -144,18 +181,23 @@ const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => {
   return val ? dayjs(val).format(format) : '--';
 }
 
+const formatTimeToMS = (duration: number) => {
+  const minutes = Math.floor(duration / 60000);
+  const seconds = Math.floor((duration % 60000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
+
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    'bk_task_id',
-    'bk_bussiness',
-    'bk_operate_type',
-    'bk_task_type',
+    'workflow_id',
+    'bk_biz_name',
+    'type',
     'bk_policy_name',
-    'created_by',
-    'start_time',
+    'operator',
+    'operate_time',
     'cost_time',
-    'task_status',
+    'status',
     'count'
   ],
   disabled: [],
@@ -168,11 +210,10 @@ const getUniqueChildren = (prop: string) => {
   }))
 }
 const searchSelectData = computed(() => [
-  {id: 'bk_task_id', name: '任务ID'},
-  {id: 'bk_task_type', name: '任务类型', children: getUniqueChildren('bk_task_type')},
-  {id: 'bk_operate_type', name: '操作类型', children: getUniqueChildren('bk_operate_type')},
-  {id: 'created_by', name: '执行者', children: getUniqueChildren('created_by')},
-  {id: 'task_status', name: '执行状态', children: getUniqueChildren('task_status')},
+  {id: 'workflow_id', name: '任务ID'},
+  {id: 'type', name: '任务类型', children: getUniqueChildren('type')},
+  {id: 'operator', name: '执行者', children: getUniqueChildren('created_by')},
+  {id: 'status', name: '执行状态', children: getUniqueChildren('task_status')},
 ]);
 const filterOptionConfig = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
@@ -185,24 +226,13 @@ const filterOptionConfig = (prop: string) => {
     filterScope: 'all',
   }
 }
-const taskFilterOption = computed(() => filterOptionConfig('bk_task_type'));
-const operateFilterOption = computed(() => filterOptionConfig('bk_operate_type'));
+const taskFilterOption = computed(() => filterOptionConfig('type'));
 const createdFilterOption = computed(() => filterOptionConfig('created_by'));
 const statusFilterOption = computed(() => filterOptionConfig('task_status'));
 
-// 跳转任务详情
-const handleTaskDetail = (bk_task_id: number | string) => {
-  router.push({
-    name: 'taskDetail',
-    params: {
-      taskId: bk_task_id,
-    }
-  })
-}
-
 const getTaskList = async () => {
   loading.value = true;
-  const res = await WorkflowService.WorkflowList({
+  const res = await NodeWorkflowService.NodeWorkflowList({
     page: {
       limit: 0
     },
@@ -213,13 +243,37 @@ const getTaskList = async () => {
       items: [],
     }
   });
-  tableData.value = res.items.map((item: any) => ({
-    ...item.state,
-    ...item.info,
-    ...item,
-    bk_task_id: item.bk_host_id
-  }));
+  const statistics = await NodeWorkflowService.NodeWorkflowStatistics({
+    workflow_id: res.items.map(item => item.workflow_id)
+  }).catch((err) => {
+    console.log(err);
+    return {
+      items: [],
+    }
+  });
+  tableData.value = res.items.map(item => {
+    const statisticsItem = statistics.items.find(statistic => statistic.workflow_id === item.workflow_id);
+    return {
+      statistics: statisticsItem,
+      ...item,
+      bk_biz_name: item.bk_biz_name.filter(item => item),
+      cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
+    }
+  });
+  console.log(tableData.value)
   loading.value = false;
+}
+
+// 跳转详情
+const detailHandle = (row: NodeWorkflowInfo, status: string) => {
+  nodeManageStore.updateCurrentRowData(row);
+  nodeManageStore.updateCurrentStatus(status);
+  router.push({
+    name: 'taskDetail',
+    params: {
+      taskId: row.workflow_id,
+    },
+  });
 }
 onMounted(async () => {
   await getTaskList();
@@ -235,28 +289,34 @@ onMounted(async () => {
   content: '';
   display: inline-block;
   margin-right: 8px;
-  width: 13px;
-  height: 13px;
-  border: 3px solid #f0f1f5;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #f0f1f5;
   border-radius: 6.5px;
   background: #b2b5bd;
 }
 .nc-running {
   &::before {
-    background: #3fc06d;
-    border-color: #e5f6ea;
+    background: #CBF0DA;
+    border-color: #2CAF5E;
   }
 }
 .nc-terminated {
   &::before {
-    border-color: #ffe6e6;
-    background: #ea3636;
+    border-color: #EA3636;
+    background: #FFDDDD;
+  }
+}
+.nc-warning {
+  &::before {
+    border-color: #F59500;
+    background: #FCE5C0;
   }
 }
 .nc-unknown {
   &::before {
-    border-color: #f0f1f5;
-    background: #b2b5bd;
+    border-color: #b2b5bd;
+    background: #f0f1f5;
   }
 }
 

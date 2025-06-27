@@ -82,7 +82,6 @@ const routes = setupLayouts([
             path: 'history/detail/:taskId',
             component: TaskDetail,
             meta: {
-              title: '任务详情',
               mainMenu: 'nodeManager',
             },
           },
