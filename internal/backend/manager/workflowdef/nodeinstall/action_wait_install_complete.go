@@ -25,7 +25,9 @@ const (
 )
 
 // NewActionWaitInstallComplete get a new action.
-func NewActionWaitInstallComplete(storageActionInstance workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
+func NewActionWaitInstallComplete(
+	storageActionInstance workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
+
 	return &actionWaitInstallComplete{
 		storageActionInstance: storageActionInstance,
 		logger:                logger,
@@ -101,6 +103,7 @@ func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 		case action.StateFailed:
 			act.logger.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
+
 			return fmt.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 

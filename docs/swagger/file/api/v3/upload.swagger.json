@@ -4,13 +4,155 @@
     "title": "upload.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "Upload"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/upload/origin/agent": {
+      "post": {
+        "summary": "UploadOriginAgent provides origin agent upload.",
+        "operationId": "Upload_UploadOriginAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginAgentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginAgentReq is the request for upload origin agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/bintool": {
+      "post": {
+        "summary": "UploadOriginBinTool provides origin bintool upload.",
+        "operationId": "Upload_UploadOriginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginBinToolReq is the request for upload origin bin tool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/cert": {
+      "post": {
+        "summary": "UploadOriginCert provides origin cert upload.",
+        "operationId": "Upload_UploadOriginCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginCertResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginCertResp is the response for upload origin cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/server": {
+      "post": {
+        "summary": "UploadOriginServer provides origin server upload.",
+        "operationId": "Upload_UploadOriginServer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginServerResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginServerReq is the request for upload origin server pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginServerReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -36,6 +178,284 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Platform": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "Platform describes the platform informations."
+    },
+    "v3UploadOriginAgentReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginAgentReq is the request for upload origin agent pkg."
+    },
+    "v3UploadOriginAgentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginAgentRespData"
+        }
+      },
+      "description": "UploadOriginAgentResp is the response for upload origin agent pkg."
+    },
+    "v3UploadOriginAgentRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "changelog_en": {
+          "type": "string"
+        },
+        "changelog_zh": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginBinToolReq is the request for upload origin bin tool pkg."
+    },
+    "v3UploadOriginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginBinToolRespData"
+        }
+      },
+      "description": "UploadOriginBinToolResp is the response for upload origin bin tool pkg."
+    },
+    "v3UploadOriginBinToolRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "agent_platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        },
+        "proxy_platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginCertReq": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginCertResp is the response for upload origin cert pkg."
+    },
+    "v3UploadOriginCertResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginCertRespData"
+        }
+      },
+      "description": "UploadOriginCertResp is the response for upload origin cert pkg."
+    },
+    "v3UploadOriginCertRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "cert_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3UploadOriginServerReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginServerReq is the request for upload origin server pkg."
+    },
+    "v3UploadOriginServerResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginServerRespData"
+        }
+      },
+      "description": "UploadOriginServerResp is the response for upload origin server pkg."
+    },
+    "v3UploadOriginServerRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
           }
         }
       }

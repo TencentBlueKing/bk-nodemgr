@@ -53,6 +53,7 @@ func NewLocalDir(fullPath string, logger logger.Logger) (*LocalDir, error) {
 		name:     filepath.Base(fullPath),
 		fullPath: fullPath,
 		fileMap:  make(map[string]*LocalFile),
+		absDirs:  iface.ConvertAbsPathToAbsDirs(fullPath),
 		subDirs:  make([]*LocalDir, 0),
 		logger:   logger,
 	}
@@ -102,6 +103,7 @@ type LocalDir struct {
 	name     string
 	fileMap  map[string]*LocalFile
 	fullPath string
+	absDirs  []string
 	subDirs  []*LocalDir
 	logger   logger.Logger
 
@@ -155,7 +157,7 @@ func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io
 	defer group.mutex.Unlock()
 
 	if ctx == nil {
-		ctx = context.Background()
+		return errors.New("context cannot be nil")
 	}
 
 	if reader == nil {
@@ -271,8 +273,13 @@ func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, re
 	}
 }
 
+// AbsDirs the func will return the abs dirs of file group.
+func (group *LocalDir) AbsDirs() []string {
+	return group.absDirs
+}
+
 // Remove the func will delete a file from the file group.
-func (group *LocalDir) Remove(ctx context.Context, name string) error {
+func (group *LocalDir) Remove(_ context.Context, name string) error {
 	group.mutex.Lock()
 	defer group.mutex.Unlock()
 

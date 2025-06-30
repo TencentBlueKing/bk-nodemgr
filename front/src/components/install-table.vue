@@ -65,8 +65,7 @@
                 v-model="row.os"
                 :list="datasourceList"
                 auto-focus
-                filterable
-                @select="handleSelect">
+                filterable>
               </Select>
             </Validate>
           </template>
@@ -205,7 +204,7 @@ interface IValidate {
 type ValidationRules = Record<string, IValidate[]>;
 import { VxeTable, VxeColumn, VxeColgroup } from '@blueking/vxe-table';
 import { Input, Button, Message, Select } from 'bkui-vue';
-import { computed, ref, reactive } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { VALIDATE_REGEX } from '@/common/const';
 import { cloneDeep, set } from 'lodash';
@@ -285,7 +284,22 @@ const settings = reactive({
 const settingChange = (data: {checked: string[], size: VxeComponentSizeType}) => {
   settings.checked = data.checked;
   settings.size = data.size;
-  
+}
+const datasourceList = ref([]);
+const hostDistinct = ref<TopoHostDistinctRespData | null>();
+// 筛选
+const getHostDistinct = async () => {
+  const res = await TopoService.HostDistinct().catch(() => null);
+  if (res) {
+    hostDistinct.value = res;
+    console.log("🚀 ~ getHostDistinct ~ res:", res)
+    // Object.keys(res).forEach((key: any) => {
+    //   const curUniqueValues = res[key] || [];
+    //   if (filterOptionSource[key]) {
+    //     filterOptionSource[key].list = curUniqueValues.filter((item: any) => item !== '').map((value: any) => ({text: value, value: value}))
+    //   }
+    // });
+  }
 }
 const handleDelRow = (index: number) => {
   if (tableData.value.length === 1) {
@@ -337,4 +351,8 @@ const validate = async () => {
   }
 }
 defineExpose({ validate, clearAllValidate });
+
+onMounted(async() => {
+  await getHostDistinct();
+});
 </script>

@@ -12,6 +12,7 @@ package types
 
 // HostDistinctRequest describes the wanted distinct fields.
 type HostDistinctRequest struct {
+	BizID         bool
 	NodeRole      bool
 	NodeStatus    bool
 	NodeVersion   bool
@@ -26,6 +27,7 @@ type HostDistinctRequest struct {
 // NewHostDistinctRequestAllSet creates a HostDistinctRequest with all fields set to true.
 func NewHostDistinctRequestAllSet() HostDistinctRequest {
 	return HostDistinctRequest{
+		BizID:         true,
 		NodeRole:      true,
 		NodeStatus:    true,
 		NodeVersion:   true,
@@ -40,6 +42,7 @@ func NewHostDistinctRequestAllSet() HostDistinctRequest {
 
 // HostDistinctResult describes the result of distinct.
 type HostDistinctResult struct {
+	BizID         []int64
 	NodeRole      []NodeRole
 	NodeStatus    []NodeStatus
 	NodeVersion   []string

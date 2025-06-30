@@ -193,14 +193,15 @@ func (svc *BackendService) Validate() error {
 
 // GseDeployConf defines the deployment configuration for gse agent.
 type GseDeployConf struct {
-	Generation    int64  `yaml:"generation" usage:"generation of deploy"`
-	OsType        string `yaml:"osType" usage:"os type"`
-	HostIDPath    string `yaml:"hostIDPath" usage:"host id path"`
-	GseDataIPC    string `yaml:"gseDataIPC" usage:"gse data ipc"`
-	GsePluginIPC  string `yaml:"gsePluginIPC" usage:"gse plugin ipc"`
-	GseHomeDir    string `yaml:"gseHomeDir" usage:"gse home dir"`
-	GseDataDir    string `yaml:"gseDataDir" usage:"gse data dir"`
-	GseRunDir     string `yaml:"gseRunDir" usage:"gse run dir"`
-	GseLogDir     string `yaml:"gseLogDir" usage:"gse log dir"`
-	GseEnvironDir string `yaml:"gseEnvironDir" usage:"gse environ dir"`
+	Generation         int64  `yaml:"generation" usage:"generation of deploy"`
+	OsType             string `yaml:"osType" usage:"os type"`
+	HostIDPath         string `yaml:"hostIDPath" usage:"host id path"`
+	InstallerWorkspace string `yaml:"installerWorkspace" usage:"installer workspace"`
+	GseDataIPC         string `yaml:"gseDataIPC" usage:"gse data ipc"`
+	GsePluginIPC       string `yaml:"gsePluginIPC" usage:"gse plugin ipc"`
+	GseHomeDir         string `yaml:"gseHomeDir" usage:"gse home dir"`
+	GseDataDir         string `yaml:"gseDataDir" usage:"gse data dir"`
+	GseRunDir          string `yaml:"gseRunDir" usage:"gse run dir"`
+	GseLogDir          string `yaml:"gseLogDir" usage:"gse log dir"`
+	GseEnvironDir      string `yaml:"gseEnvironDir" usage:"gse environ dir"`
 }

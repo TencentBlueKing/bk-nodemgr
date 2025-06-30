@@ -32,8 +32,8 @@ const (
 	CmdFlagNodeRole = "node_role"
 	// CmdFlagDebug this flag is used to specify the debug.
 	CmdFlagDebug = "debug"
-	// CmdFlagTmpDir this flag is used to specify the tmp dir.
-	CmdFlagTmpDir = "tmp_dir"
+	// CmdFlagWorkspace this flag is used to specify the workspace dir.
+	CmdFlagWorkspace = "workspace"
 	// CmdFlagLogFilePath this flag is used to specify the log file path.
 	CmdFlagLogFilePath = "log_file_path"
 	// CmdFlagPkgName this flag is used to specify the pkg name.
@@ -46,6 +46,8 @@ const (
 	CmdFlagRunDirPath = "run_dir_path"
 	// CmdFlagToken this flag is used to specify the token.
 	CmdFlagToken = "token"
+	// CmdFlagDeployEnv this flag is used to specify the deployEnv.
+	CmdFlagDeployEnv = "deploy_env"
 	// CmdFlagReinstall this flag is used to specify the reinstall.
 	CmdFlagReinstall = "reinstall"
 	// CmdFlagReRegisterAgentID this flag is used to specify the reinstall.
@@ -57,8 +59,8 @@ const (
 const (
 	// CmdDefaultPkgGeneration this flag is used to specify the default generation.
 	CmdDefaultPkgGeneration int = 2
-	// CmdDefaultTmpDir this flag is used to specify the default tmp dir.
-	CmdDefaultTmpDir = "/tmp"
+	// CmdDefaultWorkspace this flag is used to specify the default workspace dir.
+	CmdDefaultWorkspace = "/tmp"
 )
 
 // CmdDefaultGseRoot get default gse root.

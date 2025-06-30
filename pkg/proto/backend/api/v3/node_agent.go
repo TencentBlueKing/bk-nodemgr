@@ -142,3 +142,42 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgent
 func (x *NodeAgentInstallResp) ConvertResultToComm() string {
 	return x.GetData().GetWorkflowId()
 }
+
+// Validate check body.
+func (x *NodeAgentUpgradeReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeAgentUpgradeReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	if x.GetTargetVersion() == "" {
+		return errors.New("target_version can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentUpgradeReq) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentUpgradeResp_Data{WorkflowId: workflowID}
+}

@@ -15,7 +15,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
-func convertPlatformFromTypes(plat platform.Platform) *Platform {
+// ConvertPlatformToTypes convert platform to types.
+func ConvertPlatformToTypes(plat *Platform) platform.Platform {
+	return platform.Platform{
+		OS:   plat.GetOsType(),
+		Arch: plat.GetCpuArch(),
+	}
+}
+
+// ConvertPlatformFromTypes convert platform from types.
+func ConvertPlatformFromTypes(plat platform.Platform) *Platform {
 	return &Platform{
 		OsType:  plat.OS,
 		CpuArch: plat.Arch,

@@ -13,6 +13,9 @@ package nodeinstall
 import (
 	"time"
 
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -22,8 +25,15 @@ const (
 )
 
 // NewActionUpgradeNode get a new action.
-func NewActionUpgradeNode() action.Definition {
-	return &actionUpgradeNode{}
+func NewActionUpgradeNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	gseHandler gse.IHandler,
+	logger logger.Logger) action.Definition {
+
+	return &actionUpgradeNode{
+		storageNodeDeployment: storageNodeDeployment,
+		gseHandler:            gseHandler,
+		logger:                logger,
+	}
 }
 
 // ActionParamUpgradeNode defines the action param.
@@ -32,6 +42,9 @@ type ActionParamUpgradeNode struct {
 }
 
 type actionUpgradeNode struct {
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	gseHandler            gse.IHandler
+	logger                logger.Logger
 }
 
 // Name returns the name of the action.
@@ -72,8 +85,8 @@ func (act *actionUpgradeNode) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-// nolint: funlen,fnsize
+// nolint: funlen,fnsize,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradeNode) Do(_ *action.InstanceContext) error {
+func (act *actionUpgradeNode) Do(_ *action.InstanceContext) (err error) {
 	return nil
 }

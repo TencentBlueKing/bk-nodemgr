@@ -38,7 +38,7 @@ func (h *handler) Agent(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	file, err := h.manager.EnsureFileToLocal(sCtx,
+	file, _, err := h.manager.EnsureFileToLocal(sCtx,
 		types.Generation(req.GetGeneration()),
 		types.ReleaseTypeAgent,
 		platform.Platform{
@@ -54,7 +54,7 @@ func (h *handler) Agent(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
 	}
 
-	info, _ := file.Info(sCtx)
+	info := file.Info()
 	resp := &rest.FileResponse{
 		Data:        reader,
 		Size:        info.Size,

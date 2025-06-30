@@ -12,11 +12,132 @@
 package agent
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // AgentUpgrade upgrade agent.
 func (h *handler) AgentUpgrade(ctx *rest.Context) (interface{}, error) {
-	// TODO: implement me
-	return nil, nil
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to upgrade agent, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.NodeAgentUpgradeReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, err := h.getUpgradeNodeHosts(sCtx, req.GetHost())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to get host list. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	reqHosts := req.GetHost()
+	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
+	for idx := range reqHosts {
+		reqHost := reqHosts[idx]
+
+		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID, reqHost, hosts)
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to generate node deployment. err: %v", err)
+
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		}
+
+		nodeDeploys[idx] = nodeDeploy
+	}
+
+	workflowID, err := h.manager.LaunchUpgradeNode(sCtx, manager.UpgradeNodeParam{
+		Type:            types.NodeWorkflowTypeInstallAgent,
+		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
+		Operator:        ctx.Username,
+		NodeDeployments: nodeDeploys,
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent: %v", err)
+		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeAgentUpgradeResp)
+	resp.ConvertWorkflowID(workflowID)
+
+	h.logger.InfoCtxf(sCtx, "launched upgrade agent workflow: %s", workflowID)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) getUpgradeNodeHosts(
+	ctx context.Context, reqHosts []*protoBackend.NodeAgentUpgradeReq_Host) (map[int64]*types.Host, error) {
+
+	if len(reqHosts) == 0 {
+		return nil, errors.New("empty host list")
+	}
+
+	hostIDs := make(map[int64]struct{})
+	for _, host := range reqHosts {
+		hostIDs[host.GetBkHostId()] = struct{}{}
+	}
+
+	hosts, _, err := h.storageHost.ListHost(ctx,
+		types.UnlimitedPage(),
+		&types.HostCondition{ExactInclude: &types.HostExactFields{
+			HostID: conv.MapKeyToSlice(hostIDs),
+		}})
+
+	result := make(map[int64]*types.Host)
+	for _, host := range hosts {
+		result[host.HostID] = host
+	}
+
+	return result, err
+}
+
+func (h *handler) getUpgradeNodeBizIDs(hostMap map[int64]*types.Host) []int64 {
+	bizIDs := make(map[int64]struct{})
+	for _, host := range hostMap {
+		bizIDs[host.Static.BizID] = struct{}{}
+	}
+
+	return conv.MapKeyToSlice(bizIDs)
+}
+
+func (h *handler) generatesUpgradeDeploys(
+	tenantID string,
+	reqHost *protoBackend.NodeAgentUpgradeReq_Host,
+	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+
+	hostID := reqHost.GetBkHostId()
+	host, ok := hostMap[hostID]
+	if !ok {
+		return nil, fmt.Errorf("host not found. host-id(%d)", hostID)
+	}
+
+	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
+		Host: types.Host{
+			TenantID: tenantID,
+			HostID:   host.HostID,
+			Static:   host.Static,
+			Dynamic:  host.Dynamic,
+		},
+		ForceRestart:           reqHost.GetForce(),
+		GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+	})
+
+	// set target version.
+	nodeDeployment.Info.Dynamic.NodeVersion = reqHost.GetTargetVersion()
+
+	return nodeDeployment, nil
 }

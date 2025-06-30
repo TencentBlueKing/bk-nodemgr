@@ -65,6 +65,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 			ExtendFields: nil,
 		},
 		fullPath: fullPath,
+		absDirs:  iface.ConvertAbsPathToAbsDirs(filepath.Dir(fullPath)),
 	}
 
 	return file, nil
@@ -104,6 +105,7 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 type LocalFile struct {
 	info     iface.FileInfo
 	fullPath string
+	absDirs  []string
 }
 
 // Content returns LocalFile content.
@@ -127,8 +129,8 @@ func (f *LocalFile) Content(_ context.Context) (io.ReadCloser, error) {
 }
 
 // Info returns LocalFile info.
-func (f *LocalFile) Info(_ context.Context) (iface.FileInfo, error) {
-	return f.info, nil
+func (f *LocalFile) Info() iface.FileInfo {
+	return f.info
 }
 
 // FileObject returns LocalFile file object.
@@ -139,4 +141,9 @@ func (f *LocalFile) FileObject() iface.FileObject {
 // Name returns LocalFile name.
 func (f *LocalFile) Name() string {
 	return f.info.Name
+}
+
+// AbsDirs the func will return the abs dirs of file.
+func (f *LocalFile) AbsDirs() []string {
+	return f.absDirs
 }

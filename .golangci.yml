@@ -694,3 +694,7 @@ linters-settings:
         alias: daoBase
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo
         alias: storageTopo
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release
+        alias: storageRelease
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload
+        alias: storageUpload

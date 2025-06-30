@@ -134,6 +134,14 @@ func (s *Storage) DistinctHost(
 	result := new(types.HostDistinctResult)
 
 	gp := gopool.NewPool()
+	if request.BizID {
+		gp.Go(func() error {
+			var err error
+			result.BizID, err = s.daoHost.DistinctBizID(ctx, opts...)
+
+			return err
+		})
+	}
 	if request.NodeRole {
 		gp.Go(func() error {
 			var err error

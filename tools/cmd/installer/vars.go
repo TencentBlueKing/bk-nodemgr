@@ -23,7 +23,7 @@ import (
 
 // ToolPrefix tool prefix.
 // this prefix is used to identify the file or directory created by this tool.
-const ToolPrefix = "bknm"
+const ToolPrefix = "installer_data"
 
 // logFilePath log file path.
 // nolint: gochecknoglobals
@@ -156,6 +156,21 @@ func SetSetupDir(dirPath string) error {
 }
 
 // nolint:gochecknoglobals
+var binDirPath = struct {
+	sync.Once
+	dirPath string
+}{}
+
+// GetBinDir get bin dir.
+func GetBinDir() string {
+	binDirPath.Do(func() {
+		binDirPath.dirPath = filepath.Join(GetSetupDir(), "bin")
+	})
+
+	return binDirPath.dirPath
+}
+
+// nolint:gochecknoglobals
 var runDirPath = struct {
 	sync.Once
 	dirPath string
@@ -164,7 +179,7 @@ var runDirPath = struct {
 // GetRunDir get run dir.
 func GetRunDir() string {
 	runDirPath.Do(func() {
-		runDirPath.dirPath = filepath.Join(GetSetupDir(), "bin", "run")
+		runDirPath.dirPath = filepath.Join(GetBinDir(), "run")
 	})
 
 	return runDirPath.dirPath
@@ -194,24 +209,24 @@ func SetRunDir(dirPath string) error {
 }
 
 // nolint: gochecknoglobals
-var tmpDir = struct {
+var workspaceDir = struct {
 	sync.Once
 	dirPath string
 }{}
 
-// SetTmpDir set tmp dir.
-func SetTmpDir(dir string) error {
+// SetWorkspaceDir workspace tmp dir.
+func SetWorkspaceDir(dir string) error {
 	var err error
-	tmpDir.Do(func() {
+	workspaceDir.Do(func() {
 		dir, err = filepath.Abs(dir)
 		if err != nil {
 			return
 		}
 
-		tmpDir.dirPath = filepath.Clean(filepath.FromSlash(dir))
+		workspaceDir.dirPath = filepath.Clean(filepath.FromSlash(dir))
 	})
 	if err != nil {
-		return fmt.Errorf("set tmp dir failed, err: %w", err)
+		return fmt.Errorf("set workspace dir failed, err: %w", err)
 	}
 
 	return nil
@@ -219,7 +234,7 @@ func SetTmpDir(dir string) error {
 
 // GetTmpDir get tmp dir.
 func GetTmpDir() string {
-	return filepath.Join(tmpDir.dirPath, ToolPrefix)
+	return filepath.Join(workspaceDir.dirPath, ToolPrefix)
 }
 
 // GetTmpConfigDir get tmp config dir.
@@ -249,7 +264,7 @@ var gseAgentPath = struct {
 // GetGseAgentPath get gse agent path.
 func GetGseAgentPath() string {
 	gseAgentPath.Do(func() {
-		gseAgentPath.filePath = filepath.Join(GetSetupDir(), "bin", GetGseAgentName())
+		gseAgentPath.filePath = filepath.Join(GetBinDir(), GetGseAgentName())
 	})
 
 	return gseAgentPath.filePath
@@ -277,7 +292,7 @@ var gseAgentCtlPath = struct {
 // GetGseCtlPath get gse agent ctl path.
 func GetGseCtlPath() string {
 	gseAgentCtlPath.Do(func() {
-		gseAgentCtlPath.filePath = filepath.Join(GetSetupDir(), "bin", GetGseAgentCtlName())
+		gseAgentCtlPath.filePath = filepath.Join(GetBinDir(), GetGseAgentCtlName())
 	})
 
 	return gseAgentCtlPath.filePath

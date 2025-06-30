@@ -378,10 +378,6 @@ func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string
 		return nil, errors.New("context is nil")
 	}
 
-	if len(endpoints) == 0 {
-		return nil, errors.New("endpoints is empty")
-	}
-
 	eps := make([]*Endpoint, len(endpoints))
 	for idx, endpoint := range endpoints {
 		eps[idx] = &Endpoint{

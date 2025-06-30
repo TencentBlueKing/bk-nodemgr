@@ -110,14 +110,14 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				ProxyFilePort:    info.ProxyFilePort,
 			},
 		},
-		ReRegister:    info.ReRegister,
-		TmpDir:        info.TmpDir,
-		LoginIP:       info.LoginIP,
-		LoginPort:     info.LoginPort,
-		LoginUser:     info.LoginUser,
-		LoginMode:     types.LoginMode(info.LoginMode),
-		LoginPassword: info.LoginPassword,
-		LoginKeyFile:  info.LoginKeyFile,
+		ReRegister:         info.ReRegister,
+		InstallerWorkspace: info.InstallerWorkspace,
+		LoginIP:            info.LoginIP,
+		LoginPort:          info.LoginPort,
+		LoginUser:          info.LoginUser,
+		LoginMode:          types.LoginMode(info.LoginMode),
+		LoginPassword:      info.LoginPassword,
+		LoginKeyFile:       info.LoginKeyFile,
 	}, nil
 }
 
@@ -290,17 +290,17 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return tags
 		}(),
-		ProxyClusterPort: info.Host.Dynamic.ProxyClusterPort,
-		ProxyDataPort:    info.Host.Dynamic.ProxyDataPort,
-		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
-		ReRegister:       info.ReRegister,
-		TmpDir:           info.TmpDir,
-		LoginIP:          info.LoginIP,
-		LoginPort:        info.LoginPort,
-		LoginUser:        info.LoginUser,
-		LoginMode:        string(info.LoginMode),
-		LoginPassword:    info.LoginPassword,
-		LoginKeyFile:     info.LoginKeyFile,
+		ProxyClusterPort:   info.Host.Dynamic.ProxyClusterPort,
+		ProxyDataPort:      info.Host.Dynamic.ProxyDataPort,
+		ProxyFilePort:      info.Host.Dynamic.ProxyFilePort,
+		ReRegister:         info.ReRegister,
+		InstallerWorkspace: info.InstallerWorkspace,
+		LoginIP:            info.LoginIP,
+		LoginPort:          info.LoginPort,
+		LoginUser:          info.LoginUser,
+		LoginMode:          string(info.LoginMode),
+		LoginPassword:      info.LoginPassword,
+		LoginKeyFile:       info.LoginKeyFile,
 	}
 
 	return data, nil

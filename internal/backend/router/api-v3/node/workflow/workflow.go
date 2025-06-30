@@ -156,8 +156,8 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	result, num, err := h.storageOperation.ListOperationByTrigger(sCtx,
-		req.ConvertPageToTypes(maxOperationLimit), workflow.TriggerID)
+	result, num, err := h.storageOperation.ListOperationByCondition(sCtx, req.ConvertPageToTypes(maxOperationLimit),
+		req.ConvertConditionsToTypes(workflow.TriggerID))
 	if err != nil {
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}

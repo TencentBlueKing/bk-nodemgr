@@ -43,8 +43,11 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 		err := cmd.Run()
 		if err != nil {
 			logger.Warnf(constant.StepInstallNode,
-				"register agent id failed, attempt(%d), stdErr: %s, err: %v",
-				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""), err)
+				"register agent id failed, attempt(%d), stdOut(%s), stdErr(%s), err: %v",
+				attempt,
+				strings.ReplaceAll(stdout.String(), "\n", ""),
+				strings.ReplaceAll(stdErr.String(), "\n", ""),
+				err)
 
 			return err
 		}

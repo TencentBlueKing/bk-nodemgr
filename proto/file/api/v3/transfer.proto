@@ -1,0 +1,113 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// TransferLaunchReleaseReq describes the HTTP request body when launch transfer
+// release.
+message TransferLaunchReleaseReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+  int64 target_host_id = 5;
+  string target_dir = 6;
+}
+
+// TransferLaunchReleaseResp describes the HTTP response body when launch
+// transfer release.
+message TransferLaunchReleaseResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string task_id = 1;
+    optional string release_file_name = 2;
+    optional int64 release_file_size = 3;
+    optional string release_file_md5 = 4;
+  }
+  Data data = 4;
+}
+
+// TransferLaunchInstallerReq describes the HTTP request body when launch
+// transfer installer.
+message TransferLaunchInstallerReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  int64 target_host_id = 3;
+  string target_dir = 4;
+}
+
+// TransferLaunchInstallerResp describes the HTTP response body when launch
+// transfer installter.
+message TransferLaunchInstallerResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string task_id = 1;
+    optional string installer_file_name = 2;
+    optional int64 installer_file_size = 3;
+    optional string installer_file_md5 = 4;
+  }
+  Data data = 4;
+}
+
+// TransferQueryReq describes the HTTP request body when query transfer.
+message TransferQueryReq { string task_id = 1; }
+
+// SimpleTransferResult describes the simple transfer result.
+message SimpleTransferResult {
+  optional int64 error_code = 1;
+  optional string error_message = 2;
+  optional bool terminated = 3;
+  optional int64 progress = 4;
+  optional int64 speed_kbytes_per_sec = 5;
+};
+
+// TransferQueryResp describes the HTTP response body when query transfer.
+message TransferQueryResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional SimpleTransferResult upload = 1;
+    optional SimpleTransferResult download = 2;
+    optional int64 start_time = 3;
+    optional int64 end_time = 4;
+  };
+  Data data = 4;
+}
+
+// Transfer service.
+service Transfer {
+  // TransferLaunchRelease provides transferring release package.
+  rpc TransferLaunchRelease(TransferLaunchReleaseReq)
+      returns (stream TransferLaunchReleaseResp) {
+    option (google.api.http) = {
+      post : "/transfer/launch/release"
+      body : "*"
+    };
+  };
+
+  // TransferInstaller provides transferring installer package.
+  rpc TransferInstaller(TransferLaunchInstallerReq)
+      returns (stream TransferLaunchInstallerResp) {
+    option (google.api.http) = {
+      post : "/transfer/launch/installler"
+      body : "*"
+    };
+  };
+
+  // TransferQuery provides querying transfer release.
+  rpc TransferQuery(TransferQueryReq) returns (TransferQueryResp) {
+    option (google.api.http) = {
+      get : "/transfer/query"
+    };
+  };
+}

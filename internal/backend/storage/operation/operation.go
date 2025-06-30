@@ -138,6 +138,30 @@ func (s *Storage) GetManyOperation(ctx context.Context, operationID ...string) (
 	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
+// ListOperationByCondition lists operation by condition.
+func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
+	condition ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+
+	opts := make([]operation.OptFn, 0)
+	for _, condition := range condition {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				operation.WithTriggerID(condition.ExactInclude.TriggerID),
+				operation.WithBizID(condition.ExactInclude.BizID...),
+				operation.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				operation.WithIPv4(condition.ExactInclude.InnerIP...),
+				operation.WithIPv6(condition.ExactInclude.InnerIPv6...),
+			)
+		}
+	}
+
+	return s.daoOperation.List(ctx, page, opts...)
+}
+
 // ListEmptyOperation lists empty operation by triggerid.
 func (s *Storage) ListEmptyOperation(
 	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {

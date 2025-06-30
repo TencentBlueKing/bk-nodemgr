@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
@@ -42,6 +43,7 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 			gseCtlPath,
 			"stop",
 		)
+		cmd.Dir = filepath.Dir(gseCtlPath)
 		cmd.Stdout = &stdOut
 		cmd.Stderr = &stdErr
 
@@ -51,8 +53,11 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 		err := cmd.Run()
 		if err != nil {
 			logger.Warnf(constant.StepUninstallNode,
-				"stop agent failed, attempt: %d, stderr: %s, err: %v",
-				attempt, strings.ReplaceAll(stdErr.String(), "\n", ""), err)
+				"stop agent failed, attempt: %d, stdout: %s, stderr: %s, err: %v",
+				attempt,
+				strings.ReplaceAll(stdOut.String(), "\n", ""),
+				strings.ReplaceAll(stdErr.String(), "\n", ""),
+				err)
 
 			return err
 		}

@@ -81,17 +81,17 @@ func NewRootCommand() *cobra.Command {
 func registerRootPersistentVars(rootCmd *cobra.Command) {
 	// this var will be set in PersistentPreRunE, they can act on the current command and its subcommands.
 	var (
-		logFilePath string
-		tmpDirPath  string
-		nodeRole    string
-		debug       bool
+		logFilePath   string
+		workspacePath string
+		nodeRole      string
+		debug         bool
 	)
 
 	// this is a global variable.
 	rootCmd.PersistentFlags().
 		StringVar(&logFilePath, CmdFlagLogFilePath, CmdDefaultLogFilePath(), "log file path")
 	rootCmd.PersistentFlags().
-		StringVar(&tmpDirPath, CmdFlagTmpDir, CmdDefaultTmpDir,
+		StringVar(&workspacePath, CmdFlagWorkspace, CmdDefaultWorkspace,
 			"the dir which used to store agent pkg, configs and install log")
 	rootCmd.PersistentFlags().
 		StringVar(&nodeRole, CmdFlagNodeRole, "agent", "this is the node role")
@@ -112,13 +112,13 @@ func registerRootPersistentVars(rootCmd *cobra.Command) {
 			}
 		}
 
-		if tmpDirPath != "" {
-			if err := SetTmpDir(tmpDirPath); err != nil {
-				return fmt.Errorf("set tmp dir failed, err: %v", err)
+		if workspacePath != "" {
+			if err := SetWorkspaceDir(workspacePath); err != nil {
+				return fmt.Errorf("set workspace dir failed, err: %v", err)
 			}
 		}
 
-		if err := utils.CheckWritePermission(tmpDirPath); err != nil {
+		if err := utils.CheckWritePermission(workspacePath); err != nil {
 			return fmt.Errorf("check write permission failed, err: %v", err)
 		}
 
@@ -169,6 +169,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		callBackEndPoint  string
 		gseRoot           string
 		token             string
+		deployEnv         string
 		reinstall         bool
 		reRegisterAgentID bool
 		agentID           string
@@ -204,6 +205,10 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 		if err := SetToken(token); err != nil {
 			return fmt.Errorf("set token failed, err: %v", err)
+		}
+
+		if err := SetDeployEnv(deployEnv); err != nil {
+			return fmt.Errorf("set deploy env failed, err: %v", err)
 		}
 
 		return nil
@@ -263,7 +268,9 @@ func registerRootVars(rootCmd *cobra.Command) {
 
 			uninstallStep := uninstallnode.NewStep(uninstallnode.StepArgs{
 				SetupDirPath: GetSetupDir(),
+				BinDirPath:   GetBinDir(),
 				GseCtlPath:   GetGseCtlPath(),
+				DeployEnv:    GetDeployEnv(),
 			})
 			if err := uninstallStep.Run(cmd.Context()); err != nil {
 				return fmt.Errorf("uninstall step failed, err: %v", err)
@@ -333,8 +340,9 @@ func registerRootVars(rootCmd *cobra.Command) {
 		fmt.Println(agentID)
 
 		checkDeployStep := checkdeploy.NewStep(checkdeploy.StepArgs{
-			RunDir:   GetRunDir(),
-			NodeRole: GetNodeRole(),
+			RunDir:    GetRunDir(),
+			NodeRole:  GetNodeRole(),
+			DeployEnv: GetDeployEnv(),
 		})
 		if err = checkDeployStep.Run(cmd.Context()); err != nil {
 			return fmt.Errorf("check deploy failed: %w", err)
@@ -358,6 +366,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 	rootCmd.Flags().IntVar(&pkgGeneration, CmdFlagPkgGeneration, CmdDefaultPkgGeneration,
 		"this is the gse pkg generation which will be installed")
 	rootCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
+	rootCmd.Flags().StringVar(&deployEnv, CmdFlagDeployEnv, "", "deploy env")
 	rootCmd.Flags().StringVar(&pkgVersion, CmdFlagPkgVersion, "", "this gse node pkg version which will be installed")
 	rootCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "gse root")
 	rootCmd.Flags().StringVar(&agentID, CmdFlagAgentID, "", "gse agent id")
@@ -369,4 +378,5 @@ func registerRootVars(rootCmd *cobra.Command) {
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
 	_ = rootCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
+	_ = rootCmd.MarkFlagRequired(CmdFlagDeployEnv)
 }

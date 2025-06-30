@@ -1589,6 +1589,13 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },

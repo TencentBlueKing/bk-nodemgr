@@ -25,9 +25,8 @@ import (
 )
 
 type localFile struct {
-	mutex sync.RWMutex
-	file  iface.File
-	path  string
+	file iface.File
+	path string
 }
 
 type localFilePool struct {
@@ -49,33 +48,33 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
-	version string) (iface.File, error) {
+	version string) (iface.File, string, error) {
 
 	if gen != types.Generation2 {
-		return nil, fmt.Errorf("not support generation: %d", gen)
+		return nil, "", fmt.Errorf("not support generation: %d", gen)
 	}
 
 	if rt != types.ReleaseTypeAgent && rt != types.ReleaseTypeProxy {
-		return nil, fmt.Errorf("not support release type: %s", rt)
+		return nil, "", fmt.Errorf("not support release type: %s", rt)
 	}
 
 	release, err := m.storageRelease.GetRelease(ctx, gen, rt, plat, version)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release: %w", err)
+		return nil, "", fmt.Errorf("failed to get release: %w", err)
 	}
 
 	return m.EnsureReleaseToLocal(ctx, release)
 }
 
 // EnsureReleaseToLocal ensure the release to local.
-func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, error) {
+func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
-		info, _ := cache.file.Info(ctx)
+		info := cache.file.Info()
 
 		// hit cache. return local file.
 		if info.MD5 == release.MD5 {
-			return cache.file, nil
+			return cache.file, "", nil
 		}
 	}
 
@@ -88,50 +87,49 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 		ufg = m.upstreamReleaseProxy
 
 	default:
-		return nil, fmt.Errorf("not support ensuring file to local with release type: %s", release.Type)
+		return nil, "", fmt.Errorf("not support ensuring file to local with release type: %s", release.Type)
 	}
 
 	if ufg == nil {
-		return nil, fmt.Errorf("upstream file group is nil with release type: %s", release.Type)
+		return nil, "", fmt.Errorf("upstream file group is nil with release type: %s", release.Type)
 	}
 
 	// get upstream file.
 	upstreamFile, err := ufg.GetFile(ctx, release.FileName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get upstream file: %s, err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to get upstream file: %s, err: %w", release.FileName, err)
 	}
 
 	// get upstream content.
 	content, err := upstreamFile.Content(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get upstream file content: %s, err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to get upstream file content: %s, err: %w", release.FileName, err)
 	}
 
 	// create new local dir.
-	tempDir := filepath.Join(m.localDir, uuid.New().String())
-	if err = os.MkdirAll(tempDir, 0755); err != nil { // nolint: mnd,gosec
-		return nil, fmt.Errorf("failed to create temp dir: %s, err: %w", tempDir, err)
+	cacheDir := filepath.Join(local.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
+	if err = os.MkdirAll(cacheDir, 0700); err != nil { // nolint: mnd,gosec
+		return nil, "", fmt.Errorf("failed to create temp cache dir: %s, err: %w", cacheDir, err)
 	}
 
-	lfg, err := local.NewLocalDir(tempDir, m.logger)
+	lfg, err := local.NewLocalDir(cacheDir, m.logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create local file group: %s, err: %w", tempDir, err)
+		return nil, "", fmt.Errorf("failed to create local file group: %s, err: %w", cacheDir, err)
 	}
 
 	// save file to loca.
 	if err = lfg.Store(ctx, iface.FileInfo{Name: release.FileName}, content, true); err != nil {
-		return nil, fmt.Errorf("failed to store file: %s, err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to store file: %s, err: %w", release.FileName, err)
 	}
 
 	file, _ := lfg.GetFile(ctx, release.FileName)
 
 	m.localFilePool.filesMutex.Lock()
 	m.localFilePool.files[release.FileName] = &localFile{
-		file:  file,
-		path:  tempDir,
-		mutex: sync.RWMutex{},
+		file: file,
+		path: cacheDir,
 	}
 	m.localFilePool.filesMutex.Unlock()
 
-	return file, nil
+	return file, cacheDir, nil
 }

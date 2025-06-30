@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -121,16 +122,17 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	for idx := range svc.conf.GseDeployConfs {
 		deployConf := deployconstant.DeployConf{
-			Generation:    types.Generation(svc.conf.GseDeployConfs[idx].Generation),
-			OsType:        svc.conf.GseDeployConfs[idx].OsType,
-			HostIDPath:    svc.conf.GseDeployConfs[idx].HostIDPath,
-			GseDataIPC:    svc.conf.GseDeployConfs[idx].GseDataIPC,
-			GsePluginIPC:  svc.conf.GseDeployConfs[idx].GsePluginIPC,
-			GseHomeDir:    svc.conf.GseDeployConfs[idx].GseHomeDir,
-			GseDataDir:    svc.conf.GseDeployConfs[idx].GseDataDir,
-			GseRunDir:     svc.conf.GseDeployConfs[idx].GseRunDir,
-			GseLogDir:     svc.conf.GseDeployConfs[idx].GseLogDir,
-			GseEnvironDir: svc.conf.GseDeployConfs[idx].GseEnvironDir,
+			Generation:         types.Generation(svc.conf.GseDeployConfs[idx].Generation),
+			OsType:             svc.conf.GseDeployConfs[idx].OsType,
+			HostIDPath:         svc.conf.GseDeployConfs[idx].HostIDPath,
+			InstallerWorkspace: svc.conf.GseDeployConfs[idx].InstallerWorkspace,
+			GseDataIPC:         svc.conf.GseDeployConfs[idx].GseDataIPC,
+			GsePluginIPC:       svc.conf.GseDeployConfs[idx].GsePluginIPC,
+			GseHomeDir:         svc.conf.GseDeployConfs[idx].GseHomeDir,
+			GseDataDir:         svc.conf.GseDeployConfs[idx].GseDataDir,
+			GseRunDir:          svc.conf.GseDeployConfs[idx].GseRunDir,
+			GseLogDir:          svc.conf.GseDeployConfs[idx].GseLogDir,
+			GseEnvironDir:      svc.conf.GseDeployConfs[idx].GseEnvironDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return nil, fmt.Errorf("failed to set deploy conf, err: %w", err)
@@ -148,6 +150,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -226,6 +233,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
+		FileHandler:           svc.Cap.FileHandler,
 		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
@@ -469,6 +477,29 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 	}
 
 	return gseHandler, nil
+}
+
+// newFileHandler creates a new file handler.
+func newFileHandler(discov discover.Discover) (file.IHandler, error) {
+	httpClient, err := client.NewClient(&ssl.TLSConfig{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	clientCap := &client.Capability{
+		Client: httpClient,
+		Discover: discovery.NewServiceDiscovery(
+			discov,
+			discover.ServiceNameFile,
+			discover.EndpointNameFileAdmin),
+		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
+		MetricOpts:           client.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	return file.New(clientCap, &file.Config{})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

@@ -17,30 +17,26 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
-	transferPackageTimeoutSec = 600
+	transferPackageTimeout = 600 * time.Second
 
 	transferQueryTickTime = 1 * time.Second
 
 	transferQueryContinuesFailedTimes = 5
 )
-
-// ITransfer defines transfer interface.
-type ITransfer interface {
-	// GetTaskID get task id.
-	GetTaskID() string
-
-	// WaitUntilDone wait until done.
-	WaitUntilDone(ctx context.Context) (*types.TransferResult, error)
-}
 
 // Transfer provides transfer.
 type Transfer struct {
@@ -48,6 +44,8 @@ type Transfer struct {
 
 	sourceEndpoint *types.Endpoint
 	targetEndpoint *types.Endpoint
+
+	fileInfo iface.FileInfo
 
 	gseHandler gse.IHandler
 }
@@ -57,8 +55,13 @@ func (t *Transfer) GetTaskID() string {
 	return t.taskID
 }
 
+// GetFileInfo get file info.
+func (t *Transfer) GetFileInfo() iface.FileInfo {
+	return t.fileInfo
+}
+
 // WaitUntilDone wait until done.
-func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, error) {
+func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResult, error) {
 	ticker := time.NewTicker(transferQueryTickTime)
 	failedCnt := 0
 	for {
@@ -67,10 +70,6 @@ func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, er
 			return nil, errors.New("context done")
 		case <-ticker.C:
 			src, dst, err := t.query(ctx)
-			if errors.Is(err, errEndpointNotFound) {
-				continue
-			}
-
 			if err != nil {
 				failedCnt++
 				if failedCnt > transferQueryContinuesFailedTimes {
@@ -83,14 +82,16 @@ func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.TransferResult, er
 			failedCnt = 0
 
 			if dst.StatusCode == types.TransferStatusEndDownloading {
-				return dst, nil
+				return types.ConvertTransferResultToSimple(dst), nil
 			}
 
 			if src.StatusCode == types.TransferStatusEndUploading && src.ErrorCode != 0 {
-				dst.ErrorCode = src.ErrorCode
-				dst.ErrorMessage = src.ErrorMessage
+				// if upload failed, set the upload error info into simple result.
+				result := types.ConvertTransferResultToSimple(dst)
+				result.ErrorCode = src.ErrorCode
+				result.ErrorMessage = src.ErrorMessage
 
-				return dst, nil
+				return result, nil
 			}
 		}
 	}
@@ -123,19 +124,92 @@ func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *t
 		}
 	}
 
-	if src == nil || dst == nil {
-		return nil, nil, errEndpointNotFound
-	}
-
 	return src, dst, nil
 }
 
-var (
-	errEndpointNotFound = errors.New("endpoint not found")
-)
+// QueryTransfer query transfer.
+func (m *Manager) QueryTransfer(
+	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
+
+	results, err := m.gseHandler.QueryFileTransmissionResult(ctx, taskID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to query file transfer result. task-id(%s): %w", taskID, err)
+	}
+
+	if len(results) != 2 { // nolint: mnd
+		return nil, nil, fmt.Errorf("unexpected transfer result count(%d), results(%+v)", len(results), results)
+	}
+
+	sr1 := types.ConvertTransferResultToSimple(results[0])
+	sr2 := types.ConvertTransferResultToSimple(results[1])
+
+	if sr1.Mode == types.TransferModeUpload && sr2.Mode == types.TransferModeDownload {
+		return sr1, sr2, nil
+	}
+
+	if sr2.Mode == types.TransferModeUpload && sr1.Mode == types.TransferModeDownload {
+		return sr2, sr1, nil
+	}
+
+	return nil, nil, fmt.Errorf("unexpected transfer result: (%v), (%v)", results[0], results[1])
+}
+
+// LaunchTransferRelease launch transfer release.
+func (m *Manager) LaunchTransferRelease(ctx context.Context,
+	gen types.Generation,
+	rt types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	file, dir, err := m.EnsureFileToLocal(ctx, gen, rt, plat, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release file: %w", err)
+	}
+
+	info := file.Info()
+	fp := filepath.Join(dir, info.Name)
+
+	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to transfer package: %w", err)
+	}
+
+	tf.fileInfo = info
+
+	return tf, nil
+}
+
+// LaunchTransferInstaller launch transfer installer.
+func (m *Manager) LaunchTransferInstaller(ctx context.Context,
+	plat platform.Platform,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	toolName, err := tool.FormatInstallerName(plat.OS, plat.Arch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to format installer name: %w", err)
+	}
+
+	toolFile, err := m.installerFileGroup.GetFile(ctx, toolName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file, err: %w", err)
+	}
+
+	fp := local.GetLocalFileAbsFilePath(toolFile)
+	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to transfer package: %w", err)
+	}
+
+	tf.fileInfo = toolFile.Info()
+
+	return tf, nil
+}
 
 // TransferPkg transfer package.
-func (m *Manager) TransferPkg(ctx context.Context, srcFilePath, dstDir string, dstHost *types.Host) (ITransfer, error) {
+func (m *Manager) transferPkg(ctx context.Context, srcFilePath, dstDir string, dstHost *types.Host) (*Transfer, error) {
 	if dstHost == nil {
 		return nil, errors.New("destination host is nil")
 	}
@@ -158,7 +232,7 @@ func (m *Manager) TransferPkg(ctx context.Context, srcFilePath, dstDir string, d
 
 	taskID, err := m.gseHandler.TransferFile(ctx,
 		&types.TransferOptions{
-			Timeout:   transferPackageTimeoutSec,
+			Timeout:   transferPackageTimeout,
 			AutoMkdir: true,
 		},
 		&types.TransferDetail{
@@ -196,18 +270,31 @@ func (m *Manager) getCurrentGSEEndpoint(ctx context.Context) (*types.Endpoint, e
 		return nil, fmt.Errorf("failed to get host from storage: %w", err)
 	}
 
+	agentID := host.Dynamic.AgentID
+	if agentID == "" {
+		agentID = host.Static.SyncedAgentID
+	}
+
+	if agentID == "" {
+		return nil, errors.New("agent-id is empty")
+	}
+
 	containerID, err := m.getCurrentContainerID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current container-id: %w", err)
 	}
 
-	return &types.Endpoint{
-		AgentID:     host.Dynamic.AgentID,
+	ep := &types.Endpoint{
+		AgentID:     agentID,
 		ContainerID: containerID,
-	}, nil
+	}
+	m.logger.InfoCtxf(ctx, "got current service endpoint. ipv4(%s), ipv6(%s): %+v",
+		m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, ep)
+
+	return ep, nil
 }
 
-// nolint:mnd
+// nolint:mnd,gocognit
 func (m *Manager) getCurrentContainerID() (string, error) {
 	if !m.inContainer {
 		return "", nil
@@ -224,34 +311,53 @@ func (m *Manager) getCurrentContainerID() (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		patterns := []string{
-			"docker/",
-			"kubepods/",
-			"containerd/",
-			"crio/",
+		parts := strings.Split(line, ":")
+		if len(parts) < 3 {
+			continue
 		}
 
-		for _, pattern := range patterns {
-			if idx := strings.Index(line, pattern); idx != -1 {
-				idPart := line[idx+len(pattern):]
+		cgroupPath := parts[2]
+		if cgroupPath == "" {
+			continue
+		}
 
-				if end := strings.Index(idPart, ".scope"); end != -1 {
-					return idPart[:end], nil
+		lastID := ""
+		for _, item := range strings.Split(cgroupPath, "/") {
+			// docker format (docker-<id>.scope)
+			if strings.HasPrefix(item, "docker-") && strings.HasSuffix(item, ".scope") {
+				id := strings.TrimSuffix(strings.TrimPrefix(item, "docker-"), ".scope")
+				if isValidContainerID(id) {
+					lastID = id
+
+					continue
 				}
-
-				if strings.HasPrefix(idPart, "-") {
-					idPart = idPart[1:]
-				}
-
-				if len(idPart) >= 64 {
-					return idPart[:64], nil
-				}
-
-				return idPart, nil
 			}
+
+			// containerd format (cri-containerd-<id>.scope)
+			if strings.HasPrefix(item, "cri-containerd-") && strings.HasSuffix(item, ".scope") {
+				id := strings.TrimSuffix(strings.TrimPrefix(item, "cri-containerd-"), ".scope")
+				if isValidContainerID(id) {
+					lastID = id
+
+					continue
+				}
+			}
+
+			// pure container-id.
+			if isValidContainerID(item) {
+				lastID = item
+			}
+		}
+
+		if lastID != "" {
+			return lastID, nil
 		}
 	}
 
 	return "", errors.New("container-id not found")
+}
+
+func isValidContainerID(id string) bool {
+	matched, _ := regexp.MatchString(`^[0-9a-f]{64}$`, id)
+	return matched
 }

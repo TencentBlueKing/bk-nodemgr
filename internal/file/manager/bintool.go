@@ -87,13 +87,7 @@ func (m *Manager) UploadOriginBinTool(
 	}
 
 	// get info.
-	info, err := file.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package. failed to get file info. err: %v", err)
-
-		return nil, err
-	}
-	detail.FileInfo = info
+	detail.FileInfo = file.Info()
 
 	// check if release existed.
 	existed, err := m.storageRelease.ExistReleaseBinTool(ctx, types.Generation2)
@@ -258,12 +252,7 @@ func (m *Manager) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 	}
 
 	// get release info.
-	releaseInfo, err := releaseFile.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to get release info. err: %v", err)
-
-		return err
-	}
+	releaseInfo := releaseFile.Info()
 
 	// upsert release bintool.
 	if err = m.storageRelease.UpsertReleaseBinTool(ctx, types.ReleaseBinTool{
@@ -341,7 +330,7 @@ func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadClos
 		return nil, err
 	}
 
-	file, err := m.temp.GetFile(ctx, tempFileName)
+	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path/filepath"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -94,6 +95,7 @@ func (h *Handler) GetFile(ctx context.Context, path string) (iface.File, error) 
 
 	return &File{
 		info:    resp.NodeInfo,
+		absDirs: iface.ConvertAbsPathToAbsDirs(filepath.Dir(path)),
 		handler: h,
 	}, nil
 }
@@ -118,6 +120,7 @@ func (h *Handler) GetFileGroup(ctx context.Context, path string) (iface.FileGrou
 
 	return &FileGroup{
 		info:    resp.NodeInfo,
+		absDirs: iface.ConvertAbsPathToAbsDirs(path),
 		handler: h,
 	}, nil
 }

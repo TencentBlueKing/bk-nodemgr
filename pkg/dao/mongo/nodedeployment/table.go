@@ -25,35 +25,35 @@ type Data struct {
 
 // Info this is the info of this node deployment.
 type Info struct {
-	OperInstID       string   `json:"oper_inst_id" bson:"oper_inst_id"`
-	ActionName       string   `json:"action_name" bson:"action_name"`
-	HostID           int64    `json:"host_id" bson:"host_id"`
-	OSType           string   `json:"os_type" bson:"os_type"`
-	TenantID         string   `json:"tenant_id" bson:"tenant_id"`
-	NodeRole         string   `json:"node_role" bson:"node_role"`
-	NodeStatus       string   `json:"node_status" bson:"node_status"`
-	NodeVersion      string   `json:"node_version" bson:"node_version"`
-	NodeGeneration   int64    `json:"node_generation" bson:"node_generation"`
-	NodeCPUArch      string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
-	NodeOsType       string   `json:"node_os_type" bson:"node_os_type"`
-	AgentID          string   `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID    int64    `json:"network_unit_id" bson:"network_unit_id"`
-	NetworkAreaID    int64    `json:"network_area_id" bson:"network_area_id"`
-	BizID            int64    `json:"biz_id" bson:"biz_id"`
-	InnerIP          string   `json:"inner_ip" bson:"inner_ip"`
-	Addressing       string   `json:"addressing" bson:"addressing"`
-	ProxyTags        []string `json:"proxy_tags" bson:"proxy_tags"`
-	ProxyClusterPort int64    `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
-	ProxyDataPort    int64    `json:"proxy_data_port" bson:"proxy_data_port"`
-	ProxyFilePort    int64    `json:"proxy_file_port" bson:"proxy_file_port"`
-	ReRegister       bool     `json:"re_register" bson:"re_register"`
-	TmpDir           string   `json:"tmp_dir" bson:"tmp_dir"`
-	LoginIP          string   `json:"login_ip" bson:"login_ip"`
-	LoginPort        int64    `json:"login_port" bson:"login_port"`
-	LoginUser        string   `json:"login_user" bson:"login_user"`
-	LoginMode        string   `json:"login_mode" bson:"login_mode"`
-	LoginPassword    []byte   `json:"login_password" bson:"login_password"`
-	LoginKeyFile     []byte   `json:"login_key_file" bson:"login_key_file"`
+	OperInstID         string   `json:"oper_inst_id" bson:"oper_inst_id"`
+	ActionName         string   `json:"action_name" bson:"action_name"`
+	HostID             int64    `json:"host_id" bson:"host_id"`
+	OSType             string   `json:"os_type" bson:"os_type"`
+	TenantID           string   `json:"tenant_id" bson:"tenant_id"`
+	NodeRole           string   `json:"node_role" bson:"node_role"`
+	NodeStatus         string   `json:"node_status" bson:"node_status"`
+	NodeVersion        string   `json:"node_version" bson:"node_version"`
+	NodeGeneration     int64    `json:"node_generation" bson:"node_generation"`
+	NodeCPUArch        string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeOsType         string   `json:"node_os_type" bson:"node_os_type"`
+	AgentID            string   `json:"agent_id" bson:"agent_id"`
+	NetworkUnitID      int64    `json:"network_unit_id" bson:"network_unit_id"`
+	NetworkAreaID      int64    `json:"network_area_id" bson:"network_area_id"`
+	BizID              int64    `json:"biz_id" bson:"biz_id"`
+	InnerIP            string   `json:"inner_ip" bson:"inner_ip"`
+	Addressing         string   `json:"addressing" bson:"addressing"`
+	ProxyTags          []string `json:"proxy_tags" bson:"proxy_tags"`
+	ProxyClusterPort   int64    `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
+	ProxyDataPort      int64    `json:"proxy_data_port" bson:"proxy_data_port"`
+	ProxyFilePort      int64    `json:"proxy_file_port" bson:"proxy_file_port"`
+	ReRegister         bool     `json:"re_register" bson:"re_register"`
+	InstallerWorkspace string   `json:"installer_workspace" bson:"installer_workspace"`
+	LoginIP            string   `json:"login_ip" bson:"login_ip"`
+	LoginPort          int64    `json:"login_port" bson:"login_port"`
+	LoginUser          string   `json:"login_user" bson:"login_user"`
+	LoginMode          string   `json:"login_mode" bson:"login_mode"`
+	LoginPassword      []byte   `json:"login_password" bson:"login_password"`
+	LoginKeyFile       []byte   `json:"login_key_file" bson:"login_key_file"`
 }
 
 // NodeConf this is the node conf for node deployment.

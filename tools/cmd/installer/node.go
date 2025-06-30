@@ -25,6 +25,7 @@ var node = struct {
 	sync.Once
 	nodeRole   constant.NodeRole
 	gseRoot    string
+	deployEnv  string
 	generation int
 	version    string
 	agentID    string
@@ -68,6 +69,22 @@ func SetNodeVersion(version string) error {
 	return nil
 }
 
+// GetDeployEnv get deploy env.
+func GetDeployEnv() string {
+	return node.deployEnv
+}
+
+// SetDeployEnv set deploy env.
+func SetDeployEnv(deployEnv string) error {
+	if deployEnv == "" {
+		return errors.New("set deploy env failed, deploy env is empty")
+	}
+
+	node.deployEnv = deployEnv
+
+	return nil
+}
+
 // GetGseRoot get gse root.
 func GetGseRoot() string {
 	return node.gseRoot
@@ -84,7 +101,7 @@ func SetGseRoot(gseRoot string) error {
 		return fmt.Errorf("set gse root failed, err: %w", err)
 	}
 
-	node.gseRoot = filepath.FromSlash(gseRoot)
+	node.gseRoot = filepath.Clean(gseRoot)
 
 	return nil
 }

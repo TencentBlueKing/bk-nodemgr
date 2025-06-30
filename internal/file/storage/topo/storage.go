@@ -30,6 +30,9 @@ type IStorage interface {
 
 	// GetDirectNetworkAreaHostByAnyInnerIP get host by any inner ip, v4 or v6 in direct networkarea.
 	GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4, ipv6 string) (*types.Host, error)
+
+	// GetHostByID get host by host-id.
+	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
 }
 
 const (
@@ -130,4 +133,27 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4
 	}
 
 	return nil, errors.New("ipv4 and ipv6 are all empty")
+}
+
+// GetHostByID get host by host-id.
+func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, error) {
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if hostID < 0 {
+		return nil, errors.New("host id should be equal or greater than 0")
+	}
+
+	hosts, count, err := s.daoHost.List(ctx, types.Page{Limit: 1}, host.WithHostID(hostID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host by id, host-id(%d), err: %w", hostID, err)
+	}
+
+	if count != 1 {
+		return nil, fmt.Errorf("failed to get host by id, result count is not 1, host-id(%d), count(%d)",
+			hostID, count)
+	}
+
+	return hosts[0], nil
 }

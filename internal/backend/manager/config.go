@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
@@ -44,6 +45,8 @@ type Config struct {
 	StorageTrigger        trigger.IStorage
 	StorageOperation      operation.IStorage
 	StorageOperInst       operinstdata.IStorage
+
+	FileHandler file.IHandler
 
 	Crypter crypter.Crypter
 

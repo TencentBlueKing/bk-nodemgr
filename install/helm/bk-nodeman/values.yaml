@@ -687,26 +687,28 @@ backend:
     gseDeployConfs:
       - # defines the gse deploy related settings.
         generation:  2
-        os_type: "linux"
-        host_id_path:  "/var/lib/gse2/host/hostid"
-        gse_data_ipc: "/var/run/gse2/ipc.state.report"
-        gse_plugin_ipc: "/var/run/gse2/ipc.state.message"
-        gse_home_dir: "/usr/local/gse2"
-        gse_data_dir: "/var/lib/gse2"
-        gse_run_dir: "/var/run/gse2"
-        gse_log_dir: "/var/log/gse2"
-        gse_environ_di: "/etc/sysconfig/gse2"
+        osType: "linux"
+        hostIDPath:  "/var/lib/gse2/host/hostid"
+        installerWorkspace: "/tmp/bknm"
+        gseDataIPC: "/var/run/gse2/ipc.state.report"
+        gsePluginIPC: "/var/run/gse2/ipc.state.message"
+        gseHomeDir: "/usr/local/gse2"
+        gseDataDir: "/var/lib/gse2"
+        gseRunDir: "/var/run/gse2"
+        gseLogDir: "/var/log/gse2"
+        gseEnvironDir: "/etc/sysconfig/gse2"
       - # defines the gse deploy related settings.
         generation: 2
-        os_type: "windows"
-        host_id_path: "c:\\gse2\\data\\host\\hostid"
-        gse_data_ipc: "27000"
-        gse_plugin_ipc: ""
-        gse_home_dir: "C:\\gse2"
-        gse_data_dir: "C:\\gse2\\data"
-        gse_run_dir: "C:\\gse2\\data"
-        gse_log_dir: "C:\\gse2\\log"
-        gse_environ_di: "C:\\Windows\\System32\\config\\gse\\gse2"
+        osType: "windows"
+        hostIDPath: "c:\\gse2\\data\\host\\hostid"
+        installerWorkspace: "c:\\tmp\\bknm"
+        gseDataIPC: "27000"
+        gsePluginIPC: "27001"
+        gseHomeDir: "C:\\gse2"
+        gseDataDir: "C:\\gse2\\data"
+        gseRunDir: "C:\\gse2\\data"
+        gseLogDir: "C:\\gse2\\log"
+        gseEnvironDir: "C:\\Windows\\System32\\config\\gse\\gse2"
 
 
     ## defines the log related settings.
@@ -893,8 +895,51 @@ file:
     tempFileGroup:
       fullPath: "/bk-nodeman/file/temp"
 
-    localFileGroup:
-      fullPath: "/bk-nodeman/file/local"
+    cacheFileGroup:
+      fullPath: "/bk-nodeman/file/cache"
+
+    installerFileGroup:
+      fullPath: "/bk-nodeman/file/tools"
+
+    # defines the gse related settings.
+    gse:
+      # endpoints is a seed list of host:port addresses of esb nodes.
+      endpoints:
+        - "https://example.com/api/gse/prod"
+      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request api gateway.
+      user: ""
+      # authMode is the mode to do api auth verification,
+      # it support 'oa' and 'ee' and 'at' mode for now.
+      # 1. oa use bkTicket auth.
+      # 2. ee use bkToken auth.
+      # 3. at use accessToken auth.
+      # 4. un use no user authentication required
+      authMode: "un"
+      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      bkTicket: ""
+      # bkToken is the BlueKing user token of costops to request api gateway.
+      bkToken: ""
+      # accessToken is the BlueKing access token of costops to request api gateway.
+      accessToken: ""
+      # plugin SlotID and SlotToken
+      pluginSlotID: ""
+      pluginSlotToken: ""
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
 
     ## defines the log related settings.
     log:

@@ -405,7 +405,7 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 		r.tryThrottle(url)
 	}
 
-	r.client.capability.Logger.Infof("restful request, method(%s), url(%s), header(%+v), body(%s), rid(%s)",
+	r.client.capability.Logger.Infof("try to request, method(%s), url(%s), header(%+v), body(%s), rid(%s)",
 		r.verb, url, r.headers, string(r.body), rid)
 
 	start := time.Now()
@@ -447,6 +447,9 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 		}
 		body = data
 	}
+
+	r.client.capability.Logger.Infof("requested, rid(%s), response-len(%d), http-code(%d)",
+		rid, len(body), resp.StatusCode)
 
 	return &Result{
 		Rid:        rid,

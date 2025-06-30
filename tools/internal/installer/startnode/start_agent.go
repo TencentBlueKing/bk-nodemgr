@@ -96,18 +96,18 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 		_ = gp.Wait()
 
 		if err != nil {
-			logger.Warn(constant.StepStartNode,
+			logger.Warnf(constant.StepStartNode,
 				"start agent failed, attempt: %d, err: %v",
 				attempt, err)
 			if errStr := errOutput.String(); errStr != "" {
-				logger.Warn(constant.StepStartNode,
+				logger.Warnf(constant.StepStartNode,
 					"start agent error output: %s", errStr)
 			}
 			return err
 		}
 
 		if errStr := errOutput.String(); errStr != "" {
-			logger.Warn(constant.StepStartNode,
+			logger.Warnf(constant.StepStartNode,
 				"agent produced warnings: %s", errStr)
 		}
 

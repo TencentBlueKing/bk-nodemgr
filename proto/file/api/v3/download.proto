@@ -23,7 +23,7 @@ message DownloadProxyReq {
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
-// download service.
+// Download service.
 service Download {
   // DownloadAgent provides downloading agent pkg.
   rpc DownloadAgent(DownloadAgentReq) returns (stream FileChunk) {

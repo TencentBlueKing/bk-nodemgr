@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -64,16 +65,16 @@ type ActParamInstallAgentBySSH struct {
 
 // InstallParams this struct defines the parameters for installing agent.
 type InstallParams struct {
-	InstallerPath    string
-	NodeRole         types.NodeRole
-	CallbackEndpoint string
-	DownloadEndpoint string
-	PkgVersion       string
-	PkgGeneration    types.Generation
-	GseRoot          string
-	Token            string
-	TmpDir           string
-	AdditionArgs     []string
+	InstallerPath      string
+	NodeRole           types.NodeRole
+	CallbackEndpoint   string
+	DownloadEndpoint   string
+	PkgVersion         string
+	PkgGeneration      types.Generation
+	GseRoot            string
+	Token              string
+	InstallerWorkspace string
+	AdditionArgs       []string
 }
 
 type actionInstallNodeBySSH struct {
@@ -150,12 +151,29 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	osType, cpuArch, targetDir, err := act.detectInfo(ctx, client)
+	osType, cpuArch, connectedRunDir, err := act.detectInfo(ctx, client)
 	if err != nil {
 		return err
 	}
-	if info.TmpDir == "" {
-		info.TmpDir = targetDir
+
+	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
+	// installer workspace priority: user specified in info > deploy constant default > connected dir.
+	if info.InstallerWorkspace == "" {
+		info.InstallerWorkspace = deployConstant.InstallerWorkspace
+	}
+	if info.InstallerWorkspace == "" {
+		info.InstallerWorkspace = connectedRunDir
+	}
+
+	// ensure the workspace dir.
+	if result, err := client.RunCommand("mkdir -p " + info.InstallerWorkspace); err != nil {
+		err = fmt.Errorf("failed to mkdir -p %s , result(%s), err: %w", info.InstallerWorkspace, result, err)
+
+		return err
 	}
 
 	// 4. select matching tools, and use sftp to transfer it.
@@ -180,7 +198,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	installerPath := path.Clean(path.Join(targetDir, toolName))
+	installerPath := path.Clean(path.Join(info.InstallerWorkspace, toolName))
 	if err := client.TransferFile(reader, installerPath); err != nil {
 		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
@@ -209,21 +227,16 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
-	}
-
 	installParams := &InstallParams{
-		InstallerPath:    installerPath,
-		NodeRole:         info.Host.Dynamic.NodeRole,
-		CallbackEndpoint: "http://" + callbackEndpoint.GetIPV4Address(),
-		DownloadEndpoint: "http://" + downloadEndpoint.GetIPV4Address(),
-		PkgVersion:       info.Dynamic.NodeVersion,
-		PkgGeneration:    info.Dynamic.NodeGeneration,
-		GseRoot:          deployConstant.GseHomeDir,
-		Token:            param.Token,
-		TmpDir:           info.TmpDir,
+		InstallerPath:      installerPath,
+		NodeRole:           info.Host.Dynamic.NodeRole,
+		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
+		DownloadEndpoint:   "http://" + downloadEndpoint.GetIPV4Address(),
+		PkgVersion:         info.Dynamic.NodeVersion,
+		PkgGeneration:      info.Dynamic.NodeGeneration,
+		GseRoot:            deployConstant.GseHomeDir,
+		Token:              param.Token,
+		InstallerWorkspace: info.InstallerWorkspace,
 		AdditionArgs: []string{
 			"--reinstall",
 		},
@@ -232,10 +245,6 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	if !info.ReRegister && info.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
 			fmt.Sprintf("--agent_id %s", info.Dynamic.AgentID))
-	}
-
-	if installParams.TmpDir == "" {
-		installParams.TmpDir = targetDir
 	}
 
 	// 7. exec install command
@@ -365,7 +374,8 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		fmt.Sprintf("--pkg_generation %d", param.PkgGeneration),
 		fmt.Sprintf("--gse_root %s", param.GseRoot),
 		fmt.Sprintf("--token %s", param.Token),
-		fmt.Sprintf("--tmp_dir %s", param.TmpDir),
+		fmt.Sprintf("--workspace %s", param.InstallerWorkspace),
+		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)

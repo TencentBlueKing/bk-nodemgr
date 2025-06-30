@@ -54,6 +54,10 @@ type IStorageOperation interface {
 	// GetManyOperation lists operation.
 	GetManyOperation(ctx context.Context, operationID ...string) ([]*operation.Operation, int64, error)
 
+	// ListOperationByCondition lists operation by condition.
+	ListOperationByCondition(ctx context.Context, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
+		[]*operation.Operation, int64, error)
+
 	// ListEmptyOperation lists empty operation.
 	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 }

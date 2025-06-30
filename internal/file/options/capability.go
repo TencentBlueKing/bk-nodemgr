@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -42,6 +43,9 @@ type Capability struct {
 
 	// StorageTopo provides storage topo handler.
 	StorageTopo topo.IStorage
+
+	// GSEHandler provides gse handler.
+	GSEHandler gse.IHandler
 
 	// Manager provides manager handler.
 	Manager manager.IManager

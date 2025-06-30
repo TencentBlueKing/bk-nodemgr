@@ -28,7 +28,11 @@ data:
 
     tempFileGroup: {{ .Values.file.config.tempFileGroup | toYaml | nindent 6 }}
 
-    localFileGroup: {{ .Values.file.config.localFileGroup | toYaml | nindent 6 }}
+    cacheFileGroup: {{ .Values.file.config.cacheFileGroup | toYaml | nindent 6 }}
+
+    installerFileGroup: {{ .Values.file.config.installerFileGroup | toYaml | nindent 6 }}
+
+    gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
 
     log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 

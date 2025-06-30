@@ -51,6 +51,9 @@ type IHandler interface {
 
 // IDistinctor host distinct handler interface.
 type IDistinctor interface {
+	// DistinctBizID distincts with field biz-id.
+	DistinctBizID(ctx context.Context, opts ...OptFn) ([]int64, error)
+
 	// DistinctNodeRole distincts with field node-role.
 	DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.NodeRole, error)
 
@@ -180,6 +183,16 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// DistinctBizID distincts with field biz-id.
+func (h *handler) DistinctBizID(ctx context.Context, opts ...OptFn) ([]int64, error) {
+	result, err := h.distinctInt64(ctx, FieldKeyStaticBizID, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // DistinctNodeRole distincts with field node-role.
