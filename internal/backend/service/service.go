@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -53,7 +54,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"

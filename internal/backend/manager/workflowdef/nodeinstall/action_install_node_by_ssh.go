@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
