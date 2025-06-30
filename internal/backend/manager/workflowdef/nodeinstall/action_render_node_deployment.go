@@ -593,7 +593,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
-	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataDir
+	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataIPC
 	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
 		ctx, host.Dynamic.NetworkUnitID)
 
@@ -645,7 +645,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 func joinPath(osType criteria.OSType, parts ...string) string {
 	separator := "/"
 	if osType == criteria.OSWindows {
-		separator = "\\"
+		separator = "\\\\"
 	}
 
 	if len(parts) == 0 {
