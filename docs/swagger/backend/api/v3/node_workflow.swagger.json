@@ -841,6 +841,51 @@
       },
       "description": "NodeWorkflowOperationDefinition ..."
     },
+    "v3NodeWorkflowOperationExactConditions": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "node_version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inner_ipv4": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inner_ipv6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bz_area_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."
+    },
+    "v3NodeWorkflowOperationFuzzyConditions": {
+      "type": "object",
+      "description": "NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request."
+    },
     "v3NodeWorkflowOperationInstanceListReq": {
       "type": "object",
       "properties": {
@@ -1008,8 +1053,11 @@
         "page": {
           "$ref": "#/definitions/v3Page"
         },
-        "workflow_id": {
-          "type": "string"
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationFuzzyConditions"
         }
       },
       "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest."
@@ -1068,6 +1116,10 @@
         },
         "node_version": {
           "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "NodeWorkflowOperationParam ..."

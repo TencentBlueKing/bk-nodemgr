@@ -160,6 +160,26 @@ const (
 	StateTerminated OperationState = "terminated"
 )
 
+// WorkflowOperationStatusListToStringList converts a node status list to a string list.
+func WorkflowOperationStatusListToStringList(operationStatusList []OperationState) []string {
+	data := make([]string, len(operationStatusList))
+	for idx, operationStatus := range operationStatusList {
+		data[idx] = string(operationStatus)
+	}
+
+	return data
+}
+
+// StringListToWorkflowOperationStatusList converts a string list to a node status list.
+func StringListToWorkflowOperationStatusList(stringList []string) []OperationState {
+	data := make([]OperationState, len(stringList))
+	for idx, operationStatus := range stringList {
+		data[idx] = OperationState(operationStatus)
+	}
+
+	return data
+}
+
 // GetFinishedNodeWorkflowStatus returns the finished node workflow status.
 func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 	return []NodeWorkflowStatus{

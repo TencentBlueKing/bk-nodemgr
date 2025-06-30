@@ -12,8 +12,8 @@
 package workflow
 
 import (
-	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
@@ -210,51 +210,55 @@ func (h *handler) ListOperation(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, req.Validate())
 	}
 
-	// only count.
-	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountNodeWorkflowOperation(
-			sCtx, req.ConvertConditionsToComm())
-		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to list operation, failed to count operation. err: %v", err)
-			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
-		}
-		resp := new(protoApplication.NodeWorkflowOperationListResp)
-
-		resp.ConvertResultFromTypes(num, nil, nil)
-		// only count, no data.
-		return resp.GetData(), nil
+	var targetStates []string
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		targetStates = exactCond.GetState()
 	}
 
-	result, num, err := h.backendHandler.ListNodeWorkflowOperation(
-		sCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToComm())
+	result, total, err := h.backendHandler.ListNodeWorkflowOperation(
+		sCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to list operation, err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	// list operation instance.
-	operationIDs := make([]string, 0, len(result))
+	if len(result) == 0 {
+		resp := new(protoApplication.NodeWorkflowOperationListResp)
+		resp.ConvertResultFromTypes(total, nil, nil)
 
+		if req.GetOnlyCount() {
+			return resp.GetCountOnly(), nil
+		}
+
+		return resp.GetData(), nil
+	}
+
+	operationIDs := make([]string, 0, len(result))
 	for _, operation := range result {
 		operationIDs = append(operationIDs, operation.OperationID)
 	}
 
-	allinstances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(sCtx, operationIDs...)
+	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(sCtx, operationIDs...)
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to list operation instance, err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
-	for _, instance := range allinstances {
-		fmt.Println("instance lifecycle:", instance.Lifecycle)
-	}
 
-	instancesByOpID := groupInstancesByOperationID(allinstances)
-
+	instancesByOpID := groupInstancesByOperationID(allInstances)
 	summaries := calculateOperationSummaries(operationIDs, instancesByOpID)
 
-	resp := new(protoApplication.NodeWorkflowOperationListResp)
+	filteredResults, filteredSummaries := filterOperationsByStates(
+		result,
+		summaries,
+		targetStates,
+	)
 
-	resp.ConvertResultFromTypes(num, result, summaries)
+	resp := new(protoApplication.NodeWorkflowOperationListResp)
+	resp.ConvertResultFromTypes(int64(len(filteredResults)), filteredResults, filteredSummaries)
+
+	if req.GetOnlyCount() {
+		return resp.GetCountOnly(), nil
+	}
 
 	return resp.GetData(), nil
 }
@@ -428,6 +432,37 @@ func groupInstancesByOperationID(
 	}
 
 	return grouped
+}
+
+func filterOperationsByStates(
+	ops []*operation.Operation,
+	summaries []*types.OperationSummary,
+	targetStates []string,
+) ([]*operation.Operation, []*types.OperationSummary) {
+
+	if len(targetStates) == 0 {
+		return ops, summaries
+	}
+	stateLookup := make(map[string]bool)
+	for _, state := range targetStates {
+		if state != "" {
+			stateLookup[strings.ToLower(state)] = true
+		}
+	}
+
+	filteredOps := make([]*operation.Operation, 0, len(ops))
+	filteredSummaries := make([]*types.OperationSummary, 0, len(summaries))
+
+	for i, op := range ops {
+		summary := summaries[i]
+		if _, exists := stateLookup[summary.LastStatus]; exists {
+			filteredOps = append(filteredOps, op)
+			filteredSummaries = append(filteredSummaries, summary)
+		}
+	}
+
+	return filteredOps, filteredSummaries
+
 }
 
 func calculateOperationSummaries(operationIDs []string,

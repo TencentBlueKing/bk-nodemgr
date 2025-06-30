@@ -12,7 +12,6 @@ package v3
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -178,7 +177,7 @@ func (x *NodeWorkflowDistinctResp) ConvertResultFromTypes(result *types.NodeWork
 
 // Validate check body.
 func (x *NodeWorkflowOperationListReq) Validate() error {
-	if x.GetWorkflowId() == "" {
+	if x.GetExactIncludeConditions() == nil || x.GetExactIncludeConditions().GetWorkflowId() == "" {
 		return errors.New("workflow_id is required")
 	}
 	return validatePage(x.GetPage())
@@ -186,7 +185,29 @@ func (x *NodeWorkflowOperationListReq) Validate() error {
 
 // ConvertConditionsToComm convert conditions to comm.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToComm() string {
-	return x.GetWorkflowId()
+	return x.GetExactIncludeConditions().GetWorkflowId()
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
+	condition *types.NodeWorkflowOperationCondition) error {
+
+	exactCond, fuzzyCond, err := convertNodeWorkOperConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes() *types.NodeWorkflowOperationCondition {
+	return convertWorkflowOperationConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions())
 }
 
 // ConvertPageToTypes convert page to types.
@@ -213,17 +234,17 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 			InstanceIds: op.InstanceIDs,
 			Param: &NodeWorkflowOperationParam{
 				TimeoutSecond: int64(op.Definition.DefaultParameters().Timeout.Seconds()),
-				AreaId:        safeGetInt64(op.Param.ExtraContent, "areaID", -1),
-				InnerIpv4:     safeGetString(op.Param.ExtraContent, "innerIPV4", ""),
-				InnerIpv6:     safeGetString(op.Param.ExtraContent, "innerIPV6", ""),
-				NodeVersion:   safeGetString(op.Param.ExtraContent, "nodeVersion", ""),
+				AreaId:        safeGetInt64(op.Param.ExtraContent, "area_id", -1),
+				BkBizId:       safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
+				InnerIpv4:     safeGetString(op.Param.ExtraContent, "inner_ip_v4", ""),
+				InnerIpv6:     safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
+				NodeVersion:   safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 			Status: &NodeWorkflowOperationStatus{
 				State:           operationsSummary[idx].LastStatus,
 				TotalTimeSecond: operationsSummary[idx].TotalDuration,
 			},
 		}
-		fmt.Println("[debug]total time:", operationsSummary[idx].TotalDuration)
 
 		items = append(items, item)
 	}
@@ -232,6 +253,18 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 		TotalCount: total,
 		Operations: items,
 	}
+}
+
+func (x *NodeWorkflowOperationListResp) GetCountOnly() interface{} {
+	if x.GetData() == nil {
+		return &NodeWorkflowOperationListResp_Data{
+			TotalCount: 0,
+		}
+	}
+
+	x.Data.Operations = nil
+
+	return x.GetData()
 }
 
 // Validate check body.
@@ -321,6 +354,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
 		OperInstLogs: operInstLogs,
+		Total:        int64(len(result.ActionInstanceDataMap)),
 	}
 }
 
@@ -375,6 +409,56 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	}
 
 	return exactCond, fuzzyCond, timeRange, nil
+}
+
+func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperationCondition) (
+	*NodeWorkflowOperationExactConditions, *NodeWorkflowOperationFuzzyConditions, error) {
+
+	if condition == nil {
+		return nil, nil, nil
+	}
+
+	var exactCond *NodeWorkflowOperationExactConditions
+	var fuzzyCond *NodeWorkflowOperationFuzzyConditions
+
+	if condition.ExactInclude != nil {
+		exactCond = &NodeWorkflowOperationExactConditions{
+			BkBizId:     condition.ExactInclude.BizID,
+			WorkflowId:  condition.ExactInclude.WorkflowID,
+			State:       types.WorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			BzAreaId:    condition.ExactInclude.AreaID,
+			InnerIpv4:   condition.ExactInclude.InnerIpv4,
+			InnerIpv6:   condition.ExactInclude.InnerIpv6,
+			NodeVersion: condition.ExactInclude.NodeVersion,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, nil
+}
+
+func convertWorkflowOperationConditionsToTypes(
+	exactCond *NodeWorkflowOperationExactConditions,
+	_ *NodeWorkflowOperationFuzzyConditions) *types.NodeWorkflowOperationCondition {
+
+	condition := &types.NodeWorkflowOperationCondition{}
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
+			WorkflowID:  exactCond.GetWorkflowId(),
+			State:       types.StringListToWorkflowOperationStatusList(exactCond.GetState()),
+			InnerIpv4:   exactCond.GetInnerIpv4(),
+			InnerIpv6:   exactCond.GetInnerIpv6(),
+			BizID:       exactCond.GetBkBizId(),
+			AreaID:      exactCond.GetBzAreaId(),
+			NodeVersion: exactCond.GetNodeVersion(),
+		}
+	}
+
+	return condition
 }
 
 // newEmptyNodeWorkflow creates a new empty NodeWorkflowInfo.

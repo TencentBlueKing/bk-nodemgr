@@ -126,6 +126,7 @@ message NodeWorkflowOperationParam {
   string inner_ipv4 = 3;
   string inner_ipv6 = 4;
   string node_version = 5;
+  int64 bk_biz_id = 6;
 }
 
 // NodeWorkflowOperation ...
@@ -165,12 +166,28 @@ message NodeWorflowOperationInstanceData {
   LifeCycle life_cycle = 7;
 }
 
+// NodeWorkflowOperationExactConditions describes the exact conditions of node
+// workflow operation list request.
+message NodeWorkflowOperationExactConditions {
+  string workflow_id = 1;
+  repeated string node_version = 2;
+  repeated string inner_ipv4 = 3;
+  repeated string inner_ipv6 = 4;
+  repeated int64 bk_biz_id = 5;
+  repeated int64 bz_area_id = 6;
+}
+
+// NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
+// workflow list request.
+message NodeWorkflowOperationFuzzyConditions {}
+
 // NodeWorkflowOperationListReq describes the node operation list
 // request.
 message NodeWorkflowOperationListReq {
   bool only_count = 1;
   Page page = 2;
-  string workflow_id = 3;
+  NodeWorkflowOperationExactConditions exact_include_conditions = 3;
+  NodeWorkflowOperationFuzzyConditions fuzzy_include_conditions = 4;
 }
 
 // NodeWorkflowOperationListResp describes the node operation list by

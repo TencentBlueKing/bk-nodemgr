@@ -301,3 +301,34 @@ type ReleaseCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ReleaseFuzzyFields
 }
+
+// NodeWorkflowOperationExactFields defines the condition of list operation.
+type NodeWorkflowOperationExactFields struct {
+	TriggerID   string
+	WorkflowID  string
+	State       []OperationState
+	InnerIpv4   []string
+	InnerIpv6   []string
+	BizID       []int64
+	AreaID      []int64
+	NodeVersion []string
+}
+
+// NodeWorkflowoperationFuzzyFields defines the node workflow operation fuzzy fields.
+type NodeWorkflowoperationFuzzyFields struct {
+}
+
+// NodeWorkflowOperationCondition defines the node workflow operation condition.
+type NodeWorkflowOperationCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NodeWorkflowOperationExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NodeWorkflowoperationFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *NodeWorkflowOperationExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *NodeWorkflowoperationFuzzyFields
+}
