@@ -19,6 +19,7 @@ import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -42,8 +43,8 @@ func (h *handler) Agent(ctx *rest.Context) (*rest.FileResponse, error) {
 		types.Generation(req.GetGeneration()),
 		types.ReleaseTypeAgent,
 		platform.Platform{
-			OS:   req.GetOsType(),
-			Arch: req.GetCpuArch(),
+			OS:   criteria.OSType(req.GetOsType()),
+			Arch: criteria.CPUArch(req.GetCpuArch()),
 		}, req.GetVersion())
 	if err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
