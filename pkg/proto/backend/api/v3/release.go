@@ -104,7 +104,7 @@ func (x *PackageReleaseListResp) ConvertReleasesFromTypes(total int64, releases 
 		*item.Generation = int64(release.Generation)
 		*item.ReleaseType = string(release.Type)
 		*item.OsType = string(release.Platform.OS)
-		*item.CpuArch = release.Platform.Arch
+		*item.CpuArch = string(release.Platform.Arch)
 		*item.Version = release.Version
 		*item.FileName = release.FileName
 		item.Labels = release.Labels
@@ -140,7 +140,7 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 			Type:       types.ReleaseType(item.GetReleaseType()),
 			Platform: platform.Platform{
 				OS:   criteria.OSType(item.GetOsType()),
-				Arch: item.GetCpuArch(),
+				Arch: criteria.CPUArch(item.GetCpuArch()),
 			},
 			Labels:      item.GetLabels(),
 			ChangeLogEN: item.GetChangeLogEn(),

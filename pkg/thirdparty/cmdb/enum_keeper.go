@@ -49,7 +49,7 @@ func newCPUArchKeeper(cli *cli) *enumCPUArchKeeper {
 			objectID:     "host",
 			attributeID:  "bk_cpu_architecture",
 			mapping:      make(map[string]string),
-			unknownValue: criteria.CPUArchUnknown,
+			unknownValue: string(criteria.CPUArchUnknown),
 		},
 		cpuArchMapping: make(map[string]string),
 	}
@@ -69,7 +69,7 @@ func (keeper *enumCPUArchKeeper) getValue(key string) string {
 		return keeper.enumBasicKeeper.unknownValue
 	}
 
-	return value
+	return string(value)
 }
 
 func (keeper *enumCPUArchKeeper) getKey(value string) string {
@@ -100,7 +100,7 @@ func (keeper *enumCPUArchKeeper) update(ctx context.Context) error {
 			continue
 		}
 
-		keeper.cpuArchMapping[normalizeArch] = v
+		keeper.cpuArchMapping[string(normalizeArch)] = v
 	}
 	keeper.cpuArchMappingMutex.Unlock()
 

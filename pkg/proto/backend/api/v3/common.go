@@ -94,7 +94,7 @@ func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
 func ConvertPlatformToTypes(plat *Platform) platform.Platform {
 	return platform.Platform{
 		OS:   criteria.OSType(plat.GetOsType()),
-		Arch: plat.GetCpuArch(),
+		Arch: criteria.CPUArch(plat.GetCpuArch()),
 	}
 }
 
@@ -102,6 +102,6 @@ func ConvertPlatformToTypes(plat *Platform) platform.Platform {
 func ConvertPlatformFromTypes(plat platform.Platform) *Platform {
 	return &Platform{
 		OsType:  string(plat.OS),
-		CpuArch: plat.Arch,
+		CpuArch: string(plat.Arch),
 	}
 }

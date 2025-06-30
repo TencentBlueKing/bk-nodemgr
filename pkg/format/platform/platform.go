@@ -101,8 +101,8 @@ func NormalizeOS(osName string) (criteria.OSType, error) {
 }
 
 // StandardArchMap this map is used to convert various architecture names to Go standard GOARCH values.
-func StandardArchMap() map[string]string {
-	return map[string]string{
+func StandardArchMap() map[string]criteria.CPUArch {
+	return map[string]criteria.CPUArch{
 		"386":      criteria.CPUArch386,
 		"aarch64":  criteria.CPUArchArm64,
 		"amd64":    criteria.CPUArchAmd64,
@@ -141,7 +141,7 @@ func StandardArchMap() map[string]string {
 
 // NormalizeArch convert various architecture names to Go standard GOARCH values.
 // if unable to recognize, return original input and error.
-func NormalizeArch(arch string) (string, error) {
+func NormalizeArch(arch string) (criteria.CPUArch, error) {
 	if arch == "" {
 		return "", errors.New("empty architecture name")
 	}
@@ -166,7 +166,7 @@ func NormalizeArch(arch string) (string, error) {
 		return "arm", nil
 	}
 
-	return arch, fmt.Errorf("unknown architecture: %s", arch)
+	return "", fmt.Errorf("unknown architecture: %s", arch)
 }
 
 // parseArmVersion try to extract version number from ARM version string.
@@ -189,7 +189,7 @@ func parseArmVersion(version string) (int, error) {
 // Platform represents a platform identifier.
 type Platform struct {
 	OS   criteria.OSType
-	Arch string
+	Arch criteria.CPUArch
 }
 
 // EmptyPlatform returns an empty platform.

@@ -23,7 +23,7 @@ const (
 )
 
 // FormatInstallerName formats the tools name based on the OS type and CPU architecture.
-func FormatInstallerName(osType criteria.OSType, cpuArch string) (string, error) {
+func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
 	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
 
 	return toolName, nil

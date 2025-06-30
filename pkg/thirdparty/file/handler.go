@@ -110,7 +110,7 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 	for _, plat := range resp.GetPlatforms() {
 		plats = append(plats, platform.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: plat.GetCpuArch(),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 
@@ -143,7 +143,7 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 	for _, plat := range resp.GetPlatforms() {
 		plats = append(plats, platform.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: plat.GetCpuArch(),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 
@@ -194,14 +194,14 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 	for _, plat := range resp.GetAgentPlatforms() {
 		agentPlats = append(agentPlats, platform.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: plat.GetCpuArch(),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 	proxyPlats := make([]platform.Platform, 0)
 	for _, plat := range resp.GetProxyPlatforms() {
 		proxyPlats = append(proxyPlats, platform.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: plat.GetCpuArch(),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 

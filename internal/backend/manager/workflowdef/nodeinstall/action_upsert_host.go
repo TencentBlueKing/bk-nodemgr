@@ -203,11 +203,11 @@ func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.D
 	// Here is the historical reason for cc, and can only support x86 architecture and arm architecture
 	switch host.Static.OSType {
 	case string(criteria.OSWindows), string(criteria.OSLinux):
-		host.Static.Arch = criteria.CPUArch386
+		host.Static.Arch = string(criteria.CPUArch386)
 	case string(criteria.OSDarwin):
-		host.Static.Arch = criteria.CPUArchArm
+		host.Static.Arch = string(criteria.CPUArchArm)
 	default:
-		host.Static.Arch = criteria.CPUArch386
+		host.Static.Arch = string(criteria.CPUArch386)
 	}
 
 	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Static.BizID, host)

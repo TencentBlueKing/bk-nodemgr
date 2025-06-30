@@ -113,7 +113,7 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	agentInfo := agentInfos[0]
-	info.Dynamic.NodeCPUArch, err = platform.NormalizeArch(agentInfo.Arch)
+	info.Dynamic.NodeCPUArch, err = platform.NormalizeArch(string(agentInfo.Arch))
 	if err != nil {
 		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)", info.Dynamic.AgentID, agentInfo.Arch, err)
 	}

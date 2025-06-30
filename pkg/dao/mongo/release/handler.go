@@ -110,7 +110,7 @@ func (h *handler) Get(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -142,7 +142,7 @@ func (h *handler) Exist(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -200,7 +200,7 @@ func (h *handler) SetLabels(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -227,7 +227,7 @@ func (h *handler) SetEnabled(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -254,7 +254,7 @@ func (h *handler) SetAsDefault(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -317,7 +317,7 @@ func (h *handler) Delete(ctx context.Context,
 	conditions := []OptFn{
 		WithGeneration(gen),
 		WithType(releaseType),
-		WithCPUArch(plat.Arch),
+		WithCPUArch(string(plat.Arch)),
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
@@ -335,7 +335,7 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		Type:       types.ReleaseType(release.Type),
 		Version:    release.Version,
 		Platform: platform.Platform{
-			Arch: release.CPUArch,
+			Arch: criteria.CPUArch(release.CPUArch),
 			OS:   criteria.OSType(release.OSType),
 		},
 		Labels:      release.Labels,
@@ -355,7 +355,7 @@ func convertReleaseFromTypes(release *types.Release) *Release {
 		Generation:  int64(release.Generation),
 		Type:        string(release.Type),
 		Version:     release.Version,
-		CPUArch:     release.Platform.Arch,
+		CPUArch:     string(release.Platform.Arch),
 		OSType:      string(release.Platform.OS),
 		Labels:      release.Labels,
 		ChangeLogEN: release.ChangeLogEN,

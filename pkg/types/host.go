@@ -108,7 +108,7 @@ type HostDynamic struct {
 	NodeStatus     NodeStatus
 	NodeVersion    string
 	NodeGeneration Generation
-	NodeCPUArch    string
+	NodeCPUArch    criteria.CPUArch
 	NodeOsType     criteria.OSType
 	AgentID        string
 	NetworkUnitID  int64

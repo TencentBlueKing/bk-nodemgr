@@ -116,7 +116,7 @@ type AgentInfo struct {
 
 	HostIP        string
 	OSType        criteria.OSType
-	Arch          string
+	Arch          criteria.CPUArch
 	ParentIP      string
 	ParentPort    uint
 	CPURate       float32
