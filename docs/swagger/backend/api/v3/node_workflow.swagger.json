@@ -853,13 +853,13 @@
             "type": "string"
           }
         },
-        "inner_ipv4": {
+        "bk_host_innerip_v4": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "inner_ipv6": {
+        "bk_host_innerip_v6": {
           "type": "array",
           "items": {
             "type": "string"
@@ -872,7 +872,7 @@
             "format": "int64"
           }
         },
-        "bz_area_id": {
+        "bk_networkarea_id": {
           "type": "array",
           "items": {
             "type": "integer",
@@ -1104,14 +1104,14 @@
           "type": "integer",
           "format": "int64"
         },
-        "area_id": {
+        "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
         },
-        "inner_ipv4": {
+        "bk_host_inner_ipv4": {
           "type": "string"
         },
-        "inner_ipv6": {
+        "bk_host_inner_ipv6": {
           "type": "string"
         },
         "node_version": {

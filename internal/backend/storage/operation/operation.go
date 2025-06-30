@@ -137,7 +137,7 @@ func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 			opts = append(opts,
 				operation.WithTriggerID(condition.ExactInclude.TriggerID),
 				operation.WithBizID(condition.ExactInclude.BizID...),
-				operation.WithNetworkAreaID(condition.ExactInclude.AreaID...),
+				operation.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
 				operation.WithIPv4(condition.ExactInclude.InnerIpv4...),
 				operation.WithIPv6(condition.ExactInclude.InnerIpv6...),
 			)

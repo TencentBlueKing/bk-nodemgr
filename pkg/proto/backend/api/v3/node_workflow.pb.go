@@ -845,15 +845,15 @@ func (x *NodeWorkflowOperationDefinition) GetActionNames() []string {
 
 // NodeWorkflowOperationParam ...
 type NodeWorkflowOperationParam struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TimeoutSecond int64                  `protobuf:"varint,1,opt,name=timeout_second,json=timeoutSecond,proto3" json:"timeout_second"`
-	AreaId        int64                  `protobuf:"varint,2,opt,name=area_id,json=areaId,proto3" json:"area_id"`
-	InnerIpv4     string                 `protobuf:"bytes,3,opt,name=inner_ipv4,json=innerIpv4,proto3" json:"inner_ipv4"`
-	InnerIpv6     string                 `protobuf:"bytes,4,opt,name=inner_ipv6,json=innerIpv6,proto3" json:"inner_ipv6"`
-	NodeVersion   string                 `protobuf:"bytes,5,opt,name=node_version,json=nodeVersion,proto3" json:"node_version"`
-	BkBizId       int64                  `protobuf:"varint,6,opt,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	TimeoutSecond   int64                  `protobuf:"varint,1,opt,name=timeout_second,json=timeoutSecond,proto3" json:"timeout_second"`
+	BkNetworkareaId int64                  `protobuf:"varint,2,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	BkHostInnerIpv4 string                 `protobuf:"bytes,3,opt,name=bk_host_inner_ipv4,json=bkHostInnerIpv4,proto3" json:"bk_host_inner_ipv4"`
+	BkHostInnerIpv6 string                 `protobuf:"bytes,4,opt,name=bk_host_inner_ipv6,json=bkHostInnerIpv6,proto3" json:"bk_host_inner_ipv6"`
+	NodeVersion     string                 `protobuf:"bytes,5,opt,name=node_version,json=nodeVersion,proto3" json:"node_version"`
+	BkBizId         int64                  `protobuf:"varint,6,opt,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *NodeWorkflowOperationParam) Reset() {
@@ -893,23 +893,23 @@ func (x *NodeWorkflowOperationParam) GetTimeoutSecond() int64 {
 	return 0
 }
 
-func (x *NodeWorkflowOperationParam) GetAreaId() int64 {
+func (x *NodeWorkflowOperationParam) GetBkNetworkareaId() int64 {
 	if x != nil {
-		return x.AreaId
+		return x.BkNetworkareaId
 	}
 	return 0
 }
 
-func (x *NodeWorkflowOperationParam) GetInnerIpv4() string {
+func (x *NodeWorkflowOperationParam) GetBkHostInnerIpv4() string {
 	if x != nil {
-		return x.InnerIpv4
+		return x.BkHostInnerIpv4
 	}
 	return ""
 }
 
-func (x *NodeWorkflowOperationParam) GetInnerIpv6() string {
+func (x *NodeWorkflowOperationParam) GetBkHostInnerIpv6() string {
 	if x != nil {
-		return x.InnerIpv6
+		return x.BkHostInnerIpv6
 	}
 	return ""
 }
@@ -1194,15 +1194,15 @@ func (x *NodeWorflowOperationInstanceData) GetLifeCycle() *LifeCycle {
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 type NodeWorkflowOperationExactConditions struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
-	NodeVersion   []string               `protobuf:"bytes,2,rep,name=node_version,json=nodeVersion,proto3" json:"node_version"`
-	InnerIpv4     []string               `protobuf:"bytes,3,rep,name=inner_ipv4,json=innerIpv4,proto3" json:"inner_ipv4"`
-	InnerIpv6     []string               `protobuf:"bytes,4,rep,name=inner_ipv6,json=innerIpv6,proto3" json:"inner_ipv6"`
-	BkBizId       []int64                `protobuf:"varint,5,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
-	BzAreaId      []int64                `protobuf:"varint,6,rep,packed,name=bz_area_id,json=bzAreaId,proto3" json:"bz_area_id"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId      string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	NodeVersion     []string               `protobuf:"bytes,2,rep,name=node_version,json=nodeVersion,proto3" json:"node_version"`
+	BkHostInneripV4 []string               `protobuf:"bytes,3,rep,name=bk_host_innerip_v4,json=bkHostInneripV4,proto3" json:"bk_host_innerip_v4"`
+	BkHostInneripV6 []string               `protobuf:"bytes,4,rep,name=bk_host_innerip_v6,json=bkHostInneripV6,proto3" json:"bk_host_innerip_v6"`
+	BkBizId         []int64                `protobuf:"varint,5,rep,packed,name=bk_biz_id,json=bkBizId,proto3" json:"bk_biz_id"`
+	BkNetworkareaId []int64                `protobuf:"varint,6,rep,packed,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *NodeWorkflowOperationExactConditions) Reset() {
@@ -1249,16 +1249,16 @@ func (x *NodeWorkflowOperationExactConditions) GetNodeVersion() []string {
 	return nil
 }
 
-func (x *NodeWorkflowOperationExactConditions) GetInnerIpv4() []string {
+func (x *NodeWorkflowOperationExactConditions) GetBkHostInneripV4() []string {
 	if x != nil {
-		return x.InnerIpv4
+		return x.BkHostInneripV4
 	}
 	return nil
 }
 
-func (x *NodeWorkflowOperationExactConditions) GetInnerIpv6() []string {
+func (x *NodeWorkflowOperationExactConditions) GetBkHostInneripV6() []string {
 	if x != nil {
-		return x.InnerIpv6
+		return x.BkHostInneripV6
 	}
 	return nil
 }
@@ -1270,9 +1270,9 @@ func (x *NodeWorkflowOperationExactConditions) GetBkBizId() []int64 {
 	return nil
 }
 
-func (x *NodeWorkflowOperationExactConditions) GetBzAreaId() []int64 {
+func (x *NodeWorkflowOperationExactConditions) GetBkNetworkareaId() []int64 {
 	if x != nil {
-		return x.BzAreaId
+		return x.BkNetworkareaId
 	}
 	return nil
 }
@@ -2377,14 +2377,12 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x06status\x18\x04 \x03(\tR\x06status\"i\n" +
 	"\x1fNodeWorkflowOperationDefinition\x12#\n" +
 	"\ropertion_name\x18\x01 \x01(\tR\fopertionName\x12!\n" +
-	"\faction_names\x18\x02 \x03(\tR\vactionNames\"\xd9\x01\n" +
+	"\faction_names\x18\x02 \x03(\tR\vactionNames\"\x88\x02\n" +
 	"\x1aNodeWorkflowOperationParam\x12%\n" +
-	"\x0etimeout_second\x18\x01 \x01(\x03R\rtimeoutSecond\x12\x17\n" +
-	"\aarea_id\x18\x02 \x01(\x03R\x06areaId\x12\x1d\n" +
-	"\n" +
-	"inner_ipv4\x18\x03 \x01(\tR\tinnerIpv4\x12\x1d\n" +
-	"\n" +
-	"inner_ipv6\x18\x04 \x01(\tR\tinnerIpv6\x12!\n" +
+	"\x0etimeout_second\x18\x01 \x01(\x03R\rtimeoutSecond\x12*\n" +
+	"\x11bk_networkarea_id\x18\x02 \x01(\x03R\x0fbkNetworkareaId\x12+\n" +
+	"\x12bk_host_inner_ipv4\x18\x03 \x01(\tR\x0fbkHostInnerIpv4\x12+\n" +
+	"\x12bk_host_inner_ipv6\x18\x04 \x01(\tR\x0fbkHostInnerIpv6\x12!\n" +
 	"\fnode_version\x18\x05 \x01(\tR\vnodeVersion\x12\x1a\n" +
 	"\tbk_biz_id\x18\x06 \x01(\x03R\abkBizId\"\xd8\x01\n" +
 	"\x15NodeWorkflowOperation\x12!\n" +
@@ -2418,18 +2416,15 @@ const file_node_workflow_proto_rawDesc = "" +
 	"\x13parent_operation_id\x18\x05 \x01(\tR\x11parentOperationId\x12!\n" +
 	"\faction_names\x18\x06 \x03(\tR\vactionNames\x12,\n" +
 	"\n" +
-	"life_cycle\x18\a \x01(\v2\r.v3.LifeCycleR\tlifeCycle\"\xe2\x01\n" +
+	"life_cycle\x18\a \x01(\v2\r.v3.LifeCycleR\tlifeCycle\"\x8c\x02\n" +
 	"$NodeWorkflowOperationExactConditions\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
 	"workflowId\x12!\n" +
-	"\fnode_version\x18\x02 \x03(\tR\vnodeVersion\x12\x1d\n" +
-	"\n" +
-	"inner_ipv4\x18\x03 \x03(\tR\tinnerIpv4\x12\x1d\n" +
-	"\n" +
-	"inner_ipv6\x18\x04 \x03(\tR\tinnerIpv6\x12\x1a\n" +
-	"\tbk_biz_id\x18\x05 \x03(\x03R\abkBizId\x12\x1c\n" +
-	"\n" +
-	"bz_area_id\x18\x06 \x03(\x03R\bbzAreaId\"&\n" +
+	"\fnode_version\x18\x02 \x03(\tR\vnodeVersion\x12+\n" +
+	"\x12bk_host_innerip_v4\x18\x03 \x03(\tR\x0fbkHostInneripV4\x12+\n" +
+	"\x12bk_host_innerip_v6\x18\x04 \x03(\tR\x0fbkHostInneripV6\x12\x1a\n" +
+	"\tbk_biz_id\x18\x05 \x03(\x03R\abkBizId\x12*\n" +
+	"\x11bk_networkarea_id\x18\x06 \x03(\x03R\x0fbkNetworkareaId\"&\n" +
 	"$NodeWorkflowOperationFuzzyConditions\"\xa3\x02\n" +
 	"\x1cNodeWorkflowOperationListReq\x12\x1d\n" +
 	"\n" +

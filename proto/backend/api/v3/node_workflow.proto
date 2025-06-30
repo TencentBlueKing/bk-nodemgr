@@ -122,9 +122,9 @@ message NodeWorkflowOperationDefinition {
 //  NodeWorkflowOperationParam ...
 message NodeWorkflowOperationParam {
   int64 timeout_second = 1;
-  int64 area_id = 2;
-  string inner_ipv4 = 3;
-  string inner_ipv6 = 4;
+  int64 bk_networkarea_id = 2;
+  string bk_host_inner_ipv4 = 3;
+  string bk_host_inner_ipv6 = 4;
   string node_version = 5;
   int64 bk_biz_id = 6;
 }
@@ -171,10 +171,10 @@ message NodeWorflowOperationInstanceData {
 message NodeWorkflowOperationExactConditions {
   string workflow_id = 1;
   repeated string node_version = 2;
-  repeated string inner_ipv4 = 3;
-  repeated string inner_ipv6 = 4;
+  repeated string bk_host_innerip_v4 = 3;
+  repeated string bk_host_innerip_v6 = 4;
   repeated int64 bk_biz_id = 5;
-  repeated int64 bz_area_id = 6;
+  repeated int64 bk_networkarea_id = 6;
 }
 
 // NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node

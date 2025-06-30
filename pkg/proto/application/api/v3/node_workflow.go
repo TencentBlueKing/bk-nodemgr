@@ -233,12 +233,12 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 			},
 			InstanceIds: op.InstanceIDs,
 			Param: &NodeWorkflowOperationParam{
-				TimeoutSecond: int64(op.Definition.DefaultParameters().Timeout.Seconds()),
-				AreaId:        safeGetInt64(op.Param.ExtraContent, "area_id", -1),
-				BkBizId:       safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
-				InnerIpv4:     safeGetString(op.Param.ExtraContent, "inner_ip_v4", ""),
-				InnerIpv6:     safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
-				NodeVersion:   safeGetString(op.Param.ExtraContent, "node_version", ""),
+				TimeoutSecond:   int64(op.Definition.DefaultParameters().Timeout.Seconds()),
+				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "area_id", -1),
+				BkBizId:         safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
+				BkHostInnerIpv4: safeGetString(op.Param.ExtraContent, "inner_ip_v4", ""),
+				BkHostInnerIpv6: safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
+				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 			Status: &NodeWorkflowOperationStatus{
 				State:           operationsSummary[idx].LastStatus,
@@ -423,13 +423,13 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperati
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowOperationExactConditions{
-			BkBizId:     condition.ExactInclude.BizID,
-			WorkflowId:  condition.ExactInclude.WorkflowID,
-			State:       types.WorkflowOperationStatusListToStringList(condition.ExactInclude.State),
-			BzAreaId:    condition.ExactInclude.AreaID,
-			InnerIpv4:   condition.ExactInclude.InnerIpv4,
-			InnerIpv6:   condition.ExactInclude.InnerIpv6,
-			NodeVersion: condition.ExactInclude.NodeVersion,
+			BkBizId:         condition.ExactInclude.BizID,
+			WorkflowId:      condition.ExactInclude.WorkflowID,
+			State:           types.WorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			BkHostInneripV4: condition.ExactInclude.InnerIpv4,
+			BkHostInneripV6: condition.ExactInclude.InnerIpv6,
+			NodeVersion:     condition.ExactInclude.NodeVersion,
 		}
 	}
 
@@ -448,13 +448,13 @@ func convertWorkflowOperationConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
-			WorkflowID:  exactCond.GetWorkflowId(),
-			State:       types.StringListToWorkflowOperationStatusList(exactCond.GetState()),
-			InnerIpv4:   exactCond.GetInnerIpv4(),
-			InnerIpv6:   exactCond.GetInnerIpv6(),
-			BizID:       exactCond.GetBkBizId(),
-			AreaID:      exactCond.GetBzAreaId(),
-			NodeVersion: exactCond.GetNodeVersion(),
+			WorkflowID:    exactCond.GetWorkflowId(),
+			State:         types.StringListToWorkflowOperationStatusList(exactCond.GetState()),
+			InnerIpv4:     exactCond.GetBkHostInneripV4(),
+			InnerIpv6:     exactCond.GetBkHostInneripV6(),
+			BizID:         exactCond.GetBkBizId(),
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			NodeVersion:   exactCond.GetNodeVersion(),
 		}
 	}
 

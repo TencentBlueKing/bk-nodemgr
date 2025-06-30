@@ -304,14 +304,14 @@ type ReleaseCondition struct {
 
 // NodeWorkflowOperationExactFields defines the condition of list operation.
 type NodeWorkflowOperationExactFields struct {
-	TriggerID   string
-	WorkflowID  string
-	State       []OperationState
-	InnerIpv4   []string
-	InnerIpv6   []string
-	BizID       []int64
-	AreaID      []int64
-	NodeVersion []string
+	TriggerID     string
+	WorkflowID    string
+	State         []OperationState
+	InnerIpv4     []string
+	InnerIpv6     []string
+	BizID         []int64
+	NetworkAreaID []int64
+	NodeVersion   []string
 }
 
 // NodeWorkflowoperationFuzzyFields defines the node workflow operation fuzzy fields.
