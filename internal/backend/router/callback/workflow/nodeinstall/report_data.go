@@ -42,7 +42,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 		return
 	}
 
-	info.Dynamic.AgentID = req.AgentId
+	info.Dynamic.AgentID = req.GetAgentId()
 
 	err = h.UpdateInfo(gCtx, req.Token, info)
 	if err != nil {
