@@ -15,9 +15,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )

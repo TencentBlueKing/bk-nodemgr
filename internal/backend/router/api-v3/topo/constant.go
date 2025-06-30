@@ -11,10 +11,10 @@
 package topo
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // GetConstant get constant values.

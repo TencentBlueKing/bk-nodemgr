@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"gopkg.in/yaml.v2"
 )

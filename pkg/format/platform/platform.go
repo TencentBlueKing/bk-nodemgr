@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // StandardOSMap this map is used to convert various OS names to Go standard GOOS values..
