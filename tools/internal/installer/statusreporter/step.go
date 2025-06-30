@@ -62,7 +62,7 @@ func (step *Step) Run(ctx context.Context) error {
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
 		if err := ReportStatus(ctx, step.callbackEndpoint, req); err != nil {
-			logger.Infof(constant.StepReportData,
+			logger.Infof(constant.StepReportStatus,
 				"retry report status, attempt: %d, err: %v", attempt, err)
 
 			return err
@@ -73,7 +73,7 @@ func (step *Step) Run(ctx context.Context) error {
 		return fmt.Errorf("report status failed, err: %v", err)
 	}
 
-	logger.Infof(constant.StepReportData, "report status success")
+	logger.Infof(constant.StepReportStatus, "report status success")
 
 	return nil
 }

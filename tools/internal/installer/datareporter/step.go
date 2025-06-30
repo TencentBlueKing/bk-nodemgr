@@ -59,6 +59,8 @@ func (step *Step) Run(ctx context.Context) error {
 		AgentID: step.agentID,
 	}
 
+	logger.Infof(constant.StepReportData, "report data, req: %v", req)
+
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
 		if err := ReportData(ctx, step.callbackEndpoint, req); err != nil {
@@ -86,6 +88,8 @@ type ReportDataReq struct {
 	AgentID string `json:"agent_id"`
 }
 
+const reportDataURLPath = "/callback/workflow/node_install/report_data"
+
 // ReportData report data.
 func ReportData(ctx context.Context, callbackEndpoint string, req *ReportDataReq) error {
 	jsonData, err := json.Marshal(req)
@@ -93,7 +97,7 @@ func ReportData(ctx context.Context, callbackEndpoint string, req *ReportDataReq
 		return fmt.Errorf("marshal report data request body failed, err: %v", err)
 	}
 
-	reportURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/report_data")
+	reportURL, err := url.JoinPath(callbackEndpoint, reportDataURLPath)
 	if err != nil {
 		return fmt.Errorf("format report data url failed, err: %v", err)
 	}
