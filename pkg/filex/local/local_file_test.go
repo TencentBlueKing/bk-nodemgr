@@ -58,7 +58,7 @@ func TestNewLocalFile(t *testing.T) {
 
 			t.Logf("NewLocalFile() = %v", got)
 
-			info, _ := got.Info(context.Background())
+			info := got.Info()
 			t.Logf("FileInfo = %v", info)
 
 			file, err := os.Create(filepath.Join(filepath.Base(tt.args.fullPath), "test.txt"))

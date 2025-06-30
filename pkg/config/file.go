@@ -58,18 +58,19 @@ func NewFileService() *FileService {
 
 // FileService the config of file service.
 type FileService struct {
-	RunMode        RunMode     `yaml:"runMode" usage:"run mode of service"`
-	TenantMode     tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	InContainer    bool        `yaml:"inContainer" usage:"whether in container"`
-	Etcd           Etcd        `yaml:"etcd" usage:"etcd config of file service"`
-	GSE            GSE         `yaml:"gse" usage:"gse config of backend service"`
-	HTTPServer     HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
-	AdminServer    HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
-	TempFileGroup  FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
-	LocalFileGroup FileGroup   `yaml:"localFileGroup" usage:"local file group config of file service"`
-	Repo           Repo        `yaml:"repo" usage:"repo config of file service"`
-	MongoDB        MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
-	Log            Log         `yaml:"log" usage:"log config of file service"`
+	RunMode            RunMode     `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
+	InContainer        bool        `yaml:"inContainer" usage:"whether in container"`
+	Etcd               Etcd        `yaml:"etcd" usage:"etcd config of file service"`
+	GSE                GSE         `yaml:"gse" usage:"gse config of file service"`
+	HTTPServer         HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
+	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
+	TempFileGroup      FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
+	InstallerFileGroup FileGroup   `yaml:"installerFileGroup" usage:"tools file group config of file service"`
+	CacheFileGroup     FileGroup   `yaml:"cacheFileGroup" usage:"cache file group config of file service"`
+	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
+	MongoDB            MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
+	Log                Log         `yaml:"log" usage:"log config of file service"`
 }
 
 // LoadFromFile loads config from file.
@@ -98,7 +99,11 @@ func (svc *FileService) Validate() error {
 		return err
 	}
 
-	if err := svc.LocalFileGroup.Validate(); err != nil {
+	if err := svc.InstallerFileGroup.Validate(); err != nil {
+		return err
+	}
+
+	if err := svc.CacheFileGroup.Validate(); err != nil {
 		return err
 	}
 

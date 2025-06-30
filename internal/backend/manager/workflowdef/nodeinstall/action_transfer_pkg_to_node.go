@@ -11,14 +11,16 @@
 package nodeinstall
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -27,10 +29,7 @@ import (
 
 const (
 	// ActionNameTransferPkgToNode defines the action name.
-	ActionNameTransferPkgToNode = "upgrade_node"
-
-	actionTransferPkgTargetDirUnix    = "/tmp"
-	actionTransferPkgTargetDirWindows = "c:\\tmp"
+	ActionNameTransferPkgToNode = "transfer_pkg_to_node"
 )
 
 // NewActionTransferPkgToNode get a new action.
@@ -117,6 +116,35 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		}
 	}()
 
+	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, info.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
+	// installer workspace priority: user specified in info > deploy constant default.
+	if info.InstallerWorkspace == "" {
+		info.InstallerWorkspace = deployConstant.InstallerWorkspace
+	}
+
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		return act.transferRelease(ctx.Ctx, info)
+	})
+	gp.Go(func() error {
+		return act.transferInstaller(ctx.Ctx, info)
+	})
+	if err := gp.Wait(); err != nil {
+		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d), err: %s", info.HostID, err.Error())
+		return err
+	}
+
+	act.logger.InfoCtxf(ctx.Ctx, "transfer pkg to node all done. host-id(%d)", info.HostID)
+	ctx.Data.Log("transfer pkg to node all done")
+
+	return nil
+}
+
+func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *types.DeploymentInfo) error {
 	var rt types.ReleaseType
 	switch info.Dynamic.NodeRole {
 	case types.NodeRoleProxy:
@@ -129,14 +157,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		return fmt.Errorf("unsupported node role: %s", info.Dynamic.NodeRole)
 	}
 
-	if info.TmpDir == "" {
-		info.TmpDir = actionTransferPkgTargetDirUnix
-		if info.Dynamic.NodeOsType == criteria.OSWindows {
-			info.TmpDir = actionTransferPkgTargetDirWindows
-		}
-	}
-
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx.Ctx,
+	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx,
 		info.Dynamic.NodeGeneration,
 		rt,
 		platform.Platform{
@@ -144,31 +165,69 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 			Arch: info.Dynamic.NodeCPUArch,
 		},
 		info.Dynamic.NodeVersion,
-		info.TmpDir,
+		info.InstallerWorkspace,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", info.HostID, err)
 	}
 
-	act.logger.InfoCtxf(ctx.Ctx, "launched transfer release. task-id(%s), host-id(%d)",
+	act.logger.InfoCtxf(ctx, "launched transfer release. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), info.HostID)
 
-	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
+	result, err := transferHandler.WaitUntilDone(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer done. task-id(%s), host-id(%d), err: %w",
+		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d), err: %w",
 			transferHandler.GetTaskID(), info.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer not terminated. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.HostID)
+		return fmt.Errorf("transfer release not terminated. task-id(%s), host-id(%d)",
+			transferHandler.GetTaskID(), info.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+		return fmt.Errorf("transfer release failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
 			transferHandler.GetTaskID(), info.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx.Ctx, "transfer done. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.HostID)
+	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.HostID)
+
+	return nil
+}
+
+func (act *actionTransferPkgToNode) transferInstaller(ctx context.Context, info *types.DeploymentInfo) error {
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
+		types.Generation2,
+		platform.Platform{
+			OS:   info.Dynamic.NodeOsType,
+			Arch: info.Dynamic.NodeCPUArch,
+		},
+		info.InstallerWorkspace,
+		&info.Host)
+	if err != nil {
+		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", info.HostID, err)
+	}
+
+	act.logger.InfoCtxf(ctx, "launched transfer installer. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), info.HostID)
+
+	result, err := transferHandler.WaitUntilDone(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d), err: %w",
+			transferHandler.GetTaskID(), info.HostID, err)
+	}
+
+	if !result.Terminated {
+		return fmt.Errorf("transfer installer not terminated. task-id(%s), host-id(%d)",
+			transferHandler.GetTaskID(), info.HostID)
+	}
+
+	if result.ErrorCode != 0 {
+		return fmt.Errorf("transfer installer failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+			transferHandler.GetTaskID(), info.HostID, result.ErrorCode, result.ErrorMessage)
+	}
+
+	act.logger.InfoCtxf(ctx, "transfer installer done. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.HostID)
 
 	return nil
 }

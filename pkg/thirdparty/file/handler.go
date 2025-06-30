@@ -63,9 +63,16 @@ type IHandler interface {
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
-	// QueryTransferRelease query transfer release.
+	// LaunchTransferInstaller launch transfer installer.
+	LaunchTransferInstaller(ctx context.Context,
+		gen types.Generation,
+		plat platform.Platform,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// QueryTransfer query transfer package.
 	// return upload result, download result and error.
-	QueryTransferRelease(
+	QueryTransfer(
 		ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
@@ -267,7 +274,7 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	resp, err := h.cli.launchTransferRelease(ctx, &protoFile.TransferReleaseLaunchReq{
+	resp, err := h.cli.launchTransferRelease(ctx, &protoFile.TransferLaunchReleaseReq{
 		Generation:   int64(gen),
 		ReleaseType:  string(rt),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
@@ -292,16 +299,46 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 	}, nil
 }
 
-// QueryTransferRelease query transfer release.
+// LaunchTransferInstaller launch transfer installer.
+func (h *handler) LaunchTransferInstaller(ctx context.Context,
+	gen types.Generation,
+	plat platform.Platform,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	resp, err := h.cli.launchTransferInstaller(ctx, &protoFile.TransferLaunchInstallerReq{
+		Generation:   int64(gen),
+		Platform:     protoFile.ConvertPlatformFromTypes(plat),
+		TargetDir:    dstDir,
+		TargetHostId: dstHost.HostID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to launch transfer installer: %w", err)
+	}
+
+	data := resp.GetData()
+
+	return &simpleTransferHandler{
+		taskID: data.GetTaskId(),
+		fileInfo: iface.FileInfo{
+			Name: data.GetInstallerFileName(),
+			Size: data.GetInstallerFileSize(),
+			MD5:  data.GetInstallerFileMd5(),
+		},
+		handler: h,
+	}, nil
+}
+
+// QueryTransfer query transfer package.
 // return upload result, download result and error.
-func (h *handler) QueryTransferRelease(
+func (h *handler) QueryTransfer(
 	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
-	resp, err := h.cli.queryTransferRelease(ctx, &protoFile.TransferReleaseQueryReq{
+	resp, err := h.cli.queryTransfer(ctx, &protoFile.TransferQueryReq{
 		TaskId: taskID,
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to query transfer release: %w", err)
+		return nil, nil, fmt.Errorf("failed to query transfer: %w", err)
 	}
 
 	data := resp.GetData()
@@ -336,11 +373,11 @@ func (handler *simpleTransferHandler) WaitUntilDone(ctx context.Context) (*types
 		case <-ctx.Done():
 			return nil, errors.New("context done")
 		case <-ticker.C:
-			src, dst, err := handler.handler.QueryTransferRelease(ctx, handler.taskID)
+			src, dst, err := handler.handler.QueryTransfer(ctx, handler.taskID)
 			if err != nil {
 				failedCnt++
 				if failedCnt > transferQueryContinuesFailedTimes {
-					return nil, fmt.Errorf("failed to query transfer release. task-id(%s): %w", handler.taskID, err)
+					return nil, fmt.Errorf("failed to query transfer. task-id(%s): %w", handler.taskID, err)
 				}
 
 				continue

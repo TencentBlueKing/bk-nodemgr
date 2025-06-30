@@ -5,9 +5,9 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api
 import "common.proto";
 import "google/api/annotations.proto";
 
-// TransferReleaseLaunchReq describes the HTTP request body when launch transfer
+// TransferLaunchReleaseReq describes the HTTP request body when launch transfer
 // release.
-message TransferReleaseLaunchReq {
+message TransferLaunchReleaseReq {
   int64 generation = 1;
   string release_type = 2;
   Platform platform = 3;
@@ -16,9 +16,9 @@ message TransferReleaseLaunchReq {
   string target_dir = 6;
 }
 
-// TransferReleaseLaunchResp describes the HTTP response body when launch
+// TransferLaunchReleaseResp describes the HTTP response body when launch
 // transfer release.
-message TransferReleaseLaunchResp {
+message TransferLaunchReleaseResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -32,9 +32,33 @@ message TransferReleaseLaunchResp {
   Data data = 4;
 }
 
-// TransferReleaseQueryReq describes the HTTP request body when query transfer
-// release.
-message TransferReleaseQueryReq { string task_id = 1; }
+// TransferLaunchInstallerReq describes the HTTP request body when launch
+// transfer installer.
+message TransferLaunchInstallerReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  int64 target_host_id = 3;
+  string target_dir = 4;
+}
+
+// TransferLaunchInstallerResp describes the HTTP response body when launch
+// transfer installter.
+message TransferLaunchInstallerResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string task_id = 1;
+    optional string installer_file_name = 2;
+    optional int64 installer_file_size = 3;
+    optional string installer_file_md5 = 4;
+  }
+  Data data = 4;
+}
+
+// TransferQueryReq describes the HTTP request body when query transfer.
+message TransferQueryReq { string task_id = 1; }
 
 // SimpleTransferResult describes the simple transfer result.
 message SimpleTransferResult {
@@ -45,9 +69,8 @@ message SimpleTransferResult {
   optional int64 speed_kbytes_per_sec = 5;
 };
 
-// TransferReleaseQueryResp describes the HTTP response body when query transfer
-// release.
-message TransferReleaseQueryResp {
+// TransferQueryResp describes the HTTP response body when query transfer.
+message TransferQueryResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -63,19 +86,28 @@ message TransferReleaseQueryResp {
 
 // Transfer service.
 service Transfer {
-  // TransferRelease provides transferring release package.
-  rpc TransferRelease(TransferReleaseLaunchReq)
-      returns (stream TransferReleaseLaunchResp) {
+  // TransferLaunchRelease provides transferring release package.
+  rpc TransferLaunchRelease(TransferLaunchReleaseReq)
+      returns (stream TransferLaunchReleaseResp) {
     option (google.api.http) = {
-      post : "/transfer/release/launch"
+      post : "/transfer/launch/release"
       body : "*"
     };
   };
 
-  rpc TransferReleaseQuery(TransferReleaseQueryReq)
-      returns (TransferReleaseQueryResp) {
+  // TransferInstaller provides transferring installer package.
+  rpc TransferInstaller(TransferLaunchInstallerReq)
+      returns (stream TransferLaunchInstallerResp) {
     option (google.api.http) = {
-      get : "/transfer/release/query"
+      post : "/transfer/launch/installler"
+      body : "*"
+    };
+  };
+
+  // TransferQuery provides querying transfer release.
+  rpc TransferQuery(TransferQueryReq) returns (TransferQueryResp) {
+    option (google.api.http) = {
+      get : "/transfer/query"
     };
   };
 }

@@ -16,15 +16,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
-// TransferReleaseLaunch launch transfer release package.
-func (h *handler) TransferReleaseLaunch(ctx *rest.Context) (interface{}, error) {
+// TransferLaunchRelease launch transfer release package.
+func (h *handler) TransferLaunchRelease(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to launch transfer release, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	req := new(protoFile.TransferReleaseLaunchReq)
+	req := new(protoFile.TransferLaunchReleaseReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to launch transfer release, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
@@ -46,35 +46,46 @@ func (h *handler) TransferReleaseLaunch(ctx *rest.Context) (interface{}, error) 
 
 	h.logger.InfoCtxf(sCtx, "launched release transfer. task-id(%s)", tf.GetTaskID())
 
-	resp := new(protoFile.TransferReleaseLaunchResp)
+	resp := new(protoFile.TransferLaunchReleaseResp)
 	resp.ConvertResult(tf)
 
 	return resp.GetData(), nil
 }
 
-// TransferReleaseQuery query transfer release package.
-func (h *handler) TransferReleaseQuery(ctx *rest.Context) (interface{}, error) {
+// TransferLaunchInstaller launch transfer installer package.
+func (h *handler) TransferLaunchInstaller(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to query transfer release, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to launch transfer installer, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	req := new(protoFile.TransferReleaseQueryReq)
+	req := new(protoFile.TransferLaunchInstallerReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to query transfer release, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	upload, download, err := h.manager.QueryTransferRelease(sCtx, req.GetTaskId())
+	host, err := h.storageTopo.GetHostByID(sCtx, req.GetTargetHostId())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to query transfer release. err: %v", err)
-
+		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer, failed to get host. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := new(protoFile.TransferReleaseQueryResp)
-	resp.ConvertResult(upload, download)
+	tf, err := h.manager.LaunchTransferInstaller(sCtx,
+		protoFile.ConvertPlatformToTypes(req.GetPlatform()),
+		req.GetTargetDir(),
+		host)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer. err: %v", err)
+
+		return nil, errf.ErrWrap(errf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(sCtx, "launched installer transfer. task-id(%s)", tf.GetTaskID())
+
+	resp := new(protoFile.TransferLaunchInstallerResp)
+	resp.ConvertResult(tf)
 
 	return resp.GetData(), nil
 }

@@ -81,17 +81,17 @@ func NewRootCommand() *cobra.Command {
 func registerRootPersistentVars(rootCmd *cobra.Command) {
 	// this var will be set in PersistentPreRunE, they can act on the current command and its subcommands.
 	var (
-		logFilePath string
-		tmpDirPath  string
-		nodeRole    string
-		debug       bool
+		logFilePath   string
+		workspacePath string
+		nodeRole      string
+		debug         bool
 	)
 
 	// this is a global variable.
 	rootCmd.PersistentFlags().
 		StringVar(&logFilePath, CmdFlagLogFilePath, CmdDefaultLogFilePath(), "log file path")
 	rootCmd.PersistentFlags().
-		StringVar(&tmpDirPath, CmdFlagTmpDir, CmdDefaultTmpDir,
+		StringVar(&workspacePath, CmdFlagWorkspace, CmdDefaultWorkspace,
 			"the dir which used to store agent pkg, configs and install log")
 	rootCmd.PersistentFlags().
 		StringVar(&nodeRole, CmdFlagNodeRole, "agent", "this is the node role")
@@ -112,13 +112,13 @@ func registerRootPersistentVars(rootCmd *cobra.Command) {
 			}
 		}
 
-		if tmpDirPath != "" {
-			if err := SetTmpDir(tmpDirPath); err != nil {
-				return fmt.Errorf("set tmp dir failed, err: %v", err)
+		if workspacePath != "" {
+			if err := SetWorkspaceDir(workspacePath); err != nil {
+				return fmt.Errorf("set workspace dir failed, err: %v", err)
 			}
 		}
 
-		if err := utils.CheckWritePermission(tmpDirPath); err != nil {
+		if err := utils.CheckWritePermission(workspacePath); err != nil {
 			return fmt.Errorf("check write permission failed, err: %v", err)
 		}
 

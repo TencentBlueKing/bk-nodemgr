@@ -184,12 +184,7 @@ func Test_List(t *testing.T) {
 			}
 
 			for _, file := range files {
-				info, err := file.Info(tt.args.ctx)
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				t.Log(info.Name)
+				t.Log(file.Info().Name)
 			}
 		})
 	}

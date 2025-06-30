@@ -41,6 +41,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/release/launch", rest.RestHandlerFunc(h.TransferReleaseLaunch))
-	h.rg.POST("/release/query", rest.RestHandlerFunc(h.TransferReleaseQuery))
+	h.rg.POST("/launch/release", rest.RestHandlerFunc(h.TransferLaunchRelease))
+	h.rg.POST("/launch/installer", rest.RestHandlerFunc(h.TransferLaunchInstaller))
+	h.rg.POST("/query", rest.RestHandlerFunc(h.TransferQuery))
 }

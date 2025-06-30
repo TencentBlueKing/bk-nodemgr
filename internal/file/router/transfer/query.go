@@ -8,58 +8,37 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package download
+package transfer
 
 import (
-	"fmt"
-	"path/filepath"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Proxy download proxy package.
-func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
+// TransferQuery query transfer package.
+func (h *handler) TransferQuery(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to download proxy, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to query transfer, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	req := new(protoFile.DownloadProxyReq)
+	req := new(protoFile.TransferQueryReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Error("bind json failed", err)
+		h.logger.ErrorCtxf(sCtx, "failed to query transfer, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	upload, download, err := h.manager.QueryTransfer(sCtx, req.GetTaskId())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to query transfer. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureFileToLocal(sCtx,
-		types.Generation(req.GetGeneration()),
-		types.ReleaseTypeAgent,
-		platform.Platform{
-			OS:   req.GetOsType(),
-			Arch: req.GetCpuArch(),
-		}, req.GetVersion())
-	if err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
-	}
+	resp := new(protoFile.TransferQueryResp)
+	resp.ConvertResult(upload, download)
 
-	reader, err := file.Content(sCtx)
-	if err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
-	}
-
-	info := file.Info()
-	resp := &rest.FileResponse{
-		Data:        reader,
-		Size:        info.Size,
-		FilePath:    filepath.Join(".", info.Name),
-		FileName:    info.Name,
-		ContentType: "application/octet-stream",
-	}
-
-	return resp, nil
+	return resp.GetData(), nil
 }

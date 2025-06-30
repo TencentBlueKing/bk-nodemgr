@@ -70,7 +70,7 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
-		info, _ := cache.file.Info(ctx)
+		info := cache.file.Info()
 
 		// hit cache. return local file.
 		if info.MD5 == release.MD5 {
@@ -107,14 +107,14 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 	}
 
 	// create new local dir.
-	tempDir := filepath.Join(m.localDir, uuid.New().String())
-	if err = os.MkdirAll(tempDir, 0755); err != nil { // nolint: mnd,gosec
-		return nil, "", fmt.Errorf("failed to create temp dir: %s, err: %w", tempDir, err)
+	cacheDir := filepath.Join(local.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
+	if err = os.MkdirAll(cacheDir, 0700); err != nil { // nolint: mnd,gosec
+		return nil, "", fmt.Errorf("failed to create temp cache dir: %s, err: %w", cacheDir, err)
 	}
 
-	lfg, err := local.NewLocalDir(tempDir, m.logger)
+	lfg, err := local.NewLocalDir(cacheDir, m.logger)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create local file group: %s, err: %w", tempDir, err)
+		return nil, "", fmt.Errorf("failed to create local file group: %s, err: %w", cacheDir, err)
 	}
 
 	// save file to loca.
@@ -127,9 +127,9 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 	m.localFilePool.filesMutex.Lock()
 	m.localFilePool.files[release.FileName] = &localFile{
 		file: file,
-		path: tempDir,
+		path: cacheDir,
 	}
 	m.localFilePool.filesMutex.Unlock()
 
-	return file, tempDir, nil
+	return file, cacheDir, nil
 }

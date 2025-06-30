@@ -218,7 +218,8 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
 		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
+		nodeinstall.NewActionTransferPkgToNode(
+			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
 	)
 }
 

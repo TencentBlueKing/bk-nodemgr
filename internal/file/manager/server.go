@@ -101,13 +101,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 	}
 
 	// get info.
-	info, err := file.Info(ctx)
-	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get file info. err: %v", err)
-
-		return nil, err
-	}
-	detail.FileInfo = info
+	detail.FileInfo = file.Info()
 
 	// create the upload record.
 	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{

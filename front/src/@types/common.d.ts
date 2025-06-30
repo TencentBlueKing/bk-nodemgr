@@ -145,3 +145,27 @@ interface TimeRange {
   end_timestamp_sec: number;
 }
 
+// Release describes the release.
+interface Release {
+  generation: number;
+  release_type: string;
+  os_type: string;
+  cpu_arch: string;
+  version: string;
+  file_name: string;
+  labels: string[];
+  enabled: boolean;
+  as_default: boolean;
+  md5: string;
+  updated_at: number;
+  operator: string;
+  change_log_en: string;
+  change_log_zh: string;
+}
+
+// Platform describes the platform informations.
+interface Platform {
+  os_type: string;
+  cpu_arch: string;
+}
+
