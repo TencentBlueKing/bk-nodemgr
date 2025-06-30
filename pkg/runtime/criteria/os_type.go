@@ -10,6 +10,8 @@
 
 package criteria
 
+import "fmt"
+
 // OSType define the os type.
 type OSType string
 
@@ -68,3 +70,15 @@ const (
 	// OSUnknown this defines the os type of unknown.
 	OSUnknown OSType = "unknown"
 )
+
+// Validate checks if the os type is valid.
+func (os OSType) Validate() error {
+	switch os {
+	case OSAix, OSAndroid, OSDarwin, OSDragonfly, OSFreebsd, OSHurd,
+		OSIllumos, OSIos, OSJs, OSLinux, OSNetbsd, OSOpenbsd,
+		OSPlan9, OSSolaris, OSWasip1, OSWindows, OSZos, OSUnknown:
+		return nil
+	default:
+		return fmt.Errorf("invalid os type: %s", os)
+	}
+}
