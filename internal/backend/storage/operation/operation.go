@@ -123,6 +123,21 @@ func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, t
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
 }
 
+// GetManyOperation lists operation by triggerid.
+func (s *Storage) GetManyOperation(ctx context.Context, operationID ...string) (
+	[]*workoper.Operation, int64, error) {
+
+	if ctx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return nil, 0, basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
+}
+
 // ListEmptyOperation lists empty operation by triggerid.
 func (s *Storage) ListEmptyOperation(
 	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {

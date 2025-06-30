@@ -24,6 +24,9 @@ const (
 
 	// TagNotIdempotent represents a not idempotent action.
 	TagNotIdempotent Tag = "non-idempotent"
+
+	// TagRetryable represents a retryable action.
+	TagRetryable Tag = "retryable"
 )
 
 // Definition represents an action, which is a single basic step of work.

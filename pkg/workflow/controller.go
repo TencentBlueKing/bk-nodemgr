@@ -62,6 +62,9 @@ type ITriggerCtl interface {
 	// GetOperation returns the operation.
 	GetOperation(ctx context.Context, operationID string) (IOperationCtl, error)
 
+	// GetManyOperation returns the operations.
+	GetManyOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error)
+
 	// UpdateLastTriggeredTime updates the last triggered time.
 	UpdateLastTriggeredTime(ctx context.Context) error
 
@@ -80,6 +83,9 @@ type IOperationCtl interface {
 
 	// CreateOperationInstance creates a new operation instance.
 	CreateOperationInstance(ctx context.Context) (IOperationInstanceCtl, error)
+
+	// CreateRetryOperationInstance creates a new retry operation instance.
+	CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationMode) (IOperationInstanceCtl, error)
 
 	// GetOperationInstance returns the operation instance.
 	GetOperationInstance(ctx context.Context, operationInstanceID string) (IOperationInstanceCtl, error)
@@ -221,6 +227,29 @@ func (ctl *controller) GetOperation(ctx context.Context, operationID string) (IO
 	}, nil
 }
 
+// GetManyOperation returns the operations.
+func (ctl *controller) GetManyOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error) {
+	opers, num, err := ctl.mgr.stgOperation.GetManyOperation(ctx, operationID...)
+	if err != nil {
+		return nil, err
+	}
+
+	if num != int64(len(operationID)) {
+		return nil, errors.New("get many operation failed, match num not equal to count")
+	}
+
+	ctls := make([]IOperationCtl, len(opers))
+	for idx, oper := range opers {
+		ctls[idx] = &controller{
+			mgr:  ctl.mgr,
+			trig: ctl.trig,
+			oper: oper,
+		}
+	}
+
+	return ctls, nil
+}
+
 // UpdateLastTriggeredTime updates the last triggered time.
 func (ctl *controller) UpdateLastTriggeredTime(ctx context.Context) error {
 	ctl.trig.LastTriggeredAt = time.Now()
@@ -288,57 +317,8 @@ func (ctl *controller) GetOperationID() string {
 
 // CreateOperationInstance creates a new operation instance.
 func (ctl *controller) CreateOperationInstance(ctx context.Context) (IOperationInstanceCtl, error) {
-	operationInstanceID := identifier.GenOperationInstanceID()
-	actionNames := ctl.oper.Definition.ActionDefNames()
-
-	actionInstanceDataMap := make(map[string]*action.InstanceData)
-	for index, actionName := range actionNames {
-		actionInstanceDataMap[actionName] = &action.InstanceData{
-			TriggerID:           ctl.trig.TriggerID,
-			OperationID:         ctl.oper.OperationID,
-			OperationDefName:    ctl.oper.Definition.Name(),
-			OperationInstanceID: operationInstanceID,
-
-			Name:        actionName,
-			Index:       index,
-			TotalIndex:  len(actionNames),
-			Messages:    make([]action.Message, 0),
-			Content:     make(map[string]any),
-			PrivateData: make(map[string]any),
-			Lifecycle: &action.Lifecycle{
-				CreatedAt: time.Now().Local(),
-				State:     action.StatePending,
-			},
-		}
-	}
-
-	instanceData := &operation.InstanceData{
-		InstanceBriefData: operation.InstanceBriefData{
-			Metadata: &operation.InstanceMetadata{
-				TriggerID:           ctl.trig.TriggerID,
-				OperationInstanceID: operationInstanceID,
-				OperationDefName:    ctl.oper.Definition.Name(),
-				OperationID:         ctl.oper.OperationID,
-				ActionNames:         actionNames,
-				Index:               len(ctl.oper.InstanceIDs),
-				ParentOperationID:   ctl.oper.Param.ParentOperationID,
-				Timeout:             ctl.oper.Param.Timeout,
-				InitContent:         ctl.oper.Param.InitContent,
-			},
-			Lifecycle: &operation.Lifecycle{
-				CreatedAt: time.Now().Local(),
-				State:     operation.StateInit,
-			},
-		},
-		ActionInstanceDataMap: actionInstanceDataMap,
-	}
-
-	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(ctx, instanceData); err != nil {
-		return nil, err
-	}
-
-	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, operationInstanceID)
-	if err := ctl.mgr.stgOperation.UpsertOperation(ctx, ctl.oper); err != nil {
+	instanceData, err := ctl.createOperationInstanceBase(ctx, nil)
+	if err != nil {
 		return nil, err
 	}
 
@@ -447,4 +427,118 @@ func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
 // TerminateOperationInstance terminates the operation instance.
 func (ctl *controller) TerminateOperationInstance(_ context.Context) error {
 	return errors.New("not implemented")
+}
+
+// CreateRetryOperationInstance creates a retry operation instance.
+func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationMode) (
+	IOperationInstanceCtl, error) {
+
+	if len(ctl.oper.InstanceIDs) == 0 {
+		return nil, errors.New("operation has no instance")
+	}
+
+	lastInstanceID := ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-1]
+	prevInstance, err := ctl.mgr.stgOperationInstance.GetOperationInstanceFullData(ctx, lastInstanceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last operation instance, err: %v", err)
+	}
+
+	var instanceData *operation.InstanceData
+	var errCreate error
+
+	switch retryMod {
+	case types.FullNodeInstanceRetry:
+		instanceData, errCreate = ctl.createOperationInstanceBase(ctx, nil)
+
+	case types.PartialNodeInstanceRetry:
+		stateDecider := func(actionName string) action.State {
+			if actionData, exists := prevInstance.ActionInstanceDataMap[actionName]; exists {
+				if actionData.Lifecycle.State == action.StateSuccess {
+					return action.StateSkipped
+				}
+			}
+
+			return action.StatePending
+		}
+		instanceData, errCreate = ctl.createOperationInstanceBase(ctx, stateDecider)
+
+	default:
+		return nil, fmt.Errorf("unknown retry mode: %v", retryMod)
+	}
+
+	if errCreate != nil {
+		return nil, errCreate
+	}
+
+	return &controller{
+		mgr:                   ctl.mgr,
+		trig:                  ctl.trig,
+		oper:                  ctl.oper,
+		operInstanceBriefData: &instanceData.InstanceBriefData,
+	}, nil
+}
+
+func (ctl *controller) createOperationInstanceBase(ctx context.Context,
+	stateDecider func(string) action.State,
+) (*operation.InstanceData, error) {
+
+	operationInstanceID := identifier.GenOperationInstanceID()
+	actionNames := ctl.oper.Definition.ActionDefNames()
+
+	actionInstanceDataMap := make(map[string]*action.InstanceData)
+	for index, actionName := range actionNames {
+		state := action.StatePending
+		if stateDecider != nil {
+			state = stateDecider(actionName)
+		}
+
+		actionInstanceDataMap[actionName] = &action.InstanceData{
+			TriggerID:           ctl.trig.TriggerID,
+			OperationID:         ctl.oper.OperationID,
+			OperationDefName:    ctl.oper.Definition.Name(),
+			OperationInstanceID: operationInstanceID,
+			Name:                actionName,
+			Index:               index,
+			TotalIndex:          len(actionNames),
+			Messages:            make([]action.Message, 0),
+			Content:             make(map[string]any),
+			PrivateData:         make(map[string]any),
+			Lifecycle: &action.Lifecycle{
+				CreatedAt: time.Now().Local(),
+				State:     state,
+			},
+		}
+	}
+
+	instanceData := &operation.InstanceData{
+		InstanceBriefData: operation.InstanceBriefData{
+			Metadata: &operation.InstanceMetadata{
+				TriggerID:           ctl.trig.TriggerID,
+				OperationInstanceID: operationInstanceID,
+				OperationDefName:    ctl.oper.Definition.Name(),
+				OperationID:         ctl.oper.OperationID,
+				ActionNames:         actionNames,
+				Index:               len(ctl.oper.InstanceIDs),
+				ParentOperationID:   ctl.oper.Param.ParentOperationID,
+				Timeout:             ctl.oper.Param.Timeout,
+				InitContent:         ctl.oper.Param.InitContent,
+			},
+			Lifecycle: &operation.Lifecycle{
+				CreatedAt: time.Now().Local(),
+				State:     operation.StateInit,
+			},
+		},
+		ActionInstanceDataMap: actionInstanceDataMap,
+	}
+
+	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(ctx, instanceData); err != nil {
+		return nil, err
+	}
+
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, operationInstanceID)
+	if err := ctl.mgr.stgOperation.UpsertOperation(ctx, ctl.oper); err != nil {
+		return nil, err
+	}
+
+	return instanceData, nil
 }

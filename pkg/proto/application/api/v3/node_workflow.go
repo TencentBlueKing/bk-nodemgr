@@ -321,6 +321,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
 		OperInstLogs: operInstLogs,
+		Total:        int64(len(result.ActionInstanceDataMap)),
 	}
 }
 

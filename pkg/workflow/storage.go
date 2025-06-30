@@ -51,6 +51,9 @@ type IStorageOperation interface {
 	ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
 		[]*operation.Operation, int64, error)
 
+	// GetManyOperation lists operation.
+	GetManyOperation(ctx context.Context, operationID ...string) ([]*operation.Operation, int64, error)
+
 	// ListEmptyOperation lists empty operation.
 	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 }

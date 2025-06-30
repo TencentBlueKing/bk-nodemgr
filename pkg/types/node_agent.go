@@ -26,3 +26,14 @@ type NodeAgentInstallParam struct {
 	OSType        string
 	TargetVersion string
 }
+
+// NodeOperationMode describes the node agent operation mode.
+type NodeOperationMode int
+
+const (
+	// FullNodeInstanceRetry is the full node instance retry mode.
+	FullNodeInstanceRetry NodeOperationMode = iota
+
+	// PartialNodeInstanceRetry is the partial node instance retry mode.
+	PartialNodeInstanceRetry
+)
