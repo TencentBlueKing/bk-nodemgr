@@ -11,10 +11,16 @@
 package wmix
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
+	"strings"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix/wmiexec"
 )
 
@@ -30,43 +36,25 @@ var wmiBin struct {
 func wmiBinaryPath() (string, error) {
 	var initErr error
 	wmiBin.once.Do(func() {
-		tmpFile, err := os.CreateTemp("", "wmiexec-*")
+		tmpFile, err := tmp.NewTempFile(io.NopCloser(bytes.NewBuffer(wmiexec.Binary)), "wmiexec")
 		if err != nil {
 			initErr = fmt.Errorf("failed to create temporary file, err: %w", err)
 
 			return
 		}
 
-		tmpFilePath := tmpFile.Name()
-
-		// write wmiexec to the temporary file.
-		if _, err := tmpFile.Write(wmiexec.Binary); err != nil {
-			_ = tmpFile.Close()
-			_ = os.Remove(tmpFilePath)
-			initErr = fmt.Errorf("failed to write wmiexec binary to temporary file, err: %w", err)
-
-			return
-		}
-
-		if err := tmpFile.Close(); err != nil {
-			_ = os.Remove(tmpFilePath)
-			initErr = fmt.Errorf("failed to close temporary file, err: %w", err)
-
-			return
-		}
-
 		// make the temporary file executable.
 		// nolint: gosec,mnd
-		if err := os.Chmod(tmpFilePath, 0700); err != nil {
-			_ = os.Remove(tmpFilePath)
+		if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
+			_ = os.Remove(tmpFile.Path())
 			initErr = fmt.Errorf("failed to make temporary file executable, err: %w", err)
 
 			return
 		}
 
-		wmiBin.binaryPath = tmpFilePath
+		wmiBin.binaryPath = tmpFile.Path()
 		wmiBin.cleanup = func() {
-			_ = os.Remove(tmpFilePath)
+			_ = os.Remove(tmpFile.Path())
 		}
 	})
 
@@ -75,4 +63,29 @@ func wmiBinaryPath() (string, error) {
 	}
 
 	return wmiBin.binaryPath, nil
+}
+
+func wmiRunCmd(ctx context.Context, args []string) (string, string, error) {
+	binPath, err := wmiBinaryPath()
+	if err != nil {
+		return "", "", err
+	}
+
+	// nolint:gosec
+	cmd := exec.CommandContext(ctx, binPath, args...)
+	stdOut := &bytes.Buffer{}
+	stdErr := &bytes.Buffer{}
+	cmd.Stdout = stdOut
+	cmd.Stderr = stdErr
+
+	if err := cmd.Run(); err != nil {
+		return "", "", fmt.Errorf("commands cannot be executed using wmiexec, stdOut(%s), stdErr(%s), err: %w",
+			stdOut.String(), stdErr.String(), err)
+	}
+
+	// because the wmiexec will output the license information in the first two lines,
+	lines := strings.Split(stdOut.String(), "\n")[2:]
+	stdOutStr := strings.Join(lines, "\n")
+
+	return stdOutStr, stdErr.String(), nil
 }
