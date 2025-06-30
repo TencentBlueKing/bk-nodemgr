@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -110,7 +111,7 @@ func (h *handler) Get(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -142,7 +143,7 @@ func (h *handler) Exist(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -200,7 +201,7 @@ func (h *handler) SetLabels(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -227,7 +228,7 @@ func (h *handler) SetEnabled(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -254,7 +255,7 @@ func (h *handler) SetAsDefault(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -317,7 +318,7 @@ func (h *handler) Delete(ctx context.Context,
 		WithGeneration(gen),
 		WithType(releaseType),
 		WithCPUArch(plat.Arch),
-		WithOSType(plat.OS),
+		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
 	filter := base.AliveFilter()
@@ -335,7 +336,7 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		Version:    release.Version,
 		Platform: platform.Platform{
 			Arch: release.CPUArch,
-			OS:   release.OSType,
+			OS:   criteria.OSType(release.OSType),
 		},
 		Labels:      release.Labels,
 		ChangeLogEN: release.ChangeLogEN,
@@ -355,7 +356,7 @@ func convertReleaseFromTypes(release *types.Release) *Release {
 		Type:        string(release.Type),
 		Version:     release.Version,
 		CPUArch:     release.Platform.Arch,
-		OSType:      release.Platform.OS,
+		OSType:      string(release.Platform.OS),
 		Labels:      release.Labels,
 		ChangeLogEN: release.ChangeLogEN,
 		ChangeLogZH: release.ChangeLogZH,

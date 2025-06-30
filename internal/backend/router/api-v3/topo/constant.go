@@ -44,7 +44,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 	}
 
 	if req.GetOsType() {
-		osTypes = []string{criteria.OSLinux, criteria.OSWindows, criteria.OSDarwin}
+		osTypes = []string{string(criteria.OSLinux), string(criteria.OSWindows), string(criteria.OSDarwin)}
 	}
 
 	return &protoBackend.TopoConstantGetResp_Data{

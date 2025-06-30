@@ -642,7 +642,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 }
 
 // joinPath joins path elements with the specified separator.
-func joinPath(osType string, parts ...string) string {
+func joinPath(osType criteria.OSType, parts ...string) string {
 	separator := "/"
 	if osType == criteria.OSWindows {
 		separator = "\\"

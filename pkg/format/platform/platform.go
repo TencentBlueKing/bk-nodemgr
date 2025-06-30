@@ -20,8 +20,8 @@ import (
 )
 
 // StandardOSMap this map is used to convert various OS names to Go standard GOOS values..
-func StandardOSMap() map[string]string {
-	return map[string]string{
+func StandardOSMap() map[string]criteria.OSType {
+	return map[string]criteria.OSType{
 		"aix":       criteria.OSAix,
 		"android":   criteria.OSAndroid,
 		"darwin":    criteria.OSDarwin,
@@ -72,7 +72,7 @@ func StandardOSMap() map[string]string {
 
 // NormalizeOS convert various OS names to Go standard GOOS values.
 // if unable to recognize, return original input and error.
-func NormalizeOS(osName string) (string, error) {
+func NormalizeOS(osName string) (criteria.OSType, error) {
 	if osName == "" {
 		return "", errors.New("empty OS name")
 	}
@@ -97,7 +97,7 @@ func NormalizeOS(osName string) (string, error) {
 		}
 	}
 
-	return osName, fmt.Errorf("unknown OS: %s", osName)
+	return "", fmt.Errorf("unknown OS: %s", osName)
 }
 
 // StandardArchMap this map is used to convert various architecture names to Go standard GOARCH values.
@@ -188,7 +188,7 @@ func parseArmVersion(version string) (int, error) {
 
 // Platform represents a platform identifier.
 type Platform struct {
-	OS   string
+	OS   criteria.OSType
 	Arch string
 }
 

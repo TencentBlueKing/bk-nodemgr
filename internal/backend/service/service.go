@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -123,7 +124,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	for idx := range svc.conf.GseDeployConfs {
 		deployConf := deployconstant.DeployConf{
 			Generation:         types.Generation(svc.conf.GseDeployConfs[idx].Generation),
-			OsType:             svc.conf.GseDeployConfs[idx].OsType,
+			OsType:             criteria.OSType(svc.conf.GseDeployConfs[idx].OsType),
 			HostIDPath:         svc.conf.GseDeployConfs[idx].HostIDPath,
 			InstallerWorkspace: svc.conf.GseDeployConfs[idx].InstallerWorkspace,
 			GseDataIPC:         svc.conf.GseDeployConfs[idx].GseDataIPC,

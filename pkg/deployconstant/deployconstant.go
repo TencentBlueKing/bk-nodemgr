@@ -15,13 +15,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
 	Generation         types.Generation
-	OsType             string
+	OsType             criteria.OSType
 	HostIDPath         string
 	InstallerWorkspace string
 	GseDataIPC         string
@@ -79,10 +80,10 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[types.Generation]map[string]DeployConf)
+var deployConfMap = make(map[types.Generation]map[criteria.OSType]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(generation types.Generation, osType string) (DeployConf, error) {
+func GetDeployConf(generation types.Generation, osType criteria.OSType) (DeployConf, error) {
 	confMap, ok := deployConfMap[generation]
 	if !ok {
 		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
@@ -104,7 +105,7 @@ func SetDeployConf(conf DeployConf) error {
 	}
 
 	if _, ok := deployConfMap[conf.Generation]; !ok {
-		deployConfMap[conf.Generation] = make(map[string]DeployConf)
+		deployConfMap[conf.Generation] = make(map[criteria.OSType]DeployConf)
 	}
 
 	if _, ok := deployConfMap[conf.Generation][conf.OsType]; !ok {

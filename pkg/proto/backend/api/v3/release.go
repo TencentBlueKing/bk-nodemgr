@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -102,7 +103,7 @@ func (x *PackageReleaseListResp) ConvertReleasesFromTypes(total int64, releases 
 		item := newEmptyRelease()
 		*item.Generation = int64(release.Generation)
 		*item.ReleaseType = string(release.Type)
-		*item.OsType = release.Platform.OS
+		*item.OsType = string(release.Platform.OS)
 		*item.CpuArch = release.Platform.Arch
 		*item.Version = release.Version
 		*item.FileName = release.FileName
@@ -138,7 +139,7 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 			Generation: types.Generation(item.GetGeneration()),
 			Type:       types.ReleaseType(item.GetReleaseType()),
 			Platform: platform.Platform{
-				OS:   item.GetOsType(),
+				OS:   criteria.OSType(item.GetOsType()),
 				Arch: item.GetCpuArch(),
 			},
 			Labels:      item.GetLabels(),

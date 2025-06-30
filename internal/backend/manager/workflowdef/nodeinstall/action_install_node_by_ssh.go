@@ -307,19 +307,19 @@ func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.Dep
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
 func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
-	osType string, cpuArch string, targetDir string, err error) {
+	osType criteria.OSType, cpuArch string, targetDir string, err error) {
 
 	// 1. detect target system
-	osType, err = client.RunCommand("uname -s")
+	osTypeStr, err := client.RunCommand("uname -s")
 	if err != nil {
 		err = fmt.Errorf("failed to run uname -a, err: %w", err)
 
 		return "", "", "", err
 	}
-	osType = strings.TrimFunc(strings.ToLower(osType), func(r rune) bool {
+	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
 	})
-	osType, err = platform.NormalizeOS(osType)
+	osType, err = platform.NormalizeOS(osTypeStr)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
 	}

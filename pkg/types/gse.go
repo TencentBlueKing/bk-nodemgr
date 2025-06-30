@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // AgentStatusCode represents the gse agent status code.
@@ -114,7 +115,7 @@ type AgentInfo struct {
 	AgentState
 
 	HostIP        string
-	OSType        string
+	OSType        criteria.OSType
 	Arch          string
 	ParentIP      string
 	ParentPort    uint

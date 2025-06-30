@@ -202,9 +202,9 @@ func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.D
 	// inorder to check the interface of cc, and set the default architecture at the beginning
 	// Here is the historical reason for cc, and can only support x86 architecture and arm architecture
 	switch host.Static.OSType {
-	case criteria.OSWindows, criteria.OSLinux:
+	case string(criteria.OSWindows), string(criteria.OSLinux):
 		host.Static.Arch = criteria.CPUArch386
-	case criteria.OSDarwin:
+	case string(criteria.OSDarwin):
 		host.Static.Arch = criteria.CPUArchArm
 	default:
 		host.Static.Arch = criteria.CPUArch386

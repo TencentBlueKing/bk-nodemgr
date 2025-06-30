@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -400,7 +401,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			NodeVersion:         host.Dynamic.NodeVersion,
 			NodeGeneration:      int64(host.Dynamic.NodeGeneration),
 			NodeCPUArch:         host.Dynamic.NodeCPUArch,
-			NodeOsType:          host.Dynamic.NodeOsType,
+			NodeOsType:          string(host.Dynamic.NodeOsType),
 			AgentID:             host.Dynamic.AgentID,
 			NetworkUnitID:       host.Dynamic.NetworkUnitID,
 			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
@@ -457,7 +458,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			NodeVersion:    host.Dynamic.NodeVersion,
 			NodeGeneration: types.Generation(host.Dynamic.NodeGeneration),
 			NodeCPUArch:    host.Dynamic.NodeCPUArch,
-			NodeOsType:     host.Dynamic.NodeOsType,
+			NodeOsType:     criteria.OSType(host.Dynamic.NodeOsType),
 			AgentID:        host.Dynamic.AgentID,
 			NetworkUnitID:  host.Dynamic.NetworkUnitID,
 			ProxyTags: func() []types.ProxyTag {

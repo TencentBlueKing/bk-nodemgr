@@ -114,7 +114,7 @@ func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
 			objectID:     "host",
 			attributeID:  "bk_os_type",
 			mapping:      make(map[string]string),
-			unknownValue: criteria.OSUnknown,
+			unknownValue: string(criteria.OSUnknown),
 		},
 		osTypeMapping: make(map[string]string),
 	}
@@ -134,7 +134,7 @@ func (keeper *enumOSTypeKeeper) getValue(key string) string {
 		return keeper.enumBasicKeeper.unknownValue
 	}
 
-	return value
+	return string(value)
 }
 
 func (keeper *enumOSTypeKeeper) getKey(value string) string {
@@ -165,7 +165,7 @@ func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
 			continue
 		}
 
-		keeper.osTypeMapping[normalizedOS] = v
+		keeper.osTypeMapping[string(normalizedOS)] = v
 	}
 	keeper.osTypeMappingMutex.Unlock()
 
