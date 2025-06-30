@@ -23,6 +23,20 @@
       "code_example": "",
       "language": "golang",
       "docs_url": ""
+    },
+    {
+      "id": "server-tools-report",
+      "category": "installer 数据交互 review 注意事项",
+      "file_patterns": [
+        "tools/internal/installer/datareporter/*.go",
+        "tools/internal/installer/statusreporter/*.go",
+        "tools/internal/installer/logreporter/*.go",
+        "internal/backend/router/callback/workflow/nodeinstall/*.go"
+      ],
+      "description": "这部分是 nodemgr tools 与上层交互的关键，请注意检查以下几点：\n1. 确保日志解析正常：提供后端**数据库**接收到的日志数据;\n2. 确保 agent 数据和状态解析正常: 提供运行成功的 agent installer 数据库记录;",
+      "code_example": "",
+      "language": "golang",
+      "docs_url": ""
     }
   ]
 }
