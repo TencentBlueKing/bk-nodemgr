@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -374,6 +375,7 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		fmt.Sprintf("--gse_root %s", param.GseRoot),
 		fmt.Sprintf("--token %s", param.Token),
 		fmt.Sprintf("--workspace %s", param.InstallerWorkspace),
+		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
