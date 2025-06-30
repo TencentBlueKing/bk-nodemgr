@@ -108,7 +108,7 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 
 	// create new local dir.
 	cacheDir := filepath.Join(local.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
-	if err = os.MkdirAll(cacheDir, 0755); err != nil { // nolint: mnd,gosec
+	if err = os.MkdirAll(cacheDir, 0700); err != nil { // nolint: mnd,gosec
 		return nil, "", fmt.Errorf("failed to create temp cache dir: %s, err: %w", cacheDir, err)
 	}
 
