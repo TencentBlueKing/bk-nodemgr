@@ -462,7 +462,6 @@ func filterOperationsByStates(
 	}
 
 	return filteredOps, filteredSummaries
-
 }
 
 func calculateOperationSummaries(operationIDs []string,

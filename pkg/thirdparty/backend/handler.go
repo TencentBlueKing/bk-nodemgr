@@ -841,7 +841,8 @@ func (h *handler) DistinctNodeWorkflow(ctx context.Context, _ types.NodeWorkflow
 }
 
 // ListOperation list workflow  operation.
-func (h *handler) ListNodeWorkflowOperation(ctx context.Context, page types.Page, condition *types.NodeWorkflowOperationCondition) (
+func (h *handler) ListNodeWorkflowOperation(ctx context.Context,
+	page types.Page, condition *types.NodeWorkflowOperationCondition) (
 	[]*operation.Operation, int64, error) {
 
 	tenantID, err := tenant.GetID(ctx)
@@ -868,7 +869,9 @@ func (h *handler) ListNodeWorkflowOperation(ctx context.Context, page types.Page
 }
 
 // CountOperation count workflow  operation.
-func (h *handler) CountNodeWorkflowOperation(ctx context.Context, condition *types.NodeWorkflowOperationCondition) (int64, error) {
+func (h *handler) CountNodeWorkflowOperation(ctx context.Context,
+	condition *types.NodeWorkflowOperationCondition) (int64, error) {
+
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return 0, err

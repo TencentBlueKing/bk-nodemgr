@@ -143,6 +143,7 @@ func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 			)
 		}
 	}
+
 	return s.daoOperation.List(ctx, page, opts...)
 }
 
