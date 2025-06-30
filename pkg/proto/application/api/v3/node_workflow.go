@@ -234,10 +234,10 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 			InstanceIds: op.InstanceIDs,
 			Param: &NodeWorkflowOperationParam{
 				TimeoutSecond:   int64(op.Definition.DefaultParameters().Timeout.Seconds()),
-				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "area_id", -1),
+				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "networkarea_id", -1),
 				BkBizId:         safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
 				BkHostInner:     safeGetString(op.Param.ExtraContent, "inner_ip", ""),
-				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
+				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ipv6", ""),
 				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 			Status: &NodeWorkflowOperationStatus{

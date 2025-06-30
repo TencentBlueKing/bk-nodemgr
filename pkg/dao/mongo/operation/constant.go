@@ -22,13 +22,13 @@ const (
 	FieldKeyBizID = "data.extras.biz_id"
 
 	// FieldKeyAreaID the area_id field key.
-	FieldKeyAreaID = "data.extras.area_id"
+	FieldKeyAreaID = "data.extras.networkarea_id"
 
 	// FieldKeyIPV4 the ipv4 field key.
 	FieldKeyIPV4 = "data.extras.inner_ip"
 
 	// FieldKeyIPV6 the ipv6 field key.
-	FieldKeyIPV6 = "data.extras.inner_ip_v6"
+	FieldKeyIPV6 = "data.extras.inner_ipv6"
 
 	// FieldKeyOperationInstanceEmpty the oper_inst_empty field key.
 	FieldKeyOperationInstanceEmpty = "data.oper_inst_empty"

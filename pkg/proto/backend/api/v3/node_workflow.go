@@ -223,10 +223,10 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 			InstanceIds: op.InstanceIDs,
 			Param: &NodeWorkflowOperationParam{
 				TimeoutSecond:   int64(op.Definition.DefaultParameters().Timeout.Seconds()),
-				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "area_id", -1),
+				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "networkarea_id", -1),
 				BkBizId:         safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
 				BkHostInnerip:   safeGetString(op.Param.ExtraContent, "inner_ip", ""),
-				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
+				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ipv6", ""),
 				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 		}
@@ -260,11 +260,11 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*op
 			Param: operation.Param{
 				Timeout: time.Duration(item.GetParam().GetTimeoutSecond()),
 				ExtraContent: map[string]interface{}{
-					"area_id":      item.GetParam().GetBkNetworkareaId(),
-					"biz_id":       item.GetParam().GetBkBizId(),
-					"inner_ip":     item.GetParam().GetBkHostInnerip(),
-					"inner_ip_v6":  item.GetParam().GetBkHostInneripV6(),
-					"node_version": item.GetParam().GetNodeVersion(),
+					"networkarea_id": item.GetParam().GetBkNetworkareaId(),
+					"biz_id":         item.GetParam().GetBkBizId(),
+					"inner_ip":       item.GetParam().GetBkHostInnerip(),
+					"inner_ipv6":     item.GetParam().GetBkHostInneripV6(),
+					"node_version":   item.GetParam().GetNodeVersion(),
 				},
 			},
 		}
