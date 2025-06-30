@@ -853,7 +853,7 @@
             "type": "string"
           }
         },
-        "bk_host_innerip_v4": {
+        "bk_host_innerip": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1108,10 +1108,10 @@
           "type": "integer",
           "format": "int64"
         },
-        "bk_host_inner_ipv4": {
+        "bk_host_innerip": {
           "type": "string"
         },
-        "bk_host_inner_ipv6": {
+        "bk_host_innerip_v6": {
           "type": "string"
         },
         "node_version": {

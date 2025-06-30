@@ -138,8 +138,8 @@ func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 				operation.WithTriggerID(condition.ExactInclude.TriggerID),
 				operation.WithBizID(condition.ExactInclude.BizID...),
 				operation.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-				operation.WithIPv4(condition.ExactInclude.InnerIpv4...),
-				operation.WithIPv6(condition.ExactInclude.InnerIpv6...),
+				operation.WithIPv4(condition.ExactInclude.InnerIP...),
+				operation.WithIPv6(condition.ExactInclude.InnerIPv6...),
 			)
 		}
 	}

@@ -459,7 +459,7 @@ func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
 	return map[string]any{
 		"area_id":      info.Host.Static.NetworkAreaID,
 		"biz_id":       info.Host.Static.BizID,
-		"inner_ip_v4":  info.Host.Static.InnerIP,
+		"inner_ip":     info.Host.Static.InnerIP,
 		"inner_ip_v6":  info.Host.Static.InnerIPV6,
 		"node_version": info.Host.Dynamic.NodeVersion,
 	}

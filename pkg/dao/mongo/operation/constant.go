@@ -25,7 +25,7 @@ const (
 	FieldKeyAreaID = "data.extras.area_id"
 
 	// FieldKeyIPV4 the ipv4 field key.
-	FieldKeyIPV4 = "data.extras.inner_ip_v4"
+	FieldKeyIPV4 = "data.extras.inner_ip"
 
 	// FieldKeyIPV6 the ipv6 field key.
 	FieldKeyIPV6 = "data.extras.inner_ip_v6"

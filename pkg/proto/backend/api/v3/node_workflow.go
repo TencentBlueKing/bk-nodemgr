@@ -225,8 +225,8 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 				TimeoutSecond:   int64(op.Definition.DefaultParameters().Timeout.Seconds()),
 				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "area_id", -1),
 				BkBizId:         safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
-				BkHostInnerIpv4: safeGetString(op.Param.ExtraContent, "inner_ip_v4", ""),
-				BkHostInnerIpv6: safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
+				BkHostInnerip:   safeGetString(op.Param.ExtraContent, "inner_ip", ""),
+				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ip_v6", ""),
 				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 		}
@@ -262,8 +262,8 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*op
 				ExtraContent: map[string]interface{}{
 					"area_id":      item.GetParam().GetBkNetworkareaId(),
 					"biz_id":       item.GetParam().GetBkBizId(),
-					"inner_ip_v4":  item.GetParam().GetBkHostInnerIpv4(),
-					"inner_ip_v6":  item.GetParam().GetBkHostInnerIpv6(),
+					"inner_ip":     item.GetParam().GetBkHostInnerip(),
+					"inner_ip_v6":  item.GetParam().GetBkHostInneripV6(),
 					"node_version": item.GetParam().GetNodeVersion(),
 				},
 			},
@@ -582,8 +582,8 @@ func convertWorkflowOperationConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
 			TriggerID:     triggerID,
-			InnerIpv4:     exactCond.GetBkHostInneripV4(),
-			InnerIpv6:     exactCond.GetBkHostInneripV6(),
+			InnerIP:       exactCond.GetBkHostInnerip(),
+			InnerIPv6:     exactCond.GetBkHostInneripV6(),
 			BizID:         exactCond.GetBkBizId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			NodeVersion:   exactCond.GetNodeVersion(),
@@ -635,8 +635,8 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperati
 			BkBizId:         condition.ExactInclude.BizID,
 			WorkflowId:      condition.ExactInclude.WorkflowID,
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
-			BkHostInneripV4: condition.ExactInclude.InnerIpv4,
-			BkHostInneripV6: condition.ExactInclude.InnerIpv6,
+			BkHostInnerip:   condition.ExactInclude.InnerIP,
+			BkHostInneripV6: condition.ExactInclude.InnerIPv6,
 			NodeVersion:     condition.ExactInclude.NodeVersion,
 		}
 	}

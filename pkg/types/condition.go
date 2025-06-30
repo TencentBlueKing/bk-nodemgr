@@ -307,8 +307,8 @@ type NodeWorkflowOperationExactFields struct {
 	TriggerID     string
 	WorkflowID    string
 	State         []OperationState
-	InnerIpv4     []string
-	InnerIpv6     []string
+	InnerIP       []string
+	InnerIPv6     []string
 	BizID         []int64
 	NetworkAreaID []int64
 	NodeVersion   []string
