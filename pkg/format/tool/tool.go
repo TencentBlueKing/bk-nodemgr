@@ -26,5 +26,9 @@ const (
 func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
 	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
 
+	if osType == criteria.OSWindows {
+		toolName += ".exe"
+	}
+
 	return toolName, nil
 }
