@@ -50,11 +50,7 @@ func DelRegistryCurrentUserStartRun(cmdName string) error {
 	defer key.Close()
 
 	err = key.DeleteValue(cmdName)
-	if err != nil {
-		if errors.Is(err, registry.ErrNotExist) {
-			return fmt.Errorf("cmdName '%s' not found", cmdName)
-		}
-
+	if err != nil && !errors.Is(err, registry.ErrNotExist) {
 		return fmt.Errorf("delete registry cmdName failed, err: %w", err)
 	}
 
