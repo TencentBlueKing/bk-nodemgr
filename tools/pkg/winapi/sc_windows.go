@@ -14,6 +14,7 @@ package winapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
@@ -57,6 +58,10 @@ const (
 
 	// WinSvcStatusUnknown window service status unknown.
 	WinSvcStatusUnknown WinSvcStatus = "WinSvcStatusUnknown"
+
+	// WinSvcStatusNotInstalled window service status not installed.
+	// this is not a windows service status, but is an actual status.
+	WinSvcStatusNotInstalled WinSvcStatus = "WinSvcStatusNotInstalled"
 )
 
 func ConvStateToWinSvcStatus(status svc.State) WinSvcStatus {
@@ -107,9 +112,14 @@ func GetServiceStatus(svcName string) (WinSvcStatus, error) {
 	defer m.Disconnect()
 
 	s, err := m.OpenService(svcName)
-	if err != nil {
+	if err != nil && !errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
 		return "", fmt.Errorf("failed to open service, svcName(%s), err: %w", svcName, err)
 	}
+
+	if errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
+		return WinSvcStatusNotInstalled, nil
+	}
+
 	defer s.Close()
 
 	status, err := s.Query()

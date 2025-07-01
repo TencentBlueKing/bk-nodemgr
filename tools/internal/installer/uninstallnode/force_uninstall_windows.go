@@ -34,6 +34,16 @@ const (
 
 // forceUninstall uninstall agent by force way.
 func (step *Step) forceUninstall(ctx context.Context) error {
+	// make sure the service is uninstalled.
+	err := step.forceUninstallGseAgentDaemonSvc(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (step *Step) forceUninstallGseAgentDaemonSvc(ctx context.Context) error {
 	gseAgentDaemonSvcName := gseAgentDaemonName
 	if step.deployEnv != "gse" {
 		gseAgentDaemonSvcName = gseAgentDaemonSvcName + "_" + step.deployEnv
@@ -49,6 +59,12 @@ func (step *Step) forceUninstall(ctx context.Context) error {
 	status, err := winapi.GetServiceStatus(gseAgentDaemonSvcName)
 	if err != nil {
 		return fmt.Errorf("get service status failed, err: %v", err)
+	}
+
+	if status == winapi.WinSvcStatusNotInstalled {
+		logger.Infof(constant.StepUninstallNode, "service not installed, svcName(%s)", gseAgentDaemonSvcName)
+
+		return nil
 	}
 
 	gseAgentDaemonFilePath := filepath.Join(step.binDirPath, gseAgentDaemonFileName)
