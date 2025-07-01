@@ -443,31 +443,94 @@ func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMo
 		return nil, fmt.Errorf("failed to get last operation instance, err: %v", err)
 	}
 
-	var instanceData *operation.InstanceData
-	var errCreate error
-
 	switch retryMod {
 	case types.FullNodeInstanceRetry:
-		instanceData, errCreate = ctl.createOperationInstanceBase(ctx, nil)
-
+		return ctl.handleFullRetry(ctx)
 	case types.PartialNodeInstanceRetry:
-		stateDecider := func(actionName string) action.State {
-			if actionData, exists := prevInstance.ActionInstanceDataMap[actionName]; exists {
-				if actionData.Lifecycle.State == action.StateSuccess {
-					return action.StateSkipped
-				}
-			}
-
-			return action.StatePending
-		}
-		instanceData, errCreate = ctl.createOperationInstanceBase(ctx, stateDecider)
-
+		return ctl.handlePartialRetry(ctx, prevInstance)
 	default:
 		return nil, fmt.Errorf("unknown retry mode: %v", retryMod)
 	}
+}
 
-	if errCreate != nil {
-		return nil, errCreate
+func (ctl *controller) handleFullRetry(ctx context.Context) (IOperationInstanceCtl, error) {
+	instanceData, err := ctl.createOperationInstanceBase(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &controller{
+		mgr:                   ctl.mgr,
+		trig:                  ctl.trig,
+		oper:                  ctl.oper,
+		operInstanceBriefData: &instanceData.InstanceBriefData,
+	}, nil
+}
+
+func (ctl *controller) handlePartialRetry(ctx context.Context, prevInstance *operation.InstanceData) (
+	IOperationInstanceCtl, error) {
+
+	if len(ctl.oper.Param.RetryStartPoint) == 0 {
+		return nil, errors.New("retry start point is empty")
+	}
+
+	actionNames := ctl.oper.Definition.ActionDefNames()
+	if len(actionNames) == 0 {
+		return nil, errors.New("operation has no actions")
+	}
+
+	actionIndexMap := make(map[string]int, len(actionNames))
+	for i, name := range actionNames {
+		actionIndexMap[name] = i
+	}
+
+	var failedAction string
+	failedIndex := -1
+	for _, name := range actionNames {
+		inst, exists := prevInstance.ActionInstanceDataMap[name]
+		if !exists {
+			continue
+		}
+		if inst.Lifecycle.State != action.StateSuccess {
+			failedAction = name
+			failedIndex = actionIndexMap[name]
+
+			break
+		}
+	}
+	if failedAction == "" {
+		return nil, errors.New("no failed actions found for partial retry")
+	}
+
+	retryStartPoints := ctl.oper.Param.RetryStartPoint
+	retryStartAction := ""
+	startIndex := failedIndex
+	for ; startIndex >= 0; startIndex-- {
+		actionName := actionNames[startIndex]
+		if retryStartPoints[actionName] {
+			retryStartAction = actionName
+			break
+		}
+	}
+	if retryStartAction == "" {
+		return nil, fmt.Errorf("no valid retry start point found for failed action %s", failedAction)
+	}
+
+	ctl.mgr.logger.InfoCtxf(ctx, "retry start action: %s, first failed action: %s",
+		retryStartAction, failedAction)
+
+	stateDecider := func(actionName string) action.State {
+		currentIndex, exists := actionIndexMap[actionName]
+		if !exists || currentIndex < startIndex {
+			return action.StateSkipped
+		}
+
+		return action.StatePending
+	}
+
+	instanceData, err := ctl.createOperationInstanceBase(ctx, stateDecider)
+	if err != nil {
+		return nil, err
 	}
 
 	return &controller{

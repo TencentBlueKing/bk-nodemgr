@@ -32,7 +32,7 @@ type NodeOperationMode int
 
 const (
 	// FullNodeInstanceRetry is the full node instance retry mode.
-	FullNodeInstanceRetry NodeOperationMode = iota
+	FullNodeInstanceRetry NodeOperationMode = iota + 1
 
 	// PartialNodeInstanceRetry is the partial node instance retry mode.
 	PartialNodeInstanceRetry

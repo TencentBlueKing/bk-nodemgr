@@ -56,3 +56,8 @@ func (oper *operSyncHostFromCMDB) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
+
+// ActionRetryable checks if the action is a retry start point.
+func (oper *operSyncHostFromCMDB) ActionRetryable(_ string) bool {
+	return false
+}

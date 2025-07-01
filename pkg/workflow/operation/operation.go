@@ -53,4 +53,5 @@ type Param struct {
 	Timeout           time.Duration
 	InitContent       map[string]any
 	ExtraContent      map[string]any
+	RetryStartPoint   map[string]bool
 }

@@ -43,9 +43,10 @@ type DefSnapshot struct {
 
 // Parameters represents the snapshot of the operation definition.
 type Parameters struct {
-	ParentOperationID string         `json:"parent_operation_id" bson:"parent_operation_id"`
-	Timeout           time.Duration  `json:"timeout" bson:"timeout"`
-	InitContent       map[string]any `json:"init_content" bson:"init_content"`
+	ParentOperationID string          `json:"parent_operation_id" bson:"parent_operation_id"`
+	Timeout           time.Duration   `json:"timeout" bson:"timeout"`
+	InitContent       map[string]any  `json:"init_content" bson:"init_content"`
+	RetryStartPoint   map[string]bool `json:"retry_start_point" bson:"retry_start_point" `
 }
 
 // UniqueKey unique key of the table.

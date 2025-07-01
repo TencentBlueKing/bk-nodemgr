@@ -35,6 +35,7 @@ type InstanceData struct {
 	OperationInstanceID string
 
 	Name        string
+	Tag         []string
 	Index       int
 	TotalIndex  int
 	Messages    []Message

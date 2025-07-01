@@ -154,3 +154,53 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 
 	return nodeDeployment, nil
 }
+
+// AgentInstall install agent.
+func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.NodeAgentInstallReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts := req.GetHost()
+	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
+	bizIDs := make(map[int64]struct{})
+	for idx := range hosts {
+		reqHost := hosts[idx]
+
+		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost)
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
+
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		}
+
+		nodeDeploys[idx] = nodeDeploy
+		bizIDs[reqHost.GetBkBizId()] = struct{}{}
+	}
+
+	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
+		Type:            types.NodeWorkflowTypeInstallAgent,
+		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
+		Operator:        ctx.Username,
+		NodeDeployments: nodeDeploys,
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeAgentInstallResp)
+	resp.ConvertWorkflowID(workflowID)
+
+	h.logger.InfoCtxf(sCtx, "launched install agent workflow: %s", workflowID)
+
+	return resp.GetData(), nil
+}

@@ -138,6 +138,7 @@ func convertParamFromDB(param Parameters) operation.Param {
 		ParentOperationID: param.ParentOperationID,
 		Timeout:           param.Timeout,
 		InitContent:       param.InitContent,
+		RetryStartPoint:   param.RetryStartPoint,
 	}
 }
 
@@ -146,6 +147,7 @@ func convertParamToDB(param operation.Param) Parameters {
 		ParentOperationID: param.ParentOperationID,
 		Timeout:           param.Timeout,
 		InitContent:       param.InitContent,
+		RetryStartPoint:   param.RetryStartPoint,
 	}
 }
 
@@ -154,6 +156,7 @@ func convertDefFromDB(defoper DefSnapshot) operation.Definition {
 		SnapshotName:              defoper.OperDefName,
 		SnapshotActionDefNames:    defoper.ActionNames,
 		SnapshotDefaultParameters: convertParamFromDB(defoper.DefaultParameters),
+		RetryStartPoint:           defoper.DefaultParameters.RetryStartPoint,
 	}
 }
 

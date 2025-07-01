@@ -60,7 +60,19 @@ func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute, // nolint: mnd
+		Timeout:     10 * time.Minute,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
+}
+
+// RetryStartPoint checks if the action is a retry start point.
+func (oper *operInstallNodeBySSH) ActionRetryable(actionName string) bool {
+	switch actionName {
+	case ActionNameWaitInstallComplete:
+		return false
+	case ActionNameWaitGseReady:
+		return false
+	}
+
+	return true
 }

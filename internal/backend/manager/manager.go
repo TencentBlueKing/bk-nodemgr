@@ -54,6 +54,7 @@ type Manager interface {
 
 	// RetryOperationNode launch a task to retry operation instance
 	RetryOperationNode(ctx context.Context, param RetryNodeParam) ([]string, error)
+
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
 	LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error)
 }
@@ -351,6 +352,11 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
+			operationParam.RetryStartPoint = make(map[string]bool)
+			for _, actionName := range operationDef.ActionDefNames() {
+				operationParam.RetryStartPoint[actionName] = operationDef.ActionRetryable(actionName)
+			}
+
 			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
@@ -410,7 +416,7 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryNodeParam
 	}
 
 	for _, operCtl := range operCtls {
-		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.NodeOperationMode)
+		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.RetryMod)
 		if err != nil {
 			return nil, fmt.Errorf("create operation instance failed: %w", err)
 		}

@@ -250,6 +250,126 @@ func (x *NodeAgentUpgradeResp) GetData() *NodeAgentUpgradeResp_Data {
 	return nil
 }
 
+type NodeAgentOperationRetryReq struct {
+	state         protoimpl.MessageState                  `protogen:"open.v1"`
+	WorkflowId    string                                  `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	RetryParm     []*NodeAgentOperationRetryReq_RetryParm `protobuf:"bytes,2,rep,name=retry_parm,json=retryParm,proto3" json:"retry_parm"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentOperationRetryReq) Reset() {
+	*x = NodeAgentOperationRetryReq{}
+	mi := &file_node_agent_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentOperationRetryReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentOperationRetryReq) ProtoMessage() {}
+
+func (x *NodeAgentOperationRetryReq) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentOperationRetryReq.ProtoReflect.Descriptor instead.
+func (*NodeAgentOperationRetryReq) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *NodeAgentOperationRetryReq) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+func (x *NodeAgentOperationRetryReq) GetRetryParm() []*NodeAgentOperationRetryReq_RetryParm {
+	if x != nil {
+		return x.RetryParm
+	}
+	return nil
+}
+
+type NodeAgentOperationRetryResp struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Code          int32                             `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                            `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                            `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Data          *NodeAgentOperationRetryResp_Data `protobuf:"bytes,4,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentOperationRetryResp) Reset() {
+	*x = NodeAgentOperationRetryResp{}
+	mi := &file_node_agent_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentOperationRetryResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentOperationRetryResp) ProtoMessage() {}
+
+func (x *NodeAgentOperationRetryResp) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentOperationRetryResp.ProtoReflect.Descriptor instead.
+func (*NodeAgentOperationRetryResp) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *NodeAgentOperationRetryResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NodeAgentOperationRetryResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NodeAgentOperationRetryResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *NodeAgentOperationRetryResp) GetData() *NodeAgentOperationRetryResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type NodeAgentInstallReq_Host struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
@@ -274,7 +394,7 @@ type NodeAgentInstallReq_Host struct {
 
 func (x *NodeAgentInstallReq_Host) Reset() {
 	*x = NodeAgentInstallReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[4]
+	mi := &file_node_agent_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +406,7 @@ func (x *NodeAgentInstallReq_Host) String() string {
 func (*NodeAgentInstallReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentInstallReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[4]
+	mi := &file_node_agent_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -416,7 +536,7 @@ type NodeAgentInstallResp_Data struct {
 
 func (x *NodeAgentInstallResp_Data) Reset() {
 	*x = NodeAgentInstallResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[5]
+	mi := &file_node_agent_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -428,7 +548,7 @@ func (x *NodeAgentInstallResp_Data) String() string {
 func (*NodeAgentInstallResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentInstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[5]
+	mi := &file_node_agent_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -463,7 +583,7 @@ type NodeAgentUpgradeReq_Host struct {
 
 func (x *NodeAgentUpgradeReq_Host) Reset() {
 	*x = NodeAgentUpgradeReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[6]
+	mi := &file_node_agent_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -475,7 +595,7 @@ func (x *NodeAgentUpgradeReq_Host) String() string {
 func (*NodeAgentUpgradeReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentUpgradeReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[6]
+	mi := &file_node_agent_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -528,7 +648,7 @@ type NodeAgentUpgradeResp_Data struct {
 
 func (x *NodeAgentUpgradeResp_Data) Reset() {
 	*x = NodeAgentUpgradeResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[7]
+	mi := &file_node_agent_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +660,7 @@ func (x *NodeAgentUpgradeResp_Data) String() string {
 func (*NodeAgentUpgradeResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentUpgradeResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[7]
+	mi := &file_node_agent_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,6 +677,102 @@ func (*NodeAgentUpgradeResp_Data) Descriptor() ([]byte, []int) {
 }
 
 func (x *NodeAgentUpgradeResp_Data) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+type NodeAgentOperationRetryReq_RetryParm struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
+	RetryMod      int64                  `protobuf:"varint,2,opt,name=retry_mod,json=retryMod,proto3" json:"retry_mod"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentOperationRetryReq_RetryParm) Reset() {
+	*x = NodeAgentOperationRetryReq_RetryParm{}
+	mi := &file_node_agent_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentOperationRetryReq_RetryParm) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentOperationRetryReq_RetryParm) ProtoMessage() {}
+
+func (x *NodeAgentOperationRetryReq_RetryParm) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentOperationRetryReq_RetryParm.ProtoReflect.Descriptor instead.
+func (*NodeAgentOperationRetryReq_RetryParm) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{4, 0}
+}
+
+func (x *NodeAgentOperationRetryReq_RetryParm) GetOperationId() string {
+	if x != nil {
+		return x.OperationId
+	}
+	return ""
+}
+
+func (x *NodeAgentOperationRetryReq_RetryParm) GetRetryMod() int64 {
+	if x != nil {
+		return x.RetryMod
+	}
+	return 0
+}
+
+type NodeAgentOperationRetryResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentOperationRetryResp_Data) Reset() {
+	*x = NodeAgentOperationRetryResp_Data{}
+	mi := &file_node_agent_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentOperationRetryResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentOperationRetryResp_Data) ProtoMessage() {}
+
+func (x *NodeAgentOperationRetryResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentOperationRetryResp_Data.ProtoReflect.Descriptor instead.
+func (*NodeAgentOperationRetryResp_Data) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{5, 0}
+}
+
+func (x *NodeAgentOperationRetryResp_Data) GetWorkflowId() string {
 	if x != nil {
 		return x.WorkflowId
 	}
@@ -622,6 +838,23 @@ const file_node_agent_proto_rawDesc = "" +
 	"\x04data\x18\x04 \x01(\v2\x1d.v3.NodeAgentUpgradeResp.DataR\x04data\x1a'\n" +
 	"\x04Data\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
+	"workflowId\"\xd3\x01\n" +
+	"\x1aNodeAgentOperationRetryReq\x12\x1f\n" +
+	"\vworkflow_id\x18\x01 \x01(\tR\n" +
+	"workflowId\x12G\n" +
+	"\n" +
+	"retry_parm\x18\x02 \x03(\v2(.v3.NodeAgentOperationRetryReq.RetryParmR\tretryParm\x1aK\n" +
+	"\tRetryParm\x12!\n" +
+	"\foperation_id\x18\x01 \x01(\tR\voperationId\x12\x1b\n" +
+	"\tretry_mod\x18\x02 \x01(\x03R\bretryMod\"\xcd\x01\n" +
+	"\x1bNodeAgentOperationRetryResp\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x128\n" +
+	"\x04data\x18\x04 \x01(\v2$.v3.NodeAgentOperationRetryResp.DataR\x04data\x1a'\n" +
+	"\x04Data\x12\x1f\n" +
+	"\vworkflow_id\x18\x01 \x01(\tR\n" +
 	"workflowIdBCZAgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3b\x06proto3"
 
 var (
@@ -636,27 +869,33 @@ func file_node_agent_proto_rawDescGZIP() []byte {
 	return file_node_agent_proto_rawDescData
 }
 
-var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_node_agent_proto_goTypes = []any{
-	(*NodeAgentInstallReq)(nil),       // 0: v3.NodeAgentInstallReq
-	(*NodeAgentInstallResp)(nil),      // 1: v3.NodeAgentInstallResp
-	(*NodeAgentUpgradeReq)(nil),       // 2: v3.NodeAgentUpgradeReq
-	(*NodeAgentUpgradeResp)(nil),      // 3: v3.NodeAgentUpgradeResp
-	(*NodeAgentInstallReq_Host)(nil),  // 4: v3.NodeAgentInstallReq.Host
-	(*NodeAgentInstallResp_Data)(nil), // 5: v3.NodeAgentInstallResp.Data
-	(*NodeAgentUpgradeReq_Host)(nil),  // 6: v3.NodeAgentUpgradeReq.Host
-	(*NodeAgentUpgradeResp_Data)(nil), // 7: v3.NodeAgentUpgradeResp.Data
+	(*NodeAgentInstallReq)(nil),                  // 0: v3.NodeAgentInstallReq
+	(*NodeAgentInstallResp)(nil),                 // 1: v3.NodeAgentInstallResp
+	(*NodeAgentUpgradeReq)(nil),                  // 2: v3.NodeAgentUpgradeReq
+	(*NodeAgentUpgradeResp)(nil),                 // 3: v3.NodeAgentUpgradeResp
+	(*NodeAgentOperationRetryReq)(nil),           // 4: v3.NodeAgentOperationRetryReq
+	(*NodeAgentOperationRetryResp)(nil),          // 5: v3.NodeAgentOperationRetryResp
+	(*NodeAgentInstallReq_Host)(nil),             // 6: v3.NodeAgentInstallReq.Host
+	(*NodeAgentInstallResp_Data)(nil),            // 7: v3.NodeAgentInstallResp.Data
+	(*NodeAgentUpgradeReq_Host)(nil),             // 8: v3.NodeAgentUpgradeReq.Host
+	(*NodeAgentUpgradeResp_Data)(nil),            // 9: v3.NodeAgentUpgradeResp.Data
+	(*NodeAgentOperationRetryReq_RetryParm)(nil), // 10: v3.NodeAgentOperationRetryReq.RetryParm
+	(*NodeAgentOperationRetryResp_Data)(nil),     // 11: v3.NodeAgentOperationRetryResp.Data
 }
 var file_node_agent_proto_depIdxs = []int32{
-	4, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
-	5, // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
-	6, // 2: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
-	7, // 3: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	6,  // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
+	7,  // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
+	8,  // 2: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
+	9,  // 3: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
+	10, // 4: v3.NodeAgentOperationRetryReq.retry_parm:type_name -> v3.NodeAgentOperationRetryReq.RetryParm
+	11, // 5: v3.NodeAgentOperationRetryResp.data:type_name -> v3.NodeAgentOperationRetryResp.Data
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_node_agent_proto_init() }
@@ -665,14 +904,14 @@ func file_node_agent_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_node_agent_proto_msgTypes[4].OneofWrappers = []any{}
+	file_node_agent_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_agent_proto_rawDesc), len(file_node_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

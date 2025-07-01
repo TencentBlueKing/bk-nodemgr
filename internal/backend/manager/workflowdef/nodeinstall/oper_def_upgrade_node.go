@@ -60,3 +60,8 @@ func (oper *operUpgradeNode) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
+
+// ActionRetryable checks if the action is a retry start point.
+func (oper *operUpgradeNode) ActionRetryable(actionName string) bool {
+	return false
+}
