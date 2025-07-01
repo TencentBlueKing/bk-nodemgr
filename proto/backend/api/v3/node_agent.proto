@@ -62,11 +62,8 @@ message NodeAgentUpgradeResp {
 
 message NodeAgentOperationRetryReq {
   string workflow_id = 1;
-  message RetryParm {
-    string operation_id = 1;
-    int64 retry_mod = 2;
-  }
-  repeated RetryParm retry_parm = 2;
+  int64 retry_mod = 2;
+  repeated string operation_id = 3;
 }
 
 message NodeAgentOperationRetryResp {

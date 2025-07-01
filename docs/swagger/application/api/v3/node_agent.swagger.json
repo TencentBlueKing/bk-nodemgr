@@ -49,17 +49,42 @@
           "NodeAgent"
         ]
       }
+    },
+    "/api/v3/node_agent/install/operation/retry": {
+      "post": {
+        "summary": "NodeAgentOperationRetry retry node operation.",
+        "operationId": "NodeAgent_NodeAgentOperationRetry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentOperationRetryResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentOperationRetryReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
     }
   },
   "definitions": {
-    "NodeAgentInstallRespData": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -171,10 +196,62 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/NodeAgentInstallRespData"
+          "$ref": "#/definitions/v3NodeAgentInstallRespData"
         }
       },
       "description": "NodeAgentInstallResp describes the node agent install response."
+    },
+    "v3NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentOperationRetryReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "retry_mod": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operation_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeAgentOperationRetryResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentOperationRetryRespData"
+        }
+      }
+    },
+    "v3NodeAgentOperationRetryRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     }
   }
 }

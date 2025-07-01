@@ -251,9 +251,10 @@ func (x *NodeAgentUpgradeResp) GetData() *NodeAgentUpgradeResp_Data {
 }
 
 type NodeAgentOperationRetryReq struct {
-	state         protoimpl.MessageState                  `protogen:"open.v1"`
-	WorkflowId    string                                  `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
-	RetryParm     []*NodeAgentOperationRetryReq_RetryParm `protobuf:"bytes,2,rep,name=retry_parm,json=retryParm,proto3" json:"retry_parm"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	RetryMod      int64                  `protobuf:"varint,2,opt,name=retry_mod,json=retryMod,proto3" json:"retry_mod"`
+	OperationId   []string               `protobuf:"bytes,3,rep,name=operation_id,json=operationId,proto3" json:"operation_id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -295,9 +296,16 @@ func (x *NodeAgentOperationRetryReq) GetWorkflowId() string {
 	return ""
 }
 
-func (x *NodeAgentOperationRetryReq) GetRetryParm() []*NodeAgentOperationRetryReq_RetryParm {
+func (x *NodeAgentOperationRetryReq) GetRetryMod() int64 {
 	if x != nil {
-		return x.RetryParm
+		return x.RetryMod
+	}
+	return 0
+}
+
+func (x *NodeAgentOperationRetryReq) GetOperationId() []string {
+	if x != nil {
+		return x.OperationId
 	}
 	return nil
 }
@@ -683,58 +691,6 @@ func (x *NodeAgentUpgradeResp_Data) GetWorkflowId() string {
 	return ""
 }
 
-type NodeAgentOperationRetryReq_RetryParm struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OperationId   string                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id"`
-	RetryMod      int64                  `protobuf:"varint,2,opt,name=retry_mod,json=retryMod,proto3" json:"retry_mod"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *NodeAgentOperationRetryReq_RetryParm) Reset() {
-	*x = NodeAgentOperationRetryReq_RetryParm{}
-	mi := &file_node_agent_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *NodeAgentOperationRetryReq_RetryParm) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NodeAgentOperationRetryReq_RetryParm) ProtoMessage() {}
-
-func (x *NodeAgentOperationRetryReq_RetryParm) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NodeAgentOperationRetryReq_RetryParm.ProtoReflect.Descriptor instead.
-func (*NodeAgentOperationRetryReq_RetryParm) Descriptor() ([]byte, []int) {
-	return file_node_agent_proto_rawDescGZIP(), []int{4, 0}
-}
-
-func (x *NodeAgentOperationRetryReq_RetryParm) GetOperationId() string {
-	if x != nil {
-		return x.OperationId
-	}
-	return ""
-}
-
-func (x *NodeAgentOperationRetryReq_RetryParm) GetRetryMod() int64 {
-	if x != nil {
-		return x.RetryMod
-	}
-	return 0
-}
-
 type NodeAgentOperationRetryResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
@@ -744,7 +700,7 @@ type NodeAgentOperationRetryResp_Data struct {
 
 func (x *NodeAgentOperationRetryResp_Data) Reset() {
 	*x = NodeAgentOperationRetryResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[11]
+	mi := &file_node_agent_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -756,7 +712,7 @@ func (x *NodeAgentOperationRetryResp_Data) String() string {
 func (*NodeAgentOperationRetryResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentOperationRetryResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[11]
+	mi := &file_node_agent_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -838,15 +794,12 @@ const file_node_agent_proto_rawDesc = "" +
 	"\x04data\x18\x04 \x01(\v2\x1d.v3.NodeAgentUpgradeResp.DataR\x04data\x1a'\n" +
 	"\x04Data\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
-	"workflowId\"\xd3\x01\n" +
+	"workflowId\"}\n" +
 	"\x1aNodeAgentOperationRetryReq\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
-	"workflowId\x12G\n" +
-	"\n" +
-	"retry_parm\x18\x02 \x03(\v2(.v3.NodeAgentOperationRetryReq.RetryParmR\tretryParm\x1aK\n" +
-	"\tRetryParm\x12!\n" +
-	"\foperation_id\x18\x01 \x01(\tR\voperationId\x12\x1b\n" +
-	"\tretry_mod\x18\x02 \x01(\x03R\bretryMod\"\xcd\x01\n" +
+	"workflowId\x12\x1b\n" +
+	"\tretry_mod\x18\x02 \x01(\x03R\bretryMod\x12!\n" +
+	"\foperation_id\x18\x03 \x03(\tR\voperationId\"\xcd\x01\n" +
 	"\x1bNodeAgentOperationRetryResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1d\n" +
@@ -869,33 +822,31 @@ func file_node_agent_proto_rawDescGZIP() []byte {
 	return file_node_agent_proto_rawDescData
 }
 
-var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_node_agent_proto_goTypes = []any{
-	(*NodeAgentInstallReq)(nil),                  // 0: v3.NodeAgentInstallReq
-	(*NodeAgentInstallResp)(nil),                 // 1: v3.NodeAgentInstallResp
-	(*NodeAgentUpgradeReq)(nil),                  // 2: v3.NodeAgentUpgradeReq
-	(*NodeAgentUpgradeResp)(nil),                 // 3: v3.NodeAgentUpgradeResp
-	(*NodeAgentOperationRetryReq)(nil),           // 4: v3.NodeAgentOperationRetryReq
-	(*NodeAgentOperationRetryResp)(nil),          // 5: v3.NodeAgentOperationRetryResp
-	(*NodeAgentInstallReq_Host)(nil),             // 6: v3.NodeAgentInstallReq.Host
-	(*NodeAgentInstallResp_Data)(nil),            // 7: v3.NodeAgentInstallResp.Data
-	(*NodeAgentUpgradeReq_Host)(nil),             // 8: v3.NodeAgentUpgradeReq.Host
-	(*NodeAgentUpgradeResp_Data)(nil),            // 9: v3.NodeAgentUpgradeResp.Data
-	(*NodeAgentOperationRetryReq_RetryParm)(nil), // 10: v3.NodeAgentOperationRetryReq.RetryParm
-	(*NodeAgentOperationRetryResp_Data)(nil),     // 11: v3.NodeAgentOperationRetryResp.Data
+	(*NodeAgentInstallReq)(nil),              // 0: v3.NodeAgentInstallReq
+	(*NodeAgentInstallResp)(nil),             // 1: v3.NodeAgentInstallResp
+	(*NodeAgentUpgradeReq)(nil),              // 2: v3.NodeAgentUpgradeReq
+	(*NodeAgentUpgradeResp)(nil),             // 3: v3.NodeAgentUpgradeResp
+	(*NodeAgentOperationRetryReq)(nil),       // 4: v3.NodeAgentOperationRetryReq
+	(*NodeAgentOperationRetryResp)(nil),      // 5: v3.NodeAgentOperationRetryResp
+	(*NodeAgentInstallReq_Host)(nil),         // 6: v3.NodeAgentInstallReq.Host
+	(*NodeAgentInstallResp_Data)(nil),        // 7: v3.NodeAgentInstallResp.Data
+	(*NodeAgentUpgradeReq_Host)(nil),         // 8: v3.NodeAgentUpgradeReq.Host
+	(*NodeAgentUpgradeResp_Data)(nil),        // 9: v3.NodeAgentUpgradeResp.Data
+	(*NodeAgentOperationRetryResp_Data)(nil), // 10: v3.NodeAgentOperationRetryResp.Data
 }
 var file_node_agent_proto_depIdxs = []int32{
 	6,  // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
 	7,  // 1: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
 	8,  // 2: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
 	9,  // 3: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
-	10, // 4: v3.NodeAgentOperationRetryReq.retry_parm:type_name -> v3.NodeAgentOperationRetryReq.RetryParm
-	11, // 5: v3.NodeAgentOperationRetryResp.data:type_name -> v3.NodeAgentOperationRetryResp.Data
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	10, // 4: v3.NodeAgentOperationRetryResp.data:type_name -> v3.NodeAgentOperationRetryResp.Data
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_node_agent_proto_init() }
@@ -911,7 +862,7 @@ func file_node_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_agent_proto_rawDesc), len(file_node_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

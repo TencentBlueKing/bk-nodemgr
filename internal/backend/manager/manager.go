@@ -387,17 +387,16 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	return workflowID, nil
 }
 
-// RetryNodeParam retry node param.
-type RetryNodeParam struct {
+// RetryOperationNodeParam retry node param.
+type RetryOperationNodeParam struct {
 	WorkflowID string
 
-	RetryMod types.NodeOperationMode
-
+	RetryMod     types.NodeOperationMode
 	OperationIDs []string
 }
 
 // RetryOperationNode launch a task to retry operation instance.
-func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryNodeParam) ([]string, error) {
+func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
 	workflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
