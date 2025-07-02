@@ -157,6 +157,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 		callBackEndPoint  string
 		gseRoot           string
 		token             string
+		operInstID        string
 		deployEnv         string
 		reinstall         bool
 		reRegisterAgentID bool
@@ -191,8 +192,8 @@ func registerRootVars(rootCmd *cobra.Command) {
 			return fmt.Errorf("set node pkgVersion failed, err: %v", err)
 		}
 
-		if err := SetToken(token); err != nil {
-			return fmt.Errorf("set token failed, err: %v", err)
+		if err := SetServerConf(token, operInstID); err != nil {
+			return fmt.Errorf("set server conf failed, err: %v", err)
 		}
 
 		if err := SetDeployEnv(deployEnv); err != nil {
@@ -218,6 +219,7 @@ func registerRootVars(rootCmd *cobra.Command) {
 	rootCmd.Flags().IntVar(&pkgGeneration, CmdFlagPkgGeneration, CmdDefaultPkgGeneration,
 		"this is the gse pkg generation which will be installed")
 	rootCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
+	rootCmd.Flags().StringVar(&operInstID, CmdFlagOperInstID, "", "operation instance id")
 	rootCmd.Flags().StringVar(&deployEnv, CmdFlagDeployEnv, "", "deploy env")
 	rootCmd.Flags().StringVar(&pkgVersion, CmdFlagPkgVersion, "", "this gse node pkg version which will be installed")
 	rootCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "gse root")
@@ -230,5 +232,6 @@ func registerRootVars(rootCmd *cobra.Command) {
 	_ = rootCmd.MarkFlagRequired(CmdFlagPkgVersion)
 	_ = rootCmd.MarkFlagRequired(CmdFlagGseRoot)
 	_ = rootCmd.MarkFlagRequired(CmdFlagToken)
+	_ = rootCmd.MarkFlagRequired(CmdFlagOperInstID)
 	_ = rootCmd.MarkFlagRequired(CmdFlagDeployEnv)
 }

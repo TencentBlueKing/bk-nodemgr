@@ -313,29 +313,41 @@ func SetPreCheckFilePath(filePath string) error {
 }
 
 // nolint: gochecknoglobals
-var token = struct {
+var serverConf = struct {
 	sync.Once
-	token string
+	token      string
+	operInstID string
 }{}
 
-// GetToken get token.
+// GetToken get serverConf.
 func GetToken() string {
-	return token.token
+	return serverConf.token
 }
 
-// SetToken set token.
-func SetToken(tokenStr string) error {
+// GetOperInstID get operation instance ID.
+func GetOperInstID() string {
+	return serverConf.token
+}
+
+// SetServerConf set serverConf.
+func SetServerConf(token string, operInstID string) error {
 	var err error
-	token.Do(func() {
-		if tokenStr == "" {
+	serverConf.Do(func() {
+		if token == "" {
 			err = errors.New("token is empty")
 			return
 		}
 
-		token.token = tokenStr
+		if operInstID == "" {
+			err = errors.New("operInstID is empty")
+			return
+		}
+
+		serverConf.token = token
+		serverConf.operInstID = operInstID
 	})
 	if err != nil {
-		return fmt.Errorf("set token failed, err: %w", err)
+		return fmt.Errorf("set server conf failed, err: %w", err)
 	}
 
 	return nil

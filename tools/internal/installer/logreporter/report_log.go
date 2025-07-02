@@ -36,6 +36,9 @@ type ReportLogsArgs struct {
 	// Token the token for report log.
 	Token string
 
+	// OperInstID the operation instance ID for report log.
+	OperInstID string
+
 	// Reader the Reader for log lines.
 	Reader io.ReadCloser
 
@@ -52,6 +55,7 @@ type ReportLogsArgs struct {
 // Reporter report logs.
 type Reporter struct {
 	token            string
+	operInstID       string
 	reader           io.ReadCloser
 	mu               sync.Mutex
 	logRptCnt        uint
@@ -65,6 +69,10 @@ func (reporter *Reporter) Validate() error {
 		return errors.New("token is empty")
 	}
 
+	if reporter.operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
 	if reporter.reader == nil {
 		return errors.New("reader is nil")
 	}
@@ -76,6 +84,7 @@ func (reporter *Reporter) Validate() error {
 func NewReporter(args ReportLogsArgs) *Reporter {
 	reporter := &Reporter{
 		token:            args.Token,
+		operInstID:       args.OperInstID,
 		reader:           args.Reader,
 		logRptCnt:        args.LogRptCnt,
 		bulkSize:         args.BulkSize,
@@ -135,8 +144,9 @@ func (reporter *Reporter) ReportLogs(ctx context.Context) (uint, error) {
 	splitLog := splitIntoN(logEntries, len(logEntries)/maxBulkLogSize-1)
 	for _, entries := range splitLog {
 		req := &ReportLogReq{
-			Token: reporter.token,
-			Logs:  entries,
+			Token:      reporter.token,
+			OperInstID: reporter.operInstID,
+			Logs:       entries,
 		}
 
 		if err := bulkReportLogs(ctx, backoff, reporter.callbackEndpoint, req); err != nil {
@@ -227,8 +237,9 @@ func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, callbackEndpoi
 
 // ReportLogReq report log request.
 type ReportLogReq struct {
-	Token string      `json:"token"`
-	Logs  []*LogEntry `json:"logs"`
+	Token      string      `json:"token"`
+	OperInstID string      `json:"oper_inst_id"`
+	Logs       []*LogEntry `json:"logs"`
 }
 
 // LogEntry log entry.
@@ -293,7 +304,7 @@ func (reporter *Reporter) Watch(interval time.Duration) (<-chan error, func() er
 				reportCancel()
 
 				if err != nil {
-					errorCh <- fmt.Errorf("final report failed: %w", err)
+					errorCh <- fmt.Errorf("final report failed, err: %w", err)
 				}
 
 				return
@@ -304,7 +315,7 @@ func (reporter *Reporter) Watch(interval time.Duration) (<-chan error, func() er
 				reportCancel()
 
 				if err != nil {
-					errorCh <- fmt.Errorf("report failed: %w", err)
+					errorCh <- fmt.Errorf("failed to report, err: %w", err)
 				}
 			}
 		}

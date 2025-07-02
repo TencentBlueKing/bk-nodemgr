@@ -22,6 +22,7 @@ func NewStepReportData() *cobra.Command {
 	var (
 		callBackEndPoint string
 		token            string
+		operInstID       string
 		agentID          string
 	)
 
@@ -29,8 +30,8 @@ func NewStepReportData() *cobra.Command {
 		Use:   "step_reportdata",
 		Short: "report data",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetToken(token); err != nil {
-				return fmt.Errorf("set token failed, err: %v", err)
+			if err := SetServerConf(token, operInstID); err != nil {
+				return fmt.Errorf("set server conf failed, err: %v", err)
 			}
 
 			if err := SetCallbackEndPoint(callBackEndPoint); err != nil {
@@ -56,6 +57,7 @@ func NewStepReportData() *cobra.Command {
 
 	stepCmd.Flags().StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
 	stepCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
+	stepCmd.Flags().StringVar(&token, CmdFlagOperInstID, "", "operation instance id")
 	stepCmd.Flags().StringVar(&agentID, CmdFlagAgentID, "", "agent id")
 
 	return stepCmd
