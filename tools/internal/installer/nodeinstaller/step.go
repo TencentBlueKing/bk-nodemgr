@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
@@ -24,72 +23,47 @@ import (
 
 // Step install agent.
 type Step struct {
-	agentID           string
-	reRegisterAgentID bool
-	setupDirPath      string
-	pkgPath           string
-	srcConfigDir      string
-	dstConfigDir      string
-	agentPath         string
-	agentConfigPath   string
-	agentCtlPath      string
-	overwrite         bool
+	agentID            string
+	reRegisterAgentID  bool
+	setupDirPath       string
+	pkgPath            string
+	srcConfigDir       string
+	dstConfigDir       string
+	gseAgentPath       string
+	gseAgentConfigPath string
+	gseCtlPath         string
+	overwrite          bool
 }
 
 // StepArgs args for step.
 type StepArgs struct {
-	AgentID           string
-	ReRegisterAgentID bool
-	SetupDirPath      string
-	PkgPath           string
-	SrcConfigDir      string
-	Overwrite         bool
+	AgentID            string
+	GseAgentPath       string
+	GseCtlPath         string
+	GseAgentConfigPath string
+	ReRegisterAgentID  bool
+	SetupDirPath       string
+	PkgPath            string
+	SrcConfigDir       string
+	Overwrite          bool
 }
 
 // NewStep new a step.
 func NewStep(args StepArgs) *Step {
 	step := &Step{
-		agentID:           args.AgentID,
-		reRegisterAgentID: args.ReRegisterAgentID,
-		setupDirPath:      args.SetupDirPath,
-		pkgPath:           args.PkgPath,
-		srcConfigDir:      args.SrcConfigDir,
-		dstConfigDir:      filepath.Join(args.SetupDirPath, "etc"),
-		overwrite:         args.Overwrite,
+		agentID:            args.AgentID,
+		gseAgentPath:       args.GseAgentPath,
+		gseCtlPath:         args.GseCtlPath,
+		gseAgentConfigPath: args.GseAgentConfigPath,
+		reRegisterAgentID:  args.ReRegisterAgentID,
+		setupDirPath:       args.SetupDirPath,
+		pkgPath:            args.PkgPath,
+		srcConfigDir:       args.SrcConfigDir,
+		dstConfigDir:       filepath.Join(args.SetupDirPath, "etc"),
+		overwrite:          args.Overwrite,
 	}
-
-	step.agentPath = filepath.Join(step.setupDirPath, "bin", GetGseAgentName())
-	step.agentCtlPath = filepath.Join(step.setupDirPath, "bin", GetGseAgentCtlName())
-	step.agentConfigPath = filepath.Join(step.dstConfigDir, "gse_agent.conf")
 
 	return step
-}
-
-// GetGseAgentName get gse agent name.
-const baseNameAgent = "gse_agent"
-
-// GetGseAgentName get gse agent name.
-func GetGseAgentName() string {
-	osType := runtime.GOOS
-	switch osType {
-	case "windows":
-		return baseNameAgent + ".exe"
-	default:
-		return baseNameAgent
-	}
-}
-
-const baseNameAgentCtl = "gsectl"
-
-// GetGseAgentCtlName gse agent ctl name.
-func GetGseAgentCtlName() string {
-	osType := runtime.GOOS
-	switch osType {
-	case "windows":
-		return baseNameAgentCtl + ".bat"
-	default:
-		return baseNameAgentCtl
-	}
 }
 
 // Run run the step to install node.
@@ -144,7 +118,7 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	// 3.1 unregister agent id [optional]
 	if step.reRegisterAgentID {
-		err = UnregisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath)
+		err = UnregisterAgentID(ctx, backoff, step.gseAgentPath, step.gseAgentConfigPath)
 		if err != nil {
 			logger.Error(constant.StepInstallNode,
 				fmt.Sprintf("unregister agent failed: %s", err))
@@ -155,7 +129,7 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	}
 
 	// 3.2 register agent id
-	agentID, err := RegisterAgentID(ctx, backoff, step.agentPath, step.agentConfigPath, step.agentID)
+	agentID, err := RegisterAgentID(ctx, backoff, step.gseAgentPath, step.gseAgentConfigPath, step.agentID)
 	if err != nil {
 		logger.Error(constant.StepInstallNode,
 			fmt.Sprintf("register agent failed: %v", err))

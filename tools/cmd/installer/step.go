@@ -24,11 +24,14 @@ import (
 
 func stepInstallNode(ctx context.Context) error {
 	step := nodeinstaller.NewStep(nodeinstaller.StepArgs{
-		AgentID:           GetNodeAgentID(),
-		ReRegisterAgentID: GetReRegisterAgentID() && GetReinstall(),
-		SetupDirPath:      GetSetupDir(),
-		PkgPath:           GetGsePkgPath(),
-		SrcConfigDir:      GetTmpConfigDir(),
+		AgentID:            GetNodeAgentID(),
+		GseAgentPath:       GetGseAgentPath(),
+		GseCtlPath:         GetGseCtlPath(),
+		GseAgentConfigPath: GetGseAgentConfPath(),
+		ReRegisterAgentID:  GetReRegisterAgentID() && GetReinstall(),
+		SetupDirPath:       GetSetupDir(),
+		PkgPath:            GetGsePkgPath(),
+		SrcConfigDir:       GetTmpConfigDir(),
 		// notice: It is now available, but there is no open configuration.
 		Overwrite: false,
 	})
