@@ -326,7 +326,7 @@ func GetToken() string {
 
 // GetOperInstID get operation instance ID.
 func GetOperInstID() string {
-	return serverConf.token
+	return serverConf.operInstID
 }
 
 // SetServerConf set serverConf.

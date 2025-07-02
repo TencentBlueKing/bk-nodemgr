@@ -267,12 +267,12 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}
 	defer tmp.Clean()
 
-	_, _, err = client.UploadFile(ctx.Ctx, tmpInstallBat.Path(), connectedRunDir)
+	_, _, err = client.UploadFile(ctx.Ctx, tmpInstallBat.Path(), info.InstallerWorkspace)
 	if err != nil {
 		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
 
-	installCMD := path.Clean(path.Join(connectedRunDir, batName))
+	installCMD := path.Clean(path.Join(info.InstallerWorkspace, batName))
 	stdOutStr, stdErrStr, err := client.RunSilentCommand(ctx.Ctx, installCMD)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node, err: %w", err)
