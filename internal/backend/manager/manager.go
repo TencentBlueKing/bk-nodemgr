@@ -19,6 +19,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -208,6 +210,8 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
 			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
+			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
 		nodeinstall.NewActionWaitGseReady(
 			mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
@@ -336,35 +340,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
-				mgr.logger.ErrorCtxf(ctx,
-					"failed to create node deployment. "+
-						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
-					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
-
-				return err
-			}
-
-			operationDef := nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
-			operationParam := operationDef.DefaultParameters()
-			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
-
-			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
-			if err != nil {
-				mgr.logger.ErrorCtxf(ctx,
-					"failed to launch install node task. "+
-						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
-					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
-
-				return err
-			}
-
-			mgr.logger.InfoCtxf(ctx,
-				"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
-					" node-deployment-token(%s)",
-				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
-
-			return nil
+			return mgr.createOper(ctx, tenantID, triggerCtl, deploy)
 		})
 	}
 
@@ -377,6 +353,54 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	}
 
 	return workflowID, nil
+}
+
+func (mgr *manager) createOper(
+	ctx context.Context,
+	tenantID string,
+	triggerCtl workflow.ITriggerCtl,
+	deploy *types.NodeDeployment,
+) error {
+
+	if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+		mgr.logger.ErrorCtxf(ctx,
+			"failed to create node deployment. "+
+				"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+			tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+
+		return err
+	}
+
+	var operationDef operation.Definition
+
+	switch deploy.Info.Static.OSType {
+	case string(criteria.OSLinux), string(criteria.OSDarwin):
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
+	case string(criteria.OSWindows):
+		operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{Token: deploy.Token})
+	default:
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
+	}
+
+	operationParam := operationDef.DefaultParameters()
+	operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
+	if err != nil {
+		mgr.logger.ErrorCtxf(ctx,
+			"failed to launch install node task. "+
+				"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+			tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+		return err
+	}
+
+	mgr.logger.InfoCtxf(ctx,
+		"launched install node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
+			" node-deployment-token(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+
+	return nil
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
