@@ -270,19 +270,6 @@ func GetGseAgentPath() string {
 	return gseAgentPath.filePath
 }
 
-const baseNameAgentCtl = "gsectl"
-
-// GetGseAgentCtlName gse agent ctl name.
-func GetGseAgentCtlName() string {
-	osType := runtime.GOOS
-	switch osType {
-	case "windows":
-		return baseNameAgentCtl + ".bat"
-	default:
-		return baseNameAgentCtl
-	}
-}
-
 // nolint: gochecknoglobals
 var gseAgentCtlPath = struct {
 	sync.Once
@@ -363,4 +350,38 @@ func SetToken(tokenStr string) error {
 	}
 
 	return nil
+}
+
+var reRegisterAgentID = struct {
+	sync.Once
+	enable bool
+}{}
+
+// GetReRegisterAgentID get reRegisterAgentID.
+func GetReRegisterAgentID() bool {
+	return reRegisterAgentID.enable
+}
+
+// SetReRegisterAgentID set reRegisterAgentID.
+func SetReRegisterAgentID(enable bool) {
+	reRegisterAgentID.Do(func() {
+		reRegisterAgentID.enable = enable
+	})
+}
+
+var reinstall = struct {
+	sync.Once
+	enable bool
+}{}
+
+// GetReinstall get reinstall.
+func GetReinstall() bool {
+	return reinstall.enable
+}
+
+// SetReinstall set reinstall.
+func SetReinstall(enable bool) {
+	reinstall.Do(func() {
+		reinstall.enable = enable
+	})
 }

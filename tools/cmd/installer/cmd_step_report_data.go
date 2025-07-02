@@ -14,44 +14,49 @@ package main
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
 	"github.com/spf13/cobra"
 )
 
-// NewStepStartNode ...
-func NewStepStartNode() *cobra.Command {
+// NewStepReportData new a step for report data.
+func NewStepReportData() *cobra.Command {
 	var (
-		setupDirPath string
+		callBackEndPoint string
+		token            string
+		agentID          string
 	)
 
 	stepCmd := &cobra.Command{
-		Use:   "step_start_node",
-		Short: "step_start_node",
-		Long:  "step_start_node",
+		Use:   "step_reportdata",
+		Short: "report data",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetSetupDir(setupDirPath); err != nil {
-				return err
+			if err := SetToken(token); err != nil {
+				return fmt.Errorf("set token failed, err: %v", err)
+			}
+
+			if err := SetCallbackEndPoint(callBackEndPoint); err != nil {
+				return fmt.Errorf("set callback endpoint failed, err: %v", err)
+			}
+
+			if err := SetNodeAgentID(agentID); err != nil {
+				return fmt.Errorf("set node agent id failed, err: %v", err)
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := startnode.NewStep(startnode.StepArgs{
-				GseCtlPath: GetGseCtlPath(),
-			})
-			if err := step.Run(cmd.Context()); err != nil {
+			if err := stepReportData(cmd.Context()); err != nil {
 				return err
 			}
 
-			fmt.Println("successfully start node")
+			fmt.Println("successfully report data")
 
 			return nil
 		},
 	}
 
-	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
-
-	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
+	stepCmd.Flags().StringVar(&callBackEndPoint, CmdFlagCallbackEndpoint, "", "callback endpoint")
+	stepCmd.Flags().StringVar(&token, CmdFlagToken, "", "token")
+	stepCmd.Flags().StringVar(&agentID, CmdFlagAgentID, "", "agent id")
 
 	return stepCmd
 }

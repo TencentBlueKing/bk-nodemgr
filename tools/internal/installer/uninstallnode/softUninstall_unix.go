@@ -1,3 +1,5 @@
+//go:build linux || darwin || freebsd || aix
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -8,7 +10,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package uninstallnode the package define the uninstall agent step.
 package uninstallnode
 
 import (
@@ -18,23 +19,23 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 )
 
-// Run run the step tp uninstall agent.
-func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepUninstallNode, "start to uninstall agent")
+// softUninstall uninstall agent by soft way.
+func (step *Step) softUninstall(ctx context.Context) error {
+	logger.Infof(constant.StepUninstallNode, "stop agent, gse-ctl(%s)", step.gseCtlPath)
+	if err := StopNode(ctx, step.gseCtlPath); err != nil {
+		logger.Infof(constant.StepUninstallNode, "stop agent failed: %v", err)
 
-	err := step.softUninstall(ctx)
-	if err != nil {
-		logger.Warnf(constant.StepUninstallNode, "soft uninstall failed, err: %v", err)
-
-		// try force uninstall
-		err = step.forceUninstall(ctx)
-		if err != nil {
-			logger.Errorf(constant.StepUninstallNode, "try force uninstall failed, err: %v", err)
-			return err
-		}
+		return err
 	}
+	logger.Infof(constant.StepUninstallNode, "successfully stop agent")
 
-	logger.Infof(constant.StepUninstallNode, "successfully uninstall agent")
+	logger.Infof(constant.StepUninstallNode, "remove setup dir(%s)", step.setupDirPath)
+	if err := RemoveSetupDir(ctx, step.setupDirPath); err != nil {
+
+		logger.Infof(constant.StepUninstallNode, "remove setup dir failed: %v", err)
+
+		return err
+	}
 
 	return nil
 }

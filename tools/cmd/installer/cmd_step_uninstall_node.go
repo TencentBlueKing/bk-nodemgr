@@ -12,43 +12,41 @@
 package main
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
-// NewCheckDeploy ...
-func NewCheckDeploy() *cobra.Command {
+// NewStepUninstallAgent ...
+func NewStepUninstallAgent() *cobra.Command {
 	var (
-		runDirPath string
+		setupDirPath string
 	)
+
 	stepCmd := &cobra.Command{
-		Use:   "step_check_deploy",
-		Short: "check deploy",
+		Use:   "step_uninstall",
+		Short: "uninstall node",
+		Long:  "the step is used to uninstall node",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetSetupDir(runDirPath); err != nil {
+			if err := SetSetupDir(setupDirPath); err != nil {
 				return err
 			}
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := checkdeploy.NewStep(checkdeploy.StepArgs{
-				RunDir:    GetRunDir(),
-				NodeRole:  GetNodeRole(),
-				DeployEnv: GetDeployEnv(),
-			})
-
-			if err := step.Run(cmd.Context()); err != nil {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := stepUninstallNode(cmd.Context()); err != nil {
 				return err
 			}
+
+			fmt.Println("successfully uninstall node")
 
 			return nil
 		},
 	}
 
-	// nolint: goconst
-	stepCmd.Flags().StringVar(&runDirPath, CmdFlagRunDirPath, "", "run dir path")
-	_ = stepCmd.MarkFlagRequired(CmdFlagRunDirPath)
+	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
+	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
 
 	return stepCmd
 }
