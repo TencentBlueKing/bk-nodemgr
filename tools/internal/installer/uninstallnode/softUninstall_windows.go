@@ -125,13 +125,10 @@ func (step *Step) stopGseAgentDaemonSvc(ctx context.Context, gseAgentDaemonPath 
 	return nil
 }
 
-// RegistryNameGseSelfStart is the name of the self-start task for GSE agent in the registry.
-const RegistryNameGseSelfStart = "gse_agent"
-
 // delGseAgentSelfStartTask deletes the self-start task of GSE agent from the registry.
 func (step *Step) delGseAgentSelfStartTask() error {
 	// delete registry
-	err := winapi.DelRegistryCurrentUserStartRun(RegistryNameGseSelfStart)
+	err := winapi.DelRegistryCurrentUserStartRun(step.gseAgentDaemonSvcName)
 	if err != nil {
 		return fmt.Errorf("delete registry failed, err: %v", err)
 	}
