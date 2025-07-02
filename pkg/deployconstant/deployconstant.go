@@ -15,13 +15,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
 	Generation         types.Generation
-	OsType             string
+	OsType             criteria.OSType
 	HostIDPath         string
 	InstallerWorkspace string
 	GseDataIPC         string
@@ -39,20 +41,8 @@ func (conf DeployConf) Validate() error {
 		return fmt.Errorf("invalid generation, err: %w", err)
 	}
 
-	if conf.OsType == "" {
-		return errors.New("osType is empty")
-	}
-
-	if conf.HostIDPath == "" {
-		return errors.New("hostIDPath is empty")
-	}
-
-	if conf.GseDataIPC == "" {
-		return errors.New("gseDataIPC is empty")
-	}
-
-	if conf.GsePluginIPC == "" {
-		return errors.New("gsePluginIPC is empty")
+	if err := conf.OsType.Validate(); err != nil {
+		return err
 	}
 
 	if conf.GseHomeDir == "" {
@@ -79,10 +69,10 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[types.Generation]map[string]DeployConf)
+var deployConfMap = make(map[types.Generation]map[criteria.OSType]DeployConf)
 
 // GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(generation types.Generation, osType string) (DeployConf, error) {
+func GetDeployConf(generation types.Generation, osType criteria.OSType) (DeployConf, error) {
 	confMap, ok := deployConfMap[generation]
 	if !ok {
 		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
@@ -99,12 +89,15 @@ func GetDeployConf(generation types.Generation, osType string) (DeployConf, erro
 // SetDeployConf sets the deployment configuration for the specified OS type.
 // this map only set once, if the osType already exists, it will not be set again.
 func SetDeployConf(conf DeployConf) error {
+	// Populate default values if not set
+	populateDefaultValues(&conf)
+
 	if err := conf.Validate(); err != nil {
 		return fmt.Errorf("set deploy conf failed, err: %w", err)
 	}
 
 	if _, ok := deployConfMap[conf.Generation]; !ok {
-		deployConfMap[conf.Generation] = make(map[string]DeployConf)
+		deployConfMap[conf.Generation] = make(map[criteria.OSType]DeployConf)
 	}
 
 	if _, ok := deployConfMap[conf.Generation][conf.OsType]; !ok {
@@ -112,4 +105,75 @@ func SetDeployConf(conf DeployConf) error {
 	}
 
 	return nil
+}
+
+func populateDefaultValues(conf *DeployConf) {
+	if conf.OsType == criteria.OSWindows {
+		populateDefaultValuesWindows(conf)
+
+		return
+	}
+
+	populateDefaultValuesUnix(conf)
+}
+
+func populateDefaultValuesUnix(conf *DeployConf) {
+	if conf.HostIDPath == "" {
+		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", system.GetEnv())
+	}
+	if conf.InstallerWorkspace == "" {
+		conf.InstallerWorkspace = fmt.Sprintf("/tmp/bknm/%s", system.GetEnv())
+	}
+	if conf.GseDataIPC == "" {
+		conf.GseDataIPC = fmt.Sprintf("/var/run/%s/ipc.state.report", system.GetEnv())
+	}
+	if conf.GsePluginIPC == "" {
+		conf.GsePluginIPC = fmt.Sprintf("/var/run/%s/ipc.state.message", system.GetEnv())
+	}
+	if conf.GseHomeDir == "" {
+		//conf.GseHomeDir = "/usr/local/gse2"
+		conf.GseHomeDir = fmt.Sprintf("/usr/local/%s", system.GetEnv())
+	}
+	if conf.GseDataDir == "" {
+		conf.GseDataDir = fmt.Sprintf("/var/lib/%s", system.GetEnv())
+	}
+	if conf.GseRunDir == "" {
+		conf.GseRunDir = fmt.Sprintf("/var/run/%s", system.GetEnv())
+	}
+	if conf.GseLogDir == "" {
+		conf.GseLogDir = fmt.Sprintf("/var/log/%s", system.GetEnv())
+	}
+	if conf.GseEnvironDir == "" {
+		conf.GseEnvironDir = fmt.Sprintf("/etc/sysconfig/%s", system.GetEnv())
+	}
+}
+
+func populateDefaultValuesWindows(conf *DeployConf) {
+	if conf.HostIDPath == "" {
+		conf.HostIDPath = fmt.Sprintf("C:\\\\%s\\\\data\\\\host\\\\hostid", system.GetEnv())
+	}
+	if conf.InstallerWorkspace == "" {
+		conf.InstallerWorkspace = fmt.Sprintf("C:\\\\tmp\\\\bknm\\\\%s", system.GetEnv())
+	}
+	if conf.GseDataIPC == "" {
+		conf.GseDataIPC = "27000"
+	}
+	if conf.GsePluginIPC == "" {
+		conf.GsePluginIPC = "26000"
+	}
+	if conf.GseHomeDir == "" {
+		conf.GseHomeDir = fmt.Sprintf("C:\\\\%s", system.GetEnv())
+	}
+	if conf.GseDataDir == "" {
+		conf.GseDataDir = fmt.Sprintf("C:\\\\%s\\\\data", system.GetEnv())
+	}
+	if conf.GseRunDir == "" {
+		conf.GseRunDir = fmt.Sprintf("C:\\\\%s\\\\data", system.GetEnv())
+	}
+	if conf.GseLogDir == "" {
+		conf.GseLogDir = fmt.Sprintf("C:\\\\%s\\\\log", system.GetEnv())
+	}
+	if conf.GseEnvironDir == "" {
+		conf.GseEnvironDir = fmt.Sprintf("C:\\\\Windows\\\\System32\\\\config\\\\gse\\\\%s", system.GetEnv())
+	}
 }

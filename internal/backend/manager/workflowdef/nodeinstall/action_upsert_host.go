@@ -18,8 +18,8 @@ import (
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -202,12 +202,12 @@ func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.D
 	// inorder to check the interface of cc, and set the default architecture at the beginning
 	// Here is the historical reason for cc, and can only support x86 architecture and arm architecture
 	switch host.Static.OSType {
-	case criteria.OSWindows, criteria.OSLinux:
-		host.Static.Arch = criteria.CPUArch386
-	case criteria.OSDarwin:
-		host.Static.Arch = criteria.CPUArchArm
+	case string(criteria.OSWindows), string(criteria.OSLinux):
+		host.Static.Arch = string(criteria.CPUArch386)
+	case string(criteria.OSDarwin):
+		host.Static.Arch = string(criteria.CPUArchArm)
 	default:
-		host.Static.Arch = criteria.CPUArch386
+		host.Static.Arch = string(criteria.CPUArch386)
 	}
 
 	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Static.BizID, host)

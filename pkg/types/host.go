@@ -13,6 +13,8 @@ package types
 import (
 	"errors"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // Addressing represents an addressing type.
@@ -106,8 +108,8 @@ type HostDynamic struct {
 	NodeStatus     NodeStatus
 	NodeVersion    string
 	NodeGeneration Generation
-	NodeCPUArch    string
-	NodeOsType     string
+	NodeCPUArch    criteria.CPUArch
+	NodeOsType     criteria.OSType
 	AgentID        string
 	NetworkUnitID  int64
 

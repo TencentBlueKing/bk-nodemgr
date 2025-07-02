@@ -15,9 +15,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 )
 
@@ -49,7 +49,7 @@ func newCPUArchKeeper(cli *cli) *enumCPUArchKeeper {
 			objectID:     "host",
 			attributeID:  "bk_cpu_architecture",
 			mapping:      make(map[string]string),
-			unknownValue: criteria.CPUArchUnknown,
+			unknownValue: string(criteria.CPUArchUnknown),
 		},
 		cpuArchMapping: make(map[string]string),
 	}
@@ -69,7 +69,7 @@ func (keeper *enumCPUArchKeeper) getValue(key string) string {
 		return keeper.enumBasicKeeper.unknownValue
 	}
 
-	return value
+	return string(value)
 }
 
 func (keeper *enumCPUArchKeeper) getKey(value string) string {
@@ -100,7 +100,7 @@ func (keeper *enumCPUArchKeeper) update(ctx context.Context) error {
 			continue
 		}
 
-		keeper.cpuArchMapping[normalizeArch] = v
+		keeper.cpuArchMapping[string(normalizeArch)] = v
 	}
 	keeper.cpuArchMappingMutex.Unlock()
 
@@ -114,7 +114,7 @@ func newOSTypeKeeper(cli *cli) *enumOSTypeKeeper {
 			objectID:     "host",
 			attributeID:  "bk_os_type",
 			mapping:      make(map[string]string),
-			unknownValue: criteria.OSUnknown,
+			unknownValue: string(criteria.OSUnknown),
 		},
 		osTypeMapping: make(map[string]string),
 	}
@@ -134,7 +134,7 @@ func (keeper *enumOSTypeKeeper) getValue(key string) string {
 		return keeper.enumBasicKeeper.unknownValue
 	}
 
-	return value
+	return string(value)
 }
 
 func (keeper *enumOSTypeKeeper) getKey(value string) string {
@@ -165,7 +165,7 @@ func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
 			continue
 		}
 
-		keeper.osTypeMapping[normalizedOS] = v
+		keeper.osTypeMapping[string(normalizedOS)] = v
 	}
 	keeper.osTypeMappingMutex.Unlock()
 

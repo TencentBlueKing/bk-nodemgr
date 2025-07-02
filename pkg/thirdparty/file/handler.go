@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -108,8 +109,8 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 	plats := make([]platform.Platform, 0)
 	for _, plat := range resp.GetPlatforms() {
 		plats = append(plats, platform.Platform{
-			OS:   plat.GetOsType(),
-			Arch: plat.GetCpuArch(),
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 
@@ -141,8 +142,8 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 	plats := make([]platform.Platform, 0)
 	for _, plat := range resp.GetPlatforms() {
 		plats = append(plats, platform.Platform{
-			OS:   plat.GetOsType(),
-			Arch: plat.GetCpuArch(),
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 
@@ -192,15 +193,15 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 	agentPlats := make([]platform.Platform, 0)
 	for _, plat := range resp.GetAgentPlatforms() {
 		agentPlats = append(agentPlats, platform.Platform{
-			OS:   plat.GetOsType(),
-			Arch: plat.GetCpuArch(),
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 	proxyPlats := make([]platform.Platform, 0)
 	for _, plat := range resp.GetProxyPlatforms() {
 		proxyPlats = append(proxyPlats, platform.Platform{
-			OS:   plat.GetOsType(),
-			Arch: plat.GetCpuArch(),
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
 

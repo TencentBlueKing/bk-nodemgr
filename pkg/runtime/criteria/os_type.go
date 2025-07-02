@@ -10,58 +10,75 @@
 
 package criteria
 
+import "fmt"
+
+// OSType define the os type.
+type OSType string
+
 const (
 	// OSAix this defines the os type of aix.
-	OSAix = "aix"
+	OSAix OSType = "aix"
 
 	// OSAndroid this defines the os type of android.
-	OSAndroid = "android"
+	OSAndroid OSType = "android"
 
 	// OSDarwin this defines the os type of darwin.
-	OSDarwin = "darwin"
+	OSDarwin OSType = "darwin"
 
 	// OSDragonfly this defines the os type of dragonfly.
-	OSDragonfly = "dragonfly"
+	OSDragonfly OSType = "dragonfly"
 
 	// OSFreebsd this defines the os type of freebsd.
-	OSFreebsd = "freebsd"
+	OSFreebsd OSType = "freebsd"
 
 	// OSHurd this defines the os type of hurd.
-	OSHurd = "hurd"
+	OSHurd OSType = "hurd"
 
 	// OSIllumos this defines the os type of illumos.
-	OSIllumos = "illumos"
+	OSIllumos OSType = "illumos"
 
 	// OSIos this defines the os type of ios.
-	OSIos = "ios"
+	OSIos OSType = "ios"
 
 	// OSJs this defines the os type of js.
-	OSJs = "js"
+	OSJs OSType = "js"
 
 	// OSLinux this defines the os type of linux.
-	OSLinux = "linux"
+	OSLinux OSType = "linux"
 
 	// OSNetbsd this defines the os type of netbsd.
-	OSNetbsd = "netbsd"
+	OSNetbsd OSType = "netbsd"
 
 	// OSOpenbsd this defines the os type of openbsd.
-	OSOpenbsd = "openbsd"
+	OSOpenbsd OSType = "openbsd"
 
 	// OSPlan9 this defines the os type of plan9.
-	OSPlan9 = "plan9"
+	OSPlan9 OSType = "plan9"
 
 	// OSSolaris this defines the os type of solaris.
-	OSSolaris = "solaris"
+	OSSolaris OSType = "solaris"
 
 	// OSWasip1 this defines the os type of wasip1.
-	OSWasip1 = "wasip1"
+	OSWasip1 OSType = "wasip1"
 
 	// OSWindows this defines the os type of windows.
-	OSWindows = "windows"
+	OSWindows OSType = "windows"
 
 	// OSZos this defines the os type of zos.
-	OSZos = "zos"
+	OSZos OSType = "zos"
 
 	// OSUnknown this defines the os type of unknown.
-	OSUnknown = "unknown"
+	OSUnknown OSType = "unknown"
 )
+
+// Validate checks if the os type is valid.
+func (os OSType) Validate() error {
+	switch os {
+	case OSAix, OSAndroid, OSDarwin, OSDragonfly, OSFreebsd, OSHurd,
+		OSIllumos, OSIos, OSJs, OSLinux, OSNetbsd, OSOpenbsd,
+		OSPlan9, OSSolaris, OSWasip1, OSWindows, OSZos, OSUnknown:
+		return nil
+	default:
+		return fmt.Errorf("invalid os type: %s", os)
+	}
+}

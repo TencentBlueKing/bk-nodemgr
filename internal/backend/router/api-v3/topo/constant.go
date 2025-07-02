@@ -11,10 +11,10 @@
 package topo
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // GetConstant get constant values.
@@ -44,7 +44,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 	}
 
 	if req.GetOsType() {
-		osTypes = []string{criteria.OSLinux, criteria.OSWindows, criteria.OSDarwin}
+		osTypes = []string{string(criteria.OSLinux), string(criteria.OSWindows), string(criteria.OSDarwin)}
 	}
 
 	return &protoBackend.TopoConstantGetResp_Data{

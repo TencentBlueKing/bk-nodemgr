@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"gopkg.in/yaml.v2"
 )
@@ -45,7 +45,7 @@ const (
 	defaultInstallerFileGroup = "/bk-nodeman/file/tools"
 
 	defaultGseDeployConfLinuxGeneration    = 2
-	defaultGseDeployConfLinuxOsType        = criteria.OSLinux
+	defaultGseDeployConfLinuxOsType        = string(criteria.OSLinux)
 	defaultGseDeployConfLinuxHostIDPath    = "/var/lib/gse2/host/hostid"
 	defaultGseDeployConfLinuxGseDataIPC    = "/var/run/gse2/ipc.state.report"
 	defaultGseDeployConfLinuxGsePluginIPC  = "/var/run/gse2/ipc.state.message"
@@ -56,7 +56,7 @@ const (
 	defaultGseDeployConfLinuxGseEnvironDir = "/etc/sysconfig/gse2"
 
 	defaultGseDeployConfWindowsGeneration    = 2
-	defaultGseDeployConfWindowsOsType        = criteria.OSWindows
+	defaultGseDeployConfWindowsOsType        = string(criteria.OSWindows)
 	defaultGseDeployConfWindowsHostIDPath    = "c:\\gse2\\data\\host\\hostid"
 	defaultGseDeployConfWindowsGseDataIPC    = "27000"
 	defaultGseDeployConfWindowsGsePluginIPC  = ""

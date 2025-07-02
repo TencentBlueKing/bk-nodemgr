@@ -15,6 +15,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -93,8 +94,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				NodeStatus:     types.NodeStatus(info.NodeStatus),
 				NodeVersion:    info.NodeVersion,
 				NodeGeneration: types.Generation(info.NodeGeneration),
-				NodeCPUArch:    info.NodeCPUArch,
-				NodeOsType:     info.NodeOsType,
+				NodeCPUArch:    criteria.CPUArch(info.NodeCPUArch),
+				NodeOsType:     criteria.OSType(info.NodeOsType),
 				AgentID:        info.AgentID,
 				NetworkUnitID:  info.NetworkUnitID,
 				ProxyTags: func() []types.ProxyTag {
@@ -272,8 +273,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		TenantID:       info.Host.TenantID,
 		NodeRole:       string(info.Host.Dynamic.NodeRole),
 		NodeStatus:     string(info.Host.Dynamic.NodeStatus),
-		NodeCPUArch:    info.Host.Dynamic.NodeCPUArch,
-		NodeOsType:     info.Host.Dynamic.NodeOsType,
+		NodeCPUArch:    string(info.Host.Dynamic.NodeCPUArch),
+		NodeOsType:     string(info.Host.Dynamic.NodeOsType),
 		NodeVersion:    info.Host.Dynamic.NodeVersion,
 		NodeGeneration: int64(info.Host.Dynamic.NodeGeneration),
 		AgentID:        info.Host.Dynamic.AgentID,

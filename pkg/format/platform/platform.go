@@ -16,12 +16,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // StandardOSMap this map is used to convert various OS names to Go standard GOOS values..
-func StandardOSMap() map[string]string {
-	return map[string]string{
+func StandardOSMap() map[string]criteria.OSType {
+	return map[string]criteria.OSType{
 		"aix":       criteria.OSAix,
 		"android":   criteria.OSAndroid,
 		"darwin":    criteria.OSDarwin,
@@ -72,7 +72,7 @@ func StandardOSMap() map[string]string {
 
 // NormalizeOS convert various OS names to Go standard GOOS values.
 // if unable to recognize, return original input and error.
-func NormalizeOS(osName string) (string, error) {
+func NormalizeOS(osName string) (criteria.OSType, error) {
 	if osName == "" {
 		return "", errors.New("empty OS name")
 	}
@@ -97,12 +97,12 @@ func NormalizeOS(osName string) (string, error) {
 		}
 	}
 
-	return osName, fmt.Errorf("unknown OS: %s", osName)
+	return "", fmt.Errorf("unknown OS: %s", osName)
 }
 
 // StandardArchMap this map is used to convert various architecture names to Go standard GOARCH values.
-func StandardArchMap() map[string]string {
-	return map[string]string{
+func StandardArchMap() map[string]criteria.CPUArch {
+	return map[string]criteria.CPUArch{
 		"386":      criteria.CPUArch386,
 		"aarch64":  criteria.CPUArchArm64,
 		"amd64":    criteria.CPUArchAmd64,
@@ -141,7 +141,7 @@ func StandardArchMap() map[string]string {
 
 // NormalizeArch convert various architecture names to Go standard GOARCH values.
 // if unable to recognize, return original input and error.
-func NormalizeArch(arch string) (string, error) {
+func NormalizeArch(arch string) (criteria.CPUArch, error) {
 	if arch == "" {
 		return "", errors.New("empty architecture name")
 	}
@@ -166,7 +166,7 @@ func NormalizeArch(arch string) (string, error) {
 		return "arm", nil
 	}
 
-	return arch, fmt.Errorf("unknown architecture: %s", arch)
+	return "", fmt.Errorf("unknown architecture: %s", arch)
 }
 
 // parseArmVersion try to extract version number from ARM version string.
@@ -188,8 +188,8 @@ func parseArmVersion(version string) (int, error) {
 
 // Platform represents a platform identifier.
 type Platform struct {
-	OS   string
-	Arch string
+	OS   criteria.OSType
+	Arch criteria.CPUArch
 }
 
 // EmptyPlatform returns an empty platform.
