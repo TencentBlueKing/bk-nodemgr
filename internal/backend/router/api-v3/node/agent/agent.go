@@ -49,9 +49,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/install", rest.RestHandlerFunc(h.AgentInstall))
-	h.rg.POST("/install/opertion/retry", rest.RestHandlerFunc(h.RetryOperation))
 	h.rg.POST("/upgrade", rest.RestHandlerFunc(h.AgentUpgrade))
 	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReConfig))
 	h.rg.POST("/restart", rest.RestHandlerFunc(h.AgentRestart))
 	h.rg.POST("/uninstall", rest.RestHandlerFunc(h.AgentUninstall))
+	h.rg.POST("/operation/retry", rest.RestHandlerFunc(h.AgentOperationRetry))
 }

@@ -36,13 +36,14 @@ func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWorkflowCondition) error {
-	exactCond, fuzzyCond, err := convertNodeWorkConditionsFromTypes(condition)
+	exactCond, fuzzyCond, timeRange, err := convertNodeWorkConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.ExactIncludeConditions = exactCond
 	x.FuzzyIncludeConditions = fuzzyCond
+	x.OperateTimeRange = timeRange
 
 	return nil
 }
@@ -51,7 +52,8 @@ func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWo
 func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions())
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
 }
 
 // ConvertNodeWorkflowsFromTypes convert node workflows from types.
@@ -115,7 +117,7 @@ func (x *NodeWorkflowDistinctReq) AutoConvert() {
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.NodeWorkflowCondition) error {
-	exactCond, fuzzyCond, err := convertNodeWorkConditionsFromTypes(condition)
+	exactCond, fuzzyCond, _, err := convertNodeWorkConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
@@ -130,7 +132,8 @@ func (x *NodeWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.No
 func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions())
+		x.GetFuzzyIncludeConditions(),
+		nil)
 }
 
 // ConvertResultFromTypes convert result from types.
@@ -556,9 +559,16 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
-	_ *NodeWorkflowFuzzyConditions) *types.NodeWorkflowCondition {
+	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
 
 	condition := &types.NodeWorkflowCondition{}
+
+	if timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
 
 	// exact conditions.
 	if exactCond != nil {
@@ -595,14 +605,22 @@ func convertWorkflowOperationConditionsToTypes(
 }
 
 func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) (
-	*NodeWorkflowExactConditions, *NodeWorkflowFuzzyConditions, error) {
+	*NodeWorkflowExactConditions, *NodeWorkflowFuzzyConditions, *TimeRange, error) {
 
 	if condition == nil {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	var exactCond *NodeWorkflowExactConditions
 	var fuzzyCond *NodeWorkflowFuzzyConditions
+	var timeRange *TimeRange
+
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowExactConditions{
@@ -615,10 +633,10 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	}
 
 	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+		return nil, nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
-	return exactCond, fuzzyCond, nil
+	return exactCond, fuzzyCond, timeRange, nil
 }
 
 func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperationCondition) (

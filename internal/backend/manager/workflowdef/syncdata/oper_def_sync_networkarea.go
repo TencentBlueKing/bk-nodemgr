@@ -55,8 +55,3 @@ func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
-
-// ActionRetryable checks if the action is a retry start point.
-func (oper *operSyncNetworkAreaFromCMDB) ActionRetryable(_ string) bool {
-	return false
-}

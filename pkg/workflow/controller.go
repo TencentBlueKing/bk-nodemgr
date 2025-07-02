@@ -533,6 +533,26 @@ func (ctl *controller) handlePartialRetry(ctx context.Context, prevInstance *ope
 		return nil, err
 	}
 
+	if startIndex > 0 {
+		lastActionBeforeStart := actionNames[startIndex-1]
+
+		prevActionInst, exists := prevInstance.ActionInstanceDataMap[lastActionBeforeStart]
+		if exists && prevActionInst.Content != nil {
+			newActionInst, exists := instanceData.ActionInstanceDataMap[lastActionBeforeStart]
+			if exists {
+				newContent := make(map[string]any, len(prevActionInst.Content))
+				for k, v := range prevActionInst.Content {
+					newContent[k] = v
+				}
+				newActionInst.Content = newContent
+			}
+		}
+	}
+
+	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(ctx, instanceData); err != nil {
+		return nil, fmt.Errorf("failed to update instance with copied content: %w", err)
+	}
+
 	return &controller{
 		mgr:                   ctl.mgr,
 		trig:                  ctl.trig,

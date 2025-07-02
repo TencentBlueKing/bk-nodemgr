@@ -868,7 +868,7 @@ func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("retry operation  failed. code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
