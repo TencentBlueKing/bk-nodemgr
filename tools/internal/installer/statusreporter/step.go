@@ -29,6 +29,7 @@ import (
 // Step report status step.
 type Step struct {
 	token            string
+	operInstID       string
 	status           string
 	callbackEndpoint string
 }
@@ -36,6 +37,7 @@ type Step struct {
 // StepArgs define args for step.
 type StepArgs struct {
 	Token            string
+	OperInstID       string
 	Status           constant.State
 	CallbackEndpoint string
 }
@@ -44,6 +46,7 @@ type StepArgs struct {
 func NewStep(args StepArgs) *Step {
 	step := &Step{
 		token:            args.Token,
+		operInstID:       args.OperInstID,
 		status:           string(args.Status),
 		callbackEndpoint: args.CallbackEndpoint,
 	}
@@ -55,8 +58,9 @@ func NewStep(args StepArgs) *Step {
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(constant.StepReportStatus, "start report status")
 	req := &ReportStatusReq{
-		Token:  step.token,
-		Status: step.status,
+		Token:      step.token,
+		OperInstID: step.operInstID,
+		Status:     step.status,
 	}
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -83,8 +87,9 @@ const bulkReportStatusTimeout = 10 * time.Second
 
 // ReportStatusReq ...
 type ReportStatusReq struct {
-	Token  string `json:"token"`
-	Status string `json:"status"`
+	Token      string `json:"token"`
+	OperInstID string `json:"oper_inst_id"`
+	Status     string `json:"status"`
 }
 
 // ReportStatus report status.

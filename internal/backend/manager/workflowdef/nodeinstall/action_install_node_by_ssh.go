@@ -73,6 +73,7 @@ type InstallParams struct {
 	PkgGeneration      types.Generation
 	GseRoot            string
 	Token              string
+	OperInstID         string
 	InstallerWorkspace string
 	AdditionArgs       []string
 }
@@ -236,6 +237,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		PkgGeneration:      info.Dynamic.NodeGeneration,
 		GseRoot:            deployConstant.GseHomeDir,
 		Token:              param.Token,
+		OperInstID:         ctx.Data.OperationInstanceID,
 		InstallerWorkspace: info.InstallerWorkspace,
 		AdditionArgs: []string{
 			"--reinstall",
@@ -367,15 +369,16 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 // nolint: perfsprint
 func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--callback_endpoint %s", param.CallbackEndpoint),
-		fmt.Sprintf("--download_endpoint %s", param.DownloadEndpoint),
-		fmt.Sprintf("--pkg_version %s", param.PkgVersion),
-		fmt.Sprintf("--pkg_generation %d", param.PkgGeneration),
-		fmt.Sprintf("--gse_root %s", param.GseRoot),
-		fmt.Sprintf("--token %s", param.Token),
-		fmt.Sprintf("--workspace %s", param.InstallerWorkspace),
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
+		fmt.Sprintf(`--node_role "%s"`, param.NodeRole),
+		fmt.Sprintf(`--callback_endpoint "%s"`, param.CallbackEndpoint),
+		fmt.Sprintf(`--download_endpoint "%s"`, param.DownloadEndpoint),
+		fmt.Sprintf(`--pkg_version "%s"`, param.PkgVersion),
+		fmt.Sprintf(`--pkg_generation "%d"`, param.PkgGeneration),
+		fmt.Sprintf(`--gse_root "%s"`, param.GseRoot),
+		fmt.Sprintf(`--token "%s"`, param.Token),
+		fmt.Sprintf(`--oper_inst_id "%s"`, param.OperInstID),
+		fmt.Sprintf(`--workspace "%s"`, param.InstallerWorkspace),
+		fmt.Sprintf(`--deploy_env "%s"`, system.GetEnv()),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)

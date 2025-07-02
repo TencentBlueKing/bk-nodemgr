@@ -33,6 +33,7 @@ func install(cmd *cobra.Command, _ []string) (runErr error) {
 
 		reportStatusStep := statusreporter.NewStep(statusreporter.StepArgs{
 			Token:            GetToken(),
+			OperInstID:       GetOperInstID(),
 			Status:           state,
 			CallbackEndpoint: GetCallBackEndpoint(),
 		})

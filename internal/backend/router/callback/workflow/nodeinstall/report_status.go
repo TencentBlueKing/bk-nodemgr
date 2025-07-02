@@ -43,9 +43,9 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 		return
 	}
 	h.logger.Infof("operation instance:%s, action:%s ,report status: %s",
-		info.OperInstID, info.BlockingActionName, req.GetStatus())
+		req.GetOperInstId(), info.BlockingActionName, req.GetStatus())
 
-	if err := h.UpdateOperInstActionStatus(gCtx, info.OperInstID, info.BlockingActionName,
+	if err := h.UpdateOperInstActionStatus(gCtx, req.GetOperInstId(), info.BlockingActionName,
 		action.State(req.GetStatus())); err != nil {
 		h.logger.Errorf("update action status failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

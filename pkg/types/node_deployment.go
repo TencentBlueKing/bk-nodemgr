@@ -64,7 +64,6 @@ func (mode LoginMode) Validate() error {
 
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	OperInstID         string
 	BlockingActionName string
 	Host
 
@@ -84,10 +83,6 @@ type DeploymentInfo struct {
 // nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (info DeploymentInfo) Validate() error {
-	if info.OperInstID == "" {
-		return errors.New("oper_inst_id shouldn't not be empty")
-	}
-
 	if info.BlockingActionName == "" {
 		return errors.New("blocking_action_name shouldn't not be empty")
 	}

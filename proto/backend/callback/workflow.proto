@@ -40,6 +40,7 @@ message GetCheckListReq {
 message ReportLogReq {
   string token = 1;
   repeated ReportLog logs = 2;
+  string oper_inst_id = 3;
 }
 
 // ReportLog
@@ -61,4 +62,5 @@ message ReportDataReq {
 message ReportStatusReq {
   string token = 1;
   string status = 2;
+  string oper_inst_id = 3;
 }

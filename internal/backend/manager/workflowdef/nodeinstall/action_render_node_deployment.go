@@ -119,7 +119,6 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info.OperInstID = ctx.Data.OperationInstanceID
 	info.BlockingActionName = ActionNameWaitInstallComplete
 
 	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {

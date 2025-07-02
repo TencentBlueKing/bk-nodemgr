@@ -54,7 +54,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		}
 	}
 
-	if err = h.PushActionInstanceMessage(gCtx, info.OperInstID, info.BlockingActionName, logs...); err != nil {
+	if err = h.PushActionInstanceMessage(gCtx, req.GetOperInstId(), info.BlockingActionName, logs...); err != nil {
 		h.logger.Errorf("report log failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 

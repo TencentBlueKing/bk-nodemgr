@@ -77,7 +77,6 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		OperInstID:         info.OperInstID,
 		BlockingActionName: info.ActionName,
 		Host: types.Host{
 			HostID:   info.HostID,
@@ -266,7 +265,6 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 	}
 
 	data := &Info{
-		OperInstID:     info.OperInstID,
 		ActionName:     info.BlockingActionName,
 		HostID:         info.Host.HostID,
 		OSType:         info.Host.Static.OSType,
