@@ -159,48 +159,35 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	req := new(protoBackend.NodeAgentInstallReq)
+	req := new(protoBackend.NodeAgentOperationRetryReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts := req.GetHost()
-	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
-	bizIDs := make(map[int64]struct{})
-	for idx := range hosts {
-		reqHost := hosts[idx]
-
-		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost)
-		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
-
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
-		}
-
-		nodeDeploys[idx] = nodeDeploy
-		bizIDs[reqHost.GetBkBizId()] = struct{}{}
+	if req.Validate() != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation, operation ID is required")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
-		Type:            types.NodeWorkflowTypeInstallAgent,
-		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.Username,
-		NodeDeployments: nodeDeploys,
+	instanceIDs, err := h.manager.RetryOperationNode(sCtx, manager.RetryOperationNodeParam{
+		WorkflowID:   req.GetWorkflowId(),
+		RetryMod:     types.NodeOperationRetryMode(req.GetRetryMod()),
+		OperationIDs: req.GetOperationId(),
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation,: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.NodeAgentInstallResp)
-	resp.ConvertWorkflowID(workflowID)
+	resp := new(protoBackend.NodeAgentOperationRetryResp)
+	resp.ConvertOperInstanceID(instanceIDs)
 
-	h.logger.InfoCtxf(sCtx, "launched install agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(sCtx, "launched to retry operation, instance: %v", instanceIDs)
 
 	return resp.GetData(), nil
 }

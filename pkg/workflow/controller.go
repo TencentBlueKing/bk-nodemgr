@@ -85,7 +85,7 @@ type IOperationCtl interface {
 	CreateOperationInstance(ctx context.Context) (IOperationInstanceCtl, error)
 
 	// CreateRetryOperationInstance creates a new retry operation instance.
-	CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationMode) (IOperationInstanceCtl, error)
+	CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationRetryMode) (IOperationInstanceCtl, error)
 
 	// GetOperationInstance returns the operation instance.
 	GetOperationInstance(ctx context.Context, operationInstanceID string) (IOperationInstanceCtl, error)
@@ -430,7 +430,7 @@ func (ctl *controller) TerminateOperationInstance(_ context.Context) error {
 }
 
 // CreateRetryOperationInstance creates a retry operation instance.
-func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationMode) (
+func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMod types.NodeOperationRetryMode) (
 	IOperationInstanceCtl, error) {
 
 	if len(ctl.oper.InstanceIDs) == 0 {

@@ -21,9 +21,6 @@ type Definition interface {
 
 	// DefaultParameters returns the default parameters of the operation.
 	DefaultParameters() Param
-
-	// RetryStartPoint checks if the action is a retry start point.
-	ActionRetryable(actionName string) bool
 }
 
 // DefinitionSnapshot represents a snapshot of an operation definition.
@@ -47,9 +44,4 @@ func (ds *DefinitionSnapshot) ActionDefNames() []string {
 // DefaultParameters returns the default parameters of the operation.
 func (ds *DefinitionSnapshot) DefaultParameters() Param {
 	return ds.SnapshotDefaultParameters
-}
-
-// ActionRetryable ...
-func (ds *DefinitionSnapshot) ActionRetryable(actionName string) bool {
-	return ds.RetryStartPoint[actionName]
 }

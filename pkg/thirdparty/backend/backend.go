@@ -848,6 +848,39 @@ func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoB
 	return resp, nil
 }
 
+func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBackend.NodeAgentOperationRetryReq) (
+	*protoBackend.NodeAgentOperationRetryResp, error) {
+
+	resp := new(protoBackend.NodeAgentOperationRetryResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/agent/operation/retry").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("retry operation  failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("retry operation  failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseListReq) (
 	*protoBackend.PackageReleaseListResp, error) {
 

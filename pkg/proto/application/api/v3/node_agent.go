@@ -116,3 +116,37 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() []*types.NodeAgentInsta
 func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
 }
+
+// AutoConvert auto convert.
+func (x *NodeAgentOperationRetryReq) AutoConvert() {
+	//
+}
+
+// Validate convert workflow id.
+func (x *NodeAgentOperationRetryReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	for _, oper := range x.GetOperationId() {
+		if oper == "" {
+			return errors.New("operation_id can not be empty")
+		}
+	}
+
+	return nil
+}
+
+// ConvertRetryParamToTypes ...
+func (x *NodeAgentOperationRetryReq) ConvertRetryParamToTypes() *types.NodeOperationRetryParam {
+	return &types.NodeOperationRetryParam{
+		WorkflowID:   x.GetWorkflowId(),
+		OperationIDs: x.GetOperationId(),
+		RetryMode:    types.NodeOperationRetryMode(x.GetRetryMod()),
+	}
+}
+
+// ConvertOperInstanceID convert OperationInstance id.
+func (x *NodeAgentOperationRetryResp) ConvertOperInstanceID(operInstance []string) {
+	x.Data = &NodeAgentOperationRetryResp_Data{InstanceIds: operInstance}
+}

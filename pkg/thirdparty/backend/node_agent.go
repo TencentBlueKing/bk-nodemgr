@@ -39,6 +39,26 @@ func (h *handler) InstallAgent(ctx context.Context, hostsParam []*types.NodeAgen
 	return result, nil
 }
 
+func (h *handler) OperationRetry(ctx context.Context, retryParam *types.NodeOperationRetryParam) ([]string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &protoBackend.NodeAgentOperationRetryReq{}
+
+	req.ConvertOperationRetryParamFromTypes(*retryParam)
+
+	resp, err := h.cli.retryOperation(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := resp.ConvertResultToComm()
+
+	return result, nil
+}
+
 // UninstallAgent node agent.
 func (h *handler) UninstallAgent(ctx context.Context) (string, error) {
 	return "", nil

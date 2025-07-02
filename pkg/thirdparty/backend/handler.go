@@ -176,6 +176,12 @@ type IHandlerNodeAgent interface {
 	// @param hosts the install param.
 	// @return the installing workflow-ids and error.
 	InstallAgent(ctx context.Context, hostsParam []*types.NodeAgentInstallParam) (string, error)
+
+	// UpgradeAgent node agent.
+	// @param ctx context, contains tenant-id.
+	// @param hosts the upgrade param.
+	// @return the upgrading workflow-ids and error.
+	OperationRetry(ctx context.Context, retryParam *types.NodeOperationRetryParam) ([]string, error)
 }
 
 // IHandlerNodeWorkflow defines the node workflow handler.

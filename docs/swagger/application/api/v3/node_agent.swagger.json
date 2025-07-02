@@ -50,7 +50,7 @@
         ]
       }
     },
-    "/api/v3/node_agent/install/operation/retry": {
+    "/api/v3/node_agent/operation/retry": {
       "post": {
         "summary": "NodeAgentOperationRetry retry node operation.",
         "operationId": "NodeAgent_NodeAgentOperationRetry",
@@ -216,8 +216,7 @@
           "type": "string"
         },
         "retry_mod": {
-          "type": "integer",
-          "format": "int64"
+          "type": "string"
         },
         "operation_id": {
           "type": "array",
@@ -248,8 +247,11 @@
     "v3NodeAgentOperationRetryRespData": {
       "type": "object",
       "properties": {
-        "workflow_id": {
-          "type": "string"
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

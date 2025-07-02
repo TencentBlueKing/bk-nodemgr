@@ -329,6 +329,15 @@ service NodeWorkflow {
     };
   }
 
+  // NodeAgentOperationRetry provides node agent operation insatnll retry.
+  rpc NodeAgentOperationRetry(NodeAgentOperationRetryReq)
+      returns (NodeAgentOperationRetryResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/operation/retry"
+      body : "*"
+    };
+  }
+
   // NodeProxyInstall provides node proxy install.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
     option (google.api.http) = {

@@ -53,7 +53,7 @@ type Manager interface {
 	LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error)
 
 	// RetryOperationNode launch a task to retry operation instance
-	RetryOperationNode(ctx context.Context, param RetryNodeParam) ([]string, error)
+	RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error)
 
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
 	LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error)
@@ -73,6 +73,14 @@ type UpgradeNodeParam struct {
 	BizIDs          []int64
 	Operator        string
 	NodeDeployments []*types.NodeDeployment
+}
+
+// RetryOperationNodeParam retry node param.
+type RetryOperationNodeParam struct {
+	WorkflowID string
+
+	RetryMod     types.NodeOperationRetryMode
+	OperationIDs []string
 }
 
 // NewManager creates a new manager.
@@ -352,11 +360,6 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
-			operationParam.RetryStartPoint = make(map[string]bool)
-			for _, actionName := range operationDef.ActionDefNames() {
-				operationParam.RetryStartPoint[actionName] = operationDef.ActionRetryable(actionName)
-			}
-
 			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
@@ -385,14 +388,6 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 	}
 
 	return workflowID, nil
-}
-
-// RetryOperationNodeParam retry node param.
-type RetryOperationNodeParam struct {
-	WorkflowID string
-
-	RetryMod     types.NodeOperationMode
-	OperationIDs []string
 }
 
 // RetryOperationNode launch a task to retry operation instance.

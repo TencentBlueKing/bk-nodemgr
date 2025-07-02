@@ -136,8 +136,7 @@ func (s *Storage) GetManyOperation(ctx context.Context, operationID ...string) (
 	}
 
 	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
-}
-
+	}
 // ListOperationByCondition lists operation by condition.
 func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 	condition ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {

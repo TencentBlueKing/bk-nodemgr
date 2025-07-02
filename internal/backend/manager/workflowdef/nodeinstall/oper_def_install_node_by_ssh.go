@@ -62,17 +62,17 @@ func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
+		RetryStartPoint: map[string]bool{
+			ActionNameTryReuseAgentID:      true,
+			ActionNameUpsertHostToCMDB:     true,
+			ActionNameRenderNodeDeployment: true,
+			ActionNameInstallNodeBySSH:     true,
+			ActionNameWaitInstallComplete:  false,
+			ActionNameWaitGseReady:         false,
+			ActionNameSyncNodeInfo:         true,
+			ActionNameBindAgentHostRel:     true,
+			ActionNamePushHostIdentifier:   true,
+			ActionNameUpdateHost:           true,
+		},
 	}
-}
-
-// RetryStartPoint checks if the action is a retry start point.
-func (oper *operInstallNodeBySSH) ActionRetryable(actionName string) bool {
-	switch actionName {
-	case ActionNameWaitInstallComplete:
-		return false
-	case ActionNameWaitGseReady:
-		return false
-	}
-
-	return true
 }
