@@ -45,6 +45,10 @@ func DelRegistryCurrentUserStartRun(cmdName string) error {
 		registry.ALL_ACCESS,
 	)
 	if err != nil {
+		if errors.Is(err, registry.ErrNotExist) {
+			return nil
+		}
+
 		return fmt.Errorf("open registry key failed, err: %w", err)
 	}
 	defer key.Close()
