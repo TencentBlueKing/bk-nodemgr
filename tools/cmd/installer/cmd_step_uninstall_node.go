@@ -34,7 +34,7 @@ func NewStepUninstallAgent() *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			if err := stepUninstallNode(cmd.Context()); err != nil {
 				return err
 			}

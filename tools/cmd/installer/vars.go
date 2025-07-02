@@ -242,19 +242,6 @@ func GetTmpConfigDir() string {
 	return filepath.Join(GetTmpDir(), "configs")
 }
 
-const baseNameAgent = "gse_agent"
-
-// GetGseAgentName get gse agent name.
-func GetGseAgentName() string {
-	osType := runtime.GOOS
-	switch osType {
-	case "windows":
-		return baseNameAgent + ".exe"
-	default:
-		return baseNameAgent
-	}
-}
-
 // nolint: gochecknoglobals
 var gseAgentPath = struct {
 	sync.Once
@@ -271,18 +258,18 @@ func GetGseAgentPath() string {
 }
 
 // nolint: gochecknoglobals
-var gseAgentCtlPath = struct {
+var gsectlPath = struct {
 	sync.Once
 	filePath string
 }{}
 
 // GetGseCtlPath get gse agent ctl path.
 func GetGseCtlPath() string {
-	gseAgentCtlPath.Do(func() {
-		gseAgentCtlPath.filePath = filepath.Join(GetBinDir(), GetGseAgentCtlName())
+	gsectlPath.Do(func() {
+		gsectlPath.filePath = filepath.Join(GetBinDir(), GetGseCtlFileName())
 	})
 
-	return gseAgentCtlPath.filePath
+	return gsectlPath.filePath
 }
 
 // nolint: gochecknoglobals
@@ -291,10 +278,12 @@ var preCheckFilePath = struct {
 	filePath string
 }{}
 
+const preCheckFileName = "precheck.json"
+
 // GetPreCheckFilePath get preCheck file path.
 func GetPreCheckFilePath() string {
 	preCheckFilePath.Do(func() {
-		preCheckFilePath.filePath = filepath.Join(GetTmpDir(), "precheck.json")
+		preCheckFilePath.filePath = filepath.Join(GetTmpDir(), preCheckFileName)
 	})
 
 	return preCheckFilePath.filePath
@@ -352,6 +341,7 @@ func SetToken(tokenStr string) error {
 	return nil
 }
 
+// nolint: gochecknoglobals
 var reRegisterAgentID = struct {
 	sync.Once
 	enable bool
@@ -369,6 +359,7 @@ func SetReRegisterAgentID(enable bool) {
 	})
 }
 
+// nolint: gochecknoglobals
 var reinstall = struct {
 	sync.Once
 	enable bool

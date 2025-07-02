@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// nolint: nonamedreturns
 func install(cmd *cobra.Command, _ []string) (runErr error) {
 	defer func() {
 		state := constant.StateSuccess

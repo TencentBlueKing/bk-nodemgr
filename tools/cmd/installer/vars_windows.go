@@ -15,6 +15,7 @@ package main
 const (
 	gseAgentDaemonName = "gse_agent_daemon"
 	gsectlFilename     = "gsectl.bat"
+	gseAgentFileName   = "gse_agent.exe"
 )
 
 // GetGseAgentDaemonSvcName get gse agent daemon svc name.
@@ -28,7 +29,12 @@ func GetGseAgentDaemonSvcName() string {
 	return gseAgentDaemonSvcName
 }
 
-// GetGseAgentCtlName gse agent ctl name.
-func GetGseAgentCtlName() string {
+// GetGseCtlFileName get gsectl file name.
+func GetGseCtlFileName() string {
 	return gsectlFilename
+}
+
+// GetGseAgentName get gse agent filename.
+func GetGseAgentName() string {
+	return gseAgentFileName
 }

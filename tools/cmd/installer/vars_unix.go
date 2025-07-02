@@ -13,10 +13,16 @@
 package main
 
 const (
-	gsectlFileName = "gsectl"
+	gsectlFileName   = "gsectl"
+	gseAgentFileName = "gse_agent"
 )
 
-// GetGseAgentCtlName gse agent ctl name.
-func GetGseAgentCtlName() string {
-	return "gsectl"
+// GetGseCtlFileName get gsectl filename.
+func GetGseCtlFileName() string {
+	return gsectlFileName
+}
+
+// GetGseAgentName get gse agent filename.
+func GetGseAgentName() string {
+	return gseAgentFileName
 }
