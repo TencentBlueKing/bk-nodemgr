@@ -73,15 +73,15 @@ func StopNode(ctx context.Context, gseCtlPath string) error {
 			outputLines := strings.Split(strings.TrimSpace(stdOutStr), "\n")
 			for _, line := range outputLines {
 				if line != "" {
-					logger.Infof(constant.StepUninstallNode, "agent output: %s", line)
+					logger.Infof(constant.StepUninstallNode, "gsectl output: %s", line)
 				}
 
-				if strings.Contains(line, "gse agent stop failed") {
-					return errors.New("stop agent failed")
+				if strings.Contains(line, "gse node stop failed") {
+					return errors.New("stop node failed")
 				}
 			}
 		} else {
-			logger.Infof(constant.StepUninstallNode, "stop agent success (no output)")
+			logger.Infof(constant.StepUninstallNode, "stop node success (no output)")
 		}
 
 		return nil
