@@ -514,6 +514,7 @@ func prepareActionData(
 	prevInstance *operation.InstanceData,
 	actionNames []string,
 ) (map[string]int, string, int, error) {
+
 	actionIndexMap := make(map[string]int, len(actionNames))
 	for i, name := range actionNames {
 		actionIndexMap[name] = i
@@ -529,10 +530,12 @@ func prepareActionData(
 		if inst.Lifecycle.State != action.StateSuccess {
 			failedAction = name
 			failedIndex = actionIndexMap[name]
+
 			break
 		}
 	}
 	if failedAction == "" {
+
 		return nil, "", -1, errors.New("no failed actions found for partial retry")
 	}
 
@@ -540,16 +543,17 @@ func prepareActionData(
 }
 
 func findRetryStartPoint(
-	retryStartPoints map[string]bool,
-	actionNames []string,
-	failedIndex int,
+	retryStartPoints map[string]bool, actionNames []string, failedIndex int,
 ) (string, int, error) {
+
 	for startIndex := failedIndex; startIndex >= 0; startIndex-- {
 		actionName := actionNames[startIndex]
 		if retryStartPoints[actionName] {
+
 			return actionName, startIndex, nil
 		}
 	}
+
 	return "", -1, errors.New("no valid retry start point")
 }
 
@@ -557,8 +561,10 @@ func createStateDecider(actionIndexMap map[string]int, startIndex int) func(stri
 	return func(actionName string) action.State {
 		currentIndex, exists := actionIndexMap[actionName]
 		if !exists || currentIndex < startIndex {
+
 			return action.StateSkipped
 		}
+
 		return action.StatePending
 	}
 }
