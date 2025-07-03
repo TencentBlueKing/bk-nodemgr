@@ -66,7 +66,7 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 			scanner := bufio.NewScanner(stderrPipe)
 			for scanner.Scan() {
 				line := scanner.Text()
-				logger.Warn(constant.StepStartNode,
+				logger.Warnf(constant.StepStartNode,
 					"agent stderr: %s", line)
 
 				errOutput.WriteString(line)
