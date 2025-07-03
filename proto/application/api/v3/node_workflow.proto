@@ -101,27 +101,19 @@ message NodeWorkflowDistinctResp {
   Data data = 4;
 }
 
-// OperationDefinition ...
-message NodeWorkflowOperationDefinition {
-  string opertion_name = 1;
-  repeated string action_names = 2;
-}
-
 message NodeWorkflowOperationParam {
-  int64 timeout_second = 1;
-  int64 bk_networkarea_id = 2;
-  string bk_host_inner = 3;
-  string bk_host_innerip_v6 = 4;
-  string node_version = 5;
-  int64 bk_biz_id = 6;
+  int64 bk_networkarea_id = 1;
+  string bk_host_inner = 2;
+  string bk_host_innerip_v6 = 3;
+  string node_version = 4;
+  int64 bk_biz_id = 5;
 }
 
 message NodeWorkflowOperation {
   string operation_id = 1;
-  NodeWorkflowOperationDefinition definition = 2;
-  repeated string instance_ids = 3;
-  NodeWorkflowOperationParam param = 4;
-  NodeWorkflowOperationStatus status = 5;
+  repeated string instance_ids = 2;
+  NodeWorkflowOperationParam param = 3;
+  NodeWorkflowOperationStatus status = 4;
 }
 
 message NodeWorkflowOperationStatus {
