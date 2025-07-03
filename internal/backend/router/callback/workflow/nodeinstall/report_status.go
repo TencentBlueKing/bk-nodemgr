@@ -50,9 +50,6 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 		h.logger.Errorf("update action status failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
-}
 
-// InstallStatus this is the report status.
-type InstallStatus struct {
-	Status string `json:"status"`
+	gCtx.JSON(http.StatusOK, nil)
 }
