@@ -1,0 +1,252 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package scheduleworkflow provides storage for schedule workflow.
+package scheduleworkflow
+
+import (
+	"context"
+	"os"
+	"sync"
+	"testing"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+func testClient(t *testing.T) IHandler {
+	err := godotenv.Load(".env")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	mongoClient, err := mongo.Connect(
+		ctx,
+		&options.ClientOptions{
+			Hosts: []string{
+				os.Getenv("MONGO_ADDRESS"),
+			},
+			Auth: &options.Credential{
+				Username:      os.Getenv("MONGO_USER"),
+				Password:      os.Getenv("MONGO_PASSWORD"),
+				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
+				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
+			},
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+}
+
+var once = sync.Once{}
+
+// prepareData for all tests.
+func prepareData(t *testing.T, ctx context.Context) {
+	testDatas := []*types.ScheduleWorkflow{
+		{
+			WorkflowID:   "1",
+			WorkflowName: "schedule_sync_host",
+			TriggerID:    "T-00001",
+		},
+		{
+			WorkflowID:   "2",
+			WorkflowName: "schedule_sync_biz",
+			TriggerID:    "T-00002",
+		},
+	}
+
+	once.Do(func() {
+		h := testClient(t)
+		for _, data := range testDatas {
+			err := h.Create(ctx, data)
+			if err != nil {
+				t.Errorf("prepareData() error = %v", err)
+			}
+		}
+	})
+}
+
+// Test_handler_Create tests the Create method of the handler.
+func Test_handler_Create(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx              context.Context
+		scheduleWorkflow *types.ScheduleWorkflow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: context.Background(),
+				scheduleWorkflow: &types.ScheduleWorkflow{
+					WorkflowID:   "3",
+					WorkflowName: "schedule_sync_networkarea",
+					TriggerID:    "T-00003",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			err := h.Create(tt.args.ctx, tt.args.scheduleWorkflow)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Create() error = %v, wantErr: %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+// Test_handler_List tests the List method of the handler.
+func Test_handler_List(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	type args struct {
+		ctx  context.Context
+		page types.Page
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*types.ScheduleWorkflow
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "filter by workflow id",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+					Sort:   "",
+				},
+				opts: []OptFn{
+					WithWorkflowID("1"),
+				},
+			},
+			want: []*types.ScheduleWorkflow{
+				{
+					WorkflowID:   "1",
+					WorkflowName: "schedule_sync_host",
+					TriggerID:    "T-00001",
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by oper type",
+			args: args{
+				ctx: ctx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  1,
+				},
+				opts: []OptFn{
+					WithWorkflowID("2"),
+					WithWorkflowName("schedule_sync_biz"),
+				},
+			},
+			want: []*types.ScheduleWorkflow{
+				{
+					WorkflowID:   "2",
+					WorkflowName: "schedule_sync_biz",
+					TriggerID:    "T-00002",
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, gotNum, err := h.List(tt.args.ctx, tt.args.page, tt.args.opts...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != gotNum {
+				t.Errorf("List() num = %d, wantNum %d", gotNum, tt.wantNum)
+				return
+			}
+			t.Logf("List() num = %d", gotNum)
+			for _, v := range got {
+				t.Logf("List() got = %v", v)
+			}
+		})
+	}
+}
+
+// Test_handler_Count tests the Count method of the handler.
+func Test_handler_Count(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+
+	type args struct {
+		ctx  context.Context
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int64
+		wantErr bool
+	}{
+		{
+			name: "filter by workflow id",
+			args: args{
+				ctx: ctx,
+				opts: []OptFn{
+					WithWorkflowID("1"),
+				},
+			},
+			want:    1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.Count(tt.args.ctx, tt.args.opts...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.want > 0 && got != tt.want {
+				t.Errorf("Count() got = %d, want %d", got, tt.want)
+				return
+			}
+			t.Logf("Count() got = %d", got)
+		})
+	}
+}

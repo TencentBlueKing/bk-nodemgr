@@ -25,16 +25,8 @@ type LoggerAdapter struct {
 }
 
 // Info logs an informational message with additional context.
-func (la LoggerAdapter) Info(msg string, keysAndValues ...interface{}) {
-	var formatMsg string
-	if len(keysAndValues) > 0 {
-		formatMsg = fmt.Sprintf(formatString(len(keysAndValues)),
-			append([]interface{}{msg}, formatTimes(keysAndValues)...)...)
-	} else {
-		la.Logger.Info(msg)
-	}
-	la.Logger.Infof("scheduler task running %s", formatMsg)
-}
+// cron v3's Info messsage is useless, so we can ignore it.
+func (la LoggerAdapter) Info(_ string, _ ...interface{}) {}
 
 // Error logs an error message with additional context.
 func (la LoggerAdapter) Error(err error, msg string, keysAndValues ...interface{}) {

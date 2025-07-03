@@ -76,7 +76,7 @@ func NewTask[T string | time.Duration](
 	var cronExpr string
 	switch t := any(interval).(type) {
 	case time.Duration:
-		cronExpr = "@every " + t.String()
+		cronExpr = Every + t.String()
 	case string:
 		cronExpr = t
 	}
@@ -201,8 +201,6 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 		s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
 		return
 	}
-
-	s.logger.Infof("task execution completed, scheduler-task-id(%s)", task.ID)
 }
 
 // Terminate ...

@@ -18,11 +18,15 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -133,6 +137,10 @@ func (mgr *manager) Start(ctx context.Context) error {
 		return err
 	}
 
+	if err := mgr.startScheduleWorkflow(ctx); err != nil {
+		return fmt.Errorf("failed to start schedule workflow, err: %w", err)
+	}
+
 	mgr.isRunning = true
 
 	mgr.logger.Info("started manager")
@@ -187,12 +195,70 @@ func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 	return nil
 }
 
+// startScheduleWorkflow starts the scheduled workflows.
+func (mgr *manager) startScheduleWorkflow(ctx context.Context) error {
+	dbScheduleWorkflows, _, err := mgr.conf.StorageSchedule.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
+		&types.ScheduleWorkflowCondition{ExactInclude: &types.ScheduleWorkflowExactFields{}})
+	if err != nil {
+		return fmt.Errorf("failed to list schedule workflows from storage, err: %w", err)
+	}
+
+	dbScheduleWorkflowsMap, err := conv.SliceToMap(dbScheduleWorkflows, func(swo *types.ScheduleWorkflow) string {
+		return swo.WorkflowName
+	})
+	if err != nil {
+		return fmt.Errorf("failed to convert schedule workflows to map, err: %w", err)
+	}
+
+	for workflowName, schedule := range mgr.getScheduleWorkflow() {
+		dbSchedule, ok := dbScheduleWorkflowsMap[workflowName]
+		if ok {
+			triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, dbSchedule.TriggerID)
+			if err != nil {
+				mgr.logger.Errorf("get schedule workflow(%s) trigger failed, err: %v", dbSchedule.WorkflowID, err)
+				return fmt.Errorf("get schedule workflow(%s) trigger failed, err: %w", dbSchedule.WorkflowID, err)
+			}
+
+			err = triggerCtl.RunTrigger(ctx)
+			if err != nil {
+				mgr.logger.Errorf("run schedule workflow(%s) trigger(%s) failed, err: %v",
+					dbSchedule.WorkflowID, dbSchedule.TriggerID, err)
+				return fmt.Errorf("run schedule workflow(%s) trigger(%s) failed, err: %w",
+					dbSchedule.WorkflowID, dbSchedule.TriggerID, err)
+			}
+
+			continue
+		}
+
+		err := schedule(ctx)
+		if err != nil {
+			mgr.logger.Errorf("create schedule workflow(%s) failed, err: %v", workflowName, err)
+			return fmt.Errorf("create schedule workflow(%s) failed, err: %w", workflowName, err)
+		}
+	}
+
+	return nil
+}
+
 // registerActionDefs init action defs
 func (mgr *manager) registerActionDefs() error {
 	if err := mgr.registerActionDefNodeInstall(); err != nil {
 		return fmt.Errorf("register action def node install failed, err: %v", err)
 	}
 
+	if err := mgr.registerActionDefSyncData(); err != nil {
+		return fmt.Errorf("register action def sync data failed, err: %v", err)
+	}
+
+	if err := mgr.registerActionDefSchedule(); err != nil {
+		return fmt.Errorf("register action def schedule failed, err: %v", err)
+	}
+
+	return nil
+}
+
+// registerActionDefSyncData registers the action definitions for sync data operations.
+func (mgr *manager) registerActionDefSyncData() error {
 	return mgr.workflowMgr.RegisterActions(
 		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
@@ -201,6 +267,7 @@ func (mgr *manager) registerActionDefs() error {
 	)
 }
 
+// registerActionDefNodeInstall registers the action definitions for node installation operations.
 func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
@@ -221,6 +288,27 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionTransferPkgToNode(
 			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
 	)
+}
+
+func (mgr *manager) registerActionDefSchedule() error {
+	return mgr.workflowMgr.RegisterActions(
+		schedule.NewActionGenScheduleSyncHostOnceTrigger(mgr.workflowMgr, mgr.LaunchSyncBizAndHost),
+	)
+}
+
+const (
+	// SyncCmdbHostWorkflowName defines the name of the sync host workflow.
+	SyncCmdbHostWorkflowName = "schedule_sync_cmdb_host"
+)
+
+// ScheduleWorkflowFunc defines the function type for scheduling workflows.
+type ScheduleWorkflowFunc func(ctx context.Context) error
+
+// registerScheduleWorkflow registers a schedule workflow function.
+func (mgr *manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
+	return map[string]ScheduleWorkflowFunc{
+		SyncCmdbHostWorkflowName: mgr.newScheduleSyncHostFromCMDB,
+	}
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.
@@ -463,4 +551,58 @@ func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
 		"inner_ipv6":     info.Host.Static.InnerIPV6,
 		"node_version":   info.Host.Dynamic.NodeVersion,
 	}
+}
+
+// newScheduleSyncHostFromCMDB creates a new schedule workflow to sync hosts from CMDB.
+func (mgr *manager) newScheduleSyncHostFromCMDB(ctx context.Context) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		mgr.logger.Errorf("get tenant id failed, err: %v", err)
+		return fmt.Errorf("get tenant id failed, err: %w", err)
+	}
+
+	metadataPeriodic, err := trigger.NewMetadataPeriodic(scheduler.Midnight, false)
+	if err != nil {
+		mgr.logger.Errorf("create periodic metadata failed, err: %v", err)
+		return fmt.Errorf("create periodic metadata failed, err: %w", err)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryPeriodic, metadataPeriodic)
+	if err != nil {
+		mgr.logger.Errorf("create periodic trigger failed, err: %v", err)
+		return fmt.Errorf("create periodic trigger failed, err: %w", err)
+	}
+
+	scheduleWf := &types.ScheduleWorkflow{
+		WorkflowID:   identifier.GenWorkflowID(),
+		WorkflowName: SyncCmdbHostWorkflowName,
+		TriggerID:    triggerCtl.GetTriggerID(),
+		Operator:     runtime.SystemName,
+		OperateTime:  time.Now(),
+	}
+
+	err = mgr.conf.StorageSchedule.CreateScheduleWorkflow(ctx, scheduleWf)
+	if err != nil {
+		mgr.logger.Errorf("create schedule workflow failed, err: %v", err)
+		return fmt.Errorf("create schedule workflow failed, err: %w", err)
+	}
+
+	operationDef := schedule.NewOperScheduleSyncHostOperation(
+		schedule.OperParamScheduleSyncHostOperation{TenantID: tenantID})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		mgr.logger.Errorf("create operation for schedule workflow(%s) failed, err: %v", scheduleWf.WorkflowID, err)
+		return fmt.Errorf("create operation for schedule workflow(%s) failed, err: %w", scheduleWf.WorkflowID, err)
+	}
+
+	mgr.logger.InfoCtxf(ctx, "new schedule sync host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	err = triggerCtl.RunTrigger(ctx)
+	if err != nil {
+		mgr.logger.Errorf("run schedule workflow(%s) failed, err: %v", scheduleWf.WorkflowID, err)
+		return fmt.Errorf("run schedule workflow(%s) failed, err: %w", scheduleWf.WorkflowID, err)
+	}
+
+	return nil
 }

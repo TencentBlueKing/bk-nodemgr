@@ -332,3 +332,57 @@ type NodeWorkflowOperationCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *NodeWorkflowoperationFuzzyFields
 }
+
+// ScheduleWorkflowExactFields defines the schedule workflow exact fields.
+type ScheduleWorkflowExactFields struct {
+	WorkflowID   []string
+	WorkflowName []string
+	Operator     []string
+}
+
+// ScheduleWorkflowFuzzyFields defines the schedule workflow fuzzy fields.
+type ScheduleWorkflowFuzzyFields struct {
+}
+
+// ScheduleWorkflowCondition defines the schedule workflow condition.
+type ScheduleWorkflowCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ScheduleWorkflowExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ScheduleWorkflowFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ScheduleWorkflowExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ScheduleWorkflowFuzzyFields
+}
+
+// ScheduleWorkflowOperInstanceStatusExactFields defines the schedule workflow instance status exact fields.
+type ScheduleWorkflowOperInstanceStatusExactFields struct {
+	TriggerID []string
+}
+
+// ScheduleWorkflowOperInstanceStatusFuzzyFields defines the schedule workflow  instance status fuzzy fields.
+type ScheduleWorkflowOperInstanceStatusFuzzyFields struct {
+}
+
+// ScheduleWorkflowOperInstanceStatusCondition defines the schedule workflow instance status condition.
+type ScheduleWorkflowOperInstanceStatusCondition struct {
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ScheduleWorkflowOperInstanceStatusExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ScheduleWorkflowOperInstanceStatusFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ScheduleWorkflowOperInstanceStatusExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ScheduleWorkflowOperInstanceStatusFuzzyFields
+}

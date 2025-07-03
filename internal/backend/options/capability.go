@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
@@ -56,6 +57,9 @@ type Capability struct {
 
 	// StorageNodeWorkflow node workflow storage.
 	StorageNodeWorkflow nodeworkflow.IStorage
+
+	// StorageScheduleWorkflow schedule workflow storage.
+	StorageScheduleWorkflow scheduleworkflow.IStorage
 
 	// StorageRelease release storage.
 	StorageRelease release.IStorage
@@ -115,6 +119,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.StorageNodeWorkflow.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageScheduleWorkflow.Start(ctx); err != nil {
 		return err
 	}
 

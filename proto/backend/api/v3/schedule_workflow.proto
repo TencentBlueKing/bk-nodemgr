@@ -1,0 +1,113 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// EnableScheduleWorkflowReq describes the HTTP request body when enable
+// schedule workflow.
+message EnableScheduleWorkflowReq { string workflow_id = 1; }
+
+// EnableScheduleWorkflowResp describes the HTTP response body when enable
+// schedule workflow.
+message EnableScheduleWorkflowResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// DisableScheduleWorkflowReq describes the HTTP request body when disable
+// schedule workflow.
+message DisableScheduleWorkflowReq { string workflow_id = 1; }
+
+// DisableScheduleWorkflowResp describes the HTTP response body when disable
+// schedule workflow.
+message DisableScheduleWorkflowResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// ScheduleWorkflowExactConditions describes the exact conditions of schedule
+// workflow list request.
+message ScheduleWorkflowExactConditions {
+  repeated string workflow_id = 1;
+  repeated string workflow_name = 2;
+  repeated string operator = 3;
+}
+
+// ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule
+// workflow list request.
+message ScheduleWorkflowFuzzyConditions {}
+
+// ListScheduleWorkflowReq describes the HTTP request body when list schedule
+// workflow.
+message ListScheduleWorkflowReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  ScheduleWorkflowExactConditions exact_include_conditions = 3;
+  ScheduleWorkflowFuzzyConditions fuzzy_include_conditions = 4;
+  TimeRange operate_time_range = 5;
+}
+
+// ScheduleWorkflow describes the schedule workflow
+message ScheduleWorkflow {
+  optional string workflow_id = 1;
+  optional string workflow_name = 2;
+  optional string trigger_id = 3;
+  optional string operator = 4;
+  optional int64 operate_time = 5;
+}
+
+// ListScheduleWorkflowResp describes the HTTP response body when list schedule
+// workflow.
+message ListScheduleWorkflowResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated ScheduleWorkflow items = 2;
+  }
+  Data data = 4;
+}
+
+// Schedule service.
+service Schedule {
+  // EnableScheduleWorkflow provides enable schedule workflow.
+  rpc EnableScheduleWorkflow(EnableScheduleWorkflowReq)
+      returns (EnableScheduleWorkflowResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/enable"
+      body : "*"
+    };
+  }
+
+  // DisableScheduleWorkflow provides disable schedule workflow.
+  rpc DisableScheduleWorkflow(DisableScheduleWorkflowReq)
+      returns (DisableScheduleWorkflowResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/disable"
+      body : "*"
+    };
+  }
+
+  // ListScheduleWorkflow provides list schedule workflow.
+  rpc ListScheduleWorkflow(ListScheduleWorkflowReq)
+      returns (ListScheduleWorkflowResp) {
+    option (google.api.http) = {
+      post : "/api/v3/schedule/workflow/list"
+      body : "*"
+    };
+  }
+}

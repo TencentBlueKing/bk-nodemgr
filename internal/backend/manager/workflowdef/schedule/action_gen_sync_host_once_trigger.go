@@ -1,0 +1,109 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package schedule provides the action to generate a schedule once trigger for workflow.
+package schedule
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+)
+
+const (
+	// ActionNameGenScheduleSyncHostOnceTrigger defines the action name.
+	ActionNameGenScheduleSyncHostOnceTrigger = "gen_schedule_sync_host_once_trigger"
+)
+
+// ScheduleTriggerFunc defines the function type for generating a schedule once trigger.
+type ScheduleTriggerFunc func(ctx context.Context) (string, error)
+
+// NewActionGenScheduleSyncHostOnceTrigger creates a new action to generate a schedule once trigger.
+func NewActionGenScheduleSyncHostOnceTrigger(workflowCtl workflow.IController,
+	operFunc ScheduleTriggerFunc) action.Definition {
+
+	return &actionGenScheduleOnceTrigger{
+		workflowCtl: workflowCtl,
+		operFunc:    operFunc,
+	}
+}
+
+// GenScheduleOnceTriggerParam ...
+type GenScheduleOnceTriggerParam struct {
+	TenantID string `json:"tenant_id"`
+}
+
+// actionGenScheduleOnceTrigger implements the action.Definition interface.
+type actionGenScheduleOnceTrigger struct {
+	workflowCtl workflow.IController
+	operFunc    ScheduleTriggerFunc
+}
+
+// Name returns the name of the action.
+func (act *actionGenScheduleOnceTrigger) Name() string {
+	return ActionNameGenScheduleSyncHostOnceTrigger
+}
+
+// Version returns the version of the action.
+func (act *actionGenScheduleOnceTrigger) Version() string {
+	return "v1.0.0" // nolint: goconst
+}
+
+// Description returns the description of the action.
+func (act *actionGenScheduleOnceTrigger) Description() string {
+	return "generate a schedule once trigger to do schedule workflow."
+}
+
+// Timeout returns the timeout of the action.
+func (act *actionGenScheduleOnceTrigger) Timeout() time.Duration {
+	return time.Second * 10 // nolint: mnd
+}
+
+// Tags returns the tags of the action.
+func (act *actionGenScheduleOnceTrigger) Tags() []action.Tag {
+	return []action.Tag{}
+}
+
+// MaxRetryCount this action creates a large number of synchronization tasks,
+// therefore does not allow the system to automatically retry.
+func (act *actionGenScheduleOnceTrigger) MaxRetryCount() uint {
+	return 0
+}
+
+// DelayFn this func define when this action fails, how long to wait before retrying.
+func (act *actionGenScheduleOnceTrigger) DelayFn() func() {
+	return func() {}
+}
+
+// Do this func define what the action will do.
+func (act *actionGenScheduleOnceTrigger) Do(ctx *action.InstanceContext) error {
+	param := new(GenScheduleOnceTriggerParam)
+	err := conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
+		return err
+	}
+
+	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
+	if err != nil {
+		return err
+	}
+
+	_, err = act.operFunc(tenantCtx)
+	if err != nil {
+		return fmt.Errorf("failed to generate schedule once trigger, tenant-id(%s), err: %w", param.TenantID, err)
+	}
+
+	return nil
+}
