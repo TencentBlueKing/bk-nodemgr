@@ -52,6 +52,14 @@
     }
   },
   "definitions": {
+    "NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -163,18 +171,10 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeAgentInstallRespData"
+          "$ref": "#/definitions/NodeAgentInstallRespData"
         }
       },
       "description": "NodeAgentInstallResp describes the node agent install response."
-    },
-    "v3NodeAgentInstallRespData": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        }
-      }
     }
   }
 }
