@@ -848,17 +848,17 @@ func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoB
 	return resp, nil
 }
 
-func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBackend.NodeAgentOperationRetryReq) (
-	*protoBackend.NodeAgentOperationRetryResp, error) {
+func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBackend.NodeWorkflowOperationRetryReq) (
+	*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
-	resp := new(protoBackend.NodeAgentOperationRetryResp)
+	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.client.Post().
-		SubResourcef("/node/agent/operation/retry").
+		SubResourcef("/node/workflow/operation/retry").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -874,7 +874,7 @@ func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBac
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("retry operation  failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("retry operation failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

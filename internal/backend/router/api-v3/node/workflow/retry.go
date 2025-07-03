@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+// Package workflow ...
+package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -19,22 +19,22 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// AgentOperationRetry retry the operation of node agent.
-func (h *handler) AgentOperationRetry(ctx *rest.Context) (interface{}, error) {
+// WorkflowOperationRetry retry the operation of node workflow.
+func (h *handler) WorkflowOperationRetry(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
 		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	req := new(protoBackend.NodeAgentOperationRetryReq)
+	req := new(protoBackend.NodeWorkflowOperationRetryReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if req.Validate() != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, operation ID is required")
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation, invalid request parameters. err: %v", req.Validate())
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -44,11 +44,11 @@ func (h *handler) AgentOperationRetry(ctx *rest.Context) (interface{}, error) {
 		OperationIDs: req.GetOperationId(),
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation,: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to retry operation,err: %w", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.NodeAgentOperationRetryResp)
+	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
 	resp.ConvertOperInstanceID(instanceIDs)
 
 	h.logger.InfoCtxf(sCtx, "launched to retry operation, instance: %v", instanceIDs)

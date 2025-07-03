@@ -557,6 +557,42 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 	return result
 }
 
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationRetryReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *NodeWorkflowOperationRetryReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	for _, oper := range x.GetOperationId() {
+		if oper == "" {
+			return errors.New("operation_id can not be empty")
+		}
+	}
+
+	return nil
+}
+
+// ConvertOperationRetryParamFromTypes ...
+func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm types.NodeOperationRetryParam) {
+	x.WorkflowId = retryParm.WorkflowID
+	x.OperationId = retryParm.OperationIDs
+	x.RetryMod = string(retryParm.RetryMode)
+}
+
+// ConvertOperInstanceID convert OperationInstance id.
+func (x *NodeWorkflowOperationRetryResp) ConvertOperInstanceID(operInstance []string) {
+	x.Data = &NodeWorkflowOperationRetryResp_Data{InstanceIds: operInstance}
+}
+
+// ConvertResultToComm convert result from types.
+func (x *NodeWorkflowOperationRetryResp) ConvertResultToComm() []string {
+	return x.GetData().GetInstanceIds()
+}
+
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
 	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {

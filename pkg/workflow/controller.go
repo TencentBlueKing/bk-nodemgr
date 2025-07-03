@@ -444,9 +444,9 @@ func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMo
 	}
 
 	switch retryMod {
-	case types.FullNodeInstanceRetry:
+	case types.AgentOperationRetryFull:
 		return ctl.handleFullRetry(ctx)
-	case types.PartialNodeInstanceRetry:
+	case types.AgentOperationRetryPartial:
 		return ctl.handlePartialRetry(ctx, prevInstance)
 	default:
 		return nil, fmt.Errorf("unknown retry mode: %v", retryMod)
@@ -510,9 +510,7 @@ func (ctl *controller) handlePartialRetry(ctx context.Context, prevInstance *ope
 	}, nil
 }
 
-func prepareActionData(
-	prevInstance *operation.InstanceData,
-	actionNames []string,
+func prepareActionData(prevInstance *operation.InstanceData, actionNames []string,
 ) (map[string]int, string, int, error) {
 
 	actionIndexMap := make(map[string]int, len(actionNames))
@@ -535,21 +533,18 @@ func prepareActionData(
 		}
 	}
 	if failedAction == "" {
-
 		return nil, "", -1, errors.New("no failed actions found for partial retry")
 	}
 
 	return actionIndexMap, failedAction, failedIndex, nil
 }
 
-func findRetryStartPoint(
-	retryStartPoints map[string]bool, actionNames []string, failedIndex int,
+func findRetryStartPoint(retryStartPoints map[string]bool, actionNames []string, failedIndex int,
 ) (string, int, error) {
 
 	for startIndex := failedIndex; startIndex >= 0; startIndex-- {
 		actionName := actionNames[startIndex]
 		if retryStartPoints[actionName] {
-
 			return actionName, startIndex, nil
 		}
 	}
@@ -561,7 +556,6 @@ func createStateDecider(actionIndexMap map[string]int, startIndex int) func(stri
 	return func(actionName string) action.State {
 		currentIndex, exists := actionIndexMap[actionName]
 		if !exists || currentIndex < startIndex {
-
 			return action.StateSkipped
 		}
 

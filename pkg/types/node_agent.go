@@ -10,7 +10,9 @@
 
 package types
 
-import "errors"
+import (
+	"fmt"
+)
 
 // NodeAgentInstallParam describes the node agent install parameter.
 type NodeAgentInstallParam struct {
@@ -40,19 +42,19 @@ type NodeOperationRetryParam struct {
 type NodeOperationRetryMode string
 
 const (
-	// FullNodeInstanceRetry is the full node instance retry mode.
-	FullNodeInstanceRetry NodeOperationRetryMode = "full_node_instance_retry"
+	// AgentOperationRetryFull is the full node instance retry mode.
+	AgentOperationRetryFull NodeOperationRetryMode = "full_node_instance_retry"
 
-	// PartialNodeInstanceRetry is the partial node instance retry mode.
-	PartialNodeInstanceRetry NodeOperationRetryMode = "partial_node_instance_retry"
+	// AgentOperationRetryPartial is the partial node instance retry mode.
+	AgentOperationRetryPartial NodeOperationRetryMode = "partial_node_instance_retry"
 )
 
 // Validate validates the node operation retry mode.
 func (tag NodeOperationRetryMode) Validate() error {
 	switch tag {
-	case FullNodeInstanceRetry, PartialNodeInstanceRetry:
+	case AgentOperationRetryFull, AgentOperationRetryPartial:
 		return nil
 	default:
-		return errors.New("invalid node operation retry mode")
+		return fmt.Errorf("invalid node operation retry mode: %s", tag)
 	}
 }

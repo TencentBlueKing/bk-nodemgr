@@ -12,6 +12,7 @@
 package workflow
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	storageOperation "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -31,6 +32,7 @@ const (
 
 type handler struct {
 	rg                  *gin.RouterGroup
+	manager             manager.Manager
 	storageNodeWorkflow nodeworkflow.IStorage
 	storageOperation    storageOperation.IStorage
 	storageOperInstData operinstdata.IStorage
@@ -41,6 +43,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/workflow"),
+		manager:             capability.Manager,
 		storageNodeWorkflow: capability.StorageNodeWorkflow,
 		storageOperation:    capability.StorageOperation,
 		storageOperInstData: capability.StorageOperInst,
@@ -58,6 +61,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/instance/list", rest.RestHandlerFunc(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/status/list", rest.RestHandlerFunc(h.ListOperationInstanceStatus))
 	h.rg.POST("/operation/instance/log/get", rest.RestHandlerFunc(h.GetOperationInstanceLog))
+	h.rg.POST("/operation/retry", rest.RestHandlerFunc(h.WorkflowOperationRetry))
 }
 
 // List workflows.

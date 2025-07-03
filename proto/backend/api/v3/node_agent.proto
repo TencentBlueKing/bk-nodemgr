@@ -59,18 +59,3 @@ message NodeAgentUpgradeResp {
   message Data { string workflow_id = 1; }
   Data data = 4;
 }
-
-message NodeAgentOperationRetryReq {
-  string workflow_id = 1;
-  string retry_mod = 2;
-  repeated string operation_id = 3;
-}
-
-message NodeAgentOperationRetryResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message Data { repeated string instance_ids = 1; }
-  Data data = 4;
-}

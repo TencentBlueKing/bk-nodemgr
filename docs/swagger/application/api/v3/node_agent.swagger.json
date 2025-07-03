@@ -49,39 +49,6 @@
           "NodeAgent"
         ]
       }
-    },
-    "/api/v3/node_agent/operation/retry": {
-      "post": {
-        "summary": "NodeAgentOperationRetry retry node operation.",
-        "operationId": "NodeAgent_NodeAgentOperationRetry",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentOperationRetryResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentOperationRetryReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeAgent"
-        ]
-      }
     }
   },
   "definitions": {
@@ -206,52 +173,6 @@
       "properties": {
         "workflow_id": {
           "type": "string"
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryReq": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "retry_mod": {
-          "type": "string"
-        },
-        "operation_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeAgentOperationRetryRespData"
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryRespData": {
-      "type": "object",
-      "properties": {
-        "instance_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     }

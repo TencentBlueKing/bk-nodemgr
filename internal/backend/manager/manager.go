@@ -372,27 +372,27 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 
 	workflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed: %w", err)
+		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
 
 	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, workflow.TriggerID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed: %w", err)
+		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
 
 	operCtls, err := triggerCtl.GetManyOperation(ctx, param.OperationIDs...)
 	if err != nil {
-		return nil, fmt.Errorf("get operation failed: %w", err)
+		return nil, fmt.Errorf("get operation failed, err: %w", err)
 	}
 
 	for _, operCtl := range operCtls {
 		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.RetryMod)
 		if err != nil {
-			return nil, fmt.Errorf("create operation instance failed: %w", err)
+			return nil, fmt.Errorf("create operation instance failed, err: %w", err)
 		}
 
 		if err := instanceCtl.LaunchOperationInstance(ctx); err != nil {
-			return nil, fmt.Errorf("launch operation instance failed: %w", err)
+			return nil, fmt.Errorf("launch operation instance failed, err: %w", err)
 		}
 
 		instanceIDs = append(instanceIDs, instanceCtl.GetOperationInstanceID())

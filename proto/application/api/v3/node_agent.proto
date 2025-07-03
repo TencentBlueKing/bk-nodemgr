@@ -39,21 +39,6 @@ message NodeAgentInstallResp {
   Data data = 4;
 }
 
-message NodeAgentOperationRetryReq {
-  string workflow_id = 1;
-  string retry_mod = 2;
-  repeated string operation_id = 3;
-}
-
-message NodeAgentOperationRetryResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message Data { repeated string instance_ids = 1; }
-  Data data = 4;
-}
-
 // NodeAgentUpgradeReq describes the node agent upgrade request.
 message NodeAgentUpgradeReq {
   message Host {
@@ -80,15 +65,6 @@ service NodeAgent {
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node_agent/install"
-      body : "*"
-    };
-  }
-
-  // NodeAgentOperationRetry retry node operation.
-  rpc NodeAgentOperationRetry(NodeAgentOperationRetryReq)
-      returns (NodeAgentOperationRetryResp) {
-    option (google.api.http) = {
-      post : "/api/v3/node_agent/operation/retry"
       body : "*"
     };
   }

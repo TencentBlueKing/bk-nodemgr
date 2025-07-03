@@ -292,6 +292,23 @@ message NodeWorkflowActionData {
   NodeWorkflowActionMessage message = 2;
 }
 
+// NodeWorkflowOperationRetryReq
+message NodeWorkflowOperationRetryReq {
+  string workflow_id = 1;
+  string retry_mod = 2;
+  repeated string operation_id = 3;
+}
+
+// NodeWorkflowOperationRetryResp
+message NodeWorkflowOperationRetryResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { repeated string instance_ids = 1; }
+  Data data = 4;
+}
+
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
@@ -345,6 +362,15 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationInstanceLogGetResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/instance/log/get"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationRetry retry node operation.
+  rpc NodeWorkflowOperationRetry(NodeWorkflowOperationRetryReq)
+      returns (NodeWorkflowOperationRetryReq) {
+    option (google.api.http) = {
+      post : "/api/v3/nodea/workflow/operation/retry"
       body : "*"
     };
   }

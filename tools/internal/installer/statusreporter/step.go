@@ -56,7 +56,7 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepReportStatus, "start report status ,status: %s", step.status)
+	logger.Infof(constant.StepReportStatus, "start report status")
 	req := &ReportStatusReq{
 		Token:      step.token,
 		OperInstID: step.operInstID,

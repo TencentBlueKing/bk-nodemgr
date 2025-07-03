@@ -41,8 +41,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/install", rest.RestHandlerFunc(h.Install))
-	h.rg.POST("/operation/retry", rest.RestHandlerFunc(h.OperationRetry))
-
 }
 
 // Install agent.
@@ -72,36 +70,6 @@ func (h *handler) Install(ctx *rest.Context) (interface{}, error) {
 	resp := new(protoApplication.NodeAgentInstallResp)
 
 	resp.ConvertWorkflowID(workflowID)
-
-	return resp.GetData(), nil
-}
-
-func (h *handler) OperationRetry(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	req := new(protoApplication.NodeAgentOperationRetryReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to validate request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
-	InstanceIDs, err := h.backendHandler.OperationRetry(sCtx, req.ConvertRetryParamToTypes())
-	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation: %v", err)
-		return nil, err
-	}
-	resp := new(protoApplication.NodeAgentOperationRetryResp)
-
-	resp.ConvertOperInstanceID(InstanceIDs)
 
 	return resp.GetData(), nil
 }

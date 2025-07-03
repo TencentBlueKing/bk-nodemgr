@@ -991,6 +991,26 @@ func (h *handler) ListNodeWorkflowOperationInstanceStatus(ctx context.Context,
 	return instanceStatus, nil
 }
 
+func (h *handler) OperationRetry(ctx context.Context, retryParam *types.NodeOperationRetryParam) ([]string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &protoBackend.NodeWorkflowOperationRetryReq{}
+
+	req.ConvertOperationRetryParamFromTypes(*retryParam)
+
+	resp, err := h.cli.retryOperation(ctx, tenantID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := resp.ConvertResultToComm()
+
+	return result, nil
+}
+
 // ListRelease lists release by page and conditions.
 func (h *handler) ListRelease(ctx context.Context, page types.Page, condition *types.ReleaseCondition) (
 	[]*types.Release, int64, error) {

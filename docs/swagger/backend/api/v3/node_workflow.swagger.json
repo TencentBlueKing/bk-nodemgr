@@ -50,39 +50,6 @@
         ]
       }
     },
-    "/api/v3/node/agent/operation/retry": {
-      "post": {
-        "summary": "NodeAgentOperationRetry provides node agent operation insatnll retry.",
-        "operationId": "NodeWorkflow_NodeAgentOperationRetry",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentOperationRetryResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeAgentOperationRetryReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
-    },
     "/api/v3/node/proxy/install": {
       "post": {
         "summary": "NodeProxyInstall provides node proxy install.",
@@ -320,6 +287,39 @@
           "NodeWorkflow"
         ]
       }
+    },
+    "/api/v3/node/workflow/operation/retry": {
+      "post": {
+        "summary": "NodeWorkflowOperationRetry provides node agent operation insatnll retry.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationRetryResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
     }
   },
   "definitions": {
@@ -476,52 +476,6 @@
       "properties": {
         "workflow_id": {
           "type": "string"
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryReq": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "retry_mod": {
-          "type": "string"
-        },
-        "operation_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeAgentOperationRetryRespData"
-        }
-      }
-    },
-    "v3NodeAgentOperationRetryRespData": {
-      "type": "object",
-      "properties": {
-        "instance_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     },
@@ -1202,6 +1156,54 @@
         }
       },
       "description": "NodeWorkflowOperationParam ..."
+    },
+    "v3NodeWorkflowOperationRetryReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "retry_mod": {
+          "type": "string"
+        },
+        "operation_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "NodeWorkflowOperationRetryReq"
+    },
+    "v3NodeWorkflowOperationRetryResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
+        }
+      },
+      "title": "NodeWorkflowOperationRetryResp"
+    },
+    "v3NodeWorkflowOperationRetryRespData": {
+      "type": "object",
+      "properties": {
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3Page": {
       "type": "object",

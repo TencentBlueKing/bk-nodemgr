@@ -45,5 +45,5 @@ func ErrEmptyOperaInstID() error {
 
 // ErrEmptyOperationID this error indicates that the user inserted an empty block of data when inserting data.
 func ErrEmptyOperationID() error {
-	return errors.New("empty  operation id name")
+	return errors.New("empty operation id name")
 }
