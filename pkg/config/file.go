@@ -32,6 +32,17 @@ const (
 	defaultFileLogMaxNum    = 10
 	defaultFileLogMaxSizeMB = 200
 	defaultFileLogLevel     = "INFO"
+
+	defaultFileEtcdUsername = "root"
+	defaultFileEtcdPassword = ""
+
+	defaultFileTempFileGroupFullPath      = "/bk-nodeman/file/temp/"
+	defaultFileInstallerFileGroupFullPath = "/bk-nodeman/file/tools/"
+	defaultFileCacheFileGroupFullPath     = "/bk-nodeman/file/cache/"
+)
+
+var (
+	defaultFileEtcdEndpoints = []string{"127.0.0.1:2379"}
 )
 
 // NewFileService generates a new FileService with default values.
@@ -39,6 +50,11 @@ func NewFileService() *FileService {
 	return &FileService{
 		RunMode:    defaultFileRunMode,
 		TenantMode: defaultFileTenantMode,
+		Etcd: Etcd{
+			Endpoints: defaultFileEtcdEndpoints,
+			Username:  defaultFileEtcdUsername,
+			Password:  defaultFileEtcdPassword,
+		},
 		HTTPServer: HTTPServer{
 			BindIP: defaultFileHTTPBindIP,
 			Port:   defaultFileHTTPPort,
@@ -46,6 +62,15 @@ func NewFileService() *FileService {
 		AdminServer: HTTPServer{
 			BindIP: defaultFileAdminBindIP,
 			Port:   defaultFileAdminPort,
+		},
+		TempFileGroup: FileGroup{
+			FullPath: defaultFileTempFileGroupFullPath,
+		},
+		InstallerFileGroup: FileGroup{
+			FullPath: defaultFileInstallerFileGroupFullPath,
+		},
+		CacheFileGroup: FileGroup{
+			FullPath: defaultFileCacheFileGroupFullPath,
 		},
 		Log: Log{
 			Dir:       defaultFileLogDir,

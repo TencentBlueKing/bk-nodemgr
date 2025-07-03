@@ -20,6 +20,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+// KillProcessByNameAndPath terminates a process by its name and executable path.
 func KillProcessByNameAndPath(processName, execPath string) error {
 	snapshot, err := windows.CreateToolhelp32Snapshot(windows.TH32CS_SNAPPROCESS, 0)
 	if err != nil {
@@ -69,5 +70,6 @@ func KillProcessByNameAndPath(processName, execPath string) error {
 			break
 		}
 	}
+
 	return nil
 }

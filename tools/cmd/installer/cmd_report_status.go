@@ -8,27 +8,21 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package tool this package provide stander format for the nodemgr tools.
-package tool
+// Package main ...
+package main
 
 import (
-	"fmt"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/spf13/cobra"
 )
 
-const (
-	// NamePrefixInstaller this is the prefix for the tools tool name.
-	NamePrefixInstaller = "installer"
-)
-
-// FormatInstallerName formats the tools name based on the OS type and CPU architecture.
-func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
-	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
-
-	if osType == criteria.OSWindows {
-		toolName += ".exe"
+// NewStepReportStatus new a step for report status.
+func NewStepReportStatus() *cobra.Command {
+	return &cobra.Command{
+		Use:   "report_status",
+		Short: "report status",
+		Long:  "report status",
+		Run: func(_ *cobra.Command, _ []string) {
+			// TODO
+		},
 	}
-
-	return toolName, nil
 }

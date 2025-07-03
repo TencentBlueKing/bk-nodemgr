@@ -1,3 +1,5 @@
+//go:build windows
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -8,27 +10,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package tool this package provide stander format for the nodemgr tools.
-package tool
-
-import (
-	"fmt"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-)
+package main
 
 const (
-	// NamePrefixInstaller this is the prefix for the tools tool name.
-	NamePrefixInstaller = "installer"
+	gseAgentDaemonName = "gse_agent_daemon"
+	gsectlFilename     = "gsectl.bat"
+	gseAgentFileName   = "gse_agent.exe"
 )
 
-// FormatInstallerName formats the tools name based on the OS type and CPU architecture.
-func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
-	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
-
-	if osType == criteria.OSWindows {
-		toolName += ".exe"
+// GetGseAgentDaemonSvcName get gse agent daemon svc name.
+func GetGseAgentDaemonSvcName() string {
+	gseAgentDaemonSvcName := gseAgentDaemonName
+	deployEnv := GetDeployEnv()
+	if deployEnv != "gse" {
+		gseAgentDaemonSvcName = gseAgentDaemonSvcName + "_" + deployEnv
 	}
 
-	return toolName, nil
+	return gseAgentDaemonSvcName
+}
+
+// GetGseCtlFileName get gsectl file name.
+func GetGseCtlFileName() string {
+	return gsectlFilename
+}
+
+// GetGseAgentName get gse agent filename.
+func GetGseAgentName() string {
+	return gseAgentFileName
 }

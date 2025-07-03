@@ -14,44 +14,46 @@ package main
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/startnode"
 	"github.com/spf13/cobra"
 )
 
-// NewStepStartNode ...
-func NewStepStartNode() *cobra.Command {
+// NewStepInstallAgent ...
+func NewStepInstallAgent() *cobra.Command {
 	var (
-		setupDirPath string
+		gseRoot string
+		pkgName string
 	)
-
 	stepCmd := &cobra.Command{
-		Use:   "step_start_node",
-		Short: "step_start_node",
-		Long:  "step_start_node",
+		Use:   "step_install",
+		Short: "install",
+		Long:  "install",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetSetupDir(setupDirPath); err != nil {
+			if err := SetGseRoot(gseRoot); err != nil {
+				return err
+			}
+
+			if err := SetPkgName(pkgName); err != nil {
 				return err
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := startnode.NewStep(startnode.StepArgs{
-				GseCtlPath: GetGseCtlPath(),
-			})
-			if err := step.Run(cmd.Context()); err != nil {
+			err := stepInstallNode(cmd.Context())
+			if err != nil {
 				return err
 			}
 
-			fmt.Println("successfully start node")
+			fmt.Println(GetNodeAgentID())
 
 			return nil
 		},
 	}
+	stepCmd.Flags().StringVar(&pkgName, CmdFlagPkgName, "", "gse pkg name")
+	stepCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "this is the gse root path")
 
-	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
-
-	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
+	_ = stepCmd.MarkFlagRequired(CmdFlagGseRoot)
+	_ = stepCmd.MarkFlagRequired(CmdFlagPkgName)
 
 	return stepCmd
 }

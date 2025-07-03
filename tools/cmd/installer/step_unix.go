@@ -1,3 +1,5 @@
+//go:build linux || darwin || freebsd || aix
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -8,27 +10,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package tool this package provide stander format for the nodemgr tools.
-package tool
+package main
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/uninstallnode"
 )
 
-const (
-	// NamePrefixInstaller this is the prefix for the tools tool name.
-	NamePrefixInstaller = "installer"
-)
+func stepUninstallNode(ctx context.Context) error {
+	if !GetReinstall() {
+		// don't reinstall
 
-// FormatInstallerName formats the tools name based on the OS type and CPU architecture.
-func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
-	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
-
-	if osType == criteria.OSWindows {
-		toolName += ".exe"
+		return nil
 	}
 
-	return toolName, nil
+	step := uninstallnode.NewStep(uninstallnode.StepArgs{
+		SetupDirPath: GetSetupDir(),
+		BinDirPath:   GetBinDir(),
+		GseCtlPath:   GetGseCtlPath(),
+		DeployEnv:    GetDeployEnv(),
+	})
+	if err := step.Run(ctx); err != nil {
+		return fmt.Errorf("uninstall step failed, err: %v", err)
+	}
+
+	return nil
 }

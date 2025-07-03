@@ -14,6 +14,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+
+	"github.com/google/uuid"
 )
 
 // File represents a temporary file with its path and a cleanup function.
@@ -94,6 +97,77 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 
 		if err = os.Remove(tmpFilePath); err != nil {
 			return fmt.Errorf("failed to remove temporary file, err: %w", err)
+		}
+
+		return
+	}
+
+	return file, nil
+}
+
+// NewTempFileWithSpecialName create a temporary file with special name.
+func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("create temporary file panic, recover(%v)", r)
+		}
+	}()
+
+	tmpDir, err := GetTmpDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary file with special name, err: %w", err)
+	}
+
+	tmpDir = filepath.Join(tmpDir, uuid.NewString())
+	if err = os.MkdirAll(tmpDir, 0700); err != nil {
+		return nil, fmt.Errorf("failed to create temporary dir, err: %w", err)
+	}
+
+	tmpFilePath := filepath.Join(tmpDir, name)
+
+	tmpFile, err := os.Create(tmpFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary file with special name, err: %w", err)
+	}
+
+	// write data to the temporary file.
+	if _, err = io.Copy(tmpFile, data); err != nil {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFilePath)
+
+		return nil, fmt.Errorf("failed to write data to temporary file, err: %w", err)
+	}
+
+	if err = data.Close(); err != nil {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFilePath)
+
+		return nil, fmt.Errorf("failed to close data, err: %w", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		_ = os.Remove(tmpFilePath)
+
+		return nil, fmt.Errorf("failed to close temporary file, err: %w", err)
+	}
+
+	file = &File{
+		path: tmpFilePath,
+	}
+
+	file.cleanup = func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = fmt.Errorf("clean up temporary file panic, tmp-file-path(%s), recover(%v)", tmpFilePath, r)
+			}
+		}()
+
+		if err = os.Remove(tmpFilePath); err != nil {
+			return fmt.Errorf("failed to remove temporary file, err: %w", err)
+		}
+
+		if err = os.Remove(tmpDir); err != nil {
+			return fmt.Errorf("failed to remove temporary dir, err: %w", err)
 		}
 
 		return

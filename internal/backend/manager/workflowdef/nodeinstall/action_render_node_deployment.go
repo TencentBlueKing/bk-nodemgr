@@ -119,7 +119,6 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info.OperInstID = ctx.Data.OperationInstanceID
 	info.BlockingActionName = ActionNameWaitInstallComplete
 
 	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
@@ -645,7 +644,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 func joinPath(osType criteria.OSType, parts ...string) string {
 	separator := "/"
 	if osType == criteria.OSWindows {
-		separator = "\\"
+		separator = "\\\\"
 	}
 
 	if len(parts) == 0 {

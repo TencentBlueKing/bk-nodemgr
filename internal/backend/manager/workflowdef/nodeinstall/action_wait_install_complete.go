@@ -96,7 +96,7 @@ func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
 		// check action state is running or not
 		switch lifecycle.State {
 		case action.StateRunning:
-			act.logger.Infof("action is running, sleep 1 second, oper_inst_id(%s), action_name(%s)",
+			act.logger.Debugf("action is running, sleep 1 second, oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 			time.Sleep(1 * time.Second)
 

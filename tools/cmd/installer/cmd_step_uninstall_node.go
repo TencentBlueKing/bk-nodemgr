@@ -14,55 +14,39 @@ package main
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
 	"github.com/spf13/cobra"
 )
 
-// NewStepInstallAgent ...
-func NewStepInstallAgent() *cobra.Command {
+// NewStepUninstallAgent ...
+func NewStepUninstallAgent() *cobra.Command {
 	var (
-		gseRoot string
-		pkgName string
+		setupDirPath string
 	)
-	stepCmd := &cobra.Command{
-		Use:   "step_install",
-		Short: "install",
-		Long:  "install",
-		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetGseRoot(gseRoot); err != nil {
-				return err
-			}
 
-			if err := SetPkgName(pkgName); err != nil {
+	stepCmd := &cobra.Command{
+		Use:   "step_uninstall",
+		Short: "uninstall node",
+		Long:  "the step is used to uninstall node",
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if err := SetSetupDir(setupDirPath); err != nil {
 				return err
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := nodeinstaller.NewStep(nodeinstaller.StepArgs{
-				AgentID:           GetNodeAgentID(),
-				ReRegisterAgentID: false,
-				SetupDirPath:      GetSetupDir(),
-				PkgPath:           GetGsePkgPath(),
-				SrcConfigDir:      GetTmpConfigDir(),
-				Overwrite:         false,
-			})
-			agentID, err := step.Run(cmd.Context())
-			if err != nil {
+			if err := stepUninstallNode(cmd.Context()); err != nil {
 				return err
 			}
 
-			fmt.Print(agentID)
+			fmt.Println("successfully uninstall node")
 
 			return nil
 		},
 	}
-	stepCmd.Flags().StringVar(&pkgName, CmdFlagPkgName, "", "gse pkg name")
-	stepCmd.Flags().StringVar(&gseRoot, CmdFlagGseRoot, CmdDefaultGseRoot(), "this is the gse root path")
 
-	_ = stepCmd.MarkFlagRequired(CmdFlagGseRoot)
-	_ = stepCmd.MarkFlagRequired(CmdFlagPkgName)
+	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
+	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
 
 	return stepCmd
 }

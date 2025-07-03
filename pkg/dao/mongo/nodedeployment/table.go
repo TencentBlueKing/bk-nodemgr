@@ -25,7 +25,6 @@ type Data struct {
 
 // Info this is the info of this node deployment.
 type Info struct {
-	OperInstID         string   `json:"oper_inst_id" bson:"oper_inst_id"`
 	ActionName         string   `json:"action_name" bson:"action_name"`
 	HostID             int64    `json:"host_id" bson:"host_id"`
 	OSType             string   `json:"os_type" bson:"os_type"`

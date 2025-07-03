@@ -111,7 +111,7 @@ goto :EOF
 
     echo [%cu_date% %cu_time%] Attempting to add auto-start registry entry -- registry config/config process >>%gse_agent_restart_log%
     call :log Attempting to add auto-start registry entry -- registry config/config process
-    reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v gse_agent /t reg_sz /d "%gse_winagent_home%\agent\bin\gsectl.bat start" /f >>%gsectl_log% 2>&1
+    reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v gse_agent_daemon%_service_id% /t reg_sz /d "%gse_winagent_home%\agent\bin\gsectl.bat start" /f >>%gsectl_log% 2>&1
     if %errorlevel% equ 0 (
         call :log Add auto-start registry succeeded -- registry config/config process
     ) else (
@@ -153,7 +153,7 @@ goto :EOF
 :stop
     :: remove auto-start registry entry
     call :log "Attempting to remove auto-start registry entry -- registry config/config process"
-    reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v gse_agent /f >>%gsectl_log% 2>&1
+    reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v gse_agent_daemon%_service_id% /f >>%gsectl_log% 2>&1
     if %errorlevel% equ 0 (
         call :log "Remove auto-start registry succeeded -- registry config/config process"
     ) else (

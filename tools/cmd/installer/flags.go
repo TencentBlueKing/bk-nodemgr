@@ -46,6 +46,8 @@ const (
 	CmdFlagRunDirPath = "run_dir_path"
 	// CmdFlagToken this flag is used to specify the token.
 	CmdFlagToken = "token"
+	// CmdFlagOperInstID this flag is used to specify the operation instance id.
+	CmdFlagOperInstID = "oper_inst_id"
 	// CmdFlagDeployEnv this flag is used to specify the deployEnv.
 	CmdFlagDeployEnv = "deploy_env"
 	// CmdFlagReinstall this flag is used to specify the reinstall.

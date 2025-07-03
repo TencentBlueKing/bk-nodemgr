@@ -204,7 +204,7 @@ func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field stri
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("updated field(%v), table(%s), updated-count(%d)",
+	orm.dao.GetLogger().Debugf("updated field(%v), table(%s), updated-count(%d)",
 		field, orm.dao.GetTableName(), result.MatchedCount)
 
 	return nil

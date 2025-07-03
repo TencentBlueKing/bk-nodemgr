@@ -50,11 +50,11 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 	for idx, log := range req.Logs {
 		logs[idx] = action.Message{
 			Time: time.Unix(log.Timestamp, 0),
-			Text: fmt.Sprintf("[%s]\t| %s\t:%s\t", log.GetLevel(), log.GetStep(), log.GetLog()),
+			Text: fmt.Sprintf("[%s]\t| %s\t:%s", log.GetLevel(), log.GetStep(), log.GetLog()),
 		}
 	}
 
-	if err = h.PushActionInstanceMessage(gCtx, info.OperInstID, info.BlockingActionName, logs...); err != nil {
+	if err = h.PushActionInstanceMessage(gCtx, req.GetOperInstId(), info.BlockingActionName, logs...); err != nil {
 		h.logger.Errorf("report log failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 

@@ -12,43 +12,42 @@
 package main
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
-// NewCheckDeploy ...
-func NewCheckDeploy() *cobra.Command {
+// NewStepStartNode ...
+func NewStepStartNode() *cobra.Command {
 	var (
-		runDirPath string
+		setupDirPath string
 	)
+
 	stepCmd := &cobra.Command{
-		Use:   "step_check_deploy",
-		Short: "check deploy",
+		Use:   "step_start_node",
+		Short: "step_start_node",
+		Long:  "step_start_node",
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := SetSetupDir(runDirPath); err != nil {
+			if err := SetSetupDir(setupDirPath); err != nil {
 				return err
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := checkdeploy.NewStep(checkdeploy.StepArgs{
-				RunDir:    GetRunDir(),
-				NodeRole:  GetNodeRole(),
-				DeployEnv: GetDeployEnv(),
-			})
-
-			if err := step.Run(cmd.Context()); err != nil {
+			if err := stepStartNode(cmd.Context()); err != nil {
 				return err
 			}
+
+			fmt.Println("successfully start node")
 
 			return nil
 		},
 	}
 
-	// nolint: goconst
-	stepCmd.Flags().StringVar(&runDirPath, CmdFlagRunDirPath, "", "run dir path")
-	_ = stepCmd.MarkFlagRequired(CmdFlagRunDirPath)
+	stepCmd.Flags().StringVar(&setupDirPath, CmdFlagSetupDirPath, "", "setup dir path")
+
+	_ = stepCmd.MarkFlagRequired(CmdFlagSetupDirPath)
 
 	return stepCmd
 }

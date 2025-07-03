@@ -14,34 +14,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNameInstallNodeBySSH defines the action name.
-	ActionNameInstallNodeBySSH = "install_node_by_ssh"
+	// ActionNameInstallNodeByWMI defines the action name.
+	ActionNameInstallNodeByWMI = "install_node_by_wmi"
 )
 
-// NewActionInstallNodeBySSH get a new action.
-func NewActionInstallNodeBySSH(
+// NewActionInstallNodeByWMI get a new action.
+func NewActionInstallNodeByWMI(
 	installerFileGroup iface.FileGroup,
 	crypter crypter.Crypter,
 	logger logger.Logger,
@@ -49,7 +54,7 @@ func NewActionInstallNodeBySSH(
 	provider discover.Provider,
 ) action.Definition {
 
-	return &actionInstallNodeBySSH{
+	return &actionInstallNodeByWMI{
 		installerGroup:        installerFileGroup,
 		crypter:               crypter,
 		logger:                logger,
@@ -58,13 +63,13 @@ func NewActionInstallNodeBySSH(
 	}
 }
 
-// ActParamInstallAgentBySSH ...
-type ActParamInstallAgentBySSH struct {
+// ActParamInstallAgentByWMI ...
+type ActParamInstallAgentByWMI struct {
 	Token string `json:"token"`
 }
 
-// InstallParams this struct defines the parameters for installing agent.
-type InstallParams struct {
+// InstallParamsWin this struct defines the parameters for installing agent.
+type InstallParamsWin struct {
 	InstallerPath      string
 	NodeRole           types.NodeRole
 	CallbackEndpoint   string
@@ -78,7 +83,7 @@ type InstallParams struct {
 	AdditionArgs       []string
 }
 
-type actionInstallNodeBySSH struct {
+type actionInstallNodeByWMI struct {
 	installerGroup        iface.FileGroup
 	crypter               crypter.Crypter
 	logger                logger.Logger
@@ -87,37 +92,37 @@ type actionInstallNodeBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *actionInstallNodeBySSH) Name() string {
-	return ActionNameInstallNodeBySSH
+func (act *actionInstallNodeByWMI) Name() string {
+	return ActionNameInstallNodeByWMI
 }
 
 // Version returns the version of the action.
-func (act *actionInstallNodeBySSH) Version() string {
+func (act *actionInstallNodeByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionInstallNodeBySSH) Description() string {
-	return "Use ssh to connect to the target machine, transfer files through sftp, and execute the installation command"
+func (act *actionInstallNodeByWMI) Description() string {
+	return "Use wmi to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionInstallNodeBySSH) Timeout() time.Duration {
+func (act *actionInstallNodeByWMI) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionInstallNodeBySSH) Tags() []action.Tag {
+func (act *actionInstallNodeByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionInstallNodeBySSH) MaxRetryCount() uint {
+func (act *actionInstallNodeByWMI) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallNodeBySSH) DelayFn() func() {
+func (act *actionInstallNodeByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -127,8 +132,8 @@ func (act *actionInstallNodeBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamInstallAgentBySSH)
+func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamInstallAgentByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param, err: %w", err)
@@ -147,7 +152,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := act.buildSSH(ctx.Ctx, info)
+	client, err := act.buildWMI(ctx.Ctx, info)
 	if err != nil {
 		return err
 	}
@@ -166,18 +171,21 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	if info.InstallerWorkspace == "" {
 		info.InstallerWorkspace = deployConstant.InstallerWorkspace
 	}
+
 	if info.InstallerWorkspace == "" {
 		info.InstallerWorkspace = connectedRunDir
 	}
 
-	// ensure the workspace dir.
-	if result, err := client.RunCommand("mkdir -p " + info.InstallerWorkspace); err != nil {
-		err = fmt.Errorf("failed to mkdir -p %s , result(%s), err: %w", info.InstallerWorkspace, result, err)
+	stdOut, stdErr, err := client.RunCommand(ctx.Ctx, "mkdir "+info.InstallerWorkspace)
+	if err != nil {
+		err = fmt.Errorf("failed to run mkdir %s, err: %w", info.InstallerWorkspace, err)
 
 		return err
 	}
 
-	// 4. select matching tools, and use sftp to transfer it.
+	ctx.Data.Log(fmt.Sprintf("make sure the installer workspace exists, stdOut: %s, stdErr: %s", stdOut, stdErr))
+
+	// 5. select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(osType, cpuArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name, err: %w", err)
@@ -192,24 +200,25 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	reader, err := toolFile.Content(ctx.Ctx)
+	if toolFile.FileObject() != iface.LocalFile {
+		err = fmt.Errorf("installer file is not a local file, file-info(%v)", toolFile.Info())
+
+		return err
+	}
+
+	tmpInstallFilePath := local.GetLocalFileAbsFilePath(toolFile)
+	stdOut, stdErr, err = client.UploadFile(ctx.Ctx, tmpInstallFilePath, info.InstallerWorkspace)
 	if err != nil {
-		err = fmt.Errorf("failed to get file content, err: %w", err)
-
-		return err
+		return fmt.Errorf("failed to transfer file, stdOut: %s, stdErr: %s err: %w",
+			stdOut, stdErr, err)
 	}
 
-	installerPath := path.Clean(path.Join(info.InstallerWorkspace, toolName))
-	if err := client.TransferFile(reader, installerPath); err != nil {
-		return fmt.Errorf("failed to transfer file, err: %w", err)
-	}
+	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkspace, toolName))
 
-	// 6. make sure tool is executable
-	if result, err := client.RunCommand("chmod +x " + installerPath); err != nil {
-		err = fmt.Errorf("failed to chmod +x, result(%s), err: %w", result, err)
-
-		return err
-	}
+	ctx.Data.Log(fmt.Sprintf("upload file to remote, path: %s", installerPath))
+	act.logger.Info(fmt.Sprintf("upload file to remote, path: %s", installerPath))
+	ctx.Data.Log(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
+	act.logger.Info(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
 
 	randSelector := discover.NewRandomSelector()
 	downloadEndpoint, err := act.provider.GetEndpoint(
@@ -228,7 +237,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
 
-	installParams := &InstallParams{
+	installParams := &InstallParamsWin{
 		InstallerPath:      installerPath,
 		NodeRole:           info.Host.Dynamic.NodeRole,
 		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
@@ -250,26 +259,40 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// 7. exec install command
-	installCmd := act.buildCMD(installParams)
-	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installCmd))
+	installBat := act.buildBat(installParams)
+	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installBat))
 
-	outStr, err := client.RunCommand(installCmd)
+	batName := "run_install.bat"
+	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), batName)
+	if err != nil {
+		return fmt.Errorf("failed to create temp file, err: %w", err)
+	}
+	defer tmp.Clean()
+
+	_, _, err = client.UploadFile(ctx.Ctx, tmpInstallBat.Path(), info.InstallerWorkspace)
+	if err != nil {
+		return fmt.Errorf("failed to transfer file, err: %w", err)
+	}
+
+	installCMD := path.Clean(path.Join(info.InstallerWorkspace, batName))
+	stdOutStr, stdErrStr, err := client.RunSilentCommand(ctx.Ctx, installCMD)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node, err: %w", err)
 
 		return err
 	}
-	ctx.Data.Log(fmt.Sprintf("install node result: %s", outStr))
+
+	ctx.Data.Log(fmt.Sprintf("install node stdout: %s", stdOutStr))
+	ctx.Data.Log(fmt.Sprintf("install node stderr: %s", stdErrStr))
 
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
-	sshConf := &sshx.Config{
-		Network: sshx.NetworkTCP,
+func (act *actionInstallNodeByWMI) buildWMI(ctx context.Context, info *types.DeploymentInfo) (*wmix.Client, error) {
+	wmiConf := &wmix.Config{
 		IP:      info.LoginIP,
-		Port:    int(info.LoginPort),
 		User:    info.LoginUser,
+		Timeout: wmix.DefaultTimeout,
 		Logger:  act.logger,
 	}
 
@@ -280,24 +303,18 @@ func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.Dep
 			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
 		}
 
-		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = string(passwd)
+		wmiConf.AuthMethod = wmix.AuthMethodPassword
+		wmiConf.Password = string(passwd)
 
 	case types.LoginModeKeyFile:
-		privateKey, err := act.crypter.Decrypt(info.LoginKeyFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
-		}
-
-		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
-		sshConf.PrivateKey = privateKey
+		// todo implement
 	case types.LoginModeNone:
-		sshConf.AuthMethod = sshx.AuthMethodNone
+		wmiConf.AuthMethod = wmix.AuthMethodNone
 	default:
 		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
 	}
 
-	client, err := sshx.NewClient(ctx, sshConf, sshx.DefaultTimeout)
+	client, err := wmix.NewClient(wmiConf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
 			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
@@ -308,13 +325,13 @@ func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.Dep
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
-func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
-	osType criteria.OSType, cpuArch criteria.CPUArch, targetDir string, err error) {
+func (act *actionInstallNodeByWMI) detectInfo(ctx *action.InstanceContext, client *wmix.Client) (
+	osType criteria.OSType, cpuArch criteria.CPUArch, connectedRunDir string, err error) {
 
 	// 1. detect target system
-	osTypeStr, err := client.RunCommand("uname -s")
+	osTypeStr, _, err := client.RunCommand(ctx.Ctx, "ver")
 	if err != nil {
-		err = fmt.Errorf("failed to run uname -a, err: %w", err)
+		err = fmt.Errorf("failed to run ver, err: %w", err)
 
 		return "", "", "", err
 	}
@@ -327,7 +344,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 	}
 
 	switch osType {
-	case criteria.OSLinux, criteria.OSDarwin:
+	case criteria.OSWindows:
 	default:
 		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
 
@@ -336,7 +353,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 	ctx.Data.Log(fmt.Sprintf("host os info: %s", osType))
 
 	// 2. detect target cpu arch
-	cpuArchStr, err := client.RunCommand("uname -m")
+	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to run uname -m, err: %w", err)
 	}
@@ -350,24 +367,14 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 
 	ctx.Data.Log(fmt.Sprintf("host cpu arch: %s", cpuArch))
 
-	// 3. detect target dir
-	targetDir, err = client.RunCommand("pwd")
-	if err != nil {
-		err = fmt.Errorf("failed to run pwd, err: %w", err)
+	connectedRunDir = "C:\\tmp"
 
-		return "", "", "", err
-	}
-	targetDir = strings.TrimFunc(targetDir, func(r rune) bool {
-		return r == '\n'
-	})
-	ctx.Data.Log(fmt.Sprintf("target dir: %s", targetDir))
-
-	return osType, cpuArch, targetDir, nil
+	return osType, cpuArch, connectedRunDir, nil
 }
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
+func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 	args := []string{
 		fmt.Sprintf(`--node_role "%s"`, param.NodeRole),
 		fmt.Sprintf(`--callback_endpoint "%s"`, param.CallbackEndpoint),
@@ -383,11 +390,25 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
-
-	installCmd := fmt.Sprintf("%s %s", param.InstallerPath, strings.Join(args, " "))
-
 	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
-	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)
+
+	installCmd := fmt.Sprintf("cd %s && %s %s >%s 2>&1",
+		param.InstallerWorkspace, param.InstallerPath, strings.Join(args, " "), installLogPath)
 
 	return installCmd
+}
+
+// extractArchitecture extracts the architecture from a given string, and returns the last matched architecture.
+func extractArch(str string) string {
+	cpuArchMap := platform.StandardArchMap()
+	archPatterns := make([]string, 0, len(cpuArchMap))
+	for _, cpuArch := range cpuArchMap {
+		archPatterns = append(archPatterns, string(cpuArch))
+	}
+
+	pattern := fmt.Sprintf("(?i)\\b(%s)\\b", strings.Join(archPatterns, "|"))
+	re := regexp.MustCompile(pattern)
+	match := re.FindString(str)
+
+	return match
 }

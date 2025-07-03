@@ -12,15 +12,16 @@
 package wmix
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"os/exec"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
+
+// DefaultTimeout defines the default timeout for WMI operations.
+const DefaultTimeout = 1 * time.Minute
 
 // IClient defines the interface for ssh client.
 type IClient interface {
@@ -54,9 +55,9 @@ func (conf *Config) getAddr() string {
 	case AuthMethodPassword:
 		str = str + ":" + conf.Password + "@" + conf.IP
 	case AuthMethodNone:
-		str = str + "@" + conf.IP + " -no-pass"
+		str = "-no-pass " + str + "@" + conf.IP
 	default:
-		str = str + "@" + conf.IP + " -no-pass" // default to no password
+		str = "-no-pass " + str + "@" + conf.IP // default to no password
 	}
 
 	return str
@@ -117,7 +118,6 @@ func (conf *Config) Validate() error {
 
 // Client is the wmiexec executor.
 type Client struct {
-	setArgs []string
 	target  string
 	timeout time.Duration
 	logger  logger.Logger
@@ -133,10 +133,6 @@ func NewClient(config *Config) (*Client, error) {
 		target:  config.getAddr(),
 		timeout: 1 * time.Second,
 		logger:  config.Logger,
-		setArgs: []string{
-			// show timestamps
-			"-ts",
-		},
 	}
 
 	if config.Timeout > 0 {
@@ -148,35 +144,38 @@ func NewClient(config *Config) (*Client, error) {
 
 // RunCommand a command on the target host.
 func (client *Client) RunCommand(ctx context.Context, command string) (string, string, error) {
-	binPath, err := wmiBinaryPath()
-	if err != nil {
-		return "", "", err
-	}
-
 	if command == "" {
 		return "", "", errors.New("command is empty")
 	}
 
-	args := make([]string, 0, len(client.setArgs)+2) // nolint:mnd,gomnd
-	args = append(args, client.setArgs...)
-	args = append(args, client.target, command)
+	args := []string{
+		"-ts",
+		client.target,
+		command,
+	}
 
 	tCtx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
-	// nolint:gosec
-	cmd := exec.CommandContext(tCtx, binPath, args...)
-	stdOut := &bytes.Buffer{}
-	stdErr := &bytes.Buffer{}
-	cmd.Stdout = stdOut
-	cmd.Stderr = stdErr
+	return wmiRunCmd(tCtx, args)
+}
 
-	if err := cmd.Run(); err != nil {
-		return "", "", fmt.Errorf("failed to execute command, stdOut(%s), stdErr(%s), err: %w",
-			stdOut.String(), stdErr.String(), err)
+// RunSilentCommand run a command on the target host without outputting.
+func (client *Client) RunSilentCommand(ctx context.Context, command string) (string, string, error) {
+	if command == "" {
+		return "", "", errors.New("command is empty")
 	}
 
-	return stdOut.String(), stdErr.String(), nil
+	args := []string{
+		"-silentcommand",
+		client.target,
+		command,
+	}
+
+	tCtx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
+
+	return wmiRunCmd(tCtx, args)
 }
 
 // UploadFile upload the file to the target host.
