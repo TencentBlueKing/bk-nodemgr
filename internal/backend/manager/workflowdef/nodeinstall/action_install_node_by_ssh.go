@@ -251,9 +251,15 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 	// 7. exec install command
 	installCmd := act.buildCMD(installParams)
+
 	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installCmd))
 
-	outStr, err := client.RunCommand(installCmd)
+	outStr, err := client.RunCommand(fmt.Sprintf(
+		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
+		info.InstallerWorkspace,
+		info.InstallerWorkspace,
+		installCmd),
+	)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node, err: %w", err)
 
