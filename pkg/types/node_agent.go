@@ -29,9 +29,6 @@ type NodeAgentInstallParam struct {
 	TargetVersion string
 }
 
-type NodeAgentUpgradeParam struct {
-}
-
 // NodeOperationRetryParam validates the node agent install parameter.
 type NodeOperationRetryParam struct {
 	WorkflowID   string

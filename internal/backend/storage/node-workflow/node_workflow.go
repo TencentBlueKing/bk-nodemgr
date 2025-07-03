@@ -238,7 +238,6 @@ func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (ty
 	}
 
 	total := len(operationInsts)
-	fmt.Println("[debug]:total:", total, "successCount:", successCount, "failedCount:", failedCount)
 	switch {
 	case successCount == total:
 		return types.NodeWorkflowStatusSuccess, latestEndTime
