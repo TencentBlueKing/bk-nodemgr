@@ -39,27 +39,6 @@ message NodeAgentInstallResp {
   Data data = 4;
 }
 
-// NodeAgentUpgradeReq describes the node agent upgrade request.
-message NodeAgentUpgradeReq {
-  message Host {
-    int64 bk_host_id = 1;
-    string target_version = 2;
-    bool force = 3;
-    int64 graceful_restart_timeout_sec = 4;
-  }
-  repeated Host host = 1;
-}
-
-// NodeAgentUpgradeResp describes the node agent upgrade response.
-message NodeAgentUpgradeResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message Data { string workflow_id = 1; }
-  Data data = 4;
-}
-
 service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {

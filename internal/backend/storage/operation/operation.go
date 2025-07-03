@@ -123,8 +123,8 @@ func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, t
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
 }
 
-// GetManyOperation lists operation by triggerid.
-func (s *Storage) GetManyOperation(ctx context.Context, operationID ...string) (
+// ListOperation lists operation by operation id.
+func (s *Storage) ListOperation(ctx context.Context, operationID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	if ctx == nil {
@@ -136,7 +136,8 @@ func (s *Storage) GetManyOperation(ctx context.Context, operationID ...string) (
 	}
 
 	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
-	}
+}
+
 // ListOperationByCondition lists operation by condition.
 func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 	condition ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {

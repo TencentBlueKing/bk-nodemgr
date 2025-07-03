@@ -62,8 +62,8 @@ type ITriggerCtl interface {
 	// GetOperation returns the operation.
 	GetOperation(ctx context.Context, operationID string) (IOperationCtl, error)
 
-	// GetManyOperation returns the operations.
-	GetManyOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error)
+	// ListOperation returns the operations.
+	ListOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error)
 
 	// UpdateLastTriggeredTime updates the last triggered time.
 	UpdateLastTriggeredTime(ctx context.Context) error
@@ -227,9 +227,9 @@ func (ctl *controller) GetOperation(ctx context.Context, operationID string) (IO
 	}, nil
 }
 
-// GetManyOperation returns the operations.
-func (ctl *controller) GetManyOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error) {
-	opers, num, err := ctl.mgr.stgOperation.GetManyOperation(ctx, operationID...)
+// ListOperation returns the operations.
+func (ctl *controller) ListOperation(ctx context.Context, operationID ...string) ([]IOperationCtl, error) {
+	opers, num, err := ctl.mgr.stgOperation.ListOperation(ctx, operationID...)
 	if err != nil {
 		return nil, err
 	}
@@ -444,9 +444,9 @@ func (ctl *controller) CreateRetryOperationInstance(ctx context.Context, retryMo
 	}
 
 	switch retryMod {
-	case types.AgentOperationRetryFull:
+	case types.OperationRetryModeFull:
 		return ctl.handleFullRetry(ctx)
-	case types.AgentOperationRetryPartial:
+	case types.OperationRetryModePartial:
 		return ctl.handlePartialRetry(ctx, prevInstance)
 	default:
 		return nil, fmt.Errorf("unknown retry mode: %v", retryMod)

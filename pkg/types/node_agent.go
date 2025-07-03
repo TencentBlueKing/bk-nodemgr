@@ -31,30 +31,30 @@ type NodeAgentInstallParam struct {
 	TargetVersion string
 }
 
-// NodeOperationRetryParam validates the node agent install parameter.
+// NodeOperationRetryParam validates the node install parameter.
 type NodeOperationRetryParam struct {
 	WorkflowID   string
 	OperationIDs []string
 	RetryMode    NodeOperationRetryMode
 }
 
-// NodeOperationRetryMode describes the node agent operation mode.
+// NodeOperationRetryMode describes the node operation mode.
 type NodeOperationRetryMode string
 
 const (
-	// AgentOperationRetryFull is the full node instance retry mode.
-	AgentOperationRetryFull NodeOperationRetryMode = "full_node_instance_retry"
+	// OperationRetryModeFull is the full node instance retry mode.
+	OperationRetryModeFull NodeOperationRetryMode = "full_node_instance_retry"
 
-	// AgentOperationRetryPartial is the partial node instance retry mode.
-	AgentOperationRetryPartial NodeOperationRetryMode = "partial_node_instance_retry"
+	// OperationRetryModePartial is the partial node instance retry mode.
+	OperationRetryModePartial NodeOperationRetryMode = "partial_node_instance_retry"
 )
 
 // Validate validates the node operation retry mode.
-func (tag NodeOperationRetryMode) Validate() error {
-	switch tag {
-	case AgentOperationRetryFull, AgentOperationRetryPartial:
+func (mode NodeOperationRetryMode) Validate() error {
+	switch mode {
+	case OperationRetryModeFull, OperationRetryModePartial:
 		return nil
 	default:
-		return fmt.Errorf("invalid node operation retry mode: %s", tag)
+		return fmt.Errorf("invalid node operation retry mode: %s", mode)
 	}
 }

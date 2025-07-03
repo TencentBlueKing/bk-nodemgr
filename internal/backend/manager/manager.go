@@ -380,7 +380,7 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
 
-	operCtls, err := triggerCtl.GetManyOperation(ctx, param.OperationIDs...)
+	operCtls, err := triggerCtl.ListOperation(ctx, param.OperationIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("get operation failed, err: %w", err)
 	}
