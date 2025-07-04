@@ -362,7 +362,7 @@ service NodeWorkflow {
   rpc NodeWorkflowOperationRetry(NodeWorkflowOperationRetryReq)
       returns (NodeWorkflowOperationRetryReq) {
     option (google.api.http) = {
-      post : "/api/v3/nodea/workflow/operation/retry"
+      post : "/api/v3/node/workflow/operation/retry"
       body : "*"
     };
   }

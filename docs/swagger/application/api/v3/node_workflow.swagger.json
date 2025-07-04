@@ -185,6 +185,39 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/retry": {
+      "post": {
+        "summary": "NodeWorkflowOperationRetry retry node operation.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/statistics": {
       "post": {
         "summary": "NodeWorkflowStatistics provides node workflow statistics.",
@@ -211,39 +244,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3NodeWorkflowStatisticsReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
-        ]
-      }
-    },
-    "/api/v3/nodea/workflow/operation/retry": {
-      "post": {
-        "summary": "NodeWorkflowOperationRetry retry node operation.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
             }
           }
         ],

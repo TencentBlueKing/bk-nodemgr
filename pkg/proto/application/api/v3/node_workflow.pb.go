@@ -3027,15 +3027,15 @@ const file_node_workflow_proto_rawDesc = "" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x12;\n" +
 	"\x04data\x18\x04 \x01(\v2'.v3.NodeWorkflowOperationRetryResp.DataR\x04data\x1a)\n" +
 	"\x04Data\x12!\n" +
-	"\finstance_ids\x18\x01 \x03(\tR\vinstanceIds2\xa0\b\n" +
+	"\finstance_ids\x18\x01 \x03(\tR\vinstanceIds2\x9f\b\n" +
 	"\fNodeWorkflow\x12l\n" +
 	"\x10NodeWorkflowList\x12\x17.v3.NodeWorkflowListReq\x1a\x18.v3.NodeWorkflowListResp\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v3/node/workflow/list\x12\x84\x01\n" +
 	"\x16NodeWorkflowStatistics\x12\x1d.v3.NodeWorkflowStatisticsReq\x1a\x1e.v3.NodeWorkflowStatisticsResp\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v3/node/workflow/statistics\x12|\n" +
 	"\x14NodeWorkflowDistinct\x12\x1b.v3.NodeWorkflowDistinctReq\x1a\x1c.v3.NodeWorkflowDistinctResp\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v3/node/workflow/distinct\x12\x91\x01\n" +
 	"\x19NodeWorkflowOperationList\x12 .v3.NodeWorkflowOperationListReq\x1a!.v3.NodeWorkflowOperationListResp\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v3/node/workflow/operation/list\x12\xb2\x01\n" +
 	"!NodeWorkflowOperationInstanceList\x12(.v3.NodeWorkflowOperationInstanceListReq\x1a).v3.NodeWorkflowOperationInstanceListResp\"8\x82\xd3\xe4\x93\x022:\x01*\"-/api/v3/node/workflow/operation/instance/list\x12\xbb\x01\n" +
-	"#NodeWorkflowOperationInstanceLogGet\x12*.v3.NodeWorkflowOperationInstanceLogGetReq\x1a+.v3.NodeWorkflowOperationInstanceLogGetResp\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v3/node/workflow/operation/instance/log/get\x12\x95\x01\n" +
-	"\x1aNodeWorkflowOperationRetry\x12!.v3.NodeWorkflowOperationRetryReq\x1a!.v3.NodeWorkflowOperationRetryReq\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v3/nodea/workflow/operation/retryBGZEgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3b\x06proto3"
+	"#NodeWorkflowOperationInstanceLogGet\x12*.v3.NodeWorkflowOperationInstanceLogGetReq\x1a+.v3.NodeWorkflowOperationInstanceLogGetResp\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v3/node/workflow/operation/instance/log/get\x12\x94\x01\n" +
+	"\x1aNodeWorkflowOperationRetry\x12!.v3.NodeWorkflowOperationRetryReq\x1a!.v3.NodeWorkflowOperationRetryReq\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v3/node/workflow/operation/retryBGZEgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3b\x06proto3"
 
 var (
 	file_node_workflow_proto_rawDescOnce sync.Once
