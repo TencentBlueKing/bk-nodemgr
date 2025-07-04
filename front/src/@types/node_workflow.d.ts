@@ -99,23 +99,16 @@ export interface NodeWorkflowDistinctRespData {
   status: string[];
 }
 
-// OperationDefinition ...
-export interface NodeWorkflowOperationDefinition {
-  opertion_name: string;
-  action_names: string[];
-}
-
 export interface NodeWorkflowOperationParam {
-  timeout_second: number;
-  area_id: number;
-  inner_ipv4: string;
-  inner_ipv6: string;
+  bk_networkarea_id: number;
+  bk_host_inner: string;
+  bk_host_innerip_v6: string;
   node_version: string;
+  bk_biz_id: number;
 }
 
 export interface NodeWorkflowOperation {
   operation_id: string;
-  definition: NodeWorkflowOperationDefinition;
   instance_ids: string[];
   param: NodeWorkflowOperationParam;
   status: NodeWorkflowOperationStatus;
@@ -159,12 +152,30 @@ export interface NodeWorflowOperationInstanceData {
   action_names: string[];
 }
 
+// NodeWorkflowOperationExactConditions describes the exact conditions of node
+// workflow operation list request.
+export interface NodeWorkflowOperationExactConditions {
+  workflow_id: string;
+  node_version: string[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
+  bk_biz_id: number[];
+  bk_networkarea_id: number[];
+  state: string[];
+}
+
+// NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
+// workflow list request.
+export interface NodeWorkflowOperationFuzzyConditions {
+}
+
 // NodeWorkflowOperationListReq describes the node operation list
 // request.
 export interface NodeWorkflowOperationListReq {
   only_count: boolean;
   page: Page;
-  workflow_id: string;
+  exact_include_conditions: NodeWorkflowOperationExactConditions;
+  fuzzy_include_conditions: NodeWorkflowOperationFuzzyConditions;
 }
 
 // NodeWorkflowOperationListResp describes the node operation list by
@@ -274,5 +285,24 @@ export interface NodeWorkflowActionMessageMessage {
 export interface NodeWorkflowActionData {
   life_cycle: LifeCycle;
   message: NodeWorkflowActionMessage;
+}
+
+// NodeWorkflowOperationRetryReq
+export interface NodeWorkflowOperationRetryReq {
+  workflow_id: string;
+  retry_mod: string;
+  operation_id: string[];
+}
+
+// NodeWorkflowOperationRetryResp
+export interface NodeWorkflowOperationRetryResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: NodeWorkflowOperationRetryRespData;
+}
+
+export interface NodeWorkflowOperationRetryRespData {
+  instance_ids: string[];
 }
 

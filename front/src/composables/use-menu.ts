@@ -88,6 +88,43 @@ const navList = [
   {
     routeName: 'pkgManager',
     title: i18n.global.t('包管理'),
+    group: [
+      {
+        title: i18n.global.t('节点'),
+        children: [
+          {
+            routeName: 'agentPackageMng',
+            icon: 'nodeman-icon nc-workarea',
+            title: i18n.global.t('Agent 包管理'),
+          },
+          {
+            routeName: 'proxyPackageMng',
+            icon: 'nodeman-icon nc-topo',
+            title: i18n.global.t('Proxy 包管理'),
+          }
+        ]
+      },
+      {
+        title: i18n.global.t('插件'),
+        children: [
+          {
+            routeName: 'pluginPackageMng',
+            icon: 'nodeman-icon nc-plug-in',
+            title: i18n.global.t('插件包管理'),
+          }
+        ]
+      },
+      {
+        title: i18n.global.t('记录'),
+        children: [
+          {
+            routeName: 'operationRecords',
+            icon: 'nodeman-icon nc-record',
+            title: i18n.global.t('操作记录'),
+          }
+        ]
+      }
+    ]
   },
 ];
 

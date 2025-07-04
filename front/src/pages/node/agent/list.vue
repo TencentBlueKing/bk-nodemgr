@@ -43,7 +43,6 @@
         <SearchSelect
           class="w-[480px] z-99"
           ref="searchSelect"
-          mul
           :data="searchSelectData"
           v-model="searchSelectValue"
           :uniqueSelect="true"
@@ -157,6 +156,11 @@ const topoRemotehandler = () => {}
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
   // 给筛选器添加选中值
+  if(data.length === 0) {
+    Object.keys(filterOptionSource).forEach(key => {
+      filterOptionSource[key].checked = []
+    })
+  }
   data.forEach(item => {
     if (filterOptionSource[item.id]) {
       filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
@@ -559,7 +563,7 @@ onMounted(async () => {
   await getHostDistinct();
 });
 </script>
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {
   height: 200px;
   line-height: 200px;

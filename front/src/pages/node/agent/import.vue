@@ -77,13 +77,13 @@ const handleShowSetting = () => {
 
 }
 
+const formRef = ref(null);
 const installTableRef = ref(null);
 const handlePreview = async () => {
-    if (installTableRef.value) {
-        const res = await installTableRef.value?.validate().catch(() => false);
-        if (res) {
-            previewData.isShow = true;
-        }
+    const formValid = await formRef.value?.validate().catch(() => false);
+    const res = await installTableRef.value?.tableValidate().catch(() => false);
+    if (formValid && res) {
+        previewData.isShow = true;
     }
 }
 

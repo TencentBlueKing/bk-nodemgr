@@ -1,7 +1,7 @@
 <template>
     <Cascader v-model="area" :list="list" :scroll-height="136" trigger="click" @change="handleChange" @toggle="handleToggle">
         <template #trigger>
-            <Button>
+            <Button :disabled="disabled">
                 <span>复制</span>
                 <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
             </Button>

@@ -12,32 +12,31 @@
           <span class="mx-[3px] text-[#FF5656]">*</span>
         </template>
         <VxeColumn
-          field="ipv4"
+          field="bk_host_innerip"
           title="内网 IPv4"
-          :visible="settings.checked.includes('ipv4')"
+          :visible="settings.checked.includes('bk_host_innerip')"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.ipv4"
-              :rules="rules.ipv4"
+              :value="row.bk_host_innerip"
+              :rules="rules.bk_host_innerip"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.ipv4"></Input>
+              <Input v-model="row.bk_host_innerip"></Input>
             </Validate>
           </template>
         </VxeColumn>
         <VxeColumn
-          field="ipv6"
+          field="bk_host_innerip_v6"
           title="内网 IPv6"
-          :visible="settings.checked.includes('ipv6')"
+          :visible="settings.checked.includes('bk_host_innerip_v6')"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.ipv6"
-              :rules="rules.ipv6"
-              required
+              :value="row.bk_host_innerip_v6"
+              :rules="rules.bk_host_innerip_v6"
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.ipv6"></Input>
+              <Input v-model="row.bk_host_innerip_v6"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -46,9 +45,9 @@
       <!-- 主机属性 -->
       <VxeColgroup title="主机属性" align="center">
         <VxeColumn
-          field="os"
+          field="os_type"
           title="操作系统"
-          :visible="settings.checked.includes('os')"
+          :visible="settings.checked.includes('os_type')"
         >
           <template #header>
             <span class="mr-[5px]">操作系统</span>
@@ -57,15 +56,19 @@
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.os"
-              :rules="rules.os"
+              :value="row.os_type"
+              :rules="rules.os_type"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
               <Select
-                v-model="row.os"
-                :list="datasourceList"
+                v-model="row.os_type"
                 auto-focus
                 filterable>
+                  <Select.Option v-for="option in datasourceList"
+                    :key="option.id"
+                    :id="option.id"
+                    :name="option.name">
+                  </Select.Option>
               </Select>
             </Validate>
           </template>
@@ -148,7 +151,16 @@
               :rules="rules.authentication"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.authentication"></Input>
+              <Select
+                v-model="row.authentication"
+                auto-focus
+                filterable>
+                  <Select.Option v-for="option in  authenticationTypes"
+                    :key="option.id"
+                    :id="option.id"
+                    :name="option.name">
+                  </Select.Option>
+              </Select>
             </Validate>
           </template>
         </VxeColumn>
@@ -168,7 +180,7 @@
               :rules="rules.password"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.password"></Input>
+              <Input v-model="row.password" type="password"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -184,7 +196,7 @@
         <VxeColumn field="action" title="操作">
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Button text @click="handleAddRow($rowIndex)"><i class="nodeman-icon nc-plus"></i></Button>
-            <Button text @click="handleDelRow($rowIndex)" style="margin-left: 8px;"><i class="nodeman-icon nc-minus"></i></Button>
+            <Button text @click="handleDelRow($rowIndex, rowid, Object.keys(row))" style="margin-left: 8px;"><i class="nodeman-icon nc-minus"></i></Button>
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -208,7 +220,7 @@ import { computed, ref, reactive, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { VALIDATE_REGEX } from '@/common/const';
 import { cloneDeep, set } from 'lodash';
-import ValidateInput from './validate-input.vue';
+import Validate from './validate.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import { TopoService } from '@/api/modules/topo';
 
@@ -219,9 +231,9 @@ const props = defineProps({
   }
 });
 const initData = {
-  ipv4: '',
-  ipv6: '',
-  os: '',
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  os_type: '',
   login_ip: '',
   login_port: '',
   login_user: '',
@@ -229,15 +241,15 @@ const initData = {
   password: '',
 };
 const rules: ValidationRules = {
-  ipv4: [
+  bk_host_innerip: [
     // { validator: (val: string) => val, message: '请输入内网 IPv4'},
     { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4'},
   ],
-  ipv6: [
+  bk_host_innerip_v6: [
     // { validator: (val: string) => val, message: '请输入内网 IPv6'},
     { validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6'},
   ],
-  os: [
+  os_type: [
     { validator: (val: string) => val, message: '请输入操作系统'},
   ],
   login_ip: [ 
@@ -262,23 +274,37 @@ const rules: ValidationRules = {
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const mainStore = useMainStore();
 const type = computed(() => mainStore.agentSetupType);
-const tableData = ref(cloneDeep(props.data));
+const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
+function getInitData() {
+  return {
+    bk_host_innerip: '',
+    bk_host_innerip_v6: '',
+    os_type: '',
+    login_ip: '',
+    login_port: '',
+    login_user: '',
+    authentication: '',
+    password: '',
+  };
+};
+
 const handleAddRow = (index: number) => {
+  if (!(tableData.value instanceof Array)) return;
   tableData.value.splice(index + 1, 0, cloneDeep(initData));
 };
 const settings = reactive({
   fields: [
-    {field: 'ipv4', title: '内网 IPv4'},
-    {field: 'ipv6', title: '内网 IPv6'},
-    {field: 'os', title: '操作系统'},
+    {field: 'bk_host_innerip', title: '内网 IPv4'},
+    {field: 'bk_host_innerip_v6', title: '内网 IPv6'},
+    {field: 'os_type', title: '操作系统'},
     {field: 'login_ip', title: '登录 IP'},
     {field: 'login_port', title: '登录端口'},
     {field: 'login_user', title: '登录账号'},
     {field: 'authentication', title: '认证方式'},
     {field: 'password', title: '密码 / 密钥'}
   ],
-  checked: ['ipv4', 'ipv6', 'os', 'login_ip', 'login_port', 'login_user', 'authentication', 'password'],
-  disabled: ['os', 'login_port', 'login_user', 'authentication', 'password'],
+  checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_ip', 'login_port', 'login_user', 'authentication', 'password'],
+  disabled: ['os_type', 'login_port', 'login_user', 'authentication', 'password'],
   size: 'medium' as VxeComponentSizeType
 });
 const settingChange = (data: {checked: string[], size: VxeComponentSizeType}) => {
@@ -286,22 +312,30 @@ const settingChange = (data: {checked: string[], size: VxeComponentSizeType}) =>
   settings.size = data.size;
 }
 const datasourceList = ref([]);
+const authenticationTypes = ref([
+  {
+    id: 'password',
+    name: '密码'
+  },
+  {
+    id: 'key',
+    name: '密钥'
+  }
+])
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
-// 筛选
+
 const getHostDistinct = async () => {
-  const res = await TopoService.HostDistinct().catch(() => null);
+  const res = await TopoService.HostDistinct({}).catch(() => null);
   if (res) {
     hostDistinct.value = res;
-    console.log("🚀 ~ getHostDistinct ~ res:", res)
-    // Object.keys(res).forEach((key: any) => {
-    //   const curUniqueValues = res[key] || [];
-    //   if (filterOptionSource[key]) {
-    //     filterOptionSource[key].list = curUniqueValues.filter((item: any) => item !== '').map((value: any) => ({text: value, value: value}))
-    //   }
-    // });
+    datasourceList.value = res.os_type.map(item => ({ 
+      id: item,
+      name: item
+    }));
   }
 }
-const handleDelRow = (index: number) => {
+const handleDelRow = (index: number, rowid: string, fields: string[]) => {
+  if (!(tableData.value instanceof Array)) return;
   if (tableData.value.length === 1) {
     Message({
       theme: 'warning',
@@ -310,47 +344,41 @@ const handleDelRow = (index: number) => {
     return;
   }
   tableData.value.splice(index, 1);
-  inputRefs.value.splice(index, 1);
+  for (const field of fields) {
+    const colKey = `${rowid}-${field}`;
+    inputRefs.value?.delete(colKey);
+  }
 };
-const inputRefs = ref<any>([[]]);
+const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 
 const setInputRef = (
-  rowIndex: number,
-  columnIndex: number,
-  el: InstanceType<typeof ValidateInput> | null,
+  rowid: string,
+  filed: string,
+  el: InstanceType<typeof Validate> | null,
 ) => {
   if (el) {
-    if (!inputRefs.value[rowIndex]) {
-      inputRefs.value[rowIndex] = [];
-    }
-    inputRefs.value[rowIndex][columnIndex] = el;
+    const key = `${rowid}-${filed}`;
+    inputRefs.value.set(key, el);
   }
 };
 
-const clearAllValidate = () => {
-  for (const row of inputRefs.value) {
-    for (const col of row) {
-      col.clearValidate();
-    }
-  }
-};
+// const clearTableValidate = () => Array
+//   .from(inputRefs.value.values())
+//   .forEach(col => col?.clearValidate());
 
-const validate = async () => {
+const tableValidate = () => {
+  const refs = Array.from(inputRefs.value.values());
   const validate = [];
-  for (const row of inputRefs.value) {
-    for (const col of row) {
-      validate.push(col.validateInput());
-    }
+  for (const item of refs) {
+    validate.push(item.validate());
   }
-  try {
-    const results = await Promise.all(validate);
-    return results.every(result => result !== false);
-  } catch (error) {
-    console.error('Validation failed at some input:', error);
-    return false;
-  }
-}
-defineExpose({ validate, clearAllValidate });
+  return validate.every(item => item);
+};
+
+defineExpose({ 
+  tableValidate,
+  // clearTableValidate
+});
 
 onMounted(async() => {
   await getHostDistinct();

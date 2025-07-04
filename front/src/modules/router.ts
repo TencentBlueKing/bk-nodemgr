@@ -14,6 +14,9 @@ import OperationRecord from '@/pages/topo/record/record.vue';
 import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
+import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
+import PluginPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
+import OperationRecords from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -147,7 +150,41 @@ const routes = setupLayouts([
       {
         name: 'pkgManager',
         path: 'pkg-manager',
-        children: [],
+        redirect: { name: 'agentPackageMng' },
+        children: [
+          {
+            name: 'agentPackageMng',
+            path: 'agentPackageMng',
+            component: AgentPackageMng,
+            meta: {
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'proxyPackageMng',
+            path: 'proxyPackageMng',
+            component: AgentPackageMng,
+            meta: {
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'pluginPackageMng',
+            path: 'pluginPackageMng',
+            component: PluginPackageMng,
+            meta: {
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'operationRecords',
+            path: 'operationRecords',
+            component: OperationRecords,
+            meta: {
+              mainMenu: 'pkgManager'
+            }
+          },
+        ],
       },
     ],
   },

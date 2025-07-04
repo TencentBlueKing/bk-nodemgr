@@ -1,8 +1,8 @@
 <template>
     <PageHeader
-    class="w-full sticky top-0 z-1"
-    :title="t('任务详情')"
-    :back="true"
+        class="w-full sticky top-0 z-1"
+        :title="t('任务详情')"
+        :back="true"
     >
         <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
         <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
@@ -18,7 +18,7 @@
         </div>
         <div class="mt-[24px] mb-[14px] flex justify-between">
             <div class="flex gap-[12px]">
-                <Button>全部失败重试</Button>
+                <Button :disabled="!failedSelection.length" @click="handleFullRetry">全部失败重试</Button>
                 <copy-ip-dropdown
                     type="agent"
                     :list="list"
@@ -41,13 +41,15 @@
                     </Radio.Group>
                 </div>
             </div>
-            <div class="flex-1 min-w-[300px] gap-[8px]">
-                <Input
-                    type="search"
-                    v-model="searchValue"
-                    :placeholder="t('请输入IP、云区域、业务、目标版本 搜索')"
-                ></Input>
-            </div>
+            <SearchSelect
+                class="flex-1"
+                ref="searchSelect"
+                :data="searchSelectData"
+                v-model="searchSelectValue"
+                :uniqueSelect="true"
+                :placeholder="t('请输入IP、云区域、业务、目标版本、执行状态 搜索')"
+                @update:modelValue="handleSearchSelectChange">
+            </SearchSelect>
         </div>
         <bk-loading title="数据加载中" :loading="loading">
             <ResizeLayout
@@ -69,13 +71,14 @@
                         @setting-change="handleSettingChange"
                     >
                         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-                        <TableColumn field="inner_ipv4" :title="'IP'" width="150" fixed="left"></TableColumn>
-                        <TableColumn field="area_id" :title="'云区域'"></TableColumn>
+                        <TableColumn field="bk_host_inner" :title="t('IPv4')" width="150" fixed="left"></TableColumn>
+                        <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
+                        <TableColumn field="bk_networkarea_id" :title="t('云区域')"></TableColumn>
                         <TableColumn field="bk_biz_name" :title="t('业务')"></TableColumn>
-                        <TableColumn field="node_version" :title="'目标版本'" :filter="versionFilterOption"></TableColumn>
-                        <TableColumn field="timeout_second" :title="t('耗时')">
+                        <TableColumn field="node_version" :title="t('目标版本')" :filter="versionFilterOption"></TableColumn>
+                        <TableColumn field="total_time_second" :title="t('耗时')">
                             <template #default={row}>
-                                <span>{{ formatTimeToMS(row.timeout_second) }}</span>
+                                <span>{{ formatTimeToMS(row.total_time_second) }}</span>
                             </template>
                         </TableColumn>
                         <TableColumn
@@ -105,7 +108,7 @@
                             <template #default={row}>
                                 <div class="flex items-center">
                                     <Button text theme="primary" class="mr-[11px]" @click="handleViewLog(row)">查看日志</Button>
-                                    <Button text theme="primary" v-if="row.state === 'failed'">
+                                    <Button text theme="primary" v-if="row.state === 'failed'" @click="handleRetry(row)">
                                         <right-turn-line fill="#3A84FF"/>
                                         <span class="ml-[3px]">重试</span>
                                     </Button>
@@ -189,7 +192,7 @@
 import { RightTurnLine, Success, Close, AngleUpFill } from 'bkui-vue/lib/icon';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
-import { Button, Input, Radio, Tag, ResizeLayout, Dropdown } from 'bkui-vue';
+import { Button, Input, SearchSelect, Radio, Tag, ResizeLayout, Dropdown } from 'bkui-vue';
 import usePage from '@/composables/use-page';
 import { useMainStore } from '@/stores/main';
 import { useI18n } from 'vue-i18n';
@@ -237,7 +240,6 @@ const taskInfoList = ref([
     {prop: 'operator', name: t('执行人'), value: ''},
     {prop: 'operate_time', name: t('执行时间'), value: ''},
 ]);
-const searchValue = ref('');
 const tableData = ref([]);
 const radioGroupValue = ref('all');
 const curOperationId = ref('');
@@ -268,8 +270,15 @@ const radioGroup = computed(() => ([
         count: tableData.value.filter((item: {state: string}) => item.state === 'failed').length
     }
 ]));
+const getUniqueChildren = (prop: string) => {
+  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
+  return uniqueValues.map(value => ({
+    id: value,
+    name: prop === 'state' ? statusMap[value as string].text : String(value),
+  }))
+}
 const filterOptionConfig = (prop: string, map?: Record<string, any>) => {
-    const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
+    const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop])?.filter((item: any) => item)));
     return {
       list: uniqueValues.map(value => ({
         text: map ? map[value as string].text : value,
@@ -282,6 +291,19 @@ const filterOptionConfig = (prop: string, map?: Record<string, any>) => {
 const versionFilterOption = computed(() => filterOptionConfig('node_version'));
 const stateFilterOption = computed(() => filterOptionConfig('state', statusMap));
 const loading = ref(false);
+// 搜索
+const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
+const searchSelectData = computed(() => [
+  {id: 'bk_host_innerip', name: t('IP'), multiple: true},
+  {id: 'bk_networkarea_id', name: t('云区域'), children: getUniqueChildren('bk_networkarea_id'), multiple: true},
+  {id: 'bk_biz_id', name: t('业务'), children: getUniqueChildren('bk_biz_id'), multiple: true},
+  {id: 'node_version', name: t('目标版本'), children: getUniqueChildren('node_version'), multiple: true},
+  {id: 'state', name: t('执行状态'), children: getUniqueChildren('state'), multiple: true},
+]);
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
+  await getOperateList();
+}
+
 // 分页
 const {
   pagination
@@ -347,6 +369,7 @@ const list = [
 ];
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const failedSelection = computed(() => selection.value.filter((item: any) => item.state === 'failed'));
 const handleSelectChange = ({ checked, row }: {checked: boolean, row: any}) => {
   row.checked = checked;
 }
@@ -358,8 +381,9 @@ const handleSelectAllChange = ({ checked }: { checked: boolean}) => {
 // 表格设置
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    'inner_ipv4',
-    'area_id',
+    'bk_host_inner',
+    'bk_host_innerip_v6',
+    'bk_networkarea_id',
     'bk_biz_name',
     'node_version',
     'timeout_second',
@@ -379,19 +403,69 @@ const handleClick = async (item: {name: string, id: string}) => {
     curOperInstId.value = item.id;
     await getLog();
 }
+// 筛选
+const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
+    const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
+    index > -1 && searchSelectValue.value.splice(index, 1);
+    if (checked.length){
+        searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
+        const name = field === 'status' ? statusMap[item].text : item;
+        return {
+            id: item,
+            name
+        }
+        })});
+    }
+}
+// 重试
+const handleRetry = async (row: any) => {
+    const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
+        workflow_id: route.params.taskId,
+        operation_id: [row.operation_id],
+        retry_mod: 'partial_node_instance_retry'
+    }).catch(() => false);
+    if(res) {
+        await getOperateList();
+    }
+}
+const handleFullRetry = async () => {
+    const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
+        workflow_id: route.params.taskId,
+        operation_id: failedSelection.value.map(item => item.operation_id),
+        retry_mod: 'partial_node_instance_retry'
+    }).catch(() => false);
+    if(res) {
+        await getOperateList();
+    }
+}
+const getParams = () => {
+  const params = {
+    page: {
+        limit: pagination.limit,
+        offset: pagination.offset
+    },
+    exact_include_conditions: {} as Record<string, string[]>,
+    fuzzy_include_conditions: {} as Record<string, string[]>,
+  };
+  searchSelectValue.value.forEach((item: any) => {
+    const target = params.exact_include_conditions;
+    target[item.id] = item.values.map((value: any) => value.id);
+  });
+  params.exact_include_conditions['workflow_id'] = route.params.taskId;
+  return params;
+}
 const getOperateList = async () => {
     loading.value = true;
-    const currentRowData = nodeManageStore.taskHistoryTableRowData
-    const res = await NodeWorkflowService.NodeWorkflowOperationList({
-        workflow_id: route.params.taskId
-    }).catch(() => ({
+    const currentRowData = nodeManageStore.taskHistoryTableRowData;
+    const searchParameters = getParams();
+    const res = await NodeWorkflowService.NodeWorkflowOperationList(searchParameters).catch(() => ({
         operations: [],
         total_count: 0
     }));
     tableData.value = res.operations.map(item => ({
         ...item.param,
         ...item.status,
-        bk_biz_name: currentRowData?.bk_biz_name,
+        bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
         operation_id: item.operation_id
     }));
     loading.value = false;

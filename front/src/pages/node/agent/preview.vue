@@ -65,7 +65,7 @@
                     <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
                     <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
                     <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
-                    <TableColumn field="bk_os_type_name" :title="t('platform.nodeMan.os_type')"></TableColumn>
+                    <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')"></TableColumn>
                     <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
                     <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')"></TableColumn>
                     <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150">
@@ -95,7 +95,7 @@
                                             </template>
                                             <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
                                             <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
-                                            <TableColumn field="bk_os_type_name" :title="t('platform.nodeMan.os_type')"></TableColumn>
+                                            <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')"></TableColumn>
                                             <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
                                             <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
                                             <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')"></TableColumn>
@@ -122,16 +122,17 @@
     </Sideslider>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { Sideslider, Select, Input, Button, Tag, Tab, Popover, Radio } from 'bkui-vue';
 import { Table, TableColumn } from '@blueking/table';
 import useTableSetting from '@/composables/use-table-setting';
 import { useI18n } from 'vue-i18n';
+import { NodeAgentService } from '@/api/modules/node_agent';
 
 const props = defineProps({
-    tableData: {
-        type: Array,
-        default: () => []
+    data: {
+        type: Object,
+        default: () => {}
     }
 });
 
@@ -140,16 +141,16 @@ const isShow = defineModel('isShow', { type: Boolean });
 const selection = ref([]);
 const searchValue = ref('');
 const handleSelect = () => {};
-
+const tableData = ref([]);
 const isPopShow = ref(false);
 
-const tabs = ref([
-    { label: '全部', name: 'all', count: 10},
+const tabs = computed(() => ([
+    { label: '全部', name: 'all', count: tableData.value.length},
     { label: '待确认', name: 'confirm', count: 3, icon: 'danger-fill', iconColor: '#FF9C01' },
     { label: '错误', name: 'error', count: 2, icon: 'wrong', iconColor: '#EA3636'  },
     { label: '全新安装并导入 CMDB', name: 'CMDB', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88' },
     { label: '正常安装', name: 'setup', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88'  }
-]);
+]));
 const active = ref('all');
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
@@ -160,7 +161,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'bk_networkarea_name',
     'bk_networkarea_id',
     'bk_networkunit_id',
-    'bk_os_type_name',
+    'os_type',
     'node_version',
     'node_status',
     'action',
@@ -176,6 +177,14 @@ const radioValue = ref('cmdb');
 const handleBeforeClose = () => {
     isShow.value = false;
 }
+watch(() => isShow, () => {
+    if(isShow.value && props.data) {
+        tableData.value = props.data.info.map(item => ({
+            ...item,
+            ...props.data
+        }));
+    }
+}, {immediate: true, deep: true});
 </script>
 <style lang="postcss" scoped>
 :deep(.bk-tab-header) {

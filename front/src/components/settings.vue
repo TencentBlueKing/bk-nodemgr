@@ -1,14 +1,14 @@
 <template>
-    <div>
-        <Popover
-            placement="bottom"
-            width="240"
-            theme="light"
-            trigger="click"
-            @after-hidden="afterHidden"
-        >
-            <Button text><i class="nodeman-icon nc-setting"></i></Button>
-            <template #content>
+    <Popover
+        placement="bottom"
+        width="240"
+        theme="light"
+        trigger="click"
+        @after-hidden="afterHidden"
+    >
+        <Button text><i class="nodeman-icon nc-setting"></i></Button>
+        <template #content>
+            <div class="m-[-12px]">
                 <div class="flex h-[42px] text-[14px] text-[#63656e] bg-[#f0f1f5]">
                     <div
                         :class="['flex items-center justify-center w-[120px] cursor-pointer transition-all duration-100',
@@ -48,9 +48,9 @@
                         <Radio.Button label="large">大</Radio.Button>
                     </Radio.Group>
                 </div>
-            </template>
-        </Popover>
-    </div>
+            </div>
+        </template>
+    </Popover>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue';
@@ -82,10 +82,8 @@ const afterHidden = () => {
     emit('setting-change', {checked: checkboxGroupValue.value, size: size.value});
 }
 </script>
-<style>
-.bk-popover.bk-pop2-content {
-    padding: 0;
-}
+<style lang="postcss" scoped>
+
 .bk-checkbox~.bk-checkbox {
     margin-left: 0;
 }

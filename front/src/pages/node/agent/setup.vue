@@ -22,7 +22,7 @@
                     <install-type></install-type>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
-                    <install-table ref="installTableRef">
+                    <install-table ref="installTableRef" v-model:data="formData.info">
                         <Upload class="p-[24px]" :accept="'.xlsx'" :handle-res-code="handleRes" :select-change="handleSelectChange"
                             :url="'https://jsonplaceholder.typicode.com/posts/'" :files="fileList" with-credentials
                             @done="handleDone" @error="handleError" @progress="handleProgress" @success="handleSuccess"
@@ -47,8 +47,8 @@
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.type')" required>
                     <install-type></install-type>
                 </Form.FormItem>
-                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.business')" property="business" required>
-                    <Select class="w-[568px]" v-model="formData.business" auto-focus filterable placeholder="选择业务"
+                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.business')" property="bk_biz_id" required>
+                    <Select class="w-[568px]" v-model="formData.bk_biz_id" auto-focus filterable placeholder="选择业务"
                         @select="handleSelect">
                         <Select.Option v-for="item in businessList" :key="item.bk_biz_id" :name="item.bk_biz_name"
                             :id="item.bk_biz_id">
@@ -56,21 +56,21 @@
                         </Select.Option>
                     </Select>
                 </Form.FormItem>
-                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud')" property="cloud" required>
-                    <Select class="w-[568px]" v-model="formData.cloud" auto-focus filterable :list="networkAreaList"
+                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud')" property="bk_networkarea_id" required>
+                    <Select class="w-[568px]" v-model="formData.bk_networkarea_id" auto-focus filterable :list="networkAreaList"
                         id-key="bk_networkarea_id"
                         display-key="bk_networkarea_name"
                         @select="handleSelect"></Select>
                 </Form.FormItem>
-                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud_unit')" property="cloud_unit"
+                <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud_unit')" property="bk_networkunit_id"
                     required>
-                    <Select class="w-[568px]" v-model="formData.cloud_unit" auto-focus filterable :list="networkUnitList"
+                    <Select class="w-[568px]" v-model="formData.bk_networkunit_id" auto-focus filterable :list="networkUnitList"
                         id-key="bk_networkunit_id"
                         display-key="bk_networkunit_name"
                         @select="handleSelect"></Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
-                    <install-table ref="installTableRef" :data="tableData"></install-table>
+                    <install-table ref="installTableRef" v-model:data="formData.info"></install-table>
                 </Form.FormItem>
                 <Form.FormItem>
                     <Button text theme="primary" class="text-[14px]" @click="isShow = !isShow" disabled>
@@ -101,7 +101,10 @@
             <Button class="w-[100px] mr-[8px]" theme="primary" @click="handlePreview">{{ $t('去安装') }}</Button>
             <Button class="w-[88px]">{{ $t('取消') }}</Button>
         </div>
-        <preview v-model:is-show="previewData.isShow"></preview>
+        <preview
+            v-model:is-show="previewData.isShow"
+            :data="previewData.data"
+        ></preview>
     </div>
 </template>
 <script lang="ts" setup>
@@ -129,18 +132,21 @@ const initData = {
   login_user: '',
   password: '',
 };
-const tableData = ref([cloneDeep(initData)]);
 const mainStore = useMainStore();
 const showRightPanel = ref(false);
 const formData = ref({
     type: '',
-    business: '',
-    cloud: '',
-    cloud_unit: '',
-    info: [],
+    bk_biz_id: '',
+    bk_networkarea_id: '',
+    bk_networkunit_id: '',
+    bk_networkarea_name: '',
+    bk_networkunit_name: '',
+    bk_host_name: '',
+    info: [cloneDeep(initData)],
 });
 const previewData = reactive({
     isShow: false,
+    data: null
 });
 const systemData = ref([
     {
@@ -164,7 +170,7 @@ const rules = {};
 const isShow = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
-const handleSelect = (value: string) => {
+const handleSelect = (value: string, option) => {
 }
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
@@ -188,7 +194,7 @@ const getNetworkAreaList = async () => {
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
 const getNetworkUnitList = async () => {
-    const bk_networkarea_id = formData.value.cloud ? [formData.value.cloud] : [];
+    const bk_networkarea_id = formData.value.bk_networkarea_id ? [formData.value.bk_networkarea_id] : [];
     const res = await TopoService.NetworkUnitList({
         page: {
             limit: 0,
@@ -218,10 +224,8 @@ const handleShowSetting = () => {
 let fileList = ref<File[]>([]);
 const url = `${window.location.origin}${import.meta.env.BK_SITE_URL}${import.meta.env.BK_API_PREFIX}api/excel/download`;
 const handleSuccess = (file: File, fileList: File[]) => {
-    console.log(file, fileList, 'handleSuccess');
 };
 const handleProgress = (event: Event, file: File, fileList: File[]) => {
-    console.log(event, file, fileList, 'handleProgress');
 };
 const handleError = (file: File, fileList: File[], error: { message: string }) => {
     Message({
@@ -230,11 +234,9 @@ const handleError = (file: File, fileList: File[], error: { message: string }) =
     })
 };
 const handleDone = (curFileList: File[]) => {
-    console.log(fileList, 'handleDone');
     fileList.value = [...curFileList]
 };
 const handleRes = (response: { id: number | string }) => {
-    console.log(response, 'handleRes');
     if (response.id) {
         return true;
     }
@@ -254,19 +256,18 @@ const handleBeforeUpload = (file: File, fileList: File[]) => {
     return true;
 };
 const handleSelectChange = (event: Event) => {
-    console.log(event, 'change');
 };
 
+const formRef = ref(null);
 const installTableRef = ref(null);
 const handlePreview = async () => {
-    if (installTableRef.value) {
-        const res = await installTableRef.value?.validate().catch(() => false);
-        if (res) {
-            previewData.isShow = true;
-        }
+    const formValid = await formRef.value?.validate().catch(() => false);
+    const res = await installTableRef.value?.tableValidate();
+    if (formValid && res) {
+        previewData.isShow = true;
+        previewData.data = formData.value;
     }
 }
-
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
     if (footerRef.value) {
@@ -284,7 +285,7 @@ watch(() => isShow.value, (val: boolean) => {
     checkIfAtBottom();
 });
 watch(() => activeInstallType.value, (val: string) => {
-    installTableRef.value?.clearAllValidate();
+    // installTableRef.value?.clearTableValidate();
 });
 onMounted(async () => {
     await getNetworkAreaList();

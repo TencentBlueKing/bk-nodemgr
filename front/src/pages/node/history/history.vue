@@ -10,11 +10,16 @@
           format="yyyy-MM-dd HH:mm:ss"
           type="datetimerange"
           use-shortcut-text
-          @change="dateChange" />
+          @change="pickSuccess" />
       </div>
       <div class="flex-1 ml-[8px]">
-        <SearchSelect ref="searchSelect" :data="searchSelectData" v-model="searchSelectValue" :uniqueSelect="true"
-          :placeholder="'搜索 任务ID、执行人、任务类型、操作类型、部署策略、执行状态 搜索'" @update:modelValue="handleSearchSelectChange">
+        <SearchSelect
+          ref="searchSelect"
+          :data="searchSelectData"
+          v-model="searchSelectValue"
+          :uniqueSelect="true"
+          :placeholder="'搜索 任务ID、任务类型、业务、执行人、执行状态 搜索'"
+          @update:modelValue="handleSearchSelectChange">
         </SearchSelect>
       </div>
     </section>
@@ -29,15 +34,16 @@
         :show-settings="isShowSetting"
         :settings="settings"
         @setting-change="handleSettingChange"
+        @column-filter="handleFilter"
       >
         <TableColumn field="workflow_id" :title="t('任务ID')" width="300" fixed="left">
           <template #default="{ row }">
             <Button text theme="primary" @click="detailHandle(row, row.status)">{{ row.workflow_id }}</Button>
           </template>
         </TableColumn>
-        <TableColumn field="type" :title="t('任务类型')" :filter="taskFilterOption" width="150"></TableColumn>
+        <TableColumn field="type" :title="t('任务类型')" :filter="filterOptionSource.type" width="150"></TableColumn>
         <TableColumn field="bk_biz_name" :title="t('业务')" width="200"></TableColumn>
-        <TableColumn field="operator" :title="t('执行人')" :filter="createdFilterOption"></TableColumn>
+        <TableColumn field="operator" :title="t('执行人')" :filter="filterOptionSource.operator"></TableColumn>
         <TableColumn field="operate_time" :title="t('执行时间')">
           <template #default={row}>
             <span>{{ timeFormatter(row.operate_time) }}</span>
@@ -48,14 +54,14 @@
             <span>{{ formatTimeToMS(row.cost_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="status" :title="t('执行状态')" width="150" :filter="statusFilterOption">
+        <TableColumn field="status" :title="t('执行状态')" width="150" :filter="filterOptionSource.status">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.status">
               <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
               <template v-else>
-                <i :class="`nodeman-icon nc-${statusMap[row.status].icon} status-icon`"></i>
+                <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
               </template>
-              <span>{{ statusMap[row.status].text }}</span>
+              <span>{{ statusMap[row.status]?.text }}</span>
             </div>
             <div class="flex items-center" v-else>
               <span class="nodeman-icon nc-unknown status-icon"></span>
@@ -66,13 +72,13 @@
         <TableColumn field="count" :title="t('总数/成功/失败/忽略')">
           <template #default="{ row }">
             <template v-if="row.statistics">
-              <span class="pr-[4px]">{{ row.statistics.totalCount || 0 }}</span>/
+              <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span>/
               <a class="text-[#2dcb56] pr-[4px]"
-                @click.stop="detailHandle(row, 'success')">{{ row.statistics.successCount || 0 }}</a>/
+                @click.stop="detailHandle(row, 'success')">{{ row.statistics.success_count || 0 }}</a>/
               <a class="text-[#ea3636] pr-[4px]"
-                @click.stop="detailHandle(row, 'failed')">{{ row.statistics.failedCount || 0 }}</a>/
+                @click.stop="detailHandle(row, 'failed')">{{ row.statistics.failed_count || 0 }}</a>/
               <a class="text-[#ff9c01] pr-[4px]"
-                @click.stop="detailHandle(row, 'ignored')">{{ row.statistics.ignoredCount || 0 }}</a>
+                @click.stop="detailHandle(row, 'ignored')">{{ row.statistics.ignored_count || 0 }}</a>
             </template>
             <span v-else>--</span>
           </template>
@@ -82,7 +88,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+interface FilterOption {
+  list: { text: string, value: string }[];
+  checked: string[];
+  filterScope: string;
+}
+
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { Spinner } from 'bkui-vue/lib/icon';
 import { Table, TableColumn } from '@blueking/table';
 import { useI18n } from 'vue-i18n';
@@ -110,7 +122,7 @@ const {
 const loading = ref(false);
 
 // 日期选择
-const dateValue = reactive([new Date(), new Date()]);
+const dateValue = ref([new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7), new Date()]);
 const shortcutsRange = reactive([
   {
     text: '今天',
@@ -166,8 +178,8 @@ const statusMap = {
   },
 
 }
-const dateChange = (val: string[]) => {
-  console.log(val);
+const pickSuccess = async (val: string[]) => {
+  await getTaskList();
 }
 
 // 隐藏自动部署任务
@@ -175,7 +187,18 @@ const hideAutoTask = ref(false);
 
 // 搜索
 const searchSelectValue = ref([]);
-const handleSearchSelectChange = ({id, name, values}: {id: number, name: string, values: []}) => {}
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
+  if(data.length === 0) {
+    Object.keys(filterOptionSource).forEach(key => {
+      filterOptionSource[key].checked = []
+    })
+  }
+  data.forEach(item => {
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
+    }
+  });
+}
 
 const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => {
   return val ? dayjs(val).format(format) : '--';
@@ -202,41 +225,81 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   ],
   disabled: [],
 });
-const getUniqueChildren = (prop: string) => {
+const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
-    name: value
+    name: map ? map[value as string].text : value
   }))
 }
 const searchSelectData = computed(() => [
   {id: 'workflow_id', name: '任务ID'},
   {id: 'type', name: '任务类型', children: getUniqueChildren('type')},
-  {id: 'operator', name: '执行者', children: getUniqueChildren('created_by')},
-  {id: 'status', name: '执行状态', children: getUniqueChildren('task_status')},
+  {id: 'bk_biz_id', name: '业务', children: getUniqueChildren('bk_biz_id')},
+  {id: 'operator', name: '执行者', children: getUniqueChildren('operator')},
+  {id: 'status', name: '执行状态', children: getUniqueChildren('status', statusMap)},
 ]);
 const filterOptionConfig = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return {
     list: uniqueValues.map(value => ({
-      text: value,
+      text: prop === 'status' ? statusMap[value as string].text : value,
       value: value
     })),
     checked: [] as string[],
     filterScope: 'all',
   }
 }
-const taskFilterOption = computed(() => filterOptionConfig('type'));
-const createdFilterOption = computed(() => filterOptionConfig('created_by'));
-const statusFilterOption = computed(() => filterOptionConfig('task_status'));
-
+// 筛选
+const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
+  index > -1 && searchSelectValue.value.splice(index, 1);
+  if (checked.length){
+    searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
+      const name = field === 'status' ? statusMap[item].text : item;
+      return {
+        id: item,
+        name
+      }
+    })});
+  }
+}
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  type: null,
+  operator: null,
+  status: null
+});
+const getSearchParams = (prop: string) => {
+  const foundItem = searchSelectValue.value.find((item: any) => item.id === prop);
+  return foundItem ? foundItem.values.map((item: any) => item.id) : [];
+}
+const getTimestampInSeconds = (originalDate: string) => {
+  const timestampInMilliseconds = new Date(originalDate).getTime();
+  const timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
+  return timestampInSeconds;
+}
+const getParams = () => {
+  const params = {
+    page: {
+      limit: pagination.limit,
+      offset: pagination.offset
+    },
+    exact_include_conditions: {} as Record<string, string[]>,
+    fuzzy_include_conditions: {} as Record<string, string[]>,
+    operate_time_range: {
+      start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
+      end_timestamp_sec: getTimestampInSeconds(dateValue.value[1])
+    }
+  };
+  searchSelectValue.value.forEach((item: any) => {
+    const target = params.exact_include_conditions;
+    target[item.id] = item.values.map((value: any) => value.id);
+  });
+  return params;
+}
 const getTaskList = async () => {
   loading.value = true;
-  const res = await NodeWorkflowService.NodeWorkflowList({
-    page: {
-      limit: 0
-    },
-  }).catch((err) => {
+  const res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
     console.log(err);
     return {
       total: 0,
@@ -260,7 +323,6 @@ const getTaskList = async () => {
       cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
     }
   });
-  console.log(tableData.value)
   loading.value = false;
 }
 
@@ -275,11 +337,19 @@ const detailHandle = (row: NodeWorkflowInfo, status: string) => {
     },
   });
 }
+watch(() => tableData, () => {
+  ['type', 'operator', 'status'].forEach(key => {
+    filterOptionSource[key] = filterOptionConfig(key) as FilterOption;
+  })
+}, { deep: true, immediate: true });
+watch(() => searchSelectValue, async () => {
+  await getTaskList();
+}, { deep: true })
 onMounted(async () => {
   await getTaskList();
 });
 </script>
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {
   height: 200px;
   line-height: 200px;
