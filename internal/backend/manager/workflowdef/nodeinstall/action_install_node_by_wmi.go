@@ -217,7 +217,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 	ctx.Data.LogI(fmt.Sprintf("upload file to remote, path: %s", installerPath))
 	act.logger.Info(fmt.Sprintf("upload file to remote, path: %s", installerPath))
-	ctx.Data.LogE(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
+	ctx.Data.LogI(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
 	act.logger.Info(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
 
 	randSelector := discover.NewRandomSelector()
