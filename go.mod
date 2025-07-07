@@ -1,8 +1,6 @@
 module github.com/TencentBlueKing/bk-nodemgr
 
-go 1.23.0
-
-toolchain go1.23.10
+go 1.23.10
 
 require (
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae

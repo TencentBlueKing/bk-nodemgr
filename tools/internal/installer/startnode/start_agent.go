@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 
@@ -30,8 +29,7 @@ import (
 func StartNode(ctx context.Context, gseCtlPath string) error {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error(constant.StepStartNode,
-				fmt.Sprintf("start agent panic: %s", r))
+			logger.Error(constant.StepStartNode, fmt.Sprintf("start agent panic, recovery: %s", r))
 		}
 	}()
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -52,25 +50,19 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 			return fmt.Errorf("failed to create stderr pipe, err: %w", err)
 		}
 
-		logger.Debugf(constant.StepStartNode,
-			"run agent start cmd: %s", cmd.String())
+		logger.Infof(constant.StepStartNode, "run agent start cmd, cmd(%s)", cmd.String())
 
 		if err := cmd.Start(); err != nil {
 			return fmt.Errorf("failed to start command, err: %w", err)
 		}
 
 		gp := gopool.NewPool()
-		var errOutput strings.Builder
-
 		gp.Go(func() error {
 			scanner := bufio.NewScanner(stderrPipe)
 			for scanner.Scan() {
 				line := scanner.Text()
-				logger.Warn(constant.StepStartNode,
+				logger.Warnf(constant.StepStartNode,
 					"agent stderr: %s", line)
-
-				errOutput.WriteString(line)
-				errOutput.WriteString("\n")
 			}
 
 			return nil
@@ -96,24 +88,14 @@ func StartNode(ctx context.Context, gseCtlPath string) error {
 		_ = gp.Wait()
 
 		if err != nil {
-			logger.Warnf(constant.StepStartNode,
-				"start agent failed, attempt: %d, err: %v",
+			logger.Warnf(constant.StepStartNode, "start agent failed, attempt: %d, err: %v",
 				attempt, err)
-			if errStr := errOutput.String(); errStr != "" {
-				logger.Warnf(constant.StepStartNode,
-					"start agent error output: %s", errStr)
-			}
+
 			return err
 		}
 
-		if errStr := errOutput.String(); errStr != "" {
-			logger.Warnf(constant.StepStartNode,
-				"agent produced warnings: %s", errStr)
-		}
-
 		if !hasOutput {
-			logger.Infof(constant.StepStartNode,
-				"start agent success (no output)")
+			logger.Infof(constant.StepStartNode, "successfully start agent (no output)")
 		}
 
 		return nil

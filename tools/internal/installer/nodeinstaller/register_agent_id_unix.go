@@ -1,3 +1,5 @@
+//go:build linux || darwin || freebsd || aix
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -14,6 +16,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -37,8 +40,11 @@ func RegisterAgentID(ctx context.Context, retrier retrier.Retrier, agentPath, co
 			"-f", configPath,
 			"--register", agentID,
 		)
+		cmd.Dir = filepath.Dir(agentPath)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stdErr
+
+		logger.Infof(constant.StepInstallNode, "register agent id, cmd(%s)", cmd.String())
 
 		err := cmd.Run()
 		if err != nil {
