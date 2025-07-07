@@ -45,12 +45,11 @@ set gse_agent_config_path=%gse_winagent_home:"=%\\agent\\etc\\%agent_config_file
 
 :: set gse_agent_daemon_path
 set TMP_DIR=C:\tmp
-set gse_agent_restart_log=%TMP_DIR%\restart_gse_agent.log
-set gsectl_log=%TMP_DIR%\gsectl_%cu_date%.log
+set gse_agent_restart_log=%TMP_DIR%\restart_gse_agent_%service_id%.log
+set gsectl_log=%TMP_DIR%\gsectl_%service_id%_%cu_date%.log
 
 if not exist "%TMP_DIR%" mkdir "%TMP_DIR%"
 
-echo . >> %gsectl_log%
 echo ================ [%cu_date% %cu_time%] "%COMMAND%"  ================= >> %gsectl_log%
 
 if "%COMMAND%"=="" goto :usage
@@ -74,7 +73,7 @@ goto :EOF
 
 :install_gse_agent_service
     if "%INSTALL_USER%" == "" (
-        gse_agent_daemon.exe --install -f %gse_winagent_home%\\agent\\etc\\gse_agent.conf --name gse_agent_daemon_%service_id% >>%gsectl_log% 2>&1
+        %gse_winagent_home%\\agent\\bin\\gse_agent_daemon.exe --install -f %gse_winagent_home%\\agent\\etc\\gse_agent.conf --name gse_agent_daemon_%service_id% >>%gsectl_log% 2>&1
         if %errorlevel% equ 0 (
             call :log create gse_agent service without special user succeed -- install service/install process
         ) else if %errorlevel% equ 1060 (
@@ -83,7 +82,7 @@ goto :EOF
             call :log create gse_agent service without special user failed, errorlevel: %errorlevel% -- install service/install process
         )
     ) else (
-        gse_agent_daemon.exe --install -f %gse_winagent_home%\\agent\\etc\\gse_agent.conf --name gse_agent_daemon_%service_id% --user .\\%INSTALL_USER% --pwd %INSTALL_PASSWORD% --encode >>%gsectl_log% 2>&1
+        %gse_winagent_home%\\agent\\bin\\gse_agent_daemon.exe --install -f %gse_winagent_home%\\agent\\etc\\gse_agent.conf --name gse_agent_daemon_%service_id% --user .\\%INSTALL_USER% --pwd %INSTALL_PASSWORD% --encode >>%gsectl_log% 2>&1
         if %errorlevel% equ 0 (
             call :log create gse_agent service with special user: %INSTALL_USER% succeed -- install service/install process
         ) else if %errorlevel% equ 1060 (
@@ -120,7 +119,7 @@ goto :EOF
 
     sc query gse_agent_daemon%_service_id% 2>&1 | findstr /r /i /C:"RUNNING" 1>nul 2>&1
     if %errorlevel% NEQ 0 (
-        gse_agent_daemon.exe --start --name gse_agent_daemon%_service_id% 1>nul 2>&1
+        %gse_winagent_home%\\agent\\bin\\gse_agent_daemon.exe --start --name gse_agent_daemon%_service_id% 1>nul 2>&1
     )
 
     ping -n 5 127.0.0.1 >nul 2>&1
@@ -176,7 +175,7 @@ goto :EOF
         goto :EOF
     )
 
-    gse_agent_daemon.exe --quit --name gse_agent_daemon%_service_id% 1>nul 2>&1
+    %gse_winagent_home%\\agent\\bin\\gse_agent_daemon.exe --quit --name gse_agent_daemon%_service_id% 1>nul 2>&1
     if %errorlevel% neq 0 (
         echo [%date%-%time%] stop Service gse_agent_daemon%_service_id% failed, then use wmic to terminate process >>%gse_agent_restart_log%
         call :log stop Service gse_agent_daemon%_service_id% failed, then use wmic to terminate process
