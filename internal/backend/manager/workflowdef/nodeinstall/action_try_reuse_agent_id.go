@@ -153,8 +153,8 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent_id: %s", info.Dynamic.AgentID))
-	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent_id: %s", info.Dynamic.AgentID))
+	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Dynamic.AgentID))
+	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id: %s", info.Dynamic.AgentID))
 
 	return nil
 }

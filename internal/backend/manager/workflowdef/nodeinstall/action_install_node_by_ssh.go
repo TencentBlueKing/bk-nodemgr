@@ -339,7 +339,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 
 		return "", "", "", err
 	}
-	ctx.Data.LogI(fmt.Sprintf("host os info: %s", osType))
+	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
 
 	// 2. detect target cpu arch
 	cpuArchStr, err := client.RunCommand("uname -m")
@@ -354,7 +354,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("host cpu arch: %s", cpuArch))
+	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
 
 	// 3. detect target dir
 	targetDir, err = client.RunCommand("pwd")
@@ -366,7 +366,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 	targetDir = strings.TrimFunc(targetDir, func(r rune) bool {
 		return r == '\n'
 	})
-	ctx.Data.LogI(fmt.Sprintf("target dir: %s", targetDir))
+	ctx.Data.LogI(fmt.Sprintf("target-dir(%s)", targetDir))
 
 	return osType, cpuArch, targetDir, nil
 }

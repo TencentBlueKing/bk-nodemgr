@@ -100,7 +100,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("found %d business", len(bizs)))
+	ctx.Data.LogI(fmt.Sprintf("found business, lens(%d)", len(bizs)))
 
 	for idx := range bizs {
 		biz := bizs[idx]
