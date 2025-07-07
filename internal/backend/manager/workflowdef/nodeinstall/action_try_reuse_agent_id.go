@@ -154,7 +154,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Dynamic.AgentID))
-	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id: %s", info.Dynamic.AgentID))
+	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id:(%s)", info.Dynamic.AgentID))
 
 	return nil
 }

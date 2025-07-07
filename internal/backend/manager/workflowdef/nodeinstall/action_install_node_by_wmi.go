@@ -352,7 +352,7 @@ func (act *actionInstallNodeByWMI) detectInfo(ctx *action.InstanceContext, clien
 
 		return "", "", "", err
 	}
-	ctx.Data.LogI(fmt.Sprintf("host-os-tyoe(%s)", osType))
+	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
 
 	// 2. detect target cpu arch
 	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
