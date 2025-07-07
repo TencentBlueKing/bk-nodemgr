@@ -1,10 +1,6 @@
 // gen-api.js 自动生成，请勿手动修改
-// NodeAgentInstallReq describes the HTTP request body when install node agent.
-export interface NodeAgentInstallReq {
-  host: Host[];
-}
-
-export interface NodeAgentInstallReqHost {
+// AgentInstallInfo ...
+export interface AgentInstallInfo {
   bk_addressing: string;
   bk_biz_id: number;
   bk_host_innerip: string;
@@ -21,6 +17,11 @@ export interface NodeAgentInstallReqHost {
   target_version: string;
   bk_host_id: number;
   re_register: boolean;
+}
+
+// NodeAgentInstallReq describes the HTTP request body when install node agent.
+export interface NodeAgentInstallReq {
+  info: AgentInstallInfo[];
 }
 
 // NodeAgentInstallResp describes the node agent install response.

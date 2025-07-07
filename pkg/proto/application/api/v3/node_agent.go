@@ -18,7 +18,7 @@ import (
 
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
-	hosts := x.GetHost()
+	hosts := x.GetInfo()
 	if len(hosts) == 0 {
 		return errors.New("host can not be empty")
 	}
@@ -34,7 +34,7 @@ func (x *NodeAgentInstallReq) Validate() error {
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeAgentInstallReq_Host) Validate() error {
+func (x *AgentInstallInfo) Validate() error {
 	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
@@ -84,7 +84,7 @@ func (x *NodeAgentInstallReq) AutoConvert() {
 
 // ConvertAgentParamToTypes ...
 func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() []*types.NodeAgentInstallParam {
-	hosts := x.GetHost()
+	hosts := x.GetInfo()
 	if hosts == nil {
 		return nil
 	}
