@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v3/node_agent/install": {
+    "/api/v3/node/agent/install": {
       "post": {
         "summary": "NodeAgentInstall installs node agent.",
         "operationId": "NodeAgent_NodeAgentInstall",

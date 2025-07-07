@@ -145,7 +145,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("bind host agent relation failed, err: %w", err)
 	}
 
-	ctx.Data.Log(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.HostID,
+	ctx.Data.LogI(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.HostID,
 		info.Dynamic.AgentID))
 
 	return nil

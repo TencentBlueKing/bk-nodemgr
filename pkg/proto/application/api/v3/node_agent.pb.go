@@ -381,7 +381,7 @@ const file_node_agent_proto_rawDesc = "" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
 	"workflowId2y\n" +
 	"\tNodeAgent\x12l\n" +
-	"\x10NodeAgentInstall\x12\x17.v3.NodeAgentInstallReq\x1a\x18.v3.NodeAgentInstallResp\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v3/node_agent/installBGZEgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3b\x06proto3"
+	"\x10NodeAgentInstall\x12\x17.v3.NodeAgentInstallReq\x1a\x18.v3.NodeAgentInstallResp\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v3/node/agent/installBGZEgithub.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3b\x06proto3"
 
 var (
 	file_node_agent_proto_rawDescOnce sync.Once

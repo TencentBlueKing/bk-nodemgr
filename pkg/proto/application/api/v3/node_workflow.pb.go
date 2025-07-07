@@ -2690,6 +2690,7 @@ type NodeWorkflowActionMessage_Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Time          int64                  `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
 	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text"`
+	Level         string                 `protobuf:"bytes,3,opt,name=level,proto3" json:"level"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2734,6 +2735,13 @@ func (x *NodeWorkflowActionMessage_Message) GetTime() int64 {
 func (x *NodeWorkflowActionMessage_Message) GetText() string {
 	if x != nil {
 		return x.Text
+	}
+	return ""
+}
+
+func (x *NodeWorkflowActionMessage_Message) GetLevel() string {
+	if x != nil {
+		return x.Level
 	}
 	return ""
 }
@@ -3005,12 +3013,13 @@ const file_node_workflow_proto_rawDesc = "" +
 	"createTime\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x03 \x01(\x03R\tstartTime\x12\x19\n" +
-	"\bend_time\x18\x04 \x01(\x03R\aendTime\"\x89\x01\n" +
+	"\bend_time\x18\x04 \x01(\x03R\aendTime\"\x9f\x01\n" +
 	"\x19NodeWorkflowActionMessage\x129\n" +
-	"\x04logs\x18\x01 \x03(\v2%.v3.NodeWorkflowActionMessage.MessageR\x04logs\x1a1\n" +
+	"\x04logs\x18\x01 \x03(\v2%.v3.NodeWorkflowActionMessage.MessageR\x04logs\x1aG\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04time\x18\x01 \x01(\x03R\x04time\x12\x12\n" +
-	"\x04text\x18\x02 \x01(\tR\x04text\"\x7f\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\tR\x05level\"\x7f\n" +
 	"\x16NodeWorkflowActionData\x12,\n" +
 	"\n" +
 	"life_cycle\x18\x01 \x01(\v2\r.v3.LifeCycleR\tlifeCycle\x127\n" +

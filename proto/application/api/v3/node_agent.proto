@@ -43,7 +43,7 @@ service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
-      post : "/api/v3/node_agent/install"
+      post : "/api/v3/node/agent/install"
       body : "*"
     };
   }

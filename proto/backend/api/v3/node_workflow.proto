@@ -253,6 +253,7 @@ message NodeWorkflowActionMessage {
   message Message {
     int64 time = 1;
     string text = 2;
+    string level = 3;
   }
   repeated Message logs = 1;
 }

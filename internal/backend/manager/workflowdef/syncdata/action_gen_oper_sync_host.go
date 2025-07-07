@@ -100,7 +100,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("found %d business", len(bizs)))
+	ctx.Data.LogI(fmt.Sprintf("found %d business", len(bizs)))
 
 	for idx := range bizs {
 		biz := bizs[idx]
@@ -124,7 +124,7 @@ func (act *actionGenOperSyncHost) executeOper(
 			"failed to get trigger. tenant-id(%s), trigger-id(%s), biz-name(%s), biz-id(%d), err: %w",
 			biz.TenantID, ctx.Data.TriggerID, biz.BizName, biz.BizID, err)
 
-		ctx.Data.Log(err.Error())
+		ctx.Data.LogE(err.Error())
 
 		return err
 	}
@@ -143,12 +143,12 @@ func (act *actionGenOperSyncHost) executeOper(
 			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",
 			biz.TenantID, biz.BizName, biz.BizID, err)
 
-		ctx.Data.Log(err.Error())
+		ctx.Data.LogE(err.Error())
 
 		return err
 	}
 
-	ctx.Data.Log(
+	ctx.Data.LogI(
 		fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
 			biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
 

@@ -131,7 +131,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		ctx.Data.Log("failed to query agent state, err: " + err.Error())
+		ctx.Data.LogE("failed to query agent state, err: " + err.Error())
 
 		return err
 	}

@@ -49,12 +49,35 @@ func (data *InstanceData) Info() string {
 		data.OperationID, data.Index, data.Name)
 }
 
-// Log logs messages.
-func (data *InstanceData) Log(messages ...string) {
+// LogI logs messages.
+func (data *InstanceData) LogI(messages ...string) {
 	for _, message := range messages {
 		data.Messages = append(data.Messages, Message{
-			Time: time.Now(),
-			Text: message,
+			Time:  time.Now(),
+			Text:  message,
+			Level: "INFO",
+		})
+	}
+}
+
+// LogW logs error messages.
+func (data *InstanceData) LogW(messages ...string) {
+	for _, message := range messages {
+		data.Messages = append(data.Messages, Message{
+			Time:  time.Now(),
+			Text:  message,
+			Level: "WARN",
+		})
+	}
+}
+
+// LogE logs error messages.
+func (data *InstanceData) LogE(messages ...string) {
+	for _, message := range messages {
+		data.Messages = append(data.Messages, Message{
+			Time:  time.Now(),
+			Text:  message,
+			Level: "ERROR",
 		})
 	}
 }
@@ -97,8 +120,9 @@ func (data *InstanceData) NeedExecuted() error {
 
 // Message describes the single message in action instance.
 type Message struct {
-	Time time.Time
-	Text string
+	Time  time.Time
+	Text  string
+	Level string
 }
 
 // Lifecycle describes the lifecycle of an action instance.

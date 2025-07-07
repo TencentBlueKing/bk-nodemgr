@@ -183,7 +183,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("make sure the installer workspace exists, stdOut: %s, stdErr: %s", stdOut, stdErr))
+	ctx.Data.LogI(fmt.Sprintf("make sure the installer workspace exists, stdOut: %s, stdErr: %s", stdOut, stdErr))
 
 	// 5. select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(osType, cpuArch)
@@ -215,9 +215,9 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkspace, toolName))
 
-	ctx.Data.Log(fmt.Sprintf("upload file to remote, path: %s", installerPath))
+	ctx.Data.LogI(fmt.Sprintf("upload file to remote, path: %s", installerPath))
 	act.logger.Info(fmt.Sprintf("upload file to remote, path: %s", installerPath))
-	ctx.Data.Log(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
+	ctx.Data.LogE(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
 	act.logger.Info(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
 
 	randSelector := discover.NewRandomSelector()
@@ -260,7 +260,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 	// 7. exec install command
 	installBat := act.buildBat(installParams)
-	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installBat))
+	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installBat))
 
 	batName := "run_install.bat"
 	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), batName)
@@ -282,8 +282,8 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("install node stdout: %s", stdOutStr))
-	ctx.Data.Log(fmt.Sprintf("install node stderr: %s", stdErrStr))
+	ctx.Data.LogI(fmt.Sprintf("install node stdout: %s", stdOutStr))
+	ctx.Data.LogE(fmt.Sprintf("install node stderr: %s", stdErrStr))
 
 	return nil
 }
@@ -350,7 +350,7 @@ func (act *actionInstallNodeByWMI) detectInfo(ctx *action.InstanceContext, clien
 
 		return "", "", "", err
 	}
-	ctx.Data.Log(fmt.Sprintf("host os info: %s", osType))
+	ctx.Data.LogI(fmt.Sprintf("host os info: %s", osType))
 
 	// 2. detect target cpu arch
 	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
@@ -365,7 +365,7 @@ func (act *actionInstallNodeByWMI) detectInfo(ctx *action.InstanceContext, clien
 		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
 	}
 
-	ctx.Data.Log(fmt.Sprintf("host cpu arch: %s", cpuArch))
+	ctx.Data.LogI(fmt.Sprintf("host cpu arch: %s", cpuArch))
 
 	connectedRunDir = "C:\\tmp"
 

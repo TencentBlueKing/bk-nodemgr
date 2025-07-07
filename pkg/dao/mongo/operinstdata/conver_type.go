@@ -102,8 +102,9 @@ func ConvActionInstDataToDB(actionInstData *action.InstanceData) (*ActionInstDat
 
 	for _, message := range actionInstData.Messages {
 		data.Messages = append(data.Messages, Message{
-			Time: message.Time,
-			Text: message.Text,
+			Time:  message.Time,
+			Text:  message.Text,
+			Level: message.Level,
 		})
 	}
 
@@ -170,8 +171,9 @@ func convMessageToDB(msgs []action.Message) []Message {
 	dbData := make([]Message, len(msgs))
 	for idx, msg := range msgs {
 		dbData[idx] = Message{
-			Time: msg.Time,
-			Text: msg.Text,
+			Time:  msg.Time,
+			Text:  msg.Text,
+			Level: msg.Level,
 		}
 	}
 

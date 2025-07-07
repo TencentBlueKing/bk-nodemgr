@@ -314,8 +314,9 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 
 	for _, msg := range actionInstData.Messages {
 		data.Messages = append(data.Messages, action.Message{
-			Time: msg.Time,
-			Text: msg.Text,
+			Time:  msg.Time,
+			Text:  msg.Text,
+			Level: msg.Level,
 		})
 	}
 

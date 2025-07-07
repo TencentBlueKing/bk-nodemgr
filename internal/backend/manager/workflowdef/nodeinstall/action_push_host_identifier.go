@@ -120,7 +120,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
-	ctx.Data.Log(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
+	ctx.Data.LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
 
 	var success bool
 	err = polling.Do(tCtx, func(_ int) error {
@@ -146,18 +146,18 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		ctx.Data.Log("failed to push host identifier, err: " + err.Error())
+		ctx.Data.LogE("failed to push host identifier, err: " + err.Error())
 
 		return err
 	}
 
 	if !success {
-		ctx.Data.Log("failed to push host identifier, no success result")
+		ctx.Data.LogE("failed to push host identifier, no success result")
 
 		return errors.New("failed to push host identifier")
 	}
 
-	ctx.Data.Log("pushed host identifier")
+	ctx.Data.LogI("pushed host identifier")
 
 	return nil
 }

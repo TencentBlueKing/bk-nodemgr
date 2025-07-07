@@ -126,13 +126,13 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("find %v hosts from cmdb, %v hosts in db", len(cmdbData), len(dbData)))
+	ctx.Data.LogI(fmt.Sprintf("find %v hosts from cmdb, %v hosts in db", len(cmdbData), len(dbData)))
 	upsertHosts, deleteHostIDs, err := act.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
 
-	ctx.Data.Log(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete",
+	ctx.Data.LogI(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete",
 		len(upsertHosts), len(deleteHostIDs)))
 
 	if err = act.storageHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {

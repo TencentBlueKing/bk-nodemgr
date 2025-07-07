@@ -49,8 +49,9 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 	logs := make([]action.Message, len(req.Logs))
 	for idx, log := range req.Logs {
 		logs[idx] = action.Message{
-			Time: time.Unix(log.Timestamp, 0),
-			Text: fmt.Sprintf("[%s]\t| %s\t:%s", log.GetLevel(), log.GetStep(), log.GetLog()),
+			Time:  time.Unix(log.GetTimestamp(), 0),
+			Text:  fmt.Sprintf("%s\t:%s\t", log.GetStep(), log.GetLog()),
+			Level: log.GetLevel(),
 		}
 	}
 

@@ -342,7 +342,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < engineMaxRetryLimit; retryNum++ {
 		mgr.logger.Infof("started action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
-		actionInstCtx.Data.Log(fmt.Sprintf("started action, action-name(%s), retry-num(%d)",
+		actionInstCtx.Data.LogI(fmt.Sprintf("started action, action-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, retryNum))
 
 		doErr = actionDef.Do(actionInstCtx)
@@ -350,7 +350,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 		if doErr != nil {
 			mgr.logger.Errorf("failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.OperationID, actionInstCtx.Data.Name, retryNum, doErr)
-			actionInstCtx.Data.Log(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
+			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 
 			actionDef.DelayFn()
@@ -360,7 +360,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 
 		mgr.logger.Infof("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
-		actionInstCtx.Data.Log(fmt.Sprintf("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+		actionInstCtx.Data.LogI(fmt.Sprintf("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum))
 
 		break

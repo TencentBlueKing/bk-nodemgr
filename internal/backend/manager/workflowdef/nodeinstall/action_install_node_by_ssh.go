@@ -252,7 +252,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	// 7. exec install command
 	installCmd := act.buildCMD(installParams)
 
-	ctx.Data.Log(fmt.Sprintf("install node cmd: %s", installCmd))
+	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
 
 	outStr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
@@ -265,7 +265,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 		return err
 	}
-	ctx.Data.Log(fmt.Sprintf("install node result: %s", outStr))
+	ctx.Data.LogI(fmt.Sprintf("install node result: %s", outStr))
 
 	return nil
 }
@@ -339,7 +339,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 
 		return "", "", "", err
 	}
-	ctx.Data.Log(fmt.Sprintf("host os info: %s", osType))
+	ctx.Data.LogI(fmt.Sprintf("host os info: %s", osType))
 
 	// 2. detect target cpu arch
 	cpuArchStr, err := client.RunCommand("uname -m")
@@ -354,7 +354,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
 	}
 
-	ctx.Data.Log(fmt.Sprintf("host cpu arch: %s", cpuArch))
+	ctx.Data.LogI(fmt.Sprintf("host cpu arch: %s", cpuArch))
 
 	// 3. detect target dir
 	targetDir, err = client.RunCommand("pwd")
@@ -366,7 +366,7 @@ func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, clien
 	targetDir = strings.TrimFunc(targetDir, func(r rune) bool {
 		return r == '\n'
 	})
-	ctx.Data.Log(fmt.Sprintf("target dir: %s", targetDir))
+	ctx.Data.LogI(fmt.Sprintf("target dir: %s", targetDir))
 
 	return osType, cpuArch, targetDir, nil
 }

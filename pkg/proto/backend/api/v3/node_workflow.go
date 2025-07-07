@@ -496,8 +496,9 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		messages := make([]*NodeWorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
 			messages = append(messages, &NodeWorkflowActionMessage_Message{
-				Time: msg.Time.Unix(),
-				Text: msg.Text,
+				Time:  msg.Time.Unix(),
+				Text:  msg.Text,
+				Level: msg.Level,
 			})
 		}
 
@@ -545,8 +546,9 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 					continue
 				}
 				instance.Messages = append(instance.Messages, action.Message{
-					Time: time.Unix(msg.GetTime(), 0),
-					Text: msg.GetText(),
+					Time:  time.Unix(msg.GetTime(), 0),
+					Text:  msg.GetText(),
+					Level: msg.GetLevel(),
 				})
 			}
 		}

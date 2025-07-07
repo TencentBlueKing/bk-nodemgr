@@ -139,7 +139,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	}
 
 	act.logger.InfoCtxf(ctx.Ctx, "transfer pkg to node all done. host-id(%d)", info.HostID)
-	ctx.Data.Log("transfer pkg to node all done")
+	ctx.Data.LogI("transfer pkg to node all done")
 
 	return nil
 }

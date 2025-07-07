@@ -116,8 +116,9 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 
 		for idx, msg := range v.Messages {
 			actionInstData.Messages[idx] = action.Message{
-				Time: msg.Time,
-				Text: msg.Text,
+				Time:  msg.Time,
+				Text:  msg.Text,
+				Level: msg.Level,
 			}
 		}
 
@@ -184,8 +185,9 @@ func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 
 			for idx, msg := range v.Messages {
 				actionInstData.Messages[idx] = action.Message{
-					Time: msg.Time,
-					Text: msg.Text,
+					Time:  msg.Time,
+					Text:  msg.Text,
+					Level: msg.Level,
 				}
 			}
 

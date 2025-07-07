@@ -37,8 +37,9 @@ type ActionInstData struct {
 
 // Message represents a message.
 type Message struct {
-	Time time.Time `json:"time" bson:"time"`
-	Text string    `json:"text" bson:"text"`
+	Time  time.Time `json:"time" bson:"time"`
+	Text  string    `json:"text" bson:"text"`
+	Level string    `json:"level" bson:"level"`
 }
 
 // OperInstData represents a operation instance data.

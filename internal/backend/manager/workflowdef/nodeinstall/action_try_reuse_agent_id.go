@@ -117,7 +117,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	// force re-register the agentID.
 	if info.ReRegister {
-		ctx.Data.Log("force re-register, will not reuse agent id")
+		ctx.Data.LogI("force re-register, will not reuse agent id")
 		act.logger.Info("force re-register, will not reuse agent id")
 
 		return nil
@@ -141,7 +141,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// not match host, can't reuse.
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
-		ctx.Data.Log("not match host, can't reuse agent id")
+		ctx.Data.LogE("not match host, can't reuse agent id")
 		act.logger.Info("not match host, can't reuse agent id")
 
 		return nil
@@ -153,7 +153,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 
-	ctx.Data.Log(fmt.Sprintf("find agent id, try reuse it, agent_id: %s", info.Dynamic.AgentID))
+	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent_id: %s", info.Dynamic.AgentID))
 	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent_id: %s", info.Dynamic.AgentID))
 
 	return nil
