@@ -47,10 +47,11 @@ type NodeWorkflowStatistics struct {
 
 // Validate check body.
 func (x *NodeWorkflowStatisticsReq) Validate() error {
-	if len(x.GetWorkflowId()) == 0 {
-		return errors.New("workflow_id is required")
+	for _, workflowID := range x.GetWorkflowId() {
+		if workflowID == "" {
+			return errors.New("workflow_id can not be empty")
+		}
 	}
-
 	return nil
 }
 
