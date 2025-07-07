@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
@@ -115,7 +116,14 @@ func (step *Step) Run(ctx context.Context) (string, error) {
 	}
 
 	// 3. get agent id
-	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	// nolint: mnd
+	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
+		// notice this need more retries than default.
+		MaxRetries:    10,
+		BaseDelay:     time.Second,
+		MaxDelay:      5 * time.Second,
+		JitterPercent: 0.2,
+	})
 	// 3.1 unregister agent id [optional]
 	if step.reRegisterAgentID {
 		err = UnregisterAgentID(ctx, backoff, step.gseAgentPath, step.gseAgentConfigPath)
