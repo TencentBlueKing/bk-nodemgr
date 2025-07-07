@@ -17,6 +17,9 @@ LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${
 	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.GITHASH=${GITHASH} \
 	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 
+# fixed go version.
+GO = go1.23.10
+
 # cmd
 MKDIR = mkdir -p
 ECHO  = $(if $(filter Linux,$(shell uname)),echo -e,echo)
@@ -31,26 +34,31 @@ default: all
 
 pre:
 	@$(MKDIR) $(OUTPUT_DIR)
-	go mod tidy
+
+	go get golang.org/dl/go1.23.10@latest
+	go install golang.org/dl/go1.23.10@latest
+	go1.23.10 download
+
+	go1.23.10 mod tidy
 
 backend: pre
 	@$(ECHO) "Building backend $(VERSION)..."
-	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-backend $(ROOT_DIR)/cmd/backend/main.go
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-backend $(ROOT_DIR)/cmd/backend/main.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-backend"
 
 application: pre
 	@$(ECHO) "Building application $(VERSION)..."
-	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-application"
 
 file: pre
 	@$(ECHO) "Building file $(VERSION)..."
-	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-file $(ROOT_DIR)/cmd/file/*.go
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-file $(ROOT_DIR)/cmd/file/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-file"
 
 relay: pre
 	@$(ECHO) "Building proxy $(VERSION)..."
-	CGO_ENABLED=0 go build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-relay $(ROOT_DIR)/cmd/relay/*.go
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-relay $(ROOT_DIR)/cmd/relay/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-relay"
 
 front: pre
