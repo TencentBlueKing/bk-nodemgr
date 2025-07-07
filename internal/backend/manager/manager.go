@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -146,6 +147,10 @@ func (mgr *manager) Start(ctx context.Context) error {
 		return err
 	}
 
+	if err := mgr.startScheduleWorkflow(ctx); err != nil {
+		return fmt.Errorf("failed to start schedule workflow, err: %w", err)
+	}
+
 	mgr.isRunning = true
 
 	mgr.logger.Info("started manager")
@@ -202,10 +207,41 @@ func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 
 // registerActionDefs init action defs
 func (mgr *manager) registerActionDefs() error {
-	if err := mgr.registerActionDefNodeInstall(); err != nil {
-		return fmt.Errorf("register action def node install failed, err: %v", err)
+	if err := mgr.registerOnceOperationActions(); err != nil {
+		return fmt.Errorf("register once operation actions failed, err: %w", err)
 	}
 
+	if err := mgr.registerPeriodicOperationActions(); err != nil {
+		return fmt.Errorf("register periodic operation actions failed, err: %w", err)
+	}
+
+	return nil
+}
+
+// registerOnceTriggerActions registers the action definitions for once trigger actions.
+func (mgr *manager) registerOnceOperationActions() error {
+	if err := mgr.registerActionDefNodeInstall(); err != nil {
+		return fmt.Errorf("register action def node install failed, err: %w", err)
+	}
+
+	if err := mgr.registerActionDefSyncData(); err != nil {
+		return fmt.Errorf("register action def sync data failed, err: %w", err)
+	}
+
+	return nil
+}
+
+// registerPeriodicTriggerActions registers the action definitions for periodic trigger actions.
+func (mgr *manager) registerPeriodicOperationActions() error {
+	if err := mgr.registerActionDefSchedule(); err != nil {
+		return fmt.Errorf("register action def schedule failed, err: %w", err)
+	}
+
+	return nil
+}
+
+// registerActionDefSyncData registers the action definitions for sync data operations.
+func (mgr *manager) registerActionDefSyncData() error {
 	return mgr.workflowMgr.RegisterActions(
 		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
@@ -214,6 +250,7 @@ func (mgr *manager) registerActionDefs() error {
 	)
 }
 
+// registerActionDefNodeInstall registers the action definitions for node installation operations.
 func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
@@ -235,6 +272,12 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionTransferPkgToNode(
 			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
+	)
+}
+
+func (mgr *manager) registerActionDefSchedule() error {
+	return mgr.workflowMgr.RegisterActions(
+		schedule.NewActionGenScheduleSyncHostOnceTrigger(mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
 	)
 }
 

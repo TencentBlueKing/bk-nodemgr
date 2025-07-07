@@ -1,0 +1,348 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "schedule_workflow.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Schedule"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/schedule/workflow/disable": {
+      "post": {
+        "summary": "DisableScheduleWorkflow provides disable schedule workflow.",
+        "operationId": "Schedule_DisableScheduleWorkflow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DisableScheduleWorkflowResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DisableScheduleWorkflowReq"
+            }
+          }
+        ],
+        "tags": [
+          "Schedule"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/enable": {
+      "post": {
+        "summary": "EnableScheduleWorkflow provides enable schedule workflow.",
+        "operationId": "Schedule_EnableScheduleWorkflow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3EnableScheduleWorkflowResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3EnableScheduleWorkflowReq"
+            }
+          }
+        ],
+        "tags": [
+          "Schedule"
+        ]
+      }
+    },
+    "/api/v3/schedule/workflow/list": {
+      "post": {
+        "summary": "ListScheduleWorkflow provides list schedule workflow.",
+        "operationId": "Schedule_ListScheduleWorkflow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ListScheduleWorkflowResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ListScheduleWorkflowReq"
+            }
+          }
+        ],
+        "tags": [
+          "Schedule"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3DisableScheduleWorkflowReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow."
+    },
+    "v3DisableScheduleWorkflowResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DisableScheduleWorkflowRespData"
+        }
+      },
+      "description": "DisableScheduleWorkflowResp describes the HTTP response body when disable\nschedule workflow."
+    },
+    "v3DisableScheduleWorkflowRespData": {
+      "type": "object"
+    },
+    "v3EnableScheduleWorkflowReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow."
+    },
+    "v3EnableScheduleWorkflowResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3EnableScheduleWorkflowRespData"
+        }
+      },
+      "description": "EnableScheduleWorkflowResp describes the HTTP response body when enable\nschedule workflow."
+    },
+    "v3EnableScheduleWorkflowRespData": {
+      "type": "object"
+    },
+    "v3ListScheduleWorkflowReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ScheduleWorkflowFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow."
+    },
+    "v3ListScheduleWorkflowResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ListScheduleWorkflowRespData"
+        }
+      },
+      "description": "ListScheduleWorkflowResp describes the HTTP response body when list schedule\nworkflow."
+    },
+    "v3ListScheduleWorkflowRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ScheduleWorkflow"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3ScheduleWorkflow": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_name": {
+          "type": "string"
+        },
+        "trigger_id": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "ScheduleWorkflow describes the schedule workflow"
+    },
+    "v3ScheduleWorkflowExactConditions": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workflow_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "ScheduleWorkflowExactConditions describes the exact conditions of schedule\nworkflow list request."
+    },
+    "v3ScheduleWorkflowFuzzyConditions": {
+      "type": "object",
+      "description": "ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\nworkflow list request."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
+    }
+  }
+}

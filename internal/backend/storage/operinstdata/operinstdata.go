@@ -576,3 +576,37 @@ func (s *Storage) existsAction(ctx context.Context, operInstID string, actionNam
 	}
 	return errors.New("no found action")
 }
+
+// UpsertActionInstancePrivateData upserts action instance private data.
+func (s *Storage) UpsertActionInstancePrivateData(
+	ctx context.Context, operInstID string, actionName string, privateData map[string]any) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("actionName is empty")
+	}
+
+	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
+		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s), err: %w",
+			operInstID, actionName, err)
+	}
+
+	if len(privateData) == 0 {
+		return nil
+	}
+
+	if err := s.daoOperinstdata.AddActInstPrivateData(ctx, operInstID, actionName, privateData); err != nil {
+		return fmt.Errorf(
+			"failed to update operation instance private data, operation-inst-id(%s), action-name(%s), err: %w",
+			operInstID, actionName, err)
+	}
+
+	return nil
+}

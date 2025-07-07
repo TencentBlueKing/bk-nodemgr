@@ -32,7 +32,12 @@ type IStorageActionInstance interface {
 		ctx context.Context, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
 
 	// UpdateActionInstanceContent updates action instance content.
-	UpdateActionInstanceContent(ctx context.Context, operationInstanceID, actionName string, content map[string]any) error
+	UpdateActionInstanceContent(
+		ctx context.Context, operationInstanceID, actionName string, content map[string]any) error
+
+	// UpsertActionInstancePrivateData upserts action instance private data.
+	UpsertActionInstancePrivateData(
+		ctx context.Context, operInstID string, actionName string, privateData map[string]any) error
 
 	// PushActionInstanceMessage pushes action instance message.
 	PushActionInstanceMessage(

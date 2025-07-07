@@ -18,6 +18,7 @@ import (
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -45,6 +46,7 @@ type Config struct {
 	StorageTrigger        trigger.IStorage
 	StorageOperation      operation.IStorage
 	StorageOperInst       operinstdata.IStorage
+	StorageSchedule       scheduleworkflow.IStorage
 
 	FileHandler file.IHandler
 
