@@ -39,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
@@ -202,6 +203,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.StorageScheduleWorkflow, err = scheduleworkflow.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
 	svc.Cap.StorageRelease, err = release.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
@@ -234,6 +240,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
+		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
 		FileHandler:           svc.Cap.FileHandler,
 		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{

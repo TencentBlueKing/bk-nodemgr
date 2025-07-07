@@ -137,6 +137,12 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return err
 	}
 
+	// updates action instance private data.
+	if err = mgr.updateOperationInstancePrivateData(
+		ctx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
+		return err
+	}
+
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
@@ -192,6 +198,30 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 		operationInstanceID, operInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update operation instance lifecycle. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
+	}
+
+	return nil
+}
+
+func (mgr *manager) updateOperationInstancePrivateData(
+	ctx context.Context,
+	operationInstanceID string,
+	actionName string,
+	privateData map[string]any) error {
+
+	if len(privateData) == 0 {
+		// no private data to update, skip.
+		mgr.logger.Debugf("no private data to update, oper-inst-id(%s), action-name(%s), private-data(%v)",
+			operationInstanceID, actionName, privateData)
+
+		return nil
+	}
+
+	if err := mgr.stgActionInstance.UpsertActionInstancePrivateData(ctx,
+		operationInstanceID, actionName, privateData); err != nil {
+		return fmt.Errorf("failed to upsert action instance private data. "+
+			"oper-inst-id(%s), action-name(%s), private-data(%v), err: %v",
+			operationInstanceID, actionName, privateData, err)
 	}
 
 	return nil

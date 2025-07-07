@@ -105,7 +105,7 @@ const (
 	orderedTriggersSyncIntervalDefault   = 1 * time.Second
 	orderedTriggersCheckIntervalDefault  = 1 * time.Second
 	periodicTriggersSyncIntervalDefault  = 1 * time.Second
-	periodicTriggersCheckIntervalDefault = 5 * time.Second
+	periodicTriggersCheckIntervalDefault = 1 * time.Second
 
 	maxOnceTriggerProcessLimit = 500
 

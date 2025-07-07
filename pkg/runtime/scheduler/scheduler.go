@@ -76,7 +76,7 @@ func NewTask[T string | time.Duration](
 	var cronExpr string
 	switch t := any(interval).(type) {
 	case time.Duration:
-		cronExpr = "@every " + t.String()
+		cronExpr = Every + t.String()
 	case string:
 		cronExpr = t
 	}

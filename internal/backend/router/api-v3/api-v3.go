@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/pkg"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
 	"github.com/gin-gonic/gin"
@@ -41,4 +42,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	node.Load(h.rg, capability)
 	topo.Load(h.rg, capability)
 	pkg.Load(h.rg, capability)
+	schedule.Load(h.rg, capability)
 }
