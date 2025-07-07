@@ -344,8 +344,9 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 				actionName: "sync_action_from_cmdb",
 				msgs: []action.Message{
 					{
-						Time: time.Now(),
-						Text: "test1 ",
+						Time:  time.Now(),
+						Text:  "test1 ",
+						Level: "INFO",
 					},
 				},
 			},

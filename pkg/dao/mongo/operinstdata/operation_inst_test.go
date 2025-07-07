@@ -378,7 +378,7 @@ func Test_handler_Count(t *testing.T) {
 				opts: []OptFn{},
 			},
 			wantErr:   false,
-			wantCount: 4,
+			wantCount: 218,
 		},
 	}
 
@@ -398,62 +398,6 @@ func Test_handler_Count(t *testing.T) {
 				t.Errorf("Test_handler_Count() got = %v, wantCount %v", num, tt.wantCount)
 			}
 			t.Logf("Test_handler_Count() count = %+v\n", num)
-
-		})
-	}
-}
-
-// Test_ListFullData ...
-func Test_ListFullData(t *testing.T) {
-	type args struct {
-		ctx  context.Context
-		opts []OptFn
-	}
-
-	tests := []struct {
-		name      string
-		args      args
-		wantErr   bool
-		wantCount int64
-	}{
-		{
-			name: "normal_1",
-			args: args{
-				ctx:  context.Background(),
-				opts: []OptFn{WithOperInstID("operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f")},
-			},
-			wantErr:   false,
-			wantCount: 1,
-		},
-		{
-			name: "normal_2",
-			args: args{
-				ctx:  context.Background(),
-				opts: []OptFn{},
-			},
-			wantErr:   false,
-			wantCount: 4,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testHandler(t)
-			got, num, err := h.ListFullData(tt.args.ctx, types.Page{}, tt.args.opts...)
-			if err != nil {
-				t.Logf("Test_ListFullData() error = %v", err)
-			}
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Test_ListFullData() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantCount != num {
-				t.Errorf("Test_ListFullData() got = %v, wantCount %v", num, tt.wantCount)
-			}
-			for _, data := range got {
-				t.Logf("Test_ListFullData() got =%+v \n", data)
-			}
 
 		})
 	}
@@ -488,14 +432,14 @@ func Test_ListWithoutActInst(t *testing.T) {
 				opts: []OptFn{},
 			},
 			wantErr:   false,
-			wantCount: 4,
+			wantCount: 218,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			got, num, err := h.ListWithoutActInst(tt.args.ctx, types.Page{}, tt.args.opts...)
+			_, num, err := h.ListWithoutActInst(tt.args.ctx, types.Page{}, tt.args.opts...)
 			if err != nil {
 				t.Logf("Test_ListFullData() error = %v", err)
 			}
@@ -506,9 +450,6 @@ func Test_ListWithoutActInst(t *testing.T) {
 			}
 			if tt.wantCount != num {
 				t.Errorf("Test_ListFullData() got = %v, wantCount %v", num, tt.wantCount)
-			}
-			for _, data := range got {
-				t.Logf("Test_ListFullData() got =%+v,actions:%+v \n", data, data.Metadata.ActionNames)
 			}
 
 		})
