@@ -280,6 +280,7 @@ export interface NodeWorkflowActionMessage {
 export interface NodeWorkflowActionMessageMessage {
   time: number;
   text: string;
+  level: string;
 }
 
 export interface NodeWorkflowActionData {

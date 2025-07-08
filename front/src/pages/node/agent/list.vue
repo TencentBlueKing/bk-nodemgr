@@ -129,6 +129,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { InfoBox, Button, Dropdown, Cascader, SearchSelect } from 'bkui-vue';
 import usePage from '@/composables/use-page';
 import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
 import { WorkflowService } from '@/api/modules/workflow';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
@@ -138,6 +139,7 @@ import { watch } from 'vue';
 const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
+const nodeManageStore = useNodeManageStore();
 const tableData = ref<Host[]>([]);
 const agentList = ref<Host[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
@@ -405,18 +407,16 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
   }
   if (!jobType) return;
 
-  router.push({
-    name: 'agentEdit',
-    params: {
-      tableData: data.map((item: any) => ({
-        ...item
-      })),
-      type: jobType,
-      // true：跨页全选（tableData表示标记删除的数据） false：非跨页全选（tableData表示编辑的数据）
-      isSelectedAllPages: String(batch && isSelectedAllPages.value),
-      condition: [],
-    },
-  });
+  router.push({ name: 'agentEdit'});
+  const params = {
+    tableData: data.map((item: any) => ({
+      ...item
+    })),
+    type: jobType,
+    // true：跨页全选（tableData表示标记删除的数据） false：非跨页全选（tableData表示编辑的数据）
+    isSelectedAllPages: String(batch && isSelectedAllPages.value),
+  };
+  nodeManageStore.updateAgentEditRowData(params);
 };
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));

@@ -97,7 +97,6 @@
                                             <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
                                             <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')"></TableColumn>
                                             <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
-                                            <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
                                             <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')"></TableColumn>
                                         </Table>
                                     </template>
@@ -115,7 +114,7 @@
         </template>
         <template #footer>
             <div class="flex justify-start gap-[8px]">
-                <Button theme="primary" @click="isShow = false" :disabled="!tableData.length">执行安装</Button>
+                <Button theme="primary" @click="handleSetup" :disabled="!tableData.length">执行安装</Button>
                 <Button @click="handleBeforeClose">取消</Button>
             </div>
         </template>
@@ -128,6 +127,8 @@ import { Table, TableColumn } from '@blueking/table';
 import useTableSetting from '@/composables/use-table-setting';
 import { useI18n } from 'vue-i18n';
 import { NodeAgentService } from '@/api/modules/node_agent';
+import { AgentInstallInfo } from '@/@types/node_agent.d'
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
     data: {
@@ -137,11 +138,13 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const isShow = defineModel('isShow', { type: Boolean });
 const selection = ref([]);
 const searchValue = ref('');
 const handleSelect = () => {};
-const tableData = ref([]);
+const tableData = ref<AgentInstallInfo[]>([]);
 const isPopShow = ref(false);
 
 const tabs = computed(() => ([
@@ -177,12 +180,32 @@ const radioValue = ref('cmdb');
 const handleBeforeClose = () => {
     isShow.value = false;
 }
+const handleSetup = async () => {
+    const res = await NodeAgentService.NodeAgentInstall({
+        info: tableData.value
+    }).catch(() => ({
+        workflow_id: ''
+    }));
+    if(!res) return;
+    if (res.workflow_id) {
+        router.replace({ name: 'history' });
+        router.push({ 
+            name: 'taskDetail', 
+            params: { taskId: res.workflow_id },
+        });
+    }
+}
 watch(() => isShow, () => {
     if(isShow.value && props.data) {
         tableData.value = props.data.info.map(item => ({
             ...item,
-            ...props.data
+            login_port: Number(item.login_port),
+            bk_biz_id: props.data.bk_biz_id,
+            bk_networkunit_id: props.data.bk_networkunit_id,
+            target_version: item.target_version || 'v2.1.6-beta.59'
         }));
+    console.log("🚀 ~tableData.value:", tableData.value, props.data)
+
     }
 }, {immediate: true, deep: true});
 </script>

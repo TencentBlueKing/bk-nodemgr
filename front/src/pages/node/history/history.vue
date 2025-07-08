@@ -38,7 +38,7 @@
       >
         <TableColumn field="workflow_id" :title="t('任务ID')" width="300" fixed="left">
           <template #default="{ row }">
-            <Button text theme="primary" @click="detailHandle(row, row.status)">{{ row.workflow_id }}</Button>
+            <Button text theme="primary" @click="detailHandle(row, row.status)">{{ '#' + row.workflow_id?.slice(-4) }}</Button>
           </template>
         </TableColumn>
         <TableColumn field="type" :title="t('任务类型')" :filter="filterOptionSource.type" width="150"></TableColumn>
@@ -56,12 +56,12 @@
         </TableColumn>
         <TableColumn field="status" :title="t('执行状态')" width="150" :filter="filterOptionSource.status">
           <template #default="{ row }">
-            <div class="flex items-center" v-if="row.status">
+            <div class="flex items-center" v-if="row.status && statusMap[row.status]">
               <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
               <template v-else>
-                <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
+                <i :class="`nodeman-icon nc-${statusMap[row.status].icon} status-icon`"></i>
               </template>
-              <span>{{ statusMap[row.status]?.text }}</span>
+              <span>{{ statusMap[row.status].text }}</span>
             </div>
             <div class="flex items-center" v-else>
               <span class="nodeman-icon nc-unknown status-icon"></span>
@@ -178,6 +178,12 @@ const statusMap = {
   },
 
 }
+const bussinessMap = computed(() => mainStore.businessList.reduce((acc: any, current: any) => {
+    acc[current.bk_biz_id] = {
+      text: current.bk_biz_name
+    }; // 使用 bk_biz_id 作为键，bk_biz_name 作为值
+    return acc;
+}, {}));
 const pickSuccess = async (val: string[]) => {
   await getTaskList();
 }
@@ -229,21 +235,21 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
-    name: map ? map[value as string].text : value
+    name: map && map[value as string] ? map[value as string].text : value
   }))
 }
 const searchSelectData = computed(() => [
   {id: 'workflow_id', name: '任务ID'},
   {id: 'type', name: '任务类型', children: getUniqueChildren('type')},
   {id: 'bk_biz_id', name: '业务', children: getUniqueChildren('bk_biz_id')},
-  {id: 'operator', name: '执行者', children: getUniqueChildren('operator')},
+  {id: 'operator', name: '执行人', children: getUniqueChildren('operator')},
   {id: 'status', name: '执行状态', children: getUniqueChildren('status', statusMap)},
 ]);
 const filterOptionConfig = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return {
     list: uniqueValues.map(value => ({
-      text: prop === 'status' ? statusMap[value as string].text : value,
+      text: prop === 'status' && statusMap[value as string] ? statusMap[value as string].text : value,
       value: value
     })),
     checked: [] as string[],
@@ -281,8 +287,8 @@ const getTimestampInSeconds = (originalDate: string) => {
 const getParams = () => {
   const params = {
     page: {
-      limit: pagination.limit,
-      offset: pagination.offset
+      limit: pagination.value.limit,
+      offset: pagination.value.current - 1
     },
     exact_include_conditions: {} as Record<string, string[]>,
     fuzzy_include_conditions: {} as Record<string, string[]>,

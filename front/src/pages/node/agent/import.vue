@@ -22,7 +22,7 @@
                     <install-type :needTypeList="['setup', 'manual']"></install-type>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
-                    <install-table ref="installTableRef" :data="tableData"></install-table>
+                    <install-table ref="installTableRef" v-model:data="formData.info"></install-table>
                 </Form.FormItem>
             </Form>
         </div>
@@ -44,24 +44,41 @@ import { computed } from 'vue';
 import { TopoService } from '@/api/modules/topo';
 import { useRoute } from 'vue-router';
 import Preview from './preview.vue';
-
+import { cloneDeep } from 'lodash';
+import type { AgentInstallInfo } from '@/@types/node_agent.d';
+import { useNodeManageStore } from '@/stores/node-manage';
 
 const route = useRoute();
 const mainStore = useMainStore();
+const nodeManageStore = useNodeManageStore();
 const showRightPanel = ref(false);
-const formData = ref({
+const initData = {
+    bk_addressing: 'static',
+    bk_host_innerip: '',
+    bk_host_innerip_v6: '',
+    os_type: '',
+    login_ip: '',
+    login_port: NaN,
+    login_user: '',
+    login_mode: '',
+    login_password: '',
+    login_key_file: null,
+    bk_networkunit_id: NaN,
+    bk_biz_id: NaN,
+    target_version: '',
+    bk_host_id: NaN,
+    re_register: false
+};
+const formData = reactive({
     type: '',
     business: '',
     cloud: '',
     cloud_unit: '',
-    info: [],
+    info: [cloneDeep(initData)] as AgentInstallInfo[],
 });
 const previewData = reactive({
     isShow: false,
-})
-const tableData = ref([
-  { ipv4: '', ipv6: '', os: '', loginIp: '', loginPort: '', loginUser: '', authMethod: '', password: '', action: '' },
-]);
+});
 const rules = {};
 const isShow = ref(false);
 const isAtBottom = ref(false);
@@ -104,14 +121,15 @@ const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(() => isShow.value, (val: boolean) => {
     checkIfAtBottom();
 });
-watch(() => activeInstallType.value, (val: string) => {
-    installTableRef.value?.clearAllValidate();
-});
 onMounted(async () => {
     if (footerRef.value) {
         window.addEventListener('resize', debouncedCheck);
         checkIfAtBottom();
     }
+    formData.info = nodeManageStore.agentEditParams.tableData.map((item: Host) => ({
+        ...item,
+        target_version: item.state.node_version
+    }));
 });
 onUnmounted(() => {
     if (footerRef.value) {
