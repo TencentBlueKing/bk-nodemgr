@@ -39,7 +39,7 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 
 	file, _, err := h.manager.EnsureFileToLocal(sCtx,
 		types.Generation(req.GetGeneration()),
-		types.ReleaseTypeAgent,
+		types.ReleaseTypeProxy,
 		platform.Platform{
 			OS:   criteria.OSType(req.GetOsType()),
 			Arch: criteria.CPUArch(req.GetCpuArch()),
