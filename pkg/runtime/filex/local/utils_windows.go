@@ -15,7 +15,7 @@ package local
 import (
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 )
 
 // GetLocalFileAbsFilePath get local file abs file path.

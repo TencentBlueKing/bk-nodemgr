@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/filelock"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/spf13/afero"
 )

@@ -14,8 +14,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 )
 
 // ReleaseType defines the type of release.

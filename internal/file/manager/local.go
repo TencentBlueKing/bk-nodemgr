@@ -17,9 +17,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
+	local2 "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
@@ -107,12 +107,12 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 	}
 
 	// create new local dir.
-	cacheDir := filepath.Join(local.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
+	cacheDir := filepath.Join(local2.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
 	if err = os.MkdirAll(cacheDir, 0700); err != nil { // nolint: mnd,gosec
 		return nil, "", fmt.Errorf("failed to create temp cache dir, dirpath(%s), err: %w", cacheDir, err)
 	}
 
-	lfg, err := local.NewLocalDir(cacheDir, m.logger)
+	lfg, err := local2.NewLocalDir(cacheDir, m.logger)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create local file group, dirpath(%s), err: %w", cacheDir, err)
 	}

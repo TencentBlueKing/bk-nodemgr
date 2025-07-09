@@ -14,7 +14,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 )
 
 // File is the file object.
