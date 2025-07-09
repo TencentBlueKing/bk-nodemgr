@@ -73,7 +73,7 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 		return err
 	}
 
-	detail, err := checkGen2OriginServerPkg(checkingFile)
+	detail, err := checkGSE2OriginServerPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to check origin proxy package. err: %v", err)
 

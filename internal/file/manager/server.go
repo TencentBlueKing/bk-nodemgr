@@ -50,7 +50,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 		return nil, err
 	}
 
-	detail, err := checkGen2OriginServerPkg(checkingFile)
+	detail, err := checkGSE2OriginServerPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to check origin server package. err: %v", err)
 
@@ -122,10 +122,10 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 	return detail, nil
 }
 
-// checkGen2OriginServerPkg check gen2 origin server package.
+// checkGSE2OriginServerPkg check gse2 origin server package.
 // nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
-func checkGen2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
+func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	detail := new(types.OriginPkgDetail)
 	var seenFile, seenData bool
 	if err := checkTgz(file, []tgzReadRule{
