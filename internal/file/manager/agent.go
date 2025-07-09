@@ -311,7 +311,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			file, err := m.tempFileGroup.GetFile(ctx, pkg.tempFileName)
+			file, err := m.upstreamReleaseProxy.GetFile(ctx, pkgName)
 			if err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get temp file. err: %v", err)
 
@@ -323,7 +323,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				Type:       types.ReleaseTypeAgent,
 				Platform:   pkg.platform,
 				Version:    detail.Version,
-				FileName:   pkgName,
+				FileName:   file.Info().Name,
 				MD5:        file.Info().MD5,
 			}
 
