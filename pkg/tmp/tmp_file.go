@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/local"
 	"github.com/google/uuid"
 )
 
@@ -23,6 +24,7 @@ import (
 type File struct {
 	path    string
 	cleanup func() error
+	*local.LocalFile
 }
 
 // Exist returns true if the temporary file exists.
@@ -40,6 +42,15 @@ func (f *File) Path() string {
 // CleanUp cleans up the temporary file.
 func (f *File) CleanUp() error {
 	return f.cleanup()
+}
+
+// Writer returns a writer for the temporary file.
+func (f *File) Writer() (io.WriteCloser, error) {
+	return os.OpenFile(
+		f.path,
+		os.O_RDWR|os.O_TRUNC,
+		0644,
+	)
 }
 
 // NewTempFile creates a temporary file and returns its path.
@@ -100,6 +111,11 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 		}
 
 		return
+	}
+
+	file.LocalFile, err = local.NewLocalFile(tmpFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse tmp file, err: %w", err)
 	}
 
 	return file, nil
@@ -171,6 +187,11 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 		}
 
 		return
+	}
+
+	file.LocalFile, err = local.NewLocalFile(tmpFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse tmp file, err: %w", err)
 	}
 
 	return file, nil
