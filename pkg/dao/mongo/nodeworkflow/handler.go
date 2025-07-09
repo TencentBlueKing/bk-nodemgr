@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -132,6 +133,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	}
 
 	findOpt := base.ParsePage(page)
+
+	findOpt.SetSort(bson.D{{FieldKeyOperateTime, -1}})
 
 	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {

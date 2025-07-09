@@ -428,6 +428,11 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 		return nil, fmt.Errorf("get operation failed, err: %w", err)
 	}
 
+	err = mgr.conf.StorageNodeWorkflow.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning)
+	if err != nil {
+		return nil, fmt.Errorf("update node workflow status failed, err: %w", err)
+	}
+
 	for _, operCtl := range operCtls {
 		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.RetryMod)
 		if err != nil {
