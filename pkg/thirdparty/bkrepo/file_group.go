@@ -15,7 +15,7 @@ import (
 	"io"
 	"path"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 )
 
 // FileGroup defines the file group.

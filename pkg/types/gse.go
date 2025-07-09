@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 )
 
 // AgentStatusCode represents the gse agent status code.
