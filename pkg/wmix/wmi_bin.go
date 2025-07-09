@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix/wmiexec"
 )
 
