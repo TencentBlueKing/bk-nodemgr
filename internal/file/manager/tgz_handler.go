@@ -61,7 +61,7 @@ type tgzReadRule struct {
 // nolint: funlen,gocognit,gocyclo,cyclop,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func generateTgz(
-	targetFile io.WriteCloser,
+	targetFileWriter io.WriteCloser,
 	dirRules []tgzWriteRuleDir,
 	streamRules []*tgzWriteRuleStream) (err error) {
 
@@ -72,13 +72,13 @@ func generateTgz(
 				err = errors.Join(err, errClose)
 			}
 		}
-		if errClose := targetFile.Close(); errClose != nil {
+		if errClose := targetFileWriter.Close(); errClose != nil {
 			err = errors.Join(err, errClose)
 		}
 	}()
 
 	// target gzip writer.
-	gzipWriter := gzip.NewWriter(targetFile)
+	gzipWriter := gzip.NewWriter(targetFileWriter)
 	defer func() {
 		if errClose := gzipWriter.Close(); errClose != nil {
 			err = errors.Join(err, errClose)

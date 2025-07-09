@@ -16,41 +16,42 @@ import (
 	"io"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
-	releaseCertFileName = "cert.tgz"
+	releaseCertFileName  = "cert.tgz"
+	originalCertFileName = "cert.tgz"
 )
 
 // UploadOriginCert uploads origin cert.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (
-	*types.OriginCertPkgDetail, error) {
+func (m *Manager) UploadOriginCert(ctx context.Context, certFileContent io.ReadCloser) (*types.OriginCertPkgDetail, error) {
 
-	if certFile == nil {
+	if certFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, file is nil")
 
 		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, certFile)
+	tmpOrignFile, err := tmp.NewTempFileWithSpecialName(certFileContent, originalCertFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to save temp file. err: %v", err)
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get temp file content. err: %v", err)
 
 		return nil, err
 	}
 
-	detail, err := checkOriginCertPkg(checkingFile)
+	detail, err := checkOriginCertPkg(checkingFileContent)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx,
 			"failed to upload origin cert package. failed to check origin cert package. err: %v", err)
@@ -58,17 +59,19 @@ func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, cer
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get temp file. err: %v", err)
 
 		return nil, err
 	}
 
-	pkgName := m.wrapOriginPackageName(certFileName)
+	pkgName := m.wrapOriginPackageName(originalCertFileName)
+
+	uploadingFileInfo := iface.FileInfo{Name: pkgName}
 
 	// upload to upstream.
-	if err := m.upstreamOriginCert.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginCert.Store(ctx, uploadingFileInfo, uploadingFileContent, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, failed to store to upstream: %v", err)
 
 		return nil, err
@@ -272,23 +275,23 @@ func (m *Manager) PublishReleaseCert(ctx context.Context, uploadID string) error
 	return nil
 }
 
-func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser) (io.ReadCloser, error) {
-	tempFileName, err := m.createTempFile(ctx)
+func (m *Manager) generateCertPkg(ctx context.Context, sourceFileContent io.ReadCloser) (io.ReadCloser, error) {
+	tmpFile, err := tmp.NewTempFileWithSpecialName(sourceFileContent, originalCertFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	targetFile, err := m.openTempFile(ctx, tempFileName)
+	targetFileWriter, err := tmpFile.Writer()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = generateTgz(targetFile,
+	if err = generateTgz(targetFileWriter,
 		[]tgzWriteRuleDir{
 			{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
 		},
 		[]*tgzWriteRuleStream{{
-			sourceFile: sourceFile,
+			sourceFile: sourceFileContent,
 			fileRules: []tgzWriteRuleFile{
 				{
 					sourceFilePath: []string{"gseca.crt"},
@@ -336,10 +339,5 @@ func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser)
 		return nil, err
 	}
 
-	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
-	if err != nil {
-		return nil, err
-	}
-
-	return file.Content(ctx)
+	return tmpFile.Content(ctx)
 }

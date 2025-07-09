@@ -398,11 +398,7 @@ func initManager(conf *config.FileService,
 		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
 
-	// init local temp file group.
-	tempFG, err := local.NewLocalDir(conf.TempFileGroup.FullPath, logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init temp file group: %w", err)
-	}
+	// init local file group.
 	installerFG, err := local.NewLocalDir(conf.InstallerFileGroup.FullPath, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init installer file group: %w", err)
@@ -422,7 +418,6 @@ func initManager(conf *config.FileService,
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
-		manager.WithTempFileGroup(tempFG),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithCacheFileGroup(cacheFG),
 		manager.WithStorageUpload(storageUpload),

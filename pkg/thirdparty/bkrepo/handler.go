@@ -258,6 +258,10 @@ func (h *Handler) storeFile(
 		return errors.New("file reader is nil")
 	}
 
+	defer func() {
+		_ = file.Close()
+	}()
+
 	uploadFilePath, err := url.JoinPath(fileGroupPath, info.Name)
 	if err != nil {
 		return fmt.Errorf("join path failed, err: %w", err)
@@ -279,10 +283,6 @@ func (h *Handler) storeFile(
 	for key, value := range info.ExtendFields {
 		uploadFileReq.Info.Meta[key] = value
 	}
-
-	defer func() {
-		_ = file.Close()
-	}()
 
 	_, err = h.cli.UploadFile(ctx, uploadFileReq)
 	if err != nil {

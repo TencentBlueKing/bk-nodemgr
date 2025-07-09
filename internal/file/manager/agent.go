@@ -23,43 +23,49 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	originAgentFileName    = "gse_origin_agent-unknown.tgz"
+	generatedAgentFileName = "generated_agent.tgz"
 )
 
 // UploadOriginAgent uploads the origin agent.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFileContent io.ReadCloser) (*types.OriginPkgDetail, error) {
 	// validation.
-	if pkgFile == nil {
+	if pkgFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. file is nil")
 
 		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, pkgFile)
+	tmpOrignFile, err := tmp.NewTempFileWithSpecialName(pkgFileContent, originAgentFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to save temp file. err: %v", err)
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get temp file content. err: %v", err)
 
 		return nil, err
 	}
 
-	detail, err := checkGSE2OriginAgentPkg(checkingFile)
+	detail, err := checkGSE2OriginAgentPkg(checkingFileContent)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to check origin agent package. err: %v", err)
 
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to get temp file. err: %v", err)
 
@@ -79,9 +85,12 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 	}
 	pkgName = m.wrapOriginPackageName(pkgName)
 
+	uploadingFileInfo := iface.FileInfo{Name: pkgName}
+
 	// upload to upstream.
-	if err := m.upstreamOriginAgent.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package, failed to upload to upstream. err: %v", err)
+	if err := m.upstreamOriginAgent.Store(ctx, uploadingFileInfo, uploadingFileContent, true); err != nil {
+		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package, failed to upload to upstream. err: %v",
+			err)
 
 		return nil, err
 	}
@@ -250,29 +259,31 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(ctx, originContent)
+	originTmpFile, err := tmp.NewTempFileWithSpecialName(originContent, up.SavedName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to save temp file. err: %v", err)
 
 		return err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, originTempFileName)
+	checkingFileContent, err := originTmpFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to get temp file content."+
+			" file(%s), err: %v", originTmpFile.Path(), err)
 
 		return err
 	}
 
-	detail, err := checkGSE2OriginAgentPkg(checkingFile)
+	detail, err := checkGSE2OriginAgentPkg(checkingFileContent)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to check origin agent package. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to check origin agent package."+
+			" err: %v", err)
 
 		return err
 	}
 
 	// generate release packages.
-	releasePkgs, err := m.generateAgentPkg(ctx, detail, originTempFileName)
+	releasePkgs, err := m.generateAgentPkg(ctx, detail, originTmpFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to generate agent pkg. err: %v", err)
 
@@ -298,14 +309,16 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			generatedFile, err := m.getTempFile(ctx, pkg.tempFileName)
+			generatedFileContent, err := pkg.tmpFile.Content(ctx)
 			if err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get temp file. err: %v", err)
 
 				return err
 			}
 
-			if err = m.upstreamReleaseAgent.Store(ctx, iface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			generatedFileInfo := iface.FileInfo{Name: pkgName}
+
+			if err = m.upstreamReleaseAgent.Store(ctx, generatedFileInfo, generatedFileContent, true); err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upload to upstream. err: %v", err)
 
 				return err
@@ -349,8 +362,8 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 }
 
 type releaseAgentPkg struct {
-	platform     platform.Platform
-	tempFileName string
+	platform platform.Platform
+	tmpFile  *tmp.File
 }
 
 // generateAgentPkg generates agent package.
@@ -358,13 +371,7 @@ type releaseAgentPkg struct {
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generateAgentPkg(ctx context.Context,
 	originDetail *types.OriginPkgDetail,
-	originLocalFileName string) ([]*releaseAgentPkg, error) {
-
-	// local origin agent.
-	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
-	if err != nil {
-		return nil, err
-	}
+	originLocalFile iface.File) ([]*releaseAgentPkg, error) {
 
 	// local cert.
 	localCert, err := m.fetchReleaseCertToLocal(ctx)
@@ -386,17 +393,15 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 
 		gp.Go(func() error {
 			// create target file.
-			tempFileName, err := m.createTempFile(ctx)
+			tmpFile, err := tmp.NewTempFileWithSpecialName(tmp.NilContent(), generatedAgentFileName)
+
+			targetFileWriter, err := tmpFile.Writer()
 			if err != nil {
-				return fmt.Errorf("failed to create agent pkg temp file. platform(%s): %w", plat.String(), err)
-			}
-			targetFile, err := m.openTempFile(ctx, tempFileName)
-			if err != nil {
-				return fmt.Errorf("failed to open pkg file: %w", err)
+				return err
 			}
 
 			// open all source files.
-			originAgentFile, err := localOrigin.Content(ctx)
+			originAgentFile, err := originLocalFile.Content(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin agent file: %w", err)
 			}
@@ -409,7 +414,7 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 				return fmt.Errorf("failed to open origin bintool file: %w", err)
 			}
 
-			if err = generateTgz(targetFile,
+			if err = generateTgz(targetFileWriter,
 				[]tgzWriteRuleDir{
 					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
 					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
@@ -505,8 +510,8 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 			}
 
 			result[plat.String()] = &releaseAgentPkg{
-				platform:     plat,
-				tempFileName: tempFileName,
+				platform: plat,
+				tmpFile:  tmpFile,
 			}
 
 			return nil
