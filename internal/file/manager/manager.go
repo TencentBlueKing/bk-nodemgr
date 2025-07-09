@@ -16,8 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
@@ -25,11 +23,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/google/uuid"
 )
 
 // IManager defines the file manager interface.
@@ -45,7 +42,7 @@ type IManager interface {
 	UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// UploadOriginCert uploads the origin cert.
-	UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+	UploadOriginCert(ctx context.Context, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// UploadOriginBinTool upload origin bintool package.
 	UploadOriginBinTool(ctx context.Context, binToolFile io.ReadCloser) (
@@ -178,13 +175,6 @@ func WithUpstreamReleaseBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
 	}
 }
 
-// WithTempFileGroup sets the temp file group.
-func WithTempFileGroup(fileGroup iface.FileGroup) OptionFn {
-	return func(manager *Manager) {
-		manager.tempFileGroup = fileGroup
-	}
-}
-
 // WithInstallerFileGroup sets the installer file group.
 func WithInstallerFileGroup(fileGroup iface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -266,9 +256,6 @@ type Manager struct {
 	// installter file group.
 	installerFileGroup iface.FileGroup
 
-	// temp file group is regarded as the file temp.
-	tempFileGroup iface.FileGroup
-
 	// local file pool.
 	localFilePool *localFilePool
 
@@ -342,39 +329,6 @@ func (m *Manager) Start(_ context.Context) error {
 	return nil
 }
 
-func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string, error) {
-	tempFileName := uuid.NewString() + ".tgz"
-
-	err := m.tempFileGroup.Store(ctx, iface.FileInfo{Name: tempFileName}, file, true)
-	if err != nil {
-		return "", err
-	}
-
-	return tempFileName, nil
-}
-
-func (m *Manager) getTempFile(ctx context.Context, tempFileName string) (io.ReadCloser, error) {
-	fileToCheck, err := m.tempFileGroup.GetFile(ctx, tempFileName)
-	if err != nil {
-		return nil, err
-	}
-
-	return fileToCheck.Content(ctx)
-}
-
-func (m *Manager) createTempFile(ctx context.Context) (string, error) {
-	return m.saveTempFile(ctx, io.NopCloser(strings.NewReader("")))
-}
-
-func (m *Manager) openTempFile(_ context.Context, tempFileName string) (io.ReadWriteCloser, error) {
-	// nolint: gosec, mnd
-	return os.OpenFile(
-		local.GetLocalFileGroupAbsFilePath(m.tempFileGroup, tempFileName),
-		os.O_RDWR|os.O_TRUNC,
-		0644,
-	)
-}
-
 func (m *Manager) wrapOriginPackageName(name string) string {
 	return name + "-" + time.Now().Format("0102150405")
 }
@@ -383,7 +337,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, erro
 	// get cert.
 	cert, err := m.storageRelease.GetReleaseCert(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release cert: %w", err)
+		return nil, fmt.Errorf("failed to get release cert, err: %w", err)
 	}
 
 	file, err := m.upstreamReleaseCert.GetFile(ctx, cert.FileName)
@@ -393,15 +347,15 @@ func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, erro
 
 	content, err := file.Content(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get upstream release cert content: %w", err)
+		return nil, fmt.Errorf("failed to get upstream release cert content, err: %w", err)
 	}
 
-	localFileName, err := m.saveTempFile(ctx, content)
+	tmpFile, err := tmp.NewTempFileWithSpecialName(content, cert.FileName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save release cert to temp file: %w", err)
+		return nil, fmt.Errorf("failed to save release cert to temp file, err: %w", err)
 	}
 
-	return m.tempFileGroup.GetFile(ctx, localFileName)
+	return tmpFile, nil
 }
 
 func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, error) {
@@ -421,12 +375,12 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, e
 		return nil, fmt.Errorf("failed to get upstream release bintool content: %w", err)
 	}
 
-	localFileName, err := m.saveTempFile(ctx, content)
+	tmpFile, err := tmp.NewTempFileWithSpecialName(content, bintool.FileName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save release bintool to temp file: %w", err)
+		return nil, fmt.Errorf("failed to save release bintool to temp file, err: %w", err)
 	}
 
-	return m.tempFileGroup.GetFile(ctx, localFileName)
+	return tmpFile, nil
 }
 
 func (m *Manager) fetchReleaseAgentLocal(
@@ -451,10 +405,10 @@ func (m *Manager) fetchReleaseAgentLocal(
 		return nil, fmt.Errorf("failed to get upstream release agent content: %w", err)
 	}
 
-	localFileName, err := m.saveTempFile(ctx, content)
+	tmpFile, err := tmp.NewTempFileWithSpecialName(content, agent.FileName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save release agent to temp file: %w", err)
+		return nil, fmt.Errorf("failed to save release agent to temp file, err: %w", err)
 	}
 
-	return m.tempFileGroup.GetFile(ctx, localFileName)
+	return tmpFile, nil
 }

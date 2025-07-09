@@ -11,6 +11,7 @@
 package tmp
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -195,4 +196,10 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 	}
 
 	return file, nil
+}
+
+// NilContent returns a io.ReadCloser with nil content.
+// this func is used to create a temporary file with nil content.
+func NilContent() io.ReadCloser {
+	return io.NopCloser(bytes.NewReader([]byte{}))
 }

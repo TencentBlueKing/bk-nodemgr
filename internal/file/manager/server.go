@@ -22,30 +22,36 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	originServerFileName = "gse_origin_server-unknown.tgz"
 )
 
 // UploadOriginServer uploads the origin server.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
-	if pkgFile == nil {
+func (m *Manager) UploadOriginServer(ctx context.Context, pkgFileContent io.ReadCloser) (*types.OriginPkgDetail, error) {
+	if pkgFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. file is nil")
 
 		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, pkgFile)
+	tmpOrignFile, err := tmp.NewTempFileWithSpecialName(pkgFileContent, originServerFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to save temp file. err: %v", err)
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFile, err := tmpOrignFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get temp file content."+
+			" err: %v", err)
 
 		return nil, err
 	}
@@ -78,7 +84,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 	}
 	pkgName = m.wrapOriginPackageName(pkgName)
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. failed to get temp file. err: %v", err)
 
@@ -86,7 +92,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 	}
 
 	// upload to upstream.
-	if err := m.upstreamOriginServer.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginServer.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFileContent, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package, failed to upload to upstream. err: %v", err)
 
 		return nil, err

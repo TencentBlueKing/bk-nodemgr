@@ -124,7 +124,7 @@ func (h *handler) UploadOriginCert(ctx *rest.Context) (interface{}, error) {
 		_ = file.Close()
 	}()
 
-	detail, err := h.manager.UploadOriginCert(sCtx, fileHeader.Filename, file)
+	detail, err := h.manager.UploadOriginCert(sCtx, file)
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to upload cert: %v", err)
 

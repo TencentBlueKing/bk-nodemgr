@@ -63,9 +63,6 @@ func NewFileService() *FileService {
 			BindIP: defaultFileAdminBindIP,
 			Port:   defaultFileAdminPort,
 		},
-		TempFileGroup: FileGroup{
-			FullPath: defaultFileTempFileGroupFullPath,
-		},
 		InstallerFileGroup: FileGroup{
 			FullPath: defaultFileInstallerFileGroupFullPath,
 		},
@@ -90,7 +87,6 @@ type FileService struct {
 	GSE                GSE         `yaml:"gse" usage:"gse config of file service"`
 	HTTPServer         HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
-	TempFileGroup      FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
 	InstallerFileGroup FileGroup   `yaml:"installerFileGroup" usage:"tools file group config of file service"`
 	CacheFileGroup     FileGroup   `yaml:"cacheFileGroup" usage:"cache file group config of file service"`
 	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
@@ -120,10 +116,6 @@ func (svc *FileService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *FileService) Validate() error {
-	if err := svc.TempFileGroup.Validate(); err != nil {
-		return err
-	}
-
 	if err := svc.InstallerFileGroup.Validate(); err != nil {
 		return err
 	}

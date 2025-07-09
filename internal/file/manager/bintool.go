@@ -18,11 +18,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
-	releaseBinToolFileName = "bintool.tgz"
+	releaseBinToolFileName  = "bintool.tgz"
+	originalBinToolFileName = "bintool.tgz"
 )
 
 // UploadOriginBinTool upload generation2 origin bintool package.
@@ -30,31 +32,33 @@ const (
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginBinTool(
 	ctx context.Context,
-	binToolFile io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
+	binToolFileContent io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
 
 	// validation.
-	if binToolFile == nil {
+	if binToolFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package. bin tool file is nil")
 
 		return nil, errors.New("bin tool file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, binToolFile)
+	tmpOrignFile, err := tmp.NewTempFileWithSpecialName(binToolFileContent, originalBinToolFileName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package. failed to save temp file. err: %v", err)
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx,
+			"failed to upload origin bintool package. failed to get temp file content. err: %v",
+			err)
 
 		return nil, err
 	}
 
-	detail, err := checkGen2OriginBinToolPkg(checkingFile)
+	detail, err := checkGen2OriginBinToolPkg(checkingFileContent)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx,
 			"failed to upload origin bintool package. failed to check origin bintool package. err: %v", err)
@@ -62,17 +66,20 @@ func (m *Manager) UploadOriginBinTool(
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFileContent, err := tmpOrignFile.Content(ctx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package. failed to get temp file. err: %v", err)
+		m.logger.ErrorCtxf(ctx,
+			"failed to upload origin bintool package. failed to get temp file content. err: %v",
+			err)
 
 		return nil, err
 	}
 
 	pkgName := m.wrapOriginPackageName(releaseBinToolFileName)
+	uploadingFileInfo := iface.FileInfo{Name: pkgName}
 
 	// upload to upstream.
-	if err := m.upstreamOriginBinTool.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginBinTool.Store(ctx, uploadingFileInfo, uploadingFileContent, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package, failed to upload to upstream. err: %v", err)
 
 		return nil, err
@@ -225,19 +232,20 @@ func (m *Manager) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 	}
 
 	// generate release file.
-	generatedFile, err := m.generateBinToolPkg(ctx, content)
+	generatedFileContent, err := m.generateBinToolPkg(ctx, content)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to generate bintool pkg. err: %v", err)
 
 		return err
 	}
 	defer func() {
-		_ = generatedFile.Close()
+		_ = generatedFileContent.Close()
 	}()
+	generatedFileInfo := iface.FileInfo{Name: releaseBinToolFileName}
 
 	// upload to upstream.
 	if err = m.upstreamReleaseBinTool.Store(
-		ctx, iface.FileInfo{Name: releaseBinToolFileName}, generatedFile, true); err != nil {
+		ctx, generatedFileInfo, generatedFileContent, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to upload to upstream. err: %v", err)
 
 		return err
@@ -271,17 +279,17 @@ func (m *Manager) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 }
 
 func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadCloser) (io.ReadCloser, error) {
-	tempFileName, err := m.createTempFile(ctx)
+	tmpFile, err := tmp.NewTempFileWithSpecialName(tmp.NilContent(), originalBinToolFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	targetFile, err := m.openTempFile(ctx, tempFileName)
+	targetFileWriter, err := tmpFile.Writer()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = generateTgz(targetFile,
+	if err = generateTgz(targetFileWriter,
 		[]tgzWriteRuleDir{
 			{targetFilePath: []string{"bintool"}, targetFileMode: tgzModeDir},
 			{targetFilePath: []string{"bintool", "agent_linux_amd64"}, targetFileMode: tgzModeDir},
@@ -330,10 +338,5 @@ func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadClos
 		return nil, err
 	}
 
-	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
-	if err != nil {
-		return nil, err
-	}
-
-	return file.Content(ctx)
+	return tmpFile.Content(ctx)
 }

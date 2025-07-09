@@ -21,7 +21,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	generatedProxyFileName = "generated_proxy.tgz"
 )
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
@@ -59,21 +64,21 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(ctx, originContent)
+	originTmpFile, err := tmp.NewTempFileWithSpecialName(originContent, up.SavedName)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to save temp file. err: %v", err)
 
 		return err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, originTempFileName)
+	checkingFileContent, err := originFile.Content(ctx)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to get temp file. err: %v", err)
 
 		return err
 	}
 
-	detail, err := checkGSE2OriginServerPkg(checkingFile)
+	detail, err := checkGSE2OriginServerPkg(checkingFileContent)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to check origin proxy package. err: %v", err)
 
@@ -81,7 +86,7 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 	}
 
 	// generate release packages.
-	releasePkgs, err := m.generateProxyPkg(ctx, detail, originTempFileName)
+	releasePkgs, err := m.generateProxyPkg(ctx, detail, originTmpFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to generate proxy pkg. err: %v", err)
 
@@ -107,14 +112,16 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			generatedFile, err := m.getTempFile(ctx, pkg.tempFileName)
+			generatedFileContent, err := pkg.tmpFile.Content(ctx)
 			if err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get temp file. err: %v", err)
 
 				return err
 			}
 
-			if err = m.upstreamReleaseProxy.Store(ctx, iface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			generatedFileInfo := iface.FileInfo{Name: pkgName}
+
+			if err = m.upstreamReleaseProxy.Store(ctx, generatedFileInfo, generatedFileContent, true); err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upload to upstream. err: %v", err)
 
 				return err
@@ -158,8 +165,8 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 }
 
 type releaseProxyPkg struct {
-	platform     platform.Platform
-	tempFileName string
+	platform platform.Platform
+	tmpFile  *tmp.File
 }
 
 // generateProxyPkg generates proxy package.
@@ -167,13 +174,7 @@ type releaseProxyPkg struct {
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generateProxyPkg(ctx context.Context,
 	originDetail *types.OriginPkgDetail,
-	originLocalFileName string) ([]*releaseProxyPkg, error) {
-
-	// local origin server.
-	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
-	if err != nil {
-		return nil, err
-	}
+	originLocalFile iface.File) ([]*releaseProxyPkg, error) {
 
 	// local cert.
 	localCert, err := m.fetchReleaseCertToLocal(ctx)
@@ -200,18 +201,15 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 		}
 
 		gp.Go(func() error {
-			// create target file.
-			tempFileName, err := m.createTempFile(ctx)
+			tmpFile, err := tmp.NewTempFileWithSpecialName(tmp.NilContent(), generatedProxyFileName)
+
+			targetFileWriter, err := tmpFile.Writer()
 			if err != nil {
-				return fmt.Errorf("failed to create proxy pkg temp file. platform(%s): %w", plat.String(), err)
-			}
-			targetFile, err := m.openTempFile(ctx, tempFileName)
-			if err != nil {
-				return fmt.Errorf("failed to open pkg file: %w", err)
+				return err
 			}
 
 			// open all source files.
-			originServerFile, err := localOrigin.Content(ctx)
+			originServerFile, err := originLocalFile.Content(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin proxy file: %w", err)
 			}
@@ -228,7 +226,7 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 				return fmt.Errorf("failed to open release agent file: %w", err)
 			}
 
-			if err = generateTgz(targetFile,
+			if err = generateTgz(targetFileWriter,
 				[]tgzWriteRuleDir{
 					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
 					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
@@ -334,8 +332,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 			}
 
 			result[plat.String()] = &releaseProxyPkg{
-				platform:     plat,
-				tempFileName: tempFileName,
+				platform: plat,
+				tmpFile:  tmpFile,
 			}
 
 			return nil
