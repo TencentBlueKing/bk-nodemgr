@@ -33,7 +33,8 @@ type operInstallNodeByWMI struct {
 
 // OperParamInstallNodeByWMI defines the parameters for operInstallNodeByWMI.
 type OperParamInstallNodeByWMI struct {
-	Token string
+	Token                    string `json:"token"`
+	DisableAutoDetectVersion bool   `json:"disable_auto_detect_version"`
 }
 
 // Name returns the name.
@@ -46,6 +47,7 @@ func (oper *operInstallNodeByWMI) ActionDefNames() []string {
 	return []string{
 		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
+		ActionNameDetectInfoByWMI,
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeByWMI,
 		ActionNameWaitInstallComplete,
