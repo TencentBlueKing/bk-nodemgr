@@ -20,7 +20,6 @@ import (
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -506,16 +505,12 @@ const (
 func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 
-	osType, err := platform.NormalizeOS(host.Static.OSType)
-	if err != nil {
-		return err
-	}
-
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
 	if err := act.checkHostExist(ctx, host.HostID); err != nil {
 		return err
 	}
 
+	osType := host.Dynamic.NodeOsType
 	deploymentConf, err := deployconstant.GetDeployConf(host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("get deploy conf failed, err: %w", err)
