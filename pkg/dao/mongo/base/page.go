@@ -11,7 +11,6 @@
 package base
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -32,7 +31,6 @@ func ParsePage(page types.Page) *options.FindOptions {
 		findOpt.SetLimit(int64(page.Limit))
 	}
 	if page.Sort != "" {
-		fmt.Print("[debug]parse page sort: ", page.Sort, "\n")
 		sortKeys := strings.Split(page.Sort, SortSeparator)
 		sortOpt := make(bson.D, len(sortKeys))
 		for i, key := range sortKeys {

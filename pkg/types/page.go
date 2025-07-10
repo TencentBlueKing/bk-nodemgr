@@ -43,18 +43,17 @@ func (p *Page) Validate() error {
 }
 
 // WithFieldDesc returns the field with descending order.
-func (p *Page) WithFieldDesc(field string) string {
-	fmt.Println("[debug]with field desc:", field)
+func WithFieldDesc(field string) string {
 	return "-" + field
 }
 
 // WithFieldAsc returns the field with ascending order.
-func (p *Page) WithFieldAsc(field string) string {
+func WithFieldAsc(field string) string {
 	return field
 }
 
 // WithSortFields returns the sort fields as a comma-separated string.
-func (p *Page) WithSortFields(fields ...string) string {
+func WithSortFields(fields ...string) string {
 	return strings.Join(fields, ",")
 }
 

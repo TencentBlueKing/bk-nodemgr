@@ -13,7 +13,6 @@ package nodeworkflow
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -134,8 +133,6 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 
 	findOpt := base.ParsePage(page)
 
-	h.logger.Debugf("[debug]list node workflow, tenantID: %s, filter: %+v, findOpt: %+v", tenantID, filter, findOpt)
-	fmt.Printf("[debug]findOpt:%+v", findOpt)
 	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
