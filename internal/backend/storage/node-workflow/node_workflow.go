@@ -261,13 +261,11 @@ func (s *Storage) check() error {
 func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
-	customPage := page
-
-	customPage.Sort = "-" + daoNodeWorkflow.FieldKeyOperateTime
+	page.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime)
 
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
-	return s.daoNodeWorkflow.List(ctx, customPage, opts...)
+	return s.daoNodeWorkflow.List(ctx, page, opts...)
 }
 
 // CountNodeWorkflow counts node workflow by conditions.

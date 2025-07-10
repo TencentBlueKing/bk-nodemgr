@@ -13,6 +13,7 @@ package nodeworkflow
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -134,8 +134,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 
 	findOpt := base.ParsePage(page)
 
-	findOpt.SetSort(bson.D{{FieldKeyOperateTime, -1}})
-
+	h.logger.Debugf("[debug]list node workflow, tenantID: %s, filter: %+v, findOpt: %+v", tenantID, filter, findOpt)
+	fmt.Printf("[debug]findOpt:%+v", findOpt)
 	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err

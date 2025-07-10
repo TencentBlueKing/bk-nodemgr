@@ -14,6 +14,7 @@ package types
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 // Page describe the page data in request.
@@ -39,6 +40,22 @@ func (p *Page) Validate() error {
 	}
 
 	return nil
+}
+
+// WithFieldDesc returns the field with descending order.
+func (p *Page) WithFieldDesc(field string) string {
+	fmt.Println("[debug]with field desc:", field)
+	return "-" + field
+}
+
+// WithFieldAsc returns the field with ascending order.
+func (p *Page) WithFieldAsc(field string) string {
+	return field
+}
+
+// WithSortFields returns the sort fields as a comma-separated string.
+func (p *Page) WithSortFields(fields ...string) string {
+	return strings.Join(fields, ",")
 }
 
 // UnlimitedPage is an unlimited page.
