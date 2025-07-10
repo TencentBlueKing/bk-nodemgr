@@ -19,7 +19,6 @@ import (
 
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
-	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -262,7 +261,7 @@ func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditi
 	[]*types.NodeWorkflow, int64, error) {
 
 	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime))
+		types.WithFieldDesc(nodeworkflow.FieldKeyOperateTime))
 
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
