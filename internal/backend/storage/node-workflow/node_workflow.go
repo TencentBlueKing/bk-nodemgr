@@ -261,7 +261,7 @@ func (s *Storage) check() error {
 func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
-	page.Sort = types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime)
+	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime))
 
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
