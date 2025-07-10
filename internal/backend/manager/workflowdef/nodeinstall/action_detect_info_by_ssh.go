@@ -153,8 +153,14 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Dynamic.NodeOsType = osType
 	info.Dynamic.NodeCPUArch = cpuArch
 
-	if info.Dynamic.NodeVersion == "" {
-		return errors.New("node version is empty")
+	err = checkVersionAvailability(
+		ctx,
+		info.Dynamic.NodeOsType,
+		info.Dynamic.NodeCPUArch,
+		info.Dynamic.NodeVersion,
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil
