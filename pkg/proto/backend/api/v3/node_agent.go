@@ -55,8 +55,15 @@ func (x *NodeAgentInstallReq_Host) Validate() error {
 		return errors.New("network_unit_id must be greater than or equal to 0")
 	}
 
-	if x.TargetVersion == "" {
-		return errors.New("target_version can not be empty")
+	switch {
+	case x.DisableVersionDetection && x.TargetVersion != "":
+		{
+			return errors.New("target_version can not be set when disable_version_detection is false")
+		}
+	case !x.DisableVersionDetection && x.TargetVersion == "":
+		{
+			return errors.New("target_version can not be empty when disable_version_detection is true")
+		}
 	}
 
 	if x.LoginIp == "" {
