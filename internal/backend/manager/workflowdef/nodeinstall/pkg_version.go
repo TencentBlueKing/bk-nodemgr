@@ -11,9 +11,17 @@
 package nodeinstall
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
+
+func autoSelectVersion(ctx *action.InstanceContext, osType criteria.OSType,
+	cpuArch criteria.CPUArch) (string, error) {
+
+	return "", errors.New("not implemented")
+}
 
 func checkVersionAvailability(ctx *action.InstanceContext, osType criteria.OSType,
 	cpuArch criteria.CPUArch, version string) error {

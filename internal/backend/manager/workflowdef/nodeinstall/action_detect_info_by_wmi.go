@@ -154,6 +154,15 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	info.Dynamic.NodeOsType = osType
 	info.Dynamic.NodeCPUArch = cpuArch
 
+	// we'll automatically use the system information to select the default version,
+	// when NodeVersion is empty.
+	if info.Dynamic.NodeVersion == "" {
+		info.Dynamic.NodeVersion, err = autoSelectVersion(ctx, osType, cpuArch)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = checkVersionAvailability(
 		ctx,
 		info.Dynamic.NodeOsType,
