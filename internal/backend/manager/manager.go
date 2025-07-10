@@ -467,7 +467,7 @@ func (mgr *manager) createOper(
 
 	var operationDef operation.Definition
 
-	switch deploy.Info.Static.OSType {
+	switch deploy.Info.Host.Static.OSType {
 	case string(criteria.OSLinux), string(criteria.OSDarwin):
 		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
 	case string(criteria.OSWindows):

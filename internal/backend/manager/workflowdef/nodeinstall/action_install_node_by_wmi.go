@@ -163,7 +163,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n")))
 
 	// select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(info.Dynamic.NodeOsType, info.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name, err: %w", err)
 
@@ -217,7 +217,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, info.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -227,8 +227,8 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		NodeRole:           info.Host.Dynamic.NodeRole,
 		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
 		DownloadEndpoint:   "http://" + downloadEndpoint.GetIPV4Address(),
-		PkgVersion:         info.Dynamic.NodeVersion,
-		PkgGeneration:      info.Dynamic.NodeGeneration,
+		PkgVersion:         info.Host.Dynamic.NodeVersion,
+		PkgGeneration:      info.Host.Dynamic.NodeGeneration,
 		GseRoot:            deployConstant.GseHomeDir,
 		Token:              param.Token,
 		OperInstID:         ctx.Data.OperationInstanceID,
@@ -238,9 +238,9 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		},
 	}
 
-	if !info.ReRegister && info.Dynamic.AgentID != "" {
+	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Dynamic.AgentID))
+			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
 	}
 
 	// exec install command

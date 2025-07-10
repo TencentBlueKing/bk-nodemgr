@@ -62,21 +62,45 @@ func (mode LoginMode) Validate() error {
 	}
 }
 
+// LoginInfo this is the login info for node deployment.
+type LoginInfo struct {
+	IP       string
+	Port     int64
+	User     string
+	Mode     LoginMode
+	Password []byte
+	KeyFile  []byte
+}
+
+// InstallOptions this is the options for nodemgr tools.
+type InstallOptions struct {
+	ReRegister bool
+}
+
+// UpgradeOptions this is the options for node upgrade.
+type UpgradeOptions struct {
+	ForceRestart           bool
+	GracefulRestartTimeout time.Duration
+}
+
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
 	BlockingActionName string
-	Host
+	Host               Host
 
-	ReRegister             bool
-	InstallerWorkspace     string
-	LoginIP                string
-	LoginPort              int64
-	LoginUser              string
-	LoginMode              LoginMode
-	LoginPassword          []byte
-	LoginKeyFile           []byte
-	ForceRestart           bool
-	GracefulRestartTimeout time.Duration
+	// LoginInfo is used to connect to host by ssh or wmi.
+	LoginInfo LoginInfo
+
+	InstallerWorkspace string
+
+	// InstallOptions is used to control the tools when install node.
+	InstallOptions InstallOptions
+
+	// UpgradeOptions is used to control the tools when upgrade node.
+	UpgradeOptions UpgradeOptions
+
+	// NodeVersionMap is used to record the version of each os-arch node.
+	NodeVersionMap map[string]string
 }
 
 // Validate this is the validate for node deployment.
@@ -95,7 +119,7 @@ func (info DeploymentInfo) Validate() error {
 		return errors.New("os_type shouldn't not be empty")
 	}
 
-	if info.TenantID == "" {
+	if info.Host.TenantID == "" {
 		return errors.New("tenant_id shouldn't not be empty")
 	}
 
@@ -107,54 +131,54 @@ func (info DeploymentInfo) Validate() error {
 		return fmt.Errorf("node_status validate failed, err: %w", err)
 	}
 
-	if info.Dynamic.NodeVersion == "" {
+	if info.Host.Dynamic.NodeVersion == "" {
 		return errors.New("node_version shouldn't not be empty")
 	}
-	if err := info.Dynamic.NodeGeneration.Validate(); err != nil {
+	if err := info.Host.Dynamic.NodeGeneration.Validate(); err != nil {
 		return fmt.Errorf("node_generation validate failed, err: %w", err)
 	}
-	if info.Dynamic.NetworkUnitID < 0 {
+	if info.Host.Dynamic.NetworkUnitID < 0 {
 		return errors.New("network_unit_id should be equal or greater than 0")
 	}
-	if info.Static.BizID < 0 {
+	if info.Host.Static.BizID < 0 {
 		return errors.New("biz_id should be equal or greater than 0")
 	}
-	if info.Static.NetworkAreaID < 0 {
+	if info.Host.Static.NetworkAreaID < 0 {
 		return errors.New("network_area_id should be equal or greater than 0")
 	}
-	if info.Static.InnerIP == "" {
+	if info.Host.Static.InnerIP == "" {
 		return errors.New("inner_ip shouldn't not be empty")
 	}
-	if info.Static.Addressing == "" {
+	if info.Host.Static.Addressing == "" {
 		return errors.New("addressing shouldn't not be empty")
 	}
 
 	// nolint: nestif
-	if info.Dynamic.NodeRole == NodeRoleProxy {
-		if info.Dynamic.ProxyClusterPort > 0 {
+	if info.Host.Dynamic.NodeRole == NodeRoleProxy {
+		if info.Host.Dynamic.ProxyClusterPort > 0 {
 			return errors.New("proxy_cluster_port should be 0")
 		}
-		if info.Dynamic.ProxyDataPort > 0 {
+		if info.Host.Dynamic.ProxyDataPort > 0 {
 			return errors.New("proxy_data_port should be 0")
 		}
-		if info.Dynamic.ProxyFilePort > 0 {
+		if info.Host.Dynamic.ProxyFilePort > 0 {
 			return errors.New("proxy_file_port should be 0")
 		}
 	} else {
-		if info.Dynamic.ProxyClusterPort != 0 {
+		if info.Host.Dynamic.ProxyClusterPort != 0 {
 			return errors.New("node_role is not proxy, proxy_cluster_port should be 0")
 		}
 
-		if info.Dynamic.ProxyDataPort != 0 {
+		if info.Host.Dynamic.ProxyDataPort != 0 {
 			return errors.New("node_role is not proxy, proxy_data_port should be 0")
 		}
 
-		if info.Dynamic.ProxyFilePort != 0 {
+		if info.Host.Dynamic.ProxyFilePort != 0 {
 			return errors.New("node_role is not proxy, proxy_file_port should be 0")
 		}
 	}
 
-	if err := info.LoginMode.Validate(); err != nil {
+	if err := info.LoginInfo.Mode.Validate(); err != nil {
 		return fmt.Errorf("login_mode validate failed, err: %w", err)
 	}
 

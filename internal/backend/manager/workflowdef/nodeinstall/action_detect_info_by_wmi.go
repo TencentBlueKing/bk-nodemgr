@@ -137,7 +137,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -151,10 +151,10 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		info.InstallerWorkspace = windowsDefaultInstallerWorkspace
 	}
 
-	info.Dynamic.NodeOsType = osType
-	info.Dynamic.NodeCPUArch = cpuArch
+	info.Host.Dynamic.NodeOsType = osType
+	info.Host.Dynamic.NodeCPUArch = cpuArch
 
-	if info.Dynamic.NodeVersion == "" {
+	if info.Host.Dynamic.NodeVersion == "" {
 		return errors.New("node version is empty")
 	}
 
