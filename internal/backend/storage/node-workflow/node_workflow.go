@@ -19,6 +19,7 @@ import (
 
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
+	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -260,9 +261,13 @@ func (s *Storage) check() error {
 func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
+	customPage := page
+
+	customPage.Sort = "-" + daoNodeWorkflow.FieldKeyOperateTime
+
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
-	return s.daoNodeWorkflow.List(ctx, page, opts...)
+	return s.daoNodeWorkflow.List(ctx, customPage, opts...)
 }
 
 // CountNodeWorkflow counts node workflow by conditions.
