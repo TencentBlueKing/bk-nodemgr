@@ -10,6 +10,6 @@ const fetch = new Fetch({
 
 export const NodeAgentService = {
   // NodeAgentInstall installs node agent.
-  NodeAgentInstall: async <Request = NodeAgentInstallReq, ResponseData = NodeAgentInstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node_agent/install')(params, config),
+  NodeAgentInstall: async <Request = NodeAgentInstallReq, ResponseData = NodeAgentInstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install')(params, config),
 };
 

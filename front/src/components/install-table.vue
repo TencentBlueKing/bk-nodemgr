@@ -136,9 +136,9 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          field="authentication"
+          field="login_mode"
           width="120"
-          :visible="settings.checked.includes('authentication')"
+          :visible="settings.checked.includes('login_mode')"
         >
           <template #header>
             <span class="mr-[5px]">认证方式</span>
@@ -147,12 +147,12 @@
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.authentication"
-              :rules="rules.authentication"
+              :value="row.login_mode"
+              :rules="rules.login_mode"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
               <Select
-                v-model="row.authentication"
+                v-model="row.login_mode"
                 auto-focus
                 filterable>
                   <Select.Option v-for="option in  authenticationTypes"
@@ -165,9 +165,9 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          field="password"
+          field="login_password"
           width="130"
-          :visible="settings.checked.includes('password')"
+          :visible="settings.checked.includes('login_password')"
         >
           <template #header>
             <span class="mr-[5px]">密码 / 密钥</span>
@@ -176,11 +176,11 @@
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.password"
-              :rules="rules.password"
+              :value="row.login_password"
+              :rules="rules.login_password"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.password" type="password"></Input>
+              <Input v-model="row.login_password" type="login_password"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -237,8 +237,15 @@ const initData = {
   login_ip: '',
   login_port: '',
   login_user: '',
-  authentication: '',
-  password: '',
+  login_mode: '',
+  login_password: '',
+  bk_addressing: 'static',
+  login_key_file: null,
+  bk_networkunit_id: NaN,
+  bk_biz_id: NaN,
+  target_version: '',
+  bk_host_id: NaN,
+  re_register: false
 };
 const rules: ValidationRules = {
   bk_host_innerip: [
@@ -263,10 +270,10 @@ const rules: ValidationRules = {
   login_user: [
     { validator: (val: string) => val, message: '请输入登录账号'},
   ],
-  authentication: [
+  login_mode: [
     { validator: (val: string) => val, message: '请输入认证方式'},
   ],
-  password: [
+  login_password: [
     { validator: (val: string) => val, message: '请输入密码 / 密钥'},
   ],
 }
@@ -276,16 +283,7 @@ const mainStore = useMainStore();
 const type = computed(() => mainStore.agentSetupType);
 const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
 function getInitData() {
-  return {
-    bk_host_innerip: '',
-    bk_host_innerip_v6: '',
-    os_type: '',
-    login_ip: '',
-    login_port: '',
-    login_user: '',
-    authentication: '',
-    password: '',
-  };
+  return cloneDeep(initData);
 };
 
 const handleAddRow = (index: number) => {
@@ -300,25 +298,25 @@ const settings = reactive({
     {field: 'login_ip', title: '登录 IP'},
     {field: 'login_port', title: '登录端口'},
     {field: 'login_user', title: '登录账号'},
-    {field: 'authentication', title: '认证方式'},
-    {field: 'password', title: '密码 / 密钥'}
+    {field: 'login_mode', title: '认证方式'},
+    {field: 'login_password', title: '密码 / 密钥'}
   ],
-  checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_ip', 'login_port', 'login_user', 'authentication', 'password'],
-  disabled: ['os_type', 'login_port', 'login_user', 'authentication', 'password'],
+  checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_ip', 'login_port', 'login_user', 'login_mode', 'login_password'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'login_password'],
   size: 'medium' as VxeComponentSizeType
 });
 const settingChange = (data: {checked: string[], size: VxeComponentSizeType}) => {
   settings.checked = data.checked;
   settings.size = data.size;
 }
-const datasourceList = ref([]);
+const datasourceList = ref<{id: string, name: string}[]>([]);
 const authenticationTypes = ref([
   {
     id: 'password',
     name: '密码'
   },
   {
-    id: 'key',
+    id: 'key_file',
     name: '密钥'
   }
 ])
@@ -361,10 +359,6 @@ const setInputRef = (
     inputRefs.value.set(key, el);
   }
 };
-
-// const clearTableValidate = () => Array
-//   .from(inputRefs.value.values())
-//   .forEach(col => col?.clearValidate());
 
 const tableValidate = () => {
   const refs = Array.from(inputRefs.value.values());

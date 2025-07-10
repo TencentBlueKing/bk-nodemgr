@@ -135,7 +135,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
 
   // 获取管控区域列表中 管控单元数量及节点数量
   const handleFetchWorkareaInfoCount = async (bk_networkarea_id: number[]) => {
-    const result = await TopoService.NetworkAreaStatics({ bk_networkarea_id });
+    const result = await TopoService.NetworkAreaStatistics({ bk_networkarea_id });
     return result?.items || [];
   };
 

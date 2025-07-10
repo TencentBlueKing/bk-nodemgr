@@ -6,13 +6,14 @@
     >
         <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
         <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
-        <Tag theme="warning" type="filled" v-if="currentStatus">{{ statusMap[currentStatus]?.text || '' }}</Tag>
+        <Tag :theme="statusMap[currentStatus]?.tagTheme" type="filled" v-if="currentStatus">{{ statusMap[currentStatus]?.text || '' }}</Tag>
     </PageHeader>
     <div class="p-[24px]">
         <div class="flex">
             <div v-for="item in taskInfoList" :key="item.name" class="leading-[30px] mr-[52px] text-[12px]">
                 <div class="w-[50px]">{{ item.name }}</div>
-                <div v-if="item.prop.includes('time')">{{ timeFormatter(nodeManageStore.taskHistoryTableRowData?.[item.prop]) }}</div>
+                <div v-if="item.prop === 'operate_time'">{{ timeFormatter(nodeManageStore.taskHistoryTableRowData?.[item.prop]) }}</div>
+                <div v-else-if="item.prop === 'cost_time'">{{ formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.[item.prop]) }}</div>
                 <div v-else>{{ nodeManageStore.taskHistoryTableRowData?.[item.prop] }}</div>
             </div>
         </div>
@@ -23,6 +24,7 @@
                     type="agent"
                     :list="list"
                     :data="tableData"
+                    filterProp="state"
                     :disabled="!selection.length"
                 ></copy-ip-dropdown>
                 <div class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]">
@@ -55,7 +57,7 @@
             <ResizeLayout
                 :initial-divide="logData.total ? '20%' : '100%'"
                 placement="left"
-                :disabled="logData.total"
+                :disabled="!logData.total"
             >
                 <template #aside>
                     <Table
@@ -87,12 +89,12 @@
                             :filter="stateFilterOption"
                         >
                             <template #default="{ row }">
-                                <div class="flex items-center" v-if="row.state">
+                                <div class="flex items-center" v-if="row.state && statusMap[row.state]">
                                     <Spinner v-if="row.state === 'running'" class="mr-[8px]"/>
                                     <template v-else>
-                                        <i :class="`nodeman-icon nc-${statusMap[row.state]?.icon} status-icon`"></i>
+                                        <i :class="`nodeman-icon nc-${statusMap[row.state].icon} status-icon`"></i>
                                     </template>
-                                    <span>{{ statusMap[row.state]?.text }}</span>
+                                    <span>{{ statusMap[row.state].text }}</span>
                                 </div>
                                 <div class="flex items-center" v-else>
                                     <span class="nodeman-icon nc-unknown status-icon"></span>
@@ -159,26 +161,46 @@
                         <div class="bg-[#1A1A1A] flex-1 flex">
                             <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]">
                                 <div
-                                    v-for="(item, key, index) in logData"
+                                    v-for="(item, key, index) in logData.oper_inst_logs"
                                     :key="key"
                                     @click="handleToggleLogItem(key)"
                                     :class="['h-[32px] flex items-center pl-[16.8px] cursor-pointer', {'bg-[#242424]': activeKey === key}]"
                                 >
-                                    <template v-if="key !== 'total'">
-                                        <success :fill="activeKey === key ? '#24954f' : '#4D4F56'" v-if="item.life_cycle?.state === 'success'"/>
-                                        <close :fill="activeKey === key ? '#993D3D' : '#4D4F56'" v-if="item.life_cycle?.state === 'failed'"/>
-                                        <span class="ml-[7px]">{{ index + 1 }}.</span>
-                                        <span class="ml-[2px] mr-[4px]">{{ key }}</span>
-                                        <span>{{ item.life_cycle?.end_time - item.life_cycle?.start_time }}s</span>
-                                    </template>
+                                    <success
+                                        v-if="item.life_cycle?.state === 'success'"
+                                        width="12.25px"
+                                        height="12.25px"
+                                        :fill="activeKey === key ? '#24954f' : '#4D4F56'"/>
+                                    <close
+                                        v-else-if="item.life_cycle?.state === 'failed'"
+                                        width="12.25px"
+                                        height="12.25px"
+                                        :fill="activeKey === key ? '#993D3D' : '#4D4F56'"/>
+                                    <span class="ml-[7px]">{{ index + 1 }}.</span>
+                                    <span class="ml-[2px] mr-[4px]">{{ key }}</span>
+                                    <span>{{ item.life_cycle?.end_time - item.life_cycle?.start_time }}s</span>
                                 </div>
                             </div>
                             <div class="flex-1 text-[#a8acb8]" v-if="logs">
-                                <div v-for="(item, index) in logs" :key="index" class="mx-[24px] my-[8px]">
-                                    <span class="mr-[8px]">
-                                        [{{ timeFormatter(item.time) }}]
-                                    </span>
-                                    <span>{{ item.text }}</span>
+                                <div
+                                    v-for="(item, index) in logs"
+                                    :key="index"
+                                    class="mx-[30px] my-[8px]"
+                                    :class="{'bg-[#422321] flex !mx-0': item.level === 'ERROR' || item.text.includes('ERROR')}">
+                                    <div class="flex justify-center items-baseline w-[26px] pt-[6px]">
+                                        <close
+                                            v-if="item.level === 'ERROR' || item.text.includes('ERROR')"
+                                            :fill="'#993D3D'"
+                                            width="12.25px"
+                                            height="12.25px"
+                                        />
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="mr-[8px]">
+                                            [{{ timeFormatter(item.time) }}]
+                                        </span>
+                                        <span class="line-height-[24px]">{{ item.text }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -189,7 +211,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { RightTurnLine, Success, Close, AngleUpFill } from 'bkui-vue/lib/icon';
+import { RightTurnLine, Success, Close, AngleUpFill, Spinner } from 'bkui-vue/lib/icon';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 import { Button, Input, SearchSelect, Radio, Tag, ResizeLayout, Dropdown } from 'bkui-vue';
@@ -214,23 +236,33 @@ const currentData = nodeManageStore.taskHistoryTableRowData;
 const currentStatus = nodeManageStore.currentStatus;
 const statusMap = {
   running: {
-    text: t('执行中')
+    text: t('执行中'),
+    tagTheme: 'info'
   },
   failed: {
     text: t('失败'),
-    icon: 'terminated'
+    icon: 'terminated',
+    tagTheme: 'danger'
   },
   success: {
     text: t('成功'),
-    icon: 'running'
+    icon: 'running',
+    tagTheme: 'success'
   },
   partial_failed: {
     text: t('部分失败'),
-    icon: 'warning'
+    icon: 'warning',
+    tagTheme: 'warning'
   },
   ignored: {
     text: t('已忽略（没有需要变更的实例）'),
-    icon: 'warning'
+    icon: 'warning',
+    tagTheme: ''
+  },
+  timeout: {
+    text: t('超时'),
+    icon: 'unknown',
+    tagTheme: ''
   }
 }
 const taskInfoList = ref([
@@ -240,13 +272,14 @@ const taskInfoList = ref([
     {prop: 'operator', name: t('执行人'), value: ''},
     {prop: 'operate_time', name: t('执行时间'), value: ''},
 ]);
-const tableData = ref([]);
+const tableData = ref<any[]>([]);
 const radioGroupValue = ref('all');
 const curOperationId = ref('');
 const curOperInstId = ref('');
+const curSortNames = ref<string[]>([]);
 const curOperInstVal = ref('LATEST');
-const operInstList = ref([]);
-const logData = ref<Record<string, ActionMessage>>({
+const operInstList = ref<{id: string, name: string, sort_names: string[]}[]>([]);
+const logData = ref<{total: number, oper_inst_logs: Record<string, ActionMessage>}>({
     total: 0,
     oper_inst_logs: {}
 });
@@ -274,14 +307,14 @@ const getUniqueChildren = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
-    name: prop === 'state' ? statusMap[value as string].text : String(value),
+    name: prop === 'state' ? statusMap[value as string]?.text : String(value),
   }))
 }
-const filterOptionConfig = (prop: string, map?: Record<string, any>) => {
+const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
     const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop])?.filter((item: any) => item)));
     return {
       list: uniqueValues.map(value => ({
-        text: map ? map[value as string].text : value,
+        text: textMap && textMap[value as string] ? textMap[value as string].text : value,
         value: value
       })),
       checked: [] as string[],
@@ -391,16 +424,17 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   ],
   disabled: [],
 });
-const formatTimeToMS = (duration: number) => {
+const formatTimeToMS = (duration: number = 0) => {
   const minutes = Math.floor(duration / 60000);
   const seconds = Math.floor((duration % 60000) / 1000);
   return `${minutes}m ${seconds}s`;
 }
-const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => {
+const timeFormatter = (val: string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => {
   return val ? dayjs(val).format(format) : '--';
 }
-const handleClick = async (item: {name: string, id: string}) => {
+const handleClick = async (item: {name: string, id: string, sort_names: string[]}) => {
     curOperInstId.value = item.id;
+    curSortNames.value = item.sort_names;
     await getLog();
 }
 // 筛选
@@ -441,10 +475,10 @@ const handleFullRetry = async () => {
 const getParams = () => {
   const params = {
     page: {
-        limit: pagination.limit,
-        offset: pagination.offset
+        limit: pagination.value.limit,
+        offset: pagination.value.current - 1
     },
-    exact_include_conditions: {} as Record<string, string[]>,
+    exact_include_conditions: {} as Record<string, string[] | string>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
   };
   searchSelectValue.value.forEach((item: any) => {
@@ -478,15 +512,17 @@ const getInstance = async () => {
         total: 0
     }));
     curOperInstId.value = res.total > 0 ?  res.oper_inst_data[res.total -1].oper_inst_id : '';
+    curSortNames.value = res.total > 0 ?  res.oper_inst_data[res.total -1].action_names : [];
     operInstList.value = [];
     for(let i = 1; i <= res.total; i++){
         operInstList.value.push({
             name: i < res.total ? `${i}nd` : 'LATEST',
             id: res.oper_inst_data[i - 1].oper_inst_id,
+            sort_names: res.oper_inst_data[i - 1].action_names
         });
     }
 }
-const logs = ref([]);
+const logs = ref<{text: string, level:string, time: string}[]>([]);
 const activeKey = ref('');
 const getLog = async () => {
     const res = await NodeWorkflowService.NodeWorkflowOperationInstanceLogGet({
@@ -495,8 +531,10 @@ const getLog = async () => {
         total: 0,
         oper_inst_logs: {}
     }));
-    logData.value = res.oper_inst_logs;
-    logData.value.total = 1;
+    curSortNames.value.forEach((key: string) => {
+        logData.value.oper_inst_logs[key] = res.oper_inst_logs[key];
+    });
+    logData.value.total = res.total;
     const firstKey = Object.keys(res.oper_inst_logs)[0];
     logs.value = { ...res.oper_inst_logs[firstKey].message.logs };
     activeKey.value = firstKey;
@@ -507,7 +545,7 @@ const handleViewLog = async (row: any) => {
     await getLog();
 }
 const handleToggleLogItem = (key: string) => {
-    logs.value = logData.value[key].message.logs;
+    logs.value = logData.value.oper_inst_logs[key].message.logs;
     activeKey.value = key;
 }
 onMounted(async() => {

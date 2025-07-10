@@ -52,7 +52,7 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 		return nil, err
 	}
 
-	detail, err := checkGen2OriginAgentPkg(checkingFile)
+	detail, err := checkGSE2OriginAgentPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package. failed to check origin agent package. err: %v", err)
 
@@ -124,10 +124,10 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 	return detail, nil
 }
 
-// checkGen2OriginAgentPkg check gen2 origin agent package.
+// checkGSE2OriginAgentPkg check gen2 origin agent package.
 // nolint:funlen,fnsize,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func checkGen2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
+func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	plats := make(map[string]platform.Platform)
 	detail := new(types.OriginPkgDetail)
 	if err := checkTgz(file, []tgzReadRule{
@@ -264,7 +264,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 		return err
 	}
 
-	detail, err := checkGen2OriginAgentPkg(checkingFile)
+	detail, err := checkGSE2OriginAgentPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload release agent package. failed to check origin agent package. err: %v", err)
 
@@ -311,7 +311,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			file, err := m.upstreamReleaseProxy.GetFile(ctx, pkgName)
+			file, err := m.upstreamReleaseAgent.GetFile(ctx, pkgName)
 			if err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get temp file. err: %v", err)
 

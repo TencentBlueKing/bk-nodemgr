@@ -57,23 +57,34 @@
                     </Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud')" property="bk_networkarea_id" required>
-                    <Select class="w-[568px]" v-model="formData.bk_networkarea_id" auto-focus filterable :list="networkAreaList"
+                    <Select
+                        class="w-[568px]"
+                        v-model="formData.bk_networkarea_id"
+                        auto-focus
+                        filterable
+                        :list="networkAreaList"
                         id-key="bk_networkarea_id"
                         display-key="bk_networkarea_name"
                         @select="handleSelect"></Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud_unit')" property="bk_networkunit_id"
                     required>
-                    <Select class="w-[568px]" v-model="formData.bk_networkunit_id" auto-focus filterable :list="networkUnitList"
+                    <Select
+                        class="w-[568px]"
+                        v-model="formData.bk_networkunit_id"
+                        auto-focus
+                        filterable
+                        :list="networkUnitList"
                         id-key="bk_networkunit_id"
                         display-key="bk_networkunit_name"
-                        @select="handleSelect"></Select>
+                        :disabled="isNaN(formData.bk_networkarea_id)">
+                    </Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
                     <install-table ref="installTableRef" v-model:data="formData.info"></install-table>
                 </Form.FormItem>
                 <Form.FormItem>
-                    <Button text theme="primary" class="text-[14px]" @click="isShow = !isShow" disabled>
+                    <Button text theme="primary" class="text-[14px]" @click="isShow = !isShow">
                         <span class="mr-[8.5px]">高级选项</span>
                         <angle-double-down-line :class="{ 'transform rotate-180': isShow }" />
                     </Button>
@@ -99,7 +110,7 @@
         </div>
         <div :class="['h-[48px] w-full flex items-center pl-[174px]', { 'fixed bottom-[0] bg-[#fff] z-[100]': isAtBottom }]" ref="footerRef">
             <Button class="w-[100px] mr-[8px]" theme="primary" @click="handlePreview">{{ $t('去安装') }}</Button>
-            <Button class="w-[88px]">{{ $t('取消') }}</Button>
+            <Button class="w-[88px]" @click="handleCancel">{{ $t('取消') }}</Button>
         </div>
         <preview
             v-model:is-show="previewData.isShow"
@@ -116,29 +127,36 @@ import { debounce } from 'lodash';
 import { useMainStore } from '@/stores/main';
 import { computed } from 'vue';
 import { TopoService } from '@/api/modules/topo';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Preview from './preview.vue';
 import { cloneDeep } from 'lodash';
 
 const route = useRoute();
-
+const router = useRouter();
 const initData = {
-  ipv4: '',
-  ipv6: '',
-  os: '',
-  login_ip: '',
-  authentication: '',
-  login_port: '',
-  login_user: '',
-  password: '',
+    bk_addressing: 'static',
+    bk_host_innerip: '',
+    bk_host_innerip_v6: '',
+    os_type: '',
+    login_ip: '',
+    login_port: '',
+    login_user: '',
+    login_mode: '',
+    login_password: '',
+    login_key_file: null,
+    bk_networkunit_id: NaN,
+    bk_biz_id: NaN,
+    target_version: '',
+    bk_host_id: NaN,
+    re_register: false
 };
 const mainStore = useMainStore();
 const showRightPanel = ref(false);
-const formData = ref({
+const formData = reactive({
     type: '',
-    bk_biz_id: '',
-    bk_networkarea_id: '',
-    bk_networkunit_id: '',
+    bk_biz_id: NaN,
+    bk_networkarea_id: NaN,
+    bk_networkunit_id: NaN,
     bk_networkarea_name: '',
     bk_networkunit_name: '',
     bk_host_name: '',
@@ -194,13 +212,9 @@ const getNetworkAreaList = async () => {
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
 const getNetworkUnitList = async () => {
-    const bk_networkarea_id = formData.value.bk_networkarea_id ? [formData.value.bk_networkarea_id] : [];
     const res = await TopoService.NetworkUnitList({
-        page: {
-            limit: 0,
-        },
         exact_include_conditions: {
-            bk_networkarea_id,
+            bk_networkarea_id: [formData.bk_networkarea_id],
         }
     }).catch((err: any) => {
         console.log(err);
@@ -265,7 +279,7 @@ const handlePreview = async () => {
     const res = await installTableRef.value?.tableValidate();
     if (formValid && res) {
         previewData.isShow = true;
-        previewData.data = formData.value;
+        previewData.data = formData;
     }
 }
 const footerRef = ref<Element | null>(null);
@@ -280,7 +294,15 @@ const checkIfAtBottom = () => {
         isAtBottom.value = bottom >= window.innerHeight;
     }
 }
+
+const handleCancel = () => {
+    router.push({ name: 'agent' });
+}
 const debouncedCheck = debounce(checkIfAtBottom, 100);
+watch(() => formData.bk_networkarea_id, async () => {
+    console.log("🚀 ~ watch ~ formData.bk_networkarea_id:", formData.bk_networkarea_id)
+    await getNetworkUnitList();
+})
 watch(() => isShow.value, (val: boolean) => {
     checkIfAtBottom();
 });
@@ -289,7 +311,6 @@ watch(() => activeInstallType.value, (val: string) => {
 });
 onMounted(async () => {
     await getNetworkAreaList();
-    await getNetworkUnitList();
     if (footerRef.value) {
         window.addEventListener('resize', debouncedCheck);
         checkIfAtBottom();
