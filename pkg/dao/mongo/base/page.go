@@ -19,7 +19,6 @@ import (
 )
 
 // SortSeparator is the separator for sort keys.
-const SortSeparator = ","
 
 // ParsePage parses the page information and sets it to the FindOptions.
 func ParsePage(page types.Page) *options.FindOptions {
@@ -31,16 +30,22 @@ func ParsePage(page types.Page) *options.FindOptions {
 		findOpt.SetLimit(int64(page.Limit))
 	}
 	if page.Sort != "" {
-		sortKeys := strings.Split(page.Sort, SortSeparator)
+		sortKeys := strings.Split(page.Sort, types.SortSeparator)
 		sortOpt := make(bson.D, len(sortKeys))
 		for i, key := range sortKeys {
+			key = strings.TrimSpace(key)
+			if key == "" {
+				continue
+			}
 			if strings.HasPrefix(key, "-") {
 				sortOpt[i] = bson.E{Key: strings.TrimPrefix(key, "-"), Value: -1}
 			} else {
 				sortOpt[i] = bson.E{Key: key, Value: 1}
 			}
 		}
-		findOpt.SetSort(sortOpt)
+		if len(sortOpt) > 0 {
+			findOpt.SetSort(sortOpt)
+		}
 	}
 
 	return findOpt

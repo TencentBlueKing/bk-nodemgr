@@ -17,6 +17,9 @@ import (
 	"strings"
 )
 
+// SortSeparator is the separator for sort keys.
+const SortSeparator = ","
+
 // Page describe the page data in request.
 type Page struct {
 	// Offset is the offset of the query result.
@@ -54,7 +57,15 @@ func WithFieldAsc(field string) string {
 
 // WithSortFields returns the sort fields as a comma-separated string.
 func WithSortFields(fields ...string) string {
-	return strings.Join(fields, ",")
+	validFields := make([]string, 0, len(fields))
+
+	for _, field := range fields {
+		if field != "" {
+			validFields = append(validFields, field)
+		}
+	}
+
+	return strings.Join(validFields, SortSeparator)
 }
 
 // UnlimitedPage is an unlimited page.
