@@ -122,8 +122,7 @@
           "type": "string"
         },
         "login_key_file": {
-          "type": "string",
-          "format": "byte"
+          "type": "string"
         },
         "bk_networkunit_id": {
           "type": "integer",

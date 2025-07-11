@@ -25,7 +25,7 @@ type NodeAgentInstallParam struct {
 	LoginUser     string
 	LoginMode     LoginMode
 	LoginPassword string
-	LoginKeyFile  []byte
+	LoginKeyFile  string
 	NetworkUnitID int64
 	OSType        string
 	TargetVersion string

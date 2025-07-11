@@ -164,7 +164,7 @@ type NodeProxyInstallReq_Host struct {
 	// support: auto, password, keyfile, none
 	LoginMode       string `protobuf:"bytes,8,opt,name=login_mode,json=loginMode,proto3" json:"login_mode"`
 	LoginPassword   string `protobuf:"bytes,9,opt,name=login_password,json=loginPassword,proto3" json:"login_password"`
-	LoginKeyFile    []byte `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
+	LoginKeyFile    string `protobuf:"bytes,10,opt,name=login_key_file,json=loginKeyFile,proto3" json:"login_key_file"`
 	BkNetworkunitId *int64 `protobuf:"varint,11,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3,oneof" json:"bk_networkunit_id"`
 	OsType          string `protobuf:"bytes,12,opt,name=os_type,json=osType,proto3" json:"os_type"`
 	BkHostId        *int64 `protobuf:"varint,13,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
@@ -266,11 +266,11 @@ func (x *NodeProxyInstallReq_Host) GetLoginPassword() string {
 	return ""
 }
 
-func (x *NodeProxyInstallReq_Host) GetLoginKeyFile() []byte {
+func (x *NodeProxyInstallReq_Host) GetLoginKeyFile() string {
 	if x != nil {
 		return x.LoginKeyFile
 	}
-	return nil
+	return ""
 }
 
 func (x *NodeProxyInstallReq_Host) GetBkNetworkunitId() int64 {
@@ -428,7 +428,7 @@ const file_node_proxy_proto_rawDesc = "" +
 	"login_mode\x18\b \x01(\tR\tloginMode\x12%\n" +
 	"\x0elogin_password\x18\t \x01(\tR\rloginPassword\x12$\n" +
 	"\x0elogin_key_file\x18\n" +
-	" \x01(\fR\floginKeyFile\x12/\n" +
+	" \x01(\tR\floginKeyFile\x12/\n" +
 	"\x11bk_networkunit_id\x18\v \x01(\x03H\x02R\x0fbkNetworkunitId\x88\x01\x01\x12\x17\n" +
 	"\aos_type\x18\f \x01(\tR\x06osType\x12!\n" +
 	"\n" +

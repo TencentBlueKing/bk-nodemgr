@@ -19,7 +19,7 @@ message NodeProxyInstallReq {
     // support: auto, password, keyfile, none
     string login_mode = 8;
     string login_password = 9;
-    bytes login_key_file = 10;
+    string login_key_file = 10;
     optional int64 bk_networkunit_id = 11;
     string os_type = 12;
     optional int64 bk_host_id = 13;
