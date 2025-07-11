@@ -11,32 +11,25 @@
 package nodeinstall
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
-	"path"
-	"regexp"
 	"strings"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -128,6 +121,8 @@ func (act *actionInstallNodeByWMI) DelayFn() func() {
 	}
 }
 
+const installBatName = "install.bat"
+
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize
@@ -152,28 +147,9 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := act.buildWMI(ctx.Ctx, info)
+	client, err := buildWMIClient(ctx.Ctx, act.logger, act.crypter, info)
 	if err != nil {
 		return err
-	}
-
-	osType, cpuArch, connectedRunDir, err := act.detectInfo(ctx, client)
-	if err != nil {
-		return err
-	}
-
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
-	}
-
-	// installer workspace priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = deployConstant.InstallerWorkspace
-	}
-
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = connectedRunDir
 	}
 
 	stdOut, stdErr, err := client.RunCommand(ctx.Ctx, "mkdir "+info.InstallerWorkspace)
@@ -186,8 +162,8 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	ctx.Data.LogI(fmt.Sprintf("make sure the installer workspace exists, stdOut: %s, stdErr: %s",
 		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n")))
 
-	// 5. select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(osType, cpuArch)
+	// select matching tools, and use sftp to transfer it.
+	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name, err: %w", err)
 
@@ -217,10 +193,12 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkspace, toolName))
 
 	ctx.Data.LogI(fmt.Sprintf("upload file to remote, path(%s)", installerPath))
-	act.logger.Info(fmt.Sprintf("upload file to remote, path(%s)", installerPath))
+	act.logger.Infof("upload file to remote, path(%s)", installerPath)
+
 	ctx.Data.LogI(fmt.Sprintf("upload file stdout: %s, stdErr: %s",
 		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n")))
-	act.logger.Info(fmt.Sprintf("upload file stdout: %s, stdErr: %s", stdOut, stdErr))
+	act.logger.Infof("upload file stdout: %s, stdErr: %s",
+		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n"))
 
 	randSelector := discover.NewRandomSelector()
 	downloadEndpoint, err := act.provider.GetEndpoint(
@@ -239,13 +217,18 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
 
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
 	installParams := &InstallParamsWin{
 		InstallerPath:      installerPath,
 		NodeRole:           info.Host.Dynamic.NodeRole,
 		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
 		DownloadEndpoint:   "http://" + downloadEndpoint.GetIPV4Address(),
-		PkgVersion:         info.Dynamic.NodeVersion,
-		PkgGeneration:      info.Dynamic.NodeGeneration,
+		PkgVersion:         info.Host.Dynamic.NodeVersion,
+		PkgGeneration:      info.Host.Dynamic.NodeGeneration,
 		GseRoot:            deployConstant.GseHomeDir,
 		Token:              param.Token,
 		OperInstID:         ctx.Data.OperationInstanceID,
@@ -255,17 +238,16 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		},
 	}
 
-	if !info.ReRegister && info.Dynamic.AgentID != "" {
+	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Dynamic.AgentID))
+			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
 	}
 
-	// 7. exec install command
+	// exec install command
 	installBat := act.buildBat(installParams)
-	ctx.Data.LogI(fmt.Sprintf("install-node cmd(%s)", installBat))
+	ctx.Data.LogI(fmt.Sprintf("install-node-cmd(%s)", installBat))
 
-	batName := "run_install.bat"
-	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), batName)
+	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), installBatName)
 	if err != nil {
 		return fmt.Errorf("failed to create temp file, err: %w", err)
 	}
@@ -276,7 +258,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
 
-	installCMD := path.Clean(path.Join(info.InstallerWorkspace, batName))
+	installCMD := winpath.Clean(winpath.Join(info.InstallerWorkspace, installBatName))
 	stdOutStr, stdErrStr, err := client.RunSilentCommand(ctx.Ctx, installCMD)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node, err: %w", err)
@@ -288,90 +270,6 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	ctx.Data.LogI(fmt.Sprintf("install node stderr: %s", strings.Split(strings.TrimSpace(stdErrStr), "\n")))
 
 	return nil
-}
-
-func (act *actionInstallNodeByWMI) buildWMI(ctx context.Context, info *types.DeploymentInfo) (*wmix.Client, error) {
-	wmiConf := &wmix.Config{
-		IP:      info.LoginIP,
-		User:    info.LoginUser,
-		Timeout: wmix.DefaultTimeout,
-		Logger:  act.logger,
-	}
-
-	switch info.LoginMode {
-	case types.LoginModePassword:
-		passwd, err := act.crypter.Decrypt(info.LoginPassword)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
-		}
-
-		wmiConf.AuthMethod = wmix.AuthMethodPassword
-		wmiConf.Password = string(passwd)
-
-	case types.LoginModeKeyFile:
-		// todo implement
-	case types.LoginModeNone:
-		wmiConf.AuthMethod = wmix.AuthMethodNone
-	default:
-		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
-	}
-
-	client, err := wmix.NewClient(wmiConf)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
-			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
-	}
-
-	return client, nil
-}
-
-// inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
-// nolint: nonamedreturns,perfsprint
-func (act *actionInstallNodeByWMI) detectInfo(ctx *action.InstanceContext, client *wmix.Client) (
-	osType criteria.OSType, cpuArch criteria.CPUArch, connectedRunDir string, err error) {
-
-	// 1. detect target system
-	osTypeStr, _, err := client.RunCommand(ctx.Ctx, "ver")
-	if err != nil {
-		err = fmt.Errorf("failed to run ver, err: %w", err)
-
-		return "", "", "", err
-	}
-	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
-		return r == '\n'
-	})
-	osType, err = platform.NormalizeOS(osTypeStr)
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
-	}
-
-	switch osType {
-	case criteria.OSWindows:
-	default:
-		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
-
-		return "", "", "", err
-	}
-	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
-
-	// 2. detect target cpu arch
-	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to run uname -m, err: %w", err)
-	}
-	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
-		return r == '\n'
-	})
-	cpuArch, err = platform.NormalizeArch(cpuArchStr)
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
-	}
-
-	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
-
-	connectedRunDir = "C:\\tmp"
-
-	return osType, cpuArch, connectedRunDir, nil
 }
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
@@ -392,25 +290,10 @@ func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
-	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
+	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 
 	installCmd := fmt.Sprintf("cd %s && %s %s >%s 2>&1",
 		param.InstallerWorkspace, param.InstallerPath, strings.Join(args, " "), installLogPath)
 
 	return installCmd
-}
-
-// extractArchitecture extracts the architecture from a given string, and returns the last matched architecture.
-func extractArch(str string) string {
-	cpuArchMap := platform.StandardArchMap()
-	archPatterns := make([]string, 0, len(cpuArchMap))
-	for _, cpuArch := range cpuArchMap {
-		archPatterns = append(archPatterns, string(cpuArch))
-	}
-
-	pattern := fmt.Sprintf("(?i)\\b(%s)\\b", strings.Join(archPatterns, "|"))
-	re := regexp.MustCompile(pattern)
-	match := re.FindString(str)
-
-	return match
 }

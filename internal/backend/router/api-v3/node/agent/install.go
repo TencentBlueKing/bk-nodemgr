@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -40,13 +41,20 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts := req.GetHost()
-	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
-	bizIDs := make(map[int64]struct{})
-	for idx := range hosts {
-		reqHost := hosts[idx]
+	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
+	for idx, version := range req.GetTargetVersion() {
+		targetVersions[idx] = types.TargetVersion{
+			OsType:  criteria.OSType(version.GetOsType()),
+			CPUArch: criteria.CPUArch(version.GetCpuArch()),
+			Version: version.GetVersion(),
+		}
+	}
 
-		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost)
+	nodeDeploys := make([]*types.NodeDeployment, len(req.GetHost()))
+	for idx := range req.GetHost() {
+		reqHost := req.GetHost()[idx]
+
+		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost, targetVersions)
 		if err != nil {
 			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
@@ -54,7 +62,11 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		}
 
 		nodeDeploys[idx] = nodeDeploy
-		bizIDs[reqHost.GetBkBizId()] = struct{}{}
+	}
+
+	bizIDs := make(map[int64]struct{})
+	for _, host := range req.GetHost() {
+		bizIDs[host.GetBkBizId()] = struct{}{}
 	}
 
 	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
@@ -79,34 +91,36 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 func (h *handler) generatesInstallDeploys(
 	tenantCtx context.Context,
 	tenantID string,
-	reqHost *protoBackend.NodeAgentInstallReq_Host) (*types.NodeDeployment, error) {
+	reqHost *protoBackend.NodeAgentInstallReq_Host,
+	targetVersions []types.TargetVersion,
+) (*types.NodeDeployment, error) {
 
-	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost)
+	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions)
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
 
 		return nil, err
 	}
 
-	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
-	switch nodeDeployment.Info.LoginMode {
+	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
+	switch nodeDeployment.Info.LoginInfo.Mode {
 	case types.LoginModeKeyFile:
-		nodeDeployment.Info.LoginKeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
+		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
 			return nil, err
 		}
 	case types.LoginModePassword:
-		nodeDeployment.Info.LoginMode = types.LoginModePassword
-		nodeDeployment.Info.LoginPassword, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
+		nodeDeployment.Info.LoginInfo.Mode = types.LoginModePassword
+		nodeDeployment.Info.LoginInfo.Password, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
 			return nil, err
 		}
 	case types.LoginModeNone:
-		nodeDeployment.Info.LoginMode = types.LoginModeNone
+		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeNone
 	default:
 		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
@@ -120,6 +134,7 @@ func (h *handler) generatesInstallDeploys(
 func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
+	targetVersions []types.TargetVersion,
 ) (*types.NodeDeployment, error) {
 
 	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
@@ -141,15 +156,19 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 			},
 			Dynamic: &types.HostDynamic{
 				NodeRole:       types.NodeRoleAgent,
-				NodeVersion:    reqHost.GetTargetVersion(),
 				NodeGeneration: DefaultNodeGeneration,
 				NetworkUnitID:  networkUnit.ID,
 			},
 		},
-		ReRegister: reqHost.GetReRegister(),
-		LoginIP:    reqHost.GetLoginIp(),
-		LoginPort:  reqHost.GetLoginPort(),
-		LoginUser:  reqHost.GetLoginUser(),
+		InstallOptions: types.InstallOptions{
+			ReRegister: reqHost.GetReRegister(),
+		},
+		LoginInfo: types.LoginInfo{
+			IP:   reqHost.GetLoginIp(),
+			Port: reqHost.GetLoginPort(),
+			User: reqHost.GetLoginUser(),
+		},
+		TargetVersion: targetVersions,
 	})
 
 	return nodeDeployment, nil

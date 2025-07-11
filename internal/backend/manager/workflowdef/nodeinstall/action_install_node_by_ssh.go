@@ -11,7 +11,6 @@
 package nodeinstall
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -20,9 +19,7 @@ import (
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -31,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -147,27 +143,9 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := act.buildSSH(ctx.Ctx, info)
+	client, err := buildSSHClient(ctx.Ctx, act.logger, act.crypter, info)
 	if err != nil {
 		return err
-	}
-
-	osType, cpuArch, connectedRunDir, err := act.detectInfo(ctx, client)
-	if err != nil {
-		return err
-	}
-
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
-	}
-
-	// installer workspace priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = deployConstant.InstallerWorkspace
-	}
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = connectedRunDir
 	}
 
 	// ensure the workspace dir.
@@ -177,8 +155,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	// 4. select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(osType, cpuArch)
+	// select matching tools, and use sftp to transfer it.
+	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name, err: %w", err)
 
@@ -204,7 +182,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
 
-	// 6. make sure tool is executable
+	// make sure tool is executable
 	if result, err := client.RunCommand("chmod +x " + installerPath); err != nil {
 		err = fmt.Errorf("failed to chmod +x, result(%s), err: %w", result, err)
 
@@ -228,13 +206,18 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
 	}
 
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
 	installParams := &InstallParams{
 		InstallerPath:      installerPath,
 		NodeRole:           info.Host.Dynamic.NodeRole,
 		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
 		DownloadEndpoint:   "http://" + downloadEndpoint.GetIPV4Address(),
-		PkgVersion:         info.Dynamic.NodeVersion,
-		PkgGeneration:      info.Dynamic.NodeGeneration,
+		PkgVersion:         info.Host.Dynamic.NodeVersion,
+		PkgGeneration:      info.Host.Dynamic.NodeGeneration,
 		GseRoot:            deployConstant.GseHomeDir,
 		Token:              param.Token,
 		OperInstID:         ctx.Data.OperationInstanceID,
@@ -244,12 +227,12 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		},
 	}
 
-	if !info.ReRegister && info.Dynamic.AgentID != "" {
+	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Dynamic.AgentID))
+			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
 	}
 
-	// 7. exec install command
+	// exec install command
 	installCmd := act.buildCMD(installParams)
 
 	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
@@ -268,107 +251,6 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	ctx.Data.LogI(fmt.Sprintf("install node result: %s", outStr))
 
 	return nil
-}
-
-func (act *actionInstallNodeBySSH) buildSSH(ctx context.Context, info *types.DeploymentInfo) (*sshx.Client, error) {
-	sshConf := &sshx.Config{
-		Network: sshx.NetworkTCP,
-		IP:      info.LoginIP,
-		Port:    int(info.LoginPort),
-		User:    info.LoginUser,
-		Logger:  act.logger,
-	}
-
-	switch info.LoginMode {
-	case types.LoginModePassword:
-		passwd, err := act.crypter.Decrypt(info.LoginPassword)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
-		}
-
-		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = string(passwd)
-
-	case types.LoginModeKeyFile:
-		privateKey, err := act.crypter.Decrypt(info.LoginKeyFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
-		}
-
-		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
-		sshConf.PrivateKey = privateKey
-	case types.LoginModeNone:
-		sshConf.AuthMethod = sshx.AuthMethodNone
-	default:
-		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
-	}
-
-	client, err := sshx.NewClient(ctx, sshConf, sshx.DefaultTimeout)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
-			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
-	}
-
-	return client, nil
-}
-
-// inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
-// nolint: nonamedreturns,perfsprint
-func (act *actionInstallNodeBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
-	osType criteria.OSType, cpuArch criteria.CPUArch, targetDir string, err error) {
-
-	// 1. detect target system
-	osTypeStr, err := client.RunCommand("uname -s")
-	if err != nil {
-		err = fmt.Errorf("failed to run uname -a, err: %w", err)
-
-		return "", "", "", err
-	}
-	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
-		return r == '\n'
-	})
-	osType, err = platform.NormalizeOS(osTypeStr)
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
-	}
-
-	switch osType {
-	case criteria.OSLinux, criteria.OSDarwin:
-	default:
-		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
-
-		return "", "", "", err
-	}
-	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
-
-	// 2. detect target cpu arch
-	cpuArchStr, err := client.RunCommand("uname -m")
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to run uname -m, err: %w", err)
-	}
-	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
-		return r == '\n'
-	})
-	cpuArch, err = platform.NormalizeArch(cpuArchStr)
-	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
-	}
-
-	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
-
-	// 3. detect target dir
-	targetDir, err = client.RunCommand("pwd")
-	if err != nil {
-		err = fmt.Errorf("failed to run pwd, err: %w", err)
-
-		return "", "", "", err
-	}
-	targetDir = strings.TrimFunc(targetDir, func(r rune) bool {
-		return r == '\n'
-	})
-	ctx.Data.LogI(fmt.Sprintf("target-dir(%s)", targetDir))
-
-	return osType, cpuArch, targetDir, nil
 }
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.

@@ -33,7 +33,7 @@ type operInstallNodeBySSH struct {
 
 // OperParamInstallNodeBySSH defines the parameters for operInstallNodeBySSH.
 type OperParamInstallNodeBySSH struct {
-	Token string
+	Token string `json:"token"`
 }
 
 // Name returns the name.
@@ -46,6 +46,7 @@ func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 	return []string{
 		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
+		ActionNameDetectInfoBySSH,
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeBySSH,
 		ActionNameWaitInstallComplete,

@@ -109,7 +109,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
@@ -144,15 +144,15 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 func (act *actionUpsertHostToCMDB) checkHost(ctx context.Context, info *types.DeploymentInfo) error {
 	// nolint: nestif
-	if info.HostID < 0 {
+	if info.Host.HostID < 0 {
 		hosts, count, err := act.storageHost.ListHost(ctx, types.Page{
 			Offset: 0,
 			Limit:  1,
 		}, &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
-				NetworkAreaID: []int64{info.Static.NetworkAreaID},
-				Addressing:    []types.Addressing{info.Static.Addressing},
-				InnerIP:       []string{info.Static.InnerIP},
+				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
+				Addressing:    []types.Addressing{info.Host.Static.Addressing},
+				InnerIP:       []string{info.Host.Static.InnerIP},
 			},
 		})
 		if err != nil {
@@ -162,24 +162,24 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx context.Context, info *types.De
 		if count > 1 {
 			return fmt.Errorf("more than one host found, connect the system administrator to check the host, "+
 				"network_area_id(%d), addressing(%s), inner_ip(%s)",
-				info.Static.NetworkAreaID, info.Static.Addressing, info.Static.InnerIP)
+				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
 		}
 
 		if len(hosts) == 0 {
-			info.HostID, err = act.insertHost(ctx, info)
+			info.Host.HostID, err = act.insertHost(ctx, info)
 			if err != nil {
 				return err
 			}
 		} else {
-			info.HostID = hosts[0].HostID
+			info.Host.HostID = hosts[0].HostID
 		}
 	} else {
 		count, err := act.storageHost.CountHost(ctx, &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
-				HostID:        []int64{info.HostID},
-				NetworkAreaID: []int64{info.Static.NetworkAreaID},
-				Addressing:    []types.Addressing{info.Static.Addressing},
-				InnerIP:       []string{info.Static.InnerIP},
+				HostID:        []int64{info.Host.HostID},
+				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
+				Addressing:    []types.Addressing{info.Host.Static.Addressing},
+				InnerIP:       []string{info.Host.Static.InnerIP},
 			},
 		})
 		if err != nil {
@@ -189,7 +189,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx context.Context, info *types.De
 		if count == 0 {
 			return fmt.Errorf("no host found, connect the system administrator to check the host, "+
 				"network_area_id(%d), addressing(%s), inner_ip(%s)",
-				info.Static.NetworkAreaID, info.Static.Addressing, info.Static.InnerIP)
+				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
 		}
 	}
 
@@ -210,7 +210,7 @@ func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.D
 		host.Static.Arch = string(criteria.CPUArch386)
 	}
 
-	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Static.BizID, host)
+	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Host.Static.BizID, host)
 	if err != nil {
 		return 0, err
 	}

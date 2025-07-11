@@ -105,7 +105,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	tCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		Logger:   act.logger,
 	})
 
-	taskID, err := act.cmdbClient.PushHostIdentifier(tCtx, info.HostID)
+	taskID, err := act.cmdbClient.PushHostIdentifier(tCtx, info.Host.HostID)
 	if err != nil {
 		return err
 	}

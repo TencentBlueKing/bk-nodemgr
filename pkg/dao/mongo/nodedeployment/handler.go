@@ -110,14 +110,34 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				ProxyFilePort:    info.ProxyFilePort,
 			},
 		},
-		ReRegister:         info.ReRegister,
+		LoginInfo: types.LoginInfo{
+			IP:       info.LoginInfo.IP,
+			Port:     info.LoginInfo.Port,
+			User:     info.LoginInfo.User,
+			Mode:     types.LoginMode(info.LoginInfo.Mode),
+			Password: info.LoginInfo.Password,
+			KeyFile:  info.LoginInfo.KeyFile,
+		},
 		InstallerWorkspace: info.InstallerWorkspace,
-		LoginIP:            info.LoginIP,
-		LoginPort:          info.LoginPort,
-		LoginUser:          info.LoginUser,
-		LoginMode:          types.LoginMode(info.LoginMode),
-		LoginPassword:      info.LoginPassword,
-		LoginKeyFile:       info.LoginKeyFile,
+		InstallOptions: types.InstallOptions{
+			ReRegister: info.InstallOptions.ReRegister,
+		},
+		UpgradeOptions: types.UpgradeOptions{
+			ForceRestart:           info.UpgradeOptions.ForceRestart,
+			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
+		},
+		TargetVersion: func() []types.TargetVersion {
+			versions := make([]types.TargetVersion, len(info.TargetVersion))
+			for i, version := range info.TargetVersion {
+				versions[i] = types.TargetVersion{
+					OsType:  criteria.OSType(version.OsType),
+					CPUArch: criteria.CPUArch(version.CPUArch),
+					Version: version.Version,
+				}
+			}
+
+			return versions
+		}(),
 	}, nil
 }
 
@@ -271,10 +291,10 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		TenantID:       info.Host.TenantID,
 		NodeRole:       string(info.Host.Dynamic.NodeRole),
 		NodeStatus:     string(info.Host.Dynamic.NodeStatus),
-		NodeCPUArch:    string(info.Host.Dynamic.NodeCPUArch),
-		NodeOsType:     string(info.Host.Dynamic.NodeOsType),
 		NodeVersion:    info.Host.Dynamic.NodeVersion,
 		NodeGeneration: int64(info.Host.Dynamic.NodeGeneration),
+		NodeCPUArch:    string(info.Host.Dynamic.NodeCPUArch),
+		NodeOsType:     string(info.Host.Dynamic.NodeOsType),
 		AgentID:        info.Host.Dynamic.AgentID,
 		NetworkUnitID:  info.Host.Dynamic.NetworkUnitID,
 		NetworkAreaID:  info.Host.Static.NetworkAreaID,
@@ -292,14 +312,34 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		ProxyClusterPort:   info.Host.Dynamic.ProxyClusterPort,
 		ProxyDataPort:      info.Host.Dynamic.ProxyDataPort,
 		ProxyFilePort:      info.Host.Dynamic.ProxyFilePort,
-		ReRegister:         info.ReRegister,
 		InstallerWorkspace: info.InstallerWorkspace,
-		LoginIP:            info.LoginIP,
-		LoginPort:          info.LoginPort,
-		LoginUser:          info.LoginUser,
-		LoginMode:          string(info.LoginMode),
-		LoginPassword:      info.LoginPassword,
-		LoginKeyFile:       info.LoginKeyFile,
+		LoginInfo: LoginInfo{
+			IP:       info.LoginInfo.IP,
+			Port:     info.LoginInfo.Port,
+			User:     info.LoginInfo.User,
+			Mode:     string(info.LoginInfo.Mode),
+			Password: info.LoginInfo.Password,
+			KeyFile:  info.LoginInfo.KeyFile,
+		},
+		InstallOptions: InstallOptions{
+			ReRegister: info.InstallOptions.ReRegister,
+		},
+		UpgradeOptions: UpgradeOptions{
+			ForceRestart:           info.UpgradeOptions.ForceRestart,
+			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
+		},
+		TargetVersion: func() []TargetVersion {
+			dbTargetVersion := make([]TargetVersion, len(info.TargetVersion))
+			for i, version := range info.TargetVersion {
+				dbTargetVersion[i] = TargetVersion{
+					OsType:  string(version.OsType),
+					CPUArch: string(version.CPUArch),
+					Version: version.Version,
+				}
+			}
+
+			return dbTargetVersion
+		}(),
 	}
 
 	return data, nil
