@@ -157,6 +157,10 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Host.Dynamic.NodeOsType = osType
 	info.Host.Dynamic.NodeCPUArch = cpuArch
 
+	releaseType, err := release.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return err
+	}
 	if len(info.TargetVersion) > 0 {
 		for _, v := range info.TargetVersion {
 			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
@@ -171,7 +175,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		if info.Host.Dynamic.NodeVersion == "" {
 			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
-				ReleaseType: release.ConvertRoleToReleaseType(info.Host.Dynamic.NodeRole),
+				ReleaseType: releaseType,
 				Generation:  info.Host.Dynamic.NodeGeneration,
 				OSType:      info.Host.Dynamic.NodeOsType,
 				CPUArch:     info.Host.Dynamic.NodeCPUArch,
@@ -185,7 +189,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	err = checkVersionAvailability(
 		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
-			ReleaseType: release.ConvertRoleToReleaseType(info.Host.Dynamic.NodeRole),
+			ReleaseType: releaseType,
 			Generation:  info.Host.Dynamic.NodeGeneration,
 			OSType:      info.Host.Dynamic.NodeOsType,
 			CPUArch:     info.Host.Dynamic.NodeCPUArch,
