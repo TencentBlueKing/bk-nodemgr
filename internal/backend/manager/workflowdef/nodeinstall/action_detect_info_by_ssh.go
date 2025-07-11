@@ -170,12 +170,12 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, VersionParam{
+			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
 				ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
 				Generation:  info.Host.Dynamic.NodeGeneration,
-				OSType:      string(info.Host.Dynamic.NodeOsType),
-				CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+				OSType:      info.Host.Dynamic.NodeOsType,
+				CPUArch:     info.Host.Dynamic.NodeCPUArch,
 			})
 			if err != nil {
 				return err
@@ -184,12 +184,12 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	err = checkVersionAvailability(
-		ctx.Ctx, VersionParam{
+		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
-			ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+			ReleaseType: release.ConvertRoleToReleaseType(info.Host.Dynamic.NodeRole),
 			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      string(info.Host.Dynamic.NodeOsType),
-			CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+			OSType:      info.Host.Dynamic.NodeOsType,
+			CPUArch:     info.Host.Dynamic.NodeCPUArch,
 			Version:     info.Host.Dynamic.NodeVersion,
 		})
 	if err != nil {

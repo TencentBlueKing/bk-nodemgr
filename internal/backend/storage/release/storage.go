@@ -239,3 +239,15 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 
 	return opts, nil
 }
+
+// ConvertRoleToReleaseType convert role to release type.
+func ConvertRoleToReleaseType(role types.NodeRole) types.ReleaseType {
+	switch role {
+	case types.NodeRoleAgent:
+		return types.ReleaseTypeAgent
+	case types.NodeRoleProxy:
+		return types.ReleaseTypeProxy
+	default:
+		return types.ReleaseTypeCert
+	}
+}
