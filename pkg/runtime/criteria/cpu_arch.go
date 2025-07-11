@@ -10,6 +10,8 @@
 
 package criteria
 
+import "fmt"
+
 // CPUArch define the cpu architecture.
 type CPUArch string
 
@@ -74,3 +76,16 @@ const (
 	// CPUArchUnknown this defines the cpu arch of unknown.
 	CPUArchUnknown CPUArch = "unknown"
 )
+
+// Validate checks if the cpu arch is valid.
+func (arch CPUArch) Validate() error {
+	switch arch {
+	case CPUArch386, CPUArchArm, CPUArchArm64, CPUArchAmd64, CPUArchLoong64, CPUArchMips,
+		CPUArchMipsle, CPUArchMips64, CPUArchMips64le, CPUArchPpc, CPUArchPpc64, CPUArchPpc64le,
+		CPUArchRiscv, CPUArchRiscv64, CPUArchS390, CPUArchS390x, CPUArchSparc, CPUArchSparc64,
+		CPUArchWasm, CPUArchUnknown:
+		return nil
+	default:
+		return fmt.Errorf("invalid cpu arch: %s", arch)
+	}
+}

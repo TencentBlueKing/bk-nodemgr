@@ -99,7 +99,6 @@ func (h *handler) genDeploys(
 				},
 				Dynamic: &types.HostDynamic{
 					NodeRole:       types.NodeRoleProxy,
-					NodeVersion:    reqHost.GetTargetVersion(),
 					NodeGeneration: DefaultNodeGeneration,
 					NetworkUnitID:  networkUnit.ID,
 				},

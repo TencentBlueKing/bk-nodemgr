@@ -157,8 +157,33 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Host.Dynamic.NodeOsType = osType
 	info.Host.Dynamic.NodeCPUArch = cpuArch
 
-	if info.Host.Dynamic.NodeVersion == "" {
-		return errors.New("node version is empty")
+	if len(info.TargetVersion) > 0 {
+		for _, v := range info.TargetVersion {
+			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+				// you can guarantee that there are no duplicates in the TargetVersion.
+				info.Host.Dynamic.NodeVersion = v.Version
+				break
+			}
+		}
+	} else {
+		// we'll automatically use the system information to select the default version,
+		// when NodeVersion is empty.
+		if info.Host.Dynamic.NodeVersion == "" {
+			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx, osType, cpuArch)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = checkVersionAvailability(
+		ctx,
+		info.Host.Dynamic.NodeOsType,
+		info.Host.Dynamic.NodeCPUArch,
+		info.Host.Dynamic.NodeVersion,
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil

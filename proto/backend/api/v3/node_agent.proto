@@ -22,11 +22,17 @@ message NodeAgentInstallReq {
     bytes login_key_file = 10;
     optional int64 bk_networkunit_id = 11;
     string os_type = 12;
-    string target_version = 13;
-    optional int64 bk_host_id = 14;
-    bool re_register = 15;
+    optional int64 bk_host_id = 13;
+    bool re_register = 14;
   }
   repeated Host host = 1;
+  message TargetVersion {
+    string version = 1;
+    string cpu_arch = 2;
+    string os_type = 3;
+  }
+  repeated TargetVersion target_version = 2;
+  bool disable_default_target_version = 3;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

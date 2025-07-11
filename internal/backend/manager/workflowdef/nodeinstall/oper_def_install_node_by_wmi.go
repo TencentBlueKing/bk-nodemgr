@@ -33,8 +33,7 @@ type operInstallNodeByWMI struct {
 
 // OperParamInstallNodeByWMI defines the parameters for operInstallNodeByWMI.
 type OperParamInstallNodeByWMI struct {
-	Token                    string `json:"token"`
-	DisableAutoDetectVersion bool   `json:"disable_auto_detect_version"`
+	Token string `json:"token"`
 }
 
 // Name returns the name.

@@ -12,12 +12,28 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
+	switch {
+	case x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) == 0:
+		return errors.New("target_version can not be empty when disable_default_target_version is true")
+	case !x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) > 0:
+		return errors.New("target_version can not be set when disable_default_target_version is false")
+	}
+
+	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeAgentInstallReq_TargetVersion) string {
+		return fmt.Sprintf("%s:%s", v.GetOsType(), v.GetCpuArch())
+	})
+	if err != nil {
+		return err
+	}
+
 	hosts := x.GetHost()
 	if len(hosts) == 0 {
 		return errors.New("host can not be empty")
@@ -53,10 +69,6 @@ func (x *NodeAgentInstallReq_Host) Validate() error {
 
 	if x.GetBkNetworkunitId() < 0 {
 		return errors.New("network_unit_id must be greater than or equal to 0")
-	}
-
-	if x.TargetVersion == "" {
-		return errors.New("target_version can not be empty")
 	}
 
 	if x.LoginIp == "" {
@@ -131,7 +143,6 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgent
 			LoginKeyFile:    host.LoginKeyFile,
 			BkNetworkunitId: &host.NetworkUnitID,
 			OsType:          host.OSType,
-			TargetVersion:   host.TargetVersion,
 		}
 	}
 

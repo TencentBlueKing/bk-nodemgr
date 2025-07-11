@@ -206,7 +206,7 @@ func Normalize(osName, arch string) (Platform, error) {
 
 	switch {
 	case osErr != nil && archErr != nil:
-		combinedErr = fmt.Errorf("both OS and Arch errors: %v, %v", osErr, archErr)
+		combinedErr = fmt.Errorf("both OS and CPUArch errors: %v, %v", osErr, archErr)
 	case osErr != nil:
 		combinedErr = osErr
 	case archErr != nil:
