@@ -19,6 +19,7 @@ import (
 )
 
 // TestExpoBackoff ...
+// nolint: fnsize
 func TestExpoBackoff(t *testing.T) {
 	type fields struct {
 		opts ExpoBackoffOpts
