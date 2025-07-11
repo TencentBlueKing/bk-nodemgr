@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -169,7 +170,13 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx, osType, cpuArch)
+			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, VersionParam{
+				daoRelease:  act.storageRelease,
+				ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+				Generation:  info.Host.Dynamic.NodeGeneration,
+				OSType:      string(info.Host.Dynamic.NodeOsType),
+				CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+			})
 			if err != nil {
 				return err
 			}
@@ -177,11 +184,14 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	err = checkVersionAvailability(
-		ctx,
-		info.Host.Dynamic.NodeOsType,
-		info.Host.Dynamic.NodeCPUArch,
-		info.Host.Dynamic.NodeVersion,
-	)
+		ctx.Ctx, VersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      string(info.Host.Dynamic.NodeOsType),
+			CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+			Version:     info.Host.Dynamic.NodeVersion,
+		})
 	if err != nil {
 		return err
 	}

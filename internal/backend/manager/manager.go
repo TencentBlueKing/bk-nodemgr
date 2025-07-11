@@ -274,7 +274,8 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
 		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger,
 			mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.Provider),
-		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger,
+			mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.Provider),
 	)
 }
 

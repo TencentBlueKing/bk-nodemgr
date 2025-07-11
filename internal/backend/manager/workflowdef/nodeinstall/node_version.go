@@ -11,22 +11,94 @@
 package nodeinstall
 
 import (
-	"errors"
+	"context"
+	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func autoSelectVersion(ctx *action.InstanceContext, osType criteria.OSType,
-	cpuArch criteria.CPUArch) (string, error) {
-
-	return "", errors.New("not implemented")
+// VersionParam defines the version param.
+type VersionParam struct {
+	daoRelease  release.IStorage
+	ReleaseType types.ReleaseType
+	Generation  types.Generation
+	OSType      string
+	CPUArch     string
+	Version     string
 }
 
-func checkVersionAvailability(ctx *action.InstanceContext, osType criteria.OSType,
-	cpuArch criteria.CPUArch, version string) error {
+func autoSelectVersion(ctx context.Context, versionParam VersionParam) (string, error) {
+	platform, err := platform.Normalize(versionParam.OSType, versionParam.CPUArch)
+	if err != nil {
+		return "", fmt.Errorf("invalid platform, err: %w", err)
+	}
 
-	// TODO: implement me
+	cond := buildReleaseCondition(versionParam, platform, "")
+
+	releases, num, err := versionParam.daoRelease.ListRelease(ctx, types.UnlimitedPage(), cond)
+	if err != nil {
+		return "", fmt.Errorf("failed to list releases, err: %w", err)
+	}
+	if num == 0 {
+		return "", fmt.Errorf("failed to list releases for platform. platform(%v)", platform)
+	}
+
+	defaultReleases := make([]string, 0)
+	for _, release := range releases {
+		if !release.AsDefault {
+			continue
+		}
+		defaultReleases = append(defaultReleases, release.Version)
+	}
+
+	switch len(defaultReleases) {
+	case 0:
+		return "", fmt.Errorf("failed to get default release for platform. platform(%v)", platform)
+	case 1:
+		return defaultReleases[0], nil
+	default:
+		return "", fmt.Errorf(
+			"failed to get default release for platform. platform(%v). multiple default releases found default-releases(%v)",
+			platform, defaultReleases)
+	}
+}
+
+func checkVersionAvailability(ctx context.Context, versionParam VersionParam) error {
+	platform, err := platform.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
+	if err != nil {
+		return fmt.Errorf("invalid platform, err: %w", err)
+	}
+
+	cond := buildReleaseCondition(versionParam, platform, versionParam.Version)
+
+	num, err := versionParam.daoRelease.CountRelease(ctx, cond)
+
+	if err != nil {
+		return fmt.Errorf("failed to check release version, err: %w", err)
+	}
+
+	if num == 0 {
+		return fmt.Errorf(
+			"failed to check release version. platform(%v). no release found", platform)
+	}
 
 	return nil
+}
+
+func buildReleaseCondition(versionParam VersionParam, plat platform.Platform, version string) *types.ReleaseCondition {
+	cond := &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Type:       []types.ReleaseType{versionParam.ReleaseType},
+			Platform:   []platform.Platform{plat},
+			Generation: []types.Generation{versionParam.Generation},
+		},
+	}
+
+	if version != "" {
+		cond.ExactInclude.Version = []string{version}
+	}
+
+	return cond
 }

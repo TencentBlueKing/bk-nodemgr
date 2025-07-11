@@ -17,9 +17,11 @@ import (
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -40,6 +42,7 @@ func NewActionDetectInfoByWMI(
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageRelease release.IStorage,
 	provider discover.Provider,
 ) action.Definition {
 
@@ -47,6 +50,7 @@ func NewActionDetectInfoByWMI(
 		crypter:               crypter,
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
+		storageRelease:        storageRelease,
 		provider:              provider,
 	}
 }
@@ -61,6 +65,7 @@ type actionDetectInfoByWMI struct {
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageRelease        release.IStorage
 	provider              discover.Provider
 }
 
@@ -166,7 +171,13 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx, osType, cpuArch)
+			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, VersionParam{
+				daoRelease:  act.storageRelease,
+				ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+				Generation:  info.Host.Dynamic.NodeGeneration,
+				OSType:      string(info.Host.Dynamic.NodeOsType),
+				CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+			})
 			if err != nil {
 				return err
 			}
@@ -174,11 +185,14 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	err = checkVersionAvailability(
-		ctx,
-		info.Host.Dynamic.NodeOsType,
-		info.Host.Dynamic.NodeCPUArch,
-		info.Host.Dynamic.NodeVersion,
-	)
+		ctx.Ctx, VersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      string(info.Host.Dynamic.NodeOsType),
+			CPUArch:     string(info.Host.Dynamic.NodeCPUArch),
+			Version:     info.Host.Dynamic.NodeVersion,
+		})
 	if err != nil {
 		return err
 	}
