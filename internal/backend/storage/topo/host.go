@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -101,6 +102,8 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
 	[]*types.Host, int64, error) {
 
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(base.FieldKeyUpdatedAt))
 	opts, err := convertHostConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, 0, err
