@@ -126,7 +126,18 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			ForceRestart:           info.UpgradeOptions.ForceRestart,
 			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
 		},
-		NodeVersionMap: info.NodeVersionMap,
+		TargetVersion: func() []types.TargetVersion {
+			versions := make([]types.TargetVersion, len(info.TargetVersion))
+			for i, version := range info.TargetVersion {
+				versions[i] = types.TargetVersion{
+					OsType:  criteria.OSType(version.OsType),
+					CPUArch: criteria.CPUArch(version.CPUArch),
+					Version: version.Version,
+				}
+			}
+
+			return versions
+		}(),
 	}, nil
 }
 
@@ -317,7 +328,18 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			ForceRestart:           info.UpgradeOptions.ForceRestart,
 			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
 		},
-		NodeVersionMap: info.NodeVersionMap,
+		TargetVersion: func() []TargetVersion {
+			dbTargetVersion := make([]TargetVersion, len(info.TargetVersion))
+			for i, version := range info.TargetVersion {
+				dbTargetVersion[i] = TargetVersion{
+					OsType:  string(version.OsType),
+					CPUArch: string(version.CPUArch),
+					Version: version.Version,
+				}
+			}
+
+			return dbTargetVersion
+		}(),
 	}
 
 	return data, nil

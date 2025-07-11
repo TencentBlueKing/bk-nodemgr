@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/google/uuid"
 )
 
@@ -99,8 +100,8 @@ type DeploymentInfo struct {
 	// UpgradeOptions is used to control the tools when upgrade node.
 	UpgradeOptions UpgradeOptions
 
-	// NodeVersionMap is used to record the version of each os-arch node.
-	NodeVersionMap map[string]string
+	// TargetVersion is used to control the target version for node.
+	TargetVersion []TargetVersion
 }
 
 // Validate this is the validate for node deployment.
@@ -189,4 +190,28 @@ func (info DeploymentInfo) Validate() error {
 type NodeConf struct {
 	PreSetting    map[string]any
 	CustomSetting map[string]any
+}
+
+// TargetVersion this is the target version for node.
+type TargetVersion struct {
+	OsType  criteria.OSType
+	CPUArch criteria.CPUArch
+	Version string
+}
+
+// Validate validate target version.
+func (v TargetVersion) Validate() error {
+	if err := v.OsType.Validate(); err != nil {
+		return fmt.Errorf("os_type validate failed, err: %w", err)
+	}
+
+	if err := v.CPUArch.Validate(); err != nil {
+		return fmt.Errorf("cpu_arch validate failed, err: %w", err)
+	}
+
+	if v.Version == "" {
+		return errors.New("version shouldn't not be empty")
+	}
+
+	return nil
 }
