@@ -105,7 +105,7 @@ func (act *actionDetectInfoByWMI) DelayFn() func() {
 	}
 }
 
-const windowsDefaultInstallerWorkspace = "C:\\tmp"
+const windowsDefaultInstallerWorkDir = "C:\\tmp"
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
@@ -146,13 +146,13 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	// installer workspace priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = deployConstant.InstallerWorkspace
+	// installer workdir priority: user specified in info > deploy constant default > connected dir.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = windowsDefaultInstallerWorkspace
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
 	info.Host.Dynamic.NodeOsType = osType

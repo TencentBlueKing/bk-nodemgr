@@ -315,3 +315,26 @@ func ConvertTransferResultToSimple(result *TransferResult) *SimpleTransferResult
 		EndTime:       result.EndTime,
 	}
 }
+
+// OperateAgentType agent operate type.
+type OperateAgentType string
+
+const (
+	// OperateAgentTypeRestart restart agent.
+	OperateAgentTypeRestart OperateAgentType = "restart"
+)
+
+// OperateAgent agent operate.
+type OperateAgent struct {
+	Type                   OperateAgentType
+	CurrentAgentVersion    string
+	TargetAgentVersionSign string
+	Timeout                time.Duration
+	Force                  bool
+	Remark                 string
+}
+
+// OperateAgentResult agent operate result.
+type OperateAgentResult struct {
+	MissingAgentIDs []string
+}

@@ -29,31 +29,31 @@ type Data struct {
 
 // Info this is the info of this node deployment.
 type Info struct {
-	ActionName         string          `json:"action_name" bson:"action_name"`
-	HostID             int64           `json:"host_id" bson:"host_id"`
-	OSType             string          `json:"os_type" bson:"os_type"`
-	TenantID           string          `json:"tenant_id" bson:"tenant_id"`
-	NodeRole           string          `json:"node_role" bson:"node_role"`
-	NodeStatus         string          `json:"node_status" bson:"node_status"`
-	NodeVersion        string          `json:"node_version" bson:"node_version"`
-	NodeGeneration     int64           `json:"node_generation" bson:"node_generation"`
-	NodeCPUArch        string          `json:"node_cpu_arch" bson:"node_cpu_arch"`
-	NodeOsType         string          `json:"node_os_type" bson:"node_os_type"`
-	AgentID            string          `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID      int64           `json:"network_unit_id" bson:"network_unit_id"`
-	NetworkAreaID      int64           `json:"network_area_id" bson:"network_area_id"`
-	BizID              int64           `json:"biz_id" bson:"biz_id"`
-	InnerIP            string          `json:"inner_ip" bson:"inner_ip"`
-	Addressing         string          `json:"addressing" bson:"addressing"`
-	ProxyTags          []string        `json:"proxy_tags" bson:"proxy_tags"`
-	ProxyClusterPort   int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
-	ProxyDataPort      int64           `json:"proxy_data_port" bson:"proxy_data_port"`
-	ProxyFilePort      int64           `json:"proxy_file_port" bson:"proxy_file_port"`
-	InstallerWorkspace string          `json:"installer_workspace" bson:"installer_workspace"`
-	LoginInfo          LoginInfo       `json:"login_info" bson:"login_info"`
-	InstallOptions     InstallOptions  `json:"install_options" bson:"install_options"`
-	UpgradeOptions     UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
-	TargetVersion      []TargetVersion `json:"target_version" bson:"target_version"`
+	ActionName       string          `json:"action_name" bson:"action_name"`
+	HostID           int64           `json:"host_id" bson:"host_id"`
+	OSType           string          `json:"os_type" bson:"os_type"`
+	TenantID         string          `json:"tenant_id" bson:"tenant_id"`
+	NodeRole         string          `json:"node_role" bson:"node_role"`
+	NodeStatus       string          `json:"node_status" bson:"node_status"`
+	NodeVersion      string          `json:"node_version" bson:"node_version"`
+	NodeGeneration   int64           `json:"node_generation" bson:"node_generation"`
+	NodeCPUArch      string          `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeOsType       string          `json:"node_os_type" bson:"node_os_type"`
+	AgentID          string          `json:"agent_id" bson:"agent_id"`
+	NetworkUnitID    int64           `json:"network_unit_id" bson:"network_unit_id"`
+	NetworkAreaID    int64           `json:"network_area_id" bson:"network_area_id"`
+	BizID            int64           `json:"biz_id" bson:"biz_id"`
+	InnerIP          string          `json:"inner_ip" bson:"inner_ip"`
+	Addressing       string          `json:"addressing" bson:"addressing"`
+	ProxyTags        []string        `json:"proxy_tags" bson:"proxy_tags"`
+	ProxyClusterPort int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
+	ProxyDataPort    int64           `json:"proxy_data_port" bson:"proxy_data_port"`
+	ProxyFilePort    int64           `json:"proxy_file_port" bson:"proxy_file_port"`
+	InstallerWorkDir string          `json:"installer_workdir" bson:"installer_workdir"`
+	LoginInfo        LoginInfo       `json:"login_info" bson:"login_info"`
+	InstallOptions   InstallOptions  `json:"install_options" bson:"install_options"`
+	UpgradeOptions   UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
+	TargetVersion    []TargetVersion `json:"target_version" bson:"target_version"`
 }
 
 // TargetVersion this is the target version for node deployment.

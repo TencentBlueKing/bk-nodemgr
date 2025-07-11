@@ -121,9 +121,9 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	// installer workspace priority: user specified in info > deploy constant default.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = deployConstant.InstallerWorkspace
+	// installer workdir priority: user specified in info > deploy constant default.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = deployConstant.WorkDir
 	}
 
 	gp := gopool.NewPool()
@@ -165,7 +165,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *t
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
 		info.Host.Dynamic.NodeVersion,
-		info.InstallerWorkspace,
+		info.InstallerWorkDir,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", info.Host.HostID, err)
@@ -202,7 +202,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx context.Context, info 
 			OS:   info.Host.Dynamic.NodeOsType,
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
-		info.InstallerWorkspace,
+		info.InstallerWorkDir,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", info.Host.HostID, err)

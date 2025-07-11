@@ -13,7 +13,6 @@ package nodedeployment
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,9 +27,8 @@ func newDao(client *mongo.Database, logger logger.Logger) *dao {
 }
 
 type dao struct {
-	client  *mongo.Collection
-	logger  logger.Logger
-	counter counter.Handler
+	client *mongo.Collection
+	logger logger.Logger
 	base.IOrm[*Data, Data]
 }
 

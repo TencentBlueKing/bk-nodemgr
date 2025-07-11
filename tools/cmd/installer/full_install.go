@@ -1,0 +1,217 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/step"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeinstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodestarter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodestopper"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/precheck"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/spf13/cobra"
+)
+
+// NewFullInstall creates a new full install command.
+// nolint: lll, funlen, gocognit
+func NewFullInstall() *cobra.Command {
+	var (
+		// required flags.
+		fileSvrAddr     string
+		callbackSvrAddr string
+		deployToken     string
+		operInstID      string
+		nodeVersion     string
+
+		// optional flags.
+		logDir  string
+		agentID string
+
+		// pre-run.
+		persistentVars   *persistent.Variables
+		preCheckListConf string
+		pkgPath          string
+		agentHandler     agenthandler.IAgentHandler
+	)
+
+	stepCmd := &cobra.Command{
+		Use:   "full-install",
+		Short: "Full install process",
+		Long:  "Full install process",
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			vars, err := persistent.GetVariables(cmd)
+			if err != nil {
+				return err
+			}
+			persistentVars = vars
+
+			preCheckListConf = filepath.Join(persistentVars.DataDir, "precheck.json")
+			pkgPath = filepath.Join(persistentVars.DataDir, step.GenReleasePkgName(persistentVars.NodeRole, persistentVars.Generation, nodeVersion))
+
+			if logDir == "" {
+				logDir = filepath.Join(persistentVars.DataDir, "logs")
+			}
+
+			agentHandler = handler.NewAgentHandler(vars.NodeRole, vars.DeployDir, vars.DeployEnv)
+
+			return nil
+		},
+		// nolint: nonamedreturns
+		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
+			// report status.
+			defer func() {
+				state := types.ProcessStateSuccess
+				if runErr != nil {
+					state = types.ProcessStateFailed
+				}
+
+				_ = statusreporter.NewStep(statusreporter.StepArgs{
+					Token:           deployToken,
+					OperInstID:      operInstID,
+					Status:          state,
+					CallbackSvrAddr: callbackSvrAddr,
+				}).Run(cmd.Context())
+			}()
+
+			// init log settings.
+			lHandler := newLoggerHandler(logDir, deployToken, operInstID, callbackSvrAddr)
+			if err := lHandler.start(); err != nil {
+				return fmt.Errorf("failed to init logger: %w", err)
+			}
+			defer lHandler.stop()
+
+			// download files.
+			if err := filedownloader.NewStep(filedownloader.StepArgs{
+				FileSvrAddr:        fileSvrAddr,
+				CallbackSvrAddr:    callbackSvrAddr,
+				NodeRole:           persistentVars.NodeRole,
+				Generation:         persistentVars.Generation,
+				DeployToken:        deployToken,
+				PkgVersion:         nodeVersion,
+				PkgSavedPath:       pkgPath,
+				ConfigSavedDir:     persistentVars.ConfigDir,
+				CheckListSavedPath: preCheckListConf,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// stop node.
+			if err := nodestopper.NewStep(nodestopper.StepArgs{
+				AgentHandler: agentHandler,
+				Force:        true,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// uninstall node.
+			if err := nodeuninstaller.NewStep(nodeuninstaller.StepArgs{
+				AgentHandler: agentHandler,
+				Backup:       true,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// do precheck.
+			// nolint: gosec
+			content, err := os.ReadFile(preCheckListConf)
+			if err != nil {
+				return err
+			}
+			var checkListParam precheck.CheckList
+			if err := json.Unmarshal(content, &checkListParam); err != nil {
+				return err
+			}
+			if err := precheck.NewStep(precheck.StepArgs{
+				AgentHandler: agentHandler,
+				CheckList:    checkListParam,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// install node.
+			installResult, err := nodeinstaller.NewStep(nodeinstaller.StepArgs{
+				AgentHandler:    agentHandler,
+				AgentID:         agentID,
+				ReRegisterAgent: agentID == "",
+				PkgPath:         pkgPath,
+				SrcConfigDir:    persistentVars.ConfigDir,
+			}).Run(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			// start node.
+			if err := nodestarter.NewStep(nodestarter.StepArgs{
+				AgentHandler: agentHandler,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// check deploy.
+			if err := checkdeploy.NewStep(checkdeploy.StepArgs{
+				AgentHandler: agentHandler,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			// report data.
+			if err := datareporter.NewStep(datareporter.StepArgs{
+				CallbackSvrAddr: callbackSvrAddr,
+				Token:           deployToken,
+				AgentID:         installResult.AgentID,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+
+	/*
+	 * required flags.
+	 */
+	stepCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files")
+	_ = stepCmd.MarkFlagRequired(flag.FilesSvrAddr)
+
+	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
+
+	stepCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of files")
+	_ = stepCmd.MarkFlagRequired(flag.DeployToken)
+
+	stepCmd.Flags().StringVar(&nodeVersion, flag.NodeVersion, "", "node version, for downloading package version")
+	_ = stepCmd.MarkFlagRequired(flag.NodeVersion)
+
+	stepCmd.Flags().StringVar(&operInstID, flag.OperInstID, "", "operation instance id")
+	_ = stepCmd.MarkFlagRequired(flag.OperInstID)
+
+	/*
+	 * optional flags.
+	 */
+	stepCmd.Flags().StringVar(&logDir, flag.LogDir, "", "directory to save log files")
+	stepCmd.Flags().StringVar(&agentID, flag.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
+
+	return stepCmd
+}

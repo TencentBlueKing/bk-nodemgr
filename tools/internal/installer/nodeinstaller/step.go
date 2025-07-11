@@ -14,139 +14,91 @@ package nodeinstaller
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 )
 
 // Step install agent.
 type Step struct {
-	agentID            string
-	reRegisterAgentID  bool
-	setupDirPath       string
-	pkgPath            string
-	srcConfigDir       string
-	dstConfigDir       string
-	gseAgentPath       string
-	gseAgentConfigPath string
-	gseCtlPath         string
-	overwrite          bool
+	args StepArgs
 }
 
 // StepArgs args for step.
 type StepArgs struct {
-	AgentID            string
-	GseAgentPath       string
-	GseCtlPath         string
-	GseAgentConfigPath string
-	ReRegisterAgentID  bool
-	SetupDirPath       string
-	PkgPath            string
-	SrcConfigDir       string
-	Overwrite          bool
+	AgentHandler agenthandler.IAgentHandler
+
+	AgentID         string
+	ReRegisterAgent bool
+	PkgPath         string
+	SrcConfigDir    string
+}
+
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("agent-id(%s), re-register-agent(%t), pkg-path(%s), src-config-dir(%s)",
+		args.AgentID, args.ReRegisterAgent, args.PkgPath, args.SrcConfigDir)
+}
+
+// StepResult result for step.
+type StepResult struct {
+	AgentID string
 }
 
 // NewStep new a step.
 func NewStep(args StepArgs) *Step {
-	step := &Step{
-		agentID:            args.AgentID,
-		gseAgentPath:       args.GseAgentPath,
-		gseCtlPath:         args.GseCtlPath,
-		gseAgentConfigPath: args.GseAgentConfigPath,
-		reRegisterAgentID:  args.ReRegisterAgentID,
-		setupDirPath:       args.SetupDirPath,
-		pkgPath:            args.PkgPath,
-		srcConfigDir:       args.SrcConfigDir,
-		dstConfigDir:       filepath.Join(args.SetupDirPath, "etc"),
-		overwrite:          args.Overwrite,
-	}
-
-	return step
+	return &Step{args: args}
 }
 
 // Run run the step to install node.
-// 1. prepare
-// 1.1 try to create install dir.
-// 1.2 clean config dir.
-// 2. cp files to install dir
-// 2.1 unzip gse pkg to setup dir
-// 2.2 copy config files to setup dir
-// 3. get agent id
-// 3.1 unregister agent id [optional]
-// 3.2 register agent id
-// 4. check gse node health
-// 5. start gse node.
-func (step *Step) Run(ctx context.Context) (string, error) {
-	logger.Info(constant.StepInstallNode, constant.StateStart, "start install node")
+func (step *Step) Run(ctx context.Context) (*StepResult, error) {
+	logger.Infof(installer.StepInstallNode, "start to install node. %s", step.args.String())
 
-	logger.Infof(constant.StepInstallNode, "setup-dir-path(%s)", step.setupDirPath)
+	// 1. init file-system architecture.
+	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to init file-system: %v", err)
 
-	// 1. prepare
-	// 1.1 try to create install dir.
-	err := TryCreateInstallDir(ctx, step.setupDirPath, step.overwrite)
-	if err != nil {
-		logger.Error(constant.StepInstallNode,
-			fmt.Sprintf("create install dir failed: %v", err))
-
-		return "", err
+		return nil, err
 	}
-	logger.Info(constant.StepInstallNode, "successfully create install dir")
+	logger.Info(installer.StepInstallNode, "inited file-system")
 
-	// 2. cp files to install dir
-	// 2.1 copy gse pkg files to setup dir
+	// 2. unpack release package files into installed file-system.
+	if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
 
-	err = UnzipPkgToSetupDir(ctx, step.pkgPath, step.setupDirPath)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
+	logger.Info(installer.StepInstallNode, "unpacked release pkg")
 
-	// 2.2 make gse node and some other files executable.
-	err = MakeGseBinFileExecutable(ctx, filepath.Join(step.setupDirPath, "bin"))
-	if err != nil {
-		return "", err
+	// 3. copy config files to installed file-system.
+	if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
+
+		return nil, err
 	}
+	logger.Info(installer.StepInstallNode, "copied config dir")
 
-	// 2.3 copy config files to setup dir
-	err = CopyConfigFilesToSetupDir(step.srcConfigDir, step.dstConfigDir)
-	if err != nil {
-		return "", err
-	}
+	if step.args.ReRegisterAgent {
+		// 3.1. unregister agent if necessary.
+		if err := step.args.AgentHandler.Process().UnregisterAgentID(ctx); err != nil {
+			logger.Errorf(installer.StepInstallNode, "failed to unregister agent: %v", err)
 
-	// 3. get agent id
-	// nolint: mnd
-	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
-		// notice this need more retries than default.
-		MaxRetries:    10,
-		BaseDelay:     time.Second,
-		MaxDelay:      5 * time.Second,
-		JitterPercent: 0.2,
-	})
-	// 3.1 unregister agent id [optional]
-	if step.reRegisterAgentID {
-		err = UnregisterAgentID(ctx, backoff, step.gseAgentPath, step.gseAgentConfigPath)
-		if err != nil {
-			logger.Error(constant.StepInstallNode,
-				fmt.Sprintf("unregister agent failed: %s", err))
-
-			return "", err
+			return nil, err
 		}
-		logger.Info(constant.StepInstallNode, "successfully unregister agent")
+		logger.Info(installer.StepInstallNode, "unregistered agent")
 	}
 
-	// 3.2 register agent id
-	agentID, err := RegisterAgentID(ctx, backoff, step.gseAgentPath, step.gseAgentConfigPath, step.agentID)
+	// 4. register agent.
+	agentID, err := step.args.AgentHandler.Process().RegisterAgentID(ctx, step.args.AgentID)
 	if err != nil {
-		logger.Error(constant.StepInstallNode,
-			fmt.Sprintf("register agent failed: %v", err))
+		logger.Error(installer.StepInstallNode, fmt.Sprintf("failed to register agent: %v", err))
 
-		return "", err
+		return nil, err
 	}
-	logger.Info(constant.StepInstallNode, "successfully register agent")
+	logger.Info(installer.StepInstallNode, "registered agent")
 
-	logger.Info(constant.StepInstallNode, "success install node")
+	logger.Info(installer.StepInstallNode, "installed node")
 
-	return agentID, nil
+	return &StepResult{AgentID: agentID}, nil
 }

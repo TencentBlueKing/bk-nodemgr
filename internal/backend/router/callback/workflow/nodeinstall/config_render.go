@@ -13,9 +13,11 @@ package nodeinstall
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -85,7 +87,7 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (map[str
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
 		default:
-			configStr = strings.ReplaceAll(configStr, item[0], fmt.Sprintf("%v", value))
+			configStr = strings.ReplaceAll(configStr, item[0], escapeForJson(fmt.Sprintf("%v", value)))
 		}
 	}
 
@@ -99,12 +101,12 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (map[str
 
 func renderCustomSetting(uniqueKey string, config map[string]any, key string, value any) error {
 	if key == "" {
-		return fmt.Errorf("key cannot be empty")
+		return errors.New("key cannot be empty")
 	}
 
 	keys := strings.Split(key, ".")
 	if len(keys) == 0 {
-		return fmt.Errorf("key cannot be empty")
+		return errors.New("key cannot be empty")
 	}
 
 	// ignore if key is not belong to this uniqueKey.
@@ -148,4 +150,9 @@ func renderCustomSetting(uniqueKey string, config map[string]any, key string, va
 	}
 
 	return nil
+}
+
+func escapeForJson(src string) string {
+	quoted := strconv.Quote(src)
+	return quoted[1 : len(quoted)-1]
 }

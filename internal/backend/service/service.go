@@ -122,19 +122,18 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	for idx := range svc.conf.GseDeployConfs {
+	for idx := range svc.conf.GSEDeployConfs {
 		deployConf := deployconstant.DeployConf{
-			Generation:         types.Generation(svc.conf.GseDeployConfs[idx].Generation),
-			OsType:             criteria.OSType(svc.conf.GseDeployConfs[idx].OsType),
-			HostIDPath:         svc.conf.GseDeployConfs[idx].HostIDPath,
-			InstallerWorkspace: svc.conf.GseDeployConfs[idx].InstallerWorkspace,
-			GseDataIPC:         svc.conf.GseDeployConfs[idx].GseDataIPC,
-			GsePluginIPC:       svc.conf.GseDeployConfs[idx].GsePluginIPC,
-			GseHomeDir:         svc.conf.GseDeployConfs[idx].GseHomeDir,
-			GseDataDir:         svc.conf.GseDeployConfs[idx].GseDataDir,
-			GseRunDir:          svc.conf.GseDeployConfs[idx].GseRunDir,
-			GseLogDir:          svc.conf.GseDeployConfs[idx].GseLogDir,
-			GseEnvironDir:      svc.conf.GseDeployConfs[idx].GseEnvironDir,
+			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
+			OsType:        criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
+			BaseWorkDir:   svc.conf.GSEDeployConfs[idx].BaseWorkDir,
+			BaseDeployDir: svc.conf.GSEDeployConfs[idx].BaseDeployDir,
+
+			LogDir:             svc.conf.GSEDeployConfs[idx].Custom.LogDir,
+			HostIDPath:         svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
+			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].Custom.AgentDataIPCPath,
+			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].Custom.AgentPluginIPCPath,
+			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return nil, fmt.Errorf("failed to set deploy conf, err: %w", err)

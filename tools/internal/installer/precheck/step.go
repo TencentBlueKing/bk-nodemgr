@@ -8,89 +8,98 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package precheck ...
+// Package precheck provides precheck step.
 package precheck
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 )
 
 // Step precheck step.
 type Step struct {
-	preCheckListPath string
-	setupDirPath     string
+	args StepArgs
 }
 
 // StepArgs define args for step.
 type StepArgs struct {
-	PreCheckListPath string
-	SetupDirPath     string
+	AgentHandler agenthandler.IAgentHandler
+
+	CheckList CheckList
 }
 
-// NewStep ...
-func NewStep(args StepArgs) *Step {
-	step := &Step{
-		preCheckListPath: args.PreCheckListPath,
-		setupDirPath:     args.SetupDirPath,
-	}
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("check-list(%+v)", args.CheckList)
+}
 
-	return step
+// NewStep new a step.
+func NewStep(args StepArgs) *Step {
+	return &Step{args: args}
 }
 
 // Run run the step to precheck.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepPreCheck, "start precheck with config(%s)", step.preCheckListPath)
-
-	list, err := loadCheckList(step.preCheckListPath)
-	if err != nil {
-		logger.Errorf(constant.StepPreCheck,
-			"failed to load precheck list from (%s), err: %v", step.preCheckListPath, err)
-		return err
-	}
-	logger.Infof(constant.StepPreCheck, "successfully loaded precheck list")
+	logger.Infof(installer.StepPreCheck, "start to precheck with config: %s", step.args.String())
 
 	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	gp := gopool.NewPool()
 
 	runCheck := func(name string, checkFn func() error) func() error {
 		return func() error {
-			logger.Infof(constant.StepPreCheck, "start check %s", name)
+			logger.Infof(installer.StepPreCheck, "start check %s", name)
 
 			if err := r.Do(ctx, func(_ int) error {
 				return checkFn()
 			}); err != nil {
-				logger.Infof(constant.StepPreCheck,
+				logger.Errorf(installer.StepPreCheck,
 					"failed to check %s, err: %v", name, err)
 
 				return err
 			}
 
-			logger.Infof(constant.StepPreCheck, "successfully done check %s", name)
+			logger.Infof(installer.StepPreCheck, "done check %s", name)
 
 			return nil
 		}
 	}
 
-	gp.Go(runCheck("disk free space", func() error { return CheckDiskFreeSpace(list.DiskRequires) }))
-	gp.Go(runCheck("port policy", func() error { return CheckPortPolicies(ctx, list.PortPolicies) }))
-	gp.Go(runCheck("network policy", func() error { return CheckNetworkPolicies(ctx, list.NetworkPolicies) }))
+	gp.Go(runCheck("disk free space", func() error {
+		return CheckDiskFreeSpace(step.args.CheckList.DiskRequires)
+	}))
+	gp.Go(runCheck("port policy", func() error {
+		return CheckPortPolicies(ctx, step.args.CheckList.PortPolicies)
+	}))
+	gp.Go(runCheck("network policy", func() error {
+		return CheckNetworkPolicies(ctx, step.args.CheckList.NetworkPolicies)
+	}))
 	gp.Go(runCheck("gse process", func() error {
-		return CheckRemnantProcessInSetupDir(ctx, step.setupDirPath)
+		nodeProcess, err := step.args.AgentHandler.Process().GetProcess(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !nodeProcess.IsAllDead() {
+			return fmt.Errorf("there are some node process running: %v", nodeProcess.Running)
+		}
+
+		return nil
 	}))
 
 	if err := gp.Wait(); err != nil {
-		logger.Infof(constant.StepPreCheck, "failed to do all precheck, err: %s", err.Error())
+		logger.Errorf(installer.StepPreCheck, "failed to do all precheck: %v", err)
 		return err
 	}
 
-	logger.Infof(constant.StepPreCheck, "successfully done all precheck")
+	logger.Infof(installer.StepPreCheck, "done all precheck")
 
 	return nil
 }
@@ -134,12 +143,14 @@ func DefaultCheckList() *CheckList {
 	}
 }
 
-func loadCheckList(preCheckListPath string) (*CheckList, error) {
+// LoadCheckList load check list from file.
+func LoadCheckList(preCheckListPath string) (*CheckList, error) {
 	if preCheckListPath == "" {
 		return DefaultCheckList(), nil
 	}
 
-	bytes, err := os.ReadFile(preCheckListPath) // nolint: gosec
+	// nolint: gosec
+	bytes, err := os.ReadFile(preCheckListPath)
 	if err != nil {
 		return nil, err
 	}

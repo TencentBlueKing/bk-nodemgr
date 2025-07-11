@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -531,7 +533,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	nodeConf.PreSetting[GseTemplateKeyZoneID] = host.Static.RegionID
 	nodeConf.PreSetting[GseTemplateKeyCityID] = host.Static.CityID
 
-	homeDir := joinPath(osType, deploymentConf.GseHomeDir, string(host.Dynamic.NodeRole))
+	homeDir := joinPath(osType, deploymentConf.DeployDir, string(host.Dynamic.NodeRole))
 	certDir := joinPath(osType, homeDir, "cert")
 	nodeConf.PreSetting[GseTemplateKeyHomeDir] = homeDir
 
@@ -584,10 +586,10 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCliKeyFile] = gseAPIClientKeyFilePath
 	}
 
-	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.GseEnvironDir, "user_conf")
-	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.GseLogDir
-	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GsePluginIPC
-	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GseDataIPC
+	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = joinPath(osType, deploymentConf.EnvironDir, "user_conf")
+	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.LogDir
+	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.AgentPluginIPCPath
+	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.AgentDataIPCPath
 	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
 		ctx, host.Dynamic.NetworkUnitID)
 
@@ -637,28 +639,15 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 
 // joinPath joins path elements with the specified separator.
 func joinPath(osType criteria.OSType, parts ...string) string {
-	separator := "/"
-	if osType == criteria.OSWindows {
-		separator = "\\\\"
-	}
-
 	if len(parts) == 0 {
 		return ""
 	}
 
-	result := parts[0]
-	for _, part := range parts[1:] {
-		if part == "" {
-			continue
-		}
-
-		if result != "" && !strings.HasSuffix(result, separator) {
-			result += separator
-		}
-		result += part
+	if osType == criteria.OSWindows {
+		return winpath.Join(parts...)
 	}
 
-	return result
+	return filepath.Join(parts...)
 }
 
 const (

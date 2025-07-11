@@ -28,7 +28,7 @@ func CheckPIDExist(pid int) (bool, error) {
 	err := syscall.Kill(pid, 0)
 	if err != nil {
 		if errors.Is(err, syscall.ESRCH) {
-			return false, errors.New("process not exist")
+			return false, nil
 		}
 
 		// this error means the process exist, but no permission to send signal.

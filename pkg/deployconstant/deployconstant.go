@@ -14,25 +14,32 @@ package deployconstant
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // DeployConf defines the deployment configuration for agent.
 type DeployConf struct {
-	Generation         types.Generation
-	OsType             criteria.OSType
+	// base.
+	Generation    types.Generation
+	OsType        criteria.OSType
+	BaseWorkDir   string
+	BaseDeployDir string
+
+	// custom.
+	LogDir             string
 	HostIDPath         string
-	InstallerWorkspace string
-	GseDataIPC         string
-	GsePluginIPC       string
-	GseHomeDir         string
-	GseDataDir         string
-	GseRunDir          string
-	GseLogDir          string
-	GseEnvironDir      string
+	AgentDataIPCPath   string
+	AgentPluginIPCPath string
+	EnvironDir         string
+
+	// generates by base and custom.
+	WorkDir   string
+	DeployDir string
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -45,24 +52,32 @@ func (conf DeployConf) Validate() error {
 		return err
 	}
 
-	if conf.GseHomeDir == "" {
-		return errors.New("gseHomeDir is empty")
+	if conf.BaseWorkDir == "" {
+		return errors.New("baseWorkDir is empty")
 	}
 
-	if conf.GseDataDir == "" {
-		return errors.New("gseDataDir is empty")
+	if conf.BaseDeployDir == "" {
+		return errors.New("baseDeployDir is empty")
 	}
 
-	if conf.GseRunDir == "" {
-		return errors.New("gseRunDir is empty")
+	if conf.LogDir == "" {
+		return errors.New("logDir is empty")
 	}
 
-	if conf.GseLogDir == "" {
-		return errors.New("gseLogDir is empty")
+	if conf.HostIDPath == "" {
+		return errors.New("hostIDPath is empty")
 	}
 
-	if conf.GseEnvironDir == "" {
-		return errors.New("gseEnvironDir is empty")
+	if conf.AgentDataIPCPath == "" {
+		return errors.New("agentDataIPCPath is empty")
+	}
+
+	if conf.AgentPluginIPCPath == "" {
+		return errors.New("agentPluginIPCPath is empty")
+	}
+
+	if conf.EnvironDir == "" {
+		return errors.New("environDir is empty")
 	}
 
 	return nil
@@ -118,62 +133,54 @@ func populateDefaultValues(conf *DeployConf) {
 }
 
 func populateDefaultValuesUnix(conf *DeployConf) {
+	env := system.GetEnv()
+
+	if conf.LogDir == "" {
+		conf.LogDir = fmt.Sprintf("/var/log/%s/", env)
+	}
+
 	if conf.HostIDPath == "" {
-		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", system.GetEnv())
+		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
 	}
-	if conf.InstallerWorkspace == "" {
-		conf.InstallerWorkspace = fmt.Sprintf("/tmp/bknm/%s", system.GetEnv())
+
+	if conf.AgentDataIPCPath == "" {
+		conf.AgentDataIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.report", env)
 	}
-	if conf.GseDataIPC == "" {
-		conf.GseDataIPC = fmt.Sprintf("/var/run/%s/ipc.state.report", system.GetEnv())
+
+	if conf.AgentPluginIPCPath == "" {
+		conf.AgentPluginIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.message", env)
 	}
-	if conf.GsePluginIPC == "" {
-		conf.GsePluginIPC = fmt.Sprintf("/var/run/%s/ipc.state.message", system.GetEnv())
+
+	if conf.EnvironDir == "" {
+		conf.EnvironDir = fmt.Sprintf("/etc/sysconfig/%s/", env)
 	}
-	if conf.GseHomeDir == "" {
-		//conf.GseHomeDir = "/usr/local/gse2"
-		conf.GseHomeDir = fmt.Sprintf("/usr/local/%s", system.GetEnv())
-	}
-	if conf.GseDataDir == "" {
-		conf.GseDataDir = fmt.Sprintf("/var/lib/%s", system.GetEnv())
-	}
-	if conf.GseRunDir == "" {
-		conf.GseRunDir = fmt.Sprintf("/var/run/%s", system.GetEnv())
-	}
-	if conf.GseLogDir == "" {
-		conf.GseLogDir = fmt.Sprintf("/var/log/%s", system.GetEnv())
-	}
-	if conf.GseEnvironDir == "" {
-		conf.GseEnvironDir = fmt.Sprintf("/etc/sysconfig/%s", system.GetEnv())
-	}
+
+	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
+	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
 }
 
 func populateDefaultValuesWindows(conf *DeployConf) {
+	env := system.GetEnv()
+
+	if conf.LogDir == "" {
+		conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
+	}
+
 	if conf.HostIDPath == "" {
-		conf.HostIDPath = fmt.Sprintf("C:\\\\%s\\\\data\\\\host\\\\hostid", system.GetEnv())
+		conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
 	}
-	if conf.InstallerWorkspace == "" {
-		conf.InstallerWorkspace = fmt.Sprintf("C:\\\\tmp\\\\bknm\\\\%s", system.GetEnv())
+
+	if conf.AgentDataIPCPath == "" {
+		conf.AgentDataIPCPath = "27000"
 	}
-	if conf.GseDataIPC == "" {
-		conf.GseDataIPC = "27000"
+	if conf.AgentPluginIPCPath == "" {
+		conf.AgentPluginIPCPath = "26000"
 	}
-	if conf.GsePluginIPC == "" {
-		conf.GsePluginIPC = "26000"
+
+	if conf.EnvironDir == "" {
+		conf.EnvironDir = fmt.Sprintf("C:\\Windows\\System32\\config\\gse\\%s\\", env)
 	}
-	if conf.GseHomeDir == "" {
-		conf.GseHomeDir = fmt.Sprintf("C:\\\\%s", system.GetEnv())
-	}
-	if conf.GseDataDir == "" {
-		conf.GseDataDir = fmt.Sprintf("C:\\\\%s\\\\data", system.GetEnv())
-	}
-	if conf.GseRunDir == "" {
-		conf.GseRunDir = fmt.Sprintf("C:\\\\%s\\\\data", system.GetEnv())
-	}
-	if conf.GseLogDir == "" {
-		conf.GseLogDir = fmt.Sprintf("C:\\\\%s\\\\log", system.GetEnv())
-	}
-	if conf.GseEnvironDir == "" {
-		conf.GseEnvironDir = fmt.Sprintf("C:\\\\Windows\\\\System32\\\\config\\\\gse\\\\%s", system.GetEnv())
-	}
+
+	conf.WorkDir = winpath.Join(conf.BaseWorkDir, env)
+	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
 }

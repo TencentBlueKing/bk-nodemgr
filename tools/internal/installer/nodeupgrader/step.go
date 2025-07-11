@@ -1,0 +1,87 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package nodeupgrader this package is used to upgrade gse agent/proxy.
+package nodeupgrader
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+)
+
+// Step upgrade node.
+type Step struct {
+	args StepArgs
+}
+
+// StepArgs args for step.
+type StepArgs struct {
+	AgentHandler agenthandler.IAgentHandler
+
+	PkgPath      string
+	SrcConfigDir string
+	Backup       bool
+}
+
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("pkg-path(%s), src-config-dir(%s)", args.PkgPath, args.SrcConfigDir)
+}
+
+// NewStep new a step.
+func NewStep(args StepArgs) *Step {
+	return &Step{args: args}
+}
+
+// Run run the step to upgrade node.
+func (step *Step) Run(ctx context.Context) error {
+	logger.Infof(installer.StepUpgradeNode, "start to upgrade node. %s", step.args.String())
+
+	// 1. init file-system architecture.
+	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to init file-system: %v", err)
+
+		return err
+	}
+	logger.Info(installer.StepInstallNode, "inited file-system")
+
+	if step.args.Backup {
+		// 1.1. backup old files.
+		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
+			logger.Warnf(installer.StepInstallNode, "failed to backup: %v", err)
+		} else {
+			logger.Info(installer.StepInstallNode, "backuped node")
+		}
+	}
+
+	// 2. unpack release package files into installed file-system.
+	if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
+
+		return err
+	}
+	logger.Info(installer.StepInstallNode, "unpacked release pkg")
+
+	// 3. copy config files to installed file-system.
+	if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
+
+		return err
+	}
+	logger.Info(installer.StepInstallNode, "copied config dir")
+
+	logger.Info(installer.StepInstallNode, "upgraded node, wait for restarting")
+
+	return nil
+}
