@@ -74,7 +74,4 @@ const (
 
 	// FieldKeyDynamicProxyAccessDisabled the dynamic proxy access disabled field key.
 	FieldKeyDynamicProxyAccessDisabled = "data.dynamic.proxy_access_disabled"
-
-	// FieldKeyDynamicProxyClusterPort the dynamic proxy cluster port field key.
-	FieldKeyDynamicProxyClusterPort = "data.dynamic.proxy_cluster_port"
 )
