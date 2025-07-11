@@ -19,6 +19,7 @@ import (
 )
 
 // TestExpoBackoff ...
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func TestExpoBackoff(t *testing.T) {
 	type fields struct {
 		opts ExpoBackoffOpts
