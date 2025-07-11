@@ -17,6 +17,7 @@ import (
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -26,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,6 +41,7 @@ func NewActionDetectInfoBySSH(
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageRelease release.IStorage,
 	provider discover.Provider,
 ) action.Definition {
 
@@ -46,6 +49,7 @@ func NewActionDetectInfoBySSH(
 		crypter:               crypter,
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
+		storageRelease:        storageRelease,
 		provider:              provider,
 	}
 }
@@ -60,6 +64,7 @@ type actionDetectInfoBySSH struct {
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageRelease        release.IStorage
 	provider              discover.Provider
 }
 
@@ -154,7 +159,20 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Dynamic.NodeCPUArch = cpuArch
 
 	if info.Dynamic.NodeVersion == "" {
-		return errors.New("node version is empty")
+
+		version, err := autoSelectVersion(ctx, VersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: types.ReleaseTypeAgent,
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      osType,
+			CPUArch:     cpuArch,
+		})
+
+		if err != nil {
+			return fmt.Errorf("node version is empty and auto selection failed, err: %w", err)
+		}
+
+		info.Dynamic.NodeVersion = version
 	}
 
 	return nil

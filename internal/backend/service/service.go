@@ -240,6 +240,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
+		StorageRelease:        svc.Cap.StorageRelease,
 		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
 		FileHandler:           svc.Cap.FileHandler,
 		Crypter:               svc.Cap.Crypter,
