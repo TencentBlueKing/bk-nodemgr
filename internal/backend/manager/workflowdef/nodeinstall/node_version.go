@@ -74,14 +74,18 @@ func checkVersionAvailability(ctx context.Context, versionParam VersionParam) er
 	cond := buildReleaseCondition(versionParam, platform, versionParam.Version)
 
 	num, err := versionParam.daoRelease.CountRelease(ctx, cond)
-
 	if err != nil {
-		return fmt.Errorf("failed to check release version, err: %w", err)
+		return fmt.Errorf("failed to check release version,err: %w", err)
 	}
 
 	if num == 0 {
 		return fmt.Errorf(
-			"failed to check release version. platform(%v). no release found", platform)
+			"failed to check release version. version(%v). no release found", versionParam.Version)
+	}
+
+	if num > 1 {
+		return fmt.Errorf(
+			"failed to check release version. version(%v). multiple releases found", versionParam.Version)
 	}
 
 	return nil
