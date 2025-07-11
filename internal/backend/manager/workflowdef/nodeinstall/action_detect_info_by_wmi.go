@@ -173,7 +173,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		if info.Host.Dynamic.NodeVersion == "" {
 			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
-				ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+				ReleaseType: release.ConvertRoleToReleaseType(info.Host.Dynamic.NodeRole),
 				Generation:  info.Host.Dynamic.NodeGeneration,
 				OSType:      info.Host.Dynamic.NodeOsType,
 				CPUArch:     info.Host.Dynamic.NodeCPUArch,

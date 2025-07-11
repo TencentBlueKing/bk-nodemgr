@@ -27,7 +27,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -172,7 +171,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		if info.Host.Dynamic.NodeVersion == "" {
 			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
-				ReleaseType: types.ReleaseType(info.Host.Dynamic.NodeRole),
+				ReleaseType: release.ConvertRoleToReleaseType(info.Host.Dynamic.NodeRole),
 				Generation:  info.Host.Dynamic.NodeGeneration,
 				OSType:      info.Host.Dynamic.NodeOsType,
 				CPUArch:     info.Host.Dynamic.NodeCPUArch,
