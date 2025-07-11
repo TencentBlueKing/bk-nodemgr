@@ -180,6 +180,10 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 		sshConf.Auth = []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		}
+
+		// internal don't known host key.
+		// nolint: gosec
+		sshConf.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 	default:
 		sshConf.Auth = []ssh.AuthMethod{}
 	}

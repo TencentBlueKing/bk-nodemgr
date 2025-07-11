@@ -395,6 +395,16 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeAgentInstallReqHost"
           }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallReqTargetVersion"
+          }
+        },
+        "disable_default_target_version": {
+          "type": "boolean"
         }
       },
       "description": "NodeAgentInstallReq describes the node agent install request."
@@ -433,8 +443,7 @@
           "type": "string"
         },
         "login_key_file": {
-          "type": "string",
-          "format": "byte"
+          "type": "string"
         },
         "bk_networkunit_id": {
           "type": "integer",
@@ -443,15 +452,26 @@
         "os_type": {
           "type": "string"
         },
-        "target_version": {
-          "type": "string"
-        },
         "bk_host_id": {
           "type": "integer",
           "format": "int64"
         },
         "re_register": {
           "type": "boolean"
+        }
+      }
+    },
+    "v3NodeAgentInstallReqTargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
         }
       }
     },
@@ -491,6 +511,16 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeProxyInstallReqHost"
           }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyInstallReqTargetVersion"
+          }
+        },
+        "disable_default_target_version": {
+          "type": "boolean"
         }
       },
       "description": "NodeProxyInstallReq describes the node proxy install request."
@@ -529,8 +559,7 @@
           "type": "string"
         },
         "login_key_file": {
-          "type": "string",
-          "format": "byte"
+          "type": "string"
         },
         "bk_networkunit_id": {
           "type": "integer",
@@ -539,15 +568,26 @@
         "os_type": {
           "type": "string"
         },
-        "target_version": {
-          "type": "string"
-        },
         "bk_host_id": {
           "type": "integer",
           "format": "int64"
         },
         "re_register": {
           "type": "boolean"
+        }
+      }
+    },
+    "v3NodeProxyInstallReqTargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
         }
       }
     },

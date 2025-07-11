@@ -12,6 +12,7 @@ package proxy
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -19,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -39,13 +41,20 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts := req.GetHost()
-	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
-	bizIDs := make(map[int64]struct{})
-	for idx := range hosts {
-		reqHost := hosts[idx]
+	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
+	for idx, version := range req.GetTargetVersion() {
+		targetVersions[idx] = types.TargetVersion{
+			OsType:  criteria.OSType(version.GetOsType()),
+			CPUArch: criteria.CPUArch(version.GetCpuArch()),
+			Version: version.GetVersion(),
+		}
+	}
 
-		nodeDeploy, err := h.genDeploys(sCtx, ctx.TenantID, reqHost)
+	nodeDeploys := make([]*types.NodeDeployment, len(req.GetHost()))
+	for idx := range req.GetHost() {
+		reqHost := req.GetHost()[idx]
+
+		nodeDeploy, err := h.genDeploys(sCtx, ctx.TenantID, reqHost, targetVersions)
 		if err != nil {
 			h.logger.Errorf("failed to install proxy, failed to generate node deployment. err: %v", err)
 
@@ -53,7 +62,11 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 		}
 
 		nodeDeploys[idx] = nodeDeploy
-		bizIDs[reqHost.GetBkBizId()] = struct{}{}
+	}
+
+	bizIDs := make(map[int64]struct{})
+	for _, host := range req.GetHost() {
+		bizIDs[host.GetBkBizId()] = struct{}{}
 	}
 
 	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
@@ -77,6 +90,7 @@ func (h *handler) genDeploys(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeProxyInstallReq_Host,
+	targetVersions []types.TargetVersion,
 ) (*types.NodeDeployment, error) {
 
 	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
@@ -111,12 +125,20 @@ func (h *handler) genDeploys(
 				Port: reqHost.GetLoginPort(),
 				User: reqHost.GetLoginUser(),
 			},
+			TargetVersion: targetVersions,
 		})
 
 	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
 	switch nodeDeployment.Info.LoginInfo.Mode {
 	case types.LoginModeKeyFile:
-		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
+		loginKeyFileData, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
+		if err != nil {
+			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+
+			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
+		}
+
+		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(loginKeyFileData)
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
