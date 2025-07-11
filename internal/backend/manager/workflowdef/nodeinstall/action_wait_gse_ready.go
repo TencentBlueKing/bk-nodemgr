@@ -113,7 +113,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		Logger:   act.logger,
 	})
 	err = polling.Do(ctx.Ctx, func(_ int) error {
-		states, err := act.gseClient.ListAgentState(ctx.Ctx, info.Dynamic.AgentID)
+		states, err := act.gseClient.ListAgentState(ctx.Ctx, info.Host.Dynamic.AgentID)
 		if err != nil {
 			return err
 		}
@@ -123,7 +123,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		}
 
 		state := states[0]
-		info.Dynamic.NodeStatus = state.StatusCode.ToNodeStatus()
+		info.Host.Dynamic.NodeStatus = state.StatusCode.ToNodeStatus()
 		if state.StatusCode != types.AgentStatusCodeRunning {
 			return fmt.Errorf("agent state is not running, status(%s)", state.StatusCode.String())
 		}

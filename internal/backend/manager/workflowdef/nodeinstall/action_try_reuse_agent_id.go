@@ -105,7 +105,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// if the current judgment is not satisfied, just go back.
 
 	// force re-register the agentID.
-	if info.ReRegister {
+	if info.InstallOptions.ReRegister {
 		ctx.Data.LogI("force re-register, will not reuse agent id")
 		act.logger.Info("force re-register, will not reuse agent id")
 
@@ -129,9 +129,9 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		Limit:  1,
 	}, &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
-			NetworkAreaID: []int64{info.Static.NetworkAreaID},
-			Addressing:    []types.Addressing{info.Static.Addressing},
-			InnerIP:       []string{info.Static.InnerIP},
+			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
+			Addressing:    []types.Addressing{info.Host.Static.Addressing},
+			InnerIP:       []string{info.Host.Static.InnerIP},
 		},
 	})
 	if err != nil {
@@ -147,14 +147,14 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	info.Dynamic.AgentID = hosts[0].Dynamic.AgentID
+	info.Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
 	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Dynamic.AgentID))
-	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id:(%s)", info.Dynamic.AgentID))
+	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Host.Dynamic.AgentID))
+	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id:(%s)", info.Host.Dynamic.AgentID))
 
 	return nil
 }

@@ -103,29 +103,29 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	agentInfos, err := act.gseClient.ListAgentInfo(ctx.Ctx, info.Dynamic.AgentID)
+	agentInfos, err := act.gseClient.ListAgentInfo(ctx.Ctx, info.Host.Dynamic.AgentID)
 	if err != nil {
 		return err
 	}
 
 	if len(agentInfos) != 1 {
-		return fmt.Errorf("get agent info error, agent-id(%s), aget-infos(%v)", info.Dynamic.AgentID, agentInfos)
+		return fmt.Errorf("get agent info error, agent-id(%s), aget-infos(%v)", info.Host.Dynamic.AgentID, agentInfos)
 	}
 
 	agentInfo := agentInfos[0]
-	info.Dynamic.NodeCPUArch, err = platform.NormalizeArch(string(agentInfo.Arch))
+	info.Host.Dynamic.NodeCPUArch, err = platform.NormalizeArch(string(agentInfo.Arch))
 	if err != nil {
-		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)", info.Dynamic.AgentID, agentInfo.Arch, err)
+		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)", info.Host.Dynamic.AgentID, agentInfo.Arch, err)
 	}
 
-	info.Dynamic.NodeOsType, err = platform.NormalizeOS(string(agentInfo.OSType))
+	info.Host.Dynamic.NodeOsType, err = platform.NormalizeOS(string(agentInfo.OSType))
 	if err != nil {
 		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)",
-			info.Dynamic.AgentID, agentInfo.OSType, err)
+			info.Host.Dynamic.AgentID, agentInfo.OSType, err)
 	}
 
 	if err := act.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
-		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Dynamic.AgentID, err)
+		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Host.Dynamic.AgentID, err)
 	}
 
 	return nil

@@ -113,7 +113,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
@@ -780,10 +780,10 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	info *types.DeploymentInfo,
 	conf *types.NodeConf) {
 
-	info.Dynamic.ProxyClusterPort = conv.ToInt64Default(
+	info.Host.Dynamic.ProxyClusterPort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
-	info.Dynamic.ProxyDataPort = conv.ToInt64Default(
+	info.Host.Dynamic.ProxyDataPort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyProxyDataPort)
-	info.Dynamic.ProxyFilePort = conv.ToInt64Default(
+	info.Host.Dynamic.ProxyFilePort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
 }

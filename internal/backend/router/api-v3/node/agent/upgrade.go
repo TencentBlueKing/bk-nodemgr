@@ -132,12 +132,14 @@ func (h *handler) generatesUpgradeDeploys(
 			Static:   host.Static,
 			Dynamic:  host.Dynamic,
 		},
-		ForceRestart:           reqHost.GetForce(),
-		GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+		UpgradeOptions: types.UpgradeOptions{
+			ForceRestart:           reqHost.GetForce(),
+			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+		},
 	})
 
 	// set target version.
-	nodeDeployment.Info.Dynamic.NodeVersion = reqHost.GetTargetVersion()
+	nodeDeployment.Info.Host.Dynamic.NodeVersion = reqHost.GetTargetVersion()
 
 	return nodeDeployment, nil
 }

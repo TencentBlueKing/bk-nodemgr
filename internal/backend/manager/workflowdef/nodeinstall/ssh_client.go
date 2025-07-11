@@ -28,15 +28,15 @@ func buildSSHClient(ctx context.Context,
 
 	sshConf := &sshx.Config{
 		Network: sshx.NetworkTCP,
-		IP:      info.LoginIP,
-		Port:    int(info.LoginPort),
-		User:    info.LoginUser,
+		IP:      info.LoginInfo.IP,
+		Port:    int(info.LoginInfo.Port),
+		User:    info.LoginInfo.User,
 		Logger:  logger,
 	}
 
-	switch info.LoginMode {
+	switch info.LoginInfo.Mode {
 	case types.LoginModePassword:
-		passwd, err := crypter.Decrypt(info.LoginPassword)
+		passwd, err := crypter.Decrypt(info.LoginInfo.Password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
 		}
@@ -45,7 +45,7 @@ func buildSSHClient(ctx context.Context,
 		sshConf.Password = string(passwd)
 
 	case types.LoginModeKeyFile:
-		privateKey, err := crypter.Decrypt(info.LoginKeyFile)
+		privateKey, err := crypter.Decrypt(info.LoginInfo.KeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
 		}
@@ -55,13 +55,13 @@ func buildSSHClient(ctx context.Context,
 	case types.LoginModeNone:
 		sshConf.AuthMethod = sshx.AuthMethodNone
 	default:
-		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
+		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
 	}
 
 	client, err := sshx.NewClient(ctx, sshConf, sshx.DefaultTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
-			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
+			fmt.Sprintf("%s:%d", info.LoginInfo.IP, info.LoginInfo.Port), err)
 	}
 
 	return client, nil

@@ -108,7 +108,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.TenantID)
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		}
 
 		act.logger.Infof("successfully bind host agent relation to cmdb, host-id(%d), agent-id(%s)",
-			info.HostID, info.Dynamic.AgentID)
+			info.Host.HostID, info.Host.Dynamic.AgentID)
 
 		return nil
 	})
@@ -136,7 +136,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		}
 
 		act.logger.Infof("successfully bind host agent relation to db, host-id(%d), agent-id(%s)",
-			info.HostID, info.Dynamic.AgentID)
+			info.Host.HostID, info.Host.Dynamic.AgentID)
 
 		return nil
 	})
@@ -145,20 +145,20 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("bind host agent relation failed, err: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.HostID,
-		info.Dynamic.AgentID))
+	ctx.Data.LogI(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.Host.HostID,
+		info.Host.Dynamic.AgentID))
 
 	return nil
 }
 
 func (act *actionBindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
-	daoHost, err := act.storageHost.GetHostByID(ctx, info.HostID)
+	daoHost, err := act.storageHost.GetHostByID(ctx, info.Host.HostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed, err: %w", err)
 	}
 
 	if daoHost == nil {
-		return fmt.Errorf("host not found, host-id(%d)", info.HostID)
+		return fmt.Errorf("host not found, host-id(%d)", info.Host.HostID)
 	}
 
 	return nil

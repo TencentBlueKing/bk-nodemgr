@@ -27,7 +27,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -140,7 +139,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -155,24 +154,11 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		info.InstallerWorkspace = connectedDir
 	}
 
-	info.Dynamic.NodeOsType = osType
-	info.Dynamic.NodeCPUArch = cpuArch
+	info.Host.Dynamic.NodeOsType = osType
+	info.Host.Dynamic.NodeCPUArch = cpuArch
 
-	if info.Dynamic.NodeVersion == "" {
-
-		version, err := autoSelectVersion(ctx, VersionParam{
-			daoRelease:  act.storageRelease,
-			ReleaseType: types.ReleaseTypeAgent,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      osType,
-			CPUArch:     cpuArch,
-		})
-
-		if err != nil {
-			return fmt.Errorf("node version is empty and auto selection failed, err: %w", err)
-		}
-
-		info.Dynamic.NodeVersion = version
+	if info.Host.Dynamic.NodeVersion == "" {
+		return errors.New("node version is empty")
 	}
 
 	return nil

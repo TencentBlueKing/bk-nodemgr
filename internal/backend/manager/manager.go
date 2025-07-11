@@ -272,7 +272,9 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionTransferPkgToNode(
 			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
-		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger,
+			mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.Provider),
+		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
 	)
 }
 
@@ -467,7 +469,7 @@ func (mgr *manager) createOper(
 
 	var operationDef operation.Definition
 
-	switch deploy.Info.Static.OSType {
+	switch deploy.Info.Host.Static.OSType {
 	case string(criteria.OSLinux), string(criteria.OSDarwin):
 		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
 	case string(criteria.OSWindows):

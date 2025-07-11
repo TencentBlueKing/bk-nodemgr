@@ -26,15 +26,15 @@ func buildWMIClient(_ context.Context,
 	info *types.DeploymentInfo,
 ) (*wmix.Client, error) {
 	wmiConf := &wmix.Config{
-		IP:      info.LoginIP,
-		User:    info.LoginUser,
+		IP:      info.LoginInfo.IP,
+		User:    info.LoginInfo.User,
 		Timeout: wmix.DefaultTimeout,
 		Logger:  logger,
 	}
 
-	switch info.LoginMode {
+	switch info.LoginInfo.Mode {
 	case types.LoginModePassword:
-		passwd, err := crypter.Decrypt(info.LoginPassword)
+		passwd, err := crypter.Decrypt(info.LoginInfo.Password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
 		}
@@ -47,13 +47,13 @@ func buildWMIClient(_ context.Context,
 	case types.LoginModeNone:
 		wmiConf.AuthMethod = wmix.AuthMethodNone
 	default:
-		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginMode)
+		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
 	}
 
 	client, err := wmix.NewClient(wmiConf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
-			fmt.Sprintf("%s:%d", info.LoginIP, info.LoginPort), err)
+			fmt.Sprintf("%s:%d", info.LoginInfo.IP, info.LoginInfo.Port), err)
 	}
 
 	return client, nil

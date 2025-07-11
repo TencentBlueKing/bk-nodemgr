@@ -104,31 +104,35 @@ func (h *handler) genDeploys(
 					NetworkUnitID:  networkUnit.ID,
 				},
 			},
-			ReRegister: reqHost.GetReRegister(),
-			LoginIP:    reqHost.GetLoginIp(),
-			LoginPort:  reqHost.GetLoginPort(),
-			LoginUser:  reqHost.GetLoginUser(),
+			InstallOptions: types.InstallOptions{
+				ReRegister: reqHost.GetReRegister(),
+			},
+			LoginInfo: types.LoginInfo{
+				IP:   reqHost.GetLoginIp(),
+				Port: reqHost.GetLoginPort(),
+				User: reqHost.GetLoginUser(),
+			},
 		})
 
-	nodeDeployment.Info.LoginMode = types.LoginMode(reqHost.GetLoginMode())
-	switch nodeDeployment.Info.LoginMode {
+	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
+	switch nodeDeployment.Info.LoginInfo.Mode {
 	case types.LoginModeKeyFile:
-		nodeDeployment.Info.LoginKeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
+		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 
 			return nil, err
 		}
 	case types.LoginModePassword:
-		nodeDeployment.Info.LoginMode = types.LoginModePassword
-		nodeDeployment.Info.LoginPassword, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
+		nodeDeployment.Info.LoginInfo.Mode = types.LoginModePassword
+		nodeDeployment.Info.LoginInfo.Password, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
 		if err != nil {
 			h.logger.Error("encrypt password failed", err)
 
 			return nil, err
 		}
 	case types.LoginModeNone:
-		nodeDeployment.Info.LoginMode = types.LoginModeNone
+		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeNone
 	default:
 		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
 		h.logger.Error(err)
