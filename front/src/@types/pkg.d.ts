@@ -321,3 +321,30 @@ export interface PackageReleaseDeleteResp {
 export interface PackageReleaseDeleteRespData {
 }
 
+// PackageReleaseDeployedHostCountReq describes the HTTP request body when count
+// deployed host.
+export interface PackageReleaseDeployedHostCountReq {
+  request_items: CountRequestItem[];
+}
+
+export interface PackageReleaseDeployedHostCountReqCountRequestItem {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseDeployedHostCountResp describes the HTTP response body when
+// count deployed host.
+export interface PackageReleaseDeployedHostCountResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: PackageReleaseDeployedHostCountRespData;
+}
+
+export interface PackageReleaseDeployedHostCountRespData {
+  total: number;
+  items: number[];
+}
+

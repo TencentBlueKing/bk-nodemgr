@@ -65,9 +65,9 @@ const initData = {
     login_key_file: null,
     bk_networkunit_id: NaN,
     bk_biz_id: NaN,
-    target_version: '',
     bk_host_id: NaN,
-    re_register: false
+    re_register: false,
+    prove: ''
 };
 const formData = reactive({
     type: '',

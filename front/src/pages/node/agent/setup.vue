@@ -48,8 +48,11 @@
                     <install-type></install-type>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.business')" property="bk_biz_id" required>
-                    <Select class="w-[568px]" v-model="formData.bk_biz_id" auto-focus filterable placeholder="选择业务"
-                        @select="handleSelect">
+                    <Select class="w-[568px]"
+                        v-model="formData.bk_biz_id"
+                        auto-focus
+                        filterable
+                        placeholder="选择业务">
                         <Select.Option v-for="item in businessList" :key="item.bk_biz_id" :name="item.bk_biz_name"
                             :id="item.bk_biz_id">
                             [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
@@ -62,10 +65,15 @@
                         v-model="formData.bk_networkarea_id"
                         auto-focus
                         filterable
-                        :list="networkAreaList"
-                        id-key="bk_networkarea_id"
-                        display-key="bk_networkarea_name"
-                        @select="handleSelect"></Select>
+                        @select="handleSelect"> 
+                        <Select.Option
+                            v-for="option in networkAreaList"
+                            :key="option.bk_networkarea_id"
+                            :id="String(option.bk_networkarea_id)"
+                            :name="option.bk_networkarea_name">
+                            {{ option.bk_networkarea_name }}
+                        </Select.Option>
+                    </Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.cloud_unit')" property="bk_networkunit_id"
                     required>
@@ -100,7 +108,17 @@
                                     <i class="nodeman-icon nc-bulk-edit"></i>
                                 </template>
                                 <template #default="{ row }">
-                                    <Input type="choose" v-model="row.version" :placeholder="$t('请选择')" />
+                                    <Validate
+                                        :value="row.version"
+                                        required
+                                        :ref="`${row.os}_ref`"
+                                    >
+                                        <Input
+                                            :model-value="row.version"
+                                            :placeholder="$t('请选择')"
+                                            @click="handleChooseVersion(row)"
+                                        />
+                                    </Validate>
                                 </template>
                             </TableColumn>
                         </Table>
@@ -116,6 +134,7 @@
             v-model:is-show="previewData.isShow"
             :data="previewData.data"
         ></preview>
+        <chooseVersionDialog v-model:is-show="isShowDialog" :data="dialogData" @confirm="handleComfirmVerion"></chooseVersionDialog>
     </div>
 </template>
 <script lang="ts" setup>
@@ -130,6 +149,8 @@ import { TopoService } from '@/api/modules/topo';
 import { useRoute, useRouter } from 'vue-router';
 import Preview from './preview.vue';
 import { cloneDeep } from 'lodash';
+import chooseVersionDialog from '@/components/choose-version-dialog.vue';
+import Validate from '@/components/validate.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -143,52 +164,81 @@ const initData = {
     login_user: '',
     login_mode: '',
     login_password: '',
-    login_key_file: null,
-    bk_networkunit_id: NaN,
-    bk_biz_id: NaN,
-    target_version: '',
-    bk_host_id: NaN,
-    re_register: false
+    login_key_file: '',
+    bk_networkunit_id: '',
+    bk_biz_id: '',
+    re_register: false,
+    prove: ''
 };
 const mainStore = useMainStore();
 const showRightPanel = ref(false);
 const formData = reactive({
     type: '',
-    bk_biz_id: NaN,
-    bk_networkarea_id: NaN,
-    bk_networkunit_id: NaN,
+    bk_biz_id: '',
+    bk_networkarea_id: '',
+    bk_networkunit_id: '',
     bk_networkarea_name: '',
     bk_networkunit_name: '',
     bk_host_name: '',
     info: [cloneDeep(initData)],
+    target_version: [] as any[],
+    disable_default_target_version: false,
 });
 const previewData = reactive({
     isShow: false,
     data: null
 });
 const systemData = ref([
+    // {
+    //     os: 'darwin_x86_64',
+    //     version: ''
+    // },
+    // {
+    //     os: 'linux_aarch64',
+    //     version: ''
+    // },
+    // {
+    //     os: 'linux_x86_64',
+    //     version: ''
+    // },
+    // {
+    //     os: 'windows_x86_64',
+    //     version: ''
+    // },
     {
-        os: 'linux_x86_64',
+        os: 'Linux_amd64',
+        version: '',
+    },
+    {
+        os: 'Darwin_amd64',
         version: ''
     },
     {
-        os: 'linux_aarch64',
+        os: 'Linux_arm64',
         version: ''
     },
     {
-        os: 'windows_x86_32',
+        os: 'Windows_amd64',
         version: ''
-    },
-    {
-        os: 'windows_x86_64',
-        version: ''
-    },
+    }
 ])
 const rules = {};
 const isShow = ref(false);
+const isShowDialog = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
-const handleSelect = (value: string, option) => {
+const handleSelect = (newValue: string, oldValue: string) => {
+}
+const dialogData = ref({
+    os: '',
+    version: '',
+});
+const handleChooseVersion = (row: {version: string, os: string}) => {
+    isShowDialog.value = true;
+    dialogData.value = row;
+}
+const handleComfirmVerion = (val: string) => {
+    dialogData.value.version = val;
 }
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
@@ -208,13 +258,16 @@ const getNetworkAreaList = async () => {
     });
     networkAreaList.value = res.items;
 }
-
+const capitalizeFirstLetter = (str: string) => {
+  if (!str) return str; // 处理空字符串的情况
+  return str.charAt(0).toLowerCase() + str.slice(1);
+}
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
 const getNetworkUnitList = async () => {
     const res = await TopoService.NetworkUnitList({
         exact_include_conditions: {
-            bk_networkarea_id: [formData.bk_networkarea_id],
+            bk_networkarea_id: [Number(formData.bk_networkarea_id)],
         }
     }).catch((err: any) => {
         console.log(err);
@@ -274,12 +327,44 @@ const handleSelectChange = (event: Event) => {
 
 const formRef = ref(null);
 const installTableRef = ref(null);
+const Linux_amd64_ref = ref();
+const Darwin_amd64_ref = ref();
+const Linux_arm64_ref = ref();
+const Windows_amd64_ref= ref();
 const handlePreview = async () => {
-    const formValid = await formRef.value?.validate().catch(() => false);
-    const res = await installTableRef.value?.tableValidate();
-    if (formValid && res) {
+    const result = await Promise.all([
+        formRef.value?.validate().catch(() => false),
+        installTableRef.value?.tableValidate(),
+        isShow.value ?
+            (Linux_amd64_ref.value?.validate('blur').catch(() => false),
+            Darwin_amd64_ref.value?.validate('blur').catch(() => false),
+            Linux_arm64_ref.value?.validate('blur').catch(() => false),
+            Windows_amd64_ref.value?.validate('blur').catch(() => false))
+            : true
+    ]);
+    if (result.every(item => item)) {
         previewData.isShow = true;
-        previewData.data = formData;
+        const modeMap = {
+            password: 'login_password',
+            key: 'login_key_file'
+        }
+        formData.info.forEach(item => {
+            item[modeMap[item.login_mode]] = item.prove;
+            delete item.bk_host_id
+        });
+        if(isShow.value) {
+            formData.target_version = systemData.value.map(item => {
+                const [type, cpu_arch] = item.os.split('_');
+                const os_type = capitalizeFirstLetter(type);
+                return {
+                    os_type,
+                    cpu_arch,
+                    version: item.version
+                }
+            });
+            formData.disable_default_target_version = true;
+        }
+        previewData.data = {...formData};
     }
 }
 const footerRef = ref<Element | null>(null);
@@ -300,7 +385,6 @@ const handleCancel = () => {
 }
 const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(() => formData.bk_networkarea_id, async () => {
-    console.log("🚀 ~ watch ~ formData.bk_networkarea_id:", formData.bk_networkarea_id)
     await getNetworkUnitList();
 })
 watch(() => isShow.value, (val: boolean) => {

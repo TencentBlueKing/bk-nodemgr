@@ -1,6 +1,6 @@
 <template>
     <PageHeader
-        class="w-full sticky top-0 z-1"
+        class="w-full absolute top-0 z-100"
         :title="t('任务详情')"
         :back="true"
     >
@@ -8,18 +8,34 @@
         <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
         <Tag :theme="statusMap[currentStatus]?.tagTheme" type="filled" v-if="currentStatus">{{ statusMap[currentStatus]?.text || '' }}</Tag>
     </PageHeader>
-    <div class="p-[24px]">
+    <div class="p-[24px] mt-[52px]">
         <div class="flex">
             <div v-for="item in taskInfoList" :key="item.name" class="leading-[30px] mr-[52px] text-[12px]">
                 <div class="w-[50px]">{{ item.name }}</div>
-                <div v-if="item.prop === 'operate_time'">{{ timeFormatter(nodeManageStore.taskHistoryTableRowData?.[item.prop]) }}</div>
-                <div v-else-if="item.prop === 'cost_time'">{{ formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.[item.prop]) }}</div>
-                <div v-else>{{ nodeManageStore.taskHistoryTableRowData?.[item.prop] }}</div>
+                <div>{{ item.value }}</div>
             </div>
         </div>
         <div class="mt-[24px] mb-[14px] flex justify-between">
             <div class="flex gap-[12px]">
-                <Button :disabled="!failedSelection.length" @click="handleFullRetry">全部失败重试</Button>
+                <Dropdown
+                    theme="light"
+                    trigger="click"
+                    :popover-options="{
+                        clickContentAutoHide: true,
+                    }">
+                    <Button :disabled="!failedSelection.length">全部失败重试</Button>
+                    <template #content>
+                        <Dropdown.DropdownMenu extCls="dropDown-menu">
+                            <Dropdown.DropdownItem
+                                class="text-14px"
+                                v-for="item in reTryType"
+                                :key="item.id"
+                                @click="handleFullRetry(item.id)">
+                                {{ item.name }}
+                            </Dropdown.DropdownItem>
+                        </Dropdown.DropdownMenu>
+                    </template>
+                </Dropdown>
                 <copy-ip-dropdown
                     type="agent"
                     :list="list"
@@ -54,165 +70,102 @@
             </SearchSelect>
         </div>
         <bk-loading title="数据加载中" :loading="loading">
-            <ResizeLayout
-                :initial-divide="logData.total ? '20%' : '100%'"
-                placement="left"
-                :disabled="!logData.total"
-            >
-                <template #aside>
-                    <Table
-                        :data="tableData"
-                        :empty-text="'暂无数据'"
-                        :pagination="pagination"
-                        show-overflow-tooltip
-                        :max-height="maxHeight"
-                        @checkbox-change="handleSelectChange"
-                        @checkbox-all="handleSelectAllChange"
-                        :show-settings="isShowSetting"
-                        :settings="settings"
-                        @setting-change="handleSettingChange"
+            <div class="relative">
+                <Table
+                    :data="filterTableData"
+                    :empty-text="'暂无数据'"
+                    :pagination="pagination"
+                    show-overflow-tooltip
+                    :max-height="maxHeight"
+                    @checkbox-change="handleSelectChange"
+                    @checkbox-all="handleSelectAllChange"
+                    :show-settings="isShowSetting"
+                    :settings="settings"
+                    @setting-change="handleSettingChange"
+                    @column-filter="handleFilter"
+                >
+                    <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
+                    <TableColumn field="bk_host_inner" :title="t('IPv4')" width="150" fixed="left"></TableColumn>
+                    <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
+                    <TableColumn field="bk_networkarea_id" :title="t('云区域')" min-width="150"></TableColumn>
+                    <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
+                    <TableColumn field="node_version" :title="t('目标版本')" min-width="150" :filter="filterOptionSource.node_version"></TableColumn>
+                    <TableColumn field="total_time_second" :title="t('耗时')">
+                        <template #default={row}>
+                            <span>{{ formatTimeToMS(row.total_time_second) }}</span>
+                        </template>
+                    </TableColumn>
+                    <TableColumn
+                        field="state"
+                        :title="t('执行状态')"
+                        :filter="filterOptionSource.state"
+                        min-width="150"
                     >
-                        <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-                        <TableColumn field="bk_host_inner" :title="t('IPv4')" width="150" fixed="left"></TableColumn>
-                        <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
-                        <TableColumn field="bk_networkarea_id" :title="t('云区域')"></TableColumn>
-                        <TableColumn field="bk_biz_name" :title="t('业务')"></TableColumn>
-                        <TableColumn field="node_version" :title="t('目标版本')" :filter="versionFilterOption"></TableColumn>
-                        <TableColumn field="total_time_second" :title="t('耗时')">
-                            <template #default={row}>
-                                <span>{{ formatTimeToMS(row.total_time_second) }}</span>
-                            </template>
-                        </TableColumn>
-                        <TableColumn
-                            field="state"
-                            :title="t('执行状态')"
-                            :filter="stateFilterOption"
-                        >
-                            <template #default="{ row }">
-                                <div class="flex items-center" v-if="row.state && statusMap[row.state]">
-                                    <Spinner v-if="row.state === 'running'" class="mr-[8px]"/>
-                                    <template v-else>
-                                        <i :class="`nodeman-icon nc-${statusMap[row.state].icon} status-icon`"></i>
-                                    </template>
-                                    <span>{{ statusMap[row.state].text }}</span>
-                                </div>
-                                <div class="flex items-center" v-else>
-                                    <span class="nodeman-icon nc-unknown status-icon"></span>
-                                    <span>{{ row.state }}</span>
-                                </div>
-                            </template>
-                        </TableColumn>
-                        <TableColumn
-                            :title="t('操作')"
-                            fixed="right"
-                            width="100"
-                        >
-                            <template #default={row}>
-                                <div class="flex items-center">
-                                    <Button text theme="primary" class="mr-[11px]" @click="handleViewLog(row)">查看日志</Button>
-                                    <Button text theme="primary" v-if="row.state === 'failed'" @click="handleRetry(row)">
-                                        <right-turn-line fill="#3A84FF"/>
-                                        <span class="ml-[3px]">重试</span>
-                                    </Button>
-                                </div>
-                            </template>
-                        </TableColumn>
-                    </Table>
-                </template>
-                <template #main>
-                    <div ref="contentRef" class="h-[500px] flex flex-col overflow-y-auto" :class="{'text-[12px]': !isFullscreen, 'text-[16px]': isFullscreen}">
-                        <div class="h-[50px] flex flex-shrink-0 justify-between items-center px-[16px] bg-[#2E2E2E] text-[#C4C6CC]">
-                            <div>{{ t('执行日志') }}</div>
-                            <div>
+                        <template #default="{ row }">
+                            <div class="flex items-center" v-if="row.state && statusMap[row.state]">
+                                <Spinner v-if="row.state === 'running'" class="mr-[8px]"/>
+                                <template v-else>
+                                    <i :class="`nodeman-icon nc-${statusMap[row.state].icon} status-icon`"></i>
+                                </template>
+                                <span>{{ statusMap[row.state].text }}</span>
+                            </div>
+                            <div class="flex items-center" v-else>
+                                <span class="nodeman-icon nc-unknown status-icon"></span>
+                                <span>{{ row.state }}</span>
+                            </div>
+                        </template>
+                    </TableColumn>
+                    <TableColumn
+                        :title="t('操作')"
+                        fixed="right"
+                        width="150"
+                    >
+                        <template #default={row}>
+                            <div class="flex items-center">
+                                <Button text theme="primary" class="mr-[11px]" @click="handleViewLog(row)">查看日志</Button>
                                 <Dropdown
+                                    theme="light"
+                                    trigger="click"
+                                    ext-cls="dropdownCls"
                                     :popover-options="{
                                         clickContentAutoHide: true,
-                                        boundary: 'body',
-                                        trigger: 'click'
-                                    }"
-                                >
-                                    <Button text class="mr-[16px]">
-                                        <span class="text-[#C4C6CC] mr-[6px]">{{ curOperInstVal }}</span>
-                                        <angle-up-fill class="text-[16px] text-[#C4C6CC]" />
+                                    }">
+                                    <Button text theme="primary" v-if="row.state === 'failed'">
+                                        <right-turn-line fill="#3A84FF"/>
+                                        <span>重试</span>
                                     </Button>
                                     <template #content>
-                                        <ul class="w-[80px] py-[4px]">
-                                            <li
-                                                v-for="item in operInstList"
-                                                :key="item.name"
-                                                @click="handleClick(item)"
-                                                :class="['w-full h-[32px] flex items-center px-[12px]',
-                                                    {'bg-[#E1ECFF] text-[#3A84FF]': curOperInstVal === item.name}
-                                                ]"
-                                            >
+                                        <Dropdown.DropdownMenu extCls="dropDown-menu">
+                                            <Dropdown.DropdownItem
+                                                class="text-14px"
+                                                v-for="item in reTryType"
+                                                :key="item.id"
+                                                @click="handleRetry(row, item.id)">
                                                 {{ item.name }}
-                                            </li>
-                                        </ul>
+                                            </Dropdown.DropdownItem>
+                                        </Dropdown.DropdownMenu>
                                     </template>
                                 </Dropdown>
-                                <Button text v-if="isFullscreen" @click="switchFullScreen">
-                                    <i class="nodeman-icon nc-icon-un-full-screen text-[16px] text-[#C4C6CC]"></i>
-                                </Button>
-                                <Button text v-else @click="switchFullScreen">
-                                    <i class="nodeman-icon nc-icon-full-screen text-[16px] text-[#C4C6CC]"></i>
-                                </Button>
                             </div>
-                        </div>
-                        <div class="bg-[#1A1A1A] flex-1 flex">
-                            <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]">
-                                <div
-                                    v-for="(item, key, index) in logData.oper_inst_logs"
-                                    :key="key"
-                                    @click="handleToggleLogItem(key)"
-                                    :class="['h-[32px] flex items-center pl-[16.8px] cursor-pointer', {'bg-[#242424]': activeKey === key}]"
-                                >
-                                    <success
-                                        v-if="item.life_cycle?.state === 'success'"
-                                        width="12.25px"
-                                        height="12.25px"
-                                        :fill="activeKey === key ? '#24954f' : '#4D4F56'"/>
-                                    <close
-                                        v-else-if="item.life_cycle?.state === 'failed'"
-                                        width="12.25px"
-                                        height="12.25px"
-                                        :fill="activeKey === key ? '#993D3D' : '#4D4F56'"/>
-                                    <span class="ml-[7px]">{{ index + 1 }}.</span>
-                                    <span class="ml-[2px] mr-[4px]">{{ key }}</span>
-                                    <span>{{ item.life_cycle?.end_time - item.life_cycle?.start_time }}s</span>
-                                </div>
-                            </div>
-                            <div class="flex-1 text-[#a8acb8]" v-if="logs">
-                                <div
-                                    v-for="(item, index) in logs"
-                                    :key="index"
-                                    class="mx-[30px] my-[8px]"
-                                    :class="{'bg-[#422321] flex !mx-0': item.level === 'ERROR' || item.text.includes('ERROR')}">
-                                    <div class="flex justify-center items-baseline w-[26px] pt-[6px]">
-                                        <close
-                                            v-if="item.level === 'ERROR' || item.text.includes('ERROR')"
-                                            :fill="'#993D3D'"
-                                            width="12.25px"
-                                            height="12.25px"
-                                        />
-                                    </div>
-                                    <div class="flex-1">
-                                        <span class="mr-[8px]">
-                                            [{{ timeFormatter(item.time) }}]
-                                        </span>
-                                        <span class="line-height-[24px]">{{ item.text }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </ResizeLayout>
+                        </template>
+                    </TableColumn>
+                </Table>
+                <log :data="curRow" v-if="curRow" ref="logRef"></log>
+            </div>
         </bk-loading>
     </div>
 </template>
 <script setup lang="ts">
+interface FilterOption {
+  list: { text: string, value: string }[];
+  checked: string[];
+  filterScope: string;
+}
+type taskType = 'install_agent' | 'install_plugin' | 'upgrade_agent' | 'upgrade_plugin';
+type filterProp = 'state' | 'node_version';
+
 import { RightTurnLine, Success, Close, AngleUpFill, Spinner } from 'bkui-vue/lib/icon';
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 import { Button, Input, SearchSelect, Radio, Tag, ResizeLayout, Dropdown } from 'bkui-vue';
 import usePage from '@/composables/use-page';
@@ -222,15 +175,23 @@ import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { useRoute } from 'vue-router';
 import { useNodeManageStore } from '@/stores/node-manage';
 import useTableSetting from '@/composables/use-table-setting';
-import useFullScreen from '@/composables/use-fullscreen';
+import Log from './log.vue';
 import dayjs from 'dayjs';
 
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-// 全屏
-const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
+const reTryType = [
+    {
+        id: 'full_node_instance_retry',
+        name: t('全部重试')
+    },
+    {
+        id: 'partial_node_instance_retry',
+        name: t('部分重试')
+    }
+]
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = nodeManageStore.taskHistoryTableRowData;
 const currentStatus = nodeManageStore.currentStatus;
@@ -265,24 +226,40 @@ const statusMap = {
     tagTheme: ''
   }
 }
-const taskInfoList = ref([
-    {prop: 'type', name: t('任务类型'), value: ''},
-    {prop: 'cost_time', name: t('总耗时'), value: ''},
-    {prop: 'workflow_id', name: t('任务ID'), value: ''},
-    {prop: 'operator', name: t('执行人'), value: ''},
-    {prop: 'operate_time', name: t('执行时间'), value: ''},
-]);
+const typeMap = {
+  install_agent: t('Agent 安装'),
+  install_plugin: t('插件安装'),
+  upgrade_agent: t('Agent 升级'),
+  upgrade_plugin: t('插件升级')
+}
+const formatTimeToMS = (duration: number = 0) => {
+  const minutes = Math.floor(duration / 60000);
+  const seconds = Math.floor((duration % 60000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
+const timeFormatter = (val: number | string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => {
+  return val ? dayjs(val).format(format) : '--';
+}
+
+const sliceWorkflowId = (val: string) => {
+    return '#' + val?.slice(-4);
+}
+const taskInfoList = computed(() => ([
+    {prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType]},
+    {prop: 'cost_time', name: t('总耗时'), value: formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.cost_time)},
+    {prop: 'workflow_id', name: t('任务ID'), value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id)},
+    {prop: 'operator', name: t('执行人'), value: nodeManageStore.taskHistoryTableRowData?.operator},
+    {prop: 'operate_time', name: t('执行时间'), value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time)},
+]));
+
 const tableData = ref<any[]>([]);
+const filterTableData = computed(() =>
+    tableData.value.filter((item: any) =>
+        radioGroupValue.value === 'all'
+        || item.state === radioGroupValue.value
+));
 const radioGroupValue = ref('all');
 const curOperationId = ref('');
-const curOperInstId = ref('');
-const curSortNames = ref<string[]>([]);
-const curOperInstVal = ref('LATEST');
-const operInstList = ref<{id: string, name: string, sort_names: string[]}[]>([]);
-const logData = ref<{total: number, oper_inst_logs: Record<string, ActionMessage>}>({
-    total: 0,
-    oper_inst_logs: {}
-});
 const radioGroup = computed(() => ([ 
     {
         icon: '',
@@ -303,6 +280,10 @@ const radioGroup = computed(() => ([
         count: tableData.value.filter((item: {state: string}) => item.state === 'failed').length
     }
 ]));
+const bussinessMap = computed(() => mainStore.businessList.map(item => ({
+  id: item.bk_biz_id,
+  name: item.bk_biz_name
+})));
 const getUniqueChildren = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
@@ -312,29 +293,42 @@ const getUniqueChildren = (prop: string) => {
 }
 const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
     const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop])?.filter((item: any) => item)));
-    return {
-      list: uniqueValues.map(value => ({
+    return uniqueValues.map(value => ({
         text: textMap && textMap[value as string] ? textMap[value as string].text : value,
         value: value
-      })),
-      checked: [] as string[],
-      filterScope: 'all',
-    }
+    }));
 }
-const versionFilterOption = computed(() => filterOptionConfig('node_version'));
-const stateFilterOption = computed(() => filterOptionConfig('state', statusMap));
+const filterOptionSource = reactive<Record<string, FilterOption>>({
+  node_version: {
+    list: [],
+    checked: [],
+    filterScope: 'all'
+  },
+  state: {
+    list: [],
+    checked: [],
+    filterScope: 'all'
+  },
+});
 const loading = ref(false);
 // 搜索
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const searchSelectData = computed(() => [
   {id: 'bk_host_innerip', name: t('IP'), multiple: true},
   {id: 'bk_networkarea_id', name: t('云区域'), children: getUniqueChildren('bk_networkarea_id'), multiple: true},
-  {id: 'bk_biz_id', name: t('业务'), children: getUniqueChildren('bk_biz_id'), multiple: true},
+  {id: 'bk_biz_id', name: t('业务'), children: bussinessMap.value, multiple: true},
   {id: 'node_version', name: t('目标版本'), children: getUniqueChildren('node_version'), multiple: true},
   {id: 'state', name: t('执行状态'), children: getUniqueChildren('state'), multiple: true},
 ]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  await getOperateList();
+    Object.keys(filterOptionSource).forEach(key => {
+        filterOptionSource[key].checked = [];
+    });
+    data.forEach(item => {
+        if (filterOptionSource[item.id as filterProp]) {
+            filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
+        }
+    });
 }
 
 // 分页
@@ -424,53 +418,59 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   ],
   disabled: [],
 });
-const formatTimeToMS = (duration: number = 0) => {
-  const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
-  return `${minutes}m ${seconds}s`;
-}
-const timeFormatter = (val: string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => {
-  return val ? dayjs(val).format(format) : '--';
-}
-const handleClick = async (item: {name: string, id: string, sort_names: string[]}) => {
-    curOperInstId.value = item.id;
-    curSortNames.value = item.sort_names;
-    await getLog();
-}
+
 // 筛选
 const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
     const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
     index > -1 && searchSelectValue.value.splice(index, 1);
     if (checked.length){
         searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
-        const name = field === 'status' ? statusMap[item].text : item;
-        return {
-            id: item,
-            name
-        }
+            const name = field === 'state' ? statusMap[item].text : item;
+            return {
+                id: item,
+                name
+            }
         })});
     }
 }
 // 重试
-const handleRetry = async (row: any) => {
+const handleRetry = async (row: any, type: string) => {
     const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
         workflow_id: route.params.taskId,
         operation_id: [row.operation_id],
-        retry_mod: 'partial_node_instance_retry'
+        retry_mod: type
     }).catch(() => false);
     if(res) {
         await getOperateList();
     }
 }
-const handleFullRetry = async () => {
+const handleFullRetry = async (type: string) => {
     const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
         workflow_id: route.params.taskId,
         operation_id: failedSelection.value.map(item => item.operation_id),
-        retry_mod: 'partial_node_instance_retry'
+        retry_mod: type
     }).catch(() => false);
     if(res) {
         await getOperateList();
     }
+}
+const getTaskList = async () => {
+  const res = await NodeWorkflowService.NodeWorkflowList({
+    exact_include_conditions: {}
+  }).catch((err) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    }
+  });
+  return res.items.map(item => {
+    return {
+      ...item,
+      bk_biz_name: item.bk_biz_name.filter(item => item),
+      cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
+    }
+  });
 }
 const getParams = () => {
   const params = {
@@ -504,51 +504,30 @@ const getOperateList = async () => {
     }));
     loading.value = false;
 }
-const getInstance = async () => {
-    const res = await NodeWorkflowService.NodeWorkflowOperationInstanceList({
-        operation_id: curOperationId.value
-    }).catch(() => ({
-        oper_inst_data: [],
-        total: 0
-    }));
-    curOperInstId.value = res.total > 0 ?  res.oper_inst_data[res.total -1].oper_inst_id : '';
-    curSortNames.value = res.total > 0 ?  res.oper_inst_data[res.total -1].action_names : [];
-    operInstList.value = [];
-    for(let i = 1; i <= res.total; i++){
-        operInstList.value.push({
-            name: i < res.total ? `${i}nd` : 'LATEST',
-            id: res.oper_inst_data[i - 1].oper_inst_id,
-            sort_names: res.oper_inst_data[i - 1].action_names
-        });
-    }
-}
-const logs = ref<{text: string, level:string, time: string}[]>([]);
-const activeKey = ref('');
-const getLog = async () => {
-    const res = await NodeWorkflowService.NodeWorkflowOperationInstanceLogGet({
-        oper_inst_id: curOperInstId.value
-    }).catch(() => ({
-        total: 0,
-        oper_inst_logs: {}
-    }));
-    curSortNames.value.forEach((key: string) => {
-        logData.value.oper_inst_logs[key] = res.oper_inst_logs[key];
-    });
-    logData.value.total = res.total;
-    const firstKey = Object.keys(res.oper_inst_logs)[0];
-    logs.value = { ...res.oper_inst_logs[firstKey].message.logs };
-    activeKey.value = firstKey;
-}
+const logRef = ref<InstanceType<typeof Log>>();
+const curRow = ref(null);
 const handleViewLog = async (row: any) => {
     curOperationId.value = row.operation_id;
-    await getInstance();
-    await getLog();
+    curRow.value = row;
+    nextTick(() => {
+        logRef.value?.show();
+    });
+
 }
-const handleToggleLogItem = (key: string) => {
-    logs.value = logData.value.oper_inst_logs[key].message.logs;
-    activeKey.value = key;
-}
+watch(() => searchSelectValue, async () => {
+    await getOperateList();
+}, { deep: true });
+watch(() => tableData, () => {
+    filterOptionSource.node_version.list = filterOptionConfig('node_version', typeMap);
+    filterOptionSource.state.list = filterOptionConfig('state', statusMap);
+}, { deep: true, immediate: true });
 onMounted(async() => {
+    const list = await getTaskList();
+    const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
+    if (findItem) {
+        nodeManageStore.updateCurrentRowData(findItem);
+        nodeManageStore.updateCurrentStatus(findItem.status);
+    }
     await getOperateList();
 })
 </script>
@@ -574,5 +553,11 @@ onMounted(async() => {
     border-color: #EA3636;
     background: #FFDDDD;
   }
+}
+.dropdownCls {
+    :deep(span) {
+        display: inline-block;
+        vertical-align: middle;
+    }
 }
 </style>

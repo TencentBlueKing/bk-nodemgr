@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
+import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 
 export const useNodeManageStore = defineStore('nodeManageStore', {
   state: () => ({
-    taskHistoryTableRowData: null,
+    taskHistoryTableRowData: {} as NodeWorkflowInfo,
     currentStatus: '',
     agentEditParams: {
       tableData: [] as Host[],

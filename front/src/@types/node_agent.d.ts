@@ -11,10 +11,9 @@ export interface AgentInstallInfo {
   // support: auto, password, keyfile, none
   login_mode: string;
   login_password: string;
-  login_key_file: bytes;
+  login_key_file: string;
   bk_networkunit_id: number;
   os_type: string;
-  target_version: string;
   bk_host_id: number;
   re_register: boolean;
 }
@@ -22,6 +21,8 @@ export interface AgentInstallInfo {
 // NodeAgentInstallReq describes the HTTP request body when install node agent.
 export interface NodeAgentInstallReq {
   info: AgentInstallInfo[];
+  target_version: TargetVersion[];
+  disable_default_target_version: boolean;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

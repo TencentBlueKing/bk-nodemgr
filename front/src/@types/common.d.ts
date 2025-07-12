@@ -169,3 +169,9 @@ interface Platform {
   cpu_arch: string;
 }
 
+interface TargetVersion {
+  version: string;
+  cpu_arch: string;
+  os_type: string;
+}
+

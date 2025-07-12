@@ -23,6 +23,17 @@
     <div class="flex flex-1">
       <div class="w-[240px] bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full">
         <div class="px-[16px] pt-[10px]">{{ t('快捷筛选') }}</div>
+        <div class="flex h-[32px]">
+          <div class="bg-[#fafbfd]">{{ $t('维度') }}</div>
+          <Select
+            class="flex-1"
+            v-model="state.dimension"
+            :clearable="false"
+            @selected="updateOptionalList"
+          >
+            <Select.Option v-for="opt in dimensionList" :key="opt.id" :id="opt.id" :name="$t(opt.name)"></Select.Option>
+          </Select>
+        </div>
       </div>
       <bk-loading title="数据加载中" :loading="loading">
         <!-- <Table
@@ -57,15 +68,52 @@
   </div>
 </template>
 <script lang="ts" setup>
+type PkgQuickType = 'os_cpu_arch' | 'version';
+type PkgType = 'gse_agent' | 'gse_proxy';
+// 排序类型
+type PkgOrderType = 'version' | '-version';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Button, SearchSelect, Tag } from 'bkui-vue';
+import { Button, SearchSelect, Tag, Select } from 'bkui-vue';
 import useTableSetting from '@/composables/use-table-setting';
 
 const { t } = useI18n();
 const curAgentVersion = ref('v2.2.6-beta.30');
 const loading = ref(false);
 const packageList = ref([]);
+const state = reactive<{
+  isLoading: boolean;
+  panels: { name: PkgType; label: string; }[];
+  active: PkgType;
+  dimension: PkgQuickType;
+  dimensionOptional: string;
+  uploadShow: boolean;
+  ordering: PkgOrderType | '';
+}>({
+  isLoading: true,
+  panels: [
+    { name: 'gse_agent', label: 'Agent' },
+    { name: 'gse_proxy', label: 'Proxy' },
+  ],
+  active: 'gse_agent',
+  // 维度
+  dimension: 'os_cpu_arch',
+  dimensionOptional: 'all',
+  uploadShow: false,
+  ordering: '',
+});
+const dimensionList = ref<{
+  id: string;
+  name: string;
+  children: {
+    id: string;
+    name: string;
+    count: number;
+    icon?: string;
+    tips?: boolean;
+    isAll?: boolean;
+  }[]
+}[]>([]);
 // 搜索
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const getUniqueChildren = (prop: string) => {
@@ -108,4 +156,12 @@ const searchSelectData = computed(() => [
 const handleSearchSelectChange = () => {
 
 }
+// 更新快捷筛选 维度
+const updateOptionalList = (id: PkgQuickType = 'os_cpu_arch', isTabChange:boolean = false) => {
+  // 获取当前维度的optionList
+  getOptionalList(id, isTabChange);
+  // 此处只需要id，但是传的类型是IPkgQuickOpt，所以设置count为0
+  const allOpt = { id: 'all', name: i18n.t('全部'), isAll: true, count: 0 };
+  selectDimensionOptional(allOpt);
+};
 </script>

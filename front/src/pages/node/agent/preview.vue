@@ -129,6 +129,7 @@ import { useI18n } from 'vue-i18n';
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { AgentInstallInfo } from '@/@types/node_agent.d'
 import { useRoute, useRouter } from 'vue-router';
+import { useNodeManageStore } from '@/stores/node-manage';
 
 const props = defineProps({
     data: {
@@ -138,12 +139,11 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const route = useRoute();
+const nodeManageStore = useNodeManageStore();
 const router = useRouter();
 const isShow = defineModel('isShow', { type: Boolean });
 const selection = ref([]);
 const searchValue = ref('');
-const handleSelect = () => {};
 const tableData = ref<AgentInstallInfo[]>([]);
 const isPopShow = ref(false);
 
@@ -182,13 +182,14 @@ const handleBeforeClose = () => {
 }
 const handleSetup = async () => {
     const res = await NodeAgentService.NodeAgentInstall({
-        info: tableData.value
+        info: tableData.value,
+        target_version: props.data.target_version,
+        disable_default_target_version: props.data.disable_default_target_version
     }).catch(() => ({
         workflow_id: ''
     }));
     if(!res) return;
     if (res.workflow_id) {
-        router.replace({ name: 'history' });
         router.push({ 
             name: 'taskDetail', 
             params: { taskId: res.workflow_id },
@@ -202,10 +203,8 @@ watch(() => isShow, () => {
             login_port: Number(item.login_port),
             bk_biz_id: props.data.bk_biz_id,
             bk_networkunit_id: props.data.bk_networkunit_id,
-            target_version: item.target_version || 'v2.1.6-beta.59'
+            bk_host_id: Number(item.bk_host_id)
         }));
-    console.log("🚀 ~tableData.value:", tableData.value, props.data)
-
     }
 }, {immediate: true, deep: true});
 </script>

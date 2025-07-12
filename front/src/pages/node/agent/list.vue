@@ -57,7 +57,6 @@
         :empty-text="'暂无数据'"
         :pagination="pagination"
         :column-config="{ resizable: true }"
-        show-overflow-tooltip
         :max-height="maxHeight"
         :show-settings="isShowSetting"
         :settings="settings"
@@ -69,15 +68,20 @@
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
         <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
-        <TableColumn field="bk_agent_id" :title="t('platform.nodeMan.agentId')" width="295"></TableColumn>
+        <TableColumn field="bk_agent_id" :title="t('platform.nodeMan.agentId')" width="320"></TableColumn>
         <TableColumn
           field="bk_networkarea_name"
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="areaFilterOption"
+          show-overflow
         ></TableColumn>
-        <TableColumn field="bk_networkunit_id" :title="t('platform.nodeMan.bk_cloud_unit')" :filter="filterOptionSource.bk_networkunit_id"></TableColumn>
-        <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')" :filter="filterOptionSource.os_type"></TableColumn>
-        <TableColumn field="node_version" :title="t('platform.nodeMan.agent_version')" :filter="filterOptionSource.node_version"></TableColumn>
+        <TableColumn show-overflow field="bk_networkunit_name" :title="t('platform.nodeMan.bk_cloud_unit')" :filter="filterOptionSource.bk_networkunit_id"></TableColumn>
+        <TableColumn show-overflow field="os_type" :title="t('platform.nodeMan.os_type')" :filter="filterOptionSource.os_type">
+          <template #default="{ row }">
+            {{ osMap[row.os_type] }}
+          </template>
+        </TableColumn>
+        <TableColumn show-overflow field="node_version" :title="t('platform.nodeMan.agent_version')" :filter="filterOptionSource.node_version"></TableColumn>
         <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150" :filter="filterOptionSource.node_status">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.node_status">
@@ -158,11 +162,9 @@ const topoRemotehandler = () => {}
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
   // 给筛选器添加选中值
-  if(data.length === 0) {
-    Object.keys(filterOptionSource).forEach(key => {
-      filterOptionSource[key].checked = []
-    })
-  }
+  Object.keys(filterOptionSource).forEach(key => {
+    filterOptionSource[key].checked = [];
+  });
   data.forEach(item => {
     if (filterOptionSource[item.id]) {
       filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
@@ -179,7 +181,12 @@ const getHostDistinct = async () => {
     Object.keys(res).forEach((key: any) => {
       const curUniqueValues = res[key] || [];
       if (filterOptionSource[key]) {
-        filterOptionSource[key].list = curUniqueValues.filter((item: any) => item !== '').map((value: any) => ({text: value, value: value}))
+        filterOptionSource[key].list = curUniqueValues
+          .filter((item: any) => item !== '')
+          .map((value: string) => ({
+            text: key === 'os_type' && osMap[value] ? osMap[value] : value,
+            value: value
+          }))
       }
     });
   }
@@ -195,7 +202,13 @@ const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
     const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
     index > -1 && searchSelectValue.value.splice(index, 1);
     if (checked.length){
-      searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => ({id: item, name: item}))})
+      searchSelectValue.value.push({
+        id: field,
+        name: t(field),
+        values: checked.map((item: any) => ({
+          id: item,
+          name: field === 'os_type' && osMap[item] ? osMap[item] : item
+        }))})
     }
   }
 }
@@ -248,6 +261,12 @@ const agentInstallType = [
     name: t('手动安装'),
   }
 ];
+const osMap = {
+  windows: 'Windows',
+  unknown: 'Unknown',
+  darwin: 'Darwin',
+  linux: 'Linux'
+}
 const dropdownShow = ref(false);
 const handleInstall = () => {
   if (selection.value.length) {
@@ -266,11 +285,11 @@ const getUniqueChildren = (prop: string) => {
     name: String(value),
   }))
 }
-const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(prop: K) => {
+const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(prop: K, keyMap?: Record<string, any>) => {
   const uniqueValues = hostDistinct.value?.[prop] || [];
   return uniqueValues.filter((item: any) => item !== '').map((value: any) => ({
     id: value,
-    name: String(value),
+    name: keyMap && keyMap[value] ? keyMap[value] : String(value),
   }))
 }
 const searchSelectData = computed(() => [
@@ -280,7 +299,7 @@ const searchSelectData = computed(() => [
   {id: 'bk_agent_id', name: 'Agent ID', multiple: true},
   // {id: 'bk_networkarea_name', name: '管控区域', children: getUniqueChildren('bk_networkarea_name')},
   {id: 'bk_networkunit_id', name: '管控单元', children: getUniqueChildrenFrom('bk_networkunit_id'), multiple: true},
-  {id: 'os_type', name: '操作系统', children: getUniqueChildrenFrom('os_type'), multiple: true},
+  {id: 'os_type', name: '操作系统', children: getUniqueChildrenFrom('os_type', osMap), multiple: true},
   {id: 'node_version', name: 'Agent版本', children: getUniqueChildrenFrom('node_version'), multiple: true},
   {id: 'node_status', name: 'Agent 状态', children: getUniqueChildrenFrom('node_status'), multiple: true},
 ]);

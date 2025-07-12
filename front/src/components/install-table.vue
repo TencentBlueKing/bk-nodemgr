@@ -22,7 +22,7 @@
               :rules="rules.bk_host_innerip"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.bk_host_innerip"></Input>
+              <Input v-model.trim="row.bk_host_innerip"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -36,7 +36,7 @@
               :value="row.bk_host_innerip_v6"
               :rules="rules.bk_host_innerip_v6"
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.bk_host_innerip_v6"></Input>
+              <Input v-model.trim="row.bk_host_innerip_v6"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -62,8 +62,7 @@
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
               <Select
                 v-model="row.os_type"
-                auto-focus
-                filterable>
+                auto-focus>
                   <Select.Option v-for="option in datasourceList"
                     :key="option.id"
                     :id="option.id"
@@ -91,7 +90,7 @@
               :rules="rules.login_ip"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.login_ip"></Input>
+              <Input v-model.trim="row.login_ip"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -111,7 +110,7 @@
               :rules="rules.login_port"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.login_port"></Input>
+              <Input v-model.trim="row.login_port"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -131,7 +130,7 @@
               :rules="rules.login_user"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.login_user"></Input>
+              <Input v-model.trim="row.login_user"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -154,7 +153,7 @@
               <Select
                 v-model="row.login_mode"
                 auto-focus
-                filterable>
+                @change="val => handleChangeMode(val, row)">
                   <Select.Option v-for="option in  authenticationTypes"
                     :key="option.id"
                     :id="option.id"
@@ -165,9 +164,9 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          field="login_password"
+          field="prove"
           width="130"
-          :visible="settings.checked.includes('login_password')"
+          :visible="settings.checked.includes('prove')"
         >
           <template #header>
             <span class="mr-[5px]">密码 / 密钥</span>
@@ -176,11 +175,17 @@
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
-              :value="row.login_password"
-              :rules="rules.login_password"
+              :value="row.prove"
+              :rules="rules.prove"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model="row.login_password" type="login_password"></Input>
+              <Input
+                v-if="curMode === 'password'"
+                v-model.trim="row.prove"
+                type="password"></Input>
+              <Input
+                v-if="curMode === 'key'"
+                v-model="row.prove"/>
             </Validate>
           </template>
         </VxeColumn>
@@ -219,10 +224,11 @@ import { Input, Button, Message, Select } from 'bkui-vue';
 import { computed, ref, reactive, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { VALIDATE_REGEX } from '@/common/const';
-import { cloneDeep, set } from 'lodash';
+import { cloneDeep } from 'lodash';
 import Validate from './validate.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import { TopoService } from '@/api/modules/topo';
+import type { TopoHostDistinctRespData } from '@/@types/topo.d';
 
 const props = defineProps({
   data: {
@@ -239,13 +245,13 @@ const initData = {
   login_user: '',
   login_mode: '',
   login_password: '',
+  login_key_file: '',
   bk_addressing: 'static',
-  login_key_file: null,
   bk_networkunit_id: NaN,
   bk_biz_id: NaN,
-  target_version: '',
   bk_host_id: NaN,
-  re_register: false
+  re_register: false,
+  prove: ''
 };
 const rules: ValidationRules = {
   bk_host_innerip: [
@@ -273,7 +279,7 @@ const rules: ValidationRules = {
   login_mode: [
     { validator: (val: string) => val, message: '请输入认证方式'},
   ],
-  login_password: [
+  prove: [
     { validator: (val: string) => val, message: '请输入密码 / 密钥'},
   ],
 }
@@ -299,10 +305,10 @@ const settings = reactive({
     {field: 'login_port', title: '登录端口'},
     {field: 'login_user', title: '登录账号'},
     {field: 'login_mode', title: '认证方式'},
-    {field: 'login_password', title: '密码 / 密钥'}
+    {field: 'prove', title: '密码 / 密钥'}
   ],
-  checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_ip', 'login_port', 'login_user', 'login_mode', 'login_password'],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'login_password'],
+  checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_ip', 'login_port', 'login_user', 'login_mode', 'prove'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'prove'],
   size: 'medium' as VxeComponentSizeType
 });
 const settingChange = (data: {checked: string[], size: VxeComponentSizeType}) => {
@@ -316,12 +322,17 @@ const authenticationTypes = ref([
     name: '密码'
   },
   {
-    id: 'key_file',
+    id: 'key',
     name: '密钥'
   }
 ])
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
-
+const curMode = ref('password');
+// 切换认证方式
+const handleChangeMode = (newValue: string, row: any) => {
+  curMode.value = newValue;
+  row.prove = '';
+}
 const getHostDistinct = async () => {
   const res = await TopoService.HostDistinct({}).catch(() => null);
   if (res) {
@@ -350,7 +361,7 @@ const handleDelRow = (index: number, rowid: string, fields: string[]) => {
 const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 
 const setInputRef = (
-  rowid: string,
+  rowid: string | number,
   filed: string,
   el: InstanceType<typeof Validate> | null,
 ) => {
@@ -360,13 +371,14 @@ const setInputRef = (
   }
 };
 
-const tableValidate = () => {
+const tableValidate = async () => {
   const refs = Array.from(inputRefs.value.values());
   const validate = [];
   for (const item of refs) {
-    validate.push(item.validate());
+    validate.push(item.validate('blur'));
   }
-  return validate.every(item => item);
+  const result = await Promise.all(validate);
+  return result.every(item => item);
 };
 
 defineExpose({ 

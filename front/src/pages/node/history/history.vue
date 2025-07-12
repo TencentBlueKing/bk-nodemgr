@@ -36,25 +36,29 @@
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
       >
-        <TableColumn field="workflow_id" :title="t('任务ID')" width="300" fixed="left">
+        <TableColumn field="workflow_id" :title="t('任务ID')" min-width="100" fixed="left">
           <template #default="{ row }">
             <Button text theme="primary" @click="detailHandle(row, row.status)">{{ '#' + row.workflow_id?.slice(-4) }}</Button>
           </template>
         </TableColumn>
-        <TableColumn field="type" :title="t('任务类型')" :filter="filterOptionSource.type" width="150"></TableColumn>
-        <TableColumn field="bk_biz_name" :title="t('业务')" width="200"></TableColumn>
-        <TableColumn field="operator" :title="t('执行人')" :filter="filterOptionSource.operator"></TableColumn>
-        <TableColumn field="operate_time" :title="t('执行时间')">
+        <TableColumn field="type" :title="t('任务类型')" :filter="filterOptionSource.type" min-width="150">
+          <template #default={row}>
+            <span>{{ typeMap[row.type as taskType]?.text }}</span>
+          </template>
+        </TableColumn>
+        <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
+        <TableColumn field="operator" :title="t('执行人')" :filter="filterOptionSource.operator" min-width="150"></TableColumn>
+        <TableColumn field="operate_time" :title="t('执行时间')" min-width="200" show-overflow-tooltip>
           <template #default={row}>
             <span>{{ timeFormatter(row.operate_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="cost_time" :title="t('总耗时')">
+        <TableColumn field="cost_time" :title="t('总耗时')" min-width="100">
           <template #default={row}>
             <span>{{ formatTimeToMS(row.cost_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="status" :title="t('执行状态')" width="150" :filter="filterOptionSource.status">
+        <TableColumn field="status" :title="t('执行状态')" min-width="150" :filter="filterOptionSource.status">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.status && statusMap[row.status]">
               <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
@@ -69,7 +73,7 @@
             </div>
           </template>
         </TableColumn>
-        <TableColumn field="count" :title="t('总数/成功/失败/忽略')">
+        <TableColumn field="count" :title="t('总数/成功/失败/忽略')" min-width="150">
           <template #default="{ row }">
             <template v-if="row.statistics">
               <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span>/
@@ -93,6 +97,8 @@ interface FilterOption {
   checked: string[];
   filterScope: string;
 }
+type taskType = 'install_agent' | 'install_plugin' | 'upgrade_agent' | 'upgrade_plugin';
+type filterProp = 'type' | 'operator' | 'status';
 
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { Spinner } from 'bkui-vue/lib/icon';
@@ -107,6 +113,7 @@ import { useNodeManageStore } from '@/stores/node-manage';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import useTableSetting from '@/composables/use-table-setting';
 import dayjs from 'dayjs';
+import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -176,35 +183,31 @@ const statusMap = {
     text: t('部分失败'),
     icon: 'warning'
   },
-
 }
-const bussinessMap = computed(() => mainStore.businessList.reduce((acc: any, current: any) => {
-    acc[current.bk_biz_id] = {
-      text: current.bk_biz_name
-    }; // 使用 bk_biz_id 作为键，bk_biz_name 作为值
-    return acc;
-}, {}));
+const typeMap = {
+  install_agent: {
+    text: t('Agent 安装')
+  },
+  install_plugin: {
+    text: t('插件安装')
+  },
+  upgrade_agent: {
+    text: t('Agent 升级')
+  },
+  upgrade_plugin: {
+    text: t('插件升级')
+  }
+}
+const bussinessMap = computed(() => mainStore.businessList.map(item => ({
+  id: item.bk_biz_id,
+  name: item.bk_biz_name
+})));
 const pickSuccess = async (val: string[]) => {
   await getTaskList();
 }
 
 // 隐藏自动部署任务
 const hideAutoTask = ref(false);
-
-// 搜索
-const searchSelectValue = ref([]);
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  if(data.length === 0) {
-    Object.keys(filterOptionSource).forEach(key => {
-      filterOptionSource[key].checked = []
-    })
-  }
-  data.forEach(item => {
-    if (filterOptionSource[item.id]) {
-      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
-    }
-  });
-}
 
 const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => {
   return val ? dayjs(val).format(format) : '--';
@@ -240,21 +243,29 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
 }
 const searchSelectData = computed(() => [
   {id: 'workflow_id', name: '任务ID'},
-  {id: 'type', name: '任务类型', children: getUniqueChildren('type')},
-  {id: 'bk_biz_id', name: '业务', children: getUniqueChildren('bk_biz_id')},
+  {id: 'type', name: '任务类型', children: getUniqueChildren('type', typeMap)},
+  {id: 'bk_biz_id', name: '业务', children: bussinessMap.value, multiple: true},
   {id: 'operator', name: '执行人', children: getUniqueChildren('operator')},
   {id: 'status', name: '执行状态', children: getUniqueChildren('status', statusMap)},
 ]);
-const filterOptionConfig = (prop: string) => {
+const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return {
-    list: uniqueValues.map(value => ({
-      text: prop === 'status' && statusMap[value as string] ? statusMap[value as string].text : value,
-      value: value
-    })),
-    checked: [] as string[],
-    filterScope: 'all',
-  }
+  return uniqueValues.map(value => ({
+    text: valMap && valMap[value as string] ? valMap[value as string].text : value,
+    value: value
+  }));
+}
+// 搜索
+const searchSelectValue = ref<{id: string, name: string, values: any}[]>([]);
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
+  Object.keys(filterOptionSource).forEach(key => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach(item => {
+    if (filterOptionSource[item.id as filterProp]) {
+      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
+    }
+  });
 }
 // 筛选
 const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
@@ -262,7 +273,18 @@ const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length){
     searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
-      const name = field === 'status' ? statusMap[item].text : item;
+      let name;
+      switch(field) {
+        case 'status':
+          name = statusMap[item].text;
+          break;
+        case 'type':
+          name = typeMap[item as taskType].text;
+          break;
+        default:
+          name = item;
+          break;
+      }
       return {
         id: item,
         name
@@ -270,10 +292,22 @@ const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
     })});
   }
 }
-const filterOptionSource: Record<string, FilterOption> = reactive({
-  type: null,
-  operator: null,
-  status: null
+const filterOptionSource = reactive<Record<string, FilterOption>>({
+  type: {
+    list: [],
+    checked: [],
+    filterScope: 'all'
+  },
+  operator: {
+    list: [],
+    checked: [],
+    filterScope: 'all'
+  },
+  status: {
+    list: [],
+    checked: [],
+    filterScope: 'all'
+  }
 });
 const getSearchParams = (prop: string) => {
   const foundItem = searchSelectValue.value.find((item: any) => item.id === prop);
@@ -344,13 +378,13 @@ const detailHandle = (row: NodeWorkflowInfo, status: string) => {
   });
 }
 watch(() => tableData, () => {
-  ['type', 'operator', 'status'].forEach(key => {
-    filterOptionSource[key] = filterOptionConfig(key) as FilterOption;
-  })
+  filterOptionSource.type.list = filterOptionConfig('type', typeMap); 
+  filterOptionSource.operator.list = filterOptionConfig('operator', typeMap); 
+  filterOptionSource.status.list = filterOptionConfig('status', statusMap);
 }, { deep: true, immediate: true });
 watch(() => searchSelectValue, async () => {
   await getTaskList();
-}, { deep: true })
+}, { deep: true });
 onMounted(async () => {
   await getTaskList();
 });

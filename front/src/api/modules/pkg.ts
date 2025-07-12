@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp } from '@/@types/pkg';
+import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp } from '@/@types/pkg';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -39,5 +39,7 @@ export const PackageService = {
   CancelAsDefaultRelease: async <Request = PackageReleaseCancelAsDefaultReq, ResponseData = PackageReleaseCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/cancel_as_default')(params, config),
   // DeleteRelease deletes release.
   DeleteRelease: async <Request = PackageReleaseDeleteReq, ResponseData = PackageReleaseDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/delete')(params, config),
+  // DeployedHostCountResp count deployed host.
+  DeployedHostCountResp: async <Request = PackageReleaseDeployedHostCountReq, ResponseData = PackageReleaseDeployedHostCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/deployed_host/count')(params, config),
 };
 
