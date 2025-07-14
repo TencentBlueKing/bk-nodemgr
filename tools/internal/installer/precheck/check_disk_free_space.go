@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package precheck ...
 package precheck
 
 import (
@@ -16,8 +15,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
@@ -25,7 +22,7 @@ import (
 // MBSize this is MB.
 const MBSize = 1024 * 1024
 
-// CheckDiskFreeSpace ...
+// CheckDiskFreeSpace check disk free space.
 func CheckDiskFreeSpace(requires []DiskRequire) error {
 	gp := gopool.NewPool()
 	for idx := range requires {
@@ -49,10 +46,6 @@ func CheckDiskFreeSpace(requires []DiskRequire) error {
 					req.DemandMB, req.DirPath, freeMB)
 			}
 
-			logger.Infof(constant.StepPreCheck,
-				"dir has enough free space, dir(%s), free-space(%dMB)",
-				req.DirPath, freeMB)
-
 			return nil
 		})
 	}
@@ -64,7 +57,7 @@ func CheckDiskFreeSpace(requires []DiskRequire) error {
 	return nil
 }
 
-// DiskRequire ...
+// DiskRequire defines the disk require.
 type DiskRequire struct {
 	DemandMB uint64 `json:"demand_mb"`
 	DirPath  string `json:"dir_path"`

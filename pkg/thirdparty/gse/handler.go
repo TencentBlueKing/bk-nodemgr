@@ -75,6 +75,13 @@ type IHandler interface {
 	// @param endpoints given endpoint list.
 	// @return gse-task-id for this operation.
 	TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (string, error)
+
+	// OperateAgent operate agent.
+	// @param operate given operate.
+	// @param agentIDList given agent id list.
+	// @return agent operate result.
+	OperateAgent(ctx context.Context, operate types.OperateAgent, agentIDList ...string) (
+		*types.OperateAgentResult, error)
 }
 
 // Handler this define the gse handler.
@@ -136,7 +143,7 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 	return data, nil
 }
 
-// ListAgentState ...
+// ListAgentState list agent state.
 func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error) {
 	if ctx == nil {
 		return nil, errors.New("context is nil")
@@ -169,7 +176,7 @@ func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 	return data, nil
 }
 
-// ExecuteScript ...
+// ExecuteScript execute script.
 func (h *Handler) ExecuteScript(ctx context.Context, scriptContent string, timeout time.Duration,
 	endpoints ...*types.EndpointWithAuth) (string, error) {
 
@@ -221,7 +228,7 @@ func (h *Handler) ExecuteScript(ctx context.Context, scriptContent string, timeo
 	return resp.Result.TaskID, nil
 }
 
-// QueryScriptExecutionResult ...
+// QueryScriptExecutionResult query script execution result.
 func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 	endpoints ...*types.EndpointWithRestrict) ([]*types.ScriptResult, error) {
 
@@ -279,7 +286,7 @@ func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 	return result, nil
 }
 
-// TerminateScriptExecution ...
+// TerminateScriptExecution terminate script execution.
 func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
 	endpoints ...*types.Endpoint) (string, error) {
 
@@ -311,7 +318,7 @@ func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
 	return resp.Result.TaskID, nil
 }
 
-// TransferFile ...
+// TransferFile transfer file.
 func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 	transfers ...*types.TransferDetail) (string, error) {
 
@@ -370,7 +377,7 @@ func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 	return resp.Result.TaskID, nil
 }
 
-// QueryFileTransmissionResult ...
+// QueryFileTransmissionResult query file transmission result.
 func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string,
 	endpoints ...*types.Endpoint) ([]*types.TransferResult, error) {
 
@@ -426,7 +433,7 @@ func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string
 	return result, nil
 }
 
-// TerminateFileTransmission ...
+// TerminateFileTransmission terminate file transmission.
 func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (
 	string, error) {
 
@@ -456,4 +463,43 @@ func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, 
 	}
 
 	return resp.Result.TaskID, nil
+}
+
+// OperateAgent operate agent.
+func (h *Handler) OperateAgent(ctx context.Context, operate types.OperateAgent, agentIDList ...string) (
+	*types.OperateAgentResult, error) {
+
+	if ctx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	if len(agentIDList) == 0 {
+		return nil, errors.New("agent id list is empty")
+	}
+
+	req := &OperateAgentReq{
+		CurrentVersion:    operate.CurrentAgentVersion,
+		TargetVersionSign: operate.TargetAgentVersionSign,
+		Timeout:           int(operate.Timeout.Seconds()),
+		Force:             operate.Force,
+		Remark:            operate.Remark,
+	}
+	switch operate.Type {
+	case types.OperateAgentTypeRestart:
+		req.Type = operateAgentTypeRestart
+
+	default:
+		req.Type = operateAgentTypeUnknown
+	}
+
+	resp, err := h.cli.operateAgent(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &types.OperateAgentResult{
+		MissingAgentIDs: resp.MissingAgentIDList,
+	}
+
+	return result, nil
 }

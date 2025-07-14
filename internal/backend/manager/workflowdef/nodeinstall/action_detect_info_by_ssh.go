@@ -144,14 +144,14 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	// installer workspace priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = deployConstant.InstallerWorkspace
+	// installer workdir priority: user specified in info > deploy constant default > connected dir.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	// this is a fallback strategy, if system has no specified workspace, use connected dir.
-	if info.InstallerWorkspace == "" {
-		info.InstallerWorkspace = connectedDir
+	// this is a fallback strategy, if system has no specified workdir, use connected dir.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = connectedDir
 	}
 
 	info.Host.Dynamic.NodeOsType = osType

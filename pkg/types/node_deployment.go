@@ -92,7 +92,7 @@ type DeploymentInfo struct {
 	// LoginInfo is used to connect to host by ssh or wmi.
 	LoginInfo LoginInfo
 
-	InstallerWorkspace string
+	InstallerWorkDir string
 
 	// InstallOptions is used to control the tools when install node.
 	InstallOptions InstallOptions

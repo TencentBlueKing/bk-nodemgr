@@ -61,17 +61,17 @@ type ActParamInstallAgentBySSH struct {
 
 // InstallParams this struct defines the parameters for installing agent.
 type InstallParams struct {
-	InstallerPath      string
-	NodeRole           types.NodeRole
-	CallbackEndpoint   string
-	DownloadEndpoint   string
-	PkgVersion         string
-	PkgGeneration      types.Generation
-	GseRoot            string
-	Token              string
-	OperInstID         string
-	InstallerWorkspace string
-	AdditionArgs       []string
+	InstallerPath   string
+	Generation      types.Generation
+	NodeRole        types.NodeRole
+	CallbackSvrAddr string
+	FileSvrAddr     string
+	NodeVersion     string
+	DeployToken     string
+	OperInstID      string
+	BaseWorkDir     string
+	BaseDeployDir   string
+	AdditionArgs    []string
 }
 
 type actionInstallNodeBySSH struct {
@@ -149,8 +149,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// ensure the workspace dir.
-	if result, err := client.RunCommand("mkdir -p " + info.InstallerWorkspace); err != nil {
-		err = fmt.Errorf("failed to mkdir -p %s , result(%s), err: %w", info.InstallerWorkspace, result, err)
+	if result, err := client.RunCommand("mkdir -p " + info.InstallerWorkDir); err != nil {
+		err = fmt.Errorf("failed to mkdir -p %s , result(%s), err: %w", info.InstallerWorkDir, result, err)
 
 		return err
 	}
@@ -177,7 +177,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	installerPath := path.Clean(path.Join(info.InstallerWorkspace, toolName))
+	installerPath := path.Clean(path.Join(info.InstallerWorkDir, toolName))
 	if err := client.TransferFile(reader, installerPath); err != nil {
 		return fmt.Errorf("failed to transfer file, err: %w", err)
 	}
@@ -190,7 +190,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	randSelector := discover.NewRandomSelector()
-	downloadEndpoint, err := act.provider.GetEndpoint(
+	fileSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileBasic,
 		randSelector)
@@ -198,7 +198,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get file endpoint, err: %w", err)
 	}
 
-	callbackEndpoint, err := act.provider.GetEndpoint(
+	callbackSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
 		randSelector)
@@ -212,19 +212,16 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	installParams := &InstallParams{
-		InstallerPath:      installerPath,
-		NodeRole:           info.Host.Dynamic.NodeRole,
-		CallbackEndpoint:   "http://" + callbackEndpoint.GetIPV4Address(),
-		DownloadEndpoint:   "http://" + downloadEndpoint.GetIPV4Address(),
-		PkgVersion:         info.Host.Dynamic.NodeVersion,
-		PkgGeneration:      info.Host.Dynamic.NodeGeneration,
-		GseRoot:            deployConstant.GseHomeDir,
-		Token:              param.Token,
-		OperInstID:         ctx.Data.OperationInstanceID,
-		InstallerWorkspace: info.InstallerWorkspace,
-		AdditionArgs: []string{
-			"--reinstall",
-		},
+		NodeVersion:     info.Host.Dynamic.NodeVersion,
+		Generation:      info.Host.Dynamic.NodeGeneration,
+		InstallerPath:   installerPath,
+		NodeRole:        info.Host.Dynamic.NodeRole,
+		CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
+		FileSvrAddr:     "http://" + fileSvrEndpoint.GetIPV4Address(),
+		DeployToken:     param.Token,
+		OperInstID:      ctx.Data.OperationInstanceID,
+		BaseWorkDir:     deployConstant.BaseWorkDir,
+		BaseDeployDir:   deployConstant.BaseDeployDir,
 	}
 
 	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
@@ -239,8 +236,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 	outStr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		info.InstallerWorkspace,
-		info.InstallerWorkspace,
+		info.InstallerWorkDir,
+		info.InstallerWorkDir,
 		installCmd),
 	)
 	if err != nil {
@@ -257,22 +254,22 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 // nolint: perfsprint
 func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
-		fmt.Sprintf(`--node_role "%s"`, param.NodeRole),
-		fmt.Sprintf(`--callback_endpoint "%s"`, param.CallbackEndpoint),
-		fmt.Sprintf(`--download_endpoint "%s"`, param.DownloadEndpoint),
-		fmt.Sprintf(`--pkg_version "%s"`, param.PkgVersion),
-		fmt.Sprintf(`--pkg_generation "%d"`, param.PkgGeneration),
-		fmt.Sprintf(`--gse_root "%s"`, param.GseRoot),
-		fmt.Sprintf(`--token "%s"`, param.Token),
-		fmt.Sprintf(`--oper_inst_id "%s"`, param.OperInstID),
-		fmt.Sprintf(`--workspace "%s"`, param.InstallerWorkspace),
 		fmt.Sprintf(`--deploy_env "%s"`, system.GetEnv()),
+		fmt.Sprintf("--generation %d", param.Generation),
+		fmt.Sprintf("--node_role %s", param.NodeRole),
+		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
+		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
+		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
+		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
+		fmt.Sprintf("--deploy_token %s", param.DeployToken),
+		fmt.Sprintf("--node_version %s", param.NodeVersion),
+		fmt.Sprintf(`--oper_inst_id "%s"`, param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	installCmd := fmt.Sprintf("%s %s", param.InstallerPath, strings.Join(args, " "))
+	installCmd := fmt.Sprintf("%s full-install %s", param.InstallerPath, strings.Join(args, " "))
 
 	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)

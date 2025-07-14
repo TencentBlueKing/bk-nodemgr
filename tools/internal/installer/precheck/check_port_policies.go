@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package precheck ...
 package precheck
 
 import (
@@ -43,7 +42,7 @@ func (policy *PortPolicy) Validate() error {
 	return nil
 }
 
-// CheckPortPolicies ...
+// CheckPortPolicies check port policies.
 func CheckPortPolicies(ctx context.Context, polices []PortPolicy) error {
 	gp := gopool.NewPool()
 	for idx := range polices {

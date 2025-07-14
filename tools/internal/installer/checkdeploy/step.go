@@ -8,54 +8,62 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package checkdeploy ...
+// Package checkdeploy provides step to check this gse node is deployed or not.
 package checkdeploy
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 )
 
 // Step this step is used to check this gse node is deploy or not.
 type Step struct {
-	runDir    string
-	nodeRole  constant.NodeRole
-	deployEnv string
+	args StepArgs
 }
 
-// StepArgs ...
+// StepArgs defines the args for step.
 type StepArgs struct {
-	RunDir    string
-	NodeRole  constant.NodeRole
-	DeployEnv string
+	AgentHandler agenthandler.IAgentHandler
+}
+
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("node-role(%s)", args.AgentHandler.Role())
 }
 
 // NewStep new step to check this gse node is deploy or not.
 func NewStep(args StepArgs) *Step {
-	step := &Step{
-		runDir:    args.RunDir,
-		nodeRole:  args.NodeRole,
-		deployEnv: args.DeployEnv,
-	}
-
-	return step
+	return &Step{args: args}
 }
 
 // Run the step to check this gse node is deploy or not.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepCheckDeploy, "start check deploy result. role(%s), run-dir(%s)",
-		step.nodeRole, step.runDir)
+	logger.Infof(installer.StepCheckDeploy, "start to check deploy result. %s", step.args.String())
 
 	err := step.checkDeploy(ctx)
 	if err != nil {
-		logger.Errorf(constant.StepCheckDeploy, "check deploy result failed, err: %s", err.Error())
-		return fmt.Errorf("check deploy result failed, err: %w", err)
+		logger.Errorf(installer.StepCheckDeploy, "failed to check deploy result. %s: %v", step.args.String(), err)
+		return fmt.Errorf("failed to check deploy result. %s: %w", step.args.String(), err)
 	}
 
-	logger.Infof(constant.StepCheckDeploy, "successfully check deploy result")
+	logger.Infof(installer.StepCheckDeploy, "successfully checked deploy, it is running")
+
+	return nil
+}
+
+func (step *Step) checkDeploy(ctx context.Context) error {
+	processNode, err := step.args.AgentHandler.Process().GetProcess(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if node is running: %w", err)
+	}
+
+	if !processNode.IsAllRunning() {
+		return fmt.Errorf("there are some node process not running: %v", processNode.Dead)
+	}
 
 	return nil
 }

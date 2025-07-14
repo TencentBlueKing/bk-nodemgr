@@ -118,7 +118,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			Password: info.LoginInfo.Password,
 			KeyFile:  info.LoginInfo.KeyFile,
 		},
-		InstallerWorkspace: info.InstallerWorkspace,
+		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions: types.InstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
 		},
@@ -309,10 +309,10 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return tags
 		}(),
-		ProxyClusterPort:   info.Host.Dynamic.ProxyClusterPort,
-		ProxyDataPort:      info.Host.Dynamic.ProxyDataPort,
-		ProxyFilePort:      info.Host.Dynamic.ProxyFilePort,
-		InstallerWorkspace: info.InstallerWorkspace,
+		ProxyClusterPort: info.Host.Dynamic.ProxyClusterPort,
+		ProxyDataPort:    info.Host.Dynamic.ProxyDataPort,
+		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
+		InstallerWorkDir: info.InstallerWorkDir,
 		LoginInfo: LoginInfo{
 			IP:       info.LoginInfo.IP,
 			Port:     info.LoginInfo.Port,

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package statusreporter this package provides the ability to report status
+// Package statusreporter this package provides the ability to report status.
 package statusreporter
 
 import (
@@ -21,126 +21,110 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
 
 // Step report status step.
 type Step struct {
-	token            string
-	operInstID       string
-	status           string
-	callbackEndpoint string
+	args StepArgs
 }
 
 // StepArgs define args for step.
 type StepArgs struct {
-	Token            string
-	OperInstID       string
-	Status           constant.State
-	CallbackEndpoint string
+	Token           string
+	OperInstID      string
+	Status          types.ProcessState
+	CallbackSvrAddr string
+}
+
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("token(%s), oper-inst-id(%s), status(%s), callback-svr-addr(%s)",
+		args.Token, args.OperInstID, args.Status, args.CallbackSvrAddr)
 }
 
 // NewStep new a step to report data.
 func NewStep(args StepArgs) *Step {
-	step := &Step{
-		token:            args.Token,
-		operInstID:       args.OperInstID,
-		status:           string(args.Status),
-		callbackEndpoint: args.CallbackEndpoint,
-	}
-
-	return step
+	return &Step{args: args}
 }
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepReportStatus, "start report status. status(%s)", step.status)
-	req := &ReportStatusReq{
-		Token:      step.token,
-		OperInstID: step.operInstID,
-		Status:     step.status,
-	}
+	logger.Infof(installer.StepReportStatus, "start to report status: %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
-		if err := ReportStatus(ctx, step.callbackEndpoint, req); err != nil {
-			logger.Infof(constant.StepReportStatus,
-				"retry report status, attempt: %d, err: %v", attempt, err)
+		if err := step.reportStatus(ctx); err != nil {
+			logger.Errorf(installer.StepReportStatus,
+				"failed to retry report status. attempt(%d): %v", attempt, err)
 
 			return err
 		}
 
 		return nil
 	}); err != nil {
-		return fmt.Errorf("report status failed, err: %v", err)
+		logger.Errorf(installer.StepReportStatus, "failed to report status: %v", err)
+		return fmt.Errorf("failed to report status: %w", err)
 	}
 
-	logger.Infof(constant.StepReportStatus, "report status success")
+	logger.Infof(installer.StepReportStatus, "reported status")
 
 	return nil
 }
 
-// bulkReportStatusTimeout.
-const bulkReportStatusTimeout = 10 * time.Second
+const (
+	bulkReportStatusTimeout = 10 * time.Second
+)
 
-// ReportStatusReq ...
-type ReportStatusReq struct {
-	Token      string `json:"token"`
-	OperInstID string `json:"oper_inst_id"`
-	Status     string `json:"status"`
-}
-
-// ReportStatus report status.
-func ReportStatus(ctx context.Context, callbackEndpoint string, req *ReportStatusReq) error {
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		return fmt.Errorf("marshal status request failed: %v", err)
+func (step *Step) reportStatus(ctx context.Context) error {
+	type reportStatusReq struct {
+		Token      string `json:"token"`
+		OperInstID string `json:"oper_inst_id"`
+		Status     string `json:"status"`
 	}
 
-	reportURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/report_status")
+	req := &reportStatusReq{
+		Token:      step.args.Token,
+		OperInstID: step.args.OperInstID,
+		Status:     string(step.args.Status),
+	}
+	jsonData, err := json.Marshal(req)
 	if err != nil {
-		return fmt.Errorf("format status URL failed: %v", err)
+		return fmt.Errorf("failed to marshal status request: %w", err)
+	}
+
+	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, "/callback/workflow/node_install/report_status")
+	if err != nil {
+		return fmt.Errorf("failed to format status URL: %w", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, reportURL, bytes.NewReader(jsonData))
 	if err != nil {
-		return fmt.Errorf("create status request failed: %v", err)
+		return fmt.Errorf("create status request failed: %w", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	httpClient := &http.Client{
 		Timeout: bulkReportStatusTimeout,
 	}
-	retrier := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	resp, err := httpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed to send status request: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
-	return HTTPRequestWithRetr(ctx, request, httpClient, retrier)
-}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		logger.Errorf(installer.StepReportStatus, "failed to send request to report status. resp-code(%d), resp-body(%s)",
+			resp.StatusCode, body)
 
-// HTTPRequestWithRetr makes an HTTP request with retry logic.
-func HTTPRequestWithRetr(ctx context.Context, request *http.Request,
-	client *http.Client, retrier retrier.Retrier) error {
+		return fmt.Errorf("failed to send status request. resp-code(%d)", resp.StatusCode)
+	}
 
-	return retrier.Do(ctx, func(attempt int) error {
-		resp, err := client.Do(request)
-		if err != nil {
-			return fmt.Errorf("retry failed, attempt: %d, error: %v", attempt, err)
-		}
-		defer safeCloseBody(resp.Body)
-
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			fmt.Printf("send request failed, status: %d, body: %s\n", resp.StatusCode, body)
-
-			return fmt.Errorf("send request failed, status: %d", resp.StatusCode)
-		}
-
-		return nil
-	})
-}
-
-func safeCloseBody(body io.ReadCloser) {
-	_, _ = io.Copy(io.Discard, body)
-	_ = body.Close()
+	return nil
 }

@@ -284,3 +284,25 @@ type AsyncTerminateTransferFileResp struct {
 		TaskID string `json:"task_id"`
 	} `json:"result"`
 }
+
+// OperateAgentReq describes the request data of operate_agent.
+type OperateAgentReq struct {
+	Type              int      `json:"type"`
+	CurrentVersion    string   `json:"current_version"`
+	TargetVersionSign string   `json:"target_version_sign"`
+	Timeout           int      `json:"timeout"`
+	Force             bool     `json:"force"`
+	Remark            string   `json:"remark"`
+	AgentIDList       []string `json:"agent_id_list"`
+}
+
+// OperateAgentResp describes the response data of operate_agent.
+type OperateAgentResp struct {
+	MissingAgentIDList []string `json:"results"`
+}
+
+// GSE operate agent type.
+const (
+	operateAgentTypeUnknown = 0
+	operateAgentTypeRestart = 1
+)

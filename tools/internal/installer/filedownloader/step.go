@@ -13,205 +13,303 @@ package filedownloader
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"path/filepath"
+	"runtime"
+	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/constant"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/downloader"
 )
 
 // Step download files step.
 type Step struct {
-	downloadPoint        string
-	callbackEndpoint     string
-	pkgGeneration        int
-	pkgPath              string
-	pkgVersion           string
-	nodeRole             constant.NodeRole
-	token                string
-	tmpAgentConfPath     string
-	tmpFileProxyConfPath string
-	tmpDataProxyConfPath string
-	checkListPath        string
+	args StepArgs
 }
 
 // StepArgs define args for step.
 type StepArgs struct {
-	DownloadPoint        string
-	CallbackEndpoint     string
-	PkgGeneration        int
-	PkgPath              string
-	PkgVersion           string
-	NodeRole             constant.NodeRole
-	Token                string
-	TmpAgentConfPath     string
-	TmpFileProxyConfPath string
-	TmpDataProxyConfPath string
-	CheckListPath        string
+	FileSvrAddr        string
+	CallbackSvrAddr    string
+	NodeRole           types.NodeRole
+	DeployToken        string
+	Generation         types.Generation
+	PkgVersion         string
+	PkgSavedPath       string
+	ConfigSavedDir     string
+	CheckListSavedPath string
 }
 
-// NewStep ...
-func NewStep(args StepArgs) *Step {
-	step := &Step{
-		downloadPoint:        args.DownloadPoint,
-		callbackEndpoint:     args.CallbackEndpoint,
-		pkgGeneration:        args.PkgGeneration,
-		pkgPath:              args.PkgPath,
-		pkgVersion:           args.PkgVersion,
-		nodeRole:             args.NodeRole,
-		token:                args.Token,
-		tmpAgentConfPath:     args.TmpAgentConfPath,
-		tmpFileProxyConfPath: args.TmpFileProxyConfPath,
-		tmpDataProxyConfPath: args.TmpDataProxyConfPath,
-		checkListPath:        args.CheckListPath,
-	}
+// String step args string message.
+func (args StepArgs) String() string {
+	return fmt.Sprintf("generation(%d), token(%s), version(%s), role(%s)",
+		int(args.Generation), args.DeployToken, args.PkgVersion, args.NodeRole)
+}
 
-	return step
+// NewStep new a step to download package.
+func NewStep(args StepArgs) *Step {
+	return &Step{args: args}
 }
 
 // Run run the step to download files.
 // nolint: funlen,gocognit
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(constant.StepDownloadFiles, "start to download files.")
+	logger.Infof(installer.StepDownloadFiles, "start to download files. %s", step.args.String())
 
 	gp := gopool.NewPool()
-	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
-	// download gse config files.
+	// download agent config files.
 	gp.Go(func() error {
-		err := backoff.Do(ctx, func(attempt int) error {
-			err := GetAgentConfig(ctx,
-				step.callbackEndpoint,
-				step.tmpAgentConfPath,
-				string(step.nodeRole),
-				step.token)
-			if err != nil {
-				logger.Errorf(constant.StepDownloadFiles,
-					"get agent config failed, attempt: %d, err: %v", attempt, err)
-
-				return fmt.Errorf("get agent config failed: %v", err)
-			}
-
-			return nil
+		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+			return step.downloadAgentConfig(ctx)
 		})
-		if err != nil {
-			return err
-		}
-
-		logger.Infof(constant.StepDownloadFiles, "successfully get agent config file.")
-
-		return nil
 	})
 
-	if step.nodeRole == constant.NodeRoleProxy {
+	// download proxy config files.
+	if step.args.NodeRole == types.NodeRoleProxy {
 		gp.Go(func() error {
-			err := backoff.Do(ctx, func(attempt int) error {
-				if err := GetFileProxyConf(ctx, step.tmpFileProxyConfPath,
-					string(step.nodeRole),
-					step.token,
-					step.callbackEndpoint); err != nil {
-					logger.Errorf(constant.StepDownloadFiles,
-						"get gse file proxy config failed, attempt: %d, err: %v", attempt, err)
-
-					return fmt.Errorf("get gse file proxy config failed: %v", err)
-				}
-
-				return nil
+			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+				return step.downloadFileProxyConfig(ctx)
 			})
-			if err != nil {
-				return err
-			}
-
-			logger.Infof(constant.StepDownloadFiles, "successfully get gse file proxy config.")
-
-			return nil
 		})
 
 		gp.Go(func() error {
-			err := backoff.Do(ctx, func(attempt int) error {
-				if err := GetDataProxyConf(ctx,
-					step.tmpDataProxyConfPath,
-					string(step.nodeRole),
-					step.token,
-					step.callbackEndpoint); err != nil {
-					logger.Errorf(constant.StepDownloadFiles,
-						"get gse data proxy config failed, attempt: %d, err: %v", attempt, err)
-
-					return fmt.Errorf("get gse data proxy config failed: %v", err)
-				}
-
-				return nil
+			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+				return step.downloadDataProxyConfig(ctx)
 			})
-			if err != nil {
-				return err
-			}
-
-			logger.Infof(constant.StepDownloadFiles, "successfully get gse data proxy config.")
-
-			return nil
 		})
 	}
-
-	// download gse pkg.
-	gp.Go(func() error {
-		err := backoff.Do(ctx, func(attempt int) error {
-			err := DownloadPkg(ctx,
-				step.pkgGeneration,
-				step.pkgPath,
-				step.pkgVersion,
-				step.downloadPoint,
-				string(step.nodeRole))
-			if err != nil {
-				logger.Errorf(constant.StepDownloadFiles,
-					"download agent pkg failed, attempt: %d, err: %v", attempt, err)
-
-				return fmt.Errorf("download files failed: %v", err)
-			}
-
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		logger.Infof(constant.StepDownloadFiles, "successfully download agent pkg.")
-
-		return nil
-	})
 
 	// download check list.
 	gp.Go(func() error {
-		err := backoff.Do(ctx, func(attempt int) error {
-			if err := GetCheckList(ctx,
-				string(step.nodeRole),
-				step.checkListPath,
-				step.token,
-				step.callbackEndpoint); err != nil {
-				logger.Errorf(constant.StepDownloadFiles,
-					"download check list failed, attempt: %d, err: %v", attempt, err)
-
-				return fmt.Errorf("download check list failed: %v", err)
-			}
-
-			return nil
+		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+			return step.downloadCheckList(ctx)
 		})
-		if err != nil {
-			return err
-		}
+	})
 
-		logger.Infof(constant.StepDownloadFiles, "successfully download check list.")
-
-		return nil
+	// download release packages.
+	gp.Go(func() error {
+		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+			return step.downloadReleasePackage(ctx)
+		})
 	})
 
 	if err := gp.Wait(); err != nil {
-		logger.Infof(constant.StepDownloadFiles, "failed to download files, err: %v", err)
-		return errors.New("failed to download files")
+		logger.Infof(installer.StepDownloadFiles, "failed to download files. %s: %v", step.args.String(), err)
+		return fmt.Errorf("failed to download files: %w", err)
 	}
 
-	logger.Infof(constant.StepDownloadFiles, "download files done.")
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded all files")
+
+	return nil
+}
+
+const (
+	maxTime = 300 * time.Second
+)
+
+func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL, savedPath string) error {
+	downloadURL, err := url.JoinPath(baseURL, subURL)
+	if err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to join path(%s, %s): %v", baseURL, subURL, err)
+		return fmt.Errorf("download file failed, err: %v", err)
+	}
+
+	downloadConfig := downloader.Config{
+		URL:         downloadURL,
+		Method:      http.MethodPost,
+		RequestBody: reqBody,
+		DestPath:    savedPath,
+		Timeout:     maxTime,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	}
+
+	lastProgress := int64(0)
+
+	// start progress report.
+	downloadConfig.ProgressFunc = func(current, total int64) {
+		if current == total {
+			logger.Infof(installer.StepDownloadFiles, "file downloading completed. file(%s)", savedPath)
+		}
+
+		if current-lastProgress < total/10 {
+			return
+		}
+
+		logger.Infof(installer.StepDownloadFiles,
+			"file downloading. file(%s), progress(%d/%d)", savedPath, current, total)
+
+		lastProgress = current
+	}
+
+	d := new(downloader.HTTPDownloader)
+	if err := d.Download(ctx, downloadConfig); err != nil {
+		return fmt.Errorf("failed to download file. url(%s), file(%s), req-body(%+v): %w",
+			downloadURL, savedPath, reqBody, err)
+	}
+
+	return nil
+}
+
+func (step *Step) downloadAgentConfig(ctx context.Context) error {
+	type getAgentConfigReq struct {
+		OSType   string `json:"os_type"`
+		CPUArch  string `json:"cpu_arch"`
+		NodeRole string `json:"node_role"`
+		Token    string `json:"token"`
+	}
+
+	requestBody := getAgentConfigReq{
+		OSType:   runtime.GOOS,
+		CPUArch:  runtime.GOARCH,
+		NodeRole: string(step.args.NodeRole),
+		Token:    step.args.DeployToken,
+	}
+
+	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_agent.conf")
+	if err := step.downloadFile(ctx,
+		requestBody,
+		step.args.CallbackSvrAddr,
+		"/callback/workflow/node_install/get_agent_config",
+		savedPath); err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to get agent config: %v", err)
+
+		return fmt.Errorf("failed to get agent config: %w", err)
+	}
+
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded agent-config(%s)", savedPath)
+
+	return nil
+}
+
+func (step *Step) downloadFileProxyConfig(ctx context.Context) error {
+	type getFileProxyConfReq struct {
+		OSType   string `json:"os_type"`
+		CPUArch  string `json:"cpu_arch"`
+		NodeRole string `json:"node_role"`
+		Token    string `json:"token"`
+	}
+
+	requestBody := getFileProxyConfReq{
+		OSType:   runtime.GOOS,
+		CPUArch:  runtime.GOARCH,
+		NodeRole: string(step.args.NodeRole),
+		Token:    step.args.DeployToken,
+	}
+
+	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_file_proxy.conf")
+	if err := step.downloadFile(ctx,
+		requestBody,
+		step.args.CallbackSvrAddr,
+		"/callback/workflow/node_install/get_file_proxy_config",
+		savedPath); err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to get file proxy config: %v", err)
+
+		return fmt.Errorf("failed to get file proxy config: %w", err)
+	}
+
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded file-proxy-config(%s)", savedPath)
+
+	return nil
+}
+
+func (step *Step) downloadDataProxyConfig(ctx context.Context) error {
+	type getDataProxyConfReq struct {
+		OSType   string `json:"os_type"`
+		CPUArch  string `json:"cpu_arch"`
+		NodeRole string `json:"node_role"`
+		Token    string `json:"token"`
+	}
+
+	requestBody := getDataProxyConfReq{
+		OSType:   runtime.GOOS,
+		CPUArch:  runtime.GOARCH,
+		NodeRole: string(step.args.NodeRole),
+		Token:    step.args.DeployToken,
+	}
+
+	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_data_proxy.conf")
+	if err := step.downloadFile(ctx,
+		requestBody,
+		step.args.CallbackSvrAddr,
+		"/callback/workflow/node_install/get_data_proxy_config",
+		savedPath); err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to get data proxy config: %v", err)
+
+		return fmt.Errorf("failed to get data proxy config: %w", err)
+	}
+
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded data-proxy-config(%s)", savedPath)
+
+	return nil
+}
+
+func (step *Step) downloadCheckList(ctx context.Context) error {
+	type getCheckListReq struct {
+		OSType   string `json:"os_type"`
+		CPUArch  string `json:"cpu_arch"`
+		NodeRole string `json:"node_role"`
+		Token    string `json:"token"`
+	}
+
+	requestBody := getCheckListReq{
+		OSType:   runtime.GOOS,
+		CPUArch:  runtime.GOARCH,
+		NodeRole: string(step.args.NodeRole),
+		Token:    step.args.DeployToken,
+	}
+
+	if err := step.downloadFile(ctx,
+		requestBody,
+		step.args.CallbackSvrAddr,
+		"/callback/workflow/node_install/get_check_list",
+		step.args.CheckListSavedPath); err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to get check list: %v", err)
+
+		return fmt.Errorf("failed to get check list: %w", err)
+	}
+
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded check-list(%s)",
+		step.args.CheckListSavedPath)
+
+	return nil
+}
+
+func (step *Step) downloadReleasePackage(ctx context.Context) error {
+	type getReleasePackageReq struct {
+		OSType     string `json:"os_type"`
+		CPUArch    string `json:"cpu_arch"`
+		Version    string `json:"version"`
+		Generation int    `json:"generation"`
+	}
+
+	requestBody := getReleasePackageReq{
+		OSType:     runtime.GOOS,
+		CPUArch:    runtime.GOARCH,
+		Version:    step.args.PkgVersion,
+		Generation: int(step.args.Generation),
+	}
+
+	if err := step.downloadFile(ctx,
+		requestBody,
+		step.args.FileSvrAddr,
+		"/download/"+string(step.args.NodeRole),
+		step.args.PkgSavedPath); err != nil {
+		logger.Errorf(installer.StepDownloadFiles, "failed to get release package: %v", err)
+
+		return fmt.Errorf("failed to get release package: %w", err)
+	}
+
+	logger.Infof(installer.StepDownloadFiles, "successfully downloaded release package(%s)",
+		step.args.PkgSavedPath)
 
 	return nil
 }

@@ -570,7 +570,7 @@ backend:
 
     ## system: define the related settings of deployment environment.
     system:
-      env: bk-dev
+      env: gse2
       edition: ee
 
     ## encryptKey: define the key used to encrypt the sensitive data.
@@ -688,28 +688,25 @@ backend:
       - # defines the gse deploy related settings.
         generation:  2
         osType: "linux"
-        hostIDPath:  "/var/lib/gse2/host/hostid"
-        installerWorkspace: "/tmp/bknm"
-        gseDataIPC: "/var/run/gse2/ipc.state.report"
-        gsePluginIPC: "/var/run/gse2/ipc.state.message"
-        gseHomeDir: "/usr/local/gse2"
-        gseDataDir: "/var/lib/gse2"
-        gseRunDir: "/var/run/gse2"
-        gseLogDir: "/var/log/gse2"
-        gseEnvironDir: "/etc/sysconfig/gse2"
+        baseWorkDir: "/tmp/bknm/"
+        baseDeployDir: "/usr/local/"
+        custom:
+          logDir: ""
+          hostIDPath: ""
+          agentDataIPCPath: ""
+          agentPluginIPCPath: ""
+          environDir: ""
       - # defines the gse deploy related settings.
         generation: 2
         osType: "windows"
-        hostIDPath: "c:\\gse2\\data\\host\\hostid"
-        installerWorkspace: "c:\\tmp\\bknm"
-        gseDataIPC: "27000"
-        gsePluginIPC: "27001"
-        gseHomeDir: "C:\\gse2"
-        gseDataDir: "C:\\gse2\\data"
-        gseRunDir: "C:\\gse2\\data"
-        gseLogDir: "C:\\gse2\\log"
-        gseEnvironDir: "C:\\Windows\\System32\\config\\gse\\gse2"
-
+        baseWorkDir: "c:\\tmp\\bknm\\"
+        baseDeployDir: "c:\\"
+        custom:
+          logDir: ""
+          hostIDPath: ""
+          agentDataIPCPath: ""
+          agentPluginIPCPath: ""
+          environDir: ""
 
     ## defines the log related settings.
     log:

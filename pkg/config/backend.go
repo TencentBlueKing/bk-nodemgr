@@ -46,25 +46,13 @@ const (
 
 	defaultGseDeployConfLinuxGeneration    = 2
 	defaultGseDeployConfLinuxOsType        = string(criteria.OSLinux)
-	defaultGseDeployConfLinuxHostIDPath    = "/var/lib/gse2/host/hostid"
-	defaultGseDeployConfLinuxGseDataIPC    = "/var/run/gse2/ipc.state.report"
-	defaultGseDeployConfLinuxGsePluginIPC  = "/var/run/gse2/ipc.state.message"
-	defaultGseDeployConfLinuxGseHomeDir    = "/usr/local/gse2"
-	defaultGseDeployConfLinuxGseDataDir    = "/var/lib/gse2"
-	defaultGseDeployConfLinuxGseRunDir     = "/var/run/gse2"
-	defaultGseDeployConfLinuxGseLogDir     = "/var/log/gse2"
-	defaultGseDeployConfLinuxGseEnvironDir = "/etc/sysconfig/gse2"
+	defaultGseDeployConfLinuxBaseDeployDir = "/usr/local/"
+	defaultGseDeployConfLinuxBaseWorkDir   = "/tmp/bknm/"
 
 	defaultGseDeployConfWindowsGeneration    = 2
 	defaultGseDeployConfWindowsOsType        = string(criteria.OSWindows)
-	defaultGseDeployConfWindowsHostIDPath    = "c:\\gse2\\data\\host\\hostid"
-	defaultGseDeployConfWindowsGseDataIPC    = "27000"
-	defaultGseDeployConfWindowsGsePluginIPC  = ""
-	defaultGseDeployConfWindowsGseHomeDir    = "C:\\gse2"
-	defaultGseDeployConfWindowsGseDataDir    = "C:\\gse2\\data"
-	defaultGseDeployConfWindowsGseRunDir     = "C:\\gse2\\data"
-	defaultGseDeployConfWindowsGseLogDir     = "C:\\gse2\\log"
-	defaultGseDeployConfWindowsGseEnvironDir = "C:\\Windows\\System32\\config\\gse\\gse2"
+	defaultGseDeployConfWindowsBaseDeployDir = `c:\`
+	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm\`
 )
 
 // BackendService the config of backend service.
@@ -84,7 +72,7 @@ type BackendService struct {
 	Log                Log             `yaml:"log" usage:"log config of backend service"`
 	System             System          `yaml:"system" usage:"system config of backend service"`
 	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GseDeployConfs     []GseDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	GSEDeployConfs     []GSEDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
 	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
 }
 
@@ -130,30 +118,18 @@ func NewBackendService() *BackendService {
 			Env:     defaultBackendSystemEnv,
 			Edition: defaultBackendSystemEdition,
 		},
-		GseDeployConfs: []GseDeployConf{
+		GSEDeployConfs: []GSEDeployConf{
 			{
 				Generation:    defaultGseDeployConfLinuxGeneration,
 				OsType:        defaultGseDeployConfLinuxOsType,
-				HostIDPath:    defaultGseDeployConfLinuxHostIDPath,
-				GseDataIPC:    defaultGseDeployConfLinuxGseDataIPC,
-				GsePluginIPC:  defaultGseDeployConfLinuxGsePluginIPC,
-				GseHomeDir:    defaultGseDeployConfLinuxGseHomeDir,
-				GseDataDir:    defaultGseDeployConfLinuxGseDataDir,
-				GseRunDir:     defaultGseDeployConfLinuxGseRunDir,
-				GseLogDir:     defaultGseDeployConfLinuxGseLogDir,
-				GseEnvironDir: defaultGseDeployConfLinuxGseEnvironDir,
+				BaseWorkDir:   defaultGseDeployConfLinuxBaseWorkDir,
+				BaseDeployDir: defaultGseDeployConfLinuxBaseDeployDir,
 			},
 			{
 				Generation:    defaultGseDeployConfWindowsGeneration,
 				OsType:        defaultGseDeployConfWindowsOsType,
-				HostIDPath:    defaultGseDeployConfWindowsHostIDPath,
-				GseDataIPC:    defaultGseDeployConfWindowsGseDataIPC,
-				GsePluginIPC:  defaultGseDeployConfWindowsGsePluginIPC,
-				GseHomeDir:    defaultGseDeployConfWindowsGseHomeDir,
-				GseDataDir:    defaultGseDeployConfWindowsGseDataDir,
-				GseRunDir:     defaultGseDeployConfWindowsGseRunDir,
-				GseLogDir:     defaultGseDeployConfWindowsGseLogDir,
-				GseEnvironDir: defaultGseDeployConfWindowsGseEnvironDir,
+				BaseWorkDir:   defaultGseDeployConfWindowsBaseDeployDir,
+				BaseDeployDir: defaultGseDeployConfWindowsBaseWorkDir,
 			},
 		},
 		InstallerFileGroup: FileGroup{
@@ -191,17 +167,20 @@ func (svc *BackendService) Validate() error {
 	return nil
 }
 
-// GseDeployConf defines the deployment configuration for gse agent.
-type GseDeployConf struct {
-	Generation         int64  `yaml:"generation" usage:"generation of deploy"`
-	OsType             string `yaml:"osType" usage:"os type"`
+// GSEDeployConf defines the deployment configuration for gse node.
+type GSEDeployConf struct {
+	Generation    int64           `yaml:"generation" usage:"generation of deploy"`
+	OsType        string          `yaml:"osType" usage:"os type"`
+	BaseWorkDir   string          `yaml:"baseWorkDir" usage:"base work dir"`
+	BaseDeployDir string          `yaml:"baseDeployDir" usage:"base deploy dir"`
+	Custom        GSEDeployCustom `yaml:"custom" usage:"custom deploy conf"`
+}
+
+// GSEDeployCustom defines the custom deployment configuration for gse node.
+type GSEDeployCustom struct {
+	LogDir             string `yaml:"logDir" usage:"log dir"`
 	HostIDPath         string `yaml:"hostIDPath" usage:"host id path"`
-	InstallerWorkspace string `yaml:"installerWorkspace" usage:"installer workspace"`
-	GseDataIPC         string `yaml:"gseDataIPC" usage:"gse data ipc"`
-	GsePluginIPC       string `yaml:"gsePluginIPC" usage:"gse plugin ipc"`
-	GseHomeDir         string `yaml:"gseHomeDir" usage:"gse home dir"`
-	GseDataDir         string `yaml:"gseDataDir" usage:"gse data dir"`
-	GseRunDir          string `yaml:"gseRunDir" usage:"gse run dir"`
-	GseLogDir          string `yaml:"gseLogDir" usage:"gse log dir"`
-	GseEnvironDir      string `yaml:"gseEnvironDir" usage:"gse environ dir"`
+	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
+	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
+	EnvironDir         string `yaml:"environDir" usage:"environ dir"`
 }

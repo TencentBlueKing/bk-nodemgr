@@ -70,7 +70,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 	return header, nil
 }
 
-// listAgentInfo ...
+// listAgentInfo list agent info.
 func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAgentInfoResp, error) {
 	resp := new(BaseBroker[ListAgentInfoResp])
 	header, err := c.getCommonHeader()
@@ -95,7 +95,7 @@ func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAge
 	return resp.Data, nil
 }
 
-// listAgentState ...
+// listAgentState list agent state.
 func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListAgentStateResp, error) {
 	resp := new(BaseBroker[ListAgentStateResp])
 	header, err := c.getCommonHeader()
@@ -120,7 +120,7 @@ func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListA
 	return resp.Data, nil
 }
 
-// asyncExecuteScript ...
+// asyncExecuteScript async execute script.
 func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq) (*AsyncExecuteScriptResp, error) {
 	resp := new(BaseBroker[*AsyncExecuteScriptResp])
 	header, err := c.getCommonHeader()
@@ -145,7 +145,7 @@ func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq
 	return resp.Data, nil
 }
 
-// getExecuteScriptResult ...
+// getExecuteScriptResult get execute script result.
 func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptResultReq) (
 	*GetExecuteScriptResultResp, error) {
 
@@ -172,7 +172,7 @@ func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptR
 	return resp.Data, nil
 }
 
-// asyncTerminateExecuteScript ...
+// asyncTerminateExecuteScript async terminate execute script.
 func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTerminateExecuteScriptReq) (
 	*AsyncTerminateExecuteScriptResp, error) {
 
@@ -199,7 +199,7 @@ func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTermina
 	return resp.Data, nil
 }
 
-// asyncTransferFile ...
+// asyncTransferFile async transfer file.
 func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) (*AsyncTransferFileResp, error) {
 	resp := new(BaseBroker[*AsyncTransferFileResp])
 	header, err := c.getCommonHeader()
@@ -224,7 +224,7 @@ func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) 
 	return resp.Data, nil
 }
 
-// getTransferFileResult ...
+// getTransferFileResult get transfer file result.
 func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileResultReq) (
 	*GetTransferFileResultResp, error) {
 
@@ -251,7 +251,7 @@ func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileRes
 	return resp.Data, nil
 }
 
-// asyncTerminateTransferFile ...
+// asyncTerminateTransferFile async terminate transfer file.
 func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminateTransferFileReq) (
 	*AsyncTerminateTransferFileResp, error) {
 
@@ -273,6 +273,30 @@ func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminat
 
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("async transfer file failed, err: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+func (c *cli) operateAgent(ctx context.Context, req *OperateAgentReq) (*OperateAgentResp, error) {
+	resp := new(BaseBroker[*OperateAgentResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/cluster/operate/agent").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("operate agent failed, err: %v", err)
 	}
 
 	return resp.Data, nil

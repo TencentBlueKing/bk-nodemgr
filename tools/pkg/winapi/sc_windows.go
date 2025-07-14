@@ -17,7 +17,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/retrier"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
@@ -193,7 +193,7 @@ func StopService(ctx context.Context, svcName string) error {
 		}
 
 		if status.State != svc.Stopped {
-			return fmt.Errorf("service not stopped, svcName(%s), status: %s", svcName, status.State)
+			return fmt.Errorf("service not stopped, svcName(%s), status: %d", svcName, status.State)
 		}
 
 		return nil
