@@ -51,7 +51,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListHost(
+	hosts, num, err := h.storage.ListHostOrderByUpdateTime(
 		sCtx,
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
