@@ -114,7 +114,8 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*
 func (s *Storage) ListHostOrderByUpdateTime(ctx context.Context, page types.Page,
 	conditions ...*types.HostCondition) ([]*types.Host, int64, error) {
 
-	page.Sort = types.WithFieldDesc(types.WithFieldDesc(base.FieldKeyUpdatedAt))
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(base.FieldKeyUpdatedAt))
 
 	opts, err := convertHostConditionsToOptions(conditions...)
 	if err != nil {
