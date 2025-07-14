@@ -15,6 +15,8 @@ package installer
 type Step string
 
 const (
+	StepGeneral Step = "general"
+
 	// StepInstallNode this is the step to install node.
 	StepInstallNode Step = "install_node"
 
@@ -47,4 +49,7 @@ const (
 
 	// StepUninstallNode this is the step to uninstall node.
 	StepUninstallNode Step = "uninstall_node"
+
+	// StepCleanTmp this is the step to clean tmp.
+	StepCleanTmp Step = "clean_tmp"
 )

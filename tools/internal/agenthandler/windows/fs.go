@@ -342,6 +342,15 @@ func (handler *AgentHandler) extractTgz(
 			}
 
 			if keepOldFileAsTmp {
+				/**
+				 * skip extract daemon when need keep old files.
+				 * daemon will not be restart while upgrading, so the old files can not be cleaned.
+				 * when upgrading node, the daemon will not be upgraded.
+				 */
+				if filepath.Base(header.Name) == gseAgentDaemonName {
+					continue
+				}
+
 				if err = handler.renameFileAsTmpFileIfExists(targetRelativePath); err != nil {
 					return fmt.Errorf("failed to rename old file(%s): %w", targetRelativePath, err)
 				}

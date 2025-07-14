@@ -214,6 +214,9 @@ func (m *Manager) transferPkg(ctx context.Context, srcFilePath, dstDir string, d
 		return nil, errors.New("destination host is nil")
 	}
 
+	m.logger.InfoCtxf(ctx, "try to transfer package. src(%s), dst(%s), dst-host(%s)",
+		srcFilePath, dstDir, dstHost.Static.InnerIP)
+
 	sourceEndpoint, err := m.getCurrentGSEEndpoint(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current endpoint: %w", err)

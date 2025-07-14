@@ -286,7 +286,7 @@ func (c *cli) operateAgent(ctx context.Context, req *OperateAgentReq) (*OperateA
 	}
 
 	err = c.client.Post().
-		SubResourcef("/cluster/operate/agent").
+		SubResourcef("/cluster/operate_agent").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).

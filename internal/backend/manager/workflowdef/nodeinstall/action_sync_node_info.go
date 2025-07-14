@@ -115,7 +115,8 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	agentInfo := agentInfos[0]
 	info.Host.Dynamic.NodeCPUArch, err = platform.NormalizeArch(string(agentInfo.Arch))
 	if err != nil {
-		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)", info.Host.Dynamic.AgentID, agentInfo.Arch, err)
+		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)",
+			info.Host.Dynamic.AgentID, agentInfo.Arch, err)
 	}
 
 	info.Host.Dynamic.NodeOsType, err = platform.NormalizeOS(string(agentInfo.OSType))

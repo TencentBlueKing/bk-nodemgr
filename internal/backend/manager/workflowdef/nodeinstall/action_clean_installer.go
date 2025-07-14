@@ -11,7 +11,6 @@
 package nodeinstall
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -22,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -32,88 +30,79 @@ import (
 )
 
 const (
-	// ActionNameUpgradeNode defines the action name.
-	ActionNameUpgradeNode = "upgrade_node"
+	// ActionNameCleanInstaller defines the action name.
+	ActionNameCleanInstaller = "clean_installer"
 
-	upgradeScriptTimeout = 10 * time.Minute
+	cleanScriptTimeout = 1 * time.Minute
 )
 
-// NewActionUpgradeNode get a new action.
-func NewActionUpgradeNode(
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+// NewActionCleanInstaller get a new action.
+func NewActionCleanInstaller(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger,
-	provider discover.Provider) action.Definition {
+	logger logger.Logger) action.Definition {
 
-	return &actionUpgradeNode{
+	return &actionCleanInstaller{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
 		logger:                logger,
-		provider:              provider,
 	}
 }
 
-// ActionParamUpgradeNode defines the action param.
-type ActionParamUpgradeNode struct {
+// ActionParamCleanInstaller defines the action param.
+type ActionParamCleanInstaller struct {
 	Token string `json:"token"`
 }
 
-// UpgradeParams this struct defines the parameters for upgrading agent.
-type UpgradeParams struct {
+// CleanParams this struct defines the parameters for clean installer temp files.
+type CleanParams struct {
 	AgentID          string
 	InstallerName    string
 	InstallerWorkDir string
 	Generation       types.Generation
 	NodeRole         types.NodeRole
-	CallbackSvrAddr  string
-	FileSvrAddr      string
-	NodeVersion      string
-	DeployToken      string
-	OperInstID       string
 	BaseWorkDir      string
 	BaseDeployDir    string
 	AdditionArgs     []string
 }
 
-type actionUpgradeNode struct {
+type actionCleanInstaller struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.Logger
-	provider              discover.Provider
 }
 
 // Name returns the name of the action.
-func (act *actionUpgradeNode) Name() string {
-	return ActionNameUpgradeNode
+func (act *actionCleanInstaller) Name() string {
+	return ActionNameCleanInstaller
 }
 
 // Version returns the version of the action.
-func (act *actionUpgradeNode) Version() string {
+func (act *actionCleanInstaller) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionUpgradeNode) Description() string {
-	return "upgrade node"
+func (act *actionCleanInstaller) Description() string {
+	return "restart node"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionUpgradeNode) Timeout() time.Duration {
+func (act *actionCleanInstaller) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionUpgradeNode) Tags() []action.Tag {
+func (act *actionCleanInstaller) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionUpgradeNode) MaxRetryCount() uint {
+func (act *actionCleanInstaller) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradeNode) DelayFn() func() {
+func (act *actionCleanInstaller) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -122,8 +111,8 @@ func (act *actionUpgradeNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,fnsize,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActionParamUpgradeNode)
+func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActionParamCleanInstaller)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param, err: %w", err)
@@ -136,12 +125,6 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
-			err = errors.Join(storeErr, err)
-		}
-	}()
-
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -150,53 +133,31 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	randSelector := discover.NewRandomSelector()
-	fileSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileBasic,
-		randSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get file endpoint, err: %w", err)
-	}
-
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		randSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
-	}
-
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	upgradeParams := &UpgradeParams{
+	cleanParams := &CleanParams{
 		AgentID:          info.Host.Dynamic.AgentID,
 		InstallerName:    toolName,
 		InstallerWorkDir: info.InstallerWorkDir,
-		NodeVersion:      info.Host.Dynamic.NodeVersion,
 		Generation:       info.Host.Dynamic.NodeGeneration,
 		NodeRole:         info.Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		FileSvrAddr:      "http://" + fileSvrEndpoint.GetIPV4Address(),
-		DeployToken:      param.Token,
-		OperInstID:       ctx.Data.OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
 	// exec upgrade command
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doUpgradeWindows(ctx, upgradeParams)
+		return act.doCleanWindows(ctx, cleanParams)
 	}
 
-	return act.doUpgradeUnix(ctx, upgradeParams)
+	return act.doCleanUnix(ctx, cleanParams)
 }
 
 // nolint: perfsprint
-func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param *CleanParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -205,45 +166,39 @@ func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--skip_download",
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("chmod +x %s && %s full-upgrade %s >%s 2>&1 &",
-		installerPath, installerPath, strings.Join(args, " "), upgradeLogPath)
-	ctx.Data.LogI("upgrade node cmd: " + upgradeCmd)
+	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	cleanCmd := fmt.Sprintf("chmod +x %s && %s step clean-tmp %s >%s 2>&1 &",
+		installerPath, installerPath, strings.Join(args, " "), cleanLogPath)
+	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
 		types.ScriptTypeBash,
 		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
+			`mkdir -p %s && cd %s && echo "%s" > clean.sh && sh clean.sh`,
 			param.InstallerWorkDir,
 			param.InstallerWorkDir,
-			upgradeCmd),
-		upgradeScriptTimeout,
+			cleanCmd),
+		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute upgrade script: %w", err)
+		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	ctx.Data.LogI("upgrade node task-id: " + taskID)
+	ctx.Data.LogI("clean installer task-id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, param *CleanParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -252,38 +207,32 @@ func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, para
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--skip_download",
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("%s full-upgrade %s >%s 2>&1",
-		installerPath, strings.Join(args, " "), upgradeLogPath)
-	ctx.Data.LogI("upgrade node cmd: " + upgradeCmd)
+	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	cleanCmd := fmt.Sprintf("%s step clean-tmp %s >%s 2>&1",
+		installerPath, strings.Join(args, " "), cleanLogPath)
+	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
 			param.InstallerWorkDir,
-			upgradeCmd),
-		upgradeScriptTimeout,
+			cleanCmd),
+		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute upgrade script: %w", err)
+		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	ctx.Data.LogI("upgrade node task-id: " + taskID)
+	ctx.Data.LogI("clean installer task-id: " + taskID)
 
 	return nil
 }

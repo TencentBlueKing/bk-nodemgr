@@ -14,14 +14,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -157,6 +160,13 @@ func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *t
 		return fmt.Errorf("unsupported node role: %s", info.Host.Dynamic.NodeRole)
 	}
 
+	var dataDir string
+	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
+		dataDir = winpath.Join(info.InstallerWorkDir, "data")
+	} else {
+		dataDir = filepath.Join(info.InstallerWorkDir, "data")
+	}
+
 	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx,
 		info.Host.Dynamic.NodeGeneration,
 		rt,
@@ -165,7 +175,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *t
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
 		info.Host.Dynamic.NodeVersion,
-		info.InstallerWorkDir,
+		dataDir,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", info.Host.HostID, err)
@@ -190,12 +200,14 @@ func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *t
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.Host.HostID)
+	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), info.Host.HostID)
 
 	return nil
 }
 
 func (act *actionTransferPkgToNode) transferInstaller(ctx context.Context, info *types.DeploymentInfo) error {
+
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,
 		platform.Platform{
@@ -227,7 +239,8 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx context.Context, info 
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer installer done. task-id(%s), host-id(%d)", transferHandler.GetTaskID(), info.Host.HostID)
+	act.logger.InfoCtxf(ctx, "transfer installer done. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), info.Host.HostID)
 
 	return nil
 }

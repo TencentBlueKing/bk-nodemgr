@@ -68,4 +68,7 @@ const (
 
 	// Restart defines the restart flag.
 	Restart = "restart"
+
+	// SkipDownload defines the skip download flag.
+	SkipDownload = "skip_download"
 )

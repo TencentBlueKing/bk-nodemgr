@@ -37,6 +37,7 @@ func NewStepComand() *cobra.Command {
 	stepCommand.AddCommand(NewStop())
 	stepCommand.AddCommand(NewRestart())
 	stepCommand.AddCommand(NewUpgrade())
+	stepCommand.AddCommand(NewCleanTmp())
 
 	return stepCommand
 }

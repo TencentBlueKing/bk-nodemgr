@@ -251,31 +251,27 @@ func (mgr *manager) registerActionDefSyncData() error {
 }
 
 // registerActionDefNodeInstall registers the action definitions for node installation operations.
+// nolint: lll
 func (mgr *manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionBindAgentHostRel(
-			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
-			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
-		nodeinstall.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger,
-			mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
-		nodeinstall.NewActionWaitGseReady(
-			mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider),
+		nodeinstall.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionRenderNodeDeployment(
-			mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
-		nodeinstall.NewActionUpsertHostToCMDB(
-			mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
+		nodeinstall.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
+		nodeinstall.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
 		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionTransferPkgToNode(
-			mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
-		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger,
-			mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.Provider),
-		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger,
-			mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.Provider),
+		nodeinstall.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
+		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease),
+		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease),
+		nodeinstall.NewActionUpgradeNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
+		nodeinstall.NewActionStartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		nodeinstall.NewActionCleanInstaller(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
 	)
 }
 

@@ -74,7 +74,7 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 
 		// hit cache. return local file.
 		if info.MD5 == release.MD5 {
-			return cache.file, "", nil
+			return cache.file, cache.path, nil
 		}
 	}
 
@@ -133,6 +133,8 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 		path: cacheDir,
 	}
 	m.localFilePool.filesMutex.Unlock()
+
+	m.logger.InfoCtxf(ctx, "ensured release to local cache. file(%s), cache-dir(%s)", file.Info().Name, cacheDir)
 
 	return file, cacheDir, nil
 }

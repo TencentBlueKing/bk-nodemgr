@@ -126,6 +126,9 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			ForceRestart:           info.UpgradeOptions.ForceRestart,
 			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
 		},
+		CurrentVersionSupports: types.VersionSupports{
+			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,
+		},
 		TargetVersion: func() []types.TargetVersion {
 			versions := make([]types.TargetVersion, len(info.TargetVersion))
 			for i, version := range info.TargetVersion {
@@ -327,6 +330,9 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		UpgradeOptions: UpgradeOptions{
 			ForceRestart:           info.UpgradeOptions.ForceRestart,
 			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
+		},
+		CurrentVersionSupports: VersionSupports{
+			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,
 		},
 		TargetVersion: func() []TargetVersion {
 			dbTargetVersion := make([]TargetVersion, len(info.TargetVersion))

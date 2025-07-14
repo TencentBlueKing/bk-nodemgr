@@ -84,8 +84,8 @@ func (handler *AgentHandler) initConfigs() {
 }
 
 const (
-	gseAgentBinName    = "gse_agent"
-	gseAgentDaemonName = "gse_agent_daemon"
+	gseAgentBinName    = "gse_agent.exe"
+	gseAgentDaemonName = "gse_agent_daemon.exe"
 )
 
 // isGseBin check if the name is a gse bin.

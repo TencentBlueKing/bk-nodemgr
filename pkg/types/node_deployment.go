@@ -84,6 +84,13 @@ type UpgradeOptions struct {
 	GracefulRestartTimeout time.Duration
 }
 
+// VersionSupports describes this version supports things.
+type VersionSupports struct {
+	// OperateAgentRestart means this version agent supports operates restart through cluster,
+	// which will check if the agent is idle.
+	OperateAgentRestart bool
+}
+
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
 	BlockingActionName string
@@ -92,7 +99,11 @@ type DeploymentInfo struct {
 	// LoginInfo is used to connect to host by ssh or wmi.
 	LoginInfo LoginInfo
 
+	// InstallerWorkDir is used to store the installation files.
 	InstallerWorkDir string
+
+	// CurrentVersionSupports is used to mark the source agent(before any workflow) supports things.
+	CurrentVersionSupports VersionSupports
 
 	// InstallOptions is used to control the tools when install node.
 	InstallOptions InstallOptions

@@ -128,6 +128,10 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("agent state is not running, status(%s)", state.StatusCode.String())
 		}
 
+		if state.Version != info.Host.Dynamic.NodeVersion {
+			return fmt.Errorf("agent version is not match, version(%s)", state.Version)
+		}
+
 		return nil
 	})
 	if err != nil {

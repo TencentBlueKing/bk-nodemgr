@@ -19,9 +19,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/noderestarter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
@@ -34,16 +36,17 @@ import (
 func NewFullUpgrade() *cobra.Command {
 	var (
 		// required flags.
-		fileSvrAddr     string
 		callbackSvrAddr string
 		deployToken     string
 		operInstID      string
 		nodeVersion     string
 
 		// optional flags.
-		logDir  string
-		restart bool
-		force   bool
+		fileSvrAddr  string
+		logDir       string
+		restart      bool
+		force        bool
+		skipDownload bool
 
 		// pre-run.
 		persistentVars   *persistent.Variables
@@ -56,6 +59,10 @@ func NewFullUpgrade() *cobra.Command {
 		Short: "Full upgrade process",
 		Long:  "Full upgrade process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if fileSvrAddr == "" && !skipDownload {
+				return fmt.Errorf("%s is required when %s is not set", flag.FilesSvrAddr, flag.SkipDownload)
+			}
+
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -98,17 +105,20 @@ func NewFullUpgrade() *cobra.Command {
 			defer lHandler.stop()
 
 			// download files.
-			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				FileSvrAddr:        fileSvrAddr,
-				CallbackSvrAddr:    callbackSvrAddr,
-				NodeRole:           persistentVars.NodeRole,
-				DeployToken:        deployToken,
-				PkgVersion:         nodeVersion,
-				PkgSavedPath:       pkgPath,
-				ConfigSavedDir:     persistentVars.ConfigDir,
-				CheckListSavedPath: preCheckListConf,
-			}).Run(cmd.Context()); err != nil {
-				return err
+			if !skipDownload {
+				if err := filedownloader.NewStep(filedownloader.StepArgs{
+					FileSvrAddr:        fileSvrAddr,
+					CallbackSvrAddr:    callbackSvrAddr,
+					NodeRole:           persistentVars.NodeRole,
+					Generation:         persistentVars.Generation,
+					DeployToken:        deployToken,
+					PkgVersion:         nodeVersion,
+					PkgSavedPath:       pkgPath,
+					ConfigSavedDir:     persistentVars.ConfigDir,
+					CheckListSavedPath: preCheckListConf,
+				}).Run(cmd.Context()); err != nil {
+					return err
+				}
 			}
 
 			// upgrade node.
@@ -141,6 +151,8 @@ func NewFullUpgrade() *cobra.Command {
 			// get agent-id.
 			agentID, err := agentHandler.Process().GetAgentID(cmd.Context())
 			if err != nil {
+				logger.Errorf(installer.StepGeneral, "failed to get agent-id: %v", err)
+
 				return fmt.Errorf("failed to get agent-id: %w", err)
 			}
 
@@ -160,9 +172,6 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(flag.FilesSvrAddr)
-
 	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
 	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
 
@@ -178,9 +187,11 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * optional flags.
 	 */
+	stepCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files. if skip_download is set, this can be empty")
 	stepCmd.Flags().StringVar(&logDir, flag.LogDir, "", "directory to save log files")
 	stepCmd.Flags().BoolVar(&restart, flag.Restart, false, "whether to restart node after upgrade")
 	stepCmd.Flags().BoolVar(&force, flag.Force, false, "whether to force upgrade")
+	stepCmd.Flags().BoolVar(&skipDownload, flag.SkipDownload, false, "whether to skip downloading files")
 
 	return stepCmd
 }

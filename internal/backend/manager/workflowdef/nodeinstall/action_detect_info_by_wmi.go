@@ -26,7 +26,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -42,7 +41,6 @@ func NewActionDetectInfoByWMI(
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
-	provider discover.Provider,
 ) action.Definition {
 
 	return &actionDetectInfoByWMI{
@@ -50,7 +48,6 @@ func NewActionDetectInfoByWMI(
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		storageRelease:        storageRelease,
-		provider:              provider,
 	}
 }
 
@@ -65,7 +62,6 @@ type actionDetectInfoByWMI struct {
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageRelease        release.IStorage
-	provider              discover.Provider
 }
 
 // Name returns the name of the action.

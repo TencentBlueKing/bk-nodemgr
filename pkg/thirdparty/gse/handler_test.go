@@ -231,7 +231,8 @@ func Test_handler_ExecuteScript(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			taskID, err := h.ExecuteScript(context.Background(), tt.args.scriptContent, tt.args.timeout, tt.args.endpoints...)
+			taskID, err := h.ExecuteScript(
+				context.Background(), types.ScriptTypeBash, tt.args.scriptContent, tt.args.timeout, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExecuteScript() error = %v, wantErr %v", err, tt.wantErr)
 				return

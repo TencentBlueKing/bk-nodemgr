@@ -12,6 +12,8 @@ package gse
 
 import (
 	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // AgentInfo describes the agent information from gse.
@@ -306,3 +308,25 @@ const (
 	operateAgentTypeUnknown = 0
 	operateAgentTypeRestart = 1
 )
+
+const (
+	scriptExtBash       = "sh"
+	scriptExtBat        = "bat"
+	scriptExtPowershell = "ps1"
+	scriptExtPython     = "py"
+)
+
+func getScriptExt(scriptType types.ScriptType) (string, error) {
+	switch scriptType {
+	case types.ScriptTypeBash:
+		return scriptExtBash, nil
+	case types.ScriptTypeBat:
+		return scriptExtBat, nil
+	case types.ScriptTypePowershell:
+		return scriptExtPowershell, nil
+	case types.ScriptTypePython:
+		return scriptExtPython, nil
+	default:
+		return "", fmt.Errorf("unsupported script type: %s", scriptType)
+	}
+}

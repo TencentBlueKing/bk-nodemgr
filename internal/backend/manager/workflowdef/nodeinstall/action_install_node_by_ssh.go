@@ -254,7 +254,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 // nolint: perfsprint
 func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 	args := []string{
-		fmt.Sprintf(`--deploy_env "%s"`, system.GetEnv()),
+		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 		fmt.Sprintf("--generation %d", param.Generation),
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
@@ -263,7 +263,7 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf(`--oper_inst_id "%s"`, param.OperInstID),
+		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)

@@ -12,6 +12,8 @@ package types
 
 import (
 	"context"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -191,6 +193,23 @@ type ScriptResult struct {
 	ScreenLog    string
 }
 
+// ScriptType represents the gse script type.
+type ScriptType string
+
+const (
+	// ScriptTypeBash means bash script.
+	ScriptTypeBash ScriptType = "bash"
+
+	// ScriptTypeBat means bat script.
+	ScriptTypeBat ScriptType = "bat"
+
+	// ScriptTypePowershell means powershell script.
+	ScriptTypePowershell ScriptType = "powershell"
+
+	// ScriptTypePython means python script.
+	ScriptTypePython ScriptType = "python"
+)
+
 // TransferOptions represents the gse transfer option.
 type TransferOptions struct {
 	Timeout               time.Duration
@@ -337,4 +356,121 @@ type OperateAgent struct {
 // OperateAgentResult agent operate result.
 type OperateAgentResult struct {
 	MissingAgentIDs []string
+}
+
+var (
+	/**
+	 * GSE Version information format:
+	 *  v$ArchVer.$Major.$Minor-$Tag.$Patch[-$Mark]
+	 *
+	 * description:
+	 *  - $ArchVer: the architecture version of GSE, generally it would be 2(means gse 2.0).
+	 *  - $Major: the major version of GSE.
+	 *  - $Minor: the minor version of GSE.
+	 *  - $Tag: the release tag of GSE, it can be alpha, beta, rc or lts.
+	 *  - $Patch: the patch version of GSE.
+	 *  - $Mark: optional, generally it would be empty,
+	 *		in some test case it would be used to identify the test case number.
+	 *
+	 * e.g.
+	 *  - v2.1.3-alpha.2
+	 *  - v2.1.4-beta.21
+	 *  - v2.1.5-rc.1
+	 *  - v2.1.6-lts.2
+	 *  - v2.1.6-alpha.26-2
+	 */
+	gseVersionRegex = regexp.MustCompile(`^v(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)(?:-(\d+))?$`)
+)
+
+// NewGSEVersionFormatter new gse version formatter.
+func NewGSEVersionFormatter(version string) GSEVersionFormatter {
+	results := gseVersionRegex.FindStringSubmatch(version)
+	if len(results) < 6 { // nolint: mnd
+		return GSEVersionFormatter{valid: false}
+	}
+
+	data := GSEVersionFormatter{valid: true}
+
+	var err error
+	if data.archVer, err = strconv.Atoi(results[1]); err != nil {
+		return GSEVersionFormatter{valid: false}
+	}
+	if data.majorVer, err = strconv.Atoi(results[2]); err != nil {
+		return GSEVersionFormatter{valid: false}
+	}
+	if data.minorVer, err = strconv.Atoi(results[3]); err != nil {
+		return GSEVersionFormatter{valid: false}
+	}
+	data.tag = results[4]
+	if data.patch, err = strconv.Atoi(results[5]); err != nil {
+		return GSEVersionFormatter{valid: false}
+	}
+	if len(results) >= 7 && results[6] != "" { // nolint: mnd
+		if data.mark, err = strconv.Atoi(results[6]); err != nil {
+			return GSEVersionFormatter{valid: false}
+		}
+	}
+
+	return data
+}
+
+// GSEVersionFormatter gse version formatter.
+type GSEVersionFormatter struct {
+	valid bool
+
+	archVer  int
+	majorVer int
+	minorVer int
+	tag      string
+	patch    int
+	mark     int
+}
+
+// ArchVer returns the arch version.
+func (formatter GSEVersionFormatter) ArchVer() int {
+	return formatter.archVer
+}
+
+// MajorVer returns the major version.
+func (formatter GSEVersionFormatter) MajorVer() int {
+	return formatter.majorVer
+}
+
+// MinorVer returns the minor version.
+func (formatter GSEVersionFormatter) MinorVer() int {
+	return formatter.minorVer
+}
+
+// Tag returns the tag.
+func (formatter GSEVersionFormatter) Tag() string {
+	return formatter.tag
+}
+
+// Patch returns the patch.
+func (formatter GSEVersionFormatter) Patch() int {
+	return formatter.patch
+}
+
+// Mark returns the mark.
+func (formatter GSEVersionFormatter) Mark() int {
+	return formatter.mark
+}
+
+// Valid returns the validity of the version.
+func (formatter GSEVersionFormatter) Valid() bool {
+	return formatter.valid
+}
+
+// GreaterEqualThan returns whether the version is greater than or equal to the other.
+// nolint: lll
+func (formatter GSEVersionFormatter) GreaterEqualThan(other GSEVersionFormatter) bool {
+	if formatter.archVer < other.archVer ||
+		formatter.archVer == other.archVer && formatter.majorVer < other.majorVer ||
+		formatter.archVer == other.archVer && formatter.majorVer == other.majorVer && formatter.minorVer < other.minorVer ||
+		formatter.archVer == other.archVer && formatter.majorVer == other.majorVer && formatter.minorVer == other.minorVer && formatter.patch < other.patch {
+
+		return false
+	}
+
+	return true
 }

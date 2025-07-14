@@ -69,7 +69,8 @@ func (handler *AgentHandler) GetAgentID(ctx context.Context) (string, error) {
 
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("failed to get agent-id: %w", err)
+		return "", fmt.Errorf("failed to get agent-id. stdout(%s), stderr(%s): %w",
+			stdout.String(), stderr.String(), err)
 	}
 
 	return handler.extractAgentIDFromCMDOutput(stdout.String())

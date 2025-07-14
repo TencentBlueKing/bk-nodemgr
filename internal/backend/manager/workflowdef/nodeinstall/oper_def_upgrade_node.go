@@ -44,12 +44,16 @@ func (oper *operUpgradeNode) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operUpgradeNode) ActionDefNames() []string {
 	return []string{
+		ActionNameVersionCompatCheck,
 		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
-		// ActionNameUpgradeNode,
-		// ActionNameWaitGseReady,
-		// ActionNameSyncNodeInfo,
-		// ActionNameUpdateHost,
+		ActionNameUpgradeNode,
+		ActionNameWaitInstallComplete,
+		ActionNameRestartNode,
+		ActionNameWaitGseReady,
+		ActionNameCleanInstaller,
+		ActionNameSyncNodeInfo,
+		ActionNameUpdateHost,
 	}
 }
 
@@ -58,5 +62,17 @@ func (oper *operUpgradeNode) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
+		RetryStartPoint: map[string]bool{
+			ActionNameVersionCompatCheck:   true,
+			ActionNameRenderNodeDeployment: true,
+			ActionNameTransferPkgToNode:    true,
+			ActionNameUpgradeNode:          true,
+			ActionNameWaitInstallComplete:  false,
+			ActionNameRestartNode:          true,
+			ActionNameWaitGseReady:         false,
+			ActionNameCleanInstaller:       true,
+			ActionNameSyncNodeInfo:         true,
+			ActionNameUpdateHost:           true,
+		},
 	}
 }

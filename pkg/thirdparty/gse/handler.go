@@ -37,11 +37,12 @@ type IHandler interface {
 	ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error)
 
 	// ExecuteScript execute script on host.
-	// @param endpoints given endpoint list with auth.
+	// @param scriptType given script type.
 	// @param scriptContent given script content.
 	// @param timeout given timeout.
+	// @param endpoints given endpoint list with auth.
 	// @return gse-task-id for this execution for further querying.
-	ExecuteScript(ctx context.Context, scriptContent string, timeout time.Duration,
+	ExecuteScript(ctx context.Context, scriptType types.ScriptType, scriptContent string, timeout time.Duration,
 		endpoints ...*types.EndpointWithAuth) (string, error)
 
 	// QueryScriptExecutionResult query script execution result.
@@ -177,7 +178,10 @@ func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 }
 
 // ExecuteScript execute script.
-func (h *Handler) ExecuteScript(ctx context.Context, scriptContent string, timeout time.Duration,
+func (h *Handler) ExecuteScript(ctx context.Context,
+	scriptType types.ScriptType,
+	scriptContent string,
+	timeout time.Duration,
 	endpoints ...*types.EndpointWithAuth) (string, error) {
 
 	if ctx == nil {
@@ -200,7 +204,12 @@ func (h *Handler) ExecuteScript(ctx context.Context, scriptContent string, timeo
 		}
 	}
 
-	scriptName := fmt.Sprintf("bk_gse_script_nodeman_%s.sh", uuid.New().String())
+	scriptExt, err := getScriptExt(scriptType)
+	if err != nil {
+		return "", err
+	}
+
+	scriptName := fmt.Sprintf("bk_gse_script_nodeman_%s.%s", uuid.New().String(), scriptExt)
 	storedDir := "/tmp/bknodeman/"
 	req := &AsyncExecuteScriptReq{
 		Endpoints: eps,
@@ -483,6 +492,7 @@ func (h *Handler) OperateAgent(ctx context.Context, operate types.OperateAgent, 
 		Timeout:           int(operate.Timeout.Seconds()),
 		Force:             operate.Force,
 		Remark:            operate.Remark,
+		AgentIDList:       agentIDList,
 	}
 	switch operate.Type {
 	case types.OperateAgentTypeRestart:

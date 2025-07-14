@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -41,7 +40,6 @@ func NewActionDetectInfoBySSH(
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
-	provider discover.Provider,
 ) action.Definition {
 
 	return &actionDetectInfoBySSH{
@@ -49,7 +47,6 @@ func NewActionDetectInfoBySSH(
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		storageRelease:        storageRelease,
-		provider:              provider,
 	}
 }
 
@@ -64,7 +61,6 @@ type actionDetectInfoBySSH struct {
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageRelease        release.IStorage
-	provider              discover.Provider
 }
 
 // Name returns the name of the action.
