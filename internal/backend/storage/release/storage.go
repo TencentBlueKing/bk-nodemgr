@@ -14,6 +14,7 @@ package release
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -238,4 +239,16 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 	}
 
 	return opts, nil
+}
+
+// ConvertNodeRoleToReleaseType convert role to release type.
+func ConvertNodeRoleToReleaseType(role types.NodeRole) (types.ReleaseType, error) {
+	switch role {
+	case types.NodeRoleAgent:
+		return types.ReleaseTypeAgent, nil
+	case types.NodeRoleProxy:
+		return types.ReleaseTypeProxy, nil
+	default:
+		return "", fmt.Errorf("invalid node role. role(%s)", role)
+	}
 }

@@ -13,6 +13,7 @@ package agent
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -105,7 +106,15 @@ func (h *handler) generatesInstallDeploys(
 	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
 	switch nodeDeployment.Info.LoginInfo.Mode {
 	case types.LoginModeKeyFile:
-		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(reqHost.GetLoginKeyFile())
+		loginKeyFileData, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
+		if err != nil {
+			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+
+			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
+		}
+
+		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeKeyFile
+		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(loginKeyFileData)
 		if err != nil {
 			h.logger.Error("encrypt key file failed", err)
 

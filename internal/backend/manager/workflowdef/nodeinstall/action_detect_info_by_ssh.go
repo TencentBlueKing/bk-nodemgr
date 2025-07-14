@@ -17,6 +17,7 @@ import (
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -39,6 +40,7 @@ func NewActionDetectInfoBySSH(
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageRelease release.IStorage,
 	provider discover.Provider,
 ) action.Definition {
 
@@ -46,6 +48,7 @@ func NewActionDetectInfoBySSH(
 		crypter:               crypter,
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
+		storageRelease:        storageRelease,
 		provider:              provider,
 	}
 }
@@ -60,6 +63,7 @@ type actionDetectInfoBySSH struct {
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageRelease        release.IStorage
 	provider              discover.Provider
 }
 
@@ -153,6 +157,10 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Host.Dynamic.NodeOsType = osType
 	info.Host.Dynamic.NodeCPUArch = cpuArch
 
+	releaseType, err := release.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return err
+	}
 	if len(info.TargetVersion) > 0 {
 		for _, v := range info.TargetVersion {
 			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
@@ -165,7 +173,13 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
 		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx, osType, cpuArch)
+			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+				daoRelease:  act.storageRelease,
+				ReleaseType: releaseType,
+				Generation:  info.Host.Dynamic.NodeGeneration,
+				OSType:      info.Host.Dynamic.NodeOsType,
+				CPUArch:     info.Host.Dynamic.NodeCPUArch,
+			})
 			if err != nil {
 				return err
 			}
@@ -173,11 +187,14 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	err = checkVersionAvailability(
-		ctx,
-		info.Host.Dynamic.NodeOsType,
-		info.Host.Dynamic.NodeCPUArch,
-		info.Host.Dynamic.NodeVersion,
-	)
+		ctx.Ctx, CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      info.Host.Dynamic.NodeOsType,
+			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+			Version:     info.Host.Dynamic.NodeVersion,
+		})
 	if err != nil {
 		return err
 	}

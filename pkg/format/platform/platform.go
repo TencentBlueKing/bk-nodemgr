@@ -197,6 +197,14 @@ func EmptyPlatform() Platform {
 	return Platform{}
 }
 
+// NewPlatform returns a new platform.
+func NewPlatform(os criteria.OSType, arch criteria.CPUArch) Platform {
+	return Platform{
+		OS:   os,
+		Arch: arch,
+	}
+}
+
 // Normalize standardize the platform into go standard naming.
 func Normalize(osName, arch string) (Platform, error) {
 	normalizedOS, osErr := NormalizeOS(osName)
