@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,6 +51,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/set_as_default", rest.RestHandlerFunc(h.SetAsDefaultRelease))
 	h.rg.POST("/cancel_as_default", rest.RestHandlerFunc(h.CancelAsDefaultRelease))
 	h.rg.POST("/delete", rest.RestHandlerFunc(h.DeleteRelease))
+	h.rg.POST("/deployed_host/count", rest.RestHandlerFunc(h.CountDeployedHost))
 }
 
 const (
@@ -280,6 +282,40 @@ func (h *handler) DeleteRelease(ctx *rest.Context) (interface{}, error) {
 		gen, rt, plat, version)
 
 	resp := new(protoApplication.PackageReleaseDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// CountDeployedHost count deployed host.
+func (h *handler) CountDeployedHost(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to count deployed host, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoApplication.PackageReleaseDeployedHostCountReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to count deployed host, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, _, err := h.backendHandler.ListHost(sCtx, types.UnlimitedPage(), req.ConvertConditionsToHostTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to list host. err: %w", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	result, pair, err := req.CountHostsByOsType(hosts)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to count hosts. err: %w", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	h.logger.InfoCtxf(sCtx, "count deployed hosts for release. pair(%d)", pair)
+
+	resp := new(protoApplication.PackageReleaseDeployedHostCountResp)
+	resp.ConvertResultFromTypes(result, pair)
 
 	return resp.GetData(), nil
 }

@@ -220,6 +220,40 @@
         ]
       }
     },
+    "/api/v3/package/release/deployed_host/count": {
+      "post": {
+        "summary": "DeployedHostCountResp count deployed host.",
+        "operationId": "Package_DeployedHostCountResp",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseDeployedHostCountResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseDeployedHostCountReq describes the HTTP request body when count\ndeployed host.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseDeployedHostCountReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/disable": {
       "post": {
         "summary": "DisableRelease disables release.",
@@ -528,6 +562,24 @@
     }
   },
   "definitions": {
+    "PackageReleaseDeployedHostCountReqCountRequestItem": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -761,6 +813,54 @@
     },
     "v3PackageReleaseDeleteRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseDeployedHostCountReq": {
+      "type": "object",
+      "properties": {
+        "request_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PackageReleaseDeployedHostCountReqCountRequestItem"
+          }
+        }
+      },
+      "description": "PackageReleaseDeployedHostCountReq describes the HTTP request body when count\ndeployed host."
+    },
+    "v3PackageReleaseDeployedHostCountResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseDeployedHostCountRespData"
+        }
+      },
+      "description": "PackageReleaseDeployedHostCountResp describes the HTTP response body when\ncount deployed host."
+    },
+    "v3PackageReleaseDeployedHostCountRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
     },
     "v3PackageReleaseDisableReq": {
       "type": "object",
