@@ -52,7 +52,7 @@ const (
 	defaultGseDeployConfWindowsGeneration    = 2
 	defaultGseDeployConfWindowsOsType        = string(criteria.OSWindows)
 	defaultGseDeployConfWindowsBaseDeployDir = `c:\`
-	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm/`
+	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm\`
 )
 
 // BackendService the config of backend service.

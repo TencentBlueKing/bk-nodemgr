@@ -486,10 +486,10 @@ func (h *Handler) OperateAgent(ctx context.Context, operate types.OperateAgent, 
 	}
 	switch operate.Type {
 	case types.OperateAgentTypeRestart:
-		req.Type = 1
+		req.Type = operateAgentTypeRestart
 
 	default:
-		req.Type = 0
+		req.Type = operateAgentTypeUnknown
 	}
 
 	resp, err := h.cli.operateAgent(ctx, req)

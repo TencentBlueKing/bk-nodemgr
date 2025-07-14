@@ -300,3 +300,9 @@ type OperateAgentReq struct {
 type OperateAgentResp struct {
 	MissingAgentIDList []string `json:"results"`
 }
+
+// GSE operate agent type.
+const (
+	operateAgentTypeUnknown = 0
+	operateAgentTypeRestart = 1
+)
