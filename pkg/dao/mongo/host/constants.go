@@ -63,6 +63,9 @@ const (
 	// FieldKeyDynamicNodeGeneration the dynamic node generation field key.
 	FieldKeyDynamicNodeGeneration = "data.dynamic.node_generation"
 
+	// FieldKeyDynamicNodeCPUArch the dynamic node cpu arch field key.
+	FieldKeyDynamicNodeCPUArch = "data.dynamic.node_cpu_arch"
+
 	// FieldKeyDynamicAgentID the dynamic agent id field key.
 	FieldKeyDynamicAgentID = "data.dynamic.agent_id"
 

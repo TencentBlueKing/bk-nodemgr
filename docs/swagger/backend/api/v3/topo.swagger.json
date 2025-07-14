@@ -1398,6 +1398,12 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "TopoHostExactConditions describes host exact conditions."

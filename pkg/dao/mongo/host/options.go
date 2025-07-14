@@ -130,6 +130,16 @@ func WithoutOSType(osTypes ...string) OptFn {
 	return base.WithoutValues(FieldKeyStaticOSType, osTypes...)
 }
 
+// WithArch filters by arch.
+func WithArch(archs ...string) OptFn {
+	return base.WithValues(FieldKeyDynamicNodeCPUArch, archs...)
+}
+
+// WithoutArch filters by not contains arch.
+func WithoutArch(archs ...string) OptFn {
+	return base.WithoutValues(FieldKeyDynamicNodeCPUArch, archs...)
+}
+
 // WithNodeRole filters by node role.
 func WithNodeRole(roles ...types.NodeRole) OptFn {
 	str := make([]string, len(roles))
