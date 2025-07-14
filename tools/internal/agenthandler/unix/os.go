@@ -34,7 +34,7 @@ func (handler *AgentHandler) statFile(relativePath string) (os.FileInfo, error) 
 
 	info, err := os.Stat(absPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to stat file(%s): %w", absPath, err)
+		return nil, fmt.Errorf("failed to stat file. file(%s): %w", absPath, err)
 	}
 
 	return info, nil
@@ -159,7 +159,7 @@ func (handler *AgentHandler) renameFileAsTmpFileIfExists(relativePath string) er
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("failed to stat file(%s): %w", absPath, err)
+		return fmt.Errorf("failed to stat file. file(%s): %w", absPath, err)
 	}
 
 	tmpFileAbsPath := filepath.Join(

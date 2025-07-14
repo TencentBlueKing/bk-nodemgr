@@ -34,7 +34,7 @@ func (handler *AgentHandler) statFile(relativePath string) (os.FileInfo, error) 
 
 	info, err := os.Stat(absPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to stat file(%s): %w", absPath, err)
+		return nil, fmt.Errorf("failed to stat file. file(%s): %w", absPath, err)
 	}
 
 	return info, nil
@@ -48,7 +48,7 @@ func (handler *AgentHandler) checkRegularFile(relativePath string) error {
 	}
 
 	if !info.Mode().IsRegular() {
-		return fmt.Errorf("not a regular file(%s)", relativePath)
+		return fmt.Errorf("not a regular file. file(%s)", relativePath)
 	}
 
 	return nil
@@ -83,7 +83,7 @@ func (handler *AgentHandler) openFileForWrite(relativePath string) (*os.File, er
 	// nolint: gosec
 	file, err := os.OpenFile(absPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, overwriteMode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open writing file(%s): %w", absPath, err)
+		return nil, fmt.Errorf("failed to open writing file. file(%s): %w", absPath, err)
 	}
 
 	return file, nil
@@ -99,7 +99,7 @@ func (handler *AgentHandler) openFileForRead(relativePath string) (*os.File, err
 	// nolint: gosec
 	file, err := os.OpenFile(absPath, os.O_RDONLY, 0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open reading file(%s): %w", absPath, err)
+		return nil, fmt.Errorf("failed to open reading file. file(%s): %w", absPath, err)
 	}
 
 	return file, nil
@@ -132,7 +132,7 @@ func (handler *AgentHandler) removeAll(relativePath string) error {
 		strings.HasPrefix(absPath, "/sys/") ||
 		strings.HasPrefix(absPath, "/proc/") {
 
-		return fmt.Errorf("failed to remove all, got invalid path(%s)", absPath)
+		return fmt.Errorf("failed to remove all, got invalid path. path(%s)", absPath)
 	}
 
 	if err := os.RemoveAll(absPath); err != nil {
@@ -159,7 +159,7 @@ func (handler *AgentHandler) renameFileAsTmpFileIfExists(relativePath string) er
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("failed to stat file(%s): %w", absPath, err)
+		return fmt.Errorf("failed to stat file. file(%s): %w", absPath, err)
 	}
 
 	tmpFileAbsPath := filepath.Join(
@@ -178,7 +178,7 @@ func (handler *AgentHandler) overwriteFile(file io.Reader, targetRelativePath st
 
 	targetFile, err := handler.openFileForWrite(targetRelativePath)
 	if err != nil {
-		return fmt.Errorf("failed to overwrite file, failed to open file(%s): %w", targetAbsPath, err)
+		return fmt.Errorf("failed to overwrite file, failed to open file. file(%s): %w", targetAbsPath, err)
 	}
 	defer func() {
 		if errClose := targetFile.Close(); errClose != nil {
@@ -187,7 +187,7 @@ func (handler *AgentHandler) overwriteFile(file io.Reader, targetRelativePath st
 	}()
 
 	if _, err := io.Copy(targetFile, file); err != nil {
-		return fmt.Errorf("failed to overwrite file, failed to write file(%s): %w", targetAbsPath, err)
+		return fmt.Errorf("failed to overwrite file, failed to write file. file(%s): %w", targetAbsPath, err)
 	}
 
 	return nil
