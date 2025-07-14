@@ -123,7 +123,7 @@ type IStorageHost interface {
 	// ListHost lists hosts by page and conditions.
 	ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
 
-	// ListHostOrderByUpdateTime lists hosts by page and conditions.
+	// ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by update time.
 	ListHostOrderByUpdateTime(ctx context.Context, page types.Page,
 		conditions ...*types.HostCondition) ([]*types.Host, int64, error)
 

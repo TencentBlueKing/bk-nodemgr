@@ -110,7 +110,7 @@ func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*
 	return s.daoHost.List(ctx, page, opts...)
 }
 
-// ListHostOrderByUpdateTime lists hosts by page and conditions.
+// ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by update time.
 func (s *Storage) ListHostOrderByUpdateTime(ctx context.Context, page types.Page,
 	conditions ...*types.HostCondition) ([]*types.Host, int64, error) {
 
