@@ -573,6 +573,10 @@ backend:
       env: gse2
       edition: ee
 
+    ## defines the related settings of installer file group.
+    installerFileGroup:
+      fullPath: /bk-nodemgr/file/tools
+
     ## encryptKey: define the key used to encrypt the sensitive data.
     encryptKey: "1234567890abcdef"
 
