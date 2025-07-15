@@ -83,7 +83,7 @@ func (act *actionCleanInstaller) Version() string {
 
 // Description returns the description of the action.
 func (act *actionCleanInstaller) Description() string {
-	return "restart node"
+	return "clean installer"
 }
 
 // Timeout returns the timeout of the action.

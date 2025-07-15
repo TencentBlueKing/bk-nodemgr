@@ -11,6 +11,7 @@
 package nodeinstall
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -129,7 +130,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	if !info.UpgradeOptions.ForceRestart {
-		return fmt.Errorf("current node version do not support soft restart")
+		return errors.New("current node version do not support soft restart")
 	}
 
 	return act.restartThroughCommand(ctx, info)

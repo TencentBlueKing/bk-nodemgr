@@ -137,6 +137,9 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
+	// let the callback server known which action to mark and log.
+	info.BlockingActionName = ActionNameWaitInstallerComplete
+
 	defer func() {
 		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)

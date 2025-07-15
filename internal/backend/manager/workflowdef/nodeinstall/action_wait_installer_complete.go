@@ -20,62 +20,62 @@ import (
 )
 
 const (
-	// ActionNameWaitInstallComplete defines the action name.
-	ActionNameWaitInstallComplete = "wait_install_complete"
+	// ActionNameWaitInstallerComplete defines the action name.
+	ActionNameWaitInstallerComplete = "wait_installer_complete"
 )
 
-// NewActionWaitInstallComplete get a new action.
-func NewActionWaitInstallComplete(
+// NewActionWaitInstallerComplete get a new action.
+func NewActionWaitInstallerComplete(
 	storageActionInstance workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
 
-	return &actionWaitInstallComplete{
+	return &actionWaitInstallerComplete{
 		storageActionInstance: storageActionInstance,
 		logger:                logger,
 	}
 }
 
-type actionWaitInstallComplete struct {
+type actionWaitInstallerComplete struct {
 	storageActionInstance workflow.IStorageActionInstance
 	logger                logger.Logger
 }
 
 // Name returns the name of the action.
-func (act *actionWaitInstallComplete) Name() string {
-	return ActionNameWaitInstallComplete
+func (act *actionWaitInstallerComplete) Name() string {
+	return ActionNameWaitInstallerComplete
 }
 
 // Version returns the version of the action.
-func (act *actionWaitInstallComplete) Version() string {
+func (act *actionWaitInstallerComplete) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionWaitInstallComplete) Description() string {
-	return "Wait for the action to complete"
+func (act *actionWaitInstallerComplete) Description() string {
+	return "Wait for the installer command to complete"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionWaitInstallComplete) Timeout() time.Duration {
+func (act *actionWaitInstallerComplete) Timeout() time.Duration {
 	return 30 * time.Minute // nolint:mnd
 }
 
 // Tags returns the tags of the action.
-func (act *actionWaitInstallComplete) Tags() []action.Tag {
+func (act *actionWaitInstallerComplete) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount this func define how many times this action will retry.
-func (act *actionWaitInstallComplete) MaxRetryCount() uint {
+func (act *actionWaitInstallerComplete) MaxRetryCount() uint {
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitInstallComplete) DelayFn() func() {
+func (act *actionWaitInstallerComplete) DelayFn() func() {
 	return func() {}
 }
 
 // Do this func define what the action will do.
-func (act *actionWaitInstallComplete) Do(ctx *action.InstanceContext) error {
+func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	for {
 		select {
 		case <-ctx.Ctx.Done():

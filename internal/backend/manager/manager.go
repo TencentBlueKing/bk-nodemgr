@@ -263,7 +263,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
 		nodeinstall.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
-		nodeinstall.NewActionWaitInstallComplete(mgr.conf.StorageOperInst, mgr.logger),
+		nodeinstall.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
 		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease),

@@ -49,7 +49,7 @@ func (oper *operInstallNodeByWMI) ActionDefNames() []string {
 		ActionNameDetectInfoByWMI,
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeByWMI,
-		ActionNameWaitInstallComplete,
+		ActionNameWaitInstallerComplete,
 		ActionNameWaitGseReady,
 		ActionNameSyncNodeInfo,
 		ActionNameBindAgentHostRel,
@@ -63,5 +63,18 @@ func (oper *operInstallNodeByWMI) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
+		RetryStartPoint: map[string]bool{
+			ActionNameTryReuseAgentID:       true,
+			ActionNameUpsertHostToCMDB:      true,
+			ActionNameDetectInfoByWMI:       true,
+			ActionNameRenderNodeDeployment:  true,
+			ActionNameInstallNodeByWMI:      true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameWaitGseReady:          false,
+			ActionNameSyncNodeInfo:          true,
+			ActionNameBindAgentHostRel:      true,
+			ActionNamePushHostIdentifier:    true,
+			ActionNameUpdateHost:            true,
+		},
 	}
 }

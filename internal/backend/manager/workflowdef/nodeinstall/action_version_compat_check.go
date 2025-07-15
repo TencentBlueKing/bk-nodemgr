@@ -66,7 +66,7 @@ func (act *actionVersionCompatCheck) Version() string {
 
 // Description returns the description of the action.
 func (act *actionVersionCompatCheck) Description() string {
-	return "restart node"
+	return "version compat check"
 }
 
 // Timeout returns the timeout of the action.

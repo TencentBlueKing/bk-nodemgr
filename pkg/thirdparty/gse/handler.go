@@ -209,8 +209,8 @@ func (h *Handler) ExecuteScript(ctx context.Context,
 		return "", err
 	}
 
-	scriptName := fmt.Sprintf("bk_gse_script_nodeman_%s.%s", uuid.New().String(), scriptExt)
-	storedDir := "/tmp/bknodeman/"
+	scriptName := fmt.Sprintf("bk_gse_script_nodemgr_%s.%s", uuid.New().String(), scriptExt)
+	storedDir := "/tmp/bknodemgr/"
 	req := &AsyncExecuteScriptReq{
 		Endpoints: eps,
 		Scripts: []*ScriptDetail{

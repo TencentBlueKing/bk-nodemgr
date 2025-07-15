@@ -120,8 +120,6 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info.BlockingActionName = ActionNameWaitInstallComplete
-
 	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}

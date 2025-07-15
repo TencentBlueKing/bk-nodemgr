@@ -135,6 +135,8 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	if err != nil {
 		return err
 	}
+	// let the callback server known which action to mark and log.
+	info.BlockingActionName = ActionNameWaitInstallerComplete
 
 	defer func() {
 		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
