@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -73,6 +74,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
 		*item.State.NodeGeneration = int64(host.Dynamic.NodeGeneration)
 		*item.State.BkAgentId = host.Dynamic.AgentID
+		*item.State.CpuArch = string(host.Dynamic.NodeCPUArch)
 
 		items[idx] = item
 	}
@@ -124,6 +126,8 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NodeVersion:    state.GetNodeVersion(),
 			NodeGeneration: types.Generation(state.GetNodeGeneration()),
 			NetworkUnitID:  info.GetBkNetworkunitId(),
+			NodeOsType:     criteria.OSType(info.GetOsType()),
+			NodeCPUArch:    criteria.CPUArch(state.GetCpuArch()),
 		}
 
 		result[idx] = host
@@ -224,6 +228,7 @@ func newEmptyHost() *Host {
 			NodeVersion:    new(string),
 			NodeGeneration: new(int64),
 			BkAgentId:      new(string),
+			CpuArch:        new(string),
 		},
 	}
 }

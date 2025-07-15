@@ -290,23 +290,29 @@ func (h *handler) DeleteRelease(ctx *rest.Context) (interface{}, error) {
 func (h *handler) CountDeployedHost(ctx *rest.Context) (interface{}, error) {
 	sCtx, err := ctx.GetContext()
 	if err != nil {
-		h.logger.Errorf("failed to count deployed host, failed to get request context. err: %v", err)
+		h.logger.Errorf("failed to count deployed host, failed to get request context. err: %w", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	req := new(protoApplication.PackageReleaseDeployedHostCountReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to count deployed host, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(sCtx, "failed to count deployed host, failed to decode request body. err: %w", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, _, err := h.backendHandler.ListHost(sCtx, types.UnlimitedPage(), req.ConvertConditionsToHostTypes())
+	condition, err := req.ConvertConditionsToHostTypes()
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list host. err: %w", err)
+		h.logger.ErrorCtxf(sCtx, "failed to count deployed host, failed to convert conditions to host types. err: %w", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, _, err := h.backendHandler.ListHost(sCtx, types.UnlimitedPage(), condition)
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to count deployed host, failed to list host. err: %w", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	result, pair, err := req.CountHostsByOsType(hosts)
+	result, pair, err := req.CountHostsByOsTypeAndArch(hosts)
 	if err != nil {
 		h.logger.ErrorCtxf(sCtx, "failed to count hosts. err: %w", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)

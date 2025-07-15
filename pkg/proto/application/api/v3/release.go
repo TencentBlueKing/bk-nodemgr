@@ -353,10 +353,10 @@ func (x *PackageReleaseDeployedHostCountReq) GetIdentifier() []*PackageReleaseId
 }
 
 // ConvertConditionsToHostTypes convert conditions to types.
-func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() *types.HostCondition {
+func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() (*types.HostCondition, error) {
 	items := x.GetRequestItems()
 	if len(items) == 0 {
-		return &types.HostCondition{}
+		return &types.HostCondition{}, nil
 	}
 
 	condition := &types.HostExactFields{
@@ -368,21 +368,24 @@ func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() *typ
 	}
 
 	for _, item := range items {
-		platform := ConvertPlatformToTypes(item.GetPlatform())
-		condition.NodeRole = append(condition.NodeRole, types.NodeRoleAgent)
-		condition.NodeGeneration = append(condition.NodeGeneration, int64(item.GetGeneration()))
-		condition.OSType = append(condition.OSType, string(platform.OS))
-		condition.Arch = append(condition.Arch, string(platform.Arch))
+		role, err := ConvertReleaseTypeToNodeRole(types.ReleaseType(item.GetReleaseType()))
+		if err != nil {
+			return nil, err
+		}
+		condition.NodeRole = append(condition.NodeRole, role)
+		condition.OSType = append(condition.OSType, item.GetPlatform().GetOsType())
+		condition.Arch = append(condition.Arch, item.GetPlatform().GetCpuArch())
+		condition.NodeGeneration = append(condition.NodeGeneration, item.GetGeneration())
 		condition.NodeVersion = append(condition.NodeVersion, item.GetVersion())
 	}
 
 	return &types.HostCondition{
 		ExactInclude: condition,
-	}
+	}, nil
 }
 
 // CountHostsByOsType count hosts by request.
-func (x *PackageReleaseDeployedHostCountReq) CountHostsByOsType(hosts []*types.Host) ([]int64, int64, error) {
+func (x *PackageReleaseDeployedHostCountReq) CountHostsByOsTypeAndArch(hosts []*types.Host) ([]int64, int64, error) {
 	statMap := make(map[PackageReleaseIdentifier]int64)
 	for _, host := range hosts {
 		if host.Dynamic == nil {
