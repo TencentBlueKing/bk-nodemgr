@@ -25,7 +25,6 @@ message AgentInstallInfo {
   bool re_register = 14;
 }
 
-
 // NodeAgentInstallReq describes the HTTP request body when install node agent.
 message NodeAgentInstallReq {
   repeated AgentInstallInfo info = 1;
