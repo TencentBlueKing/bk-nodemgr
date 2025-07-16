@@ -28,7 +28,7 @@ func (x *NodeAgentInstallReq) Validate() error {
 		return errors.New("target_version can not be set when disable_default_target_version is false")
 	}
 
-	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeAgentInstallReq_TargetVersion) string {
+	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *TargetVersion) string {
 		return fmt.Sprintf("%s:%s", v.GetOsType(), v.GetCpuArch())
 	})
 	if err != nil {
