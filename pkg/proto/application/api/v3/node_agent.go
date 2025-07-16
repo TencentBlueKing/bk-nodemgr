@@ -123,7 +123,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 
 	versions := x.GetTargetVersion()
 
-	targetVersion := make([]*types.TargetVersion, len(hosts))
+	targetVersion := make([]*types.TargetVersion, len(versions))
 	for idx, version := range versions {
 		targetVersion[idx] = &types.TargetVersion{
 			Version: version.GetVersion(),
