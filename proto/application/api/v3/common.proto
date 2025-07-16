@@ -171,3 +171,9 @@ message Platform {
   string os_type = 1;
   string cpu_arch = 2;
 }
+
+message TargetVersion {
+  string version = 1;
+  string cpu_arch = 2;
+  string os_type = 3;
+}

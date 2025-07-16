@@ -52,20 +52,6 @@
     }
   },
   "definitions": {
-    "NodeAgentInstallReqTargetVersion": {
-      "type": "object",
-      "properties": {
-        "version": {
-          "type": "string"
-        },
-        "cpu_arch": {
-          "type": "string"
-        },
-        "os_type": {
-          "type": "string"
-        }
-      }
-    },
     "NodeAgentInstallRespData": {
       "type": "object",
       "properties": {
@@ -169,7 +155,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/NodeAgentInstallReqTargetVersion"
+            "$ref": "#/definitions/v3NodeAgentInstallReqTargetVersion"
           }
         },
         "disable_default_target_version": {
@@ -177,6 +163,20 @@
         }
       },
       "description": "NodeAgentInstallReq describes the HTTP request body when install node agent."
+    },
+    "v3NodeAgentInstallReqTargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      }
     },
     "v3NodeAgentInstallResp": {
       "type": "object",

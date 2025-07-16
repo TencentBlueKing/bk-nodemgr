@@ -1397,6 +1397,66 @@ func (x *Platform) GetCpuArch() string {
 	return ""
 }
 
+type TargetVersion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version"`
+	CpuArch       string                 `protobuf:"bytes,2,opt,name=cpu_arch,json=cpuArch,proto3" json:"cpu_arch"`
+	OsType        string                 `protobuf:"bytes,3,opt,name=os_type,json=osType,proto3" json:"os_type"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TargetVersion) Reset() {
+	*x = TargetVersion{}
+	mi := &file_common_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TargetVersion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TargetVersion) ProtoMessage() {}
+
+func (x *TargetVersion) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TargetVersion.ProtoReflect.Descriptor instead.
+func (*TargetVersion) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *TargetVersion) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *TargetVersion) GetCpuArch() string {
+	if x != nil {
+		return x.CpuArch
+	}
+	return ""
+}
+
+func (x *TargetVersion) GetOsType() string {
+	if x != nil {
+		return x.OsType
+	}
+	return ""
+}
+
 type AccessPoint_Endpoints struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Cluster       []string               `protobuf:"bytes,1,rep,name=cluster,proto3" json:"cluster"`
@@ -1408,7 +1468,7 @@ type AccessPoint_Endpoints struct {
 
 func (x *AccessPoint_Endpoints) Reset() {
 	*x = AccessPoint_Endpoints{}
-	mi := &file_common_proto_msgTypes[17]
+	mi := &file_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1420,7 +1480,7 @@ func (x *AccessPoint_Endpoints) String() string {
 func (*AccessPoint_Endpoints) ProtoMessage() {}
 
 func (x *AccessPoint_Endpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[17]
+	mi := &file_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1795,12 +1855,17 @@ var file_common_proto_rawDesc = string([]byte{
 	0x6f, 0x73, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f,
 	0x73, 0x54, 0x79, 0x70, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x70, 0x75, 0x5f, 0x61, 0x72, 0x63,
 	0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x70, 0x75, 0x41, 0x72, 0x63, 0x68,
-	0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54,
-	0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62,
-	0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x22, 0x5d, 0x0a, 0x0d, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6e, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x19, 0x0a, 0x08, 0x63,
+	0x70, 0x75, 0x5f, 0x61, 0x72, 0x63, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63,
+	0x70, 0x75, 0x41, 0x72, 0x63, 0x68, 0x12, 0x17, 0x0a, 0x07, 0x6f, 0x73, 0x5f, 0x74, 0x79, 0x70,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x73, 0x54, 0x79, 0x70, 0x65, 0x42,
+	0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65,
+	0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b,
+	0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1815,7 +1880,7 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_common_proto_goTypes = []any{
 	(*Page)(nil),                  // 0: v3.Page
 	(*Business)(nil),              // 1: v3.Business
@@ -1834,13 +1899,14 @@ var file_common_proto_goTypes = []any{
 	(*TimeRange)(nil),             // 14: v3.TimeRange
 	(*Release)(nil),               // 15: v3.Release
 	(*Platform)(nil),              // 16: v3.Platform
-	(*AccessPoint_Endpoints)(nil), // 17: v3.AccessPoint.Endpoints
+	(*TargetVersion)(nil),         // 17: v3.TargetVersion
+	(*AccessPoint_Endpoints)(nil), // 18: v3.AccessPoint.Endpoints
 }
 var file_common_proto_depIdxs = []int32{
 	3,  // 0: v3.Links.cluster:type_name -> v3.Link
 	3,  // 1: v3.Links.file:type_name -> v3.Link
 	3,  // 2: v3.Links.data:type_name -> v3.Link
-	17, // 3: v3.AccessPoint.endpoints:type_name -> v3.AccessPoint.Endpoints
+	18, // 3: v3.AccessPoint.endpoints:type_name -> v3.AccessPoint.Endpoints
 	5,  // 4: v3.NetworkUnit.accesspoints:type_name -> v3.AccessPoint
 	4,  // 5: v3.NetworkUnit.links:type_name -> v3.Links
 	4,  // 6: v3.NetworkUnitBrief.links:type_name -> v3.Links
@@ -1876,7 +1942,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

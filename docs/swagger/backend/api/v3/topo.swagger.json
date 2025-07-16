@@ -739,6 +739,9 @@
         "node_generation": {
           "type": "integer",
           "format": "int64"
+        },
+        "cpu_arch": {
+          "type": "string"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."

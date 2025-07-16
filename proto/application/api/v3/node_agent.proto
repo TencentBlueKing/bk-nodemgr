@@ -25,14 +25,10 @@ message AgentInstallInfo {
   bool re_register = 14;
 }
 
+
 // NodeAgentInstallReq describes the HTTP request body when install node agent.
 message NodeAgentInstallReq {
   repeated AgentInstallInfo info = 1;
-  message TargetVersion {
-    string version = 1;
-    string cpu_arch = 2;
-    string os_type = 3;
-  }
   repeated TargetVersion target_version = 2;
   bool disable_default_target_version = 3;
 }
