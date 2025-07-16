@@ -19,7 +19,7 @@ import (
 )
 
 // InstallAgent node agent.
-func (h *handler) InstallAgent(ctx context.Context, hostsParam []*types.NodeAgentInstallParam) (string, error) {
+func (h *handler) InstallAgent(ctx context.Context, installParam *types.NodeAgentInstallParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -27,7 +27,7 @@ func (h *handler) InstallAgent(ctx context.Context, hostsParam []*types.NodeAgen
 
 	req := &protoBackend.NodeAgentInstallReq{}
 
-	req.ConvertHostParamFromTypes(hostsParam)
+	req.ConvertHostParamFromTypes(installParam)
 
 	resp, err := h.cli.installNodeAgent(ctx, tenantID, req)
 	if err != nil {

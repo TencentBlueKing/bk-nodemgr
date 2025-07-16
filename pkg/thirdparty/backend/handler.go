@@ -175,7 +175,7 @@ type IHandlerNodeAgent interface {
 	// @param ctx context, contains tenant-id.
 	// @param hosts the install param.
 	// @return the installing workflow-ids and error.
-	InstallAgent(ctx context.Context, hostsParam []*types.NodeAgentInstallParam) (string, error)
+	InstallAgent(ctx context.Context, installParam *types.NodeAgentInstallParam) (string, error)
 
 	// UpgradeAgent node agent.
 	// @param ctx context, contains tenant-id.

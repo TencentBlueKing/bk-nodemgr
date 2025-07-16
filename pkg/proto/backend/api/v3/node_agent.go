@@ -127,9 +127,9 @@ func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 }
 
 // ConvertHostParamFromTypes ...
-func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgentInstallParam) {
-	hostsParam := make([]*NodeAgentInstallReq_Host, len(hosts))
-	for idx, host := range hosts {
+func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.NodeAgentInstallParam) {
+	hostsParam := make([]*NodeAgentInstallReq_Host, len(installParam.NodeAgentInstallHosts))
+	for idx, host := range installParam.NodeAgentInstallHosts {
 		hostsParam[idx] = &NodeAgentInstallReq_Host{
 			BkBizId:         &host.BizID,
 			BkHostInnerip:   host.InnerIP,
@@ -146,7 +146,18 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(hosts []*types.NodeAgent
 		}
 	}
 
+	targetVersion := make([]*NodeAgentInstallReq_TargetVersion, len(installParam.NodeInstallTargetVersion))
+	for idx, version := range installParam.NodeInstallTargetVersion {
+		targetVersion[idx] = &NodeAgentInstallReq_TargetVersion{
+			Version: version.Version,
+			CpuArch: string(version.CPUArch),
+			OsType:  string(version.OsType),
+		}
+	}
+
+	x.TargetVersion = targetVersion
 	x.Host = hostsParam
+	x.DisableDefaultTargetVersion = installParam.DisableDefaultTargetVersion
 }
 
 // ConvertResultToComm ...

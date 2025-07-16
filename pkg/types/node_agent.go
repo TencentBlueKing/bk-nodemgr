@@ -14,8 +14,8 @@ import (
 	"fmt"
 )
 
-// NodeAgentInstallParam describes the node agent install parameter.
-type NodeAgentInstallParam struct {
+// NodeAgentInstallHost describes the node agent install host.
+type NodeAgentInstallHost struct {
 	BizID         int64
 	InnerIP       string
 	InnerIPV6     string
@@ -28,7 +28,13 @@ type NodeAgentInstallParam struct {
 	LoginKeyFile  string
 	NetworkUnitID int64
 	OSType        string
-	TargetVersion string
+}
+
+// NodeAgentInstallParam describes the node agent install parameter.
+type NodeAgentInstallParam struct {
+	NodeAgentInstallHosts       []*NodeAgentInstallHost
+	NodeInstallTargetVersion    []*TargetVersion
+	DisableDefaultTargetVersion bool
 }
 
 // NodeOperationRetryParam validates the node install parameter.
