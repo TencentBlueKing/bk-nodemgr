@@ -32,6 +32,7 @@ var (
 		InvalidCache:            http.StatusInternalServerError,
 		InvalidFileResource:     http.StatusInternalServerError,
 		ThirdpartyRequestFailed: http.StatusInternalServerError,
+		BackendOperateFailed:    http.StatusInternalServerError,
 	}
 )
 
