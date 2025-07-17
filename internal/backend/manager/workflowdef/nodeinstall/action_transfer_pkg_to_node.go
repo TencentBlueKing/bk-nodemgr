@@ -130,12 +130,16 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	}
 
 	gp := gopool.NewPool()
-	gp.Go(func() error {
-		return act.transferRelease(ctx.Ctx, info)
-	})
-	gp.Go(func() error {
-		return act.transferInstaller(ctx.Ctx, info)
-	})
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+		gp.Go(func() error {
+			return act.transferRelease(ctx.Ctx, info)
+		})
+	}
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+		gp.Go(func() error {
+			return act.transferInstaller(ctx.Ctx, info)
+		})
+	}
 	if err := gp.Wait(); err != nil {
 		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d), err: %s", info.Host.HostID, err.Error())
 		return err

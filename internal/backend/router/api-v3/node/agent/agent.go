@@ -50,7 +50,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/install", rest.RestHandlerFunc(h.AgentInstall))
 	h.rg.POST("/upgrade", rest.RestHandlerFunc(h.AgentUpgrade))
-	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReConfig))
+	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReconfig))
 	h.rg.POST("/restart", rest.RestHandlerFunc(h.AgentRestart))
 	h.rg.POST("/uninstall", rest.RestHandlerFunc(h.AgentUninstall))
 }

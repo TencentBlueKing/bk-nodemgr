@@ -57,6 +57,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(step.NewStepComand())
 	rootCmd.AddCommand(NewFullInstall())
 	rootCmd.AddCommand(NewFullUpgrade())
+	rootCmd.AddCommand(NewFullReconfig())
 
 	/*
 	 * persistent required flags.

@@ -203,3 +203,41 @@ func (x *NodeAgentUpgradeReq) AutoConvert() {
 func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentUpgradeResp_Data{WorkflowId: workflowID}
 }
+
+// Validate check body.
+func (x *NodeAgentReconfigReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentReconfigReq) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentReconfigResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentReconfigResp_Data{WorkflowId: workflowID}
+}
+
+// Validate check body.
+func (x *NodeAgentRestartReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentRestartReq) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentRestartResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentRestartResp_Data{WorkflowId: workflowID}
+}

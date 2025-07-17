@@ -73,19 +73,33 @@ type LoginInfo struct {
 	KeyFile  []byte
 }
 
-// InstallOptions this is the options for nodemgr tools.
-type InstallOptions struct {
+// DeploymentInstallOptions this is the options for nodemgr tools.
+type DeploymentInstallOptions struct {
 	ReRegister bool
 }
 
-// UpgradeOptions this is the options for node upgrade.
-type UpgradeOptions struct {
+// DeploymentUpgradeOptions this is the options for node upgrade.
+type DeploymentUpgradeOptions struct {
+}
+
+// DeploymentRestartOptions this is the options for node restart.
+type DeploymentRestartOptions struct {
 	ForceRestart           bool
 	GracefulRestartTimeout time.Duration
 }
 
-// VersionSupports describes this version supports things.
-type VersionSupports struct {
+// DeploymentTransferOptions this is the options for node transfer.
+type DeploymentTransferOptions struct {
+	// SelectDownloads set false by default, will download all things.
+	// set true, then will only download the enabled ones following.
+	SelectDownloads bool
+
+	EnableReleasePackage bool
+	EnableInstaller      bool
+}
+
+// DeploymentVersionSupports describes this version supports things.
+type DeploymentVersionSupports struct {
 	// OperateAgentRestart means this version agent supports operates restart through cluster,
 	// which will check if the agent is idle.
 	OperateAgentRestart bool
@@ -103,13 +117,19 @@ type DeploymentInfo struct {
 	InstallerWorkDir string
 
 	// CurrentVersionSupports is used to mark the source agent(before any workflow) supports things.
-	CurrentVersionSupports VersionSupports
+	CurrentVersionSupports DeploymentVersionSupports
 
 	// InstallOptions is used to control the tools when install node.
-	InstallOptions InstallOptions
+	InstallOptions DeploymentInstallOptions
 
 	// UpgradeOptions is used to control the tools when upgrade node.
-	UpgradeOptions UpgradeOptions
+	UpgradeOptions DeploymentUpgradeOptions
+
+	// RestartOptions is used to control the tools when restart node.
+	RestartOptions DeploymentRestartOptions
+
+	// TransferOptions is used to control the tools when transfer node.
+	TransferOptions DeploymentTransferOptions
 
 	// TargetVersion is used to control the target version for node.
 	TargetVersion []TargetVersion

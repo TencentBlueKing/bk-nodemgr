@@ -56,7 +56,7 @@ func NewFullInstall() *cobra.Command {
 		agentHandler     agenthandler.IAgentHandler
 	)
 
-	stepCmd := &cobra.Command{
+	fullCmd := &cobra.Command{
 		Use:   "full-install",
 		Short: "Full install process",
 		Long:  "Full install process",
@@ -192,26 +192,26 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(flag.FilesSvrAddr)
+	fullCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files and reporting status")
+	_ = fullCmd.MarkFlagRequired(flag.FilesSvrAddr)
 
-	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = fullCmd.MarkFlagRequired(flag.CallbackSvrAddr)
 
-	stepCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of files")
-	_ = stepCmd.MarkFlagRequired(flag.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(flag.DeployToken)
 
-	stepCmd.Flags().StringVar(&nodeVersion, flag.NodeVersion, "", "node version, for downloading package version")
-	_ = stepCmd.MarkFlagRequired(flag.NodeVersion)
+	fullCmd.Flags().StringVar(&nodeVersion, flag.NodeVersion, "", "node version, for downloading package version")
+	_ = fullCmd.MarkFlagRequired(flag.NodeVersion)
 
-	stepCmd.Flags().StringVar(&operInstID, flag.OperInstID, "", "operation instance id")
-	_ = stepCmd.MarkFlagRequired(flag.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, flag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(flag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	stepCmd.Flags().StringVar(&logDir, flag.LogDir, "", "directory to save log files")
-	stepCmd.Flags().StringVar(&agentID, flag.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
+	fullCmd.Flags().StringVar(&logDir, flag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().StringVar(&agentID, flag.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
 
-	return stepCmd
+	return fullCmd
 }

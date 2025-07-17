@@ -62,13 +62,27 @@ const (
 
 	// NodeWorkflowTypeUpgradeProxy is the operation type for upgrade proxy.
 	NodeWorkflowTypeUpgradeProxy NodeWorkflowType = "upgrade_proxy"
+
+	// NodeWorkflowTypeReconfigAgent is the operation type for reconfig.
+	NodeWorkflowTypeReconfigAgent NodeWorkflowType = "reconfig_agent"
+
+	// NodeWorkflowTypeReconfigProxy is the operation type for reconfig proxy.
+	NodeWorkflowTypeReconfigProxy NodeWorkflowType = "reconfig_proxy"
+
+	// NodeWorkflowTypeRestartAgent is the operation type for restart agent.
+	NodeWorkflowTypeRestartAgent NodeWorkflowType = "restart_agent"
+
+	// NodeWorkflowTypeRestartProxy is the operation type for restart proxy.
+	NodeWorkflowTypeRestartProxy NodeWorkflowType = "restart_proxy"
 )
 
 // Validate checks if the NodeWorkflowType is valid.
 func (nwo NodeWorkflowType) Validate() error {
 	switch nwo {
 	case NodeWorkflowTypeInstallAgent, NodeWorkflowTypeInstallProxy,
-		NodeWorkflowTypeUpgradeAgent, NodeWorkflowTypeUpgradeProxy:
+		NodeWorkflowTypeUpgradeAgent, NodeWorkflowTypeUpgradeProxy,
+		NodeWorkflowTypeReconfigAgent, NodeWorkflowTypeReconfigProxy,
+		NodeWorkflowTypeRestartAgent, NodeWorkflowTypeRestartProxy:
 		return nil
 	default:
 		return fmt.Errorf("invalid node workflow oper type, oper-type(%s)", nwo)

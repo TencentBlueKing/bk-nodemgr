@@ -40,6 +40,7 @@ func init() {
 		InvalidCache:            errors.New("invalid cache"),
 		InvalidFileResource:     errors.New("invalid file resource"),
 		ThirdpartyRequestFailed: errors.New("thirdparty request failed"),
+		BackendOperateFailed:    errors.New("backend operate failed"),
 	}
 
 	instance.codeErrMap = make(map[Code]error)

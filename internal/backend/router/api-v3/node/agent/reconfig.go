@@ -12,11 +12,135 @@
 package agent
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// AgentReConfig reload agent config.
-func (h *handler) AgentReConfig(ctx *rest.Context) (interface{}, error) {
-	// TODO: implement me
-	return nil, nil
+// AgentReconfig reconfig agent.
+func (h *handler) AgentReconfig(ctx *rest.Context) (interface{}, error) {
+	sCtx, err := ctx.GetContext()
+	if err != nil {
+		h.logger.Errorf("failed to reconfig agent, failed to get request context. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	req := new(protoBackend.NodeAgentReconfigReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, err := h.getReconfigNodeHosts(sCtx, req.GetHost())
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to get host list. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	reqHosts := req.GetHost()
+	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
+	for idx := range reqHosts {
+		reqHost := reqHosts[idx]
+
+		nodeDeploy, err := h.generatesReconfigDeploys(ctx.TenantID, reqHost, hosts)
+		if err != nil {
+			h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
+
+			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		}
+
+		nodeDeploys[idx] = nodeDeploy
+	}
+
+	workflowID, err := h.manager.LaunchReconfigNode(sCtx, manager.ReconfigNodeParam{
+		Type:            types.NodeWorkflowTypeReconfigAgent,
+		BizIDs:          h.getReconfigNodeBizIDs(hosts),
+		Operator:        ctx.Username,
+		NodeDeployments: nodeDeploys,
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent: %v", err)
+		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeAgentReconfigResp)
+	resp.ConvertWorkflowID(workflowID)
+
+	h.logger.InfoCtxf(sCtx, "launched reconfig agent workflow: %s", workflowID)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) getReconfigNodeHosts(
+	ctx context.Context, reqHosts []*protoBackend.NodeAgentReconfigReq_Host) (map[int64]*types.Host, error) {
+
+	if len(reqHosts) == 0 {
+		return nil, errors.New("empty host list")
+	}
+
+	hostIDs := make(map[int64]struct{})
+	for _, host := range reqHosts {
+		hostIDs[host.GetBkHostId()] = struct{}{}
+	}
+
+	hosts, _, err := h.storageHost.ListHost(ctx,
+		types.UnlimitedPage(),
+		&types.HostCondition{ExactInclude: &types.HostExactFields{
+			HostID: conv.MapKeyToSlice(hostIDs),
+		}})
+
+	result := make(map[int64]*types.Host)
+	for _, host := range hosts {
+		result[host.HostID] = host
+	}
+
+	return result, err
+}
+
+func (h *handler) getReconfigNodeBizIDs(hostMap map[int64]*types.Host) []int64 {
+	bizIDs := make(map[int64]struct{})
+	for _, host := range hostMap {
+		bizIDs[host.Static.BizID] = struct{}{}
+	}
+
+	return conv.MapKeyToSlice(bizIDs)
+}
+
+func (h *handler) generatesReconfigDeploys(
+	tenantID string,
+	reqHost *protoBackend.NodeAgentReconfigReq_Host,
+	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+
+	hostID := reqHost.GetBkHostId()
+	host, ok := hostMap[hostID]
+	if !ok {
+		return nil, fmt.Errorf("host not found. host-id(%d)", hostID)
+	}
+
+	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
+		Host: types.Host{
+			TenantID: tenantID,
+			HostID:   host.HostID,
+			Static:   host.Static,
+			Dynamic:  host.Dynamic,
+		},
+		RestartOptions: types.DeploymentRestartOptions{
+			ForceRestart:           reqHost.GetForce(),
+			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+		},
+		TransferOptions: types.DeploymentTransferOptions{
+			SelectDownloads: true,
+			EnableInstaller: true,
+		},
+	})
+
+	return nodeDeployment, nil
 }
