@@ -55,7 +55,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Button, Popover, Checkbox, Radio } from 'bkui-vue';
-import { set } from 'lodash';
 
 const props = defineProps({
     settings: {

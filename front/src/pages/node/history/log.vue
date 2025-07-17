@@ -76,7 +76,7 @@
               :fill="activeKey === key ? '#993D3D' : '#4D4F56'"
             />
             <Spinner
-              v-else-if="item.life_cycle?.state === 'pending' && !hasError"
+              v-else-if="['pending', 'running'].includes(item.life_cycle?.state) && !hasErrorOrTimeout"
               width="12.25px"
               height="12.25px"
             />
@@ -138,6 +138,7 @@ interface IProps {
   data: any;
 }
 const props = defineProps<IProps>();
+const emit = defineEmits(['stop']);
 const { t } = useI18n();
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
@@ -163,6 +164,10 @@ const timeFormatter = (
   val: number | string | undefined,
   format = "YYYY-MM-DD HH:mm:ss"
 ) => {
+  if (typeof val === "number") {
+    // 使用 dayjs.unix() 直接解析秒级时间戳
+    return dayjs.unix(val).format(format);
+  }
   return val ? dayjs(val).format(format) : "--";
 };
 const handleClick = async (item: {
@@ -200,7 +205,7 @@ const getInstance = async () => {
     });
   }
 };
-const hasError = ref(false);
+const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
 async function getLog() {
   const res = await NodeWorkflowService.NodeWorkflowOperationInstanceLogGet({
@@ -217,19 +222,21 @@ async function getLog() {
 
   let currentKey;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {
-    if (entry.life_cycle?.state === "failed") {
+    if (["failed", "timeout"].includes(entry.life_cycle?.state)) {
       currentKey = key;
-      hasError.value = true;
+      hasErrorOrTimeout.value = true;
       isInterval.value = false;
       break;
-    } else if (entry.life_cycle?.state === "pending") {
+    } else if (entry.life_cycle?.state === "running") {
       currentKey = key;
       isInterval.value = true;
       break;
     }
     currentKey = key;
   }
-
+  if(logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
+    isInterval.value = false;
+  }
   if (currentKey) {
     logs.value = { ...res.oper_inst_logs[currentKey].message.logs };
     activeKey.value = currentKey;
@@ -255,6 +262,7 @@ const show = async () => {
 watch(() => isInterval.value, (val: boolean) => {
   if (!val) {
     stop();
+    emit('stop');
   }
 })
 onBeforeUnmount(() => {

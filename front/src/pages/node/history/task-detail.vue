@@ -150,7 +150,7 @@
                         </template>
                     </TableColumn>
                 </Table>
-                <log :data="curRow" v-if="curRow" ref="logRef"></log>
+                <Log :data="curRow" v-if="curRow" ref="logRef" @stop="handleStop"></Log>
             </div>
         </bk-loading>
     </div>
@@ -165,7 +165,7 @@ type taskType = 'install_agent' | 'install_plugin' | 'upgrade_agent' | 'upgrade_
 type filterProp = 'state' | 'node_version';
 
 import { RightTurnLine, Success, Close, AngleUpFill, Spinner } from 'bkui-vue/lib/icon';
-import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 import { Button, Input, SearchSelect, Radio, Tag, ResizeLayout, Dropdown } from 'bkui-vue';
 import usePage from '@/composables/use-page';
@@ -177,6 +177,7 @@ import { useNodeManageStore } from '@/stores/node-manage';
 import useTableSetting from '@/composables/use-table-setting';
 import Log from './log.vue';
 import dayjs from 'dayjs';
+import useInterval from "@/composables/use-interval";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -193,8 +194,8 @@ const reTryType = [
     }
 ]
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
-const currentData = nodeManageStore.taskHistoryTableRowData;
-const currentStatus = nodeManageStore.currentStatus;
+const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
+const currentStatus = computed(() => nodeManageStore.currentStatus);
 const statusMap = {
   running: {
     text: t('执行中'),
@@ -454,23 +455,28 @@ const handleFullRetry = async (type: string) => {
         await getOperateList();
     }
 }
-const getTaskList = async () => {
-  const res = await NodeWorkflowService.NodeWorkflowList({
-    exact_include_conditions: {}
-  }).catch((err) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
+const updataCurrentTaskInfo = async () => {
+    const res = await NodeWorkflowService.NodeWorkflowList({
+        exact_include_conditions: {}
+    }).catch((err) => {
+        console.log(err);
+        return {
+        total: 0,
+        items: [],
+        }
+    });
+    const list = res.items.map(item => {
+        return {
+        ...item,
+        bk_biz_name: item.bk_biz_name.filter(item => item),
+        cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
+        }
+    });
+    const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
+    if (findItem) {
+        nodeManageStore.updateCurrentRowData(findItem);
+        nodeManageStore.updateCurrentStatus(findItem.status);
     }
-  });
-  return res.items.map(item => {
-    return {
-      ...item,
-      bk_biz_name: item.bk_biz_name.filter(item => item),
-      cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
-    }
-  });
 }
 const getParams = () => {
   const params = {
@@ -488,21 +494,33 @@ const getParams = () => {
   params.exact_include_conditions['workflow_id'] = route.params.taskId;
   return params;
 }
+const needInterval = ref(false);
 const getOperateList = async () => {
-    loading.value = true;
     const currentRowData = nodeManageStore.taskHistoryTableRowData;
     const searchParameters = getParams();
     const res = await NodeWorkflowService.NodeWorkflowOperationList(searchParameters).catch(() => ({
         operations: [],
         total_count: 0
     }));
-    tableData.value = res.operations.map(item => ({
-        ...item.param,
-        ...item.status,
-        bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
-        operation_id: item.operation_id
-    }));
-    loading.value = false;
+    const mapList = res.operations.map(item => {
+        needInterval.value = ['running', 'empty_instance'].includes(item.status.state);
+        return {
+            ...item.param,
+            ...item.status,
+            bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
+            operation_id: item.operation_id
+        }
+    });
+    let equal = false;
+    for (let index = 0; index < tableData.value.length; index++) {
+        if (tableData.value[index].state === mapList[index]?.state) {
+            equal = true;
+            break;
+        }
+    }
+    if (!equal) {
+        tableData.value = mapList;
+    }
 }
 const logRef = ref<InstanceType<typeof Log>>();
 const curRow = ref(null);
@@ -514,6 +532,11 @@ const handleViewLog = async (row: any) => {
     });
 
 }
+const { start, stop } = useInterval(getOperateList, 10000); // 轮询
+const handleStop = async () => {
+    await updataCurrentTaskInfo();
+    await getOperateList();
+}
 watch(() => searchSelectValue, async () => {
     await getOperateList();
 }, { deep: true });
@@ -521,15 +544,22 @@ watch(() => tableData, () => {
     filterOptionSource.node_version.list = filterOptionConfig('node_version', typeMap);
     filterOptionSource.state.list = filterOptionConfig('state', statusMap);
 }, { deep: true, immediate: true });
-onMounted(async() => {
-    const list = await getTaskList();
-    const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
-    if (findItem) {
-        nodeManageStore.updateCurrentRowData(findItem);
-        nodeManageStore.updateCurrentStatus(findItem.status);
+watch(() => needInterval.value, async (val: boolean) => {
+    if(!val) {
+        stop();
+        await updataCurrentTaskInfo();
     }
+}, { immediate: true });
+onMounted(async() => {
+    await updataCurrentTaskInfo();
     await getOperateList();
-})
+    if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+        start();
+    }
+});
+onBeforeUnmount(() => {
+  stop();
+});
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {

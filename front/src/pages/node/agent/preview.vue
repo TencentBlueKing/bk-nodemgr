@@ -198,12 +198,13 @@ const handleSetup = async () => {
 }
 watch(() => isShow, () => {
     if(isShow.value && props.data) {
-        tableData.value = props.data.info.map(item => ({
+            tableData.value = props.data.info.map(item => ({
             ...item,
             login_port: Number(item.login_port),
             bk_biz_id: props.data.bk_biz_id,
-            bk_networkunit_id: props.data.bk_networkunit_id,
-            bk_host_id: Number(item.bk_host_id)
+            bk_networkunit_id: Number(props.data.bk_networkunit_id),
+            bk_host_id: Number(item.bk_host_id),
+            bk_networkarea_name: props.data.bk_networkarea_name
         }));
     }
 }, {immediate: true, deep: true});

@@ -82,10 +82,14 @@
                         v-model="formData.bk_networkunit_id"
                         auto-focus
                         filterable
-                        :list="networkUnitList"
-                        id-key="bk_networkunit_id"
-                        display-key="bk_networkunit_name"
-                        :disabled="isNaN(formData.bk_networkarea_id)">
+                        :disabled="!formData.bk_networkarea_id">
+                        <Select.Option
+                            v-for="option in networkUnitList"
+                            :key="option.bk_networkarea_id"
+                            :id="String(option.bk_networkunit_id)"
+                            :name="option.bk_networkunit_name">
+                            {{ option.bk_networkunit_name }}
+                        </Select.Option>   
                     </Select>
                 </Form.FormItem>
                 <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.info')" required>
@@ -228,6 +232,7 @@ const isShowDialog = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
 const handleSelect = (newValue: string, oldValue: string) => {
+    formData.bk_networkarea_name = networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 }
 const dialogData = ref({
     os: '',
@@ -332,7 +337,7 @@ const Darwin_amd64_ref = ref();
 const Linux_arm64_ref = ref();
 const Windows_amd64_ref= ref();
 const handlePreview = async () => {
-    const result = await Promise.all([
+        const result = await Promise.all([
         formRef.value?.validate().catch(() => false),
         installTableRef.value?.tableValidate(),
         isShow.value ?
