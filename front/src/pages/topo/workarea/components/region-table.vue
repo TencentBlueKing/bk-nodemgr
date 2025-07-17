@@ -130,7 +130,9 @@ const props = defineProps<IProps>();
 
 const emit = defineEmits(['edit']);
 
-const tableData = ref(props.list);
+const tableData = ref(props.list.sort((a: INetWorkArea,b: INetWorkArea) => {
+  return a.bk_networkarea_id - b.bk_networkarea_id
+}));
 const { t } = useI18n();
 const router = useRouter();
 const workareaStore = useWorkareaStore();
