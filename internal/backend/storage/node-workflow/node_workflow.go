@@ -232,7 +232,7 @@ func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (ty
 		switch inst.Lifecycle.State {
 		case operation.StateSuccess:
 			successCount++
-		case operation.StateFailed:
+		case operation.StateFailed, operation.StateTimeout:
 			failedCount++
 		}
 	}
