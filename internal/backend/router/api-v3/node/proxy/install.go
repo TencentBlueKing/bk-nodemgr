@@ -117,7 +117,7 @@ func (h *handler) genDeploys(
 					NetworkUnitID:  networkUnit.ID,
 				},
 			},
-			InstallOptions: types.InstallOptions{
+			InstallOptions: types.DeploymentInstallOptions{
 				ReRegister: reqHost.GetReRegister(),
 			},
 			LoginInfo: types.LoginInfo{

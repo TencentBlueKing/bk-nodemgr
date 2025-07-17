@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -31,77 +32,85 @@ import (
 )
 
 const (
-	// ActionNameRestartNode defines the action name.
-	ActionNameRestartNode = "restart_node"
+	// ActionNameReconfigNode defines the action name.
+	ActionNameReconfigNode = "reconfig_node"
+
+	reconfigScriptTimeout = 10 * time.Minute
 )
 
-// NewActionRestartNode get a new action.
-func NewActionRestartNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+// NewActionReconfigNode get a new action.
+func NewActionReconfigNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger) action.Definition {
+	logger logger.Logger,
+	provider discover.Provider) action.Definition {
 
-	return &actionRestartNode{
+	return &actionReconfigNode{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
 		logger:                logger,
+		provider:              provider,
 	}
 }
 
-// ActionParamRestartNode defines the action param.
-type ActionParamRestartNode struct {
+// ActionParamReconfigNode defines the action param.
+type ActionParamReconfigNode struct {
 	Token string `json:"token"`
 }
 
-// RestartParams this struct defines the parameters for restarting node through command.
-type RestartParams struct {
+// ReconfigParams this struct defines the parameters for reconfiging node through command.
+type ReconfigParams struct {
 	AgentID          string
 	InstallerName    string
 	InstallerWorkDir string
 	Generation       types.Generation
 	NodeRole         types.NodeRole
+	CallbackSvrAddr  string
+	DeployToken      string
+	OperInstID       string
 	BaseWorkDir      string
 	BaseDeployDir    string
 	AdditionArgs     []string
 }
 
-type actionRestartNode struct {
+type actionReconfigNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.Logger
+	provider              discover.Provider
 }
 
 // Name returns the name of the action.
-func (act *actionRestartNode) Name() string {
-	return ActionNameRestartNode
+func (act *actionReconfigNode) Name() string {
+	return ActionNameReconfigNode
 }
 
 // Version returns the version of the action.
-func (act *actionRestartNode) Version() string {
+func (act *actionReconfigNode) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionRestartNode) Description() string {
-	return "restart node"
+func (act *actionReconfigNode) Description() string {
+	return "reconfig node"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionRestartNode) Timeout() time.Duration {
+func (act *actionReconfigNode) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionRestartNode) Tags() []action.Tag {
+func (act *actionReconfigNode) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionRestartNode) MaxRetryCount() uint {
+func (act *actionReconfigNode) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionRestartNode) DelayFn() func() {
+func (act *actionReconfigNode) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -110,8 +119,8 @@ func (act *actionRestartNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,fnsize,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActionParamRestartNode)
+func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActionParamReconfigNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param, err: %w", err)
@@ -123,42 +132,15 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 	if err != nil {
 		return err
 	}
+	// let the callback server known which action to mark and log.
+	info.BlockingActionName = ActionNameWaitInstallerComplete
 
-	// check if this node version is >= lowest version which supports the soft restart through cluster.
-	if info.CurrentVersionSupports.OperateAgentRestart {
-		return act.restartThroughCluster(ctx, info)
-	}
+	defer func() {
+		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
-	if !info.RestartOptions.ForceRestart {
-		return errors.New("current node version do not support soft restart")
-	}
-
-	return act.restartThroughCommand(ctx, info)
-}
-
-func (act *actionRestartNode) restartThroughCluster(ctx *action.InstanceContext, info *types.DeploymentInfo) error {
-	result, err := act.gseHandler.OperateAgent(ctx.Ctx, types.OperateAgent{
-		Type:                   types.OperateAgentTypeRestart,
-		CurrentAgentVersion:    "",
-		TargetAgentVersionSign: "",
-		Timeout:                info.RestartOptions.GracefulRestartTimeout,
-		Force:                  info.RestartOptions.ForceRestart,
-		Remark:                 "restart by nodemgr: " + ctx.Data.OperationInstanceID,
-	}, info.Host.Dynamic.AgentID)
-	if err != nil {
-		return fmt.Errorf("failed to operate agent for restarting: %w", err)
-	}
-
-	if len(result.MissingAgentIDs) > 0 {
-		return fmt.Errorf("failed to operate agent for restarting. not-available-agent-ids(%v)", result.MissingAgentIDs)
-	}
-	ctx.Data.LogI(fmt.Sprintf("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
-		info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()))
-
-	return nil
-}
-
-func (act *actionRestartNode) restartThroughCommand(ctx *action.InstanceContext, info *types.DeploymentInfo) error {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -167,106 +149,124 @@ func (act *actionRestartNode) restartThroughCommand(ctx *action.InstanceContext,
 		return err
 	}
 
+	randSelector := discover.NewRandomSelector()
+	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		randSelector)
+	if err != nil {
+		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+	}
+
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	restartParams := &RestartParams{
+	reconfigParams := &ReconfigParams{
 		AgentID:          info.Host.Dynamic.AgentID,
 		InstallerName:    toolName,
 		InstallerWorkDir: info.InstallerWorkDir,
 		Generation:       info.Host.Dynamic.NodeGeneration,
 		NodeRole:         info.Host.Dynamic.NodeRole,
+		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
+		DeployToken:      param.Token,
+		OperInstID:       ctx.Data.OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
-	// exec upgrade command
+	// exec reconfig command
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.restartThroughCommandWindows(ctx, restartParams)
+		return act.doReconfigWindows(ctx, reconfigParams)
 	}
 
-	return act.restartThroughCommandUnix(ctx, restartParams)
+	return act.doReconfigUnix(ctx, reconfigParams)
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandUnix(ctx *action.InstanceContext, param *RestartParams) error {
+func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param *ReconfigParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
+
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 		fmt.Sprintf("--generation %d", param.Generation),
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		"--force",
+		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
+		fmt.Sprintf("--deploy_token %s", param.DeployToken),
+		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	restartLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	restartCmd := fmt.Sprintf("chmod +x %s && %s step restart %s >%s 2>&1 &",
-		installerPath, installerPath, strings.Join(args, " "), restartLogPath)
-	ctx.Data.LogI("restart cmd: " + restartCmd)
+	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	reconfigCmd := fmt.Sprintf("chmod +x %s && %s full-reconfig %s >%s 2>&1 &",
+		installerPath, installerPath, strings.Join(args, " "), reconfigLogPath)
+	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
 		types.ScriptTypeBash,
 		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
+			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
 			param.InstallerWorkDir,
 			param.InstallerWorkDir,
-			restartCmd),
-		cleanScriptTimeout,
+			reconfigCmd),
+		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute restart node script: %w", err)
+		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	ctx.Data.LogI("restart node task-id: " + taskID)
+	ctx.Data.LogI("reconfig node task-id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandWindows(ctx *action.InstanceContext, param *RestartParams) error {
+func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, param *ReconfigParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
+
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 		fmt.Sprintf("--generation %d", param.Generation),
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		"--force",
+		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
+		fmt.Sprintf("--deploy_token %s", param.DeployToken),
+		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	restartLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	restartCmd := fmt.Sprintf("%s step restart %s >%s 2>&1",
-		installerPath, strings.Join(args, " "), restartLogPath)
-	ctx.Data.LogI("restart cmd: " + restartCmd)
+	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	reconfigCmd := fmt.Sprintf("%s full-reconfig %s >%s 2>&1",
+		installerPath, strings.Join(args, " "), reconfigLogPath)
+	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
 			param.InstallerWorkDir,
-			restartCmd),
-		cleanScriptTimeout,
+			reconfigCmd),
+		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute restart node script: %w", err)
+		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	ctx.Data.LogI("restart node task-id: " + taskID)
+	ctx.Data.LogI("reconfig node task-id: " + taskID)
 
 	return nil
 }

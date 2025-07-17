@@ -60,6 +60,12 @@ type Manager interface {
 
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
 	LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error)
+
+	// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
+	LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error)
+
+	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
+	LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error)
 }
 
 // InstallNodeParam install node param.
@@ -72,6 +78,22 @@ type InstallNodeParam struct {
 
 // UpgradeNodeParam upgrade node param.
 type UpgradeNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
+}
+
+// ReconfigNodeParam reconfig node param.
+type ReconfigNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
+}
+
+// RestartNodeParam restart node param.
+type RestartNodeParam struct {
 	Type            types.NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
@@ -269,9 +291,10 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionDetectInfoBySSH(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease),
 		nodeinstall.NewActionDetectInfoByWMI(mgr.conf.Crypter, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease),
 		nodeinstall.NewActionUpgradeNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
-		nodeinstall.NewActionStartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
 		nodeinstall.NewActionCleanInstaller(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
 		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
+		nodeinstall.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
 	)
 }
 
@@ -563,6 +586,162 @@ func (mgr *manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodePara
 
 	if err := gp.Wait(); err != nil {
 		return "", fmt.Errorf("failed to launch upgrade node task. err: %w", err)
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
+func (mgr *manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launching reconfig node task. tenant-id(%s), trigger-id(%s), node-deployments(%d)",
+		tenantID, triggerCtl.GetTriggerID(), len(param.NodeDeployments))
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+		deploy.Info.TransferOptions.SelectDownloads = true
+		deploy.Info.TransferOptions.EnableInstaller = true
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to create node deployment. "+
+						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+
+				return err
+			}
+
+			operationDef := nodeinstall.NewOperReconfigNode(nodeinstall.OperParamReconfigNode{Token: deploy.Token})
+			operationParam := operationDef.DefaultParameters()
+			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
+			if err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to launch reconfig node task. "+
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+				return err
+			}
+
+			mgr.logger.InfoCtxf(ctx,
+				"launched reconfig node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
+					" node-deployment-token(%s)",
+				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch reconfig node task. err: %w", err)
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+// LaunchRestartNode launch a task to restart node. returns the workflow-id.
+func (mgr *manager) LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launching restart node task. tenant-id(%s), trigger-id(%s), node-deployments(%d)",
+		tenantID, triggerCtl.GetTriggerID(), len(param.NodeDeployments))
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+		deploy.Info.TransferOptions.SelectDownloads = true
+		deploy.Info.TransferOptions.EnableInstaller = true
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to create node deployment. "+
+						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
+
+				return err
+			}
+
+			operationDef := nodeinstall.NewOperRestartNode(nodeinstall.OperParamRestartNode{Token: deploy.Token})
+			operationParam := operationDef.DefaultParameters()
+			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
+			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
+			if err != nil {
+				mgr.logger.ErrorCtxf(ctx,
+					"failed to launch restart node task. "+
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
+
+				return err
+			}
+
+			mgr.logger.InfoCtxf(ctx,
+				"launched restart node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
+					" node-deployment-token(%s)",
+				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch restart node task. err: %w", err)
 	}
 
 	if err = triggerCtl.RunTrigger(ctx); err != nil {

@@ -169,7 +169,7 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 				NetworkUnitID:  networkUnit.ID,
 			},
 		},
-		InstallOptions: types.InstallOptions{
+		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister: reqHost.GetReRegister(),
 		},
 		LoginInfo: types.LoginInfo{

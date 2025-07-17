@@ -32,6 +32,12 @@ type StepArgs struct {
 	PkgPath      string
 	SrcConfigDir string
 	Backup       bool
+
+	// SelectUpgrades set false by default, will upgrade all things.
+	// set true, then will only upgrade the enabled ones following.
+	SelectUpgrades              bool
+	EnableUpgradeReleasePackage bool
+	EnableUpgradeConfig         bool
 }
 
 // String step args string message.
@@ -65,21 +71,25 @@ func (step *Step) Run(ctx context.Context) error {
 		}
 	}
 
-	// 2. unpack release package files into installed file-system.
-	if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
+	if !step.args.SelectUpgrades || step.args.EnableUpgradeReleasePackage {
+		// 2. unpack release package files into installed file-system.
+		if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
+			logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
 
-		return err
+			return err
+		}
+		logger.Info(installer.StepInstallNode, "unpacked release pkg")
 	}
-	logger.Info(installer.StepInstallNode, "unpacked release pkg")
 
-	// 3. copy config files to installed file-system.
-	if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
+	if !step.args.SelectUpgrades || step.args.EnableUpgradeConfig {
+		// 3. copy config files to installed file-system.
+		if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
+			logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
 
-		return err
+			return err
+		}
+		logger.Info(installer.StepInstallNode, "copied config dir")
 	}
-	logger.Info(installer.StepInstallNode, "copied config dir")
 
 	logger.Info(installer.StepInstallNode, "upgraded node, wait for restarting")
 

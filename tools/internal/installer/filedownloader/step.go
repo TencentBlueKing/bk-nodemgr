@@ -44,6 +44,13 @@ type StepArgs struct {
 	PkgSavedPath       string
 	ConfigSavedDir     string
 	CheckListSavedPath string
+
+	// SelectDownloads set false by default, will download all things.
+	// set true, then will only download the enabled ones following.
+	SelectDownloads             bool
+	EnableDownloadConfig        bool
+	EnableDownloadReleasePackge bool
+	EnableDownloadChecklist     bool
 }
 
 // String step args string message.
@@ -64,41 +71,47 @@ func (step *Step) Run(ctx context.Context) error {
 
 	gp := gopool.NewPool()
 
-	// download agent config files.
-	gp.Go(func() error {
-		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-			return step.downloadAgentConfig(ctx)
-		})
-	})
-
-	// download proxy config files.
-	if step.args.NodeRole == types.NodeRoleProxy {
+	if !step.args.SelectDownloads || step.args.EnableDownloadConfig {
+		// download agent config files.
 		gp.Go(func() error {
 			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-				return step.downloadFileProxyConfig(ctx)
+				return step.downloadAgentConfig(ctx)
 			})
 		})
 
+		// download proxy config files.
+		if step.args.NodeRole == types.NodeRoleProxy {
+			gp.Go(func() error {
+				return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+					return step.downloadFileProxyConfig(ctx)
+				})
+			})
+
+			gp.Go(func() error {
+				return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+					return step.downloadDataProxyConfig(ctx)
+				})
+			})
+		}
+	}
+
+	if !step.args.SelectDownloads || step.args.EnableDownloadChecklist {
+		// download check list.
 		gp.Go(func() error {
 			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-				return step.downloadDataProxyConfig(ctx)
+				return step.downloadCheckList(ctx)
 			})
 		})
 	}
 
-	// download check list.
-	gp.Go(func() error {
-		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-			return step.downloadCheckList(ctx)
+	if !step.args.SelectDownloads || step.args.EnableDownloadReleasePackge {
+		// download release packages.
+		gp.Go(func() error {
+			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
+				return step.downloadReleasePackage(ctx)
+			})
 		})
-	})
-
-	// download release packages.
-	gp.Go(func() error {
-		return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-			return step.downloadReleasePackage(ctx)
-		})
-	})
+	}
 
 	if err := gp.Wait(); err != nil {
 		logger.Infof(installer.StepDownloadFiles, "failed to download files. %s: %v", step.args.String(), err)

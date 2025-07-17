@@ -65,3 +65,43 @@ message NodeAgentUpgradeResp {
   message Data { string workflow_id = 1; }
   Data data = 4;
 }
+
+// NodeAgentReconfigReq describes the node agent reconfigure request.
+message NodeAgentReconfigReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentReconfigResp describes the node agent reconfigure response.
+message NodeAgentReconfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { string workflow_id = 1; }
+  Data data = 4;
+}
+
+// NodeAgentRestartReq describes the node agent restart request.
+message NodeAgentRestartReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentRestartResp describes the node agent restart response.
+message NodeAgentRestartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { string workflow_id = 1; }
+  Data data = 4;
+}

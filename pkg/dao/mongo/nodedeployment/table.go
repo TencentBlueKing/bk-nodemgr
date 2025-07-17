@@ -53,6 +53,8 @@ type Info struct {
 	LoginInfo              LoginInfo       `json:"login_info" bson:"login_info"`
 	InstallOptions         InstallOptions  `json:"install_options" bson:"install_options"`
 	UpgradeOptions         UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
+	RestartOptions         RestartOptions  `json:"restart_options" bson:"restart_options"`
+	TransferOptions        TransferOptions `json:"transfer_options" bson:"transfer_options"`
 	CurrentVersionSupports VersionSupports `json:"current_version_supports" bson:"current_version_supports"`
 	TargetVersion          []TargetVersion `json:"target_version" bson:"target_version"`
 }
@@ -81,8 +83,19 @@ type InstallOptions struct {
 
 // UpgradeOptions this is the options for node upgrade.
 type UpgradeOptions struct {
+}
+
+// RestartOptions this is the options for node restart.
+type RestartOptions struct {
 	ForceRestart           bool          `json:"force_restart" bson:"force_restart"`
 	GracefulRestartTimeout time.Duration `json:"graceful_restart_timeout" bson:"graceful_restart_timeout"`
+}
+
+// TransferOptions this is the options for node transfer.
+type TransferOptions struct {
+	SelectDownloads      bool `json:"select_downloads" bson:"select_downloads"`
+	EnableReleasePackage bool `json:"enable_release_package" bson:"enable_release_package"`
+	EnableInstaller      bool `json:"enable_installer" bson:"enable_installer"`
 }
 
 // VersionSupports describes this version supports things.

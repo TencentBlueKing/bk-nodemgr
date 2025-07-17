@@ -14,11 +14,9 @@ RUN mkdir -p \
     /bk-nodeman/cert \
     /bk-nodeman/log \
     /bk-nodeman/static \
-    /bk-nodeman/file/agent \
-    /bk-nodeman/file/proxy \
-    /bk-nodeman/file/plugin \
     /bk-nodeman/file/tools \
     /bk-nodeman/file/cache \
+    /bk-nodeman/file/local \
     /bk-nodeman/file/temp
 
 COPY bk-nodeman-backend /bk-nodeman/bin/

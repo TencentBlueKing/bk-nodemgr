@@ -119,14 +119,19 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			KeyFile:  info.LoginInfo.KeyFile,
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
-		InstallOptions: types.InstallOptions{
+		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
 		},
-		UpgradeOptions: types.UpgradeOptions{
-			ForceRestart:           info.UpgradeOptions.ForceRestart,
-			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
+		RestartOptions: types.DeploymentRestartOptions{
+			ForceRestart:           info.RestartOptions.ForceRestart,
+			GracefulRestartTimeout: info.RestartOptions.GracefulRestartTimeout,
 		},
-		CurrentVersionSupports: types.VersionSupports{
+		TransferOptions: types.DeploymentTransferOptions{
+			SelectDownloads:      info.TransferOptions.SelectDownloads,
+			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
+			EnableInstaller:      info.TransferOptions.EnableInstaller,
+		},
+		CurrentVersionSupports: types.DeploymentVersionSupports{
 			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,
 		},
 		TargetVersion: func() []types.TargetVersion {
@@ -327,9 +332,14 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		InstallOptions: InstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
 		},
-		UpgradeOptions: UpgradeOptions{
-			ForceRestart:           info.UpgradeOptions.ForceRestart,
-			GracefulRestartTimeout: info.UpgradeOptions.GracefulRestartTimeout,
+		RestartOptions: RestartOptions{
+			ForceRestart:           info.RestartOptions.ForceRestart,
+			GracefulRestartTimeout: info.RestartOptions.GracefulRestartTimeout,
+		},
+		TransferOptions: TransferOptions{
+			SelectDownloads:      info.TransferOptions.SelectDownloads,
+			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
+			EnableInstaller:      info.TransferOptions.EnableInstaller,
 		},
 		CurrentVersionSupports: VersionSupports{
 			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,

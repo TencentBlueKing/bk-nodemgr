@@ -132,7 +132,7 @@ func (h *handler) generatesUpgradeDeploys(
 			Static:   host.Static,
 			Dynamic:  host.Dynamic,
 		},
-		UpgradeOptions: types.UpgradeOptions{
+		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           reqHost.GetForce(),
 			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 		},
