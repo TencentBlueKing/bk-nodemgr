@@ -396,5 +396,12 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 		break
 	}
 
+	if doErr != nil {
+		mgr.logger.Errorf("action failed, action-name(%s), oper-def-name(%s), err(%v)",
+			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr)
+		actionInstCtx.Data.LogE(fmt.Sprintf("action failed, action-name(%s), oper-def-name(%s), err(%v)",
+			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr))
+	}
+
 	return doErr
 }

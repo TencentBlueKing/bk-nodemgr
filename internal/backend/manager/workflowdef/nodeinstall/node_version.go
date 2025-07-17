@@ -46,7 +46,11 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 		return "", fmt.Errorf("failed to list releases, err: %w", err)
 	}
 	if num == 0 {
-		return "", fmt.Errorf("failed to list releases for platform. platform(%v). no release found", plat)
+		return "", fmt.Errorf("failed to list releases for platform. no release found. platform(%v)", plat)
+	}
+
+	if num > 1 {
+		return "", fmt.Errorf("failed to list releases for platform. multiple releases found. platform(%v)", plat)
 	}
 
 	defaultReleases := make([]string, 0)
@@ -59,12 +63,12 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 
 	switch len(defaultReleases) {
 	case 0:
-		return "", fmt.Errorf("failed to get default release for platform. platform(%v)", plat)
+		return "", fmt.Errorf("failed to get default release for platform. no default release found. platform(%v)", plat)
 	case 1:
 		return defaultReleases[0], nil
 	default:
 		return "", fmt.Errorf(
-			"failed to get default release for platform. platform(%v). multiple default releases found default-releases(%v)",
+			"failed to get default release for platform. multiple default releases found. platform(%v), default-releases(%v)",
 			plat, defaultReleases)
 	}
 }
@@ -90,12 +94,12 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 
 	if num == 0 {
 		return fmt.Errorf(
-			"failed to check release version. version(%v). no release found", versionParam.Version)
+			"failed to check release version. no release found. version(%v)", versionParam.Version)
 	}
 
 	if num > 1 {
 		return fmt.Errorf(
-			"failed to check release version. version(%v). multiple releases found", versionParam.Version)
+			"failed to check release version. multiple releases found. version(%v)", versionParam.Version)
 	}
 
 	return nil
