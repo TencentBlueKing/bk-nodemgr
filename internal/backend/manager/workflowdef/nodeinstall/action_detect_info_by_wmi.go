@@ -163,6 +163,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				info.Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
 				break
 			}
 		}
@@ -180,6 +181,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 			if err != nil {
 				return err
 			}
+			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
 		}
 	}
 

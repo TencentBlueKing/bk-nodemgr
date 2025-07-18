@@ -155,13 +155,16 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 	releaseType, err := release.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
 	if err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
 		return err
 	}
+
 	if len(info.TargetVersion) > 0 {
 		for _, v := range info.TargetVersion {
 			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				info.Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
 				break
 			}
 		}
@@ -179,6 +182,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 			if err != nil {
 				return err
 			}
+			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
 		}
 	}
 
