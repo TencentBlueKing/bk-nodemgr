@@ -80,12 +80,13 @@ func (handler *AgentHandler) initConfigs() {
 	handler.agentDaemonFilePath = filepath.Join(handler.binDir, gseAgentDaemonName)
 	handler.agentConfigFilePath = filepath.Join(handler.etcDir, "gse_agent.conf")
 
-	handler.agentDaemonServiceName = gseAgentDaemonName + "_" + handler.deployEnv
+	handler.agentDaemonServiceName = gseAgentServiceNamePrefix + handler.deployEnv
 }
 
 const (
-	gseAgentBinName    = "gse_agent.exe"
-	gseAgentDaemonName = "gse_agent_daemon.exe"
+	gseAgentBinName           = "gse_agent.exe"
+	gseAgentDaemonName        = "gse_agent_daemon.exe"
+	gseAgentServiceNamePrefix = "gse_agent_daemon_"
 )
 
 // isGseBin check if the name is a gse bin.

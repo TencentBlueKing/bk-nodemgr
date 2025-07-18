@@ -15,6 +15,7 @@ package installer
 type Step string
 
 const (
+	// StepGeneral this is the step to general.
 	StepGeneral Step = "general"
 
 	// StepInstallNode this is the step to install node.

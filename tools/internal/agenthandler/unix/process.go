@@ -140,6 +140,24 @@ func (handler *AgentHandler) UnregisterAgentID(ctx context.Context) error {
 	return nil
 }
 
+// InstallAutoStartup install auto startup after host boot.
+func (handler *AgentHandler) InstallAutoStartup(_ context.Context, opts *agenthandler.AsyncOutputOptions) error {
+	if opts != nil {
+		opts.Stdout("unix auto starup install will be ensure in start command")
+	}
+
+	return nil
+}
+
+// UninstallAutoStartup uninstall auto startup after host boot.
+func (handler *AgentHandler) UninstallAutoStartup(_ context.Context, opts *agenthandler.AsyncOutputOptions) error {
+	if opts != nil {
+		opts.Stdout("unix auto starup uninstall will be ensure in stop command")
+	}
+
+	return nil
+}
+
 // Start start the agent process(including file and data in proxy mode).
 func (handler *AgentHandler) Start(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
 	if err := handler.executeGSECtl(ctx, opts, "start"); err != nil {

@@ -56,42 +56,42 @@ func (step *Step) Run(ctx context.Context) error {
 
 	// 1. init file-system architecture.
 	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to init file-system: %v", err)
+		logger.Errorf(installer.StepUpgradeNode, "failed to init file-system: %v", err)
 
 		return err
 	}
-	logger.Info(installer.StepInstallNode, "inited file-system")
+	logger.Info(installer.StepUpgradeNode, "inited file-system")
 
 	if step.args.Backup {
 		// 1.1. backup old files.
 		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
-			logger.Warnf(installer.StepInstallNode, "failed to backup: %v", err)
+			logger.Warnf(installer.StepUpgradeNode, "failed to backup: %v", err)
 		} else {
-			logger.Info(installer.StepInstallNode, "backuped node")
+			logger.Info(installer.StepUpgradeNode, "backuped node")
 		}
 	}
 
 	if !step.args.SelectUpgrades || step.args.EnableUpgradeReleasePackage {
 		// 2. unpack release package files into installed file-system.
 		if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
-			logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
+			logger.Errorf(installer.StepUpgradeNode, "failed to unpack release pkg: %v", err)
 
 			return err
 		}
-		logger.Info(installer.StepInstallNode, "unpacked release pkg")
+		logger.Info(installer.StepUpgradeNode, "unpacked release pkg")
 	}
 
 	if !step.args.SelectUpgrades || step.args.EnableUpgradeConfig {
 		// 3. copy config files to installed file-system.
 		if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-			logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
+			logger.Errorf(installer.StepUpgradeNode, "failed to copy config dir: %v", err)
 
 			return err
 		}
-		logger.Info(installer.StepInstallNode, "copied config dir")
+		logger.Info(installer.StepUpgradeNode, "copied config dir")
 	}
 
-	logger.Info(installer.StepInstallNode, "upgraded node, wait for restarting")
+	logger.Info(installer.StepUpgradeNode, "upgraded node, wait for restarting")
 
 	return nil
 }

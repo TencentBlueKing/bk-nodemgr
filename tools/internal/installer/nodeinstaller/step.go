@@ -98,7 +98,40 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 	}
 	logger.Info(installer.StepInstallNode, "registered agent")
 
+	if err := step.installAutoStartup(ctx); err != nil {
+		return nil, err
+	}
+	logger.Info(installer.StepInstallNode, "installed auto-startup")
+
 	logger.Info(installer.StepInstallNode, "installed node")
 
 	return &StepResult{AgentID: agentID}, nil
+}
+
+func (step *Step) installAutoStartup(ctx context.Context) error {
+	hasStdout := false
+	stdoutF := func(content string) {
+		hasStdout = true
+		logger.Infof(installer.StepInstallNode, "node output: %s", content)
+	}
+	var stderrMsg string
+	stderrF := func(content string) {
+		stderrMsg += content + "\n"
+	}
+
+	if err := step.args.AgentHandler.Process().InstallAutoStartup(ctx,
+		&agenthandler.AsyncOutputOptions{
+			Stdout: stdoutF,
+			Stderr: stderrF,
+		}); err != nil {
+		logger.Errorf(installer.StepInstallNode, "failed to install auto startup. err-output(%s): %v", stderrMsg, err)
+
+		return fmt.Errorf("failed to install auto startup: %w", err)
+	}
+
+	if !hasStdout {
+		logger.Warnf(installer.StepInstallNode, "installed auto startup without output")
+	}
+
+	return nil
 }

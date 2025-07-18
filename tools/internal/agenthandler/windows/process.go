@@ -122,6 +122,42 @@ func (handler *AgentHandler) UnregisterAgentID(ctx context.Context) error {
 	return nil
 }
 
+// InstallAutoStartup install auto startup after host boot.
+func (handler *AgentHandler) InstallAutoStartup(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
+	status, err := winapi.GetServiceStatus(handler.agentDaemonServiceName)
+	if err != nil {
+		return fmt.Errorf("failed to get service status: %w", err)
+	}
+
+	if status != winapi.WinSvcStatusNotInstalled {
+		return fmt.Errorf("service already registered. service(%s)", handler.agentDaemonServiceName)
+	}
+
+	if err := handler.installWinSvc(ctx, opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UninstallAutoStartup uninstall auto startup after host boot.
+func (handler *AgentHandler) UninstallAutoStartup(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
+	status, err := winapi.GetServiceStatus(handler.agentDaemonServiceName)
+	if err != nil {
+		return fmt.Errorf("failed to get service status: %w", err)
+	}
+
+	if status == winapi.WinSvcStatusNotInstalled {
+		return nil
+	}
+
+	if err = handler.uninstallWinSvc(ctx, opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Start start the agent process(including file and data in proxy mode).
 func (handler *AgentHandler) Start(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
 	if err := handler.executeGSECtl(ctx, opts, "start"); err != nil {
@@ -133,22 +169,8 @@ func (handler *AgentHandler) Start(ctx context.Context, opts *agenthandler.Async
 
 // Stop stop the agent process.
 func (handler *AgentHandler) Stop(ctx context.Context, _ bool, opts *agenthandler.AsyncOutputOptions) error {
-	status, err := winapi.GetServiceStatus(handler.agentDaemonServiceName)
-	if err != nil {
-		return fmt.Errorf("failed to get service status: %w", err)
-	}
-
-	if status == winapi.WinSvcStatusNotInstalled {
-		return nil
-	}
-
-	// regardless of whether the service is stopped or not, we should stop it first
-	if err = handler.stopWinSvc(ctx, opts); err != nil {
-		return err
-	}
-
-	if err = handler.uninstallWinSvc(ctx, opts); err != nil {
-		return err
+	if err := handler.executeGSECtl(ctx, opts, "stop"); err != nil {
+		return fmt.Errorf("failed to stop agent: %w", err)
 	}
 
 	return nil
@@ -202,21 +224,10 @@ func (handler *AgentHandler) forceKillProcess() error {
 	return nil
 }
 
-// delSelfStartTask deletes the self-start task of GSE agent from the registry.
-func (handler *AgentHandler) delSelfStartTask() error {
-	// delete registry
-	err := winapi.DelRegistryCurrentUserStartRun(handler.agentDaemonServiceName)
-	if err != nil {
-		return fmt.Errorf("failed to delete registry: %w", err)
-	}
-
-	return nil
-}
-
-// stopWinSvc stop gse agent daemon service through daemon.
-func (handler *AgentHandler) stopWinSvc(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
-	if err := handler.executeDaemon(ctx, opts, "--quit", "--name", handler.agentDaemonServiceName); err != nil {
-		return fmt.Errorf("failed to stop gse agent daemon service: %w", err)
+// installWinSvc install gse agent daemon service through daemon.
+func (handler *AgentHandler) installWinSvc(ctx context.Context, opts *agenthandler.AsyncOutputOptions) error {
+	if err := handler.executeDaemon(ctx, opts, "--install", "-f", handler.getAbsPath(handler.agentConfigFilePath), "--name", handler.agentDaemonServiceName); err != nil {
+		return fmt.Errorf("failed to uninstall gse agent daemon service: %w", err)
 	}
 
 	return nil

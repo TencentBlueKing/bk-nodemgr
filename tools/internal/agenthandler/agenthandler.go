@@ -74,6 +74,12 @@ type IAgentProcessHandler interface {
 	// UnregisterAgentID unregister agent-id.
 	UnregisterAgentID(ctx context.Context) error
 
+	// InstallAutoStartup install auto startup after host boot.
+	InstallAutoStartup(ctx context.Context, opts *AsyncOutputOptions) error
+
+	// UninstallAutoStartup uninstall auto startup after host boot.
+	UninstallAutoStartup(ctx context.Context, opts *AsyncOutputOptions) error
+
 	// Start start the agent process.
 	Start(ctx context.Context, opts *AsyncOutputOptions) error
 

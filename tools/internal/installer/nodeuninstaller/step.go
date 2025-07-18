@@ -43,11 +43,16 @@ func (step *Step) Run(ctx context.Context) error {
 
 	if step.args.Backup {
 		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
-			logger.Warnf(installer.StepInstallNode, "failed to backup: %v", err)
+			logger.Warnf(installer.StepUninstallNode, "failed to backup: %v", err)
 		} else {
-			logger.Info(installer.StepInstallNode, "backuped node")
+			logger.Info(installer.StepUninstallNode, "backuped node")
 		}
 	}
+
+	if err := step.uninstallAutoStartup(ctx); err != nil {
+		return err
+	}
+	logger.Info(installer.StepUninstallNode, "uninstalled auto-startup")
 
 	if err := step.args.AgentHandler.FS().Purge(ctx); err != nil {
 		logger.Errorf(installer.StepUninstallNode, "failed to purge file-system: %v", err)
@@ -56,6 +61,34 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 
 	logger.Infof(installer.StepUninstallNode, "uninstalled node")
+
+	return nil
+}
+
+func (step *Step) uninstallAutoStartup(ctx context.Context) error {
+	hasStdout := false
+	stdoutF := func(content string) {
+		hasStdout = true
+		logger.Infof(installer.StepUninstallNode, "node output: %s", content)
+	}
+	var stderrMsg string
+	stderrF := func(content string) {
+		stderrMsg += content + "\n"
+	}
+
+	if err := step.args.AgentHandler.Process().UninstallAutoStartup(ctx,
+		&agenthandler.AsyncOutputOptions{
+			Stdout: stdoutF,
+			Stderr: stderrF,
+		}); err != nil {
+		logger.Errorf(installer.StepUninstallNode, "failed to uninstall auto startup. err-output(%s): %v", stderrMsg, err)
+
+		return fmt.Errorf("failed to uninstall auto startup: %w", err)
+	}
+
+	if !hasStdout {
+		logger.Warnf(installer.StepUninstallNode, "uninstalled auto startup without output")
+	}
 
 	return nil
 }
