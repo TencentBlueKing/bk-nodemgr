@@ -39,7 +39,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 			Platform:   []platform.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
 			AsDefault:  []bool{true},
-			Enabled:    []bool{false},
+			Enabled:    []bool{true},
 		},
 	}
 
@@ -71,7 +71,7 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 			Platform:   []platform.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
 			Version:    []string{versionParam.Version},
-			Enabled:    []bool{false},
+			Enabled:    []bool{true},
 		},
 	}
 	num, err := versionParam.daoRelease.CountRelease(ctx, cond)
