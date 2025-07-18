@@ -12,6 +12,8 @@ message PackageReleaseExactConditions {
   repeated string release_type = 2;
   repeated Platform platform = 3;
   repeated string version = 4;
+  repeated bool as_default = 5;
+  repeated bool enabled = 6;
 }
 
 // PackageReleaseListReq describes the HTTP request body when list package

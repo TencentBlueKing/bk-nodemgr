@@ -282,6 +282,8 @@ type ReleaseExactFields struct {
 	Platform   []platform.Platform
 	Type       []ReleaseType
 	Version    []string
+	AsDefault  []bool
+	Enabled    []bool
 }
 
 // ReleaseFuzzyFields defines the release fuzzy fields.

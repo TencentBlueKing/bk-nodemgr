@@ -38,39 +38,25 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 			Type:       []types.ReleaseType{versionParam.ReleaseType},
 			Platform:   []platform.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
+			AsDefault:  []bool{true},
+			Enabled:    []bool{false},
 		},
 	}
 
 	releases, num, err := versionParam.daoRelease.ListRelease(ctx, types.UnlimitedPage(), cond)
 	if err != nil {
-		return "", fmt.Errorf("failed to list releases, err: %w", err)
+		return "", fmt.Errorf("failed to list default releases, err: %w", err)
 	}
 	if num == 0 {
-		return "", fmt.Errorf("failed to list releases for platform. no release found. platform(%v)", plat)
+		return "", fmt.Errorf("failed to list default releases for platform. no default release found. platform(%v)", plat)
 	}
 
 	if num > 1 {
-		return "", fmt.Errorf("failed to list releases for platform. multiple releases found. platform(%v)", plat)
-	}
-
-	defaultReleases := make([]string, 0)
-	for _, release := range releases {
-		if !release.AsDefault {
-			continue
-		}
-		defaultReleases = append(defaultReleases, release.Version)
-	}
-
-	switch len(defaultReleases) {
-	case 0:
-		return "", fmt.Errorf("failed to get default release for platform. no default release found. platform(%v)", plat)
-	case 1:
-		return defaultReleases[0], nil
-	default:
 		return "", fmt.Errorf(
-			"failed to get default release for platform. multiple default releases found. platform(%v), default-releases(%v)",
-			plat, defaultReleases)
+			"failed to list default releases for platform. multiple default releases found. platform(%v)", plat)
 	}
+
+	return releases[0].Version, nil
 }
 
 func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVersionParam) error {
@@ -85,6 +71,7 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 			Platform:   []platform.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
 			Version:    []string{versionParam.Version},
+			Enabled:    []bool{false},
 		},
 	}
 	num, err := versionParam.daoRelease.CountRelease(ctx, cond)

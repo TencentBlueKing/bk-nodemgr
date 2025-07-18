@@ -222,7 +222,9 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 				release.WithGeneration(condition.ExactInclude.Generation...),
 				release.WithType(condition.ExactInclude.Type...),
 				release.WithVersion(condition.ExactInclude.Version...),
-				release.WithPlatform(condition.ExactInclude.Platform...))
+				release.WithPlatform(condition.ExactInclude.Platform...),
+				release.WithEnabled(condition.ExactInclude.Enabled...),
+				release.WithAsDefault(condition.ExactInclude.AsDefault...))
 		}
 
 		if condition.FuzzyInclude != nil {

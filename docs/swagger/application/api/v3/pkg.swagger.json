@@ -972,6 +972,18 @@
           "items": {
             "type": "string"
           }
+        },
+        "as_default": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
         }
       },
       "description": "PackageReleaseExactConditions describes release exact conditions."

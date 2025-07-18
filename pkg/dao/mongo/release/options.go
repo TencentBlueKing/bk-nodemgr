@@ -45,6 +45,16 @@ func WithOSType(osType ...string) OptFn {
 	return base.WithValues(FieldKeyOSType, osType...)
 }
 
+// WithAsDefault provides filtering by os type.
+func WithAsDefault(asDefault ...bool) OptFn {
+	return base.WithValues(FieldKeyAsDefault, asDefault...)
+}
+
+// WithEnabled provides filtering by os type.
+func WithEnabled(enabled ...bool) OptFn {
+	return base.WithValues(FieldKeyEnabled, enabled...)
+}
+
 // WithPlatform provides filtering by platform.
 func WithPlatform(platform ...platform.Platform) OptFn {
 	if len(platform) == 0 {

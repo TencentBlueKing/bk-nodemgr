@@ -65,6 +65,8 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 			Type:       types.StringListToReleaseTypeList(exactCond.GetReleaseType()),
 			Platform:   plats,
 			Version:    exactCond.GetVersion(),
+			AsDefault:  exactCond.GetAsDefault(),
+			Enabled:    exactCond.GetEnabled(),
 		}
 	}
 
