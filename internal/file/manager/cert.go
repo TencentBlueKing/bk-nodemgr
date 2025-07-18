@@ -125,7 +125,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 	detail := new(types.OriginCertPkgDetail)
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, "gseca.crt"},
+			filePath: []string{"gseca.crt"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gseca.crt")
 
@@ -133,7 +133,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_agent.crt"},
+			filePath: []string{"gse_agent.crt"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_agent.crt")
 
@@ -141,7 +141,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_agent.key"},
+			filePath: []string{"gse_agent.key"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_agent.key")
 
@@ -149,7 +149,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_server.crt"},
+			filePath: []string{"gse_server.crt"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_server.crt")
 
@@ -157,7 +157,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_server.key"},
+			filePath: []string{"gse_server.key"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_server.key")
 
@@ -165,7 +165,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_api_client.crt"},
+			filePath: []string{"gse_api_client.crt"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_api_client.crt")
 
@@ -173,7 +173,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "gse_api_client.key"},
+			filePath: []string{"gse_api_client.key"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "gse_api_client.key")
 
@@ -181,7 +181,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
+			filePath: []string{"cert_encrypt.key"},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, "cert_encrypt.key")
 
