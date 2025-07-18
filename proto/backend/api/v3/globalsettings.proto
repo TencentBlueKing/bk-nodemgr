@@ -1,0 +1,88 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// GlobalSetting describes a global setting.
+message GlobalSetting {
+  string setting_name = 1;
+  string value = 2;
+}
+
+// ListGlobalSettingsReq describes the HTTP request body when list global
+// settings.
+message ListGlobalSettingsReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions { repeated string setting_name = 1; }
+  ExactConditions exact_include_conditions = 3;
+
+  message FuzzyConditions { repeated string setting_name = 1; }
+  FuzzyConditions fuzzy_include_conditions = 4;
+
+  ExactConditions exact_exclude_conditions = 5;
+  FuzzyConditions fuzzy_exclude_conditions = 6;
+}
+
+// ListGlobalSettingsResp describes the HTTP response body when list global
+// settings.
+message ListGlobalSettingsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated GlobalSetting items = 2;
+  }
+  Data data = 4;
+}
+
+// GetGlobalSettingReq describes the HTTP request body when get a global
+// setting.
+message GetGlobalSettingReq { string setting_name = 1; }
+
+// GetGlobalSettingResp describes the HTTP response body when get a global
+// setting.
+message GetGlobalSettingResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { string value = 1; }
+  Data data = 4;
+}
+
+// UpsertGlobalSettingReq describes the HTTP request body when upsert global
+// settings.
+message UpsertGlobalSettingsReq { repeated GlobalSetting settings = 1; }
+
+// UpsertGlobalSettingResp describes the HTTP response body when upsert global
+// settings.
+message UpsertGlobalSettingsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// DeleteGlobalSettingReq describes the HTTP request body when delete global
+// settings.
+message DeleteGlobalSettingsReq { repeated string setting_name = 1; }
+
+// DeleteGlobalSettingResp describes the HTTP response body when delete global
+// settings.
+message DeleteGlobalSettingsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}

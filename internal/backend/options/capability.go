@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -63,6 +64,9 @@ type Capability struct {
 
 	// StorageRelease release storage.
 	StorageRelease release.IStorage
+
+	// StorageGlobalSettings global settings storage.
+	StorageGlobalSettings globalsettings.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -127,6 +131,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.StorageRelease.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageGlobalSettings.Start(ctx); err != nil {
 		return err
 	}
 

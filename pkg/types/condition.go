@@ -387,3 +387,31 @@ type ScheduleWorkflowOperInstanceStatusCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ScheduleWorkflowOperInstanceStatusFuzzyFields
 }
+
+// GlobalSettingsExactFields defines the global settings exact fields.
+type GlobalSettingsExactFields struct {
+	SettingName []string
+}
+
+// GlobalSettingsFuzzyFields defines the global settings fuzzy fields.
+type GlobalSettingsFuzzyFields struct {
+	SettingName []string
+}
+
+// GlobalSettingsCondition defines the global settings condition.
+type GlobalSettingsCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *GlobalSettingsExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *GlobalSettingsFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *GlobalSettingsExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *GlobalSettingsFuzzyFields
+}

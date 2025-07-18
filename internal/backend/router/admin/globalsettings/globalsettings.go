@@ -8,38 +8,44 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package admin ...
-package admin
+// Package globalsettings provides the global settings API handler.
+package globalsettings
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.Logger
+	rg          *gin.RouterGroup
+	manager     manager.Manager
+	storage     globalsettings.IStorage
+	cmdbHandler cmdb.IHandler
+	logger      logger.Logger
 }
 
-// newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/admin"),
-		logger: capability.Logger,
+		rg:          rg.Group("/globalsettings"),
+		manager:     capability.Manager,
+		storage:     capability.StorageGlobalSettings,
+		cmdbHandler: capability.CmdbHandler,
+		logger:      capability.Logger,
 	}
 }
 
-// Load ter register the api v3 router.
+// Load loads global settings handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	// TODO: 设置权限封禁
-
-	workflow.Load(h.rg, capability)
-	globalsettings.Load(h.rg, capability)
+	h.rg.POST("/list", rest.RestHandlerFunc(h.ListGlobalSettings))
+	h.rg.POST("/get", rest.RestHandlerFunc(h.GetGlobalSetting))
+	h.rg.POST("/upsertmany", rest.RestHandlerFunc(h.UpsertManyGlobalSettings))
+	h.rg.POST("/deletemany", rest.RestHandlerFunc(h.DeleteManyGlobalSettings))
 }
