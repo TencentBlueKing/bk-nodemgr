@@ -151,9 +151,6 @@ func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, condition
 func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
-	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldAsc(networkarea.FieldKeyNetworkAreaID))
-
 	opts := make([]networkarea.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
