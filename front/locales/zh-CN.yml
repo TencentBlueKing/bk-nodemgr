@@ -40,7 +40,22 @@ platform:
     delete: 删除
     pluginManagement: 插件管理
     history: 历史
-    taskHistory: 任务历史
+    taskHistory:
+      title:
+        mainTitle: 任务历史
+      taskType:
+        install_agent: Agent 安装
+        upgrade_agent: Agent 升级
+        reconfig_agent: Agent 重载配置
+        restart_agent: Agent 重启
+        uninstall_agent: Agent 卸载
+        install_proxy: Proxy 安装
+        upgrade_proxy: Proxy 升级
+        reconfig_proxy: Proxy 重载配置
+        restart_proxy: Proxy 重启
+        uninstall_proxy: Proxy 卸载
+        install_plugin: 插件安装
+        upgrade_plugin: 插件升级
   topoManager:
     name: 拓扑管理
   ruleManager:

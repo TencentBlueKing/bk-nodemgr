@@ -186,17 +186,41 @@ const statusMap = {
 }
 const typeMap = {
   install_agent: {
-    text: t('Agent 安装')
-  },
-  install_plugin: {
-    text: t('插件安装')
+    text: t('platform.nodeMan.taskHistory.taskType.install_agent')
   },
   upgrade_agent: {
-    text: t('Agent 升级')
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_agent')
+  },
+  reconfig_agent: {
+    text: t('platform.nodeMan.taskHistory.taskType.reconfig_agent')
+  },
+  restart_agent: {
+    text: t('platform.nodeMan.taskHistory.taskType.restart_agent')
+  },
+  uninstall_agent: {
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_agent')
+  },
+  install_proxy: {
+    text: t('platform.nodeMan.taskHistory.taskType.install_proxy')
+  },
+  upgrade_proxy: {
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_proxy')
+  },
+  reconfig_proxy: {
+    text: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy')
+  },
+  restart_proxy: {
+    text: t('platform.nodeMan.taskHistory.taskType.restart_proxy')
+  },
+  uninstall_proxy: {
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy')
+  },
+  install_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.install_plugin')
   },
   upgrade_plugin: {
-    text: t('插件升级')
-  }
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin')
+  },
 }
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   id: item.bk_biz_id,
@@ -321,8 +345,8 @@ const getTimestampInSeconds = (originalDate: string) => {
 const getParams = () => {
   const params = {
     page: {
-      limit: pagination.value.limit,
-      offset: pagination.value.current - 1
+      limit: 0,
+      offset: 0
     },
     exact_include_conditions: {} as Record<string, string[]>,
     fuzzy_include_conditions: {} as Record<string, string[]>,

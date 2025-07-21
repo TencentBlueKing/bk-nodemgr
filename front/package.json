@@ -16,7 +16,7 @@
   "dependencies": {
     "@antv/g6": "^5.0.43",
     "@blueking/platform-config": "^1.0.5",
-    "@blueking/table": "0.0.1-beta.35",
+    "@blueking/table": "0.0.1-beta.40",
     "@vueuse/core": "^12.7.0",
     "@vueuse/head": "^2.0.0",
     "bkui-vue": "2.0.1-beta.100",

@@ -22,7 +22,7 @@
               :rules="rules.bk_host_innerip"
               required
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
-              <Input v-model.trim="row.bk_host_innerip"></Input>
+              <Input v-model.trim="row.bk_host_innerip" @change="val => handleChangeIPv4(val, row)"></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -62,7 +62,8 @@
               :ref="el => setInputRef($rowIndex, $columnIndex, el)">
               <Select
                 v-model="row.os_type"
-                auto-focus>
+                auto-focus
+                @change="val => handleChangeOsType(val, row)">
                   <Select.Option v-for="option in datasourceList"
                     :key="option.id"
                     :id="option.id"
@@ -243,13 +244,13 @@ const initData = {
   login_ip: '',
   login_port: '',
   login_user: '',
-  login_mode: '',
+  login_mode: 'password',
   login_password: '',
   login_key_file: '',
   bk_addressing: 'static',
-  bk_networkunit_id: NaN,
-  bk_biz_id: NaN,
-  bk_host_id: NaN,
+  bk_networkunit_id: '',
+  bk_biz_id: '',
+  bk_host_id: '',
   re_register: false,
   prove: ''
 };
@@ -332,6 +333,22 @@ const curMode = ref('password');
 const handleChangeMode = (newValue: string, row: any) => {
   curMode.value = newValue;
   row.prove = '';
+}
+// 登录ip默认回填内网ipv4的值
+const handleChangeIPv4 = (val: string, row: any) => {
+  if (new RegExp(VALIDATE_REGEX.IPV4).test(val)) {
+    row.login_ip = val;
+  }
+}
+// linux登录端口默认为36000
+const handleChangeOsType = (val: string, row: any) => {
+  if (val === 'linux') {
+    row.login_port = '36000';
+    row.login_user = 'root';
+  }
+  if (val === 'windows') {
+    row.login_user = 'administer';
+  }
 }
 const getHostDistinct = async () => {
   const res = await TopoService.HostDistinct({}).catch(() => null);

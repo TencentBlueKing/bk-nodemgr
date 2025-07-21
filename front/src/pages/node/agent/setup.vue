@@ -156,7 +156,6 @@ import { cloneDeep } from 'lodash';
 import chooseVersionDialog from '@/components/choose-version-dialog.vue';
 import Validate from '@/components/validate.vue';
 
-const route = useRoute();
 const router = useRouter();
 const initData = {
     bk_addressing: 'static',
@@ -166,7 +165,7 @@ const initData = {
     login_ip: '',
     login_port: '',
     login_user: '',
-    login_mode: '',
+    login_mode: 'password',
     login_password: '',
     login_key_file: '',
     bk_networkunit_id: '',
@@ -337,16 +336,22 @@ const Darwin_amd64_ref = ref();
 const Linux_arm64_ref = ref();
 const Windows_amd64_ref= ref();
 const handlePreview = async () => {
-        const result = await Promise.all([
+    const result = await Promise.all([
         formRef.value?.validate().catch(() => false),
         installTableRef.value?.tableValidate(),
-        isShow.value ?
-            (Linux_amd64_ref.value?.validate('blur').catch(() => false),
-            Darwin_amd64_ref.value?.validate('blur').catch(() => false),
-            Linux_arm64_ref.value?.validate('blur').catch(() => false),
-            Windows_amd64_ref.value?.validate('blur').catch(() => false))
+        isShow.value
+            ? Promise.all([
+                Linux_amd64_ref.value?.validate('blur').catch(() => false),
+                Darwin_amd64_ref.value?.validate('blur').catch(() => false),
+                Linux_arm64_ref.value?.validate('blur').catch(() => false),
+                Windows_amd64_ref.value?.validate('blur').catch(() => false)
+            ])
             : true
     ]);
+    // 合并多重Promise
+    if (Array.isArray(result[2])) {
+        result[2] = result[2].every(item => item);
+    }
     if (result.every(item => item)) {
         previewData.isShow = true;
         const modeMap = {

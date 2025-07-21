@@ -44,7 +44,7 @@ const navList = [
           {
             routeName: 'history',
             icon: 'nodeman-icon nc-history',
-            title: i18n.global.t('platform.nodeMan.taskHistory'),
+            title: i18n.global.t('platform.nodeMan.taskHistory.title.mainTitle'),
           },
         ],
       },

@@ -64,6 +64,8 @@
         @checkbox-change="handleSelectChange"
         @checkbox-all="handleSelectAllChange"
         @column-filter="handleFilter"
+        @page-limit-change="pageLimitChange"
+        @page-value-change="pageValueChange"
       >
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
@@ -84,7 +86,7 @@
         <TableColumn show-overflow field="node_version" :title="t('platform.nodeMan.agent_version')" :filter="filterOptionSource.node_version"></TableColumn>
         <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150" :filter="filterOptionSource.node_status">
           <template #default="{ row }">
-            <div class="flex items-center" v-if="row.node_status">
+                        <div class="flex items-center" v-if="row.node_status">
               <span :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"></span>
               <span>{{ row.node_status }}</span>
             </div>
@@ -125,20 +127,19 @@ interface FilterOption {
   checked: string[];
   filterScope: string;
 }
-import { ref, reactive, computed, onMounted, shallowRef } from 'vue';
+import { ref, reactive, computed, onMounted, shallowRef, watch } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 import { useI18n } from 'vue-i18n';
 import { toLower } from 'lodash';
 import { useRoute, useRouter } from 'vue-router';
 import { InfoBox, Button, Dropdown, Cascader, SearchSelect } from 'bkui-vue';
-import usePage from '@/composables/use-page';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 import { WorkflowService } from '@/api/modules/workflow';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
 import { TopoHostDistinctRespData } from '@/@types/topo';
-import { watch } from 'vue';
+import type { TopoHostExactConditions, TopoHostFuzzyConditions } from '@/@types/topo.d';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -147,10 +148,8 @@ const nodeManageStore = useNodeManageStore();
 const tableData = ref<Host[]>([]);
 const agentList = ref<Host[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
-// 分页
-const {
-  pagination
-} = usePage(tableData);
+// 后端分页
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 // 跨页全选
 const isSelectedAllPages = ref(false);
 const loading = ref(false);
@@ -212,6 +211,16 @@ const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
     }
   }
 }
+// 分页操作
+const pageLimitChange = async (limit: number) => {
+  pagination.limit = limit;
+  await getAgentList();
+}
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getAgentList();
+}
+
 // 批量操作
 const operate = [
   {
@@ -543,12 +552,13 @@ const fuzzyKeys = new Set([
 const getParams = () => {
   const params = {
     page: {
-      offset: 0,
-      limit: 0,
+      limit: pagination.limit,
+      offset: pagination.current - 1
     },
-    exact_include_conditions: {} as Record<string, string[]>,
-    fuzzy_include_conditions: {} as Record<string, string[]>,
+    exact_include_conditions: {} as TopoHostExactConditions,
+    fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
+  params.exact_include_conditions.node_role = ['agent', 'blank'];
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
@@ -566,6 +576,7 @@ const getAgentList = async () => {
       items: [],
     }
   });
+  pagination.count = res.total;
   tableData.value = res.items.map((item: any) => ({
     ...item.state,
     ...item.info,

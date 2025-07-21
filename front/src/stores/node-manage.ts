@@ -9,7 +9,7 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
       tableData: [] as Host[],
       type: '',
       isSelectedAllPages: false
-    }
+    },
   }),
   actions: {
     // 更新任务历史表格行信息

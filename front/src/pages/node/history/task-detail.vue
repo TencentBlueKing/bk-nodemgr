@@ -481,8 +481,8 @@ const updataCurrentTaskInfo = async () => {
 const getParams = () => {
   const params = {
     page: {
-        limit: pagination.value.limit,
-        offset: pagination.value.current - 1
+        limit: 0,
+        offset: 0
     },
     exact_include_conditions: {} as Record<string, string[] | string>,
     fuzzy_include_conditions: {} as Record<string, string[]>,

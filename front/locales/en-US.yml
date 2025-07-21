@@ -26,7 +26,22 @@ platform:
     delete: Detele
     pluginManagement: Plugin management
     history: History
-    taskHistory: Task history
+    taskHistory:
+      title:
+        mainTitle: Task history
+      taskType:
+        install_agent: Install agent
+        upgrade_agent: Upgrade agent
+        reconfig_agent: Reconfig agent
+        restart_agent: Restart agent
+        uninstall_agent: Uninstall agent
+        install_proxy: Install proxy
+        upgrade_proxy: Upgrade proxy
+        reconfig_proxy: Reconfig proxy
+        restart_proxy: Restart proxy
+        uninstall_proxy: Uninstall proxy
+        install_plugin: Install plugin
+        upgrade_plugin: Upgrade plugin
 topoManager:
   workArea:
     title: Workarea
