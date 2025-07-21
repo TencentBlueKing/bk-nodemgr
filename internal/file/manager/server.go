@@ -33,7 +33,11 @@ const (
 // UploadOriginServer uploads the origin server.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(ctx context.Context, pkgFileContent io.ReadCloser) (*types.OriginPkgDetail, error) {
+func (m *Manager) UploadOriginServer(
+	ctx context.Context,
+	pkgFileContent io.ReadCloser,
+) (*types.OriginPkgDetail, error) {
+
 	if pkgFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. file is nil")
 

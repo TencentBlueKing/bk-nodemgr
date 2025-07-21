@@ -50,7 +50,7 @@ func (f *File) Writer() (io.WriteCloser, error) {
 	return os.OpenFile(
 		f.path,
 		os.O_RDWR|os.O_TRUNC,
-		0644,
+		0644, // nolint: nmd
 	)
 }
 
@@ -123,6 +123,7 @@ func NewTempFile(data io.ReadCloser, name string) (file *File, err error) {
 }
 
 // NewTempFileWithSpecialName create a temporary file with special name.
+// nolint: nonamedreturns,mnd
 func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -140,8 +141,9 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 		return nil, fmt.Errorf("failed to create temporary dir, err: %w", err)
 	}
 
+	// because this func is used to create a file which has specific name, so we couldn't use os.CreateTemp.
+	// nolint: gosec
 	tmpFilePath := filepath.Join(tmpDir, name)
-
 	tmpFile, err := os.Create(tmpFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file with special name, err: %w", err)

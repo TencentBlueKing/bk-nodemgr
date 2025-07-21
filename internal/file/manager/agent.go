@@ -394,10 +394,13 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 		gp.Go(func() error {
 			// create target file.
 			tmpFile, err := tmp.NewTempFileWithSpecialName(tmp.NilContent(), generatedAgentFileName)
+			if err != nil {
+				return fmt.Errorf("failed to generate release agent, failed to create temp file: %w", err)
+			}
 
 			targetFileWriter, err := tmpFile.Writer()
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to generate release agent, failed to create temp file writer: %w", err)
 			}
 
 			// open all source files.

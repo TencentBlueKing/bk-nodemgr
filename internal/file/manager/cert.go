@@ -29,7 +29,10 @@ const (
 // UploadOriginCert uploads origin cert.
 // nolint:funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(ctx context.Context, certFileContent io.ReadCloser) (*types.OriginCertPkgDetail, error) {
+func (m *Manager) UploadOriginCert(
+	ctx context.Context,
+	certFileContent io.ReadCloser,
+) (*types.OriginCertPkgDetail, error) {
 
 	if certFileContent == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, file is nil")

@@ -202,10 +202,13 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 
 		gp.Go(func() error {
 			tmpFile, err := tmp.NewTempFileWithSpecialName(tmp.NilContent(), generatedProxyFileName)
+			if err != nil {
+				return fmt.Errorf("failed to generate release proxy, failed to create temp file: %w", err)
+			}
 
 			targetFileWriter, err := tmpFile.Writer()
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to generate release proxy, failed to create temp file writer: %w", err)
 			}
 
 			// open all source files.
