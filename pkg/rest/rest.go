@@ -125,8 +125,10 @@ func InitRestContext(gCtx *gin.Context) *Context {
 	restContext := &Context{
 		gCtx:      gCtx,
 		RequestID: header.BKRIDGetter(gCtx.Request, true),
-		Username:  gCtx.GetHeader(header.BKUserKey),
-		TenantID:  gCtx.GetHeader(header.BKTenantIDKey),
+		// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
+		LoginName:  gCtx.GetHeader(header.BKUserKey),
+		BKUsername: gCtx.GetHeader(header.BKUserKey),
+		TenantID:   gCtx.GetHeader(header.BKTenantIDKey),
 	}
 
 	gCtx.Set(restContextKey, restContext)

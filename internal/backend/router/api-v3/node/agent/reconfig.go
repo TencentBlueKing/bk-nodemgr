@@ -63,7 +63,7 @@ func (h *handler) AgentReconfig(ctx *rest.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchReconfigNode(sCtx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigAgent,
 		BizIDs:          h.getReconfigNodeBizIDs(hosts),
-		Operator:        ctx.Username,
+		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

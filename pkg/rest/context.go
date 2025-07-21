@@ -26,8 +26,13 @@ import (
 type Context struct {
 	gCtx      *gin.Context
 	RequestID string `json:"request_id"`
-	Username  string `json:"username"`
-	TenantID  string `json:"tenant_id"`
+
+	// LoginName is a readable name for user, and is unique in a tenant.
+	LoginName string `json:"login_name"`
+
+	// BKUsername is a unique name for user, and is unique in all tenants, but it is not readable
+	BKUsername string `json:"bk_username"`
+	TenantID   string `json:"tenant_id"`
 }
 
 // BindJSON bind json

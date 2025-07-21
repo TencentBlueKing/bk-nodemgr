@@ -73,7 +73,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.Username,
+		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
