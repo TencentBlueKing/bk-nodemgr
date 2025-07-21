@@ -893,9 +893,6 @@ file:
       accessKey: ""
       secretKey: ""
 
-    tempFileGroup:
-      fullPath: "/bk-nodeman/file/temp"
-
     cacheFileGroup:
       fullPath: "/bk-nodeman/file/cache"
 
