@@ -839,7 +839,7 @@ func TestSliceUnique(t *testing.T) {
 	}
 }
 
-// MapToSlice map to slice.
+// MapValueToSlice map to slice.
 func TestMapToSlice(t *testing.T) {
 	type args struct {
 		m map[string]int
@@ -866,7 +866,7 @@ func TestMapToSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MapToSlice(tt.args.m)
+			got := MapValueToSlice(tt.args.m)
 
 			sort.Slice(got, func(i, j int) bool {
 				return got[i] < got[j]
@@ -876,7 +876,7 @@ func TestMapToSlice(t *testing.T) {
 			})
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MapToSlice() got = %v, wantErr %v", got, tt.wantErr)
+				t.Errorf("MapValueToSlice() got = %v, wantErr %v", got, tt.wantErr)
 			}
 		})
 	}

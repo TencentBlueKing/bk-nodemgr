@@ -210,7 +210,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 		return nil, fmt.Errorf("failed to check origin agent package. err: %w", err)
 	}
 
-	detail.Platforms = conv.MapToSlice(plats)
+	detail.Platforms = conv.MapValueToSlice(plats)
 
 	return detail, nil
 }
@@ -337,7 +337,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyRelease(ctx, conv.MapToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyRelease(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upsert release agent: %v", err)
 
 		return err
@@ -517,5 +517,5 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 		return nil, fmt.Errorf("failed to generate agent packages: %w", err)
 	}
 
-	return conv.MapToSlice(result), nil
+	return conv.MapValueToSlice(result), nil
 }

@@ -41,7 +41,7 @@ func (p *ProviderDefault) GetAllService(serviceName ServiceName) ([]Instance, er
 		return nil, ErrServiceNotFound()
 	}
 
-	instances := conv.MapToSlice(instanceMap)
+	instances := conv.MapValueToSlice(instanceMap)
 
 	return instances, nil
 }

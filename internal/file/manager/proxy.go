@@ -146,7 +146,7 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyRelease(ctx, conv.MapToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyRelease(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upsert release proxy: %v", err)
 
 		return err
@@ -346,5 +346,5 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 		return nil, fmt.Errorf("failed to generate proxy packages: %w", err)
 	}
 
-	return conv.MapToSlice(result), nil
+	return conv.MapValueToSlice(result), nil
 }

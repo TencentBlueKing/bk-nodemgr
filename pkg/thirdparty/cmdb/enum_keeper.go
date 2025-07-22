@@ -90,7 +90,7 @@ func (keeper *enumCPUArchKeeper) update(ctx context.Context) error {
 	}
 
 	keeper.enumBasicKeeper.mutex.RLock()
-	values := conv.MapToSlice(keeper.enumBasicKeeper.mapping)
+	values := conv.MapValueToSlice(keeper.enumBasicKeeper.mapping)
 	keeper.enumBasicKeeper.mutex.RUnlock()
 
 	keeper.cpuArchMappingMutex.Lock()
@@ -155,7 +155,7 @@ func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
 	}
 
 	keeper.enumBasicKeeper.mutex.RLock()
-	values := conv.MapToSlice(keeper.enumBasicKeeper.mapping)
+	values := conv.MapValueToSlice(keeper.enumBasicKeeper.mapping)
 	keeper.enumBasicKeeper.mutex.RUnlock()
 
 	keeper.osTypeMappingMutex.Lock()
@@ -231,7 +231,7 @@ func (keeper *enumBasicKeeper) values() []string {
 	keeper.mutex.RLock()
 	defer keeper.mutex.RUnlock()
 
-	return conv.MapToSlice(keeper.mapping)
+	return conv.MapValueToSlice(keeper.mapping)
 }
 
 // searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
