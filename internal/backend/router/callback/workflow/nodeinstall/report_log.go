@@ -49,8 +49,11 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 	logs := make([]action.Message, len(req.Logs))
 	for idx, log := range req.Logs {
 		logs[idx] = action.Message{
-			Time:  time.Unix(log.GetTimestamp(), 0),
-			Text:  fmt.Sprintf("%s\t:%s\t", log.GetStep(), log.GetLog()),
+			Time: time.Now(),
+			Text: fmt.Sprintf("%s\t:%s\t:%s\t",
+				time.Unix(log.GetTimestamp(), 0).Format("2006-01-02 15:04:05"),
+				log.GetStep(),
+				log.GetLog()),
 			Level: log.GetLevel(),
 		}
 	}
@@ -63,12 +66,4 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 	}
 
 	gCtx.JSON(http.StatusOK, nil)
-}
-
-// InstallLog this is the report log.
-type InstallLog struct {
-	Timestamp time.Time `json:"timestamp"`
-	Level     string    `json:"level"`
-	Step      string    `json:"step"`
-	Log       string    `json:"log"`
 }
