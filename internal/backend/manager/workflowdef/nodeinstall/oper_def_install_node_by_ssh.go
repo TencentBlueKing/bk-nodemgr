@@ -33,7 +33,8 @@ type operInstallNodeBySSH struct {
 
 // OperParamInstallNodeBySSH defines the parameters for operInstallNodeBySSH.
 type OperParamInstallNodeBySSH struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

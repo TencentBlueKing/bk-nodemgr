@@ -52,7 +52,8 @@ func NewActionDetectInfoBySSH(
 
 // ActParamDetectInfoBySSH ...
 type ActParamDetectInfoBySSH struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 type actionDetectInfoBySSH struct {

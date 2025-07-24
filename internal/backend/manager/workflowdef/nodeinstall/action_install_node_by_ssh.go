@@ -56,7 +56,8 @@ func NewActionInstallNodeBySSH(
 
 // ActParamInstallAgentBySSH ...
 type ActParamInstallAgentBySSH struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // InstallParams this struct defines the parameters for installing agent.

@@ -53,7 +53,8 @@ func NewActionDetectInfoByWMI(
 
 // ActParamDetectInfoByWMI ...
 type ActParamDetectInfoByWMI struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 type actionDetectInfoByWMI struct {

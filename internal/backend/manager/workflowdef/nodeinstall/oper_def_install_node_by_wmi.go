@@ -33,7 +33,8 @@ type operInstallNodeByWMI struct {
 
 // OperParamInstallNodeByWMI defines the parameters for operInstallNodeByWMI.
 type OperParamInstallNodeByWMI struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

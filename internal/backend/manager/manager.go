@@ -389,11 +389,6 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 
 // LaunchInstallNode launch a task to install node.
 func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
-
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
@@ -417,7 +412,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			return mgr.createOper(ctx, tenantID, triggerCtl, deploy)
+			return mgr.createOper(ctx, param.Operator, triggerCtl, deploy)
 		})
 	}
 
@@ -473,10 +468,15 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 }
 func (mgr *manager) createOper(
 	ctx context.Context,
-	tenantID string,
+	operator string,
 	triggerCtl workflow.ITriggerCtl,
 	deploy *types.NodeDeployment,
 ) error {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
 
 	if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
 		mgr.logger.ErrorCtxf(ctx,
@@ -491,11 +491,20 @@ func (mgr *manager) createOper(
 
 	switch deploy.Info.Host.Static.OSType {
 	case string(criteria.OSLinux), string(criteria.OSDarwin):
-		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 	case string(criteria.OSWindows):
-		operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{Token: deploy.Token})
+		operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 	default:
-		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{Token: deploy.Token})
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 	}
 
 	operationParam := operationDef.DefaultParameters()
@@ -561,7 +570,10 @@ func (mgr *manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodePara
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{Token: deploy.Token})
+			operationDef := nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
+				Token:    deploy.Token,
+				Operator: param.Operator,
+			})
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
@@ -639,7 +651,10 @@ func (mgr *manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodePa
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperReconfigNode(nodeinstall.OperParamReconfigNode{Token: deploy.Token})
+			operationDef := nodeinstall.NewOperReconfigNode(nodeinstall.OperParamReconfigNode{
+				Token:    deploy.Token,
+				Operator: param.Operator,
+			})
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
@@ -717,7 +732,10 @@ func (mgr *manager) LaunchRestartNode(ctx context.Context, param RestartNodePara
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperRestartNode(nodeinstall.OperParamRestartNode{Token: deploy.Token})
+			operationDef := nodeinstall.NewOperRestartNode(nodeinstall.OperParamRestartNode{
+				Token:    deploy.Token,
+				Operator: param.Operator,
+			})
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 

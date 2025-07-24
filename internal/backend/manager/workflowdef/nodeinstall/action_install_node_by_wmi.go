@@ -58,7 +58,8 @@ func NewActionInstallNodeByWMI(
 
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // InstallParamsWin this struct defines the parameters for installing agent.

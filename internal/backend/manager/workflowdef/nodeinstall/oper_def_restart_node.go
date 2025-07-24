@@ -33,7 +33,8 @@ type operRestartNode struct {
 
 // OperParamRestartNode defines the parameters for operRestartNode.
 type OperParamRestartNode struct {
-	Token string
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

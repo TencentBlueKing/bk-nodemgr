@@ -33,7 +33,8 @@ type operReconfigNode struct {
 
 // OperParamReconfigNode defines the parameters for operReconfigNode.
 type OperParamReconfigNode struct {
-	Token string
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.
