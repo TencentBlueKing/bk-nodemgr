@@ -14,7 +14,7 @@ package relayhandler
 import (
 	"context"
 
-	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
@@ -50,13 +50,17 @@ type ServerMessager interface {
 	// DecodeBaseRequest decodes the base request.
 	DecodeBaseRequest(req []byte) (*ServerReceivedData, error)
 
+	// PushToClient sends the server push to client.
+	PushToClient(ctx context.Context, eventType protoRelay.EventType,
+		payload []byte, agentIDs ...string) error
+
 	CallbackServer
 }
 
 // ServerReceivedData defines the server received data.
 type ServerReceivedData struct {
 	MessageID   string
-	MessageType protoProxy.MessageType
+	MessageType protoRelay.MessageType
 	AgentID     string
 	Content     []byte
 }
@@ -64,7 +68,7 @@ type ServerReceivedData struct {
 // CallbackServer defines the callback server.
 type CallbackServer interface {
 	// DecodeCallbackRequest decodes the callback request.
-	DecodeCallbackRequest(data *ServerReceivedData) (*protoProxy.CallbackReq, error)
+	DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error)
 
 	// RespondCallback sends the callback response.
 	RespondCallback(ctx context.Context, messageID string, httpCode int, content []byte, agentIDs ...string) error

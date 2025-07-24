@@ -20,6 +20,17 @@ const (
 
 	// MessageTypeCallbackResp describes the callback response message type.
 	MessageTypeCallbackResp MessageType = "callback_resp"
+
+	// MessageTypeServerPush describes the server push message type.
+	MessageTypeServerPush MessageType = "server_push"
+)
+
+// EventType defines the event type.
+type EventType string
+
+const (
+	// EventTypeCheckReleaseExist describes the check release exist event type.
+	EventTypeCheckReleaseExist EventType = "check_release_exist"
 )
 
 // Base defines the base info.
@@ -48,4 +59,24 @@ type CallbackResp struct {
 
 	HTTPCode int    `json:"http_code"`
 	Body     []byte `json:"body"`
+}
+
+// ServerPush describes the server push.
+type ServerPush struct {
+	Base
+
+	// EventType describes the event type.
+	EventType EventType `json:"event_type"`
+
+	// Payload describes the payload.
+	Payload []byte `json:"payload"`
+}
+
+// CheckReleaseExistEvent describes the check release exist event.
+type CheckReleaseExistEvent struct {
+	// Filename describes the filename.
+	Filename string `json:"filename"`
+
+	// MD5 describes the md5.
+	MD5 string `json:"md5"`
 }

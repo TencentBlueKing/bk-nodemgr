@@ -18,8 +18,9 @@ import (
 	"net/http"
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
-	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
@@ -100,7 +101,7 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 		return nil, err
 	}
 
-	base := new(protoProxy.Base)
+	base := new(protoRelay.Base)
 	if err = json.Unmarshal([]byte(data.Content), base); err != nil {
 		return nil, err
 	}
@@ -114,8 +115,8 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 }
 
 // DecodeCallbackRequest decodes the callback request.
-func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*protoProxy.CallbackReq, error) {
-	result := new(protoProxy.CallbackReq)
+func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error) {
+	result := new(protoRelay.CallbackReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
 		return nil, err
 	}
@@ -125,10 +126,10 @@ func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*proto
 
 // RespondCallback sends the callback resp.
 func (m *serverMessager) RespondCallback(ctx context.Context, messageID string, httpCode int, content []byte, agentIDs ...string) error {
-	resp := &protoProxy.CallbackResp{
-		Base: protoProxy.Base{
+	resp := &protoRelay.CallbackResp{
+		Base: protoRelay.Base{
 			MessageID:   messageID,
-			MessageType: protoProxy.MessageTypeCallbackResp,
+			MessageType: protoRelay.MessageTypeCallbackResp,
 		},
 		HTTPCode: httpCode,
 		Body:     content,
@@ -139,6 +140,40 @@ func (m *serverMessager) RespondCallback(ctx context.Context, messageID string, 
 	}
 
 	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
+	if err != nil {
+		return err
+	}
+
+	if result.Code != 0 || len(result.AgentResults) > 0 {
+		err = fmt.Errorf("failed to send callback resp to agents. code(%d), agent-results(%v)",
+			result.Code, conv.MapKeyToSlice(result.AgentResults))
+		m.config.Logger.WarnCtxf(ctx, "%v", err)
+
+		return err
+	}
+
+	return nil
+}
+
+// PushToClient sends the server push to client.
+func (m *serverMessager) PushToClient(ctx context.Context, eventType protoRelay.EventType,
+	payload []byte, agentIDs ...string) error {
+
+	push := &protoRelay.ServerPush{
+		Base: protoRelay.Base{
+			MessageID:   identifier.GenMessageID(),
+			MessageType: protoRelay.MessageTypeServerPush,
+		},
+		EventType: eventType,
+		Payload:   payload,
+	}
+	pushData, err := json.Marshal(push)
+	if err != nil {
+		return err
+	}
+
+	result, err := m.client.Cluster().PluginDispatchMessage(
+		ctx, push.MessageID, pushData, agentIDs...)
 	if err != nil {
 		return err
 	}

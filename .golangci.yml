@@ -655,8 +655,8 @@ linters-settings:
         alias: protoBackend
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3
         alias: protoFile
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy
-        alias: protoProxy
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
+        alias: protoRelay
       # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
       - pkg: github.com/testcontainers/testcontainers-go
         alias: tc

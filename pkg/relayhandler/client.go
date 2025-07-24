@@ -19,7 +19,7 @@ import (
 	"time"
 
 	agentmessage "github.com/TencentBlueKing/bk-gse-sdk/go/service/agent-message"
-	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
@@ -39,11 +39,15 @@ type ClientMessagerConfig struct {
 	Logger logger.Logger
 }
 
+// HandlerFunc defines the handler.
+type HandlerFunc func([]byte)
+
 // NewClientMessager creates a new client messager.
 func NewClientMessager(conf ClientMessagerConfig) *clientMessager {
 	return &clientMessager{
 		config:   conf,
 		messages: make(map[string]*synchronousData),
+		handlers: make(map[protoRelay.EventType]HandlerFunc),
 	}
 }
 
@@ -55,6 +59,9 @@ type clientMessager struct {
 
 	messagesMutex sync.RWMutex
 	messages      map[string]*synchronousData
+
+	handlers   map[protoRelay.EventType]HandlerFunc
+	handlerMux sync.RWMutex
 }
 
 // Start starts the messager.
@@ -96,16 +103,29 @@ func (m *clientMessager) Stop(ctx context.Context) error {
 func (m *clientMessager) messageCallback(messageID string, content []byte) {
 	m.config.Logger.Infof("receive message. message-id(%s), content(%s)", messageID, string(content))
 
-	var base protoProxy.Base
+	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
 		return
 	}
 
 	switch base.MessageType {
-	case protoProxy.MessageTypeCallbackResp:
+	case protoRelay.MessageTypeCallbackResp:
 		go m.setSynchronousData(messageID, content)
+	case protoRelay.MessageTypeServerPush:
+		var push protoRelay.ServerPush
+		if err := json.Unmarshal(content, &push); err != nil {
+			m.config.Logger.Warnf("Invalid push format: %v", err)
+			return
+		}
 
-		return
+		m.handlerMux.RLock()
+		handler, exists := m.handlers[push.EventType]
+		m.handlerMux.RUnlock()
+
+		if !exists {
+			m.config.Logger.Warnf("Unhandled event type: %s", push.EventType)
+		}
+		go handler(push.Payload)
 	}
 }
 
@@ -118,10 +138,10 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 	messageID := identifier.GenMessageID()
 	ch := m.newSyncronousData(messageID)
 
-	req := &protoProxy.CallbackReq{
-		Base: protoProxy.Base{
+	req := &protoRelay.CallbackReq{
+		Base: protoRelay.Base{
 			MessageID:   messageID,
-			MessageType: protoProxy.MessageTypeCallbackReq,
+			MessageType: protoRelay.MessageTypeCallbackReq,
 		},
 		URL:  url,
 		Body: content,
@@ -140,7 +160,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		case <-ctx.Done():
 			return nil, http.StatusInternalServerError, ctx.Err()
 		case respData := <-ch:
-			var resp protoProxy.CallbackResp
+			var resp protoRelay.CallbackResp
 			if err := json.Unmarshal(respData, &resp); err != nil {
 				return nil, http.StatusInternalServerError, err
 			}
@@ -148,6 +168,13 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 			return resp.Body, resp.HTTPCode, nil
 		}
 	}
+}
+
+// RegisterHandler registers the handler.
+func (m *clientMessager) RegisterHandler(eventType protoRelay.EventType, handler HandlerFunc) {
+	m.handlerMux.Lock()
+	defer m.handlerMux.Unlock()
+	m.handlers[eventType] = handler
 }
 
 func (m *clientMessager) newSyncronousData(messageID string) <-chan []byte {
