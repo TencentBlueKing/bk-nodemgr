@@ -14,10 +14,10 @@ package proxy
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -28,8 +28,9 @@ type handler struct {
 	manager                         manager.Manager
 	storageNetworkUnit              topo.IStorageNetworkUnit
 	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
-	logger                          logger.Logger
-	crypter                         crypter.Crypter
+	storageHostCredit               credit.IStorageHostCredit
+
+	logger logger.Logger
 }
 
 // newHandler ...
@@ -41,7 +42,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageNetworkUnit:              capability.StorageTopo,
 		storageNodeDeploymentDomainInit: capability.StorageNodeDeployment,
 		logger:                          capability.Logger,
-		crypter:                         capability.Crypter,
+		storageHostCredit:               capability.StorageCredit,
 	}
 }
 

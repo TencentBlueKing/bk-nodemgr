@@ -237,14 +237,6 @@ type CMDB struct {
 	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
-// GSE the config of gse.
-type GSE struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
-
-	PluginSlotID    int    `yaml:"pluginSlotID"`
-	PluginSlotToken string `yaml:"pluginSlotToken"`
-}
-
 // Validate validates the config.
 func (conf CMDB) Validate() error {
 	if conf.SupplierAccount == "" {
@@ -253,6 +245,73 @@ func (conf CMDB) Validate() error {
 
 	if err := conf.APIGateway.Validate(); err != nil {
 		return fmt.Errorf("api-gateway config of cmdb is invalid: %s", err)
+	}
+
+	return nil
+}
+
+// GSE the config of gse.
+type GSE struct {
+	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+
+	PluginSlotID    int    `yaml:"pluginSlotID"`
+	PluginSlotToken string `yaml:"pluginSlotToken"`
+}
+
+// CreditVault the config of credit vault.
+type CreditVault struct {
+	HostCreditVault HostCreditVault `yaml:"hostCreditVault" usage:"host credit vault config of backend service"`
+}
+
+// Validate validates the config.
+func (vault CreditVault) Validate() error {
+	if err := vault.HostCreditVault.Validate(); err != nil {
+		return fmt.Errorf("host credit vault config of backend service is invalid: %s", err)
+	}
+
+	return nil
+}
+
+// HostCreditVault the config of host credit vault.
+type HostCreditVault struct {
+	Enable bool   `yaml:"enable" usage:"enable credit vault"`
+	Type   string `yaml:"type" usage:"type of credit vault"`
+	IEGTJJ IEGTJJ `yaml:"iegtjj" usage:"ieg tjj config of backend service"`
+}
+
+// Validate validates the config.
+func (vault HostCreditVault) Validate() error {
+	if !vault.Enable {
+		return nil
+	}
+
+	switch vault.Type {
+	case "iegtjj":
+		return vault.IEGTJJ.Validate()
+	default:
+		return errors.New("invalid type of host credit vault")
+	}
+}
+
+// IEGTJJ the config of iegtjj.
+type IEGTJJ struct {
+	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+	Key        string `yaml:"key" usage:"key of iegtjj"`
+	SecretKey  string `yaml:"secretKey" usage:"secret key of iegtjj"`
+}
+
+// Validate validates the config.
+func (iegtjj IEGTJJ) Validate() error {
+	if iegtjj.Key == "" {
+		return errors.New("key of iegtjj is empty")
+	}
+
+	if iegtjj.SecretKey == "" {
+		return errors.New("secret key of iegtjj is empty")
+	}
+
+	if err := iegtjj.APIGateway.Validate(); err != nil {
+		return fmt.Errorf("api-gateway config of iegtjj is invalid: %s", err)
 	}
 
 	return nil

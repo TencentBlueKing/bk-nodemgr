@@ -14,12 +14,8 @@ package options
 import (
 	"context"
 
-	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
@@ -29,11 +25,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -68,6 +69,9 @@ type Capability struct {
 	// StorageGlobalSettings global settings storage.
 	StorageGlobalSettings globalsettings.IStorage
 
+	// StorageCredit credit storage.
+	StorageCredit credit.IStorage
+
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
 
@@ -94,6 +98,9 @@ type Capability struct {
 
 	// ProxyMessager provides the proxy messager.
 	ProxyMessager relayhandler.ServerMessager
+
+	// CreditVault credit vault
+	CreditVault creditvault.ICreditVault
 }
 
 // Start ...
@@ -139,6 +146,10 @@ func (c *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := c.ProxyMessager.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageCredit.Start(ctx); err != nil {
 		return err
 	}
 

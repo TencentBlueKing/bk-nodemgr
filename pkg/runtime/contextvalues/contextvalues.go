@@ -25,6 +25,9 @@ const (
 
 	// KeyRequestID defines the request id key type.
 	KeyRequestID
+
+	// KeyLoginUser defines the login user key type.
+	KeyLoginUser
 )
 
 // Get get the value of the key.

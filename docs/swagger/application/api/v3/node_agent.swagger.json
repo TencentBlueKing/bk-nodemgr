@@ -116,7 +116,7 @@
         },
         "login_mode": {
           "type": "string",
-          "title": "support: auto, password, keyfile, none"
+          "title": "support: password_vault, password, keyfile"
         },
         "login_password": {
           "type": "string"

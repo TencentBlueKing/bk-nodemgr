@@ -47,7 +47,13 @@ func (group *FileGroup) AllFiles(ctx context.Context) ([]fileiface.File, error) 
 }
 
 // Store store a file to the file group.
-func (group *FileGroup) Store(ctx context.Context, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+func (group *FileGroup) Store(
+	ctx context.Context,
+	info fileiface.FileInfo,
+	reader io.ReadCloser,
+	overwrite bool,
+) error {
+
 	return group.handler.storeFile(ctx, group.info.FullPath, info, reader, overwrite)
 }
 

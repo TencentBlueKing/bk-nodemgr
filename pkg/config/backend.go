@@ -74,6 +74,7 @@ type BackendService struct {
 	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
 	GSEDeployConfs     []GSEDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
 	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	CreditVault        CreditVault     `yaml:"creditVault" usage:"credit vault config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -161,6 +162,10 @@ func (svc *BackendService) LoadFromFile(path string) error {
 // Validate validates the config.
 func (svc *BackendService) Validate() error {
 	if err := svc.Workflow.Validate(); err != nil {
+		return err
+	}
+
+	if err := svc.CreditVault.Validate(); err != nil {
 		return err
 	}
 

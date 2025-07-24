@@ -17,17 +17,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,18 +39,20 @@ const (
 // NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(
 	installerFileGroup fileiface.FileGroup,
-	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	provider discover.Provider,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
 ) action.Definition {
 
 	return &actionInstallNodeBySSH{
 		installerGroup:        installerFileGroup,
-		crypter:               crypter,
+		storageHostCredit:     storageHostCredit,
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		provider:              provider,
+		passwordVault:         passwordVault,
 	}
 }
 
@@ -76,11 +78,14 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	installerGroup        fileiface.FileGroup
-	crypter               crypter.Crypter
-	logger                logger.Logger
+	logger logger.Logger
+
+	installerGroup fileiface.FileGroup
+
+	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	provider              discover.Provider
+	passwordVault         creditvault.IHostPasswordVault
 }
 
 // Name returns the name of the action.
@@ -147,7 +152,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := buildSSHClient(ctx.Ctx, act.logger, act.crypter, info)
+	client, err := generateSSHClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}

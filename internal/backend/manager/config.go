@@ -14,6 +14,7 @@ package manager
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -22,8 +23,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -49,10 +50,11 @@ type Config struct {
 	StorageOperation      operation.IStorage
 	StorageOperInst       operinstdata.IStorage
 	StorageSchedule       scheduleworkflow.IStorage
+	StorageHostCredit     credit.IStorageHostCredit
+
+	HostPasswordVault creditvault.IHostPasswordVault
 
 	FileHandler file.IHandler
-
-	Crypter crypter.Crypter
 
 	WorkflowConfig
 }

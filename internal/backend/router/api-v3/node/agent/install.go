@@ -55,7 +55,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
 
-		nodeDeploy, err := h.generatesInstallDeploys(sCtx, ctx.TenantID, reqHost, targetVersions)
+		nodeDeploy, err := h.handlerHost(sCtx, ctx.TenantID, reqHost, targetVersions)
 		if err != nil {
 			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
@@ -89,50 +89,16 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) generatesInstallDeploys(
+func (h *handler) handlerHost(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 	targetVersions []types.TargetVersion,
 ) (*types.NodeDeployment, error) {
 
-	nodeDeployment, err := h.convAgentInstallReqToNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions)
+	nodeDeployment, err := h.genNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions)
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
-
-		return nil, err
-	}
-
-	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
-	switch nodeDeployment.Info.LoginInfo.Mode {
-	case types.LoginModeKeyFile:
-		loginKeyFileData, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
-		if err != nil {
-			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
-
-			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
-		}
-
-		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeKeyFile
-		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(loginKeyFileData)
-		if err != nil {
-			h.logger.Error("encrypt key file failed", err)
-
-			return nil, err
-		}
-	case types.LoginModePassword:
-		nodeDeployment.Info.LoginInfo.Mode = types.LoginModePassword
-		nodeDeployment.Info.LoginInfo.Password, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
-		if err != nil {
-			h.logger.Error("encrypt password failed", err)
-
-			return nil, err
-		}
-	case types.LoginModeNone:
-		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeNone
-	default:
-		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
-		h.logger.Error(err)
 
 		return nil, err
 	}
@@ -140,7 +106,9 @@ func (h *handler) generatesInstallDeploys(
 	return nodeDeployment, nil
 }
 
-func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
+// nolint: funlen
+func (h *handler) genNodeDeployment(
+	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 	targetVersions []types.TargetVersion,
@@ -165,20 +133,71 @@ func (h *handler) convAgentInstallReqToNodeDeployment(tenantCtx context.Context,
 			},
 			Dynamic: &types.HostDynamic{
 				NodeRole:       types.NodeRoleAgent,
+				NodeStatus:     types.NodeStatusInit,
 				NodeGeneration: DefaultNodeGeneration,
 				NetworkUnitID:  networkUnit.ID,
 			},
-		},
-		InstallOptions: types.DeploymentInstallOptions{
-			ReRegister: reqHost.GetReRegister(),
 		},
 		LoginInfo: types.LoginInfo{
 			IP:   reqHost.GetLoginIp(),
 			Port: reqHost.GetLoginPort(),
 			User: reqHost.GetLoginUser(),
+			Mode: types.LoginMode(reqHost.GetLoginMode()),
 		},
-		TargetVersion: targetVersions,
+		CurrentVersionSupports: types.DeploymentVersionSupports{},
+		InstallOptions: types.DeploymentInstallOptions{
+			ReRegister: reqHost.GetReRegister(),
+		},
+		UpgradeOptions:  types.DeploymentUpgradeOptions{},
+		RestartOptions:  types.DeploymentRestartOptions{},
+		TransferOptions: types.DeploymentTransferOptions{},
+		TargetVersion:   targetVersions,
 	})
+
+	switch nodeDeployment.Info.LoginInfo.Mode {
+	case types.LoginModeKeyFile:
+		loginKeyFile, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
+		if err != nil {
+			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+
+			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
+		}
+
+		err = h.storageHostCredit.StoreHostCredit(
+			tenantCtx,
+			nodeDeployment.Info.Host.Static.NetworkAreaID,
+			nodeDeployment.Info.LoginInfo.IP,
+			nodeDeployment.Info.LoginInfo.User,
+			nodeDeployment.Info.LoginInfo.Mode,
+			loginKeyFile,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
+		}
+	case types.LoginModePassword:
+		loginPassword := reqHost.GetLoginPassword()
+
+		err = h.storageHostCredit.StoreHostCredit(
+			tenantCtx,
+			nodeDeployment.Info.Host.Static.NetworkAreaID,
+			nodeDeployment.Info.LoginInfo.IP,
+			nodeDeployment.Info.LoginInfo.User,
+			nodeDeployment.Info.LoginInfo.Mode,
+			[]byte(loginPassword),
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
+		}
+	case types.LoginModePasswordVault:
+		// notice: password vault don't need to store password.
+	default:
+		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", reqHost.GetLoginMode())
+		h.logger.Error(err)
+
+		return nil, err
+	}
 
 	return nodeDeployment, nil
 }

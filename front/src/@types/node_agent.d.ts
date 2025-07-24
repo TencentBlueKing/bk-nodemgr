@@ -8,7 +8,7 @@ export interface AgentInstallInfo {
   login_ip: string;
   login_port: number;
   login_user: string;
-  // support: auto, password, keyfile, none
+  // support: password_vault, password, keyfile
   login_mode: string;
   login_password: string;
   login_key_file: string;

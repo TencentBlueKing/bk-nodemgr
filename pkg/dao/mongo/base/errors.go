@@ -10,7 +10,11 @@
 
 package base
 
-import "errors"
+import (
+	"errors"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 // ErrInvalidContext return the error when context is invalid.
 func ErrInvalidContext() error {
@@ -23,6 +27,7 @@ func ErrEnsureIndexesFailed() error {
 }
 
 // ErrInvalidID return the error when specified id is invalid.
+// Deprecated: please use every pkg's their own error.
 func ErrInvalidID() error {
 	return errInvalidID
 }
@@ -44,15 +49,20 @@ func ErrTenantIDNotMatched() error {
 
 // ErrRecordNoFound return the error when record no found.
 func ErrRecordNoFound() error {
-	return errRecordNoFound
+	return mongo.ErrNoDocuments
 }
 
 var (
+	errInvalidParam           = errors.New("param is invalid")
 	errEnsureIndexesFailed    = errors.New("ensure indexes failed")
 	errInvalidID              = errors.New("invalid id")
 	errEmptyParamData         = errors.New("empty param data")
 	errInvalidItemInParamList = errors.New("invalid item in param list")
 	errTenantIDNotMatched     = errors.New("tenant id is not matched")
 	errInvalidContext         = errors.New("context is nil")
-	errRecordNoFound          = errors.New("no data found")
 )
+
+// ErrInvalidParam return the error when param is invalid.
+func ErrInvalidParam(err error) error {
+	return errors.Join(errInvalidParam, err)
+}

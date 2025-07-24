@@ -39,24 +39,33 @@ type NodeDeployment struct {
 	NodeConf *NodeConf
 }
 
+// Validate this is the validate for node deployment.
+func (deployment NodeDeployment) Validate() error {
+	if err := deployment.Info.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // LoginMode this is the login mode for node deployment.
 type LoginMode string
 
 const (
+	// LoginModePasswordVault this mode means system will automic query password to login.
+	LoginModePasswordVault LoginMode = "password_vault"
+
 	// LoginModePassword this mode means system will use password to login.
 	LoginModePassword LoginMode = "password"
 
 	// LoginModeKeyFile this mode means system will use key file to login.
 	LoginModeKeyFile LoginMode = "keyfile"
-
-	// LoginModeNone this mode means system will not use any login method.
-	LoginModeNone LoginMode = "none"
 )
 
 // Validate this is the validate for login mode.
 func (mode LoginMode) Validate() error {
 	switch mode {
-	case LoginModePassword, LoginModeKeyFile, LoginModeNone:
+	case LoginModePassword, LoginModeKeyFile, LoginModePasswordVault:
 		return nil
 	default:
 		return fmt.Errorf("invalid login mode: %s", mode)
@@ -65,12 +74,10 @@ func (mode LoginMode) Validate() error {
 
 // LoginInfo this is the login info for node deployment.
 type LoginInfo struct {
-	IP       string
-	Port     int64
-	User     string
-	Mode     LoginMode
-	Password []byte
-	KeyFile  []byte
+	IP   string
+	Port int64
+	User string
+	Mode LoginMode
 }
 
 // DeploymentInstallOptions this is the options for nodemgr tools.

@@ -18,12 +18,15 @@ import (
 	"io"
 	"runtime"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -213,12 +216,22 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
+	svc.Cap.StorageCredit, err = credit.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger, svc.Cap.Crypter)
+	if err != nil {
+		return nil, err
+	}
+
 	svc.Cap.StorageGlobalSettings, err = globalsettings.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
 
 	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.CreditVault, err = newCreditVault(conf.CreditVault, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -240,15 +253,16 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		InstallerFileGroup:    svc.Cap.InstallerFileGroup,
 		LockerFactory:         svc.Cap.LockerFactory,
 		StorageTopo:           svc.Cap.StorageTopo,
+		StorageRelease:        svc.Cap.StorageRelease,
 		StorageNodeDeployment: svc.Cap.StorageNodeDeployment,
 		StorageNodeWorkflow:   svc.Cap.StorageNodeWorkflow,
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
-		StorageRelease:        svc.Cap.StorageRelease,
 		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
+		StorageHostCredit:     svc.Cap.StorageCredit,
+		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
-		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{
@@ -472,6 +486,56 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 	}
 
 	return cmdbHandler, nil
+}
+
+func newCreditVault(conf config.CreditVault, logger logger.Logger) (creditvault.ICreditVault, error) {
+	hostPasswordVault, err := newHostPasswordVault(conf.HostCreditVault, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new credit password vault: %w", err)
+	}
+
+	vault := creditvault.New(creditvault.WithHostPasswordVault(hostPasswordVault))
+
+	return vault, nil
+}
+
+func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (creditvault.IHostPasswordVault, error) {
+	if !conf.Enable {
+		return &creditvault.DisabledHostPasswordVault{}, nil
+	}
+
+	switch conf.Type {
+	case "iegtjj":
+		iegtjjHandler, err := newIEGTJJHandler(conf.IEGTJJ, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to new host password vault: %w", err)
+		}
+
+		return iegtjjHandler, nil
+
+	default:
+		return nil, fmt.Errorf("unknown host password vault type: %s", conf.Type)
+	}
+}
+
+func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	if err != nil {
+		return nil, err
+	}
+
+	apiGwClientCapability.Name = "iegtjj"
+	iegtjjHandler, err := iegtjj.New(apiGwClientCapability, &iegtjj.Config{
+		HeaderSetter: apiGwHeaderSetter,
+		Key:          conf.Key,
+		SecretKey:    conf.SecretKey,
+	}, iegtjj.WithLogger(logger))
+	if err != nil {
+		return nil, fmt.Errorf("failed to new iegtjj handler: %w", err)
+	}
+
+	return iegtjjHandler, nil
 }
 
 // newGSEHandler.

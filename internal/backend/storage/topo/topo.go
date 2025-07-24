@@ -88,6 +88,22 @@ func (s *Storage) check() error {
 		return errors.New("dao business is nil")
 	}
 
+	if s.daoHost == nil {
+		return errors.New("dao host is nil")
+	}
+	if s.daoNetworkArea == nil {
+		return errors.New("dao network area is nil")
+	}
+	if s.daoNetworkUnit == nil {
+		return errors.New("dao network unit is nil")
+	}
+	if s.daoAccessPoint == nil {
+		return errors.New("dao access point is nil")
+	}
+	if s.daoTopoEvent == nil {
+		return errors.New("dao topo event is nil")
+	}
+
 	return nil
 }
 
