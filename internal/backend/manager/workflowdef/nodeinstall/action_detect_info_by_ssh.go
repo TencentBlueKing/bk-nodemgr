@@ -19,7 +19,7 @@ import (
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -57,7 +57,7 @@ type ActParamDetectInfoBySSH struct {
 }
 
 type actionDetectInfoBySSH struct {
-	installerGroup        iface.FileGroup
+	installerGroup        fileiface.FileGroup
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment

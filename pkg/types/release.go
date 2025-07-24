@@ -14,7 +14,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
@@ -103,7 +103,7 @@ type ReleaseBinTool struct {
 
 // OriginPkgDetail defines the detail of origin package.
 type OriginPkgDetail struct {
-	iface.FileInfo
+	fileiface.FileInfo
 
 	UploadID    string
 	Existed     bool
@@ -119,7 +119,7 @@ type TargetPkgDetail struct {
 
 // OriginCertPkgDetail defines the detail of cert package.
 type OriginCertPkgDetail struct {
-	iface.FileInfo
+	fileiface.FileInfo
 
 	UploadID  string
 	Existed   bool
@@ -128,7 +128,7 @@ type OriginCertPkgDetail struct {
 
 // OriginBinToolPkgDetail defines the detail of bin tool package.
 type OriginBinToolPkgDetail struct {
-	iface.FileInfo
+	fileiface.FileInfo
 
 	UploadID       string
 	Existed        bool

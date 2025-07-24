@@ -18,7 +18,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -86,7 +86,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 	}
 
 	// upload to upstream.
-	if err := m.upstreamOriginServer.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginServer.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package, failed to upload to upstream. err: %v", err)
 
 		return nil, err

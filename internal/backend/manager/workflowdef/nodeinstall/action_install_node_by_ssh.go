@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -38,7 +38,7 @@ const (
 
 // NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(
-	installerFileGroup iface.FileGroup,
+	installerFileGroup fileiface.FileGroup,
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
@@ -76,7 +76,7 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	installerGroup        iface.FileGroup
+	installerGroup        fileiface.FileGroup
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment

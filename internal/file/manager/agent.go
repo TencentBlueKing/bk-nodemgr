@@ -17,7 +17,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -80,7 +80,7 @@ func (m *Manager) UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) 
 	pkgName = m.wrapOriginPackageName(pkgName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginAgent.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginAgent.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin agent package, failed to upload to upstream. err: %v", err)
 
 		return nil, err
@@ -305,7 +305,7 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			if err = m.upstreamReleaseAgent.Store(ctx, iface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			if err = m.upstreamReleaseAgent.Store(ctx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upload to upstream. err: %v", err)
 
 				return err

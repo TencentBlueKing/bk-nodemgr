@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/spf13/afero"
 )
@@ -53,7 +53,7 @@ func NewLocalDir(fullPath string, logger logger.Logger) (*LocalDir, error) {
 		name:     filepath.Base(fullPath),
 		fullPath: fullPath,
 		fileMap:  make(map[string]*LocalFile),
-		absDirs:  iface.ConvertAbsPathToAbsDirs(fullPath),
+		absDirs:  fileiface.ConvertAbsPathToAbsDirs(fullPath),
 		subDirs:  make([]*LocalDir, 0),
 		logger:   logger,
 	}
@@ -116,8 +116,8 @@ func (group *LocalDir) Name() string {
 }
 
 // SubGroups the sub groups of file group.
-func (group *LocalDir) SubGroups(_ context.Context) ([]iface.FileGroup, error) {
-	subGroups := make([]iface.FileGroup, 0, len(group.subDirs))
+func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, error) {
+	subGroups := make([]fileiface.FileGroup, 0, len(group.subDirs))
 	for _, subDir := range group.subDirs {
 		subGroups = append(subGroups, subDir)
 	}
@@ -126,7 +126,7 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]iface.FileGroup, error) {
 }
 
 // GetFile the func will get a file from the file group.
-func (group *LocalDir) GetFile(_ context.Context, name string) (iface.File, error) {
+func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, error) {
 	group.mutex.Lock()
 	defer group.mutex.Unlock()
 
@@ -139,11 +139,11 @@ func (group *LocalDir) GetFile(_ context.Context, name string) (iface.File, erro
 }
 
 // AllFiles the files of file group.
-func (group *LocalDir) AllFiles(_ context.Context) ([]iface.File, error) {
+func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
 	group.mutex.Lock()
 	defer group.mutex.Unlock()
 
-	files := make([]iface.File, 0, len(group.fileMap))
+	files := make([]fileiface.File, 0, len(group.fileMap))
 	for _, file := range group.fileMap {
 		files = append(files, file)
 	}
@@ -152,7 +152,7 @@ func (group *LocalDir) AllFiles(_ context.Context) ([]iface.File, error) {
 }
 
 // Store the func will store a file into the file group.
-func (group *LocalDir) Store(ctx context.Context, info iface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
 	group.mutex.Lock()
 	defer group.mutex.Unlock()
 

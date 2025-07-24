@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -139,7 +139,7 @@ func Test_Store(t *testing.T) {
 				return
 			}
 
-			err = group.Store(tt.args.ctx, iface.FileInfo{
+			err = group.Store(tt.args.ctx, fileiface.FileInfo{
 				Name: tt.args.fileName,
 			}, io.NopCloser(bytes.NewReader([]byte(tt.args.fileContent))), true)
 			if err != nil {

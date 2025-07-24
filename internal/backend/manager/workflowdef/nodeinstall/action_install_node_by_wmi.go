@@ -19,7 +19,7 @@ import (
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -40,7 +40,7 @@ const (
 
 // NewActionInstallNodeByWMI get a new action.
 func NewActionInstallNodeByWMI(
-	installerFileGroup iface.FileGroup,
+	installerFileGroup fileiface.FileGroup,
 	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
@@ -78,7 +78,7 @@ type InstallParamsWin struct {
 }
 
 type actionInstallNodeByWMI struct {
-	installerGroup        iface.FileGroup
+	installerGroup        fileiface.FileGroup
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
@@ -180,7 +180,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	if toolFile.FileObject() != iface.LocalFile {
+	if toolFile.FileObject() != fileiface.LocalFile {
 		err = fmt.Errorf("installer file is not a local file, file-info(%v)", toolFile.Info())
 
 		return err

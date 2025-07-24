@@ -22,7 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
@@ -37,7 +37,7 @@ type Config struct {
 	GSEHandler  gse.IHandler
 	Provider    discover.Provider
 
-	InstallerFileGroup iface.FileGroup
+	InstallerFileGroup fileiface.FileGroup
 
 	LockerFactory locker.MutexFactory
 

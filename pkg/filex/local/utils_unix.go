@@ -15,20 +15,20 @@ package local
 import (
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
 // GetLocalFileAbsFilePath get local file abs file path.
-func GetLocalFileAbsFilePath(file iface.File) string {
+func GetLocalFileAbsFilePath(file fileiface.File) string {
 	return string(filepath.Separator) + filepath.Join(filepath.Join(file.AbsDirs()...), file.Info().Name)
 }
 
 // GetLocalFileGroupAbsDirPath get local file group abs dir path.
-func GetLocalFileGroupAbsDirPath(fileGroup iface.FileGroup) string {
+func GetLocalFileGroupAbsDirPath(fileGroup fileiface.FileGroup) string {
 	return string(filepath.Separator) + filepath.Join(fileGroup.AbsDirs()...)
 }
 
 // GetLocalFileGroupAbsFilePath get local file group abs file path.
-func GetLocalFileGroupAbsFilePath(fileGroup iface.FileGroup, fileName string) string {
+func GetLocalFileGroupAbsFilePath(fileGroup fileiface.FileGroup, fileName string) string {
 	return string(filepath.Separator) + filepath.Join(filepath.Join(fileGroup.AbsDirs()...), fileName)
 }

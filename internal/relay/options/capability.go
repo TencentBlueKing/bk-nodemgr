@@ -14,7 +14,7 @@ package options
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
@@ -25,10 +25,10 @@ type Capability struct {
 	Logger logger.Logger
 
 	// AgentFileGroup agent file group.
-	AgentFileGroup iface.FileGroup
+	AgentFileGroup fileiface.FileGroup
 
 	// ProxyFileGroup proxy file group.
-	ProxyFileGroup iface.FileGroup
+	ProxyFileGroup fileiface.FileGroup
 
 	// Messager messager.
 	Messager relayhandler.ClientMessager

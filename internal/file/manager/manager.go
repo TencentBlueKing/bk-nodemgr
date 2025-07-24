@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -69,11 +69,11 @@ type IManager interface {
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
-		version string) (iface.File, string, error)
+		version string) (fileiface.File, string, error)
 
 	// EnsureReleaseToLocal ensure the release to local.
 	// returns file, local-file-dir, error.
-	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error)
+	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (fileiface.File, string, error)
 
 	// LaunchTransferRelease launch transfer release.
 	LaunchTransferRelease(ctx context.Context,
@@ -123,77 +123,77 @@ func WithLogger(logger logger.Logger) OptionFn {
 }
 
 // WithUpstreamOriginServerFileGroup sets the upstream file group.
-func WithUpstreamOriginServerFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamOriginServerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamOriginServer = fileGroup
 	}
 }
 
 // WithUpstreamOriginAgentFileGroup sets the upstream file group.
-func WithUpstreamOriginAgentFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamOriginAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamOriginAgent = fileGroup
 	}
 }
 
 // WithUpstreamOriginCertFileGroup sets the upstream file group.
-func WithUpstreamOriginCertFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamOriginCertFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamOriginCert = fileGroup
 	}
 }
 
 // WithUpstreamOriginBinToolFileGroup sets the upstream file group.
-func WithUpstreamOriginBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamOriginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamOriginBinTool = fileGroup
 	}
 }
 
 // WithUpstreamReleaseAgentFileGroup sets the upstream file group.
-func WithUpstreamReleaseAgentFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamReleaseAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseAgent = fileGroup
 	}
 }
 
 // WithUpstreamReleaseProxyFileGroup sets the upstream file group.
-func WithUpstreamReleaseProxyFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamReleaseProxyFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseProxy = fileGroup
 	}
 }
 
 // WithUpstreamReleaseCertFileGroup sets the upstream file group.
-func WithUpstreamReleaseCertFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamReleaseCertFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseCert = fileGroup
 	}
 }
 
 // WithUpstreamReleaseBinToolFileGroup sets the upstream file group.
-func WithUpstreamReleaseBinToolFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithUpstreamReleaseBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseBinTool = fileGroup
 	}
 }
 
 // WithTempFileGroup sets the temp file group.
-func WithTempFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithTempFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.tempFileGroup = fileGroup
 	}
 }
 
 // WithInstallerFileGroup sets the installer file group.
-func WithInstallerFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithInstallerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.installerFileGroup = fileGroup
 	}
 }
 
 // WithCacheFileGroup sets the cache file group.
-func WithCacheFileGroup(fileGroup iface.FileGroup) OptionFn {
+func WithCacheFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.cacheFileGroup = fileGroup
 	}
@@ -251,23 +251,23 @@ func WithGSEHandler(gseHander gse.IHandler) OptionFn {
 // Manager provides the file manager.
 type Manager struct {
 	// upstream file group is regarded as the file source.
-	upstreamOriginAgent    iface.FileGroup
-	upstreamOriginServer   iface.FileGroup
-	upstreamOriginCert     iface.FileGroup
-	upstreamOriginBinTool  iface.FileGroup
-	upstreamReleaseAgent   iface.FileGroup
-	upstreamReleaseProxy   iface.FileGroup
-	upstreamReleaseCert    iface.FileGroup
-	upstreamReleaseBinTool iface.FileGroup
+	upstreamOriginAgent    fileiface.FileGroup
+	upstreamOriginServer   fileiface.FileGroup
+	upstreamOriginCert     fileiface.FileGroup
+	upstreamOriginBinTool  fileiface.FileGroup
+	upstreamReleaseAgent   fileiface.FileGroup
+	upstreamReleaseProxy   fileiface.FileGroup
+	upstreamReleaseCert    fileiface.FileGroup
+	upstreamReleaseBinTool fileiface.FileGroup
 
 	// cache file group.
-	cacheFileGroup iface.FileGroup
+	cacheFileGroup fileiface.FileGroup
 
 	// installter file group.
-	installerFileGroup iface.FileGroup
+	installerFileGroup fileiface.FileGroup
 
 	// temp file group is regarded as the file temp.
-	tempFileGroup iface.FileGroup
+	tempFileGroup fileiface.FileGroup
 
 	// local file pool.
 	localFilePool *localFilePool
@@ -345,7 +345,7 @@ func (m *Manager) Start(_ context.Context) error {
 func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string, error) {
 	tempFileName := uuid.NewString() + ".tgz"
 
-	err := m.tempFileGroup.Store(ctx, iface.FileInfo{Name: tempFileName}, file, true)
+	err := m.tempFileGroup.Store(ctx, fileiface.FileInfo{Name: tempFileName}, file, true)
 	if err != nil {
 		return "", err
 	}
@@ -379,7 +379,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 	return name + "-" + time.Now().Format("0102150405")
 }
 
-func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, error) {
+func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (fileiface.File, error) {
 	// get cert.
 	cert, err := m.storageRelease.GetReleaseCert(ctx)
 	if err != nil {
@@ -404,7 +404,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (iface.File, erro
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, error) {
+func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (fileiface.File, error) {
 	// get bintool.
 	bintool, err := m.storageRelease.GetReleaseBinTool(ctx, types.Generation2)
 	if err != nil {
@@ -430,7 +430,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (iface.File, e
 }
 
 func (m *Manager) fetchReleaseAgentLocal(
-	ctx context.Context, plat platform.Platform, version string) (iface.File, error) {
+	ctx context.Context, plat platform.Platform, version string) (fileiface.File, error) {
 
 	// get agent.
 	agent, err := m.storageRelease.GetRelease(ctx,

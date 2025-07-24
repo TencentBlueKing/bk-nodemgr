@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -58,7 +58,7 @@ type ActParamDetectInfoByWMI struct {
 }
 
 type actionDetectInfoByWMI struct {
-	installerGroup        iface.FileGroup
+	installerGroup        fileiface.FileGroup
 	crypter               crypter.Crypter
 	logger                logger.Logger
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment

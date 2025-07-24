@@ -17,7 +17,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -115,7 +115,7 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 	}
 
 	return &types.OriginPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -148,7 +148,7 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 	}
 
 	return &types.OriginPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -170,7 +170,7 @@ func (h *handler) UploadOriginCert(ctx context.Context, fileName string, file io
 	}
 
 	return &types.OriginCertPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -206,7 +206,7 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 	}
 
 	return &types.OriginBinToolPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -291,7 +291,7 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 
 	return &simpleTransferHandler{
 		taskID: data.GetTaskId(),
-		fileInfo: iface.FileInfo{
+		fileInfo: fileiface.FileInfo{
 			Name: data.GetReleaseFileName(),
 			Size: data.GetReleaseFileSize(),
 			MD5:  data.GetReleaseFileMd5(),
@@ -321,7 +321,7 @@ func (h *handler) LaunchTransferInstaller(ctx context.Context,
 
 	return &simpleTransferHandler{
 		taskID: data.GetTaskId(),
-		fileInfo: iface.FileInfo{
+		fileInfo: fileiface.FileInfo{
 			Name: data.GetInstallerFileName(),
 			Size: data.GetInstallerFileSize(),
 			MD5:  data.GetInstallerFileMd5(),
@@ -351,7 +351,7 @@ func (h *handler) QueryTransfer(
 
 type simpleTransferHandler struct {
 	taskID   string
-	fileInfo iface.FileInfo
+	fileInfo fileiface.FileInfo
 	handler  *handler
 }
 
@@ -361,7 +361,7 @@ func (handler *simpleTransferHandler) GetTaskID() string {
 }
 
 // GetFileInfo get file info.
-func (handler *simpleTransferHandler) GetFileInfo() iface.FileInfo {
+func (handler *simpleTransferHandler) GetFileInfo() fileiface.FileInfo {
 	return handler.fileInfo
 }
 

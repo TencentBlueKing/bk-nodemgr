@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
@@ -302,7 +302,7 @@ type ISimpleTransferHandler interface {
 	GetTaskID() string
 
 	// GetFileInfo get file info.
-	GetFileInfo() iface.FileInfo
+	GetFileInfo() fileiface.FileInfo
 
 	// WaitUntilDone wait until done.
 	WaitUntilDone(ctx context.Context) (*SimpleTransferResult, error)

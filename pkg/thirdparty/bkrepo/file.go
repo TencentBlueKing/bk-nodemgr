@@ -14,7 +14,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
 // File is the file object.
@@ -26,8 +26,8 @@ type File struct {
 }
 
 // FileObject return the file object.
-func (f File) FileObject() iface.FileObject {
-	return iface.RemoteFile
+func (f File) FileObject() fileiface.FileObject {
+	return fileiface.RemoteFile
 }
 
 // Content return the content of the file.
@@ -36,14 +36,14 @@ func (f File) Content(ctx context.Context) (io.ReadCloser, error) {
 }
 
 // Info return the info of the file.
-func (f File) Info() iface.FileInfo {
+func (f File) Info() fileiface.FileInfo {
 	var desc string
 	descValue, ok := f.info.Metadata["description"]
 	if ok {
 		desc, _ = descValue.(string)
 	}
 
-	return iface.FileInfo{
+	return fileiface.FileInfo{
 		Name:        f.info.Name,
 		Size:        int64(f.info.Size),
 		MD5:         f.info.Md5,

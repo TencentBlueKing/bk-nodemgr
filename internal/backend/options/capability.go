@@ -14,7 +14,7 @@ package options
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -87,7 +87,7 @@ type Capability struct {
 	Crypter crypter.Crypter
 
 	// InstallerFileGroup tool file group.
-	InstallerFileGroup iface.FileGroup
+	InstallerFileGroup fileiface.FileGroup
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
