@@ -42,6 +42,9 @@ type IStorageActionInstance interface {
 	// PushActionInstanceMessage pushes action instance message.
 	PushActionInstanceMessage(
 		ctx context.Context, operationInstanceID, actionName string, messages ...action.Message) error
+
+	// GetActionInstancePrivateData gets action instance private data.
+	GetActionInstancePrivateData(ctx context.Context, operationInstanceID, actionName string) (map[string]any, error)
 }
 
 // IStorageOperation defines the storage handler for operation.

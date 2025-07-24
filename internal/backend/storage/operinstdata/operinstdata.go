@@ -175,6 +175,25 @@ func (s *Storage) GetActionInstanceLifecycle(ctx context.Context, operationInsta
 	return s.daoOperinstdata.GetActInstLifecycle(ctx, operationInstanceID, actionName)
 }
 
+// GetActionInstancePrivateData gets action instance private data.
+func (s *Storage) GetActionInstancePrivateData(ctx context.Context, operationInstanceID, actionName string) (
+	map[string]any, error) {
+
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operationInstanceID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("actionName is empty")
+	}
+
+	return s.daoOperinstdata.GetActInstPrivateData(ctx, operationInstanceID, actionName)
+}
+
 // UpdateActionInstanceLifecycle updates action instance lifecycle.
 func (s *Storage) UpdateActionInstanceLifecycle(
 	ctx context.Context, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error {

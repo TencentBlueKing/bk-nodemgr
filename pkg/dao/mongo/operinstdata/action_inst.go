@@ -41,6 +41,9 @@ type IActionInstData interface {
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
 	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...action.Message) error
 
+	// GetActInstPrivateData get action inst data private data.
+	GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error)
+
 	// AddActInstPrivateData add action inst data private data.
 	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
 
@@ -195,6 +198,11 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 	}
 
 	return nil
+}
+
+// GetActInstPrivateData get action inst data private data.
+func (h *handler) GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error) {
+	return nil, errors.New("inplement me")
 }
 
 // UpdateActionInstData upsert action inst data.
