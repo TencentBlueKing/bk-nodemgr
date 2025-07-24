@@ -431,12 +431,12 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
-	workflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
+	nodeWorkflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
 	if err != nil {
 		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
 
-	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, workflow.TriggerID)
+	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, nodeWorkflow.TriggerID)
 	if err != nil {
 		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
