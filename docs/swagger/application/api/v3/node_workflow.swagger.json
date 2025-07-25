@@ -193,7 +193,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
+              "$ref": "#/definitions/v3NodeWorkflowOperationRetryResp"
             }
           },
           "default": {
@@ -858,6 +858,36 @@
         }
       },
       "title": "NodeWorkflowOperationRetryReq"
+    },
+    "v3NodeWorkflowOperationRetryResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
+        }
+      },
+      "title": "NodeWorkflowOperationRetryResp"
+    },
+    "v3NodeWorkflowOperationRetryRespData": {
+      "type": "object",
+      "properties": {
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3NodeWorkflowOperationStatus": {
       "type": "object",
