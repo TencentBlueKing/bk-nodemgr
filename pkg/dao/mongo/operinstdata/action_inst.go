@@ -201,8 +201,41 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 }
 
 // GetActInstPrivateData get action inst data private data.
-func (h *handler) GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error) {
-	return nil, errors.New("inplement me")
+func (h *handler) GetActInstPrivateData(ctx context.Context,
+	operInstID string, actionName string) (map[string]any, error) {
+
+	if ctx == nil {
+		return nil, errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("actionName is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	field := FieldKeyActInstPrivateData(actionName)
+	operInstData, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, err
+	}
+
+	actionInstData, ok := operInstData.ActionInstDataMap[actionName]
+	if !ok {
+		return nil, errors.New("action inst private data not found")
+	}
+
+	return actionInstData.PrivateData, nil
 }
 
 // UpdateActionInstData upsert action inst data.
