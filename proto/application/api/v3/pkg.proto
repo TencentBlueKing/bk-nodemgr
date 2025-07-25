@@ -472,8 +472,8 @@ service Package {
     };
   }
 
-  // DeployedHostCountResp count deployed host.
-  rpc DeployedHostCountResp(PackageReleaseDeployedHostCountReq)
+  // DeployedHostCount count deployed host.
+  rpc DeployedHostCount(PackageReleaseDeployedHostCountReq)
       returns (PackageReleaseDeployedHostCountResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/deployed_host/count"
