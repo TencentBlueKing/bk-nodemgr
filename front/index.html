@@ -17,9 +17,21 @@
   <body class="font-sans">
     <div id="app"></div>
     <script>
-      var BK_API_PREFIX = '%BK_API_PREFIX%' 
-      var BK_USER_MANAGE = '%BK_USER_MANAGE%'
-      var BK_SHARED_RES_BASE_JS_URL = '%BK_SHARED_RES_BASE_JS_URL%'
+      window.PROJECT_CONFIG = (function () {
+        const BK_API_PREFIX = '{{ .BK_API_PREFIX }}'
+        const BK_USER_MANAGE = '{{ .BK_USER_MANAGE }}'
+        const BK_SHARED_RES_BASE_JS_URL = '{{ .BK_SHARED_RES_BASE_JS_URL }}'
+        const BK_LOGIN_URL = '{{ .BK_LOGIN_URL }}'
+        const SITE_URL = '{{ .SITE_URL }}'
+        
+        return {
+          BK_API_PREFIX,
+          BK_USER_MANAGE,
+          BK_SHARED_RES_BASE_JS_URL,
+          BK_LOGIN_URL,
+          SITE_URL,
+        }
+      })()
     </script>
     <script type="module" src="/src/main.ts"></script>
     <noscript> This website requires JavaScript to function properly. Please enable JavaScript to continue. </noscript>

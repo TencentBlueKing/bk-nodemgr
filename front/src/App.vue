@@ -21,10 +21,12 @@
         </template>
         <template #right>
           <bk-popover theme="light" :arrow="false" placement="bottom-start" trigger="click">
-            <div>
-              {{ userStore.user?.username }}
+            <div class="flex items-center gap-[5px] cursor-pointer">
+              <span>{{ userStore.user?.username }}</span>
+              <angle-up-fill />
             </div>
             <template #content>
+              <Button @click="logout">退出登录</Button>
             </template>
           </bk-popover>
         </template>
@@ -67,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+import { AngleUpFill } from 'bkui-vue/lib/icon';
 import { Menu, Navigation, Select } from 'bkui-vue';
 import { computed, onBeforeMount, onMounted, watch, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -81,6 +84,7 @@ import useUserStore from '@/stores/user';
 import { debounce } from 'lodash';
 import { useMainStore } from '@/stores/main';
 import { TopoService } from '@/api/modules/topo';
+import { logout } from '@/common/auth';
 
 const { t } = useI18n();
 const mainStore = useMainStore();
