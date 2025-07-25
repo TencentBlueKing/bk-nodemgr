@@ -15,8 +15,8 @@ import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
-import PluginPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
-import OperationRecords from '@/pages/pkg/agent-proxy-pkg/list.vue';
+import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
+import OperationRecords from '@/pages/pkg/record.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([

@@ -3,7 +3,10 @@ platform:
   title: 蓝鲸节点管理
   nodeMan:
     node: 节点
-    agentStatus: Agent 状态
+    agentStatus:
+      title: Agent 状态
+      button:
+        reinstall: 重装
     installAgent: 安装 Agent
     installAgentPage:
       tip1: 对于外网 IP 等先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中；
@@ -43,6 +46,19 @@ platform:
     taskHistory:
       title:
         mainTitle: 任务历史
+      label:
+        taskID: 任务ID
+        taskType: 任务类型
+        business: 业务
+        operator: 执行人
+        operateTime: 执行时间
+        costTime: 总耗时
+        status: 执行状态
+        count: 总数/成功/失败/忽略
+      button:
+        hideAutoTask: 隐藏自动部署任务
+      placeholder:
+        listSearch: 搜索 任务ID、任务类型、业务、执行人、执行状态 搜索
       taskType:
         install_agent: Agent 安装
         upgrade_agent: Agent 升级
@@ -56,6 +72,11 @@ platform:
         uninstall_proxy: Proxy 卸载
         install_plugin: 插件安装
         upgrade_plugin: 插件升级
+      statusType:
+        running: 执行中
+        failed: 失败
+        success: 成功
+        partial_failed: 部分失败
   topoManager:
     name: 拓扑管理
   ruleManager:

@@ -5,89 +5,19 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload">包上传</Button>
+      <Button theme="primary" @click="handleUpload">插件上传</Button>
       <SearchSelect
         class="ml-[16px] flex-1"
         ref="searchSelect"
         :data="searchSelectData"
         v-model="searchSelectValue"
         :uniqueSelect="true"
-        :placeholder="t('版本号、操作系统/架构、标签、上传用户、状态')"
+        :placeholder="t('请输入 插件名称、插件别名、状态 搜索')"
         @update:modelValue="handleSearchSelectChange"
       >
       </SearchSelect>
     </div>
     <div class="flex flex-1 w-full">
-      <div
-        class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
-      >
-        <div class="px-[16px] py-[10px] text-[12px]">{{ t("快捷筛选") }}</div>
-        <div class="flex h-[32px] px-[16px]">
-          <div
-            class="bg-[#fafbfd] w-[40px] flex items-center justify-center border border-r-none border-[#C4C6CC] text-[12px]"
-          >
-            {{ $t("维度") }}
-          </div>
-          <Select
-            class="flex-1"
-            v-model="state.dimension"
-            :clearable="false"
-            @change="val => updateOptionalList(val, true)"
-          >
-            <Select.Option
-              v-for="opt in dimensionList"
-              :key="opt.id"
-              :id="opt.id"
-              :name="$t(opt.name)"
-            ></Select.Option>
-          </Select>
-        </div>
-        <div
-          :class="[
-            'border-b flex justify-between items-center h-[36px] mt-[8px] px-[16px] cursor-pointer',
-            {
-              'bg-[#E1ECFF] text-[#3A84FF]': state.dimensionOptional === 'all',
-            },
-          ]"
-          @click="selectDimensionOptional('all', 'click')"
-        >
-          <div class="text-[13px]">
-            <span class="mr-[5px]">All</span>
-            <span>全部</span>
-          </div>
-          <Tag
-            size="large"
-            checkable
-            :checked="state.dimensionOptional === 'all'"
-            >{{ originPackageList.length }}</Tag
-          >
-        </div>
-        <div
-          v-for="item in dimensionOptionalList"
-          :key="item.id"
-          :class="[
-            'flex justify-between items-center h-[36px] cursor-pointer px-[16px]',
-            {
-              'bg-[#E1ECFF] text-[#3A84FF]':
-                state.dimensionOptional === item.id,
-            },
-          ]"
-          @click="selectDimensionOptional(item.id, 'click')"
-        >
-          <div>
-            <i :class="`nodeman-icon nc-${item.id.split('_')[0]} mr-[5px]`"></i>
-            <span class="text-[12px]">{{ `${item.name}` }}</span>
-          </div>
-          <Tag
-            v-if="item.count"
-            size="large"
-            checkable
-            :checked="state.dimensionOptional === item.id"
-          >
-            {{ item.count }}
-          </Tag>
-        </div>
-      </div>
       <Loading
         title="数据加载中"
         :loading="loading"
@@ -107,70 +37,22 @@
         >
           <TableColumn
             field="file_name"
-            :title="t('包名称')"
+            :title="t('插件名称')"
             :min-width="320"
             fixed="left"
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="version"
-            :title="t('版本号')"
+            :title="t('插件别名')"
             :min-width="130"
-            sortable
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="os_cpu_arch"
-            :title="t('操作系统/架构')"
+            :title="t('插件介绍')"
             :min-width="150"
           ></TableColumn>
-          <TableColumn
-            field="labels"
-            :title="t('标签信息')"
-            :min-width="180"
-            :filter="filterOptionSource.labels"
-          >
-            <template #default="{ row }">
-              <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
-                <Tag
-                  v-for="tag in row.labels?.slice(0, 2)"
-                  :key="tag"
-                  >{{ tag }}</Tag
-                >
-                <Tag
-                  v-if="row.labels?.length > 2"
-                  v-bk-tooltips="row.labels?.join(', ')"
-                  >+{{ row.labels?.length - 2 }}</Tag
-                >
-                <!-- <edit-line class="!hidden !group-hover:block" @click="row.isShowTagInput = true" /> -->
-              </div>
-              <TagInput
-                v-show="row.isShowTagInput"
-                :model-value="row.labels"
-                :list="getUniqueChildren('labels')"
-                trigger="focus"
-                collapse-tags
-                @change="handleChangeTag"
-              />
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="operator"
-            :title="t('上传用户')"
-            :min-width="120"
-            :filter="filterOptionSource.operator"
-          ></TableColumn>
-          <TableColumn
-            field="updated_at"
-            :title="t('上传时间')"
-            :min-width="180"
-            sort-type="number"
-            sortable
-          >
-            <template #default="{ row }">
-              {{ formatTimestamp(row.updated_at) }}
-            </template>
-          </TableColumn>
           <TableColumn
             field="host"
             :title="t('已部署主机')"
@@ -187,21 +69,10 @@
             field="enabled"
             :title="t('状态')"
             :min-width="120"
-            :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
               <Tag v-if="row.enabled" theme="success">{{ t("启用") }}</Tag>
               <Tag v-else>{{ t("禁用") }}</Tag>
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="as_default"
-            :title="t('默认版本')"
-            :min-width="120"
-          >
-            <template #default="{ row }">
-              <Tag v-if="row.enabled" theme="success">{{ t("是") }}</Tag>
-              <Tag v-else>{{ t("否") }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
@@ -290,7 +161,6 @@
 <script lang="ts" setup>
 type PkgQuickType = "os_cpu_arch" | "version";
 type PkgType = "gse_agent" | "gse_proxy";
-type filterProp = 'labels' | 'operator' | 'enabled';
 interface ISearchSelect {
   id: string;
   name: string;
@@ -334,27 +204,6 @@ const curAgentVersion = ref("v2.2.6-beta.30");
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);
-const state = reactive<{
-  isLoading: boolean;
-  panels: { name: PkgType; label: string }[];
-  active: PkgType;
-  dimension: PkgQuickType;
-  dimensionOptional: string;
-  uploadShow: boolean;
-  ordering: PkgOrderType | "";
-}>({
-  isLoading: true,
-  panels: [
-    { name: "gse_agent", label: "Agent" },
-    { name: "gse_proxy", label: "Proxy" },
-  ],
-  active: "gse_agent",
-  // 维度
-  dimension: "os_cpu_arch",
-  dimensionOptional: "all",
-  uploadShow: false,
-  ordering: "",
-});
 // 分页
 const {
   pagination
@@ -380,37 +229,6 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 
     return sortedList;
   }
-});
-const dimensionList = computed(() =>
-  searchSelectData.value.filter((item: { id: string }) =>
-    ["version", "os_cpu_arch"].includes(item.id)
-  )
-);
-const dimensionOptionalList = computed(
-  () =>
-    searchSelectData.value.find(
-      (item: { id: string }) => item.id === state.dimension
-    )?.children
-);
-const filterOptionSource = reactive<Record<string, IFilterOption>>({
-  labels: {
-    list: getUniqueChildren("labels"),
-    checked: [],
-    filterScope: "all",
-  },
-  operator: {
-    list: getUniqueChildren("operator"),
-    checked: [],
-    filterScope: "all",
-  },
-  enabled: {
-    list: [
-      { value: true, text: t("启用") },
-      { value: false, text: t("禁用") },
-    ],
-    checked: [],
-    filterScope: "all",
-  },
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
@@ -466,12 +284,6 @@ const searchSelectData = computed(() => [
     children: getUniqueChildren("os_cpu_arch"),
   },
   {
-    id: "labels",
-    name: t("标签"),
-    children: getUniqueChildren("labels"),
-    multiple: true,
-  },
-  {
     id: "operator",
     name: t("上传用户"),
     children: getUniqueChildren("operator"),
@@ -493,103 +305,17 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     "file_name",
     "version",
     "os_cpu_arch",
-    "labels",
-    "operator",
-    "updated_at",
     "host",
     "enabled",
-    "as_default",
     "action",
   ],
   disabled: ["action"],
 });
-// 筛选
-const handleFilter = ({
-  checked,
-  field,
-}: {
-  checked: string[];
-  field: string;
-}) => {
-  const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === field
-  );
-  index > -1 && searchSelectValue.value.splice(index, 1);
-  if (checked.length) {
-    searchSelectValue.value.push({
-      id: field,
-      name: t(field),
-      values: checked.map((item: any) => {
-        let name;
-        switch (field) {
-          case 'enabled':
-            name = item ? t("启用") : t("禁用");
-            break;
-          default:
-            name = item;
-            break;
-        }
-        return {
-          id: item,
-          name,
-        };
-      }),
-    });
-  }
-};
+
 // 搜索
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  Object.keys(filterOptionSource).forEach(key => {
-    filterOptionSource[key].checked = [];
-  });
-  updateOptionalList('os_cpu_arch');
-  selectDimensionOptional('all');
-  data.forEach(item => {
-    if (filterOptionSource[item.id as filterProp]) {
-      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
-    }
-    if (["version", "os_cpu_arch"].includes(item.id)) {
-      updateOptionalList(item.id as PkgQuickType);
-      selectDimensionOptional(item.values[0].id);
-    }
-  });
+  
 }
-// 更新快捷筛选 维度
-const updateOptionalList = (
-  id: PkgQuickType = "os_cpu_arch",
-  isTabChange: boolean = false
-) => {
-  state.dimension = id;
-  if (!isTabChange) return;
-  // 如果搜索栏没这个维度搜索值，切换的时候默认选择全部, 如果有值则切换后勾选搜索值
-  const findItem = searchSelectValue.value.find((item: {id: string}) => item.id === id);
-  if(!findItem) {
-    selectDimensionOptional("all");
-  } else {
-    selectDimensionOptional(findItem.values[0].id);
-  }
-};
-// 维度nav click
-const selectDimensionOptional = (id: string, type?: string) => {
-  if (id === state.dimensionOptional) return;
-  state.dimensionOptional = id;
-  if (type === 'click') {
-    updateQuickOptToSearch(id);
-  }
-};
-const updateQuickOptToSearch = (id: string) => {
-  const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === state.dimension
-  );
-  index > -1 && searchSelectValue.value.splice(index, 1);
-  if (id === 'all') return;
-  const findData = searchSelectData.value.find((item: {id: string}) => item.id === state.dimension);
-  searchSelectValue.value.push({
-    id: state.dimension,
-    name: findData.name,
-    values: [findData.children.find((item: {id: string, name: string}) => item.id === id)]
-  });
-};
 const handleClickHost = (row: Release) => {
   if(!row.host || row.release_type !== 'agent') return;
   router.push({
@@ -608,7 +334,7 @@ const handleUpload = () => {
 }
 const getPackages = async () => {
   loading.value = true;
-  const currentType = route.name === "agentPackageMng" ? "agent" : "proxy";
+  const currentType = "agent";
   const res = await PackageService.ListRelease({
     exact_include_conditions: {
       release_type: [currentType],
@@ -619,7 +345,6 @@ const getPackages = async () => {
   });
   const items = res.items.map((item, index) => ({
     ...item,
-    labels: item.labels || [],
     os_cpu_arch: item.os_type + "_" + item.cpu_arch,
     host: hostList.items[index],
     isDisabledPopShow: false,

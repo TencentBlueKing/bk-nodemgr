@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp, NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationRetryReq } from '@/@types/node_workflow';
+import type { NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp, NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp } from '@/@types/node_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -24,6 +24,6 @@ export const NodeWorkflowService = {
   // get.
   NodeWorkflowOperationInstanceLogGet: async <Request = NodeWorkflowOperationInstanceLogGetReq, ResponseData = NodeWorkflowOperationInstanceLogGetResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/instance/log/get')(params, config),
   // NodeWorkflowOperationRetry retry node operation.
-  NodeWorkflowOperationRetry: async <Request = NodeWorkflowOperationRetryReq, ResponseData = NodeWorkflowOperationRetryReq['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/retry')(params, config),
+  NodeWorkflowOperationRetry: async <Request = NodeWorkflowOperationRetryReq, ResponseData = NodeWorkflowOperationRetryResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/retry')(params, config),
 };
 

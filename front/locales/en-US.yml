@@ -3,7 +3,10 @@ platform:
   title: BK NodeMan
   nodeManagement:
     node: Node
-    agentStatus: Agent status
+    agentStatus:
+      title: Agent status
+      button:
+        reinstall: reinstall
     installAgent: Install agent
     batchOperate: Batch
     copy: Copy
@@ -29,6 +32,19 @@ platform:
     taskHistory:
       title:
         mainTitle: Task history
+      label:
+        taskID: Task ID
+        taskType: Task type
+        business: Business
+        operator: Operator
+        operateTime: Operate time
+        costTime: Cost time
+        status: Task execution state
+        count: Total/Success/Failed/Ignored
+      button:
+        hideAutoTask: Hide Auto-Deployment Tasks
+      placeholder:
+        listSearch: Search by [Task ID], [Task Type], [Business], [Executor], [Execution Status]
       taskType:
         install_agent: Install agent
         upgrade_agent: Upgrade agent
@@ -42,6 +58,11 @@ platform:
         uninstall_proxy: Uninstall proxy
         install_plugin: Install plugin
         upgrade_plugin: Upgrade plugin
+      statusType:
+        running: Running
+        failed: Failed
+        success: Success
+        partial_failed: Partial_failed
 topoManager:
   workArea:
     title: Workarea
