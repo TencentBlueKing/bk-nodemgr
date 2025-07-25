@@ -562,24 +562,6 @@
     }
   },
   "definitions": {
-    "PackageReleaseDeployedHostCountReqCountRequestItem": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "release_type": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -607,6 +589,25 @@
           }
         }
       }
+    },
+    "v3CountRequestItem": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "CountRequestItem describes  the HTTP request body when count release\ndeployed_host."
     },
     "v3PackagePublishReleaseAgentReq": {
       "type": "object",
@@ -821,7 +822,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/PackageReleaseDeployedHostCountReqCountRequestItem"
+            "$ref": "#/definitions/v3CountRequestItem"
           }
         }
       },
