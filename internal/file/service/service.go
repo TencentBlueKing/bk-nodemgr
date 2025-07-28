@@ -33,13 +33,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
@@ -190,8 +190,8 @@ func NewService(conf *config.FileService) (*Service, error) {
 
 // newGSEHandler.
 func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
+func newAPIGwClientCapability(conf *config.APIGatewayClient) (*client.Capability, error) {
 	httpClient, err := client.NewClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -232,7 +232,7 @@ func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, erro
 }
 
 // newAPIGwHeaderSetter creates a new api-gateway header setter.
-func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
+func newAPIGwHeaderSetter(conf *config.APIGatewayClient) apigw.HeaderSetter {
 	return &apigw.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,

@@ -18,25 +18,30 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg *gin.RouterGroup
+	rg           *gin.RouterGroup
+	authIdentity rest.AuthIdentity
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/api/v3"),
+		rg:           rg.Group("/api/v3"),
+		authIdentity: capability.AuthIdentity,
 	}
 }
 
 // Load ter register the api v3 router.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
-	h := newHandler(rg)
+	h := newHandler(rg, capability)
+
+	//h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
 
 	sync.Load(h.rg, capability)
 	node.Load(h.rg, capability)

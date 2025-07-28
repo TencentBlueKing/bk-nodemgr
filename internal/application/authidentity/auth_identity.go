@@ -11,6 +11,8 @@
 package authidentity
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bklogin"
 )
@@ -26,20 +28,20 @@ type BKTicketAuthIdentity struct {
 }
 
 // Verify the ticket.
-func (identity *BKTicketAuthIdentity) Verify(rCtx *rest.Context) bool {
-	bkticket, err := rCtx.GetCookie(CookieKeyBKTicket)
+func (identity *BKTicketAuthIdentity) Verify(rCtx *rest.Context) error {
+	bkTicket, err := rCtx.GetCookie(CookieKeyBKTicket)
 	if err != nil {
-		return false
+		return fmt.Errorf("failed to verify authentication: %w", err)
 	}
 
-	loginUsername, err := identity.BKLoginHandler.Verify(rCtx, bkticket)
+	loginUsername, err := identity.BKLoginHandler.Verify(rCtx, bkTicket)
 	if err != nil {
-		return false
+		return fmt.Errorf("failed to verify authentication: %w", err)
 	}
 
 	// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
 	rCtx.BKUsername = loginUsername
 	rCtx.LoginName = loginUsername
 
-	return true
+	return nil
 }

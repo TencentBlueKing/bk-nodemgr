@@ -98,6 +98,11 @@ func (c *Context) GetContext() (context.Context, error) {
 	return tenant.SetID(ctx, c.TenantID)
 }
 
+// GetRequestHeader get a http request from rest-context.
+func (c *Context) GetRequestHeader(headerKey string) string {
+	return c.gCtx.Request.Header.Get(headerKey)
+}
+
 // GetCookie get a cookie from rest-context.
 func (c *Context) GetCookie(name string) (string, error) {
 	cookieValue, err := c.gCtx.Cookie(name)

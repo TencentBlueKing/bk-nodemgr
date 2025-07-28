@@ -13,6 +13,7 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -61,7 +63,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -237,6 +238,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	svc.Cap.CreditVault, err = newCreditVault(conf.CreditVault, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.AuthIdentity, err = newBKJWTAuthIdentity(conf.APIGateWayServer)
 	if err != nil {
 		return nil, err
 	}
@@ -480,8 +486,8 @@ func withProxy(capability *options.Capability) rest.OptionFunc {
 
 // newCMDBHandler.
 func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
@@ -509,6 +515,17 @@ func newCreditVault(conf config.CreditVault, logger logger.Logger) (creditvault.
 	return vault, nil
 }
 
+func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigw.BKGWJWTAuthIdentity, error) {
+	publickeyPem, err := base64.StdEncoding.DecodeString(conf.PublickeyPem)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new bk jwt auth identity: %w", err)
+	}
+
+	authIdentity := apigw.NewBKGWJWTAuthIdentity(publickeyPem)
+
+	return authIdentity, nil
+}
+
 func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (creditvault.IHostPasswordVault, error) {
 	if !conf.Enable {
 		return &creditvault.DisabledHostPasswordVault{}, nil
@@ -529,8 +546,8 @@ func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (cr
 }
 
 func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
@@ -550,8 +567,8 @@ func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler
 
 // newGSEHandler.
 func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +608,7 @@ func newFileHandler(discov discover.Discover) (file.IHandler, error) {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
+func newAPIGwClientCapability(conf *config.APIGatewayClient) (*client.Capability, error) {
 	httpClient, err := client.NewClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -615,7 +632,7 @@ func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, erro
 }
 
 // newAPIGwHeaderSetter creates a new api-gateway header setter.
-func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
+func newAPIGwHeaderSetter(conf *config.APIGatewayClient) apigw.HeaderSetter {
 	return &apigw.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apigw provides an APIGateway client.
+// Package apigw provides an APIGatewayClient client.
 package apigw
 
 import (
@@ -16,6 +16,7 @@ import (
 	"fmt"
 )
 
+// HeaderSetter defines the interface to set the header.
 type HeaderSetter interface {
 	GetAuthHeader() (string, error)
 }
@@ -28,13 +29,13 @@ type Config struct {
 	AppCode string
 	// AppSecret is the BlueKing app secret of nodeman to request api gateway.
 	AppSecret string
-	// User is the BlueKing user of nodeman to request api gateway.
+	// User is the BlueKing User of nodeman to request api gateway.
 	User string
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode AuthMode
 	// BkTicket is the BlueKing access ticket of nodeman to request api gateway.
 	BkTicket string
-	// BkToken is the BlueKing user token of nodeman to request api gateway.
+	// BkToken is the BlueKing User token of nodeman to request api gateway.
 	BkToken string
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string

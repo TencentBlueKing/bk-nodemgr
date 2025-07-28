@@ -92,3 +92,5 @@ data:
       {{- end }}
 
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
+
+    apiGateWayServer: {{ .Values.backend.config.apiGateWayServer | toYaml | nindent 6 }}

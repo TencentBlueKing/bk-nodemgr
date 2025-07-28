@@ -39,7 +39,7 @@ const (
 
 // BackendGateway the config of backend gateway config.
 type BackendGateway struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of backend"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of backend"`
 }
 
 // ApplicationService the config of application service.

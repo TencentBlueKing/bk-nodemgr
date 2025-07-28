@@ -10,13 +10,14 @@
 
 package bklogin
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // RespCommon describe the common part of response data.
 type RespCommon struct {
-	Result  bool   `json:"result"`
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Ret     int64  `json:"ret"`
+	Message string `json:"msg"`
 }
 
 // BaseBroker describe the base broker.
@@ -30,8 +31,8 @@ const CodeOK = 0
 
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
-	if resp.Result != true || resp.Code != CodeOK {
-		return fmt.Errorf("result(%v), code(%d) , msg(%s) ", resp.Result, resp.Code, resp.Message)
+	if resp.Ret != CodeOK {
+		return fmt.Errorf("resp ret no equal 0, ret(%d)", resp.Ret)
 	}
 
 	return nil
@@ -39,7 +40,7 @@ func (resp *BaseBroker[T]) IsFailed() error {
 
 // GetUserInfoReq describe the get user info request.
 type GetUserInfoReq struct {
-	BKTicket string `json:"bk_ticket"`
+	BKTicket string `json:"-"`
 }
 
 // GetUserInfoResp describe the get user info response.

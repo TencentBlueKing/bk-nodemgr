@@ -21,7 +21,7 @@ import (
 
 // AuthIdentity verify auth info.
 type AuthIdentity interface {
-	Verify(rCtx *Context) bool
+	Verify(rCtx *Context) error
 }
 
 // MiddlewareContext verify auth info.
@@ -38,8 +38,8 @@ func MiddlewareAuth(identity AuthIdentity) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx := loadRestContext(gCtx)
 
-		if !identity.Verify(rCtx) {
-			rCtx.AbortWithJSONError(errf.Unauthorized, nil)
+		if err := identity.Verify(rCtx); err != nil {
+			rCtx.AbortWithJSONError(errf.Unauthorized, []error{err})
 
 			return
 		}
@@ -73,10 +73,4 @@ func MiddlewareReceivedLog(conf recvLoggerConfig) gin.HandlerFunc {
 
 		gCtx.Next()
 	}
-}
-
-// initContextWithJWT init context with jwt
-func initContextWithJWT(_ *Context) bool {
-	// TODO: implement jwt
-	return true
 }

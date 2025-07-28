@@ -184,8 +184,8 @@ type ProxyServer struct {
 	HTTPServer `yaml:",inline"`
 }
 
-// APIGateway the config of api-gateway.
-type APIGateway struct {
+// APIGatewayClient the config of api-gateway.
+type APIGatewayClient struct {
 	// Endpoints is a seed list of host:port addresses of api gateway nodes.
 	Endpoints []string `yaml:"endpoints"`
 	// AppCode is the BlueKing app code of nodeman to request api gateway.
@@ -207,7 +207,7 @@ type APIGateway struct {
 }
 
 // Validate validates the config.
-func (conf APIGateway) Validate() error {
+func (conf APIGatewayClient) Validate() error {
 	if len(conf.Endpoints) == 0 {
 		return errors.New("endpoints of api-gateway is empty")
 	}
@@ -233,8 +233,8 @@ func (conf APIGateway) Validate() error {
 
 // CMDB the config of cmdb.
 type CMDB struct {
-	SupplierAccount string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
-	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
+	SupplierAccount  string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
 // Validate validates the config.
@@ -243,7 +243,7 @@ func (conf CMDB) Validate() error {
 		return errors.New("supplier account is empty")
 	}
 
-	if err := conf.APIGateway.Validate(); err != nil {
+	if err := conf.APIGatewayClient.Validate(); err != nil {
 		return fmt.Errorf("api-gateway config of cmdb is invalid: %s", err)
 	}
 
@@ -252,7 +252,7 @@ func (conf CMDB) Validate() error {
 
 // GSE the config of gse.
 type GSE struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
 
 	PluginSlotID    int    `yaml:"pluginSlotID"`
 	PluginSlotToken string `yaml:"pluginSlotToken"`
@@ -295,9 +295,9 @@ func (vault HostCreditVault) Validate() error {
 
 // IEGTJJ the config of iegtjj.
 type IEGTJJ struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
-	Key        string `yaml:"key" usage:"key of iegtjj"`
-	SecretKey  string `yaml:"secretKey" usage:"secret key of iegtjj"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
+	Key              string `yaml:"key" usage:"key of iegtjj"`
+	SecretKey        string `yaml:"secretKey" usage:"secret key of iegtjj"`
 }
 
 // Validate validates the config.
@@ -310,7 +310,7 @@ func (iegtjj IEGTJJ) Validate() error {
 		return errors.New("secret key of iegtjj is empty")
 	}
 
-	if err := iegtjj.APIGateway.Validate(); err != nil {
+	if err := iegtjj.APIGatewayClient.Validate(); err != nil {
 		return fmt.Errorf("api-gateway config of iegtjj is invalid: %s", err)
 	}
 
@@ -444,6 +444,20 @@ func (bklogin *BKLogin) Validate() error {
 
 	if err := bklogin.TLS.Validate(); err != nil {
 		return fmt.Errorf("failed to validate bklogin config: %w", err)
+	}
+
+	return nil
+}
+
+// APIGateWayServer defines the api gateway config of backend service.
+type APIGateWayServer struct {
+	PublickeyPem string `yaml:"publickeyPem" usage:"publickey pem of api gateway, which is saved in base64 format"`
+}
+
+// Validate validates the config.
+func (conf *APIGateWayServer) Validate() error {
+	if conf.PublickeyPem == "" {
+		return errors.New("publickey pem of api gateway is empty")
 	}
 
 	return nil

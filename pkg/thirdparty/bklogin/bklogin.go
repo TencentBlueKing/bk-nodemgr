@@ -53,10 +53,11 @@ func (c *cli) getUserInfo(ctx context.Context, req *GetUserInfoReq) (*GetUserInf
 		return nil, err
 	}
 
-	err = c.client.Post().
+	err = c.client.Get().
 		SubResourcef("/user/get_info").
 		WithContext(ctx).
 		WithHeaders(header).
+		WithParam("bk_ticket", req.BKTicket).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
