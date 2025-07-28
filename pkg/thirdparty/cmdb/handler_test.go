@@ -624,3 +624,55 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_WatchResourceEvent...
+func Test_handler_WatchResourceEvent(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+	type args struct {
+		ctx context.Context
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			hostCursor := ""
+			hostRelationCursor := ""
+			for i := 0; i < 2; i++ {
+				host, err := h.WatchHostResourceEvent(tt.args.ctx, hostCursor)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("WatchHostResourceEvent() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				t.Logf("host resource event: %#v", host)
+				for _, event := range host {
+					hostCursor = event.Cursor
+				}
+
+				hostRelation, err := h.WatchHostRelationResourceEvent(tt.args.ctx, hostRelationCursor)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("WatchHostRelation() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				t.Logf("host relation resource event: %#v", hostRelation)
+				for _, event := range hostRelation {
+					hostRelationCursor = event.Cursor
+				}
+			}
+		})
+	}
+}

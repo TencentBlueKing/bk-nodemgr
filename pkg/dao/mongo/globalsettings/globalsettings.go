@@ -80,11 +80,11 @@ func (d *dao) upsertMany(ctx context.Context, settings []*GlobalSettings) error 
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted networkareas, inserted-count(%v)", result.UpsertedCount)
+		d.logger.Debugf("inserted globalsettings, inserted-count(%v)", result.UpsertedCount)
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated networkareas, update-count(%v)", result.MatchedCount)
+		d.logger.Debugf("updated globalsettings, update-count(%v)", result.MatchedCount)
 	}
 
 	return nil

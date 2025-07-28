@@ -45,7 +45,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*S
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new storage failed: %v", err)
 		return nil, err
 	}
 
@@ -97,6 +97,10 @@ func (s *Storage) GetGlobalSetting(ctx context.Context, name string) (string, er
 	setting, err := s.daoGlobalSettings.Get(ctx, name)
 	if err != nil {
 		return "", err
+	}
+
+	if setting == nil {
+		return "", nil
 	}
 
 	return setting.Value, nil

@@ -149,6 +149,15 @@ func Test_handler_Get(t *testing.T) {
 				Value:       "value1",
 			},
 		},
+		{
+			name: "not found",
+			args: args{
+				ctx:  ctx,
+				name: "test11",
+			},
+			wantErr: false,
+			want:    nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -160,7 +169,7 @@ func Test_handler_Get(t *testing.T) {
 				return
 			}
 
-			if got.Value != tt.want.Value {
+			if got != nil && got.Value != tt.want.Value {
 				t.Errorf("Get() error, got %v, want: %v", got, tt.want)
 			}
 

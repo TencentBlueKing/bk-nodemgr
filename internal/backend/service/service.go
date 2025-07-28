@@ -37,7 +37,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -50,6 +50,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
@@ -140,7 +141,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
-			return nil, fmt.Errorf("failed to set deploy conf, err: %w", err)
+			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
 		}
 	}
 
@@ -221,7 +222,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.StorageGlobalSettings, err = globalsettings.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(
+		mongoClient,
+		conf.MongoDB.Database,
+		svc.Cap.Logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +281,16 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.watcher, err = watcher.NewWatcher(watcher.Config{
-		CmdbHandler: svc.Cap.CmdbHandler,
-		StorageTopo: svc.Cap.StorageTopo,
-		Manager:     svc.Cap.Manager,
-	}, svc.Cap.Logger)
+	globalsettings.InitGlobalSettings(svc.Cap.StorageGlobalSettings)
+
+	svc.watcher, err = watcher.NewWatcher(
+		watcher.Config{
+			CmdbHandler: svc.Cap.CmdbHandler,
+			StorageTopo: svc.Cap.StorageTopo,
+		},
+		watcher.WithDistributedLocker(svc.Cap.LockerFactory),
+		watcher.WithLogger(svc.Cap.Logger),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +303,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 func loadSystemInfo(conf *config.BackendService) error {
 	system.SetEnv(conf.System.Env)
 	if err := system.SetEdition(system.Edition(conf.System.Edition)); err != nil {
-		return fmt.Errorf("failed to set edition, err: %w", err)
+		return fmt.Errorf("failed to set edition: %w", err)
 	}
 
 	return nil
@@ -651,13 +661,13 @@ func (svc *Service) Start() error {
 
 	// after all servers brings up, register the instance into discover provider.
 	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameBackend, svc.instance); err != nil {
-		blog.Errorf("failed to register instance, err: %v", err)
+		blog.Errorf("failed to register instance: %v", err)
 		return err
 	}
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 
@@ -674,7 +684,7 @@ func (svc *Service) GracefulShutdown() error {
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {
-		blog.Errorf("failed to shutdown capability, err: %v", err)
+		blog.Errorf("failed to shutdown capability: %v", err)
 		return err
 	}
 

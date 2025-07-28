@@ -1495,3 +1495,18 @@ type ResourceWatchResp struct {
 	BKWatched bool              `json:"bk_watched"`
 	BKEvents  []*map[string]any `json:"bk_events"`
 }
+
+// EventInfo describe the event info define by cmdb.
+type EventInfo[T any] struct {
+	BKCursor    string `json:"bk_cursor,omitempty"`
+	BKResource  string `json:"bk_resource"`
+	BKEventType string `json:"bk_event_type,omitempty"`
+	BKDetail    T      `json:"bk_detail"`
+}
+
+// HostEventInfo describe the host event info define by cmdb.
+type HostEventInfo = EventInfo[*HostInfo]
+
+// HostRelationEventInfo describe the host relation event info define by cmdb.
+type HostRelationEventInfo = EventInfo[*HostTopoRelation]
+

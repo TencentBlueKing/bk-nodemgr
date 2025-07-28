@@ -70,21 +70,21 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 			args: args{
 				key: "1",
 			},
-			wantResult: criteria.OSLinux,
+			wantResult: string(criteria.OSLinux),
 		},
 		{
 			name: "test2",
 			args: args{
 				key: "2",
 			},
-			wantResult: criteria.OSWindows,
+			wantResult: string(criteria.OSWindows),
 		},
 		{
 			name: "test3",
 			args: args{
 				key: "3",
 			},
-			wantResult: criteria.OSAix,
+			wantResult: string(criteria.OSAix),
 		},
 	}
 
@@ -117,21 +117,21 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
-				value: criteria.OSLinux,
+				value: string(criteria.OSLinux),
 			},
 			wantResult: "1",
 		},
 		{
 			name: "test2",
 			args: args{
-				value: criteria.OSWindows,
+				value: string(criteria.OSWindows),
 			},
 			wantResult: "2",
 		},
 		{
 			name: "test3",
 			args: args{
-				value: criteria.OSAix,
+				value: string(criteria.OSAix),
 			},
 			wantResult: "3",
 		},

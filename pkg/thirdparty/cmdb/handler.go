@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -32,12 +33,6 @@ import (
 // IHandler the Handler of cmdb.
 // nolint: interfacebloat
 type IHandler interface {
-	// ListServiceTemplate list service template.
-	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
-
-	// NewWatcher new watcher.
-	NewWatcher() (IWatcher, error)
-
 	IEnum
 	IBiz
 	IHost
@@ -47,6 +42,8 @@ type IHandler interface {
 	IUnbindHostAgent
 	IUpdateHostNetworkAreaField
 	IDynamicGroup
+	IServiceTemplate
+	IWatch
 }
 
 // IDynamicGroup this interface is used to edit dynamic group.
@@ -137,6 +134,21 @@ type IUpdateHostNetworkAreaField interface {
 	UpdateHostNetworkAreaField(ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error
 }
 
+// IServiceTemplate this interface is used to list service template.
+type IServiceTemplate interface {
+	// ListServiceTemplate list service template.
+	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
+}
+
+// IWatch this interface is used to watch resource event.
+type IWatch interface {
+	// WatchHostResourceEvent watch host resource event.
+	WatchHostResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error)
+
+	// WatchHostRelationResourceEvent watch host relation resource event.
+	WatchHostRelationResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error)
+}
+
 // Handler the Handler of cmdb.
 type Handler struct {
 	cli    *cli
@@ -186,7 +198,7 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 
 	err = h.initEnumKeepers()
 	if err != nil {
-		h.logger.Errorf("failed to init enum keepers, err: %v", err)
+		h.logger.Errorf("failed to init enum keepers: %v", err)
 		return nil, err
 	}
 
@@ -230,7 +242,7 @@ func (h *Handler) initEnumKeepers() error {
 	for _, task := range syncTasks {
 		err := h.scheduler.RegisterTask(task)
 		if err != nil {
-			h.logger.Errorf("failed to register sync task, task-id(%s), err: %v", task.ID, err)
+			h.logger.Errorf("failed to register sync task, task-id(%s): %v", task.ID, err)
 			return err
 		}
 	}
@@ -239,13 +251,13 @@ func (h *Handler) initEnumKeepers() error {
 	defer cancel()
 
 	if err := h.cloudVendorKeeper.update(ctx); err != nil {
-		h.logger.Warnf("failed to sync cloud vendor, err: %v", err)
+		h.logger.Warnf("failed to sync cloud vendor: %v", err)
 	}
 	if err := h.osTypeKeeper.update(ctx); err != nil {
-		h.logger.Warnf("failed to sync os type, err: %v", err)
+		h.logger.Warnf("failed to sync os type: %v", err)
 	}
 	if err := h.cpuArchKeeper.update(ctx); err != nil {
-		h.logger.Warnf("failed to sync cpu arch, err: %v", err)
+		h.logger.Warnf("failed to sync cpu arch: %v", err)
 	}
 
 	h.scheduler.Start()
@@ -288,7 +300,7 @@ func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 
 	result, err := executor.Execute(ctx, page, fn)
 	if err != nil {
-		return nil, fmt.Errorf("execute page executor failed, err: %v", err)
+		return nil, fmt.Errorf("execute page executor failed: %v", err)
 	}
 
 	return result.Items, nil
@@ -832,13 +844,6 @@ func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 	return result, nil
 }
 
-// NewWatcher new watcher.
-func (h *Handler) NewWatcher() (IWatcher, error) {
-	watcher := NewWatcher(h)
-
-	return watcher, nil
-}
-
 // convHostInfoToTypes convert host info to types.Host.
 func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID int64) *types.Host {
 	data := &types.Host{
@@ -891,15 +896,13 @@ func (h *Handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *t
 }
 
 // convHostTopoRelationToTypes convert host topo relation to types.HostRel.
-func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.HostRel {
-	data := &types.HostRel{
-		HostID:   hostRel.BKHostID,
-		BizID:    hostRel.BKBizID,
-		ModuleID: hostRel.BKModuleID,
-		SetID:    hostRel.BKSetID,
+func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.Host {
+	return &types.Host{
+		HostID: hostRel.BKHostID,
+		Static: &types.HostStatic{
+			BizID: hostRel.BKBizID,
+		},
 	}
-
-	return data
 }
 
 // CheckBizHostByIP check biz host by ip.
@@ -943,4 +946,93 @@ func (h *Handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int
 	}
 
 	return true, nil
+}
+
+// WatchHostResourceEvent watch host resource event.
+func (h *Handler) WatchHostResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: string(types.ResourceTypeHost),
+		BKFields:   ccHostFields(),
+	}
+
+	resp, err := h.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hostEvents := make([]*types.HostEvent, 0, len(resp.BKEvents))
+	for _, hostEvent := range resp.BKEvents {
+		hostData := new(HostEventInfo)
+		if err := conv.MapToStruct(*hostEvent, hostData); err != nil {
+			return nil, err
+		}
+
+		if !resp.BKWatched {
+			break
+		}
+
+		if hostData.BKDetail == nil {
+			continue
+		}
+
+		hostEvents = append(hostEvents, &types.HostEvent{
+			Cursor:    hostData.BKCursor,
+			Resource:  types.ResourceTypeHost,
+			EventType: types.EventType(hostData.BKEventType),
+			Detail:    h.convHostInfoToTypes(tenantID, hostData.BKDetail, CCNoBusinessID),
+		})
+	}
+
+	return hostEvents, nil
+}
+
+// WatchHostRelationResourceEvent get host relation resource by watch.
+func (h *Handler) WatchHostRelationResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &ResourceWatchReq{
+		TenantID:   tenantID,
+		BKCursor:   cursor,
+		BKResource: string(types.ResourceTypeHostRelation),
+	}
+
+	resp, err := h.cli.resourceWatch(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hostEvents := make([]*types.HostEvent, 0)
+	for _, relationEvent := range resp.BKEvents {
+		relationData := new(HostRelationEventInfo)
+		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
+			return nil, err
+		}
+
+		if !resp.BKWatched {
+			break
+		}
+
+		if relationData.BKDetail == nil {
+			continue
+		}
+
+		hostEvents = append(hostEvents, &types.HostEvent{
+			Cursor:    relationData.BKCursor,
+			Resource:  types.ResourceTypeHostRelation,
+			EventType: types.EventType(relationData.BKEventType),
+			Detail:    convHostTopoRelationToTypes(relationData.BKDetail),
+		})
+	}
+
+	return hostEvents, nil
 }

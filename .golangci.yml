@@ -700,3 +700,5 @@ linters-settings:
         alias: storageUpload
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface
         alias: fileiface
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings
+        alias: globalsettingsStorage
