@@ -18,8 +18,7 @@ interceptors.response.use(async (response: Response, config: Config) => {
   if (config.responseType && ['blod', 'text'].includes(config.responseType)) return resData;
   // todo 未认证
   if (response.status === 401) {
-    if (res.login_url) {
-      // window.location.href = `${res.login_url}?c_url=${window.location.href}`;
+    if (window.PROJECT_CONFIG.BK_LOGIN_URL) {
       loginModal();
     } else {
       Message({
