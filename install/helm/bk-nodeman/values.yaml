@@ -869,6 +869,13 @@ application:
       toStderr: false
       alsoToStderr: false
 
+    ## defines the front-setting related settings.
+    front:
+      bkSharedResBaseJsUrl: ""
+      siteURL: "/"
+      bkLoginURL: ""
+      bkAPIPrefix: ""
+
 ## Nodeman file
 ##
 file:

@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -33,6 +34,26 @@ type Context struct {
 	// BKUsername is a unique name for user, and is unique in all tenants, but it is not readable
 	BKUsername string `json:"bk_username"`
 	TenantID   string `json:"tenant_id"`
+}
+
+// Deadline implement context.Context
+func (c *Context) Deadline() (deadline time.Time, ok bool) {
+	return c.gCtx.Deadline()
+}
+
+// Done implement context.Context
+func (c *Context) Done() <-chan struct{} {
+	return c.gCtx.Done()
+}
+
+// Err implement context.Context
+func (c *Context) Err() error {
+	return c.gCtx.Err()
+}
+
+// Value implement context.Context
+func (c *Context) Value(key any) any {
+	return c.gCtx.Value(key)
 }
 
 // BindJSON bind json
@@ -75,6 +96,16 @@ func (c *Context) GetContext() (context.Context, error) {
 	}
 
 	return tenant.SetID(ctx, c.TenantID)
+}
+
+// GetCookie get a cookie from rest-context.
+func (c *Context) GetCookie(name string) (string, error) {
+	cookieValue, err := c.gCtx.Cookie(name)
+	if err != nil {
+		return "", err
+	}
+
+	return cookieValue, nil
 }
 
 // RequestBody rest request body.

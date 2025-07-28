@@ -14,31 +14,37 @@ package rest
 import (
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/gin-gonic/gin"
 )
 
-// MiddlewareContext ...
+// AuthIdentity verify auth info.
+type AuthIdentity interface {
+	Verify(rCtx *Context) bool
+}
+
+// MiddlewareContext verify auth info.
 func MiddlewareContext() gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx := InitRestContext(gCtx)
-
-		if gCtx.Request.Method == http.MethodOptions {
-			gCtx.Next()
-			return
-		}
-
-		switch {
-		case initContextWithJWT(rCtx):
-		default:
-			rCtx.AbortWithJSONError(errf.Unauthorized, nil)
-			return
-		}
+		_ = initRestContext(gCtx)
 
 		gCtx.Next()
 	}
+}
+
+// MiddlewareAuth verify auth info.
+func MiddlewareAuth(identity AuthIdentity) gin.HandlerFunc {
+	return func(gCtx *gin.Context) {
+		rCtx := loadRestContext(gCtx)
+
+		if !identity.Verify(rCtx) {
+			rCtx.AbortWithJSONError(errf.Unauthorized, nil)
+
+			return
+		}
+	}
+
 }
 
 type recvLoggerConfig struct {

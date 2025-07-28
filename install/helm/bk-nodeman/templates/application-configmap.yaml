@@ -28,6 +28,8 @@ data:
 
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}
 
+    front: {{ .Values.application.config.front | toYaml | nindent 6 }}
+
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:

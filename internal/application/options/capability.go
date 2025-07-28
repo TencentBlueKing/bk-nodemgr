@@ -14,6 +14,8 @@ package options
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -33,6 +35,12 @@ type Capability struct {
 
 	// Logger logger
 	Logger logger.Logger
+
+	// FrontSetting front setting
+	FrontSetting frontsetting.IFrontSetting
+
+	// AuthIdentity auth identity
+	AuthIdentity rest.AuthIdentity
 }
 
 // Start starts all services in capability.

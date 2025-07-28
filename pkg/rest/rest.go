@@ -120,15 +120,13 @@ func (c *Context) APIResponse(data interface{}) {
 // restContextKey was used to store the restContext in gin.Context.
 const restContextKey = "rest_context"
 
-// InitRestContext initializes a new rest context.
-func InitRestContext(gCtx *gin.Context) *Context {
+// initRestContext initializes a new rest context.
+func initRestContext(gCtx *gin.Context) *Context {
 	restContext := &Context{
-		gCtx:      gCtx,
+		gCtx: gCtx,
+		// only the flow context can be set when initialization.
 		RequestID: header.BKRIDGetter(gCtx.Request, true),
-		// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
-		LoginName:  gCtx.GetHeader(header.BKUserKey),
-		BKUsername: gCtx.GetHeader(header.BKUserKey),
-		TenantID:   gCtx.GetHeader(header.BKTenantIDKey),
+		TenantID:  gCtx.GetHeader(header.BKTenantIDKey),
 	}
 
 	gCtx.Set(restContextKey, restContext)
@@ -136,6 +134,16 @@ func InitRestContext(gCtx *gin.Context) *Context {
 	// note: for thread safety you need to reset it here.
 	ctx := context.WithValue(gCtx.Request.Context(), header.BKRIDKey, restContext.RequestID)
 	restContext.gCtx.Request = restContext.gCtx.Request.WithContext(ctx)
+
+	return restContext
+}
+
+// loadRestContext loads rest context from gin.Context.
+func loadRestContext(gCtx *gin.Context) *Context {
+	restContext, ok := gCtx.Value(restContextKey).(*Context)
+	if !ok {
+		return initRestContext(gCtx)
+	}
 
 	return restContext
 }
@@ -160,7 +168,7 @@ func RestHandlerFunc(handler HandlerFunc) gin.HandlerFunc { // nolint
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
+			loadRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}
@@ -183,7 +191,7 @@ func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
+			loadRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}
@@ -220,7 +228,7 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx, err := GetRestContext(gCtx)
 		if err != nil {
-			InitRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
+			loadRestContext(gCtx).AbortWithJSONError(errf.Unauthorized, nil)
 
 			return
 		}

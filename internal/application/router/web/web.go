@@ -14,18 +14,21 @@ package web
 import (
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg *gin.RouterGroup
+	rg           *gin.RouterGroup
+	frontSetting frontsetting.IFrontSetting
 }
 
-func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group(""),
+		rg:           rg.Group(""),
+		frontSetting: capability.FrontSetting,
 	}
 }
 
@@ -38,5 +41,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "index.html", gin.H{})
+	ctx.HTML(http.StatusOK, "index.html", gin.H{
+		"BK_SHARED_RES_BASE_JS_URL": h.frontSetting.BKSharedResBaseJsURL(),
+		"BK_LOGIN_URL":              h.frontSetting.BKLoginURL(),
+		"SITE_URL":                  h.frontSetting.SiteUrl(),
+	})
 }

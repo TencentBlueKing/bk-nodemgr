@@ -121,6 +121,7 @@ type ServerOptions struct {
 	IP            string
 	Port          int
 	LogWriter     LogWriter
+	AuthIdentity  AuthIdentity
 	StaticOptions *StaticOptions
 }
 

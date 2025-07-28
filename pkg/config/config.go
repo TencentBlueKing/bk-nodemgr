@@ -426,3 +426,25 @@ type GSEPlugin struct {
 	MessageDomainSocketPath string `yaml:"messageDomainSocketPath" usage:"message domain socket path of gse agent plugin"`
 	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
 }
+
+// BKLogin the config of bklogin.
+type BKLogin struct {
+	// LoginURL defines the login url of bklogin.
+	LoginURL string `yaml:"loginURL" usage:"login url of bklogin"`
+
+	// TLS defines the tls config of bklogin.
+	TLS TLSConfig `yaml:"tls" usage:"tls config of bklogin"`
+}
+
+// Validate validates the config.
+func (bklogin *BKLogin) Validate() error {
+	if bklogin.LoginURL == "" {
+		return errors.New("login url of bklogin is empty")
+	}
+
+	if err := bklogin.TLS.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bklogin config: %w", err)
+	}
+
+	return nil
+}
