@@ -239,10 +239,11 @@ func (r *Request) FullURL() *url.URL {
 		*finalURL = *u
 	}
 
+	// in this case, we could make sure the finalURL.Path and subPath both are valid.
 	if len(r.subPathArgs) > 0 {
-		finalURL.Path = finalURL.Path + fmt.Sprintf(r.subPath, r.subPathArgs...)
+		finalURL.Path, _ = url.JoinPath(finalURL.Path, fmt.Sprintf(r.subPath, r.subPathArgs...))
 	} else {
-		finalURL.Path = finalURL.Path + r.subPath
+		finalURL.Path, _ = url.JoinPath(finalURL.Path, r.subPath)
 	}
 
 	query := url.Values{}
@@ -364,12 +365,12 @@ func (r *Request) Do() *Result {
 		}
 	}
 
-	client := r.capability.Client
-	if client == nil {
-		client = http.DefaultClient
+	requestClient := r.capability.Client
+	if requestClient == nil {
+		requestClient = http.DefaultClient
 	}
 
-	hosts, err := r.capability.Discover.GetServers()
+	servers, err := r.capability.Discover.GetServers()
 	if err != nil {
 		return &Result{
 			Err: err,
@@ -377,8 +378,8 @@ func (r *Request) Do() *Result {
 	}
 
 	for try := 0; try < r.client.maxRetryCycle; try++ {
-		for index, host := range hosts {
-			result, isComplete := r.doWithHost(client, host, try+index, rid)
+		for index, host := range servers {
+			result, isComplete := r.doWithHost(requestClient, host, try+index, rid)
 			if isComplete {
 				return result
 			}
