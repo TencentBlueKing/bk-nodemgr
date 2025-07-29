@@ -41,7 +41,7 @@ package bkoa
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
@@ -67,7 +67,7 @@ func WithLogger(logger logger.Logger) OptionFn {
 }
 
 // New initialize a new cmdb Handler.
-func New(c *client.Capability, conf *Config, opts ...OptionFn) (Handler, error) {
+func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (Handler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err

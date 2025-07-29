@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
@@ -28,9 +28,8 @@ type IHandler interface {
 
 // Config the config of iegtjj.
 type Config struct {
-	HeaderSetter HeaderSetter
-	Key          string
-	SecretKey    string
+	Key       string
+	SecretKey string
 }
 
 // Validate validate config.
@@ -65,8 +64,8 @@ func WithLogger(logger logger.Logger) OptionFn {
 }
 
 // New initialize a new iegtjj Handler.
-func New(c *client.Capability, conf *Config, opts ...OptionFn) (*Handler, error) {
-	cli, err := newClient(c, conf.HeaderSetter)
+func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (*Handler, error) {
+	cli, err := newClient(c)
 	if err != nil {
 		return nil, err
 	}

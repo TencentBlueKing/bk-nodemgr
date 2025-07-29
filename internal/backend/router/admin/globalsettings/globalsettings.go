@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
@@ -44,8 +44,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/list", rest.RestHandlerFunc(h.ListGlobalSettings))
-	h.rg.POST("/get", rest.RestHandlerFunc(h.GetGlobalSetting))
-	h.rg.POST("/upsertmany", rest.RestHandlerFunc(h.UpsertManyGlobalSettings))
-	h.rg.POST("/deletemany", rest.RestHandlerFunc(h.DeleteManyGlobalSettings))
+	h.rg.POST("/list", restserver.Handler(h.ListGlobalSettings))
+	h.rg.POST("/get", restserver.Handler(h.GetGlobalSetting))
+	h.rg.POST("/upsertmany", restserver.Handler(h.UpsertManyGlobalSettings))
+	h.rg.POST("/deletemany", restserver.Handler(h.DeleteManyGlobalSettings))
 }

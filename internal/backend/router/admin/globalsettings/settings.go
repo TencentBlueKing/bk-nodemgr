@@ -13,8 +13,8 @@ package globalsettings
 
 import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 const (
@@ -22,11 +22,11 @@ const (
 )
 
 // ListGlobalSettings lists global settings.
-func (h *handler) ListGlobalSettings(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.ListGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list global settings, failed to decode request body, err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	resp := new(protoBackend.ListGlobalSettingsResp)
@@ -35,7 +35,7 @@ func (h *handler) ListGlobalSettings(ctx *rest.Context) (interface{}, error) {
 		count, err := h.storage.CountGlobalSettings(ctx, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to count global settings, err: %v", err)
-			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
 		resp.Data = &protoBackend.ListGlobalSettingsResp_Data{
@@ -51,7 +51,7 @@ func (h *handler) ListGlobalSettings(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list global settings, err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp.ConvertGlobalSettingsFromTypes(num, settings)
@@ -60,17 +60,17 @@ func (h *handler) ListGlobalSettings(ctx *rest.Context) (interface{}, error) {
 }
 
 // GetGlobalSettings gets a global setting by name.
-func (h *handler) GetGlobalSetting(ctx *rest.Context) (interface{}, error) {
+func (h *handler) GetGlobalSetting(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.GetGlobalSettingReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get global setting, failed to decode request body, err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	value, err := h.storage.GetGlobalSetting(ctx, req.GetSettingName())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get global setting, err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoBackend.GetGlobalSettingResp)
@@ -80,16 +80,16 @@ func (h *handler) GetGlobalSetting(ctx *rest.Context) (interface{}, error) {
 }
 
 // UpsertManyGlobalSettings upserts many global setting.
-func (h *handler) UpsertManyGlobalSettings(ctx *rest.Context) (interface{}, error) {
+func (h *handler) UpsertManyGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.UpsertGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, failed to decode request body, err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.UpsertManyGlobalSettings(ctx, req.ConvertGlobalSettingsToTypes()...); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := &protoBackend.UpsertGlobalSettingsResp{}
@@ -98,16 +98,16 @@ func (h *handler) UpsertManyGlobalSettings(ctx *rest.Context) (interface{}, erro
 }
 
 // DeleteManyGlobalSettings deletes many global settings by names.
-func (h *handler) DeleteManyGlobalSettings(ctx *rest.Context) (interface{}, error) {
+func (h *handler) DeleteManyGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.DeleteGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to delete global settings, failed to decode request body, err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.DeleteManyGlobalSettings(ctx, req.GetSettingName()...); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to delete global settings, err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := &protoBackend.DeleteGlobalSettingsResp{}

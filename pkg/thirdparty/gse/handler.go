@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
@@ -91,7 +91,7 @@ type Handler struct {
 }
 
 // New initialize a new gse Handler.
-func New(c *client.Capability, conf *Config) (*Handler, error) {
+func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err

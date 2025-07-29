@@ -13,17 +13,17 @@ package sync
 
 import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
-func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
+func (h *handler) SyncCmdbHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.SyncCmdbHostReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncBizAndHost(ctx)
@@ -31,7 +31,7 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 		h.logger.ErrorCtxf(ctx, "failed to start sync cmdb host operation. trigger-id(%s), err: %v",
 			triggerID, err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	resp := &protoBackend.SyncCmdbHostResp_Data{
@@ -42,16 +42,16 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 }
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
-func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
+func (h *handler) SyncCmdbNetworkArea(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.SyncCmdbNetworkAreaReq)
 	if err := ctx.BindJSON(req); err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncNetworkArea(ctx)
 	if err != nil {
 		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s), err: %v", triggerID, err)
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	resp := &protoBackend.SyncCmdbNetworkAreaResp_Data{

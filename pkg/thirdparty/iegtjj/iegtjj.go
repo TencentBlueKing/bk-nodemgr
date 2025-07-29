@@ -15,46 +15,29 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 )
-
-// HeaderSetter get auth header.
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 // cli client for iegtjj.
 type cli struct {
-	client       rest.ClientInterface
-	headerSetter HeaderSetter
+	client restclient.IClient
 }
 
-// newClient initialize a new iegtjj client.
-func newClient(c *client.Capability, headerSetter HeaderSetter) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/")
+// newClient initialize a new iegtjj restclient.
+func newClient(c *restclient.Capability) (*cli, error) {
+	restCli, err := restclient.NewClient(c, "/")
 	if err != nil {
 		return nil, err
 	}
 
 	return &cli{
-		client:       restCli,
-		headerSetter: headerSetter,
+		client: restCli,
 	}, nil
 }
 
 // getCommonHeader get a common header.
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
-
-	authHeader, err := c.headerSetter.GetAuthHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

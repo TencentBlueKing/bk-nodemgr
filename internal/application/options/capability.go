@@ -15,7 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -40,7 +40,7 @@ type Capability struct {
 	FrontSetting frontsetting.IFrontSetting
 
 	// AuthIdentity auth identity
-	AuthIdentity rest.AuthIdentity
+	AuthIdentity restserver.AuthIdentity
 }
 
 // Start starts all services in capability.

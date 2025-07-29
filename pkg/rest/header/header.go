@@ -8,51 +8,30 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package header define the blueking common header.
 package header
 
 import (
 	"net/http"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 const (
-	// BKRIDKey is request id header key.
-	BKRIDKey = "X-Bkapi-Request-Id"
-
-	// BKUserKey is operator name header key.
-	BKUserKey = "X-Bkapi-User-Name"
-
-	// BKAppCodeKey is blueking application code header key.
-	BKAppCodeKey = "X-Bkapi-App-Code"
-
-	// BKLanguageKey the language key word.
-	BKLanguageKey = "HTTP_BLUEKING_LANGUAGE"
-
-	// BKGWJWTTokenKey is blueking api gateway jwt header key.
-	BKGWJWTTokenKey = "X-Bkapi-JWT"
-
 	// BKTenantIDKey is tenant id header key.
 	BKTenantIDKey = "X-Bk-Tenant-Id"
 
-	// BKGWAuthKey is blueking api gateway authorization header key.
-	BKGWAuthKey = "X-Bkapi-Authorization"
-
-	// BKAuthKey is authorization header key for standard apis.
-	BKAuthKey = "Authorization"
+	// BKNodemgrRequestIDKey is request id header key.
+	BKNodemgrRequestIDKey = "X-BkNodemgr-Request-Id"
 )
 
-// BKRIDGetter request id value.
-func BKRIDGetter(req *http.Request, autoGen bool) string {
-	id := req.Header.Get(BKRIDKey)
-	if id == "" && autoGen {
-		id = BKRIDGenerator()
-	}
+// BKTenantIDGetter get tenant id value.
+func BKTenantIDGetter(req *http.Request) string {
+	id := req.Header.Get(BKTenantIDKey)
+
 	return id
 }
 
-// BKRIDGenerator generate request id.
-func BKRIDGenerator() string {
-	return identifier.GenRequestID()
+// BKNodemgrRequestIDGetter get request id value.
+func BKNodemgrRequestIDGetter(req *http.Request) string {
+	id := req.Header.Get(BKNodemgrRequestIDKey)
+
+	return id
 }

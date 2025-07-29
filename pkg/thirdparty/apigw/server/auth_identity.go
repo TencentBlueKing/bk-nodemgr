@@ -8,14 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package apigw
+package server
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 // BKGWJWTAuthIdentity verify the jwt from apigateway.
@@ -31,11 +31,11 @@ func NewBKGWJWTAuthIdentity(pem []byte) *BKGWJWTAuthIdentity {
 }
 
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentity) Verify(rCtx *rest.Context) error {
+func (identity *BKGWJWTAuthIdentity) Verify(rCtx *restserver.Context) error {
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
-	jwtStr := rCtx.GetRequestHeader(restheader.BKGWJWTTokenKey)
+	jwtStr := rCtx.GetRequestHeader(apigwheader.BKGWJWTTokenKey)
 	if jwtStr == "" {
 		return errors.New("failed to verify user authentication, jwt token is empty")
 	}

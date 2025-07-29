@@ -18,7 +18,6 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/authidentity"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	apiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
@@ -27,14 +26,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/apigw"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -47,7 +47,7 @@ const (
 	DiscoveryNameApigw = "apigateway"
 )
 
-// Service defines a server that provides application services.
+// Service defines a apigwserver that provides application services.
 // It provides a website for user to operate with nodeman.
 type Service struct {
 	// conf holds the configuration for the service.
@@ -60,7 +60,7 @@ type Service struct {
 	cancelFunc context.CancelFunc
 
 	// router is the entry point of the service, routing requests to different capabilities.
-	servers []*rest.Server
+	servers []*restserver.Server
 
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
@@ -114,31 +114,26 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 }
 
 func (svc *Service) registerRestServer(conf *config.ApplicationService) error {
-	bkloginHandler, err := newBKLoginHandler(conf.BKLogin, svc.Cap.Logger)
-	if err != nil {
-		return fmt.Errorf("failed to register rest server: %w", err)
-	}
+	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
 
-	authIdentity := &authidentity.BKTicketAuthIdentity{
-		BKLoginHandler: bkloginHandler,
-	}
-
-	httpServer := rest.NewServer(
+	httpServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:         string(discover.EndpointNameApplicationBasic),
-			IP:           conf.HTTPServer.BindIP,
-			Port:         conf.HTTPServer.Port,
-			LogWriter:    loggerWriter{},
-			AuthIdentity: authIdentity,
-			StaticOptions: rest.NewStaticOptions(conf.HTTPServer.StaticDir).
+		restserver.Options{
+			Name:            string(discover.EndpointNameApplicationBasic),
+			IP:              conf.HTTPServer.BindIP,
+			Port:            conf.HTTPServer.Port,
+			LogWriter:       loggerWriter{},
+			RequestIDSetter: apigwRequestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			StaticOptions: restserver.NewStaticOptions(conf.HTTPServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").
 				WithDirs("static").
 				WithDirs("images").
 				WithFiles("bk.svg", "favicon.png", "nodeman.png"),
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withWeb(svc.Cap),
@@ -162,28 +157,28 @@ func (l loggerWriter) ErrorWriter() io.Writer {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) rest.OptionFunc {
+func withHealthz(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		healthz.Load(rg, capability)
 	}
 }
 
 // withMetrics load metrics.
-func withMetrics(_ *options.Capability) rest.OptionFunc {
+func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	}
 }
 
 // withWeb load web page handler.
-func withWeb(capability *options.Capability) rest.OptionFunc {
+func withWeb(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		web.Load(rg, capability)
 	}
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability) rest.OptionFunc {
+func withAPIV3(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		apiv3.Load(rg, capability)
 	}
@@ -191,18 +186,19 @@ func withAPIV3(capability *options.Capability) rest.OptionFunc {
 
 // newBackendHandler creates a new backend handler.
 func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGatewayClient)
+	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("faild to new backend handler: %v", err)
 	}
 
 	apiGwClientCapability.Name = "backend"
-	backendHandler, err := backend.New(apiGwClientCapability, &backend.Config{
-		HeaderSetter: apiGwHeaderSetter,
+	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
+		ApiGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("faild to new backend handler: %v", err)
 	}
 
 	return backendHandler, nil
@@ -210,21 +206,21 @@ func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
 
 // newFileHandler creates a new file handler.
 func newFileHandler(discov discover.Discover) (file.IHandler, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	clientCap := &client.Capability{
-		Client: httpClient,
-		Discover: discovery.NewServiceDiscovery(
+	clientCap := &restclient.Capability{
+		HTTPClient: httpClient,
+		Discover: restdiscovery.NewServiceDiscovery(
 			discov,
 			discover.ServiceNameFile,
 			discover.EndpointNameFileAdmin),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
@@ -232,8 +228,8 @@ func newFileHandler(discov discover.Discover) (file.IHandler, error) {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGatewayClient) (*client.Capability, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capability, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
@@ -244,47 +240,47 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*client.Capability
 		return nil, err
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
 }
 
-// newAPIGwHeaderSetter creates a new api-gateway header setter.
-func newAPIGwHeaderSetter(conf *config.APIGatewayClient) apigw.HeaderSetter {
-	return &apigw.Config{
+// newAPIGwClientConfig creates a new api-gateway client config.
+func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
+	apigwClientConf := apigwclient.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,
 		AppSecret:   conf.AppSecret,
 		User:        conf.User,
-		AuthMode:    apigw.AuthMode(conf.AuthMode),
+		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		BkTicket:    conf.BkTicket,
 		BkToken:     conf.BkToken,
 		AccessToken: conf.AccessToken,
 	}
+
+	return apigwClientConf
 }
 
-func (svc *Service) newBKTicketAuthIdentity(conf config.BKLogin) (rest.AuthIdentity, error) {
+func (svc *Service) newBKTicketAuthIdentity(conf config.BKLogin) (restserver.AuthIdentity, error) {
 	bkloginHandler, err := newBKLoginHandler(conf, svc.Cap.Logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register rest server: %w", err)
+		return nil, fmt.Errorf("failed to register rest apigwserver: %w", err)
 	}
 
-	authIdentity := &authidentity.BKTicketAuthIdentity{
-		BKLoginHandler: bkloginHandler,
-	}
+	authIdentity := bkloginHandler.GetAuthIdentity()
 
 	return authIdentity, nil
 }
 
 // newBKLoginHandler
 func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bklogin.IHandler, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
@@ -295,11 +291,11 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bklogin.IHand
 		return nil, fmt.Errorf("failed to new bklogin handler: %v", err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery(DiscoveryNameApigw, []string{conf.LoginURL}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, []string{conf.LoginURL}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger,
 	}
 
@@ -324,9 +320,9 @@ func (svc *Service) Start() error {
 	for idx := range svc.servers {
 		server := svc.servers[idx]
 
-		// server start will block until server stop, so we need to run it in a goroutine.
+		// apigwserver start will block until apigwserver stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
+			blog.Infof("started apigwserver. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
 
 			if err := server.Start(); err != nil {
 				return err

@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -49,9 +49,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", rest.RestHandlerFunc(h.AgentInstall))
-	h.rg.POST("/upgrade", rest.RestHandlerFunc(h.AgentUpgrade))
-	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReconfig))
-	h.rg.POST("/restart", rest.RestHandlerFunc(h.AgentRestart))
-	h.rg.POST("/uninstall", rest.RestHandlerFunc(h.AgentUninstall))
+	h.rg.POST("/install", restserver.Handler(h.AgentInstall))
+	h.rg.POST("/upgrade", restserver.Handler(h.AgentUpgrade))
+	h.rg.POST("/reconfig", restserver.Handler(h.AgentReconfig))
+	h.rg.POST("/restart", restserver.Handler(h.AgentRestart))
+	h.rg.POST("/uninstall", restserver.Handler(h.AgentUninstall))
 }

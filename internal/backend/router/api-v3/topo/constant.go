@@ -12,17 +12,17 @@ package topo
 
 import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // GetConstant get constant values.
-func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
+func (h *handler) GetConstant(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.TopoConstantGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	cloudVendors := make([]string, 0)
@@ -33,7 +33,7 @@ func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
 		cloudVendors, err = h.cmdbHandler.GetCloudVendors(ctx)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to get constant, failed to get cloud vendors. err: %v", err)
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 	}
 

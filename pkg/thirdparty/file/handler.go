@@ -20,7 +20,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -87,7 +87,7 @@ type handler struct {
 }
 
 // New initialize a new nodeman backend handler.
-func New(c *client.Capability, conf *Config) (IHandler, error) {
+func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err

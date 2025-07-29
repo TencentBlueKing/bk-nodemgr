@@ -22,7 +22,7 @@ import (
 	"time"
 
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -57,7 +57,7 @@ func WithLogger(logger logger.Logger) OptionFn {
 }
 
 // New initialize a new cmdb Handler.
-func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
+func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err

@@ -15,19 +15,19 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 // cli client for bkoa.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 }
 
 // newClient initialize a new bkoa client.
-func newClient(c *client.Capability) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/")
+func newClient(c *restclient.Capability) (*cli, error) {
+	restCli, err := restclient.NewClient(c, "/")
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func newClient(c *client.Capability) (*cli, error) {
 // getCommonHeader get cmdb common header.
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
+	header.Set(apigwheader.BKRIDKey, identifier.GenRequestID())
 
 	return header, nil
 }

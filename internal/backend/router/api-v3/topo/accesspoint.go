@@ -12,8 +12,8 @@ package topo
 
 import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 const (
@@ -23,11 +23,11 @@ const (
 )
 
 // ListAccessPoint lists accesspoints with page and conditions.
-func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListAccessPoint(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.TopoAccessPointListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list accesspoint, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
@@ -37,7 +37,7 @@ func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
 			req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list accesspoint. failed to count accesspoint. err: %v", err)
-			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
 		resp := new(protoBackend.TopoAccessPointListResp)
@@ -52,7 +52,7 @@ func (h *handler) ListAccessPoint(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list accesspoint. err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoBackend.TopoAccessPointListResp)

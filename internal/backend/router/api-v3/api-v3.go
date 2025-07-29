@@ -18,14 +18,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
 	rg           *gin.RouterGroup
-	authIdentity rest.AuthIdentity
+	authIdentity restserver.AuthIdentity
 }
 
 // newHandler ...

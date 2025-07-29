@@ -14,8 +14,8 @@ import (
 	"context"
 
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,11 +25,11 @@ const (
 )
 
 // ListHost lists hosts with page and conditions.
-func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoHostListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
@@ -39,7 +39,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 			req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list host, failed to count host. err: %v", err)
-			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
 		resp := new(protoApplication.TopoHostListResp)
@@ -54,7 +54,7 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list host. err: %v", err)
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	var mapping types.TopoNameMapping
@@ -154,11 +154,11 @@ func (h *handler) completeNetworkUnitName(
 }
 
 // DistinctHost get distinct host fields.
-func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
+func (h *handler) DistinctHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoHostDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.DistinctHost(
@@ -166,7 +166,7 @@ func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoApplication.TopoHostDistinctResp)

@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ import (
 type handler struct {
 	rg           *gin.RouterGroup
 	logger       logger.Logger
-	authIdentity rest.AuthIdentity
+	authIdentity restserver.AuthIdentity
 }
 
 // newHandler ...

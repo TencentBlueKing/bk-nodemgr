@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package rest
+package client
 
 import (
 	"bytes"
@@ -25,9 +25,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 )
 
 // VerbType http request verb type.
@@ -55,7 +52,7 @@ type Request struct {
 	client *Client
 
 	// request capability.
-	capability *client.Capability
+	capability *Capability
 
 	verb       VerbType
 	params     url.Values
@@ -63,6 +60,15 @@ type Request struct {
 	body       []byte
 	bodyReader io.Reader
 	ctx        context.Context
+
+	// enableLogBody was used to record some important info for debug.
+	enableLogBody bool
+
+	// enableLogResponse was used to record some important info for debug.
+	enableLogResponse bool
+
+	// sensitive headers.
+	sensitiveHeaders map[string]struct{}
 
 	// prefixed url
 	baseURL string
@@ -263,7 +269,7 @@ func (r *Request) FullURL() *url.URL {
 }
 
 // checkToleranceLatency check request toleranceLatency.
-func (r *Request) checkToleranceLatency(start *time.Time, url string, rid string) {
+func (r *Request) checkToleranceLatency(start *time.Time, url string) {
 	if time.Since(*start) < r.capability.ToleranceLatencyTime {
 		return
 	}
@@ -274,15 +280,13 @@ func (r *Request) checkToleranceLatency(start *time.Time, url string, rid string
 
 	// request time larger than the maxToleranceLatencyTime time, then log the request
 	r.capability.Logger.Infof("http request exceeded max latency time. "+
-		"cost(%d ms), appcode(%s), user(%s), method(%s), url(%s), body(%s), rid(%s)",
-		time.Since(*start)/time.Millisecond,
-		r.headers.Get(header.BKAppCodeKey),
-		r.headers.Get(header.BKUserKey), r.verb, url, r.body, rid)
+		"cost(%d ms), method(%s), url(%s), header(%s), body(%s)",
+		time.Since(*start)/time.Millisecond, r.verb, url, r.maskHeader(r.headers), r.maskRequestBody())
 }
 
 // isToleranceLatencyExclusionURL judge url if need to checkToleranceLatency.
 func (r *Request) isToleranceLatencyExclusionURL(url string) bool {
-	for _, eurl := range r.client.exclusionURL {
+	for eurl := range r.client.exclusionURL {
 		if strings.Contains(url, eurl) {
 			return true
 		}
@@ -293,12 +297,14 @@ func (r *Request) isToleranceLatencyExclusionURL(url string) bool {
 
 // Result http response result.
 type Result struct {
-	Rid        string
 	Body       []byte
 	Err        error
 	StatusCode int
 	Status     string
 	Header     http.Header
+
+	// enableLogResponse was used to record some important info for debug.
+	enableLogResponse bool
 }
 
 // Into parse body to obj.
@@ -317,11 +323,7 @@ func (r *Result) Into(obj interface{}) error {
 
 	err := json.Unmarshal(r.Body, obj)
 	if nil != err {
-		if r.StatusCode >= http.StatusInternalServerError {
-			return fmt.Errorf("http request err: %s", string(r.Body))
-		}
-
-		return fmt.Errorf("invalid response body, reply(%s), err: %v", r.Body, err.Error())
+		return fmt.Errorf("invalid response body, body(%s): %v", r.Body, err)
 	}
 
 	return nil
@@ -354,20 +356,15 @@ func (r *Request) tryThrottle(url string) {
 
 // Do http request do.
 func (r *Request) Do() *Result {
-	rid := getRIDFromContext(r.ctx)
-	if rid == "" {
-		rid = r.headers.Get(header.BKRIDKey)
-	}
-
 	if r.err != nil {
 		return &Result{
 			Err: r.err,
 		}
 	}
 
-	requestClient := r.capability.Client
-	if requestClient == nil {
-		requestClient = http.DefaultClient
+	httpClient := r.capability.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
 	}
 
 	servers, err := r.capability.Discover.GetServers()
@@ -379,7 +376,7 @@ func (r *Request) Do() *Result {
 
 	for try := 0; try < r.client.maxRetryCycle; try++ {
 		for index, host := range servers {
-			result, isComplete := r.doWithHost(requestClient, host, try+index, rid)
+			result, isComplete := r.doWithHost(httpClient, host, try+index)
 			if isComplete {
 				return result
 			}
@@ -395,19 +392,19 @@ func (r *Request) Do() *Result {
 const retryDelay = 20 * time.Millisecond
 
 // doWithHost http request do with specific host.
-func (r *Request) doWithHost(client client.HTTPClient, host string, retries int, rid string) (*Result, bool) {
+func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Result, bool) {
 	url := host + r.FullURL().String()
 	req, err := r.getRequest(url)
 	if err != nil {
-		return &Result{Err: err, Rid: rid}, true
+		return &Result{Err: err}, true
 	}
 
 	if retries > 0 {
 		r.tryThrottle(url)
 	}
 
-	r.client.capability.Logger.Infof("try to request, method(%s), url(%s), header(%+v), body(%s), rid(%s)",
-		r.verb, url, r.headers, string(r.body), rid)
+	r.client.capability.Logger.Infof("request, method(%s), url(%s), header(%s), body(%s)",
+		r.verb, url, r.maskHeader(r.headers), r.maskRequestBody())
 
 	start := time.Now()
 	resp, err := client.Do(req)
@@ -415,9 +412,9 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 		// "Connection reset by peer" is a special err which in most scenario is a transient error.
 		// Which means that we can retry it. And so does the VerbTypeGET operation.
 		// While the other "write" operation can not simply retry it again, because they are not idempotent.
-		r.checkToleranceLatency(&start, url, rid)
+		r.checkToleranceLatency(&start, url)
 		if !isConnectionReset(err) || r.verb != VerbTypeGET {
-			return &Result{Err: err, Rid: rid}, true
+			return &Result{Err: err}, true
 		}
 
 		// retry now
@@ -430,7 +427,7 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 	r.client.metrics.HandleClientMetrics(req, resp, r.subPath, start)
 
 	// record latency if needed
-	r.checkToleranceLatency(&start, url, rid)
+	r.checkToleranceLatency(&start, url)
 
 	var body []byte
 	if resp.Body != nil {
@@ -441,24 +438,27 @@ func (r *Request) doWithHost(client client.HTTPClient, host string, retries int,
 				time.Sleep(retryDelay)
 				return nil, false
 			}
-			r.capability.Logger.Errorf("http request %s %s with body %s, err: %v, rid: %s", string(r.verb), url, r.body,
-				err, rid)
+			r.capability.Logger.Errorf("failed to request, method(%s), url(%s), header(%s), body(%s): %v",
+				r.verb, url, r.maskHeader(r.headers), r.maskRequestBody(), err)
 
-			return &Result{Err: err, Rid: rid}, true
+			return &Result{Err: err}, true
 		}
 		body = data
 	}
 
-	r.client.capability.Logger.Infof("requested, rid(%s), response-len(%d), http-code(%d)",
-		rid, len(body), resp.StatusCode)
+	result := &Result{
+		Body:              body,
+		StatusCode:        resp.StatusCode,
+		Status:            resp.Status,
+		Header:            resp.Header,
+		enableLogResponse: r.enableLogResponse,
+	}
 
-	return &Result{
-		Rid:        rid,
-		Body:       body,
-		StatusCode: resp.StatusCode,
-		Status:     resp.Status,
-		Header:     resp.Header,
-	}, true
+	r.client.capability.Logger.Infof(
+		"response, method(%s), url(%s), header(%s), http-code(%d), body(%s)",
+		r.verb, url, r.maskHeader(r.headers), result.StatusCode, result.maskResponseBody())
+
+	return result, true
 }
 
 func (r *Request) getRequest(url string) (*http.Request, error) {
@@ -514,20 +514,6 @@ func isConnectionReset(err error) bool {
 	return false
 }
 
-// getRIDFromContext get request id from context.
-func getRIDFromContext(ctx context.Context) string {
-	if ctx == nil {
-		return ""
-	}
-	rid := ctx.Value(header.BKRIDKey)
-	ridValue, ok := rid.(string)
-	if ok == true {
-		return ridValue
-	}
-
-	return ""
-}
-
 func cloneHeader(src http.Header) http.Header {
 	tar := http.Header{}
 	for key := range src {
@@ -535,4 +521,61 @@ func cloneHeader(src http.Header) http.Header {
 	}
 
 	return tar
+}
+
+// maskHeader mask the http header key.
+func (r *Request) maskHeader(headers http.Header) string {
+	masked := make(http.Header, len(headers))
+
+	for key, values := range headers {
+		maskedValues := make([]string, len(values))
+		for i, value := range values {
+			if _, ok := r.sensitiveHeaders[key]; ok {
+				if len(value) > 6 {
+					maskedValues[i] = value[:3] + "***" + value[len(value)-3:]
+				} else {
+					maskedValues[i] = strings.Repeat("*", len(value))
+				}
+			} else {
+				maskedValues[i] = value
+			}
+		}
+		masked[key] = maskedValues
+	}
+
+	return fmt.Sprintf("%+v", masked)
+}
+
+// EnableLogBody show the request body.
+func (r *Request) EnableLogBody() *Request {
+	r.enableLogBody = true
+
+	return r
+}
+
+// EnableLogResponse show the request response.
+func (r *Request) EnableLogResponse() *Request {
+	r.enableLogResponse = true
+
+	return r
+}
+
+// maskRequestBody mask the http body.
+// notice: please make sure the request body is necessary and hasn't security risk.
+func (r *Request) maskRequestBody() string {
+	if !r.enableLogBody {
+		return "hidden"
+	}
+
+	return string(r.body)
+}
+
+// maskResponseBody mask the http response body.
+// notice: please make sure the response body is necessary and hasn't security risk.
+func (r *Result) maskResponseBody() string {
+	if !r.enableLogResponse {
+		return "hidden"
+	}
+
+	return string(r.Body)
 }

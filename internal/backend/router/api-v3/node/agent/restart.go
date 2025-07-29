@@ -19,24 +19,24 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // AgentRestart restart agent.
-func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
+func (h *handler) AgentRestart(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeAgentRestartReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, err := h.getRestartNodeHosts(ctx, req.GetHost())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to get host list. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	reqHosts := req.GetHost()
@@ -48,7 +48,7 @@ func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to generate node deployment. err: %v", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 
 		nodeDeploys[idx] = nodeDeploy
@@ -62,7 +62,7 @@ func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
 	})
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to restart agent: %v", err)
-		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentRestartResp)

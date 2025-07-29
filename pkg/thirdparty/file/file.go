@@ -22,8 +22,7 @@ import (
 	"net/http"
 
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 )
@@ -33,38 +32,21 @@ const CodeOK = 0
 
 // This file only supports requesting and getting responses.
 
-// HeaderSetter ...
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
-
 // Config the config of backend.
 type Config struct {
-	HeaderSetter HeaderSetter
-}
-
-type emptyHeaderSetter struct{}
-
-// GetAuthHeader returns auth header.
-func (emptyHeaderSetter) GetAuthHeader() (string, error) {
-	return "", nil
 }
 
 // cli client for backend.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 	config *Config
 }
 
 // newClient initialize a new backend client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/")
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
+	restCli, err := restclient.NewClient(c, "/")
 	if err != nil {
 		return nil, err
-	}
-
-	if conf.HeaderSetter == nil {
-		conf.HeaderSetter = &emptyHeaderSetter{}
 	}
 
 	return &cli{
@@ -76,15 +58,7 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get backend common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
 	header.Set(restheader.BKTenantIDKey, tenantID)
-
-	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

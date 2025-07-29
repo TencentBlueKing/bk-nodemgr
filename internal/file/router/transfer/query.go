@@ -12,23 +12,23 @@ package transfer
 
 import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // TransferQuery query transfer package.
-func (h *handler) TransferQuery(ctx *rest.Context) (interface{}, error) {
+func (h *handler) TransferQuery(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoFile.TransferQueryReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to query transfer, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	upload, download, err := h.manager.QueryTransfer(ctx, req.GetTaskId())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to query transfer. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	resp := new(protoFile.TransferQueryResp)

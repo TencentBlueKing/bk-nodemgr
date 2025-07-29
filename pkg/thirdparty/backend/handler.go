@@ -15,7 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -308,7 +308,7 @@ type handler struct {
 }
 
 // New initialize a new nodeman backend handler.
-func New(c *client.Capability, conf *Config) (Handler, error) {
+func New(c *restclient.Capability, conf Config) (Handler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err

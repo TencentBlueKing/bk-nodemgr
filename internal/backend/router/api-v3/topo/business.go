@@ -12,8 +12,8 @@ package topo
 
 import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 const (
@@ -23,11 +23,11 @@ const (
 )
 
 // ListBusiness list business with specified conditions.
-func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListBusiness(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.TopoBusinessListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list business, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	bizs, num, err := h.storage.ListBusinesses(
@@ -36,7 +36,7 @@ func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list business, err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoBackend.TopoBusinessListResp)

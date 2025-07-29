@@ -16,17 +16,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 // This file only supports requesting and getting responses.
-
-// HeaderSetter ...
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 const (
 	languageHeaderKey   = "X-Bkcmdb-Language"
@@ -47,15 +42,15 @@ func (conf *Config) Validate() error {
 	return nil
 }
 
-// cli client for cmdb.
+// cli restclient for cmdb.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 	config *Config
 }
 
-// newClient initialize a new cmdb client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/api/v3")
+// newClient initialize a new cmdb restclient.
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
+	restCli, err := restclient.NewClient(c, "/api/v3")
 	if err != nil {
 		return nil, err
 	}
@@ -73,16 +68,16 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get cmdb common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
+	header.Set(apigwheader.BKRIDKey, restheader.RIDGenerator())
 	header.Set(restheader.BKTenantIDKey, tenantID)
 	header.Set(languageHeaderKey, languageHeaderValue)
 
-	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
+	authHeader := c.config.HeaderSetter.GetAuthHeader()
 	if err != nil {
 		return nil, err
 	}
 
-	header.Set(restheader.BKGWAuthKey, authHeader)
+	header.Set(apigwheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

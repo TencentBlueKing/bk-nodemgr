@@ -12,11 +12,11 @@
 package agent
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // AgentUninstall uninstall agent.
-func (h *handler) AgentUninstall(ctx *rest.Context) (interface{}, error) {
+func (h *handler) AgentUninstall(ctx *restserver.Context) (interface{}, error) {
 	// TODO: implement me
 	return nil, nil
 }

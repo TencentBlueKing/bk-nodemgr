@@ -23,7 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
@@ -46,7 +46,7 @@ type Service struct {
 	Cap *options.Capability
 
 	// router is the entry point of the service, routing requests to different capabilities.
-	servers []*rest.Server
+	servers []*restserver.Server
 }
 
 // NewService creates a new relay service.
@@ -78,26 +78,32 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		Logger:           svc.Cap.Logger,
 	})
 
-	callbackServer := rest.NewServer(
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+	callbackServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameRelayCallback),
-			IP:        conf.CallbackServer.BindIP,
-			Port:      conf.CallbackServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameRelayCallback),
+			IP:              conf.CallbackServer.BindIP,
+			Port:            conf.CallbackServer.Port,
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			LogWriter:       loggerWriterAdaptor{},
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
 	)
 	svc.servers = append(svc.servers, callbackServer)
 
-	fileServer := rest.NewServer(
+	fileServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameRelayFile),
-			IP:        conf.FileServer.BindIP,
-			Port:      conf.FileServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameRelayFile),
+			IP:              conf.FileServer.BindIP,
+			Port:            conf.FileServer.Port,
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			LogWriter:       loggerWriterAdaptor{},
 		},
 	)
 	svc.servers = append(svc.servers, fileServer)
@@ -106,7 +112,7 @@ func NewService(conf *config.RelayService) (*Service, error) {
 }
 
 // withCallbackServer load callback api
-func withCallbackServer(capability *options.Capability) rest.OptionFunc {
+func withCallbackServer(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		callback.Load(rg, capability)
 	}

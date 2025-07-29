@@ -18,8 +18,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -29,11 +29,11 @@ import (
 const DefaultNodeGeneration = 2
 
 // AgentInstall install agent.
-func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
+func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeAgentInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
@@ -53,7 +53,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 
 		nodeDeploys[idx] = nodeDeploy
@@ -72,7 +72,7 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	})
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
-		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentInstallResp)

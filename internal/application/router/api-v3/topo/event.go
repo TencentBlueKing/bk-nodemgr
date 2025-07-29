@@ -12,8 +12,8 @@ package topo
 
 import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 const (
@@ -21,11 +21,11 @@ const (
 )
 
 // ListEvent lists events with page and conditions.
-func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
+func (h *handler) ListEvent(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoEventListReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list event, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
@@ -35,7 +35,7 @@ func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
 			req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list event. failed to count event. err: %v", err)
-			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
 		resp := new(protoApplication.TopoEventListResp)
@@ -50,7 +50,7 @@ func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list event. err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoApplication.TopoEventListResp)
@@ -61,11 +61,11 @@ func (h *handler) ListEvent(ctx *rest.Context) (interface{}, error) {
 
 // DistinctEvent distincts events with conditions.
 // nolint: dupl
-func (h *handler) DistinctEvent(ctx *rest.Context) (interface{}, error) {
+func (h *handler) DistinctEvent(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoEventDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct topoevent, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.DistinctTopoEvent(
@@ -73,7 +73,7 @@ func (h *handler) DistinctEvent(ctx *rest.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct topoevent. failed to distinct host fields: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoApplication.TopoEventDistinctResp)

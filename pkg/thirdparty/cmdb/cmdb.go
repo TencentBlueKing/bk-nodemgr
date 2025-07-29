@@ -18,17 +18,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
 
 // This file only supports requesting and getting responses.
-
-// HeaderSetter ...
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 const (
 	languageHeaderKey   = "X-Bkcmdb-Language"
@@ -37,18 +32,18 @@ const (
 
 // Config the config of cmdb.
 type Config struct {
-	SupplierAccount string
-	HeaderSetter    HeaderSetter
+	SupplierAccount   string
+	ApiGWClientConfig apigwclient.Config
 }
 
 // Validate configures the config.
 func (conf *Config) Validate() error {
 	if conf.SupplierAccount == "" {
-		return errors.New("supplier account is empty")
+		return errors.New("failed to validate cmdb client config: supplier account is empty")
 	}
 
-	if conf.HeaderSetter == nil {
-		return errors.New("header setter is nil")
+	if err := conf.ApiGWClientConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate cmdb client config: %v", err)
 	}
 
 	return nil
@@ -56,13 +51,13 @@ func (conf *Config) Validate() error {
 
 // cli client for cmdb.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 	config *Config
 }
 
 // newClient initialize a new cmdb client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/api/v3")
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.ApiGWClientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -80,16 +75,8 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get cmdb common header.
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
 	header.Set(restheader.BKTenantIDKey, tenantID)
 	header.Set(languageHeaderKey, languageHeaderValue)
-
-	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

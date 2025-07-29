@@ -14,8 +14,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -23,11 +23,11 @@ import (
 )
 
 // GetGraph gets a graph descriptions.
-func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
+func (h *handler) GetGraph(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoGraphGetReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get graph, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// list networkunits.
@@ -41,7 +41,7 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 		})
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get graph, failed to list networkunit. err: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	// generates links.
@@ -53,11 +53,11 @@ func (h *handler) GetGraph(ctx *rest.Context) (interface{}, error) {
 
 // CountGraphNode counts graph nodes.
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
+func (h *handler) CountGraphNode(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoGraphNodeCountReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkUnitIDs := req.GetBkNetworkunitId()
@@ -65,7 +65,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 		networkUnits, _, err := h.backendHandler.ListNetworkUnit(ctx, types.Page{}, nil)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to list networkunit. err: %v", err)
-			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
 		networkUnitIDs = make([]int64, len(networkUnits))
@@ -123,7 +123,7 @@ func (h *handler) CountGraphNode(ctx *rest.Context) (interface{}, error) {
 	if err := gp.Wait(); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to count host: %v", err)
 
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.TopoGraphNodeCountResp)

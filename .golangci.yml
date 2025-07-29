@@ -704,3 +704,17 @@ linters-settings:
         alias: globalsettingsStorage
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation
         alias: storageOperation
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client
+        alias: restclient
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server
+        alias: restserver
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf
+        alias: resterrf
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discover
+        alias: restdiscover
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client
+        alias: apigwclient
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server
+        alias: apigwserver
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header
+        alias: apigwheader
