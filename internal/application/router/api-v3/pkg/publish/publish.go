@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package publish provide the api for publish.
 package publish
 
 import (

@@ -12,12 +12,12 @@ package bklogin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/base"
 )
 
 // IHandler defines the handler interface
@@ -84,12 +84,11 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 // Verify the bk_ticket is valid or not, and return the bk_username.
 func (h *Handler) Verify(ctx context.Context, bkTicket string) (string, error) {
 	if ctx == nil {
-		return "", fmt.Errorf("failed to verify bk_ticket: %w", base.ErrInvalidContex())
+		return "", errors.New("failed to verify bk_ticket: invalid context")
 	}
 
 	if bkTicket == "" {
-		return "", fmt.Errorf("failed to verify bk_ticket: %w",
-			base.ErrInvalidParam())
+		return "", errors.New("failed to verify bk_ticket: invalid param")
 	}
 
 	resp, err := h.cli.getUserInfo(ctx, &GetUserInfoReq{BKTicket: bkTicket})

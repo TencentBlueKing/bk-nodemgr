@@ -249,7 +249,7 @@ issues:
   new-from-rev: master
   # Show issues in any part of update files (requires new-from-rev or new-from-patch).
   # Default: false
-  whole-files: false
+  whole-files: true
   # Fix found issues (if it's supported by the linter).
   # Default: false
   fix: false
@@ -702,3 +702,5 @@ linters-settings:
         alias: fileiface
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings
         alias: globalsettingsStorage
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation
+        alias: storageOperation
