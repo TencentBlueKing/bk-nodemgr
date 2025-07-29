@@ -94,13 +94,18 @@ func (s *Storage) CountGlobalSettings(
 
 // GetGlobalSetting gets a global settings by setting name.
 func (s *Storage) GetGlobalSetting(ctx context.Context, name string) (string, error) {
-	setting, err := s.daoGlobalSettings.Get(ctx, name)
+	cnt, err := s.daoGlobalSettings.Count(ctx, globalsettings.WithSettingName(name))
 	if err != nil {
 		return "", err
 	}
 
-	if setting == nil {
+	if cnt == 0 {
 		return "", nil
+	}
+
+	setting, err := s.daoGlobalSettings.Get(ctx, name)
+	if err != nil {
+		return "", err
 	}
 
 	return setting.Value, nil

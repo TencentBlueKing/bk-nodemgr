@@ -88,7 +88,7 @@ func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, 
 	filter = WithSettingName(name)(filter)
 
 	data, err := h.tenantDao(tenantID).Get(ctx, filter)
-	if err != nil && err != mongo.ErrNoDocuments {
+	if err != nil {
 		return nil, err
 	}
 
