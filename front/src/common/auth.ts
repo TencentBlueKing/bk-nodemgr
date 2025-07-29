@@ -24,7 +24,7 @@ export const login = (data: ILoginData = {}) => {
 export const loginModal = async () => {
   const loginUrl = getLoginUrl(
     `${window.PROJECT_CONFIG.BK_LOGIN_URL}/plain`,
-    `${location.origin + window.PROJECT_CONFIG.SITE_URL}/static/login_success.html`,
+    `${location.origin}/static/login_success.html`,
     false,
   );
 
