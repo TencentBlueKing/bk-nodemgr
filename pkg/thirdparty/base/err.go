@@ -14,12 +14,12 @@ import (
 	"errors"
 )
 
-// ErrInvalidContex this define the error when ctx is invalid
+// ErrInvalidContex this define the error when ctx is invalid.
 func ErrInvalidContex() error {
 	return errors.New("invalid context")
 }
 
-// ErrInvalidParam this define the error when param is invalid
+// ErrInvalidParam this define the error when param is invalid.
 func ErrInvalidParam() error {
 	return errors.New("invalid param")
 }

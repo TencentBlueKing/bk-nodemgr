@@ -27,21 +27,15 @@ import (
 
 // AgentUpgrade upgrade agent.
 func (h *handler) AgentUpgrade(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upgrade agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.NodeAgentUpgradeReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, err := h.getUpgradeNodeHosts(sCtx, req.GetHost())
+	hosts, err := h.getUpgradeNodeHosts(ctx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to get host list. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get host list. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -52,7 +46,7 @@ func (h *handler) AgentUpgrade(ctx *rest.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID, reqHost, hosts)
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to upgrade agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -60,21 +54,21 @@ func (h *handler) AgentUpgrade(ctx *rest.Context) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchUpgradeNode(sCtx, manager.UpgradeNodeParam{
+	workflowID, err := h.manager.LaunchUpgradeNode(ctx, manager.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
 		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upgrade agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(sCtx, "launched upgrade agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(ctx, "launched upgrade agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }

@@ -20,27 +20,20 @@ import (
 
 // EnableScheduleWorkflow enable schedule workflow.
 func (h *handler) EnableScheduleWorkflow(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to enable schedule workflow, failed to get request context. err: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.EnableScheduleWorkflowReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to enable schedule workflow, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to enable schedule workflow, failed to decode request body. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(sCtx, req.GetWorkflowId())
+	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
 		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	err = h.storageTrigger.UpdateTriggerState(sCtx, schedule.TriggerID, trigger.StateRunning)
+	err = h.storageTrigger.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateRunning)
 	if err != nil {
 		h.logger.Errorf("failed to enable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
@@ -53,27 +46,20 @@ func (h *handler) EnableScheduleWorkflow(ctx *rest.Context) (interface{}, error)
 
 // DisableScheduleWorkflow disable schedule workflow.
 func (h *handler) DisableScheduleWorkflow(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to disable schedule workflow, failed to get request context. err: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.DisableScheduleWorkflowReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to disable schedule workflow, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to disable schedule workflow, failed to decode request body. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(sCtx, req.GetWorkflowId())
+	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
 		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
 		return nil, errf.ErrWrap(errf.Aborted, err)
 	}
 
-	err = h.storageTrigger.UpdateTriggerState(sCtx, schedule.TriggerID, trigger.StateTerminated)
+	err = h.storageTrigger.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateTerminated)
 	if err != nil {
 		h.logger.Errorf("failed to disable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
@@ -86,24 +72,17 @@ func (h *handler) DisableScheduleWorkflow(ctx *rest.Context) (interface{}, error
 
 // ListScheduleWorkflow list schedule workflow.
 func (h *handler) ListScheduleWorkflow(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to list schedule workflow, failed to get request context. err: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.ListScheduleWorkflowReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list schedule workflow, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list schedule workflow, failed to decode request body. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if req.GetOnlyCount() {
-		cnt, err := h.storageScheduleWorkflow.CountScheduleWorkflow(sCtx, req.ConvertConditionsToTypes())
+		cnt, err := h.storageScheduleWorkflow.CountScheduleWorkflow(ctx, req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to count schedule workflow, failed to decode request body. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to count schedule workflow, failed to decode request body. err: %v", err)
 			return nil, errf.ErrWrap(errf.Aborted, err)
 		}
 
@@ -114,7 +93,7 @@ func (h *handler) ListScheduleWorkflow(ctx *rest.Context) (interface{}, error) {
 	}
 
 	schedule, cnt, err := h.storageScheduleWorkflow.ListScheduleWorkflow(
-		sCtx,
+		ctx,
 		req.ConvertPageToTypes(maxScheduleWorkflowLimit),
 		req.ConvertConditionsToTypes(),
 	)

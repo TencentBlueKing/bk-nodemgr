@@ -27,21 +27,15 @@ import (
 
 // AgentRestart restart agent.
 func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to restart agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.NodeAgentRestartReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to restart agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, err := h.getRestartNodeHosts(sCtx, req.GetHost())
+	hosts, err := h.getRestartNodeHosts(ctx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to restart agent, failed to get host list. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to get host list. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -52,7 +46,7 @@ func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesRestartDeploys(ctx.TenantID, reqHost, hosts)
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to restart agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -60,21 +54,21 @@ func (h *handler) AgentRestart(ctx *rest.Context) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchRestartNode(sCtx, manager.RestartNodeParam{
+	workflowID, err := h.manager.LaunchRestartNode(ctx, manager.RestartNodeParam{
 		Type:            types.NodeWorkflowTypeRestartAgent,
 		BizIDs:          h.getRestartNodeBizIDs(hosts),
 		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to restart agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to restart agent: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentRestartResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(sCtx, "launched restart agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(ctx, "launched restart agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }

@@ -30,15 +30,9 @@ const DefaultNodeGeneration = 2
 
 // AgentInstall install agent.
 func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.NodeAgentInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -55,9 +49,9 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
 
-		nodeDeploy, err := h.handlerHost(sCtx, ctx.TenantID, reqHost, targetVersions)
+		nodeDeploy, err := h.handlerHost(ctx, ctx.TenantID, reqHost, targetVersions)
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -70,21 +64,21 @@ func (h *handler) AgentInstall(ctx *rest.Context) (interface{}, error) {
 		bizIDs[host.GetBkBizId()] = struct{}{}
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
+	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
 		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(sCtx, "launched install agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(ctx, "launched install agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }

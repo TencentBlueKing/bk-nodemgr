@@ -18,21 +18,15 @@ import (
 
 // TransferQuery query transfer package.
 func (h *handler) TransferQuery(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to query transfer, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoFile.TransferQueryReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to query transfer, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to query transfer, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	upload, download, err := h.manager.QueryTransfer(sCtx, req.GetTaskId())
+	upload, download, err := h.manager.QueryTransfer(ctx, req.GetTaskId())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to query transfer. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to query transfer. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}

@@ -12,14 +12,11 @@
 package rest
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,27 +33,28 @@ type Context struct {
 	TenantID   string `json:"tenant_id"`
 }
 
-// Deadline implement context.Context
+// Deadline implement context.Context.
+// nolint: nonamedreturns
 func (c *Context) Deadline() (deadline time.Time, ok bool) {
 	return c.gCtx.Deadline()
 }
 
-// Done implement context.Context
+// Done implement context.Context.
 func (c *Context) Done() <-chan struct{} {
 	return c.gCtx.Done()
 }
 
-// Err implement context.Context
+// Err implement context.Context.
 func (c *Context) Err() error {
 	return c.gCtx.Err()
 }
 
-// Value implement context.Context
+// Value implement context.Context.
 func (c *Context) Value(key any) any {
 	return c.gCtx.Value(key)
 }
 
-// BindJSON bind json
+// BindJSON bind json.
 func (c *Context) BindJSON(body RequestBody) error {
 	if err := c.gCtx.BindJSON(body); err != nil {
 		return err
@@ -86,16 +84,6 @@ func (c *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error)
 // Param parse the param from url.
 func (c *Context) Param(key string) string {
 	return c.gCtx.Param(key)
-}
-
-// GetContext get a generic context from rest-context.
-func (c *Context) GetContext() (context.Context, error) {
-	ctx, err := identifier.SetRequestID(c.gCtx.Request.Context(), c.RequestID)
-	if err != nil {
-		return nil, err
-	}
-
-	return tenant.SetID(ctx, c.TenantID)
 }
 
 // GetRequestHeader get a http request from rest-context.

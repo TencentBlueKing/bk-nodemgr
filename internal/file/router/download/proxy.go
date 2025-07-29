@@ -24,12 +24,6 @@ import (
 
 // Proxy download proxy package.
 func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to download proxy, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoFile.DownloadProxyReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
@@ -37,7 +31,7 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureFileToLocal(sCtx,
+	file, _, err := h.manager.EnsureFileToLocal(ctx,
 		types.Generation(req.GetGeneration()),
 		types.ReleaseTypeProxy,
 		platform.Platform{
@@ -48,7 +42,7 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
 	}
 
-	reader, err := file.Content(sCtx)
+	reader, err := file.Content(ctx)
 	if err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
 	}

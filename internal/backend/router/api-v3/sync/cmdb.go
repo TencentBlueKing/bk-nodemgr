@@ -19,23 +19,16 @@ import (
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
 func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to sync cmdb host, failed to get request context. err: %v", err)
-
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.SyncCmdbHostReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncBizAndHost(sCtx)
+	triggerID, err := h.manager.LaunchSyncBizAndHost(ctx)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to start sync cmdb host operation. trigger-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to start sync cmdb host operation. trigger-id(%s), err: %v",
 			triggerID, err)
 
 		return nil, errf.ErrWrap(errf.Aborted, err)
@@ -50,18 +43,12 @@ func (h *handler) SyncCmdbHost(ctx *rest.Context) (interface{}, error) {
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
 func (h *handler) SyncCmdbNetworkArea(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to sync cmdb networkarea, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.SyncCmdbNetworkAreaReq)
 	if err := ctx.BindJSON(req); err != nil {
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncNetworkArea(sCtx)
+	triggerID, err := h.manager.LaunchSyncNetworkArea(ctx)
 	if err != nil {
 		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s), err: %v", triggerID, err)
 		return nil, errf.ErrWrap(errf.Aborted, err)

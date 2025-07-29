@@ -27,21 +27,15 @@ import (
 
 // AgentReconfig reconfig agent.
 func (h *handler) AgentReconfig(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to reconfig agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.NodeAgentReconfigReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, err := h.getReconfigNodeHosts(sCtx, req.GetHost())
+	hosts, err := h.getReconfigNodeHosts(ctx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to get host list. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to get host list. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -52,7 +46,7 @@ func (h *handler) AgentReconfig(ctx *rest.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesReconfigDeploys(ctx.TenantID, reqHost, hosts)
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
 
 			return nil, errf.ErrWrap(errf.InvalidParameter, err)
 		}
@@ -60,21 +54,21 @@ func (h *handler) AgentReconfig(ctx *rest.Context) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchReconfigNode(sCtx, manager.ReconfigNodeParam{
+	workflowID, err := h.manager.LaunchReconfigNode(ctx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigAgent,
 		BizIDs:          h.getReconfigNodeBizIDs(hosts),
 		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to reconfig agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to reconfig agent: %v", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentReconfigResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(sCtx, "launched reconfig agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(ctx, "launched reconfig agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }

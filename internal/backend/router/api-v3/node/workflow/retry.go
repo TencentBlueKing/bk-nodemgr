@@ -21,37 +21,31 @@ import (
 
 // WorkflowOperationRetry retry the operation of node workflow.
 func (h *handler) WorkflowOperationRetry(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoBackend.NodeWorkflowOperationRetryReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to retry operation, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	if req.Validate() != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, invalid request parameters. err: %v", req.Validate())
+	if err := req.Validate(); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to retry operation, invalid request parameters. err: %v", req.Validate())
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	instanceIDs, err := h.manager.RetryOperationNode(sCtx, manager.RetryOperationNodeParam{
+	instanceIDs, err := h.manager.RetryOperationNode(ctx, manager.RetryOperationNodeParam{
 		WorkflowID:   req.GetWorkflowId(),
 		RetryMod:     types.NodeOperationRetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationId(),
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation,err: %w", err)
+		h.logger.ErrorCtxf(ctx, "failed to retry operation,err: %w", err)
 		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
 	resp.ConvertOperInstanceID(instanceIDs)
 
-	h.logger.InfoCtxf(sCtx, "launched to retry operation, instance: %v", instanceIDs)
+	h.logger.InfoCtxf(ctx, "launched to retry operation, instance: %v", instanceIDs)
 
 	return resp.GetData(), nil
 }

@@ -45,26 +45,20 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // Install agent.
 func (h *handler) Install(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
 	req := new(protoApplication.NodeAgentInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to validate request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to validate request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallAgent(sCtx, req.ConvertAgentParamToTypes())
+	workflowID, err := h.backendHandler.InstallAgent(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
 		return nil, err
 	}
 	resp := new(protoApplication.NodeAgentInstallResp)
