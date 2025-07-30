@@ -524,6 +524,7 @@ func cloneHeader(src http.Header) http.Header {
 }
 
 // maskHeader mask the http header key.
+// nolint: mnd
 func (r *Request) maskHeader(headers http.Header) string {
 	masked := make(http.Header, len(headers))
 

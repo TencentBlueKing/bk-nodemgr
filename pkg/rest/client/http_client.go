@@ -21,16 +21,16 @@ import (
 )
 
 const (
-	// ResponseHeaderTimeout response header timeout
+	// ResponseHeaderTimeout response header timeout.
 	ResponseHeaderTimeout = 30 * time.Minute
-	// MaxIdleConnsPerHost max idle conns per host
+	// MaxIdleConnsPerHost max idle conns per host.
 	MaxIdleConnsPerHost = 1000
-	// DialKeepAlive dial keep alive
+	// DialKeepAlive dial keep alive.
 	DialKeepAlive = 30 * time.Second
-	// DialTimeout dial timeout
+	// DialTimeout dial timeout.
 	DialTimeout = 5 * time.Second
-	// TlsHandshakeTimeout tls handshake timeout
-	TlsHandshakeTimeout = 5 * time.Second
+	// TLSHandshakeTimeout tls handshake timeout.
+	TLSHandshakeTimeout = 5 * time.Second
 )
 
 // NewHTTPClient new http client.
@@ -49,7 +49,7 @@ func NewHTTPClient(c *ssl.TLSConfig) (*http.Client, error) {
 
 	transport := &http.Transport{
 		Proxy:               http.ProxyFromEnvironment,
-		TLSHandshakeTimeout: TlsHandshakeTimeout,
+		TLSHandshakeTimeout: TLSHandshakeTimeout,
 		TLSClientConfig:     tlsConf,
 		Dial: (&net.Dialer{
 			Timeout:   DialTimeout,
@@ -62,6 +62,7 @@ func NewHTTPClient(c *ssl.TLSConfig) (*http.Client, error) {
 
 	client := new(http.Client)
 	client.Transport = transport
+
 	return client, nil
 }
 

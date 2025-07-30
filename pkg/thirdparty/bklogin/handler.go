@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-// IHandler defines the handler interface
+// IHandler defines the handler interface.
 type IHandler interface {
 	// Verify verify the bk_ticket.
 	Verify(ctx context.Context, bkTicket string) (string, error)

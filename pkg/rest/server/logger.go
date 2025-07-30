@@ -8,31 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package header provide the header of rest server.
-package header
+package server
 
-import (
-	"net/http"
-)
+import "io"
 
-const (
-	// BKTenantIDKey is tenant id header key.
-	BKTenantIDKey = "X-Bk-Tenant-Id"
-
-	// BKNodemgrRequestIDKey is request id header key.
-	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
-)
-
-// BKTenantIDGetter get tenant id value.
-func BKTenantIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKTenantIDKey)
-
-	return id
-}
-
-// BKNodemgrRequestIDGetter get request id value.
-func BKNodemgrRequestIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKNodemgrRequestIDKey)
-
-	return id
+// LogWriter defines the log writer.
+type LogWriter interface {
+	InfoWriter() io.Writer
+	ErrorWriter() io.Writer
 }

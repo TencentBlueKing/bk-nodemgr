@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	// ToleranceLatencyTimeDefault default tolerance latency time.
 	ToleranceLatencyTimeDefault = 500 * time.Millisecond
 )
 
@@ -50,6 +51,7 @@ type MetricOption struct {
 }
 
 // Logger is the logger interface.
+// nolint: interfacebloat
 type Logger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})

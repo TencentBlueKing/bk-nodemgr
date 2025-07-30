@@ -8,31 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package header provide the header of rest server.
-package header
-
-import (
-	"net/http"
-)
-
-const (
-	// BKTenantIDKey is tenant id header key.
-	BKTenantIDKey = "X-Bk-Tenant-Id"
-
-	// BKNodemgrRequestIDKey is request id header key.
-	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
-)
-
-// BKTenantIDGetter get tenant id value.
-func BKTenantIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKTenantIDKey)
-
-	return id
-}
-
-// BKNodemgrRequestIDGetter get request id value.
-func BKNodemgrRequestIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKNodemgrRequestIDKey)
-
-	return id
-}
+// Package server provide the capability to run as a apigw server.
+package server

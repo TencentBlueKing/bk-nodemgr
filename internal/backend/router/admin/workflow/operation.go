@@ -16,7 +16,7 @@ import (
 )
 
 // RetryOperation ...
-func (h *handler) RetryOperation(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) RetryOperation(_ *restserver.Context) (interface{}, error) {
 	resp := new(RetryOperationResp)
 
 	return resp, nil

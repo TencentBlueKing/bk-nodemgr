@@ -51,7 +51,7 @@ func testPrivateCli(t *testing.T) *cli {
 
 	client, err := newClient(clientCap, &Config{
 		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		ApiGWClientConfig: apigwClientConfig,
+		APIGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

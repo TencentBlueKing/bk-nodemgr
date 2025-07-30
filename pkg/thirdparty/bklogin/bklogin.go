@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package bklogin provides handlers to operate bklogin API.
 package bklogin
 
 import (
@@ -38,6 +39,7 @@ func newClient(c *restclient.Capability) (*cli, error) {
 }
 
 // getCommonHeader get cmdb common header.
+// nolint: unparam
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
 	header.Set(apigwheader.BKRIDKey, identifier.GenRequestID())

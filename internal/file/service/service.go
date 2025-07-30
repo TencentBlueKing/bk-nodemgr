@@ -205,7 +205,7 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		ApiGWClientConfig: apiGwClientConfig,
+		APIGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, err

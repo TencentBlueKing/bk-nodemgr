@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// CookieKeyBKTicket is the key of cookie
+	// CookieKeyBKTicket is the key of cookie.
 	CookieKeyBKTicket = "bk_ticket"
 )
 

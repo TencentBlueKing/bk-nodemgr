@@ -11,6 +11,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -49,12 +50,11 @@ func MiddlewareAuth(identity AuthIdentity) gin.HandlerFunc {
 
 		gCtx.Next()
 	}
-
 }
 
 // IRequestIDSetter set request id.
 type IRequestIDSetter interface {
-	SetRequestID(*Context) error
+	SetRequestID(ctx *Context) error
 }
 
 // MiddlewareSetRequestID ...
@@ -63,7 +63,7 @@ func MiddlewareSetRequestID(requestIDSetter IRequestIDSetter) gin.HandlerFunc {
 		rCtx := loadRestContext(gCtx)
 
 		if requestIDSetter == nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{fmt.Errorf("this server doesn't load request id setter")})
+			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load request id setter")})
 
 			return
 		}
@@ -75,7 +75,7 @@ func MiddlewareSetRequestID(requestIDSetter IRequestIDSetter) gin.HandlerFunc {
 		}
 
 		if rCtx.RequestID == "" {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{fmt.Errorf("failed to set request id")})
+			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set request id")})
 		}
 
 		gCtx.Next()
@@ -105,7 +105,7 @@ func NewRequestIDSetter() *RequestIDSetter {
 
 // ITenantIDSetter set request id.
 type ITenantIDSetter interface {
-	SetTenantID(*Context) error
+	SetTenantID(ctx *Context) error
 }
 
 // MiddlewareSetTenantID ...
@@ -114,7 +114,7 @@ func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
 		rCtx := loadRestContext(gCtx)
 
 		if tenantIDSetter == nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{fmt.Errorf("this server doesn't load tenant id setter")})
+			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load tenant id setter")})
 
 			return
 		}
@@ -126,7 +126,7 @@ func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
 		}
 
 		if rCtx.TenantID == "" {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{fmt.Errorf("failed to set tenant id")})
+			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
 		}
 
 		gCtx.Next()
@@ -138,6 +138,9 @@ var _ ITenantIDSetter = &TenantIDSetter{}
 // TenantIDSetter this is a midleware for setting request id.
 type TenantIDSetter struct {
 }
+
+// TenantIDRegexp tenant id regexp.
+const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
 
 // SetTenantID ...
 func (setter *TenantIDSetter) SetTenantID(rCtx *Context) error {
@@ -153,9 +156,9 @@ func (setter *TenantIDSetter) SetTenantID(rCtx *Context) error {
 		rCtx.TenantID = tenantID
 	}
 
-	mustCompile := regexp.MustCompile(`^[a-z][a-z0-9-]{1,30}[a-z0-9]$`)
+	mustCompile := regexp.MustCompile(TenantIDRegexp)
 	if !mustCompile.MatchString(rCtx.TenantID) {
-		return fmt.Errorf("failed to set tenant id: invalid tenant id")
+		return errors.New("failed to set tenant id: invalid tenant id")
 	}
 
 	return nil

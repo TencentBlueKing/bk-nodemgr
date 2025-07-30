@@ -19,28 +19,15 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
-	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
-	apiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
+	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
@@ -53,18 +40,30 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
@@ -105,7 +104,7 @@ type Service struct {
 }
 
 // NewService creates a new backend service.
-// nolint: funlen
+// nolint: funlen,gocognit,gocyclo,cyclop,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.BackendService) (*Service, error) {
 	if err := loadSystemInfo(conf); err != nil {
@@ -316,6 +315,7 @@ func loadSystemInfo(conf *config.BackendService) error {
 	return nil
 }
 
+// nolint: funlen
 func (svc *Service) registerRestServer(conf *config.BackendService) {
 	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
@@ -465,7 +465,7 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 // withApiV3 load api v3.
 func withAPIV3(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		apiv3.Load(rg, capability)
+		backendapiv3.Load(rg, capability)
 	}
 }
 
@@ -508,7 +508,7 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 	apiGwClientCapability.Name = "cmdb"
 	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
 		SupplierAccount:   conf.SupplierAccount,
-		ApiGWClientConfig: apiGwClientConfig,
+		APIGWClientConfig: apiGwClientConfig,
 	}, cmdb.WithLogger(logger))
 	if err != nil {
 		return nil, err
@@ -559,7 +559,7 @@ func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (cr
 }
 
 func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
-	//apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
 	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.Config
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
@@ -588,7 +588,7 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		ApiGWClientConfig: apiGwClientConfig,
+		APIGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, err

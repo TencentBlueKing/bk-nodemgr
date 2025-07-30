@@ -26,14 +26,17 @@ import (
 // This file only supports requesting and getting responses.
 
 const (
-	languageHeaderKey   = "X-Bkcmdb-Language"
-	languageHeaderValue = "en"
+	// HeaderKeyLanguage the language header key.
+	HeaderKeyLanguage = "X-Bkcmdb-Language"
+
+	// HeaderValueLanguage the language header value.
+	HeaderValueLanguage = "en"
 )
 
 // Config the config of cmdb.
 type Config struct {
 	SupplierAccount   string
-	ApiGWClientConfig apigwclient.Config
+	APIGWClientConfig apigwclient.Config
 }
 
 // Validate configures the config.
@@ -42,7 +45,7 @@ func (conf *Config) Validate() error {
 		return errors.New("failed to validate cmdb client config: supplier account is empty")
 	}
 
-	if err := conf.ApiGWClientConfig.Validate(); err != nil {
+	if err := conf.APIGWClientConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate cmdb client config: %v", err)
 	}
 
@@ -57,7 +60,7 @@ type cli struct {
 
 // newClient initialize a new cmdb client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.ApiGWClientConfig)
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.APIGWClientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +76,11 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getCommonHeader get cmdb common header.
+// nolint: unparam
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, tenantID)
-	header.Set(languageHeaderKey, languageHeaderValue)
+	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
 
 	return header, nil
 }
@@ -257,6 +261,7 @@ func (c *cli) updateHostCloudAreaField(ctx context.Context, req *UpdateHostCloud
 }
 
 // searchBizInstTopo search biz inst topo.
+// nolint: unused
 func (c *cli) searchBizInstTopo(ctx context.Context, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
 	resp := new(BaseBroker[*SearchBizInstTopoResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -282,7 +287,10 @@ func (c *cli) searchBizInstTopo(ctx context.Context, req *SearchBizInstTopoReq) 
 }
 
 // getBizInternalModule get biz internal module.
-func (c *cli) getBizInternalModule(ctx context.Context, req *GetBizInternalModuleReq) (*GetBizInternalModuleResp, error) {
+// nolint: unused
+func (c *cli) getBizInternalModule(ctx context.Context, req *GetBizInternalModuleReq) (
+	*GetBizInternalModuleResp, error) {
+
 	resp := new(BaseBroker[*GetBizInternalModuleResp])
 	header, err := c.getCommonHeader(req.TenantID)
 	if err != nil {
@@ -306,6 +314,7 @@ func (c *cli) getBizInternalModule(ctx context.Context, req *GetBizInternalModul
 }
 
 // findTopoNodePaths find topo node paths.
+// nolint: unused
 func (c *cli) findTopoNodePaths(ctx context.Context, req *FindTopoNodePathsReq) (*FindTopoNodePathsResp, error) {
 	resp := new(BaseBroker[*FindTopoNodePathsResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -331,6 +340,7 @@ func (c *cli) findTopoNodePaths(ctx context.Context, req *FindTopoNodePathsReq) 
 }
 
 // findModuleBatch find module batch.
+// nolint: unused
 func (c *cli) findModuleBatch(ctx context.Context, req *FindModuleBatchReq) (*FindModuleBatchResp, error) {
 	resp := new(BaseBroker[*FindModuleBatchResp])
 	header, err := c.getCommonHeader(req.TenantID)
@@ -1324,7 +1334,7 @@ func (c *cli) findHostServiceTemplate(ctx context.Context, req *FindHostServiceT
 
 // resourceWatch resource watch.
 // cc resource_watch interface using a short-long chain design
-// if there are any event changes within 20 seconds, the events will be pushed back directly
+// if there are any event changes within 20 seconds, the events will be pushed back directly.
 func (c *cli) resourceWatch(ctx context.Context, req *ResourceWatchReq) (*ResourceWatchResp, error) {
 	resp := new(BaseBroker[*ResourceWatchResp])
 	header, err := c.getCommonHeader(req.TenantID)

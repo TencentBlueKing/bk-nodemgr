@@ -25,6 +25,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 // CodeOK defines the success code.
@@ -56,19 +57,21 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getCommonHeader get backend common header.
+// nolint: unparam
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, tenantID)
+	header.Set(restheader.BKNodemgrRequestIDKey, identifier.GenRequestID())
 
 	return header, nil
 }
 
 func (c *cli) uploadOriginAgent(
-	ctx context.Context, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
+	ctx context.Context, tenantID string, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginAgentResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginAgentResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +109,11 @@ func (c *cli) uploadOriginAgent(
 }
 
 func (c *cli) uploadOriginServer(
-	ctx context.Context, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
+	ctx context.Context, tenantID string, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginServerResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginServerResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -148,11 +151,11 @@ func (c *cli) uploadOriginServer(
 }
 
 func (c *cli) uploadOriginCert(
-	ctx context.Context, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
+	ctx context.Context, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginCertResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginCertResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,11 +193,11 @@ func (c *cli) uploadOriginCert(
 }
 
 func (c *cli) uploadOriginBinTool(
-	ctx context.Context, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
+	ctx context.Context, tenantID string, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginBinToolResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginBinToolResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -267,11 +270,11 @@ func (c *cli) generateUploadFileBody(
 	return pr, nil
 }
 
-func (c *cli) publishReleaseAgent(ctx context.Context, req *protoFile.PublishReleaseAgentReq) (
+func (c *cli) publishReleaseAgent(ctx context.Context, tenantID string, req *protoFile.PublishReleaseAgentReq) (
 	*protoFile.PublishReleaseAgentResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseAgentResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -294,11 +297,11 @@ func (c *cli) publishReleaseAgent(ctx context.Context, req *protoFile.PublishRel
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseProxy(ctx context.Context, req *protoFile.PublishReleaseProxyReq) (
+func (c *cli) publishReleaseProxy(ctx context.Context, tenantID string, req *protoFile.PublishReleaseProxyReq) (
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseProxyResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -321,11 +324,11 @@ func (c *cli) publishReleaseProxy(ctx context.Context, req *protoFile.PublishRel
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseCert(ctx context.Context, req *protoFile.PublishReleaseCertReq) (
+func (c *cli) publishReleaseCert(ctx context.Context, tenantID string, req *protoFile.PublishReleaseCertReq) (
 	*protoFile.PublishReleaseCertResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseCertResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -348,11 +351,11 @@ func (c *cli) publishReleaseCert(ctx context.Context, req *protoFile.PublishRele
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseBinTool(ctx context.Context, req *protoFile.PublishReleaseBinToolReq) (
+func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *protoFile.PublishReleaseBinToolReq) (
 	*protoFile.PublishReleaseBinToolResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseBinToolResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -375,11 +378,11 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, req *protoFile.PublishR
 	return resp.GetData(), nil
 }
 
-func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.TransferLaunchReleaseReq) (
+func (c *cli) launchTransferRelease(ctx context.Context, tenantID string, req *protoFile.TransferLaunchReleaseReq) (
 	*protoFile.TransferLaunchReleaseResp, error) {
 
 	resp := new(protoFile.TransferLaunchReleaseResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -406,11 +409,11 @@ func (c *cli) launchTransferRelease(ctx context.Context, req *protoFile.Transfer
 	return resp, nil
 }
 
-func (c *cli) launchTransferInstaller(ctx context.Context, req *protoFile.TransferLaunchInstallerReq) (
+func (c *cli) launchTransferInstaller(ctx context.Context, tenantID string, req *protoFile.TransferLaunchInstallerReq) (
 	*protoFile.TransferLaunchInstallerResp, error) {
 
 	resp := new(protoFile.TransferLaunchInstallerResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -437,11 +440,11 @@ func (c *cli) launchTransferInstaller(ctx context.Context, req *protoFile.Transf
 	return resp, nil
 }
 
-func (c *cli) queryTransfer(ctx context.Context, req *protoFile.TransferQueryReq) (
+func (c *cli) queryTransfer(ctx context.Context, tenantID string, req *protoFile.TransferQueryReq) (
 	*protoFile.TransferQueryResp, error) {
 
 	resp := new(protoFile.TransferQueryResp)
-	header, err := c.getCommonHeader("")
+	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}

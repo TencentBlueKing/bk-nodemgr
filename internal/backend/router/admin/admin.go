@@ -42,7 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	// TODO: 设置权限封禁
-	//h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
+	// h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
 
 	workflow.Load(h.rg, capability)
 	globalsettings.Load(h.rg, capability)

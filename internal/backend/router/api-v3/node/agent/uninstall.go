@@ -16,7 +16,9 @@ import (
 )
 
 // AgentUninstall uninstall agent.
-func (h *handler) AgentUninstall(ctx *restserver.Context) (interface{}, error) {
+// nolint: nilnil
+func (h *handler) AgentUninstall(_ *restserver.Context) (interface{}, error) {
 	// TODO: implement me
+
 	return nil, nil
 }

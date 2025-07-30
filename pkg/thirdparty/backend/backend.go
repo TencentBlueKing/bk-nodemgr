@@ -25,12 +25,12 @@ import (
 
 // Config the config of backend.
 type Config struct {
-	ApiGWClientConfig apigwclient.Config
+	APIGWClientConfig apigwclient.Config
 }
 
 // Validate the config.
 func (conf *Config) Validate() error {
-	if err := conf.ApiGWClientConfig.Validate(); err != nil {
+	if err := conf.APIGWClientConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate backend client config: %v", err)
 	}
 
@@ -61,6 +61,7 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 }
 
 // getCommonHeader get backend common header.
+// nolint: unparam
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, tenantID)

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apigw provides an APIGatewayClient client.
+// Package client provides an api gateway client.
 package client
 
 import (
@@ -108,7 +108,7 @@ func (c *Config) Validate() error {
 // X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "z"}
 // when not set auth mode this func will return empty string and error.
 func (c *Config) GetAuthHeader() string {
-	auth := ""
+	var auth string
 	switch c.AuthMode {
 	case AuthModeOa:
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_ticket\":\"%s\"}",

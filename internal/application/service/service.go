@@ -20,7 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
-	apiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
+	applicationapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
@@ -104,7 +104,11 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 		return nil, fmt.Errorf("failed to new service: %w", err)
 	}
 
-	svc.Cap.FrontSetting = frontsetting.NewFrontSetting(conf.Front.BKLoginURL, conf.Front.BKSharedResBaseJsUrl, conf.Front.SiteURL)
+	svc.Cap.FrontSetting = frontsetting.NewFrontSetting(
+		conf.Front.BKLoginURL,
+		conf.Front.BKSharedResBaseJsUrl,
+		conf.Front.SiteURL,
+	)
 
 	if err := svc.registerRestServer(conf); err != nil {
 		return nil, fmt.Errorf("failed to new service: %w", err)
@@ -113,6 +117,7 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 	return svc, nil
 }
 
+// nolint: unparam
 func (svc *Service) registerRestServer(conf *config.ApplicationService) error {
 	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
@@ -180,7 +185,7 @@ func withWeb(capability *options.Capability) restserver.OptionFunc {
 // withApiV3 load api v3.
 func withAPIV3(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		apiv3.Load(rg, capability)
+		applicationapiv3.Load(rg, capability)
 	}
 }
 
@@ -195,7 +200,7 @@ func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
 
 	apiGwClientCapability.Name = "backend"
 	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
-		ApiGWClientConfig: apiGwClientConfig,
+		APIGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("faild to new backend handler: %v", err)
@@ -278,7 +283,7 @@ func (svc *Service) newBKTicketAuthIdentity(conf config.BKLogin) (restserver.Aut
 	return authIdentity, nil
 }
 
-// newBKLoginHandler
+// newBKLoginHandler creates a new bklogin handler.
 func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bklogin.IHandler, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,

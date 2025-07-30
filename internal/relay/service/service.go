@@ -111,7 +111,7 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	return svc, nil
 }
 
-// withCallbackServer load callback api
+// withCallbackServer load callback api.
 func withCallbackServer(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		callback.Load(rg, capability)

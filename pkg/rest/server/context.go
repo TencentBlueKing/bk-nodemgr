@@ -78,28 +78,28 @@ type Context struct {
 
 // Deadline implement context.Context.
 // nolint: nonamedreturns
-func (c *Context) Deadline() (deadline time.Time, ok bool) {
-	return c.gCtx.Deadline()
+func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
+	return ctx.gCtx.Deadline()
 }
 
 // Done implement context.Context.
-func (c *Context) Done() <-chan struct{} {
-	return c.gCtx.Done()
+func (ctx *Context) Done() <-chan struct{} {
+	return ctx.gCtx.Done()
 }
 
 // Err implement context.Context.
-func (c *Context) Err() error {
-	return c.gCtx.Err()
+func (ctx *Context) Err() error {
+	return ctx.gCtx.Err()
 }
 
 // Value implement context.Context.
-func (c *Context) Value(key any) any {
-	return c.gCtx.Value(key)
+func (ctx *Context) Value(key any) any {
+	return ctx.gCtx.Value(key)
 }
 
 // BindJSON bind json.
-func (c *Context) BindJSON(body RequestBody) error {
-	if err := c.gCtx.BindJSON(body); err != nil {
+func (ctx *Context) BindJSON(body RequestBody) error {
+	if err := ctx.gCtx.BindJSON(body); err != nil {
 		return err
 	}
 
@@ -110,13 +110,13 @@ func (c *Context) BindJSON(body RequestBody) error {
 }
 
 // ParseFileForm bind file form.
-func (c *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error) {
-	metaData := c.gCtx.PostForm("metadata")
+func (ctx *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error) {
+	metaData := ctx.gCtx.PostForm("metadata")
 	if err := json.Unmarshal([]byte(metaData), body); err != nil {
 		return nil, fmt.Errorf("failed to parse metadata(%s), err(%v)", metaData, err)
 	}
 
-	file, err := c.gCtx.FormFile("file")
+	file, err := ctx.gCtx.FormFile("file")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse file, err(%v)", err)
 	}
@@ -125,28 +125,28 @@ func (c *Context) ParseFileForm(body RequestBody) (*multipart.FileHeader, error)
 }
 
 // Param parse the param from url.
-func (c *Context) Param(key string) string {
-	return c.gCtx.Param(key)
+func (ctx *Context) Param(key string) string {
+	return ctx.gCtx.Param(key)
 }
 
 // GetRequestHeader get a http request from rest-context.
-func (c *Context) GetRequestHeader(headerKey string) string {
-	return c.gCtx.Request.Header.Get(headerKey)
+func (ctx *Context) GetRequestHeader(headerKey string) string {
+	return ctx.gCtx.Request.Header.Get(headerKey)
 }
 
 // Request get a http request from rest-context.
-func (c *Context) Request() *http.Request {
-	if c.gCtx.Request == nil {
+func (ctx *Context) Request() *http.Request {
+	if ctx.gCtx.Request == nil {
 		return nil
 	}
-	req := *c.gCtx.Request
+	req := *ctx.gCtx.Request
 
 	return &req
 }
 
 // GetCookie get a cookie from rest-context.
-func (c *Context) GetCookie(name string) (string, error) {
-	cookieValue, err := c.gCtx.Cookie(name)
+func (ctx *Context) GetCookie(name string) (string, error) {
+	cookieValue, err := ctx.gCtx.Cookie(name)
 	if err != nil {
 		return "", err
 	}
@@ -155,7 +155,7 @@ func (c *Context) GetCookie(name string) (string, error) {
 }
 
 // AbortWithJSONError provides handler process failing response.
-func (c *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
+func (ctx *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
 	result := Response{
 		Code: code,
 		Error: &Error{
@@ -163,7 +163,7 @@ func (c *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
 			Message: resterrf.CodeErrMap(code).Error(),
 			Details: nil,
 		},
-		RequestID: c.RequestID,
+		RequestID: ctx.RequestID,
 	}
 
 	for _, unwrapErr := range errs {
@@ -172,11 +172,11 @@ func (c *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
 		})
 	}
 
-	c.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
+	ctx.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
 }
 
 // AbortWithJSONPermDenied provides handler process permission denied response.
-func (c *Context) AbortWithJSONPermDenied(code resterrf.Code, errs []error) {
+func (ctx *Context) AbortWithJSONPermDenied(code resterrf.Code, _ []error) {
 	result := Response{
 		Code: code,
 		Permission: &Permission{
@@ -184,24 +184,24 @@ func (c *Context) AbortWithJSONPermDenied(code resterrf.Code, errs []error) {
 			SystemName: runtime.SystemName,
 			Actions:    nil,
 		},
-		RequestID: c.RequestID,
+		RequestID: ctx.RequestID,
 	}
 
 	// TODO: 参考 errf.ErrUnwrap 的写法实现 permission 的解析。
 
-	c.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
+	ctx.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
 }
 
 // APIResponse provides handler process successfully and make a normal response.
-func (c *Context) APIResponse(data interface{}) {
+func (ctx *Context) APIResponse(data interface{}) {
 	result := Response{
 		Code:       0,
 		Message:    "OK",
-		RequestID:  c.RequestID,
+		RequestID:  ctx.RequestID,
 		Data:       data,
 		Error:      nil,
 		Permission: nil,
 	}
 
-	c.gCtx.JSON(http.StatusOK, result)
+	ctx.gCtx.JSON(http.StatusOK, result)
 }

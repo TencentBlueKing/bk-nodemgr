@@ -74,7 +74,7 @@ func testClient(t *testing.T) Handler {
 	}
 
 	h, err := New(clientCap, Config{
-		ApiGWClientConfig: apigwClientConfig,
+		APIGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

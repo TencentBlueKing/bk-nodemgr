@@ -8,13 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest is the restful API router.
+// Package server is the restful API server.
 package server
 
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"path"
 	"time"
@@ -22,12 +21,6 @@ import (
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 	"github.com/gin-gonic/gin"
 )
-
-// LogWriter defines the log writer.
-type LogWriter interface {
-	InfoWriter() io.Writer
-	ErrorWriter() io.Writer
-}
 
 // Server defines the restful API server.
 type Server struct {
@@ -200,15 +193,15 @@ func NewServer(ctx context.Context,
 
 // customLogRecvFormatter is a custom log recv formatter.
 func customLogRecvFormatter(gCtx *gin.Context) string {
-	path := gCtx.Request.URL.Path
+	urlPath := gCtx.Request.URL.Path
 	raw := gCtx.Request.URL.RawQuery
 
 	if raw != "" {
-		path = path + "?" + raw
+		urlPath = urlPath + "?" + raw
 	}
 
 	return fmt.Sprintf("%s[request recv] %s | %s",
-		logWithCtxKeys(gCtx.Keys), path, gCtx.ClientIP())
+		logWithCtxKeys(gCtx.Keys), urlPath, gCtx.ClientIP())
 }
 
 // customLogDoneFormatter is a custom log done formatter.

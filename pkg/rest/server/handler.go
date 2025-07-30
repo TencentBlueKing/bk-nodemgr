@@ -12,6 +12,7 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 
@@ -94,7 +95,10 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 
 			setFileHeaders(gCtx, fileResp)
 
-			defer fileResp.Data.Close()
+			defer func(Data io.ReadCloser) {
+				_ = Data.Close()
+			}(fileResp.Data)
+
 			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
 		case resterrf.PermissionDenied:
 			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
@@ -104,14 +108,15 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 	}
 }
 
-func setFileHeaders(c *gin.Context, resp *FileResponse) {
-	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", resp.FileName))
-	c.Header("Content-Type", resp.ContentType)
+// nolint: perfsprint
+func setFileHeaders(gCtx *gin.Context, resp *FileResponse) {
+	gCtx.Header("Content-Description", "File Transfer")
+	gCtx.Header("Content-Transfer-Encoding", "binary")
+	gCtx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", resp.FileName))
+	gCtx.Header("Content-Type", resp.ContentType)
 
 	for key, value := range resp.Headers {
-		c.Header(key, value)
+		gCtx.Header(key, value)
 	}
 }
 

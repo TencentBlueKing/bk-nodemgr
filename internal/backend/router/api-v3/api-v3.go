@@ -41,7 +41,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	//h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
+	// h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
 
 	sync.Load(h.rg, capability)
 	node.Load(h.rg, capability)

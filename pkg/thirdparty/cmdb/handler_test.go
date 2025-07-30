@@ -75,7 +75,7 @@ func testClient(t *testing.T) IHandler {
 
 	h, err := New(clientCap, &Config{
 		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		ApiGWClientConfig: apigwClientConfig,
+		APIGWClientConfig: apigwClientConfig,
 	}, WithLogger(logger.LoggerDefault{}))
 	if err != nil {
 		t.Fatal(err)
