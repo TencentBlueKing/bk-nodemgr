@@ -13,6 +13,7 @@ package backend
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -21,15 +22,28 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
-type testHeaderSetter struct{}
+// LoadAuthHeader load auth header from environment variables.
+func LoadAuthHeader() (apigwclient.Config, error) {
+	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
+	header := make(map[string]string, 0)
+	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
+		return apigwclient.Config{}, err
+	}
 
-// GetAuthHeader ...
-func (testHeaderSetter) GetAuthHeader() string {
-	return os.Getenv("BK_APIGW_AUTHHEADER")
+	apigwClientConfig := apigwclient.Config{
+		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
+		AppCode:   header["bk_app_code"],
+		AppSecret: header["bk_app_secret"],
+		User:      header["bk_username"],
+		AuthMode:  apigwclient.AuthModeUn,
+	}
+
+	return apigwClientConfig, nil
 }
 
 // testClient ...
@@ -54,8 +68,13 @@ func testClient(t *testing.T) Handler {
 		Logger:               logger.LoggerDefault{},
 	}
 
-	h, err := New(clientCap, &Config{
-		HeaderSetter: testHeaderSetter{},
+	apigwClientConfig, err := LoadAuthHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h, err := New(clientCap, Config{
+		ApiGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

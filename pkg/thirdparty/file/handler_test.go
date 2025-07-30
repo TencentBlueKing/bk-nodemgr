@@ -22,13 +22,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type testHeaderSetter struct{}
-
-// GetAuthHeader ...
-func (testHeaderSetter) GetAuthHeader() string {
-	return os.Getenv("BK_APIGW_AUTHHEADER")
-}
-
 var (
 	agentFileName = ""
 )
@@ -64,9 +57,7 @@ func testClient(t *testing.T) IHandler {
 		Logger:               logger.LoggerDefault{},
 	}
 
-	h, err := New(clientCap, &Config{
-		HeaderSetter: testHeaderSetter{},
-	})
+	h, err := New(clientCap, &Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

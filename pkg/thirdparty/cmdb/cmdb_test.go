@@ -46,9 +46,14 @@ func testCCClient(t *testing.T) *cli {
 		Logger:               logger.LoggerDefault{},
 	}
 
+	apigwClientConfig, err := LoadAuthHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	h, err := newClient(clientCap, &Config{
-		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		HeaderSetter:    testHeaderSetter{},
+		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		ApiGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)
