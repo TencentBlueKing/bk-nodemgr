@@ -31,7 +31,8 @@ function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) 
 
   return new Promise<FetchReturnType<T, C>>((resolve, reject) => {
     const controller = new AbortController();
-    const requestID = uniqueId();
+    const BK_REQUEST_ID_HEADER_KEY = window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY.includes('BK_REQUEST_ID_HEADER_KEY') ? '' : window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY;
+    const requestID = BK_REQUEST_ID_HEADER_KEY || uniqueId();
     const defaultHeaders = {
       'cess-Control-Allow-Origin': '*',
       'X-Bkapi-Request-Id': requestID,

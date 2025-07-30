@@ -383,3 +383,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-delete-3:before {
 	content: "\e185";
 }
+.nc-macos:before {
+	content: "\e187";
+}

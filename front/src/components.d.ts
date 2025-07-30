@@ -11,6 +11,7 @@ declare module 'vue' {
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     CopyIp: typeof import('./components/copy-ip.vue')['default']
     CopyIpDropdown: typeof import('./components/copy-ip-dropdown.vue')['default']
+    CreateTag: typeof import('./components/create-tag.vue')['default']
     FlexRow: typeof import('./components/flex-row.vue')['default']
     InstallTable: typeof import('./components/install-table.vue')['default']
     InstallType: typeof import('./components/install-type.vue')['default']

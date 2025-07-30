@@ -82,3 +82,8 @@ export function compareVersions(a: string, b: string) {
 
   return 0; // 全部相同
 }
+
+export function bytesToMegabytes(bytes: number) {
+  const megabytes = bytes / (1024 * 1024);
+  return megabytes.toFixed(2);
+}

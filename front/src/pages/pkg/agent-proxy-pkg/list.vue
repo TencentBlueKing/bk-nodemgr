@@ -22,70 +22,76 @@
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
         <div class="px-[16px] py-[10px] text-[12px]">{{ t("快捷筛选") }}</div>
-        <div class="flex h-[32px] px-[16px]">
+        <div v-for="option in dimensionList" :key="option.id">
           <div
-            class="bg-[#fafbfd] w-[40px] flex items-center justify-center border border-r-none border-[#C4C6CC] text-[12px]"
-          >
-            {{ $t("维度") }}
+            class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
+            :class="{'bg-[#fff]': option.id === 'version' ? !state.versionExpand : !state.osExpand}"
+            @click="handleExpand(option.id)">
+            <div class="text-[12px]">{{ option.name }}</div>
+            <angle-down v-show="option.id === 'version' ? state.versionExpand : state.osExpand"/>
+            <angle-right v-show="option.id === 'version' ? !state.versionExpand : !state.osExpand"/>
           </div>
-          <Select
-            class="flex-1"
-            v-model="state.dimension"
-            :clearable="false"
-            @change="val => updateOptionalList(val, true)"
-          >
-            <Select.Option
-              v-for="opt in dimensionList"
-              :key="opt.id"
-              :id="opt.id"
-              :name="$t(opt.name)"
-            ></Select.Option>
-          </Select>
-        </div>
-        <div
-          :class="[
-            'border-b flex justify-between items-center h-[36px] mt-[8px] px-[16px] cursor-pointer',
-            {
-              'bg-[#E1ECFF] text-[#3A84FF]': state.dimensionOptional === 'all',
-            },
-          ]"
-          @click="selectDimensionOptional('all', 'click')"
-        >
-          <div class="text-[13px]">
-            <span class="mr-[5px]">All</span>
-            <span>全部</span>
-          </div>
-          <Tag
-            size="large"
-            checkable
-            :checked="state.dimensionOptional === 'all'"
-            >{{ originPackageList.length }}</Tag
-          >
-        </div>
-        <div
-          v-for="item in dimensionOptionalList"
-          :key="item.id"
-          :class="[
-            'flex justify-between items-center h-[36px] cursor-pointer px-[16px]',
-            {
-              'bg-[#E1ECFF] text-[#3A84FF]':
-                state.dimensionOptional === item.id,
-            },
-          ]"
-          @click="selectDimensionOptional(item.id, 'click')"
-        >
-          <div>
-            <i :class="`nodeman-icon nc-${item.id.split('_')[0]} mr-[5px]`"></i>
-            <span class="text-[12px]">{{ `${item.name}` }}</span>
-          </div>
-          <Tag
-            v-if="item.count"
-            size="large"
-            checkable
-            :checked="state.dimensionOptional === item.id"
-          >
-            {{ item.count }}
-          </Tag>
+          <template v-if="option.id === 'version' ? state.versionExpand : state.osExpand">
+            <div
+              :class="[
+                'h-[36px] mt-[8px] px-[16px] cursor-pointer',
+                {
+                  'bg-[#E1ECFF] text-[#3A84FF]':
+                  option.id === 'version'
+                  ? state.versionDimensionOptional === 'all'
+                  : state.osDimensionOptional === 'all'
+                },
+              ]"
+              @click="selectDimensionOptional('all', option.id as PkgQuickType, 'click')"
+            >
+              <div class="border-b flex justify-between items-center h-[36px]">
+                <div class="text-[13px]">
+                  <span class="mr-[5px]">All</span>
+                  <span>全部</span>
+                </div>
+                <Tag
+                  size="large"
+                  checkable
+                  :checked="option.id === 'version'
+                    ? state.versionDimensionOptional === 'all'
+                    : state.osDimensionOptional === 'all'"
+                  >{{ originPackageList.length }}</Tag
+                >
+              </div>
+            </div>
+            <div class="overflow-auto" :style="{ maxHeight: quickMaxHeight/2 + 'px' }">
+              <div
+                v-for="item in option.children"
+                :key="item.id"
+                :class="[
+                  'flex justify-between items-center h-[36px] cursor-pointer px-[16px]',
+                  {
+                    'bg-[#E1ECFF] text-[#3A84FF]':
+                      option.id === 'version'
+                      ? state.versionDimensionOptional === item.id
+                      : state.osDimensionOptional === item.id,
+                  },
+                ]"
+                @click="selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
+              >
+                <div>
+                  <i v-if="item.id.includes('darwin')" class="nodeman-icon nc-macos mr-[5px]"></i>
+                  <i v-else :class="`nodeman-icon nc-${item.id.split('_')[0]} mr-[5px]`"></i>
+                  <span class="text-[12px]">{{ `${item.name}` }}</span>
+                </div>
+                <Tag
+                  v-if="item.count"
+                  size="large"
+                  checkable
+                  :checked="option.id === 'version'
+                    ? state.versionDimensionOptional === item.id
+                    : state.osDimensionOptional === item.id"
+                >
+                  {{ item.count }}
+                </Tag>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
       <Loading
@@ -95,6 +101,7 @@
       >
         <Table
           class="w-full"
+          :max-height="maxHeight"
           :data="packageList"
           :empty-text="'暂无数据'"
           :pagination="pagination"
@@ -107,62 +114,44 @@
         >
           <TableColumn
             field="file_name"
-            :title="t('包名称')"
+            :title="'包名称'"
             :min-width="320"
             fixed="left"
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="version"
-            :title="t('版本号')"
+            :title="'版本号'"
             :min-width="130"
             sortable
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="os_cpu_arch"
-            :title="t('操作系统/架构')"
+            :title="'操作系统/架构'"
             :min-width="150"
           ></TableColumn>
           <TableColumn
             field="labels"
-            :title="t('标签信息')"
+            :title="'标签信息'"
             :min-width="180"
             :filter="filterOptionSource.labels"
           >
             <template #default="{ row }">
               <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
-                <Tag
-                  v-for="tag in row.labels?.slice(0, 2)"
-                  :key="tag"
-                  >{{ tag }}</Tag
-                >
-                <Tag
-                  v-if="row.labels?.length > 2"
-                  v-bk-tooltips="row.labels?.join(', ')"
-                  >+{{ row.labels?.length - 2 }}</Tag
-                >
-                <!-- <edit-line class="!hidden !group-hover:block" @click="row.isShowTagInput = true" /> -->
+                <create-tag :data="row"></create-tag>
               </div>
-              <TagInput
-                v-show="row.isShowTagInput"
-                :model-value="row.labels"
-                :list="getUniqueChildren('labels')"
-                trigger="focus"
-                collapse-tags
-                @change="handleChangeTag"
-              />
             </template>
           </TableColumn>
           <TableColumn
             field="operator"
-            :title="t('上传用户')"
+            :title="'上传用户'"
             :min-width="120"
             :filter="filterOptionSource.operator"
           ></TableColumn>
           <TableColumn
             field="updated_at"
-            :title="t('上传时间')"
+            :title="'上传时间'"
             :min-width="180"
             sort-type="number"
             sortable
@@ -173,7 +162,7 @@
           </TableColumn>
           <TableColumn
             field="host"
-            :title="t('已部署主机')"
+            :title="'已部署主机'"
             :min-width="120"
             sortable
           >
@@ -185,7 +174,7 @@
           </TableColumn>
           <TableColumn
             field="enabled"
-            :title="t('状态')"
+            :title="'状态'"
             :min-width="120"
             :filter="filterOptionSource.enabled"
           >
@@ -196,17 +185,17 @@
           </TableColumn>
           <TableColumn
             field="as_default"
-            :title="t('默认版本')"
+            :title="'默认版本'"
             :min-width="120"
           >
             <template #default="{ row }">
-              <Tag v-if="row.enabled" theme="success">{{ t("是") }}</Tag>
+              <Tag v-if="row.as_default" theme="success">{{ t("是") }}</Tag>
               <Tag v-else>{{ t("否") }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
             field="action"
-            :title="t('操作')"
+            :title="'操作'"
             fixed="right"
             :min-width="120"
           >
@@ -286,11 +275,12 @@
       </Loading>
     </div>
   </div>
+  <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
 type PkgQuickType = "os_cpu_arch" | "version";
 type PkgType = "gse_agent" | "gse_proxy";
-type filterProp = 'labels' | 'operator' | 'enabled';
+type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
 interface ISearchSelect {
   id: string;
   name: string;
@@ -307,6 +297,7 @@ interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
   checked: string[];
   filterScope: string;
+  match?: string,
 }
 // 排序类型
 type PkgOrderType = "version" | "-version";
@@ -322,15 +313,21 @@ import { isArray } from "lodash";
 import { useRoute, useRouter } from "vue-router";
 import type { VxeTablePropTypes } from 'vxe-table';
 import usePage from '@/composables/use-page';
-import { EditLine } from "bkui-vue/lib/icon";
+import { EditLine, AngleDown, AngleRight } from "bkui-vue/lib/icon";
+import PkgUploadSideslider from "./pkg-upload-sideslider.vue";
+import { useMainStore } from "@/stores/main";
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const mainStore = useMainStore();
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
 const title = computed(() =>
   route.name === "agentPackageMng" ? t("Agent 包管理") : t("Proxy 包管理")
 );
 const curAgentVersion = ref("v2.2.6-beta.30");
+const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);
@@ -339,7 +336,10 @@ const state = reactive<{
   panels: { name: PkgType; label: string }[];
   active: PkgType;
   dimension: PkgQuickType;
-  dimensionOptional: string;
+  versionDimensionOptional: string;
+  osDimensionOptional: string;
+  versionExpand: boolean;
+  osExpand: boolean;
   uploadShow: boolean;
   ordering: PkgOrderType | "";
 }>({
@@ -351,7 +351,10 @@ const state = reactive<{
   active: "gse_agent",
   // 维度
   dimension: "os_cpu_arch",
-  dimensionOptional: "all",
+  versionDimensionOptional: "all",
+  osDimensionOptional: "all",
+  versionExpand: true,
+  osExpand: true,
   uploadShow: false,
   ordering: "",
 });
@@ -384,23 +387,29 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 const dimensionList = computed(() =>
   searchSelectData.value.filter((item: { id: string }) =>
     ["version", "os_cpu_arch"].includes(item.id)
-  )
+  ).sort((a: { id: string }, b: { id: string }) => {
+    const orderMap: { [key: string]: number } = { os_cpu_arch: 0, version: 1 };
+    return orderMap[a.id] - orderMap[b.id];
+  })
 );
-const dimensionOptionalList = computed(
-  () =>
-    searchSelectData.value.find(
-      (item: { id: string }) => item.id === state.dimension
-    )?.children
-);
+const handleExpand = (id: string) => {
+  if (id === 'version') {
+    state.versionExpand = !state.versionExpand;
+  } else {
+    state.osExpand = !state.osExpand;
+  }
+}
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
   labels: {
-    list: getUniqueChildren("labels"),
+    list: [],
     checked: [],
+    match: 'fuzzy',
     filterScope: "all",
   },
   operator: {
-    list: getUniqueChildren("operator"),
+    list: [],
     checked: [],
+    match: 'fuzzy',
     filterScope: "all",
   },
   enabled: {
@@ -439,9 +448,6 @@ function getUniqueChildren(prop: string) {
     let count;
     if (["os_cpu_arch", "version"].includes(prop)) {
       count = countByProp(originPackageList.value, prop)[value as string];
-      if (prop === "os_cpu_arch") {
-        name = capitalizeFirstLetter(value);
-      }
     }
 
     return {
@@ -542,52 +548,40 @@ const handleSearchSelectChange = async (data: {id: string, name: string, values:
   Object.keys(filterOptionSource).forEach(key => {
     filterOptionSource[key].checked = [];
   });
-  updateOptionalList('os_cpu_arch');
-  selectDimensionOptional('all');
+  selectDimensionOptional('all', 'os_cpu_arch');
+  selectDimensionOptional('all', 'version');
   data.forEach(item => {
     if (filterOptionSource[item.id as filterProp]) {
       filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
     }
     if (["version", "os_cpu_arch"].includes(item.id)) {
-      updateOptionalList(item.id as PkgQuickType);
-      selectDimensionOptional(item.values[0].id);
+      selectDimensionOptional(item.values[0].id, item.id as PkgQuickType);
     }
   });
 }
-// 更新快捷筛选 维度
-const updateOptionalList = (
-  id: PkgQuickType = "os_cpu_arch",
-  isTabChange: boolean = false
-) => {
-  state.dimension = id;
-  if (!isTabChange) return;
-  // 如果搜索栏没这个维度搜索值，切换的时候默认选择全部, 如果有值则切换后勾选搜索值
-  const findItem = searchSelectValue.value.find((item: {id: string}) => item.id === id);
-  if(!findItem) {
-    selectDimensionOptional("all");
-  } else {
-    selectDimensionOptional(findItem.values[0].id);
-  }
-};
 // 维度nav click
-const selectDimensionOptional = (id: string, type?: string) => {
-  if (id === state.dimensionOptional) return;
-  state.dimensionOptional = id;
+const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: string) => {
+  if ([state.osDimensionOptional, state.versionDimensionOptional].includes(id) && id !== 'all') return;
+  if(dimension === 'version') {
+    state.versionDimensionOptional = id;
+  } else {
+    state.osDimensionOptional = id;
+  }
   if (type === 'click') {
-    updateQuickOptToSearch(id);
+    updateQuickOptToSearch(id, dimension);
   }
 };
-const updateQuickOptToSearch = (id: string) => {
+const updateQuickOptToSearch = (id: string, dimension: PkgQuickType) => {
   const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === state.dimension
+    (item: any) => item.id === dimension
   );
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (id === 'all') return;
-  const findData = searchSelectData.value.find((item: {id: string}) => item.id === state.dimension);
-  searchSelectValue.value.push({
-    id: state.dimension,
+  const findData = searchSelectData.value.find((item: {id: string}) => item.id === dimension);
+  findData && searchSelectValue.value.push({
+    id: dimension,
     name: findData.name,
-    values: [findData.children.find((item: {id: string, name: string}) => item.id === id)]
+    values: [findData.children.find((item: any) => item.id === id)]
   });
 };
 const handleClickHost = (row: Release) => {
@@ -604,7 +598,7 @@ const handleChangeTag = () => {
 
 }
 const handleUpload = () => {
-  
+  isShow.value = true;
 }
 const getPackages = async () => {
   loading.value = true;
@@ -659,9 +653,19 @@ const handleDelete = async (row: Release) => {
   await PackageService.DeleteRelease(getParams(row));
   await getPackages();
 };
+const handleConfirm = async () => {
+  await getPackages();
+}
+watch(originPackageList, () => {
+  filterOptionSource.labels.list = getUniqueChildren("labels");
+  filterOptionSource.operator.list = getUniqueChildren("operator");
+},{ immediate: true, deep: true })
 // 前端过滤数据
 watch(
-  searchSelectValue,
+  [
+    searchSelectValue,
+    originPackageList
+  ],
   () => {
     packageList.value = originPackageList.value.filter((row: Release) => {
       return searchSelectValue.value.every((searchItem: any) => {

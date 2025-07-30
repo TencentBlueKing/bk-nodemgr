@@ -122,7 +122,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, watch, ref } from 'vue';
-import { Sideslider, Select, Input, Button, Tag, Tab, Popover, Radio } from 'bkui-vue';
+import { Sideslider, Input, Button, Tag, Tab, Popover, Radio } from 'bkui-vue';
 import { Table, TableColumn } from '@blueking/table';
 import useTableSetting from '@/composables/use-table-setting';
 import { useI18n } from 'vue-i18n';
