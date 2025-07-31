@@ -20,7 +20,7 @@ import (
 	"time"
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracke"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -72,7 +72,7 @@ type serverMessager struct {
 
 	retrier *retrier.ExpoBackoff
 
-	redisStore messagetracke.MessageTracker
+	redisMsgTracker messagetracker.MessageTracker
 }
 
 // Start starts the messager.
@@ -96,7 +96,8 @@ func (m *serverMessager) Start(_ context.Context) error {
 
 	m.client = client
 
-	m.redisStore = messagetracke.NewRedisStore(rediscache.NewRedisCache(m.config.RedisClient, 12*time.Hour)) //nolint: mnd
+	m.redisMsgTracker = messagetracker.NewRedisTracker(
+		rediscache.NewRedisCache(m.config.RedisClient, 12*time.Hour)) //nolint: mnd
 	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	m.config.Logger.Infof("started messager")
@@ -298,7 +299,7 @@ func (m *serverMessager) SendAck(ctx context.Context, originalMessageID string, 
 }
 
 func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, error) {
-	acked, err := m.redisStore.IsAcked(ctx, mid)
+	acked, err := m.redisMsgTracker.IsAcked(ctx, mid)
 	if err != nil {
 		return false, err
 	}
@@ -306,19 +307,20 @@ func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, 
 	return acked, nil
 }
 
-// MarkProcessed marks a message ID as processed.
-func (m *serverMessager) MarkProcessed(ctx context.Context, mid string) error {
-	if err := m.redisStore.MarkProcessed(ctx, mid); err != nil {
-		m.config.Logger.Errorf("mark processed failed: %s, %v", mid, err)
-		return fmt.Errorf("failed to mark processed, err: %w", err)
+// MarkProcessed marks a message ID as processed if it has been processed, return false.
+func (m *serverMessager) TryMarkProcessed(ctx context.Context, mid string) (bool, error) {
+	marked, err := m.redisMsgTracker.TryMarkProcessed(ctx, mid)
+	if err != nil {
+		m.config.Logger.Errorf("mark processed failed, err: %v", mid, err)
+		return false, fmt.Errorf("failed to mark processed, err: %w", err)
 	}
 
-	return nil
+	return marked, nil
 }
 
 // MarkAcked marks a message ID as acked.
 func (m *serverMessager) MarkAcked(ctx context.Context, mid string) error {
-	if err := m.redisStore.MarkedAcked(ctx, mid); err != nil {
+	if err := m.redisMsgTracker.MarkAcked(ctx, mid); err != nil {
 		m.config.Logger.Errorf("mark ack failed: %s, %v", mid, err)
 		return fmt.Errorf("failed to mark acked, err: %w", err)
 	}

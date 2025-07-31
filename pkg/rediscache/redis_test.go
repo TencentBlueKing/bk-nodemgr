@@ -22,10 +22,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testRedis(t *testing.T) cache.Cache {
+func testRedis(t *testing.T) cache.ICache {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "9.134.131.223:6379",
-		Password: "defaultpassword",
+		Addr:     "addr",
+		Password: "",
 		DB:       0,
 	})
 
@@ -46,16 +46,14 @@ func TestRedisCache_GetSet(t *testing.T) {
 		err := rc.Set(ctx, key, value)
 		require.NoError(t, err)
 
-		result, exists, err := rc.Get(ctx, key)
+		result, err := rc.Get(ctx, key)
 		require.NoError(t, err)
-		assert.True(t, exists)
 		assert.Equal(t, value, result)
 	})
 
 	t.Run("Non-existent key", func(t *testing.T) {
-		_, exists, err := rc.Get(ctx, "non_existent_key")
+		_, err := rc.Get(ctx, "non_existent_key")
 		require.NoError(t, err)
-		assert.False(t, exists)
 	})
 
 	t.Run("Different data types", func(t *testing.T) {
@@ -75,12 +73,11 @@ func TestRedisCache_GetSet(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				testKey := fmt.Sprintf("type_test_%s", tc.name)
 
-				err := rc.Set(ctx, testKey, tc.value)
+				err := rc.Set(ctx, testKey, tc.value.([]byte))
 				require.NoError(t, err)
 
-				result, exists, err := rc.Get(ctx, testKey)
+				result, err := rc.Get(ctx, testKey)
 				require.NoError(t, err)
-				require.True(t, exists)
 				assert.Equal(t, tc.expected, string(result))
 			})
 		}
@@ -93,7 +90,7 @@ func TestRedisCache_Exists(t *testing.T) {
 
 	t.Run("Existing key", func(t *testing.T) {
 		key := "exists_key"
-		err := rc.Set(ctx, key, "value")
+		err := rc.Set(ctx, key, []byte("value"))
 		require.NoError(t, err)
 
 		exists, err := rc.Exists(ctx, key)
@@ -109,7 +106,7 @@ func TestRedisCache_Exists(t *testing.T) {
 
 	t.Run("Expired key", func(t *testing.T) {
 		key := "expired_exists_key"
-		err := rc.SetWithExpiration(ctx, key, "value", 1*time.Second)
+		err := rc.SetWithExpiration(ctx, key, []byte("value"), 1*time.Second)
 		require.NoError(t, err)
 
 		exists, err := rc.Exists(ctx, key)
@@ -130,7 +127,7 @@ func TestRedisCache_Delete(t *testing.T) {
 
 	t.Run("Delete existing key", func(t *testing.T) {
 		key := "delete_key"
-		err := rc.Set(ctx, key, "value")
+		err := rc.Set(ctx, key, []byte("value"))
 		require.NoError(t, err)
 
 		exists, _ := rc.Exists(ctx, key)
@@ -155,7 +152,7 @@ func TestRedisCache_Delete(t *testing.T) {
 		keys := []string{"multi_key1", "multi_key2", "multi_key3"}
 
 		for _, key := range keys {
-			err := rc.Set(ctx, key, "value")
+			err := rc.Set(ctx, key, []byte("value"))
 			require.NoError(t, err)
 		}
 

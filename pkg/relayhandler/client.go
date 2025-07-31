@@ -26,10 +26,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracke"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
 )
 
-// ClientMessagerConfig defines the config.
+// ClientMessagerConfig defines the config.s
 type ClientMessagerConfig struct {
 	// PluginVersion is the plugin version.
 	PluginVersion string `json:"plugin_version"`
@@ -55,7 +55,7 @@ func NewClientMessager(conf ClientMessagerConfig) *clientMessager {
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
 		eventDispatcher: manager.NewDefaultEventDispatcher(),
-		fileStorage:     messagetracke.NewFileManager(conf.MessageIDPath),
+		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageIDPath),
 	}
 }
 
@@ -70,8 +70,8 @@ type clientMessager struct {
 
 	eventDispatcher manager.EventDispatcher
 
-	retrier     *retrier.ExpoBackoff
-	fileStorage messagetracke.MessageTracker
+	retrier        *retrier.ExpoBackoff
+	fileMsgTracker messagetracker.MessageTracker
 }
 
 // Start starts the messager.
@@ -87,23 +87,6 @@ func (m *clientMessager) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	go func() {
-		ticker := time.NewTicker(12 * time.Hour) //nolint: mnd
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				if err := m.fileStorage.CleanupExpired(ctx); err != nil {
-					m.config.Logger.Errorf("failed to cleanup expired messages, err: %v", err)
-					return
-				}
-			}
-		}
-	}()
 
 	// hang until connected.
 	if err = client.Launch(ctx); err != nil {
@@ -152,7 +135,7 @@ func (m *clientMessager) messageCallback(messageID string, content []byte) {
 
 		return
 	case protoRelay.MessageTypeServerPushReq:
-		m.handleServerPush(context.Background(), messageID, content)
+		go m.handleServerPush(context.Background(), messageID, content)
 
 		return
 	default:
@@ -168,7 +151,7 @@ func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
 		return
 	}
 
-	if err := m.fileStorage.MarkedAcked(ctx, msg.OriginalMessageID); err != nil {
+	if err := m.fileMsgTracker.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
 		m.config.Logger.Errorf("failed to mark acked. original-message-id(%s), err: %v", msg.OriginalMessageID, err)
 	}
 
@@ -178,20 +161,14 @@ func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
 func (m *clientMessager) handleServerPush(ctx context.Context, messageID string, content []byte) {
 	go m.sendAck(ctx, messageID)
 
-	processed, err := m.fileStorage.IsProcessed(ctx, messageID)
+	exists, err := m.fileMsgTracker.TryMarkProcessed(ctx, messageID)
 	if err != nil {
-		m.config.Logger.Errorf("failed to check if message is processed. message-id(%s), err: %v", messageID, err)
-
+		m.config.Logger.Errorf("failed to mark message process. message-id(%s), error: %v", messageID, err)
 		return
 	}
 
-	if processed {
-		m.config.Logger.Infof("message already processed. message-id(%s)", messageID)
-		return
-	}
-
-	if err := m.fileStorage.MarkProcessed(ctx, messageID); err != nil {
-		m.config.Logger.Errorf("failed to mark message as processed. message-id(%s), error: %v", messageID, err)
+	// already processed
+	if !exists {
 		return
 	}
 
@@ -319,7 +296,7 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 				return fmt.Errorf("send message failed, err: %w", err)
 			}
 
-			acked, err := m.fileStorage.IsAcked(retryCtx, messageID)
+			acked, err := m.fileMsgTracker.IsAcked(retryCtx, messageID)
 			if err != nil {
 				return fmt.Errorf("check ack failed, err: %w", err)
 			}

@@ -125,7 +125,7 @@ func (s *Storage) registerScheduler() error {
 		defer s.stopOperInstsMutex.Unlock()
 		s.stopOperInsts[stopInstID] = struct{}{}
 
-		go s.checkNotifyStopping(s.Ctx)
+		go s.checkNotifyStopping(s.Ctx) // nolint: errcheck
 	})
 
 	return nil
@@ -406,10 +406,10 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 
 // WatchOperInstStopping watches operation instance stopping.
 func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{} {
-	c := make(chan struct{}, 1)
+	channel := make(chan struct{}, 1)
 	subscription := &StopEventSubscription{
 		OperInstID: operationInstanceID,
-		C:          c,
+		C:          channel,
 	}
 
 	subscriptionID := uuid.New().String()
@@ -433,7 +433,7 @@ func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID
 		}
 	}()
 
-	return c
+	return channel
 }
 
 // MarkOperInstStopping mark task stopping.
@@ -485,7 +485,7 @@ func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 			return nil, err
 		}
 
-		return nil, nil
+		return nil, nil // nolint: nilnil
 	})
 	if err != nil {
 		return err

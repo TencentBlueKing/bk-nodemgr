@@ -176,8 +176,14 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.ServerReceivedData) {
 	go h.proxyMessanger.SendAck(ctx, data.MessageID, data.AgentID)
 
-	if err := h.proxyMessanger.MarkProcessed(ctx, data.MessageID); err != nil {
-		h.logger.ErrorCtxf(ctx, "mark processed failed, err: %v", err)
+	marked, err := h.proxyMessanger.TryMarkProcessed(ctx, data.MessageID)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to mark message process. message-id(%s), err: %v", data.MessageID, err)
+		return
+	}
+
+	if !marked {
+		h.logger.InfoCtxf(ctx, "message already processed. message-id(%s)", data.MessageID)
 		return
 	}
 

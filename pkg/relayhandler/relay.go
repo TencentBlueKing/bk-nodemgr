@@ -72,8 +72,8 @@ type PushServer interface {
 	// SendAck sends the ack to client.
 	SendAck(ctx context.Context, OriginalMessageID string, agentIDs ...string)
 
-	// MarkProcessed marks a message ID as processed.
-	MarkProcessed(ctx context.Context, mid string) error
+	// TryMarkProcessed tries to mark the message as processed. if it has been processed, return false.
+	TryMarkProcessed(ctx context.Context, mid string) (bool, error)
 
 	// MarkedAckedAck handles the ack.
 	MarkAcked(ctx context.Context, OriginalMessageID string) error

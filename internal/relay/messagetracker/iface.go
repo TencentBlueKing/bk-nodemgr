@@ -8,8 +8,8 @@
  * the specific language governing permissions and limitations under the License.
  */
 
-// Package messagetracke provides the message storage implementation for relay operations.
-package messagetracke
+// Package messagetracker provides the message storage implementation for relay operations.
+package messagetracker
 
 import (
 	"context"
@@ -17,17 +17,12 @@ import (
 
 // MessageTracker is the interface for message storage.
 type MessageTracker interface {
-	// Store stores a message.
-	MarkedAcked(ctx context.Context, mid string) error
+	// TryMarkProcessed tries to mark a message ID as processed.
+	TryMarkProcessed(ctx context.Context, mid string) (bool, error)
+
 	// IsAcked checks if a message ID has been acknowledged.
 	IsAcked(ctx context.Context, mid string) (bool, error)
 
-	// MarkProcessed marks a message ID as processed.
-	MarkProcessed(ctx context.Context, mid string) error
-
-	// IsProcessed checks if a message ID has been processed.
-	IsProcessed(ctx context.Context, mid string) (bool, error)
-
-	//	CleanupExpired cleans up expired messages.
-	CleanupExpired(ctx context.Context) error
+	// MarkAcked marks a message ID as acked.
+	MarkAcked(ctx context.Context, mid string) error
 }

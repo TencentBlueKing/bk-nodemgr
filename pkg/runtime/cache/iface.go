@@ -17,34 +17,37 @@ import (
 	"time"
 )
 
-// Cache defines the unified cache interface.
-type Cache interface {
+// ICache defines the unified cache interface.
+type ICache interface {
 	// Get retrieves a value by key.
-	Get(ctx context.Context, key string) ([]byte, bool, error)
+	Get(ctx context.Context, key string) ([]byte, error)
 
-	// Set stores a value with a key.
-	Set(ctx context.Context, key string, value interface{}) error
+	// Set stores a value with a key. using default ttl.
+	Set(ctx context.Context, key string, value []byte) error
+
+	// SetNX sets a value with a key if the key exist will return error.
+	SetNX(ctx context.Context, key string, value []byte) (bool, error)
+
+	// SetNXWithExpiration sets a value with an expiration time.
+	SetNXWithExpiration(ctx context.Context, key string, value []byte, expiration time.Duration) (bool, error)
 
 	// SetWithExpiration sets a value with an expiration time.
-	SetWithExpiration(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	SetWithExpiration(ctx context.Context, key string, value []byte, expiration time.Duration) error
 
 	// Exists checks if a key exists in the cache.
 	Exists(ctx context.Context, key string) (bool, error)
 
 	// Delete removes a value by key.
 	Delete(ctx context.Context, key string) (bool, error)
-
-	// CleanupExpired removes expired keys from the cache.
-	CleanupExpired(ctx context.Context) error
 }
 
-// KeyGenerator defines the interface for generating cache keys.
-type KeyGenerator interface {
+// IKeyGenerator defines the interface for generating cache keys.
+type IKeyGenerator interface {
 	Generate(components ...string) string
 }
 
 // NewDefaultKeyGenerator creates a default key generator.
-func NewDefaultKeyGenerator(prefix string) KeyGenerator {
+func NewDefaultKeyGenerator(prefix string) IKeyGenerator {
 	return &defaultKeyGenerator{prefix: prefix}
 }
 

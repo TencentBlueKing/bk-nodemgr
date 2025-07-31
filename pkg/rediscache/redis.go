@@ -34,30 +34,41 @@ func NewRedisCache(client *redis.Client, defaultTTL time.Duration) *RedisCache {
 }
 
 // Get retrieves a value by key.
-func (c *RedisCache) Get(ctx context.Context, key string) ([]byte, bool, error) {
+func (c *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 	data, err := c.client.Get(ctx, key).Bytes()
 	if err == redis.Nil {
-		return nil, false, nil
-	}
-	if err != nil {
-		return nil, false, fmt.Errorf("redis get failed: %w", err)
+		return nil, fmt.Errorf("key(%s) not found", key)
 	}
 
-	return data, true, nil
+	if err != nil {
+		return nil, fmt.Errorf("failed to get redis cache. key(%s), err: %w", key, err)
+	}
+
+	return data, nil
 }
 
 // SetWithExpiration sets a value with an expiration time.
-func (c *RedisCache) SetWithExpiration(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	if ttl == 0 {
-		ttl = c.defaultTTL
-	}
+func (c *RedisCache) SetWithExpiration(ctx context.Context,
+	key string, value []byte, ttl time.Duration) error {
 
 	return c.client.Set(ctx, key, value, ttl).Err()
 }
 
 // Set stores a value with a key without expiration.
-func (c *RedisCache) Set(ctx context.Context, key string, value interface{}) error {
-	return c.client.Set(ctx, key, value, 0).Err()
+func (c *RedisCache) Set(ctx context.Context, key string, value []byte) error {
+	return c.client.Set(ctx, key, value, c.defaultTTL).Err()
+}
+
+// SetNX sets a value with a key if the key exist will return error.
+func (c *RedisCache) SetNX(ctx context.Context, key string, value []byte) (bool, error) {
+	return c.client.SetNX(ctx, key, value, c.defaultTTL).Result()
+}
+
+// SetNXWithExpiration sets a value with an expiration time.
+func (c *RedisCache) SetNXWithExpiration(ctx context.Context,
+	key string, value []byte, expiration time.Duration) (bool, error) {
+
+	return c.client.SetNX(ctx, key, value, expiration).Result()
 }
 
 // Exists checks if a key exists in the cache.
@@ -70,10 +81,4 @@ func (c *RedisCache) Exists(ctx context.Context, key string) (bool, error) {
 func (c *RedisCache) Delete(ctx context.Context, key string) (bool, error) {
 	count, err := c.client.Del(ctx, key).Result()
 	return count > 0, err
-}
-
-// CleanupExpired for redis just checks the connection.
-func (c *RedisCache) CleanupExpired(ctx context.Context) error {
-	c.client.Ping(ctx)
-	return nil
 }

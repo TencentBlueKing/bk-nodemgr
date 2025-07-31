@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package messagetracke provides the message storage implementation for relay operations.
-package messagetracke
+// Package messagetracker provides the message storage implementation for relay operations.
+package messagetracker
 
 import (
 	"context"
@@ -26,33 +26,49 @@ const (
 	fileSuffix = ".msg"
 )
 
-// FileManager manages file storage for messages and implements MessageStore interface.
-type FileManager struct {
+// FileTracker manages file storage for messages and implements MessageStore interface.
+type FileTracker struct {
 	storagePath string
 	messageSet  map[string]struct{} // mark processed messages.
 	ackedSet    map[string]struct{}
 	mutex       sync.RWMutex
 }
 
-// NewFileManager creates a new FileManager with the specified storage path.
-func NewFileManager(storagePath string) MessageTracker {
+// NewFileManager creates a new FileTracker with the specified storage path.
+func NewFileManager(ctx context.Context, storagePath string) MessageTracker {
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 		if err := os.MkdirAll(storagePath, 0750); err != nil { //nolint: mnd
 			return nil
 		}
 	}
-	fm := &FileManager{
+	fm := &FileTracker{
 		storagePath: storagePath,
 		messageSet:  make(map[string]struct{}),
 		ackedSet:    make(map[string]struct{}),
 	}
 	fm.loadExistingFiles()
 
+	go func() {
+		ticker := time.NewTicker(4 * time.Hour) //nolint: mnd
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := fm.cleanupExpired(ctx); err != nil {
+					return
+				}
+			}
+		}
+	}()
+
 	return fm
 }
 
 // loadExistingFiles loads existing files into memory set.
-func (fm *FileManager) loadExistingFiles() {
+func (fm *FileTracker) loadExistingFiles() {
 	files, _ := filepath.Glob(filepath.Join(fm.storagePath, filePrefix+"*"+fileSuffix))
 
 	for _, file := range files {
@@ -66,17 +82,8 @@ func (fm *FileManager) loadExistingFiles() {
 	}
 }
 
-// MarkedAcked marks a message ID as acknowledged (in-memory only).
-func (fm *FileManager) MarkedAcked(_ context.Context, mid string) error {
-	fm.mutex.Lock()
-	defer fm.mutex.Unlock()
-	fm.ackedSet[mid] = struct{}{}
-
-	return nil
-}
-
 // IsAcked checks if a message ID has been acknowledged.
-func (fm *FileManager) IsAcked(_ context.Context, mid string) (bool, error) {
+func (fm *FileTracker) IsAcked(_ context.Context, mid string) (bool, error) {
 	fm.mutex.RLock()
 	defer fm.mutex.RUnlock()
 	_, exists := fm.ackedSet[mid]
@@ -84,13 +91,23 @@ func (fm *FileManager) IsAcked(_ context.Context, mid string) (bool, error) {
 	return exists, nil
 }
 
-// MarkProcessed marks a message ID as processed.
-func (fm *FileManager) MarkProcessed(_ context.Context, mid string) error {
+// MarkAcked marks a message ID as acked.
+func (fm *FileTracker) MarkAcked(_ context.Context, mid string) error {
+	fm.mutex.Lock()
+	defer fm.mutex.Unlock()
+
+	fm.ackedSet[mid] = struct{}{}
+
+	return nil
+}
+
+// TryMarkProcessed tries to mark a message ID as processed.
+func (fm *FileTracker) TryMarkProcessed(_ context.Context, mid string) (bool, error) {
 	fm.mutex.Lock()
 	defer fm.mutex.Unlock()
 
 	if _, exists := fm.messageSet[mid]; exists {
-		return nil
+		return false, nil
 	}
 	fm.messageSet[mid] = struct{}{}
 
@@ -99,20 +116,11 @@ func (fm *FileManager) MarkProcessed(_ context.Context, mid string) error {
 
 	content := []byte(mid + "\n")
 
-	return os.WriteFile(filePath, content, 0600) //nolint: mnd
+	return true, os.WriteFile(filePath, content, 0600) //nolint: mnd
 }
 
-// IsProcessed checks if a message ID has been processed.
-func (fm *FileManager) IsProcessed(_ context.Context, mid string) (bool, error) {
-	fm.mutex.RLock()
-	defer fm.mutex.RUnlock()
-	_, exists := fm.messageSet[mid]
-
-	return exists, nil
-}
-
-// CleanupExpired deletes files older than 24 hours.
-func (fm *FileManager) CleanupExpired(_ context.Context) error {
+// cleanupExpired deletes files older than 24 hours.
+func (fm *FileTracker) cleanupExpired(_ context.Context) error {
 	fm.mutex.Lock()
 	defer fm.mutex.Unlock()
 
@@ -147,7 +155,7 @@ func (fm *FileManager) CleanupExpired(_ context.Context) error {
 }
 
 // generateFilename generates a filename for the message based on the current timestamp and message ID.
-func (fm *FileManager) generateFilename(messageID string) string {
+func (fm *FileTracker) generateFilename(messageID string) string {
 	timestamp := time.Now().Format("20060102-1504")
 	return filePrefix + fmt.Sprintf("%s_%s", timestamp, messageID) + fileSuffix
 }
