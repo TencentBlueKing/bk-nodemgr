@@ -105,7 +105,7 @@ script_tools: pre
 
 docker-build: backend application file front tools
 	@$(ECHO) "Building docker images..."
-	@$(CP) $(ROOT_DIR)/install/images/Dockerfile $(OUTPUT_DIR)
+	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodeman:v${VERSION}"
 
