@@ -76,7 +76,7 @@ type serverMessager struct {
 }
 
 // Start starts the messager.
-func (m *serverMessager) Start(ctx context.Context) error {
+func (m *serverMessager) Start(_ context.Context) error {
 	m.config.Logger.Infof("try to start messager: %+v", m.config)
 
 	// initialize http client.
@@ -105,7 +105,7 @@ func (m *serverMessager) Start(ctx context.Context) error {
 }
 
 // Stop stops the messager.
-func (m *serverMessager) Stop(ctx context.Context) error {
+func (m *serverMessager) Stop(_ context.Context) error {
 	m.config.Logger.Infof("try to stop messager: %+v", m.config)
 
 	return nil

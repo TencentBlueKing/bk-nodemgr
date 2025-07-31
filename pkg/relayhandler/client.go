@@ -214,7 +214,7 @@ func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
 	m.eventDispatcher.Dispatch(push.EventType, push.Payload)
 }
 
-// RequestCallback sends request to url. returns the response body and http code.
+// RequestCallback sends request to url. only transfer the response body to callback.
 func (m *clientMessager) RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error) {
 	if url == "" {
 		return nil, http.StatusInternalServerError, errors.New("invalid url")
