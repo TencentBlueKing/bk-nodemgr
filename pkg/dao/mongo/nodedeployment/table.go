@@ -68,12 +68,10 @@ type TargetVersion struct {
 
 // LoginInfo this is the login info for node deployment.
 type LoginInfo struct {
-	IP       string `json:"ip" bson:"ip"`
-	Port     int64  `json:"port" bson:"port"`
-	User     string `json:"user" bson:"user"`
-	Mode     string `json:"mode" bson:"mode"`
-	Password []byte `json:"password" bson:"password"`
-	KeyFile  []byte `json:"key_file" bson:"key_file"`
+	IP   string `json:"ip" bson:"ip"`
+	Port int64  `json:"port" bson:"port"`
+	User string `json:"user" bson:"user"`
+	Mode string `json:"mode" bson:"mode"`
 }
 
 // InstallOptions this is the options for nodemgr tools.

@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +41,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/launch/release", rest.RestHandlerFunc(h.TransferLaunchRelease))
-	h.rg.POST("/launch/installer", rest.RestHandlerFunc(h.TransferLaunchInstaller))
-	h.rg.POST("/query", rest.RestHandlerFunc(h.TransferQuery))
+	h.rg.POST("/launch/release", restserver.Handler(h.TransferLaunchRelease))
+	h.rg.POST("/launch/installer", restserver.Handler(h.TransferLaunchInstaller))
+	h.rg.POST("/query", restserver.Handler(h.TransferQuery))
 }

@@ -14,7 +14,7 @@ package basic
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 )
@@ -38,11 +38,11 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.GET("/info", rest.RestHandlerFunc(h.Info))
+	h.rg.GET("/info", restserver.Handler(h.Info))
 }
 
 // Info ...
-func (h *handler) Info(_ *rest.Context) (interface{}, error) {
+func (h *handler) Info(_ *restserver.Context) (interface{}, error) {
 	resp := version.Version()
 
 	return resp, nil

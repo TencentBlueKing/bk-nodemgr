@@ -8,13 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provide the api for upload.
 package upload
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -42,46 +43,40 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/origin/agent", rest.RestHandlerFunc(h.UploadOriginAgent))
-	h.rg.POST("/origin/server", rest.RestHandlerFunc(h.UploadOriginServer))
-	h.rg.POST("/origin/cert", rest.RestHandlerFunc(h.UploadOriginCert))
-	h.rg.POST("/origin/bintool", rest.RestHandlerFunc(h.UploadOriginBinTool))
+	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
+	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
+	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
+	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
 }
 
 // UploadOriginAgent upload origin agent.
-func (h *handler) UploadOriginAgent(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upload origin agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) UploadOriginAgent(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.PackageUploadOriginAgentReq)
 	fileHeader, err := ctx.ParseFileForm(req)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin agent, failed to parse file form: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin agent, failed to parse file form: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin agent, failed to open file. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin agent, failed to open file. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginAgent(sCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginAgent(ctx, fileHeader.Filename, file)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin agent: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin agent, generation: %d, detail: %v", req.GetGeneration, detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin agent, generation: %d, detail: %v", req.GetGeneration, detail)
 
 	resp := new(protoApplication.PackageUploadOriginAgentResp)
 	resp.ConvertResultFromTypes(false, detail)
@@ -90,39 +85,33 @@ func (h *handler) UploadOriginAgent(ctx *rest.Context) (interface{}, error) {
 }
 
 // UploadOriginServer upload origin server.
-func (h *handler) UploadOriginServer(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upload origin server, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) UploadOriginServer(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.PackageUploadOriginServerReq)
 	fileHeader, err := ctx.ParseFileForm(req)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin server, failed to parse file form: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin server, failed to parse file form: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin server, failed to open file. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin server, failed to open file. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginServer(sCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginServer(ctx, fileHeader.Filename, file)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin server: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin server: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin server, generation: %d, detail: %v", req.GetGeneration, detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin server, generation: %d, detail: %v", req.GetGeneration, detail)
 
 	resp := new(protoApplication.PackageUploadOriginServerResp)
 	resp.ConvertResultFromTypes(false, detail)
@@ -131,39 +120,33 @@ func (h *handler) UploadOriginServer(ctx *rest.Context) (interface{}, error) {
 }
 
 // UploadOriginCert upload origin cert.
-func (h *handler) UploadOriginCert(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upload cert, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) UploadOriginCert(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.PackageUploadOriginCertReq)
 	fileHeader, err := ctx.ParseFileForm(req)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload cert, failed to parse file form: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload cert, failed to parse file form: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload cert, failed to open file. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload cert, failed to open file. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginCert(sCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginCert(ctx, fileHeader.Filename, file)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload cert: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload cert: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin cert, detail: %v", detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin cert, detail: %v", detail)
 
 	resp := new(protoApplication.PackageUploadOriginCertResp)
 	resp.ConvertResultFromTypes(false, detail)
@@ -172,39 +155,33 @@ func (h *handler) UploadOriginCert(ctx *rest.Context) (interface{}, error) {
 }
 
 // UploadOriginBinTool upload origin bin tool.
-func (h *handler) UploadOriginBinTool(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to upload origin bintool, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) UploadOriginBinTool(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.PackageUploadOriginBinToolReq)
 	fileHeader, err := ctx.ParseFileForm(req)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin bintool, failed to parse file form: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin bintool, failed to parse file form: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin bintool, failed to open file. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin bintool, failed to open file. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginBinTool(sCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginBinTool(ctx, fileHeader.Filename, file)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to upload origin bintool: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upload origin bintool: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "uploaded origin bintool, detail: %v", detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin bintool, detail: %v", detail)
 
 	resp := new(protoApplication.PackageUploadOriginBinToolResp)
 	resp.ConvertResultFromTypes(false, detail)

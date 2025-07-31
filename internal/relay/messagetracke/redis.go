@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package storage provides the message storage implementation for relay operations.
-package storage
+// Package messagetracke provides the message storage implementation for relay operations.
+package messagetracke
 
 import (
 	"context"
@@ -32,7 +32,7 @@ type RedisStore struct {
 }
 
 // NewRedisStore creates a new RedisStore instance.
-func NewRedisStore(cache *rediscache.RedisCache) MessageStore {
+func NewRedisStore(cache *rediscache.RedisCache) MessageTracker {
 	return &RedisStore{
 		cache:      cache,
 		expiration: defaultexpiration,

@@ -13,7 +13,7 @@ package topo
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
@@ -39,35 +39,35 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	// business apis.
-	h.rg.POST("/business/list", rest.RestHandlerFunc(h.ListBusiness))
+	h.rg.POST("/business/list", restserver.Handler(h.ListBusiness))
 
 	// host apis.
-	h.rg.POST("/host/list", rest.RestHandlerFunc(h.ListHost))
-	h.rg.POST("/host/distinct", rest.RestHandlerFunc(h.DistinctHost))
+	h.rg.POST("/host/list", restserver.Handler(h.ListHost))
+	h.rg.POST("/host/distinct", restserver.Handler(h.DistinctHost))
 
 	// networkarea apis.
-	h.rg.POST("/networkarea/list", rest.RestHandlerFunc(h.ListNetworkArea))
-	h.rg.POST("/networkarea/statistics", rest.RestHandlerFunc(h.StatisticsNetworkArea))
-	h.rg.POST("/networkarea/get", rest.RestHandlerFunc(h.GetNetworkArea))
-	h.rg.POST("/networkarea/create", rest.RestHandlerFunc(h.CreateNetworkArea))
-	h.rg.POST("/networkarea/update", rest.RestHandlerFunc(h.UpdateNetworkArea))
-	h.rg.POST("/networkarea/delete", rest.RestHandlerFunc(h.DeleteNetworkArea))
+	h.rg.POST("/networkarea/list", restserver.Handler(h.ListNetworkArea))
+	h.rg.POST("/networkarea/statistics", restserver.Handler(h.StatisticsNetworkArea))
+	h.rg.POST("/networkarea/get", restserver.Handler(h.GetNetworkArea))
+	h.rg.POST("/networkarea/create", restserver.Handler(h.CreateNetworkArea))
+	h.rg.POST("/networkarea/update", restserver.Handler(h.UpdateNetworkArea))
+	h.rg.POST("/networkarea/delete", restserver.Handler(h.DeleteNetworkArea))
 
 	// networkunit apis.
-	h.rg.POST("/networkunit/list", rest.RestHandlerFunc(h.ListNetworkUnit))
-	h.rg.POST("/networkunit/get", rest.RestHandlerFunc(h.GetNetworkUnit))
-	h.rg.POST("/networkunit/create", rest.RestHandlerFunc(h.CreateNetworkUnit))
-	h.rg.POST("/networkunit/update", rest.RestHandlerFunc(h.UpdateNetworkUnit))
-	h.rg.POST("/networkunit/delete", rest.RestHandlerFunc(h.DeleteNetworkUnit))
+	h.rg.POST("/networkunit/list", restserver.Handler(h.ListNetworkUnit))
+	h.rg.POST("/networkunit/get", restserver.Handler(h.GetNetworkUnit))
+	h.rg.POST("/networkunit/create", restserver.Handler(h.CreateNetworkUnit))
+	h.rg.POST("/networkunit/update", restserver.Handler(h.UpdateNetworkUnit))
+	h.rg.POST("/networkunit/delete", restserver.Handler(h.DeleteNetworkUnit))
 
 	// topo graph.
-	h.rg.POST("/graph/get", rest.RestHandlerFunc(h.GetGraph))
-	h.rg.POST("/graph/node/count", rest.RestHandlerFunc(h.CountGraphNode))
+	h.rg.POST("/graph/get", restserver.Handler(h.GetGraph))
+	h.rg.POST("/graph/node/count", restserver.Handler(h.CountGraphNode))
 
 	// topo event apis.
-	h.rg.POST("/event/list", rest.RestHandlerFunc(h.ListEvent))
-	h.rg.POST("/event/distinct", rest.RestHandlerFunc(h.DistinctEvent))
+	h.rg.POST("/event/list", restserver.Handler(h.ListEvent))
+	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctEvent))
 
 	// constant apis.
-	h.rg.POST("/constant/get", rest.RestHandlerFunc(h.GetConstant))
+	h.rg.POST("/constant/get", restserver.Handler(h.GetConstant))
 }

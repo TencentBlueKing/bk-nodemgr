@@ -12,39 +12,33 @@ package transfer
 
 import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // TransferLaunchRelease launch transfer release package.
-func (h *handler) TransferLaunchRelease(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to launch transfer release, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) TransferLaunchRelease(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoFile.TransferLaunchReleaseReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer release, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer release, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	host, err := h.storageTopo.GetHostByID(sCtx, req.GetTargetHostId())
+	host, err := h.storageTopo.GetHostByID(ctx, req.GetTargetHostId())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer release, failed to get host. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer release, failed to get host. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	tf, err := h.manager.LaunchTransferRelease(sCtx, gen, rt, plat, version, req.GetTargetDir(), host)
+	tf, err := h.manager.LaunchTransferRelease(ctx, gen, rt, plat, version, req.GetTargetDir(), host)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer release. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer release. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "launched release transfer. task-id(%s)", tf.GetTaskID())
+	h.logger.InfoCtxf(ctx, "launched release transfer. task-id(%s)", tf.GetTaskID())
 
 	resp := new(protoFile.TransferLaunchReleaseResp)
 	resp.ConvertResult(tf)
@@ -53,36 +47,30 @@ func (h *handler) TransferLaunchRelease(ctx *rest.Context) (interface{}, error) 
 }
 
 // TransferLaunchInstaller launch transfer installer package.
-func (h *handler) TransferLaunchInstaller(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to launch transfer installer, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) TransferLaunchInstaller(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoFile.TransferLaunchInstallerReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer installer, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	host, err := h.storageTopo.GetHostByID(sCtx, req.GetTargetHostId())
+	host, err := h.storageTopo.GetHostByID(ctx, req.GetTargetHostId())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer, failed to get host. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer installer, failed to get host. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	tf, err := h.manager.LaunchTransferInstaller(sCtx,
+	tf, err := h.manager.LaunchTransferInstaller(ctx,
 		protoFile.ConvertPlatformToTypes(req.GetPlatform()),
 		req.GetTargetDir(),
 		host)
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to launch transfer installer. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer installer. err: %v", err)
 
-		return nil, errf.ErrWrap(errf.Aborted, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(sCtx, "launched installer transfer. task-id(%s)", tf.GetTaskID())
+	h.logger.InfoCtxf(ctx, "launched installer transfer. task-id(%s)", tf.GetTaskID())
 
 	resp := new(protoFile.TransferLaunchInstallerResp)
 	resp.ConvertResult(tf)

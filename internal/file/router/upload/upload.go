@@ -14,7 +14,7 @@ package upload
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -38,8 +38,8 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/origin/agent", rest.RestHandlerFunc(h.UploadOriginAgent))
-	h.rg.POST("/origin/server", rest.RestHandlerFunc(h.UploadOriginServer))
-	h.rg.POST("/origin/cert", rest.RestHandlerFunc(h.UploadOriginCert))
-	h.rg.POST("/origin/bintool", rest.RestHandlerFunc(h.UploadOriginBinTool))
+	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
+	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
+	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
+	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
 }

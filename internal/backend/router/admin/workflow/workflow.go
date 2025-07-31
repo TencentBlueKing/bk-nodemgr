@@ -14,7 +14,7 @@ package workflow
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -40,5 +40,5 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/operation/retry", rest.RestHandlerFunc(h.RetryOperation))
+	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 }

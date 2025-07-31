@@ -16,7 +16,7 @@ message NodeAgentInstallReq {
     string login_ip = 5;
     optional int64 login_port = 6;
     string login_user = 7;
-    // support: auto, password, keyfile, none
+    // support: password_vault, password, keyfile
     string login_mode = 8;
     string login_password = 9;
     string login_key_file = 10;

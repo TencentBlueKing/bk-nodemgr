@@ -2,7 +2,7 @@
   <div class="p-[24px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
-        <Checkbox v-model="hideAutoTask">隐藏自动部署任务</Checkbox>
+        <Checkbox v-model="hideAutoTask">{{ t('platform.nodeMan.taskHistory.button.hideAutoTask') }}</Checkbox>
         <DatePicker
           v-model="dateValue"
           :shortcut-selected-index="1"
@@ -18,7 +18,7 @@
           :data="searchSelectData"
           v-model="searchSelectValue"
           :uniqueSelect="true"
-          :placeholder="'搜索 任务ID、任务类型、业务、执行人、执行状态 搜索'"
+          :placeholder="t('platform.nodeMan.taskHistory.placeholder.listSearch')"
           @update:modelValue="handleSearchSelectChange">
         </SearchSelect>
       </div>
@@ -36,29 +36,29 @@
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
       >
-        <TableColumn field="workflow_id" :title="t('任务ID')" min-width="100" fixed="left">
+        <TableColumn field="workflow_id" :title="t('platform.nodeMan.taskHistory.label.taskID')" min-width="100" fixed="left">
           <template #default="{ row }">
             <Button text theme="primary" @click="detailHandle(row, row.status)">{{ '#' + row.workflow_id?.slice(-4) }}</Button>
           </template>
         </TableColumn>
-        <TableColumn field="type" :title="t('任务类型')" :filter="filterOptionSource.type" min-width="150">
+        <TableColumn field="type" :title="t('platform.nodeMan.taskHistory.label.taskType')" :filter="filterOptionSource.type" min-width="150">
           <template #default={row}>
             <span>{{ typeMap[row.type as taskType]?.text }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
-        <TableColumn field="operator" :title="t('执行人')" :filter="filterOptionSource.operator" min-width="150"></TableColumn>
-        <TableColumn field="operate_time" :title="t('执行时间')" min-width="200" show-overflow-tooltip>
+        <TableColumn field="bk_biz_name" :title="t('platform.nodeMan.taskHistory.label.business')" min-width="150"></TableColumn>
+        <TableColumn field="operator" :title="t('platform.nodeMan.taskHistory.label.operator')" :filter="filterOptionSource.operator" min-width="150"></TableColumn>
+        <TableColumn field="operate_time" :title="t('platform.nodeMan.taskHistory.label.operateTime')" min-width="200" show-overflow-tooltip>
           <template #default={row}>
             <span>{{ timeFormatter(row.operate_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="cost_time" :title="t('总耗时')" min-width="100">
+        <TableColumn field="cost_time" :title="t('platform.nodeMan.taskHistory.label.costTime')" min-width="100">
           <template #default={row}>
             <span>{{ formatTimeToMS(row.cost_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="status" :title="t('执行状态')" min-width="150" :filter="filterOptionSource.status">
+        <TableColumn field="status" :title="t('platform.nodeMan.taskHistory.label.status')" min-width="150" :filter="filterOptionSource.status">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.status && statusMap[row.status]">
               <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
@@ -73,7 +73,7 @@
             </div>
           </template>
         </TableColumn>
-        <TableColumn field="count" :title="t('总数/成功/失败/忽略')" min-width="150">
+        <TableColumn field="count" :title="t('platform.nodeMan.taskHistory.label.count')" min-width="150">
           <template #default="{ row }">
             <template v-if="row.statistics">
               <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span>/
@@ -169,18 +169,18 @@ const shortcutsRange = reactive([
 ]);
 const statusMap = {
   running: {
-    text: t('执行中')
+    text: t('platform.nodeMan.taskHistory.statusType.running')
   },
   failed: {
-    text: t('失败'),
+    text: t('platform.nodeMan.taskHistory.statusType.failed'),
     icon: 'terminated'
   },
   success: {
-    text: t('成功'),
+    text: t('platform.nodeMan.taskHistory.statusType.success'),
     icon: 'running'
   },
   partial_failed: {
-    text: t('部分失败'),
+    text: t('platform.nodeMan.taskHistory.statusType.partial_failed'),
     icon: 'warning'
   },
 }
@@ -266,11 +266,11 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   }))
 }
 const searchSelectData = computed(() => [
-  {id: 'workflow_id', name: '任务ID'},
-  {id: 'type', name: '任务类型', children: getUniqueChildren('type', typeMap)},
-  {id: 'bk_biz_id', name: '业务', children: bussinessMap.value, multiple: true},
-  {id: 'operator', name: '执行人', children: getUniqueChildren('operator')},
-  {id: 'status', name: '执行状态', children: getUniqueChildren('status', statusMap)},
+  {id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID')},
+  {id: 'type', name: 'platform.nodeMan.taskHistory.label.taskType', children: getUniqueChildren('type', typeMap)},
+  {id: 'bk_biz_id', name: 'platform.nodeMan.taskHistory.label.business', children: bussinessMap.value, multiple: true},
+  {id: 'operator', name: 'platform.nodeMan.taskHistory.label.operator', children: getUniqueChildren('operator')},
+  {id: 'status', name: 'platform.nodeMan.taskHistory.label.status', children: getUniqueChildren('status', statusMap)},
 ]);
 const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));

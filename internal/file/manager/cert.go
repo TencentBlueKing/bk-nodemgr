@@ -15,7 +15,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -68,7 +68,7 @@ func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, cer
 	pkgName := m.wrapOriginPackageName(certFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginCert.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginCert.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, failed to store to upstream: %v", err)
 
 		return nil, err
@@ -240,7 +240,7 @@ func (m *Manager) PublishReleaseCert(ctx context.Context, uploadID string) error
 
 	// upload to upstream.
 	if err = m.upstreamReleaseCert.Store(
-		ctx, iface.FileInfo{Name: releaseCertFileName}, generatedFile, true); err != nil {
+		ctx, fileiface.FileInfo{Name: releaseCertFileName}, generatedFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to upload to upstream. err: %v", err)
 
 		return err

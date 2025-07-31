@@ -14,9 +14,9 @@ package agent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -27,8 +27,9 @@ type handler struct {
 	manager            manager.Manager
 	storageNetworkUnit topo.IStorageNetworkUnit
 	storageHost        topo.IStorageHost
-	logger             logger.Logger
-	crypter            crypter.Crypter
+	storageHostCredit  credit.IStorageHostCredit
+
+	logger logger.Logger
 }
 
 // newHandler ...
@@ -39,8 +40,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		manager:            capability.Manager,
 		storageNetworkUnit: capability.StorageTopo,
 		storageHost:        capability.StorageTopo,
+		storageHostCredit:  capability.StorageCredit,
 		logger:             capability.Logger,
-		crypter:            capability.Crypter,
 	}
 }
 
@@ -48,9 +49,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", rest.RestHandlerFunc(h.AgentInstall))
-	h.rg.POST("/upgrade", rest.RestHandlerFunc(h.AgentUpgrade))
-	h.rg.POST("/reconfig", rest.RestHandlerFunc(h.AgentReconfig))
-	h.rg.POST("/restart", rest.RestHandlerFunc(h.AgentRestart))
-	h.rg.POST("/uninstall", rest.RestHandlerFunc(h.AgentUninstall))
+	h.rg.POST("/install", restserver.Handler(h.AgentInstall))
+	h.rg.POST("/upgrade", restserver.Handler(h.AgentUpgrade))
+	h.rg.POST("/reconfig", restserver.Handler(h.AgentReconfig))
+	h.rg.POST("/restart", restserver.Handler(h.AgentRestart))
+	h.rg.POST("/uninstall", restserver.Handler(h.AgentUninstall))
 }

@@ -17,34 +17,39 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
-
-// This file only supports requesting and getting responses.
-
-// HeaderSetter get auth header.
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 // Config the config of gse.
 type Config struct {
-	HeaderSetter HeaderSetter
+	APIGWClientConfig apigwclient.Config
+}
+
+// Validate the config.
+func (conf *Config) Validate() error {
+	if err := conf.APIGWClientConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate gse config, err: %v", err)
+	}
+
+	return nil
 }
 
 // cli client for gse.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 	config *Config
 }
 
 // newClient initialize a new gse client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/api/v2")
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to new gse client: %v", err)
+	}
+
+	restCli, err := apigwclient.NewClient(c, "/api/v2", conf.APIGWClientConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to new gse client: %v", err)
 	}
 
 	return &cli{
@@ -56,16 +61,8 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
 
 	// TODO: 接入租户信息
-
-	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

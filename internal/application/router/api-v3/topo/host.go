@@ -14,8 +14,8 @@ import (
 	"context"
 
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,27 +25,21 @@ const (
 )
 
 // ListHost lists hosts with page and conditions.
-func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to list host, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoHostListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to list host, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountHost(
-			sCtx,
+			ctx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(sCtx, "failed to list host, failed to count host. err: %v", err)
-			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+			h.logger.ErrorCtxf(ctx, "failed to list host, failed to count host. err: %v", err)
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
 		resp := new(protoApplication.TopoHostListResp)
@@ -55,22 +49,22 @@ func (h *handler) ListHost(ctx *rest.Context) (interface{}, error) {
 	}
 
 	hosts, num, err := h.backendHandler.ListHost(
-		sCtx,
+		ctx,
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list host. err: %v", err)
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to list host. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	var mapping types.TopoNameMapping
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		_ = h.completeNetworkAreaName(sCtx, hosts, &mapping)
+		_ = h.completeNetworkAreaName(ctx, hosts, &mapping)
 		return nil
 	})
 	gp.Go(func() error {
-		_ = h.completeNetworkUnitName(sCtx, hosts, &mapping)
+		_ = h.completeNetworkUnitName(ctx, hosts, &mapping)
 		return nil
 	})
 	_ = gp.Wait()
@@ -160,25 +154,19 @@ func (h *handler) completeNetworkUnitName(
 }
 
 // DistinctHost get distinct host fields.
-func (h *handler) DistinctHost(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to distinct host, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) DistinctHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoHostDistinctReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to distinct host, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to distinct host, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.DistinctHost(
-		sCtx,
+		ctx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to distinct host. failed to distinct host fields: %v", err)
-		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoApplication.TopoHostDistinctResp)

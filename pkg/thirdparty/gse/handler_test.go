@@ -12,25 +12,39 @@ package gse
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
-type testHeaderSetter struct{}
+// LoadAuthHeader load auth header from environment variables.
+func LoadAuthHeader() (apigwclient.Config, error) {
+	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
+	header := make(map[string]string, 0)
+	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
+		return apigwclient.Config{}, err
+	}
 
-// GetAuthHeader get http header for authentication.
-func (testHeaderSetter) GetAuthHeader() (string, error) {
-	return os.Getenv("BK_APIGW_AUTHHEADER"), nil
+	apigwClientConfig := apigwclient.Config{
+		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
+		AppCode:   header["bk_app_code"],
+		AppSecret: header["bk_app_secret"],
+		User:      header["bk_username"],
+		AuthMode:  apigwclient.AuthModeUn,
+	}
+
+	return apigwClientConfig, nil
 }
 
 type testContext struct {
@@ -78,23 +92,28 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
+	apigwClientConfig, err := LoadAuthHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	h, err := New(clientCap, &Config{
-		HeaderSetter: testHeaderSetter{},
+		APIGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

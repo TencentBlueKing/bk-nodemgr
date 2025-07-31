@@ -13,28 +13,22 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"runtime"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
-	apiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
+	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -46,19 +40,30 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
@@ -71,7 +76,7 @@ const (
 	DiscoveryNameApigw = "apigateway"
 )
 
-// Service defines a server that provides backend services.
+// Service defines a apigwserver that provides backend services.
 // It manages the configuration, lifecycle, and various capabilities (e.g., cmdb, topo storage).
 // The service's capabilities are accessed through its 'cap' field, while 'router' is used to route requests.
 type Service struct {
@@ -85,7 +90,7 @@ type Service struct {
 	cancelFunc context.CancelFunc
 
 	// router is the entry point of the service, routing requests to different capabilities.
-	servers []*rest.Server
+	servers []*restserver.Server
 
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
@@ -99,7 +104,7 @@ type Service struct {
 }
 
 // NewService creates a new backend service.
-// nolint: funlen
+// nolint: funlen,gocognit,gocyclo,cyclop,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.BackendService) (*Service, error) {
 	if err := loadSystemInfo(conf); err != nil {
@@ -137,7 +142,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
-			return nil, fmt.Errorf("failed to set deploy conf, err: %w", err)
+			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
 		}
 	}
 
@@ -213,12 +218,31 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.StorageGlobalSettings, err = globalsettings.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	svc.Cap.StorageCredit, err = credit.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger, svc.Cap.Crypter)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(
+		mongoClient,
+		conf.MongoDB.Database,
+		svc.Cap.Logger,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.CreditVault, err = newCreditVault(conf.CreditVault, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.AuthIdentity, err = newBKJWTAuthIdentity(conf.APIGateWayServer)
 	if err != nil {
 		return nil, err
 	}
@@ -241,15 +265,16 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		InstallerFileGroup:    svc.Cap.InstallerFileGroup,
 		LockerFactory:         svc.Cap.LockerFactory,
 		StorageTopo:           svc.Cap.StorageTopo,
+		StorageRelease:        svc.Cap.StorageRelease,
 		StorageNodeDeployment: svc.Cap.StorageNodeDeployment,
 		StorageNodeWorkflow:   svc.Cap.StorageNodeWorkflow,
 		StorageTrigger:        svc.Cap.StorageTrigger,
 		StorageOperation:      svc.Cap.StorageOperation,
 		StorageOperInst:       svc.Cap.StorageOperInst,
-		StorageRelease:        svc.Cap.StorageRelease,
 		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
+		StorageHostCredit:     svc.Cap.StorageCredit,
+		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
-		Crypter:               svc.Cap.Crypter,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{
@@ -263,11 +288,16 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.watcher, err = watcher.NewWatcher(watcher.Config{
-		CmdbHandler: svc.Cap.CmdbHandler,
-		StorageTopo: svc.Cap.StorageTopo,
-		Manager:     svc.Cap.Manager,
-	}, svc.Cap.Logger)
+	globalsettings.InitGlobalSettings(svc.Cap.StorageGlobalSettings)
+
+	svc.watcher, err = watcher.NewWatcher(
+		watcher.Config{
+			CmdbHandler: svc.Cap.CmdbHandler,
+			StorageTopo: svc.Cap.StorageTopo,
+		},
+		watcher.WithDistributedLocker(svc.Cap.LockerFactory),
+		watcher.WithLogger(svc.Cap.Logger),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -280,22 +310,28 @@ func NewService(conf *config.BackendService) (*Service, error) {
 func loadSystemInfo(conf *config.BackendService) error {
 	system.SetEnv(conf.System.Env)
 	if err := system.SetEdition(system.Edition(conf.System.Edition)); err != nil {
-		return fmt.Errorf("failed to set edition, err: %w", err)
+		return fmt.Errorf("failed to set edition: %w", err)
 	}
 
 	return nil
 }
 
+// nolint: funlen
 func (svc *Service) registerRestServer(conf *config.BackendService) {
-	httpServer := rest.NewServer(
+	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	httpServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameBackendBasic),
-			IP:        conf.HTTPServer.BindIP,
-			Port:      conf.HTTPServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendBasic),
+			IP:              conf.HTTPServer.BindIP,
+			Port:            conf.HTTPServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: apigwRequestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withAPIV3(svc.Cap),
@@ -308,15 +344,18 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		Port: conf.HTTPServer.Port,
 	})
 
-	callbackServer := rest.NewServer(
+	requestIDSetter := restserver.NewRequestIDSetter()
+	callbackServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameBackendCallback),
-			IP:        conf.CallbackServer.BindIP,
-			Port:      conf.CallbackServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendCallback),
+			IP:              conf.CallbackServer.BindIP,
+			Port:            conf.CallbackServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withCallback(svc.Cap),
 	)
 	svc.servers = append(svc.servers, callbackServer)
@@ -326,15 +365,17 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		Port: conf.CallbackServer.Port,
 	})
 
-	proxyServer := rest.NewServer(
+	proxyServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameBackendPorxy),
-			IP:        conf.ProxyServer.BindIP,
-			Port:      conf.ProxyServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendPorxy),
+			IP:              conf.ProxyServer.BindIP,
+			Port:            conf.ProxyServer.Port,
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			LogWriter:       loggerWriterAdaptor{},
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withProxy(svc.Cap),
 	)
 	svc.servers = append(svc.servers, proxyServer)
@@ -344,15 +385,17 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		Port: conf.ProxyServer.Port,
 	})
 
-	adminServer := rest.NewServer(
+	adminServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameBackendAdmin),
-			IP:        conf.AdminServer.BindIP,
-			Port:      conf.AdminServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendAdmin),
+			IP:              conf.AdminServer.BindIP,
+			Port:            conf.AdminServer.Port,
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			LogWriter:       loggerWriterAdaptor{},
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withAdmin(svc.Cap),
@@ -407,49 +450,49 @@ func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) rest.OptionFunc {
+func withHealthz(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		healthz.Load(rg, capability)
 	}
 }
 
 // withMetrics load metrics.
-func withMetrics(_ *options.Capability) rest.OptionFunc {
+func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	}
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability) rest.OptionFunc {
+func withAPIV3(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		apiv3.Load(rg, capability)
+		backendapiv3.Load(rg, capability)
 	}
 }
 
 // withBasic load basic.
-func withBasic(capability *options.Capability) rest.OptionFunc {
+func withBasic(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		basic.Load(rg, capability)
 	}
 }
 
 // withAdmin load admin.
-func withAdmin(capability *options.Capability) rest.OptionFunc {
+func withAdmin(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		admin.Load(rg, capability)
 	}
 }
 
 // withCallback load callback.
-func withCallback(capability *options.Capability) rest.OptionFunc {
+func withCallback(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		callback.Load(rg, capability)
 	}
 }
 
 // withProxy load proxy.
-func withProxy(capability *options.Capability) rest.OptionFunc {
+func withProxy(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		proxy.Load(rg, capability)
 	}
@@ -457,16 +500,16 @@ func withProxy(capability *options.Capability) rest.OptionFunc {
 
 // newCMDBHandler.
 func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
 
 	apiGwClientCapability.Name = "cmdb"
 	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
-		SupplierAccount: conf.SupplierAccount,
-		HeaderSetter:    apiGwHeaderSetter,
+		SupplierAccount:   conf.SupplierAccount,
+		APIGWClientConfig: apiGwClientConfig,
 	}, cmdb.WithLogger(logger))
 	if err != nil {
 		return nil, err
@@ -475,17 +518,78 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 	return cmdbHandler, nil
 }
 
+func newCreditVault(conf config.CreditVault, logger logger.Logger) (creditvault.ICreditVault, error) {
+	hostPasswordVault, err := newHostPasswordVault(conf.HostCreditVault, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new credit password vault: %w", err)
+	}
+
+	vault := creditvault.New(creditvault.WithHostPasswordVault(hostPasswordVault))
+
+	return vault, nil
+}
+
+func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigwserver.BKGWJWTAuthIdentity, error) {
+	publickeyPem, err := base64.StdEncoding.DecodeString(conf.PublickeyPem)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new bk jwt auth identity: %w", err)
+	}
+
+	authIdentity := apigwserver.NewBKGWJWTAuthIdentity(publickeyPem)
+
+	return authIdentity, nil
+}
+
+func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (creditvault.IHostPasswordVault, error) {
+	if !conf.Enable {
+		return &creditvault.DisabledHostPasswordVault{}, nil
+	}
+
+	switch conf.Type {
+	case "iegtjj":
+		iegtjjHandler, err := newIEGTJJHandler(conf.IEGTJJ, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to new host password vault: %w", err)
+		}
+
+		return iegtjjHandler, nil
+
+	default:
+		return nil, fmt.Errorf("unknown host password vault type: %s", conf.Type)
+	}
+}
+
+func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
+	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.Config
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
+	if err != nil {
+		return nil, err
+	}
+
+	apiGwClientCapability.Name = "iegtjj"
+	iegtjjHandler, err := iegtjj.New(apiGwClientCapability, &iegtjj.Config{
+		Key:       conf.Key,
+		SecretKey: conf.SecretKey,
+	}, iegtjj.WithLogger(logger))
+	if err != nil {
+		return nil, fmt.Errorf("failed to new iegtjj handler: %w", err)
+	}
+
+	return iegtjjHandler, nil
+}
+
 // newGSEHandler.
 func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		HeaderSetter: apiGwHeaderSetter,
+		APIGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -496,21 +600,21 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 
 // newFileHandler creates a new file handler.
 func newFileHandler(discov discover.Discover) (file.IHandler, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	clientCap := &client.Capability{
-		Client: httpClient,
-		Discover: discovery.NewServiceDiscovery(
+	clientCap := &restclient.Capability{
+		HTTPClient: httpClient,
+		Discover: restdiscovery.NewServiceDiscovery(
 			discov,
 			discover.ServiceNameFile,
 			discover.EndpointNameFileAdmin),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
@@ -518,8 +622,8 @@ func newFileHandler(discov discover.Discover) (file.IHandler, error) {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capability, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
@@ -530,25 +634,25 @@ func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, erro
 		return nil, err
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
 }
 
-// newAPIGwHeaderSetter creates a new api-gateway header setter.
-func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
-	return &apigw.Config{
+// newAPIGwClientConfig creates a new api-gateway client config.
+func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
+	return apigwclient.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,
 		AppSecret:   conf.AppSecret,
 		User:        conf.User,
-		AuthMode:    apigw.AuthMode(conf.AuthMode),
+		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		BkTicket:    conf.BkTicket,
 		BkToken:     conf.BkToken,
 		AccessToken: conf.AccessToken,
@@ -573,9 +677,9 @@ func (svc *Service) Start() error {
 	for idx := range svc.servers {
 		server := svc.servers[idx]
 
-		// server start will block until server stop, so we need to run it in a goroutine.
+		// apigwserver start will block until apigwserver stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
+			blog.Infof("started apigwserver. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
 
 			if err := server.Start(); err != nil {
 				return err
@@ -588,13 +692,13 @@ func (svc *Service) Start() error {
 
 	// after all servers brings up, register the instance into discover provider.
 	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameBackend, svc.instance); err != nil {
-		blog.Errorf("failed to register instance, err: %v", err)
+		blog.Errorf("failed to register instance: %v", err)
 		return err
 	}
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 
@@ -611,7 +715,7 @@ func (svc *Service) GracefulShutdown() error {
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {
-		blog.Errorf("failed to shutdown capability, err: %v", err)
+		blog.Errorf("failed to shutdown capability: %v", err)
 		return err
 	}
 

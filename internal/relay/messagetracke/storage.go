@@ -8,15 +8,15 @@
  * the specific language governing permissions and limitations under the License.
  */
 
-// Package storage provides the message storage implementation for relay operations.
-package storage
+// Package messagetracke provides the message storage implementation for relay operations.
+package messagetracke
 
 import (
 	"context"
 )
 
 // MessageStore defines the interface for message storage.
-type MessageStore interface {
+type MessageTracker interface {
 	// Store stores a message.
 	MarkedAcked(ctx context.Context, mid string) error
 	// IsAcked checks if a message ID has been acknowledged.

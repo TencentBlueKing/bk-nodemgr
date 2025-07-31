@@ -15,8 +15,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
@@ -29,24 +29,29 @@ func testPrivateCli(t *testing.T) *cli {
 		t.Fatal(err)
 	}
 
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
+	apigwClientConfig, err := LoadAuthHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	client, err := newClient(clientCap, &Config{
-		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		HeaderSetter:    testHeaderSetter{},
+		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		APIGWClientConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -70,21 +75,21 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 			args: args{
 				key: "1",
 			},
-			wantResult: criteria.OSLinux,
+			wantResult: string(criteria.OSLinux),
 		},
 		{
 			name: "test2",
 			args: args{
 				key: "2",
 			},
-			wantResult: criteria.OSWindows,
+			wantResult: string(criteria.OSWindows),
 		},
 		{
 			name: "test3",
 			args: args{
 				key: "3",
 			},
-			wantResult: criteria.OSAix,
+			wantResult: string(criteria.OSAix),
 		},
 	}
 
@@ -117,21 +122,21 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
-				value: criteria.OSLinux,
+				value: string(criteria.OSLinux),
 			},
 			wantResult: "1",
 		},
 		{
 			name: "test2",
 			args: args{
-				value: criteria.OSWindows,
+				value: string(criteria.OSWindows),
 			},
 			wantResult: "2",
 		},
 		{
 			name: "test3",
 			args: args{
-				value: criteria.OSAix,
+				value: string(criteria.OSAix),
 			},
 			wantResult: "3",
 		},

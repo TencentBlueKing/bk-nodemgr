@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -45,7 +45,7 @@ type Transfer struct {
 	sourceEndpoint *types.Endpoint
 	targetEndpoint *types.Endpoint
 
-	fileInfo iface.FileInfo
+	fileInfo fileiface.FileInfo
 
 	gseHandler gse.IHandler
 }
@@ -56,7 +56,7 @@ func (t *Transfer) GetTaskID() string {
 }
 
 // GetFileInfo get file info.
-func (t *Transfer) GetFileInfo() iface.FileInfo {
+func (t *Transfer) GetFileInfo() fileiface.FileInfo {
 	return t.fileInfo
 }
 

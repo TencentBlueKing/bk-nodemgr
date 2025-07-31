@@ -17,8 +17,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -28,17 +28,11 @@ import (
 const DefaultNodeGeneration = 2
 
 // ProxyInstall install proxy.
-func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to install proxy, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) ProxyInstall(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeProxyInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install proxy, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to install proxy, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
@@ -54,11 +48,11 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
 
-		nodeDeploy, err := h.genDeploys(sCtx, ctx.TenantID, reqHost, targetVersions)
+		nodeDeploy, err := h.genNodeDeployMent(ctx, ctx.TenantID, reqHost, targetVersions)
 		if err != nil {
 			h.logger.Errorf("failed to install proxy, failed to generate node deployment. err: %v", err)
 
-			return nil, errf.ErrWrap(errf.InvalidParameter, err)
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 
 		nodeDeploys[idx] = nodeDeploy
@@ -69,15 +63,15 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 		bizIDs[host.GetBkBizId()] = struct{}{}
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(sCtx, manager.InstallNodeParam{
+	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallProxy,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
 		Operator:        ctx.LoginName,
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install proxy: %v", err)
-		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to install proxy: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyInstallResp)
@@ -86,7 +80,8 @@ func (h *handler) ProxyInstall(ctx *rest.Context) (interface{}, error) {
 	return resp, nil
 }
 
-func (h *handler) genDeploys(
+// nolint: funlen
+func (h *handler) genNodeDeployMent(
 	tenantCtx context.Context,
 	tenantID string,
 	reqHost *protoBackend.NodeProxyInstallReq_Host,
@@ -124,38 +119,51 @@ func (h *handler) genDeploys(
 				IP:   reqHost.GetLoginIp(),
 				Port: reqHost.GetLoginPort(),
 				User: reqHost.GetLoginUser(),
+				Mode: types.LoginMode(reqHost.GetLoginMode()),
 			},
 			TargetVersion: targetVersions,
 		})
 
-	nodeDeployment.Info.LoginInfo.Mode = types.LoginMode(reqHost.GetLoginMode())
 	switch nodeDeployment.Info.LoginInfo.Mode {
 	case types.LoginModeKeyFile:
-		loginKeyFileData, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
+		loginKeyFile, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
 		if err != nil {
 			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
 
 			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
 		}
 
-		nodeDeployment.Info.LoginInfo.KeyFile, err = h.crypter.Encrypt(loginKeyFileData)
-		if err != nil {
-			h.logger.Error("encrypt key file failed", err)
+		err = h.storageHostCredit.StoreHostCredit(
+			tenantCtx,
+			nodeDeployment.Info.Host.Static.NetworkAreaID,
+			nodeDeployment.Info.LoginInfo.IP,
+			nodeDeployment.Info.LoginInfo.User,
+			nodeDeployment.Info.LoginInfo.Mode,
+			loginKeyFile,
+		)
 
-			return nil, err
+		if err != nil {
+			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
 		}
 	case types.LoginModePassword:
-		nodeDeployment.Info.LoginInfo.Mode = types.LoginModePassword
-		nodeDeployment.Info.LoginInfo.Password, err = h.crypter.Encrypt([]byte(reqHost.GetLoginPassword()))
-		if err != nil {
-			h.logger.Error("encrypt password failed", err)
+		loginPassword := reqHost.GetLoginPassword()
 
-			return nil, err
+		err = h.storageHostCredit.StoreHostCredit(
+			tenantCtx,
+			nodeDeployment.Info.Host.Static.NetworkAreaID,
+			nodeDeployment.Info.LoginInfo.IP,
+			nodeDeployment.Info.LoginInfo.User,
+			nodeDeployment.Info.LoginInfo.Mode,
+			[]byte(loginPassword),
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
 		}
-	case types.LoginModeNone:
-		nodeDeployment.Info.LoginInfo.Mode = types.LoginModeNone
+	case types.LoginModePasswordVault:
+		// notice: password vault don't need to store password.
 	default:
-		err = fmt.Errorf("unsupported login mode %s", reqHost.GetLoginMode())
+		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
 		return nil, err

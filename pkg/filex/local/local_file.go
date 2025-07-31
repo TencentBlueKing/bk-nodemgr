@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/spf13/afero"
 )
 
@@ -57,7 +57,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 	}
 
 	file := &LocalFile{
-		info: iface.FileInfo{
+		info: fileiface.FileInfo{
 			Name:         fileName,
 			Size:         stat.Size(),
 			MD5:          md5Str,
@@ -65,7 +65,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 			ExtendFields: nil,
 		},
 		fullPath: fullPath,
-		absDirs:  iface.ConvertAbsPathToAbsDirs(filepath.Dir(fullPath)),
+		absDirs:  fileiface.ConvertAbsPathToAbsDirs(filepath.Dir(fullPath)),
 	}
 
 	return file, nil
@@ -103,7 +103,7 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 
 // LocalFile represents a local file.
 type LocalFile struct {
-	info     iface.FileInfo
+	info     fileiface.FileInfo
 	fullPath string
 	absDirs  []string
 }
@@ -129,13 +129,13 @@ func (f *LocalFile) Content(_ context.Context) (io.ReadCloser, error) {
 }
 
 // Info returns LocalFile info.
-func (f *LocalFile) Info() iface.FileInfo {
+func (f *LocalFile) Info() fileiface.FileInfo {
 	return f.info
 }
 
 // FileObject returns LocalFile file object.
-func (f *LocalFile) FileObject() iface.FileObject {
-	return iface.LocalFile
+func (f *LocalFile) FileObject() fileiface.FileObject {
+	return fileiface.LocalFile
 }
 
 // Name returns LocalFile name.

@@ -249,7 +249,7 @@ issues:
   new-from-rev: master
   # Show issues in any part of update files (requires new-from-rev or new-from-patch).
   # Default: false
-  whole-files: false
+  whole-files: true
   # Fix found issues (if it's supported by the linter).
   # Default: false
   fix: false
@@ -698,3 +698,33 @@ linters-settings:
         alias: storageRelease
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload
         alias: storageUpload
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface
+        alias: fileiface
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings
+        alias: globalsettingsStorage
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation
+        alias: storageOperation
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client
+        alias: restclient
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server
+        alias: restserver
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf
+        alias: resterrf
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery
+        alias: restdiscovery
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics
+        alias: restmetrics
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client
+        alias: apigwclient
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server
+        alias: apigwserver
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header
+        alias: apigwheader
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3
+        alias: applicationapiv3
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3
+        alias: backendapiv3
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header
+        alias: bksaasheader
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin
+        alias: bksaasbklogin

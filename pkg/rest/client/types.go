@@ -13,23 +13,24 @@ package client
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 )
 
 const (
+	// ToleranceLatencyTimeDefault default tolerance latency time.
 	ToleranceLatencyTimeDefault = 500 * time.Millisecond
 )
 
 // Capability http request limit.
 type Capability struct {
-	// Client name for logging and metrics.
+	// HTTPClient name for logging and metrics.
 	Name string
 
-	// Client http client.
-	Client HTTPClient
+	// HTTPClient http client.
+	HTTPClient HTTPClient
 
 	// Discover get request address.
-	Discover discovery.Interface
+	Discover restdiscovery.Interface
 
 	// the max tolerance api request latency time, if exceeded this time, then
 	// this request will be logged and warned.
@@ -50,6 +51,7 @@ type MetricOption struct {
 }
 
 // Logger is the logger interface.
+// nolint: interfacebloat
 type Logger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})

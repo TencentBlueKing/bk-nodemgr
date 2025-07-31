@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
-	relayStorage "github.com/TencentBlueKing/bk-nodemgr/internal/relay/storage"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracke"
 )
 
 // ClientMessagerConfig defines the config.
@@ -55,7 +55,7 @@ func NewClientMessager(conf ClientMessagerConfig) *clientMessager {
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
 		eventDispatcher: manager.NewDefaultEventDispatcher(),
-		fileStorage:     relayStorage.NewFileManager(conf.MessageIDPath),
+		fileStorage:     messagetracke.NewFileManager(conf.MessageIDPath),
 	}
 }
 
@@ -71,7 +71,7 @@ type clientMessager struct {
 	eventDispatcher manager.EventDispatcher
 
 	retrier     *retrier.ExpoBackoff
-	fileStorage relayStorage.MessageStore
+	fileStorage messagetracke.MessageTracker
 }
 
 // Start starts the messager.

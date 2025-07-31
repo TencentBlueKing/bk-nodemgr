@@ -39,7 +39,7 @@ export const PackageService = {
   CancelAsDefaultRelease: async <Request = PackageReleaseCancelAsDefaultReq, ResponseData = PackageReleaseCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/cancel_as_default')(params, config),
   // DeleteRelease deletes release.
   DeleteRelease: async <Request = PackageReleaseDeleteReq, ResponseData = PackageReleaseDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/delete')(params, config),
-  // DeployedHostCountResp count deployed host.
-  DeployedHostCountResp: async <Request = PackageReleaseDeployedHostCountReq, ResponseData = PackageReleaseDeployedHostCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/deployed_host/count')(params, config),
+  // DeployedHostCount count deployed host.
+  DeployedHostCount: async <Request = PackageReleaseDeployedHostCountReq, ResponseData = PackageReleaseDeployedHostCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/deployed_host/count')(params, config),
 };
 

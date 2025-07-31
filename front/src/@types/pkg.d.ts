@@ -172,6 +172,8 @@ export interface PackageReleaseExactConditions {
   release_type: string[];
   platform: Platform[];
   version: string[];
+  as_default: boolean[];
+  enabled: boolean[];
 }
 
 // PackageReleaseListReq describes the HTTP request body when list package
@@ -321,17 +323,19 @@ export interface PackageReleaseDeleteResp {
 export interface PackageReleaseDeleteRespData {
 }
 
-// PackageReleaseDeployedHostCountReq describes the HTTP request body when count
-// deployed host.
-export interface PackageReleaseDeployedHostCountReq {
-  request_items: CountRequestItem[];
-}
-
-export interface PackageReleaseDeployedHostCountReqCountRequestItem {
+// CountRequestItem describes  the HTTP request body when count release
+// deployed_host.
+export interface CountRequestItem {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
+}
+
+// PackageReleaseDeployedHostCountReq describes the HTTP request body when count
+// deployed host.
+export interface PackageReleaseDeployedHostCountReq {
+  request_items: CountRequestItem[];
 }
 
 // PackageReleaseDeployedHostCountResp describes the HTTP response body when

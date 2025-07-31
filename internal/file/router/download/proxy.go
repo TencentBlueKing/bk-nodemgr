@@ -16,28 +16,22 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Proxy download proxy package.
-func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to download proxy, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadProxyReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
 
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureFileToLocal(sCtx,
+	file, _, err := h.manager.EnsureFileToLocal(ctx,
 		types.Generation(req.GetGeneration()),
 		types.ReleaseTypeProxy,
 		platform.Platform{
@@ -45,16 +39,16 @@ func (h *handler) Proxy(ctx *rest.Context) (*rest.FileResponse, error) {
 			Arch: criteria.CPUArch(req.GetCpuArch()),
 		}, req.GetVersion())
 	if err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
 	}
 
-	reader, err := file.Content(sCtx)
+	reader, err := file.Content(ctx)
 	if err != nil {
-		return nil, errf.ErrWrap(errf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
 	}
 
 	info := file.Info()
-	resp := &rest.FileResponse{
+	resp := &restserver.FileResponse{
 		Data:        reader,
 		Size:        info.Size,
 		FilePath:    filepath.Join(".", info.Name),

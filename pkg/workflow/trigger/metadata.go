@@ -65,7 +65,7 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 	var cronExpr string
 	switch t := any(interval).(type) {
 	case time.Duration:
-		cronExpr = "@every " + t.String()
+		cronExpr = scheduler.Every + t.String()
 	case string:
 		cronExpr = t
 	}

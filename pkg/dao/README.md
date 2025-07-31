@@ -20,6 +20,8 @@
 - Get: 查询
 - List: 分页查询
 - Count: 计数
+- Create: 新增
+- CreateMany: 批量新增
 - Upsert: 新增或更新
 - Delete: 删除
 - Exists: 是否存在

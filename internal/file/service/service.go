@@ -32,14 +32,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
@@ -67,7 +67,7 @@ type Service struct {
 	cancelFunc context.CancelFunc
 
 	// router is the entry point of the service, routing requests to different capabilities.
-	servers []*rest.Server
+	servers []*restserver.Server
 
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
@@ -143,15 +143,20 @@ func NewService(conf *config.FileService) (*Service, error) {
 		return nil, fmt.Errorf("failed to init manager: %w", err)
 	}
 
-	httpServer := rest.NewServer(
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	httpServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameFileBasic),
-			IP:        conf.HTTPServer.BindIP,
-			Port:      conf.HTTPServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileBasic),
+			IP:              conf.HTTPServer.BindIP,
+			Port:            conf.HTTPServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withDownload(svc.Cap),
@@ -163,15 +168,17 @@ func NewService(conf *config.FileService) (*Service, error) {
 		Port: conf.HTTPServer.Port,
 	})
 
-	adminServer := rest.NewServer(
+	adminServer := restserver.NewServer(
 		svc.ctx,
-		rest.ServerOptions{
-			Name:      string(discover.EndpointNameFileAdmin),
-			IP:        conf.AdminServer.BindIP,
-			Port:      conf.AdminServer.Port,
-			LogWriter: loggerWriterAdaptor{},
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileAdmin),
+			IP:              conf.AdminServer.BindIP,
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+			Port:            conf.AdminServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
 		},
-		rest.WithPing(),
+		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withUpload(svc.Cap),
@@ -190,15 +197,15 @@ func NewService(conf *config.FileService) (*Service, error) {
 
 // newGSEHandler.
 func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwHeaderSetter := newAPIGwHeaderSetter(&conf.APIGateway)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGateway)
+	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
 	}
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		HeaderSetter: apiGwHeaderSetter,
+		APIGWClientConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -208,8 +215,8 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, error) {
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capability, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
 		KeyFile:            conf.TLS.KeyFile,
@@ -220,25 +227,25 @@ func newAPIGwClientCapability(conf *config.APIGateway) (*client.Capability, erro
 		return nil, err
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
 }
 
-// newAPIGwHeaderSetter creates a new api-gateway header setter.
-func newAPIGwHeaderSetter(conf *config.APIGateway) apigw.HeaderSetter {
-	return &apigw.Config{
+// newAPIGwClientConfig creates a new api-gateway client config.
+func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
+	return apigwclient.Config{
 		Endpoints:   conf.Endpoints,
 		AppCode:     conf.AppCode,
 		AppSecret:   conf.AppSecret,
 		User:        conf.User,
-		AuthMode:    apigw.AuthMode(conf.AuthMode),
+		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		BkTicket:    conf.BkTicket,
 		BkToken:     conf.BkToken,
 		AccessToken: conf.AccessToken,
@@ -259,42 +266,42 @@ func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) rest.OptionFunc {
+func withHealthz(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		healthz.Load(rg, capability)
 	}
 }
 
 // withMetrics load metrics.
-func withMetrics(_ *options.Capability) rest.OptionFunc {
+func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	}
 }
 
 // withDownload load download.
-func withDownload(capability *options.Capability) rest.OptionFunc {
+func withDownload(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		download.Load(rg, capability)
 	}
 }
 
 // withUpload load upload.
-func withUpload(capability *options.Capability) rest.OptionFunc {
+func withUpload(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		upload.Load(rg, capability)
 	}
 }
 
 // withPublish load publish.
-func withPublish(capability *options.Capability) rest.OptionFunc {
+func withPublish(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		publish.Load(rg, capability)
 	}
 }
 
 // withTransfer load transfer.
-func withTransfer(capability *options.Capability) rest.OptionFunc {
+func withTransfer(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		transfer.Load(rg, capability)
 	}
@@ -437,18 +444,18 @@ func initManager(conf *config.FileService,
 
 func initBKRepo(conf *config.FileService, logger logger.Logger) (bkrepo.IHandler, error) {
 	// init repo
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to init http client: %w", err)
+		return nil, fmt.Errorf("failed to init rest client: %w", err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("bkrepo", []string{conf.Repo.Endpoint}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{conf.Repo.Endpoint}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger,
 	}
 

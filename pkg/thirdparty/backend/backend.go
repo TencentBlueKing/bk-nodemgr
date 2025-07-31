@@ -18,34 +18,40 @@ import (
 	"net/http"
 
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
-
-// This file only supports requesting and getting responses.
-
-// HeaderSetter ...
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 // Config the config of backend.
 type Config struct {
-	HeaderSetter HeaderSetter
+	APIGWClientConfig apigwclient.Config
+}
+
+// Validate the config.
+func (conf *Config) Validate() error {
+	if err := conf.APIGWClientConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend client config: %v", err)
+	}
+
+	return nil
 }
 
 // cli client for backend.
 type cli struct {
-	client rest.ClientInterface
-	config *Config
+	client restclient.IClient
+	config Config
 }
 
 // newClient initialize a new backend client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/api/v3")
+func newClient(c *restclient.Capability, conf Config) (*cli, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to new backend client: %v", err)
+	}
+
+	restCli, err := restclient.NewClient(c, "/api/v3")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
 
 	return &cli{
@@ -55,17 +61,10 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 }
 
 // getCommonHeader get backend common header.
+// nolint: unparam
 func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
 	header.Set(restheader.BKTenantIDKey, tenantID)
-
-	authHeader, err := c.config.HeaderSetter.GetAuthHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	header.Set(restheader.BKGWAuthKey, authHeader)
 
 	return header, nil
 }

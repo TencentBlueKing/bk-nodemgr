@@ -33,7 +33,8 @@ type operUpgradeNode struct {
 
 // OperParamUpgradeNode defines the parameters for operUpgradeNode.
 type OperParamUpgradeNode struct {
-	Token string
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

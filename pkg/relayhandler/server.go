@@ -20,7 +20,7 @@ import (
 	"time"
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
-	relayStorage "github.com/TencentBlueKing/bk-nodemgr/internal/relay/storage"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracke"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -72,7 +72,7 @@ type serverMessager struct {
 
 	retrier *retrier.ExpoBackoff
 
-	redisStore relayStorage.MessageStore
+	redisStore messagetracke.MessageTracker
 }
 
 // Start starts the messager.
@@ -96,7 +96,7 @@ func (m *serverMessager) Start(ctx context.Context) error {
 
 	m.client = client
 
-	m.redisStore = relayStorage.NewRedisStore(rediscache.NewRedisCache(m.config.RedisClient, 12*time.Hour)) //nolint: mnd
+	m.redisStore = messagetracke.NewRedisStore(rediscache.NewRedisCache(m.config.RedisClient, 12*time.Hour)) //nolint: mnd
 	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	m.config.Logger.Infof("started messager")

@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -31,13 +31,13 @@ import (
 // IHandler is the interface for bkrepo handler.
 type IHandler interface {
 	// GetFile returns the file object by specified path.
-	GetFile(ctx context.Context, path string) (iface.File, error)
+	GetFile(ctx context.Context, path string) (fileiface.File, error)
 
 	// GetFileGroup returns the file group object by specified path.
-	GetFileGroup(ctx context.Context, path string) (iface.FileGroup, error)
+	GetFileGroup(ctx context.Context, path string) (fileiface.FileGroup, error)
 
 	// EnsureFileGroup get the file group or make it, returns the file group object by specified path.
-	EnsureFileGroup(ctx context.Context, path string) (iface.FileGroup, error)
+	EnsureFileGroup(ctx context.Context, path string) (fileiface.FileGroup, error)
 }
 
 // Handler is the handler of bkrepo.
@@ -57,7 +57,7 @@ func WithLogger(logger logger.Logger) OptionFn {
 }
 
 // New initialize a new cmdb Handler.
-func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
+func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func New(c *client.Capability, conf *Config, opts ...OptionFn) (IHandler, error)
 }
 
 // GetFile returns the file object.
-func (h *Handler) GetFile(ctx context.Context, path string) (iface.File, error) {
+func (h *Handler) GetFile(ctx context.Context, path string) (fileiface.File, error) {
 	if ctx == nil {
 		return nil, errInvalidContext
 	}
@@ -95,13 +95,13 @@ func (h *Handler) GetFile(ctx context.Context, path string) (iface.File, error) 
 
 	return &File{
 		info:    resp.NodeInfo,
-		absDirs: iface.ConvertAbsPathToAbsDirs(filepath.Dir(path)),
+		absDirs: fileiface.ConvertAbsPathToAbsDirs(filepath.Dir(path)),
 		handler: h,
 	}, nil
 }
 
 // GetFileGroup returns the file group object.
-func (h *Handler) GetFileGroup(ctx context.Context, path string) (iface.FileGroup, error) {
+func (h *Handler) GetFileGroup(ctx context.Context, path string) (fileiface.FileGroup, error) {
 	if ctx == nil {
 		return nil, errInvalidContext
 	}
@@ -120,13 +120,13 @@ func (h *Handler) GetFileGroup(ctx context.Context, path string) (iface.FileGrou
 
 	return &FileGroup{
 		info:    resp.NodeInfo,
-		absDirs: iface.ConvertAbsPathToAbsDirs(path),
+		absDirs: fileiface.ConvertAbsPathToAbsDirs(path),
 		handler: h,
 	}, nil
 }
 
 // EnsureFileGroup get the file group or make it, returns the file group object by specified path.
-func (h *Handler) EnsureFileGroup(ctx context.Context, path string) (iface.FileGroup, error) {
+func (h *Handler) EnsureFileGroup(ctx context.Context, path string) (fileiface.FileGroup, error) {
 	if ctx == nil {
 		return nil, errInvalidContext
 	}
@@ -150,7 +150,7 @@ func (h *Handler) EnsureFileGroup(ctx context.Context, path string) (iface.FileG
 	return h.GetFileGroup(ctx, path)
 }
 
-func (h *Handler) listGroups(ctx context.Context, path string) ([]iface.FileGroup, error) {
+func (h *Handler) listGroups(ctx context.Context, path string) ([]fileiface.FileGroup, error) {
 	if ctx == nil {
 		return nil, errInvalidContext
 	}
@@ -163,7 +163,7 @@ func (h *Handler) listGroups(ctx context.Context, path string) ([]iface.FileGrou
 		return nil, fmt.Errorf("list groups failed, err: %w", err)
 	}
 
-	groups := make([]iface.FileGroup, 0)
+	groups := make([]fileiface.FileGroup, 0)
 	for _, node := range nodes {
 		if !node.Folder {
 			continue
@@ -180,7 +180,7 @@ func (h *Handler) listGroups(ctx context.Context, path string) ([]iface.FileGrou
 	return groups, nil
 }
 
-func (h *Handler) listFiles(ctx context.Context, path string) ([]iface.File, error) {
+func (h *Handler) listFiles(ctx context.Context, path string) ([]fileiface.File, error) {
 	if ctx == nil {
 		return nil, errInvalidContext
 	}
@@ -193,7 +193,7 @@ func (h *Handler) listFiles(ctx context.Context, path string) ([]iface.File, err
 		return nil, fmt.Errorf("list files failed, err: %w", err)
 	}
 
-	files := make([]iface.File, 0)
+	files := make([]fileiface.File, 0)
 	for _, node := range nodes {
 		if node.Folder {
 			continue
@@ -246,7 +246,7 @@ func (h *Handler) listNodes(ctx context.Context, path string) ([]NodeRecord, err
 }
 
 func (h *Handler) storeFile(
-	ctx context.Context, fileGroupPath string, info iface.FileInfo, file io.ReadCloser, overwrite bool) error {
+	ctx context.Context, fileGroupPath string, info fileiface.FileInfo, file io.ReadCloser, overwrite bool) error {
 
 	if ctx == nil {
 		return errInvalidContext

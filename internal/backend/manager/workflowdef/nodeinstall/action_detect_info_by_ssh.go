@@ -16,14 +16,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -36,31 +36,34 @@ const (
 
 // NewActionDetectInfoBySSH get a new action.
 func NewActionDetectInfoBySSH(
-	crypter crypter.Crypter,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
 ) action.Definition {
 
 	return &actionDetectInfoBySSH{
-		crypter:               crypter,
 		logger:                logger,
+		storageHostCredit:     storageHostCredit,
 		storageNodeDeployment: storageNodeDeployment,
 		storageRelease:        storageRelease,
+		passwordVault:         passwordVault,
 	}
 }
 
 // ActParamDetectInfoBySSH ...
 type ActParamDetectInfoBySSH struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 type actionDetectInfoBySSH struct {
-	installerGroup        iface.FileGroup
-	crypter               crypter.Crypter
 	logger                logger.Logger
+	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageRelease        release.IStorage
+	passwordVault         creditvault.IHostPasswordVault
 }
 
 // Name returns the name of the action.
@@ -125,7 +128,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := buildSSHClient(ctx.Ctx, act.logger, act.crypter, info)
+	client, err := generateSSHClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}

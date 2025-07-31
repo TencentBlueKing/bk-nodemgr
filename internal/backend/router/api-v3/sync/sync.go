@@ -14,7 +14,7 @@ package sync
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +40,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/cmdb/host", rest.RestHandlerFunc(h.SyncCmdbHost))
-	h.rg.POST("/cmdb/networkarea", rest.RestHandlerFunc(h.SyncCmdbNetworkArea))
+	h.rg.POST("/cmdb/host", restserver.Handler(h.SyncCmdbHost))
+	h.rg.POST("/cmdb/networkarea", restserver.Handler(h.SyncCmdbNetworkArea))
 }

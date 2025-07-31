@@ -17,16 +17,47 @@ import (
 	"io"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IHandler is interface for backend file handler.
+// IHandler is interface for file handler.
 type IHandler interface {
+	IPkgManager
+	ITransfer
+}
+
+// ITransfer is interface for file transfer handler.
+type ITransfer interface {
+	// LaunchTransferRelease launch transfer release.
+	LaunchTransferRelease(ctx context.Context,
+		gen types.Generation,
+		rt types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// LaunchTransferInstaller launch transfer installer.
+	LaunchTransferInstaller(ctx context.Context,
+		gen types.Generation,
+		plat platform.Platform,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// QueryTransfer query transfer package.
+	// return upload result, download result and error.
+	QueryTransfer(
+		ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
+}
+
+// IPkgManager is interface for file pkg manager.
+type IPkgManager interface {
 	// UploadOriginAgent upload origin agent.
 	UploadOriginAgent(ctx context.Context, fileName string, file io.Reader) (
 		*types.OriginPkgDetail, error)
@@ -54,27 +85,6 @@ type IHandler interface {
 
 	// PublishReleaseBinTool publish release bintool.
 	PublishReleaseBinTool(ctx context.Context, uploadID string) error
-
-	// LaunchTransferRelease launch transfer release.
-	LaunchTransferRelease(ctx context.Context,
-		gen types.Generation,
-		rt types.ReleaseType,
-		plat platform.Platform,
-		version string,
-		dstDir string,
-		dstHost *types.Host) (types.ISimpleTransferHandler, error)
-
-	// LaunchTransferInstaller launch transfer installer.
-	LaunchTransferInstaller(ctx context.Context,
-		gen types.Generation,
-		plat platform.Platform,
-		dstDir string,
-		dstHost *types.Host) (types.ISimpleTransferHandler, error)
-
-	// QueryTransfer query transfer package.
-	// return upload result, download result and error.
-	QueryTransfer(
-		ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
 const (
@@ -87,7 +97,7 @@ type handler struct {
 }
 
 // New initialize a new nodeman backend handler.
-func New(c *client.Capability, conf *Config) (IHandler, error) {
+func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
@@ -100,8 +110,13 @@ func New(c *client.Capability, conf *Config) (IHandler, error) {
 func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := h.cli.uploadOriginAgent(
-		ctx, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
+		ctx, tenantID, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +130,7 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 	}
 
 	return &types.OriginPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -133,8 +148,13 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := h.cli.uploadOriginServer(
-		ctx, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
+		ctx, tenantID, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +168,7 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 	}
 
 	return &types.OriginPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -164,13 +184,18 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 func (h *handler) UploadOriginCert(ctx context.Context, fileName string, file io.Reader) (
 	*types.OriginCertPkgDetail, error) {
 
-	resp, err := h.cli.uploadOriginCert(ctx, &protoFile.UploadOriginCertReq{}, fileName, file)
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.uploadOriginCert(ctx, tenantID, &protoFile.UploadOriginCertReq{}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.OriginCertPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -185,7 +210,12 @@ func (h *handler) UploadOriginCert(ctx context.Context, fileName string, file io
 func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file io.Reader) (
 	*types.OriginBinToolPkgDetail, error) {
 
-	resp, err := h.cli.uploadOriginBinTool(ctx, &protoFile.UploadOriginBinToolReq{}, fileName, file)
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.uploadOriginBinTool(ctx, tenantID, &protoFile.UploadOriginBinToolReq{}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +236,7 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 	}
 
 	return &types.OriginBinToolPkgDetail{
-		FileInfo: iface.FileInfo{
+		FileInfo: fileiface.FileInfo{
 			Name: resp.GetName(),
 			Size: resp.GetSize(),
 			MD5:  resp.GetMd5(),
@@ -220,7 +250,12 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 
 // PublishReleaseAgent publish release agent.
 func (h *handler) PublishReleaseAgent(ctx context.Context, uploadID string) error {
-	_, err := h.cli.publishReleaseAgent(ctx, &protoFile.PublishReleaseAgentReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.cli.publishReleaseAgent(ctx, tenantID, &protoFile.PublishReleaseAgentReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -232,7 +267,12 @@ func (h *handler) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 
 // PublishReleaseProxy publish release proxy.
 func (h *handler) PublishReleaseProxy(ctx context.Context, uploadID string) error {
-	_, err := h.cli.publishReleaseProxy(ctx, &protoFile.PublishReleaseProxyReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.cli.publishReleaseProxy(ctx, tenantID, &protoFile.PublishReleaseProxyReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -244,7 +284,12 @@ func (h *handler) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 
 // PublishReleaseCert publish release cert.
 func (h *handler) PublishReleaseCert(ctx context.Context, uploadID string) error {
-	_, err := h.cli.publishReleaseCert(ctx, &protoFile.PublishReleaseCertReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.cli.publishReleaseCert(ctx, tenantID, &protoFile.PublishReleaseCertReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -256,7 +301,12 @@ func (h *handler) PublishReleaseCert(ctx context.Context, uploadID string) error
 
 // PublishReleaseBinTool publish release bintool.
 func (h *handler) PublishReleaseBinTool(ctx context.Context, uploadID string) error {
-	_, err := h.cli.publishReleaseBinTool(ctx, &protoFile.PublishReleaseBinToolReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.cli.publishReleaseBinTool(ctx, tenantID, &protoFile.PublishReleaseBinToolReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -275,7 +325,12 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	resp, err := h.cli.launchTransferRelease(ctx, &protoFile.TransferLaunchReleaseReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.launchTransferRelease(ctx, tenantID, &protoFile.TransferLaunchReleaseReq{
 		Generation:   int64(gen),
 		ReleaseType:  string(rt),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
@@ -291,7 +346,7 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 
 	return &simpleTransferHandler{
 		taskID: data.GetTaskId(),
-		fileInfo: iface.FileInfo{
+		fileInfo: fileiface.FileInfo{
 			Name: data.GetReleaseFileName(),
 			Size: data.GetReleaseFileSize(),
 			MD5:  data.GetReleaseFileMd5(),
@@ -307,7 +362,12 @@ func (h *handler) LaunchTransferInstaller(ctx context.Context,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	resp, err := h.cli.launchTransferInstaller(ctx, &protoFile.TransferLaunchInstallerReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.launchTransferInstaller(ctx, tenantID, &protoFile.TransferLaunchInstallerReq{
 		Generation:   int64(gen),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
 		TargetDir:    dstDir,
@@ -321,7 +381,7 @@ func (h *handler) LaunchTransferInstaller(ctx context.Context,
 
 	return &simpleTransferHandler{
 		taskID: data.GetTaskId(),
-		fileInfo: iface.FileInfo{
+		fileInfo: fileiface.FileInfo{
 			Name: data.GetInstallerFileName(),
 			Size: data.GetInstallerFileSize(),
 			MD5:  data.GetInstallerFileMd5(),
@@ -335,7 +395,12 @@ func (h *handler) LaunchTransferInstaller(ctx context.Context,
 func (h *handler) QueryTransfer(
 	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
-	resp, err := h.cli.queryTransfer(ctx, &protoFile.TransferQueryReq{
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := h.cli.queryTransfer(ctx, tenantID, &protoFile.TransferQueryReq{
 		TaskId: taskID,
 	})
 	if err != nil {
@@ -351,7 +416,7 @@ func (h *handler) QueryTransfer(
 
 type simpleTransferHandler struct {
 	taskID   string
-	fileInfo iface.FileInfo
+	fileInfo fileiface.FileInfo
 	handler  *handler
 }
 
@@ -361,7 +426,7 @@ func (handler *simpleTransferHandler) GetTaskID() string {
 }
 
 // GetFileInfo get file info.
-func (handler *simpleTransferHandler) GetFileInfo() iface.FileInfo {
+func (handler *simpleTransferHandler) GetFileInfo() fileiface.FileInfo {
 	return handler.fileInfo
 }
 

@@ -14,15 +14,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func buildSSHClient(ctx context.Context,
+func generateSSHClient(
+	ctx context.Context,
+	operator string,
 	logger logger.Logger,
-	crypter crypter.Crypter,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo,
 ) (*sshx.Client, error) {
 
@@ -36,24 +40,45 @@ func buildSSHClient(ctx context.Context,
 
 	switch info.LoginInfo.Mode {
 	case types.LoginModePassword:
-		passwd, err := crypter.Decrypt(info.LoginInfo.Password)
+		passwd, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModePassword)
 		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
+			return nil, fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
 		}
 
 		sshConf.AuthMethod = sshx.AuthMethodPassword
 		sshConf.Password = string(passwd)
 
 	case types.LoginModeKeyFile:
-		privateKey, err := crypter.Decrypt(info.LoginInfo.KeyFile)
+		privateKey, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModeKeyFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt private key, err: %w", err)
+			return nil, fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
 		}
 
 		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
 		sshConf.PrivateKey = privateKey
-	case types.LoginModeNone:
-		sshConf.AuthMethod = sshx.AuthMethodNone
+	case types.LoginModePasswordVault:
+		passwd, err := passwordVault.LoadPassword(
+			ctx,
+			operator,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load password from password vault: %w", err)
+		}
+
+		sshConf.AuthMethod = sshx.AuthMethodPassword
+		sshConf.Password = passwd
 	default:
 		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
 	}

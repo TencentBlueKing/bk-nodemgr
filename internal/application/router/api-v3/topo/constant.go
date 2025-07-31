@@ -12,28 +12,22 @@ package topo
 
 import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // GetConstant get constant values.
-func (h *handler) GetConstant(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to get constant, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) GetConstant(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoConstantGetReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to get constant, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.GetConstant(sCtx, req.ConvertFieldsToTypes())
+	result, err := h.backendHandler.GetConstant(ctx, req.ConvertFieldsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to get constant, failed to get constant values. err: %v", err)
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to get constant values. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	return &protoApplication.TopoConstantGetResp_Data{

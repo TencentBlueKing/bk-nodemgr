@@ -14,15 +14,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 )
 
-func buildWMIClient(_ context.Context,
+func generateWMIClient(
+	ctx context.Context,
+	operator string,
 	logger logger.Logger,
-	crypter crypter.Crypter,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo,
 ) (*wmix.Client, error) {
 	wmiConf := &wmix.Config{
@@ -34,7 +38,12 @@ func buildWMIClient(_ context.Context,
 
 	switch info.LoginInfo.Mode {
 	case types.LoginModePassword:
-		passwd, err := crypter.Decrypt(info.LoginInfo.Password)
+		passwd, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModePassword)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt password, err: %w", err)
 		}
@@ -43,9 +52,20 @@ func buildWMIClient(_ context.Context,
 		wmiConf.Password = string(passwd)
 
 	case types.LoginModeKeyFile:
-		// todo implement
-	case types.LoginModeNone:
-		wmiConf.AuthMethod = wmix.AuthMethodNone
+	// todo implement
+	case types.LoginModePasswordVault:
+		passwd, err := passwordVault.LoadPassword(
+			ctx,
+			operator,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load password from password vault: %w", err)
+		}
+
+		wmiConf.AuthMethod = wmix.AuthMethodPassword
+		wmiConf.Password = passwd
 	default:
 		return nil, fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
 	}

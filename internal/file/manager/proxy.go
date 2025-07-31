@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -114,7 +114,7 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			if err = m.upstreamReleaseProxy.Store(ctx, iface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			if err = m.upstreamReleaseProxy.Store(ctx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upload to upstream. err: %v", err)
 
 				return err

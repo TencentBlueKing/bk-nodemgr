@@ -41,3 +41,14 @@ return fmt.Errorf("failed to upsert hosts: %v", err)
 return nil
 }
 ```
+
+### 通用函数命名规范
+
+- Create: 创建, 等价于 dao 层的 Create
+- CreateMany: 批量创建, 等价于 dao 层的 CreateMany
+- Update: 更新, 等价于 dao 层的 Update
+- UpdateMany: 批量更新, 等价于 dao 层的 UpdateMany
+- Delete: 删除, 等价于 dao 层的 Delete
+- DeleteMany: 批量删除, 等价于 dao 层的 DeleteMany
+- Store: 存储, 通常是带有特殊的数据处理逻辑，如加密，压缩等
+- Load: 加载, 通常是带有特殊的数据处理逻辑，如解密，解压等

@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +45,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/workflow/enable", rest.RestHandlerFunc(h.EnableScheduleWorkflow))
-	h.rg.POST("/workflow/disable", rest.RestHandlerFunc(h.DisableScheduleWorkflow))
-	h.rg.POST("/workflow/list", rest.RestHandlerFunc(h.ListScheduleWorkflow))
+	h.rg.POST("/workflow/enable", restserver.Handler(h.EnableScheduleWorkflow))
+	h.rg.POST("/workflow/disable", restserver.Handler(h.DisableScheduleWorkflow))
+	h.rg.POST("/workflow/list", restserver.Handler(h.ListScheduleWorkflow))
 }

@@ -14,12 +14,8 @@ package options
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
@@ -29,11 +25,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -68,6 +70,9 @@ type Capability struct {
 	// StorageGlobalSettings global settings storage.
 	StorageGlobalSettings globalsettings.IStorage
 
+	// StorageCredit credit storage.
+	StorageCredit credit.IStorage
+
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
 
@@ -87,62 +92,72 @@ type Capability struct {
 	Crypter crypter.Crypter
 
 	// InstallerFileGroup tool file group.
-	InstallerFileGroup iface.FileGroup
+	InstallerFileGroup fileiface.FileGroup
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
 
 	// ProxyMessager provides the proxy messager.
 	ProxyMessager relayhandler.ServerMessager
+
+	// CreditVault credit vault.
+	CreditVault creditvault.ICreditVault
+
+	// AuthIdentity auth identity.
+	AuthIdentity restserver.AuthIdentity
 }
 
 // Start ...
-func (c *Capability) Start(ctx context.Context) error {
-	if err := c.DiscoverProvider.Start(ctx); err != nil {
+func (capability *Capability) Start(ctx context.Context) error {
+	if err := capability.DiscoverProvider.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageTopo.Start(ctx); err != nil {
+	if err := capability.StorageTopo.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageTrigger.Start(ctx); err != nil {
+	if err := capability.StorageTrigger.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageOperInst.Start(ctx); err != nil {
+	if err := capability.StorageOperInst.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageOperation.Start(ctx); err != nil {
+	if err := capability.StorageOperation.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageNodeDeployment.Start(ctx); err != nil {
+	if err := capability.StorageNodeDeployment.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageNodeWorkflow.Start(ctx); err != nil {
+	if err := capability.StorageNodeWorkflow.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageScheduleWorkflow.Start(ctx); err != nil {
+	if err := capability.StorageScheduleWorkflow.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageRelease.Start(ctx); err != nil {
+	if err := capability.StorageRelease.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.StorageGlobalSettings.Start(ctx); err != nil {
+	if err := capability.StorageGlobalSettings.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.ProxyMessager.Start(ctx); err != nil {
+	if err := capability.ProxyMessager.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := c.Manager.Start(ctx); err != nil {
+	if err := capability.StorageCredit.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.Manager.Start(ctx); err != nil {
 		return err
 	}
 
@@ -150,8 +165,8 @@ func (c *Capability) Start(ctx context.Context) error {
 }
 
 // GracefulShutdown ...
-func (c *Capability) GracefulShutdown() error {
-	if err := c.Manager.GracefulShutdown(); err != nil {
+func (capability *Capability) GracefulShutdown() error {
+	if err := capability.Manager.GracefulShutdown(); err != nil {
 		return err
 	}
 

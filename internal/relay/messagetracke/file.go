@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package storage provides the message storage implementation for relay operations.
-package storage
+// Package messagetracke provides the message storage implementation for relay operations.
+package messagetracke
 
 import (
 	"context"
@@ -35,7 +35,7 @@ type FileManager struct {
 }
 
 // NewFileManager creates a new FileManager with the specified storage path.
-func NewFileManager(storagePath string) *FileManager {
+func NewFileManager(storagePath string) MessageTracker {
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 		if err := os.MkdirAll(storagePath, 0750); err != nil { //nolint: mnd
 			return nil

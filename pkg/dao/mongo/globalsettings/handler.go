@@ -58,8 +58,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure global settings indexes, err: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure global settings indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -89,7 +88,7 @@ func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, 
 	filter = WithSettingName(name)(filter)
 
 	data, err := h.tenantDao(tenantID).Get(ctx, filter)
-	if err != nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
 
@@ -192,6 +191,7 @@ func (h *Handler) DeleteMany(ctx context.Context, name ...string) error {
 	return nil
 }
 
+// convertGlobalSettingsToTypes converts GlobalSettings to types.GlobalSettings.
 func convertGlobalSettingsToTypes(data *GlobalSettings) *types.GlobalSettings {
 	if data == nil {
 		return nil
@@ -203,6 +203,7 @@ func convertGlobalSettingsToTypes(data *GlobalSettings) *types.GlobalSettings {
 	}
 }
 
+// convertTypesToGlobalSettings converts types.GlobalSettings to GlobalSettings.
 func convertTypesToGlobalSettings(data *types.GlobalSettings) *GlobalSettings {
 	if data == nil {
 		return nil

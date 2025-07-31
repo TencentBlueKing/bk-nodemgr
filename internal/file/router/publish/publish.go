@@ -14,7 +14,7 @@ package publish
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -38,8 +38,8 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/release/agent", rest.RestHandlerFunc(h.PublishReleaseAgent))
-	h.rg.POST("/release/proxy", rest.RestHandlerFunc(h.PublishReleaseProxy))
-	h.rg.POST("/release/cert", rest.RestHandlerFunc(h.PublishReleaseCert))
-	h.rg.POST("/release/bintool", rest.RestHandlerFunc(h.PublishReleaseBinTool))
+	h.rg.POST("/release/agent", restserver.Handler(h.PublishReleaseAgent))
+	h.rg.POST("/release/proxy", restserver.Handler(h.PublishReleaseProxy))
+	h.rg.POST("/release/cert", restserver.Handler(h.PublishReleaseCert))
+	h.rg.POST("/release/bintool", restserver.Handler(h.PublishReleaseBinTool))
 }

@@ -8,17 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package apigw provides an APIGateway client.
-package apigw
+// Package client provides an api gateway client.
+package client
 
 import (
 	"errors"
 	"fmt"
 )
-
-type HeaderSetter interface {
-	GetAuthHeader() (string, error)
-}
 
 // Config defines the api gateway related runtime.
 type Config struct {
@@ -28,13 +24,13 @@ type Config struct {
 	AppCode string
 	// AppSecret is the BlueKing app secret of nodeman to request api gateway.
 	AppSecret string
-	// User is the BlueKing user of nodeman to request api gateway.
+	// User is the BlueKing User of nodeman to request api gateway.
 	User string
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode AuthMode
 	// BkTicket is the BlueKing access ticket of nodeman to request api gateway.
 	BkTicket string
-	// BkToken is the BlueKing user token of nodeman to request api gateway.
+	// BkToken is the BlueKing User token of nodeman to request api gateway.
 	BkToken string
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string
@@ -111,8 +107,8 @@ func (c *Config) Validate() error {
 // # Call the target API to enable: no user authentication required.
 // X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "z"}
 // when not set auth mode this func will return empty string and error.
-func (c *Config) GetAuthHeader() (string, error) {
-	auth := ""
+func (c *Config) GetAuthHeader() string {
+	var auth string
 	switch c.AuthMode {
 	case AuthModeOa:
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_ticket\":\"%s\"}",
@@ -126,8 +122,10 @@ func (c *Config) GetAuthHeader() (string, error) {
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
 			c.AppCode, c.AppSecret, c.User)
 	default:
-		return auth, fmt.Errorf("auth mode not support, mode(%s)", c.AuthMode)
+		// default use un mode.
+		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
+			c.AppCode, c.AppSecret, c.User)
 	}
 
-	return auth, nil
+	return auth
 }

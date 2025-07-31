@@ -172,6 +172,7 @@ func buildUpsertStaticManyParams(hosts []*Host) []mongo.WriteModel {
 				Value: bson.M{
 					"basic.is_deleted": false,
 					"basic.updated_at": nowTime,
+					"data.tenant_id":   host.TenantID,
 					"data.static":      host.Static,
 				},
 			},

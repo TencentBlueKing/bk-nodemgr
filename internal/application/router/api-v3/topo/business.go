@@ -12,8 +12,8 @@ package topo
 
 import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 const (
@@ -23,26 +23,20 @@ const (
 )
 
 // ListBusiness list business with specified conditions.
-func (h *handler) ListBusiness(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to list business, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) ListBusiness(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.TopoBusinessListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list business, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to list business, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	bizs, num, err := h.backendHandler.ListBusiness(
-		sCtx,
+		ctx,
 		req.ConvertPageToTypes(maxBusinessLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to list business, err: %v", err)
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to list business, err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.TopoBusinessListResp)

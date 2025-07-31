@@ -14,44 +14,38 @@ package workflow
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // WorkflowOperationRetry retry the operation of node workflow.
-func (h *handler) WorkflowOperationRetry(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to retry operation, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) WorkflowOperationRetry(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationRetryReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to retry operation, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if req.Validate() != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation, invalid request parameters. err: %v", req.Validate())
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	if err := req.Validate(); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to retry operation, invalid request parameters. err: %v", req.Validate())
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	instanceIDs, err := h.manager.RetryOperationNode(sCtx, manager.RetryOperationNodeParam{
+	instanceIDs, err := h.manager.RetryOperationNode(ctx, manager.RetryOperationNodeParam{
 		WorkflowID:   req.GetWorkflowId(),
 		RetryMod:     types.NodeOperationRetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationId(),
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to retry operation,err: %w", err)
-		return nil, errf.ErrWrap(errf.BackendOperateFailed, err)
+		h.logger.ErrorCtxf(ctx, "failed to retry operation,err: %w", err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
 	resp.ConvertOperInstanceID(instanceIDs)
 
-	h.logger.InfoCtxf(sCtx, "launched to retry operation, instance: %v", instanceIDs)
+	h.logger.InfoCtxf(ctx, "launched to retry operation, instance: %v", instanceIDs)
 
 	return resp.GetData(), nil
 }

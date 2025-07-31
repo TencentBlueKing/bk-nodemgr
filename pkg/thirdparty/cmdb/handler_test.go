@@ -13,23 +13,37 @@ package cmdb
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
-type testHeaderSetter struct{}
+// LoadAuthHeader load auth header from environment variables.
+func LoadAuthHeader() (apigwclient.Config, error) {
+	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
+	header := make(map[string]string, 0)
+	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
+		return apigwclient.Config{}, err
+	}
 
-// GetAuthHeader ...
-func (testHeaderSetter) GetAuthHeader() (string, error) {
-	return os.Getenv("BK_APIGW_AUTHHEADER"), nil
+	apigwClientConfig := apigwclient.Config{
+		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
+		AppCode:   header["bk_app_code"],
+		AppSecret: header["bk_app_secret"],
+		User:      header["bk_username"],
+		AuthMode:  apigwclient.AuthModeUn,
+	}
+
+	return apigwClientConfig, nil
 }
 
 // testClient ...
@@ -39,24 +53,29 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
+	apigwClientConfig, err := LoadAuthHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	h, err := New(clientCap, &Config{
-		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		HeaderSetter:    testHeaderSetter{},
+		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		APIGWClientConfig: apigwClientConfig,
 	}, WithLogger(logger.LoggerDefault{}))
 	if err != nil {
 		t.Fatal(err)
@@ -620,6 +639,58 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 
 			for index, host := range got {
 				t.Logf("index: %d, host: %#v", index, *host)
+			}
+		})
+	}
+}
+
+// Test_handler_WatchResourceEvent...
+func Test_handler_WatchResourceEvent(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "0")
+	type args struct {
+		ctx context.Context
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			hostCursor := ""
+			hostRelationCursor := ""
+			for i := 0; i < 2; i++ {
+				host, err := h.WatchHostResourceEvent(tt.args.ctx, hostCursor)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("WatchHostResourceEvent() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				t.Logf("host resource event: %#v", host)
+				for _, event := range host {
+					hostCursor = event.Cursor
+				}
+
+				hostRelation, err := h.WatchHostRelationResourceEvent(tt.args.ctx, hostRelationCursor)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("WatchHostRelation() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				t.Logf("host relation resource event: %#v", hostRelation)
+				for _, event := range hostRelation {
+					hostRelationCursor = event.Cursor
+				}
 			}
 		})
 	}

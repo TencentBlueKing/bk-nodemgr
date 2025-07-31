@@ -8,64 +8,143 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package client defines http client.
 package client
 
 import (
-	"crypto/tls"
-	"net"
-	"net/http"
+	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 )
 
 const (
-	// ResponseHeaderTimeout response header timeout
-	ResponseHeaderTimeout = 30 * time.Minute
-	// MaxIdleConnsPerHost max idle conns per host
-	MaxIdleConnsPerHost = 1000
-	// DialKeepAlive dial keep alive
-	DialKeepAlive = 30 * time.Second
-	// DialTimeout dial timeout
-	DialTimeout = 5 * time.Second
-	// TlsHandshakeTimeout tls handshake timeout
-	TlsHandshakeTimeout = 5 * time.Second
+	// maxRetryCycleDefault max retry cycle.
+	maxRetryCycleDefault = 3
+
+	// toleranceLatencyTimeDefault tolerance latency time.
+	toleranceLatencyTimeDefault = 2 * time.Second
 )
 
-// NewClient new http client.
-func NewClient(c *ssl.TLSConfig) (*http.Client, error) {
-	tlsConf := new(tls.Config)
-	if c != nil {
-		tlsConf.InsecureSkipVerify = c.InsecureSkipVerify
-		if len(c.CAFile) != 0 && len(c.CertFile) != 0 && len(c.KeyFile) != 0 {
-			var err error
-			tlsConf, err = c.NewClientTLSConf()
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	transport := &http.Transport{
-		Proxy:               http.ProxyFromEnvironment,
-		TLSHandshakeTimeout: TlsHandshakeTimeout,
-		TLSClientConfig:     tlsConf,
-		Dial: (&net.Dialer{
-			Timeout:   DialTimeout,
-			KeepAlive: DialKeepAlive,
-		}).Dial,
-		MaxIdleConnsPerHost: MaxIdleConnsPerHost,
-		// TODO: 同步如果调整为异步，则调整为10min
-		ResponseHeaderTimeout: ResponseHeaderTimeout,
-	}
-
-	client := new(http.Client)
-	client.Transport = transport
-	return client, nil
+// IClient http client interface.
+type IClient interface {
+	Post() *Request
+	Put() *Request
+	Get() *Request
+	Delete() *Request
+	Patch() *Request
+	Head() *Request
 }
 
-// HTTPClient http client interface.
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
+// Opt define options.
+type Opt func(client *Client)
+
+// WithSensitiveHeader set sensitive header.
+func WithSensitiveHeader(header ...string) Opt {
+	return func(client *Client) {
+		for _, h := range header {
+			client.sensitiveHeaders[h] = struct{}{}
+		}
+	}
+}
+
+// WithExclusionURL set exclusion url.
+func WithExclusionURL(url ...string) Opt {
+	return func(client *Client) {
+		for _, u := range url {
+			client.exclusionURL[u] = struct{}{}
+		}
+	}
+}
+
+// NewClient get rest client.
+func NewClient(capability *Capability, baseURL string, opts ...Opt) (IClient, error) {
+	if baseURL != "/" {
+		baseURL = strings.Trim(baseURL, "/")
+		baseURL = "/" + baseURL + "/"
+	}
+
+	if capability.ToleranceLatencyTime <= 0 {
+		// set default tolerance latency time
+		capability.ToleranceLatencyTime = toleranceLatencyTimeDefault
+	}
+
+	restClient := &Client{
+		baseURL:    baseURL,
+		capability: capability,
+		metrics: restmetrics.NewMonitor(capability.Name).
+			WithDurationMSBuckets(capability.MetricOpts.DurationMSBuckets).
+			WithSlowTime(capability.ToleranceLatencyTime).
+			Enable(),
+		exclusionURL:     make(map[string]struct{}),
+		maxRetryCycle:    maxRetryCycleDefault,
+		sensitiveHeaders: make(map[string]struct{}),
+	}
+
+	for _, opt := range opts {
+		opt(restClient)
+	}
+
+	return restClient, nil
+}
+
+// Client http client.
+type Client struct {
+	// base url.
+	baseURL string
+
+	// client capability.
+	capability *Capability
+
+	// client metrics monitor.
+	metrics *restmetrics.Monitor
+
+	// exclusionURL define the url that does not need to be monitored.
+	exclusionURL map[string]struct{}
+
+	// maxRetryCycle define the max retry cycle.
+	maxRetryCycle int
+
+	// sensitive headers.
+	sensitiveHeaders map[string]struct{}
+}
+
+// verb get request.
+func (client *Client) verb(verb VerbType) *Request {
+	return &Request{
+		client:           client,
+		verb:             verb,
+		baseURL:          client.baseURL,
+		capability:       client.capability,
+		sensitiveHeaders: client.sensitiveHeaders,
+	}
+}
+
+// Post method.
+func (client *Client) Post() *Request {
+	return client.verb(VerbTypePOST)
+}
+
+// Put method.
+func (client *Client) Put() *Request {
+	return client.verb(VerbTypePUT)
+}
+
+// Get method.
+func (client *Client) Get() *Request {
+	return client.verb(VerbTypeGET)
+}
+
+// Delete delete method.
+func (client *Client) Delete() *Request {
+	return client.verb(VerbTypeDELETE)
+}
+
+// Patch method.
+func (client *Client) Patch() *Request {
+	return client.verb(VerbTypePATCH)
+}
+
+// Head method.
+func (client *Client) Head() *Request {
+	return client.verb(VerbTypeHEAD)
 }

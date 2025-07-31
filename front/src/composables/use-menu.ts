@@ -29,7 +29,7 @@ const navList = [
           {
             routeName: 'agent',
             icon: 'nodeman-icon nc-state',
-            title: i18n.global.t('platform.nodeMan.agentStatus'),
+            title: i18n.global.t('platform.nodeMan.agentStatus.title'),
           },
           // {
           //   routeName: 'plugin',

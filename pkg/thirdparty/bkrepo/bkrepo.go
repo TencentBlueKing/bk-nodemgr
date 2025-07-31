@@ -18,18 +18,18 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
-type defaultHeaderSetter struct {
+type auth struct {
 	username string
 	password string
 }
 
-// GetAuthHeader get auth header.
-func (setter defaultHeaderSetter) GetAuthHeader() string {
+// GetHeader get auth header.
+func (setter auth) GetHeader() string {
 	return "Basic " + base64.StdEncoding.EncodeToString([]byte(setter.username+":"+setter.password))
 }
 
@@ -44,13 +44,13 @@ type Config struct {
 
 // cli client for gse.
 type cli struct {
-	client rest.ClientInterface
+	client restclient.IClient
 	config *Config
 }
 
 // newClient initialize a new gse client.
-func newClient(c *client.Capability, conf *Config) (*cli, error) {
-	restCli, err := rest.NewClient(c, "/")
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
+	restCli, err := restclient.NewClient(c, "/", restclient.WithSensitiveHeader(HeaderKeyAuth))
 	if err != nil {
 		return nil, err
 	}
@@ -64,11 +64,9 @@ func newClient(c *client.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
-	header.Set(restheader.BKRIDKey, restheader.BKRIDGenerator())
+	header.Set(apigwheader.BKRIDKey, identifier.GenRequestID())
 
-	// notice: bkrepo didn't use restheader.BKGWAuthKey, it uses restheader.AuthKey.
-	header.Set(restheader.BKAuthKey,
-		defaultHeaderSetter{username: c.config.Username, password: c.config.Password}.GetAuthHeader())
+	header.Set(HeaderKeyAuth, auth{username: c.config.Username, password: c.config.Password}.GetHeader())
 
 	return header
 }

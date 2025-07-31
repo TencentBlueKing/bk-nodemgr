@@ -8,26 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package rest is the restful API router.
-package rest
+// Package server is the restful API server.
+package server
 
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"path"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
+	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 	"github.com/gin-gonic/gin"
 )
-
-// LogWriter defines the log writer.
-type LogWriter interface {
-	InfoWriter() io.Writer
-	ErrorWriter() io.Writer
-}
 
 // Server defines the restful API server.
 type Server struct {
@@ -36,9 +29,9 @@ type Server struct {
 	rg  *gin.RouterGroup
 	ctx context.Context
 
-	opts ServerOptions
+	opts Options
 
-	metrics *metrics.Monitor
+	metrics *restmetrics.Monitor
 }
 
 // OptionFunc defines a function that can be used to modify the router.
@@ -115,18 +108,20 @@ func (opt *StaticOptions) WithHTMLs(relatives ...string) *StaticOptions {
 	return opt
 }
 
-// ServerOptions describes the server options.
-type ServerOptions struct {
-	Name          string
-	IP            string
-	Port          int
-	LogWriter     LogWriter
-	StaticOptions *StaticOptions
+// Options describes the server options.
+type Options struct {
+	Name            string
+	IP              string
+	Port            int
+	LogWriter       LogWriter
+	RequestIDSetter IRequestIDSetter
+	TenantIDSetter  ITenantIDSetter
+	StaticOptions   *StaticOptions
 }
 
 // NewServer creates a new restful API server.
 func NewServer(ctx context.Context,
-	opts ServerOptions,
+	opts Options,
 	apiOptFns ...OptionFunc) *Server {
 
 	svr := &Server{
@@ -144,6 +139,12 @@ func NewServer(ctx context.Context,
 	// Set authentication middleware.
 	svr.engine.Use(MiddlewareContext())
 
+	//
+	svr.engine.Use(MiddlewareSetTenantID(opts.TenantIDSetter))
+
+	// Set request id middleware.
+	svr.engine.Use(MiddlewareSetRequestID(opts.RequestIDSetter))
+
 	// Set received log middleware.
 	svr.engine.Use(MiddlewareReceivedLog(recvLoggerConfig{
 		Output:    opts.LogWriter.InfoWriter(),
@@ -159,7 +160,7 @@ func NewServer(ctx context.Context,
 	}))
 
 	// Set metrics monitor.
-	svr.metrics = metrics.NewMonitor(opts.Name).
+	svr.metrics = restmetrics.NewMonitor(opts.Name).
 		WithSlowTime(1 * time.Second).
 		WithExcludePaths([]string{"/ping", "/healthz", "/metrics"}).
 		RegisterMiddleware(svr.engine).
@@ -192,15 +193,15 @@ func NewServer(ctx context.Context,
 
 // customLogRecvFormatter is a custom log recv formatter.
 func customLogRecvFormatter(gCtx *gin.Context) string {
-	path := gCtx.Request.URL.Path
+	urlPath := gCtx.Request.URL.Path
 	raw := gCtx.Request.URL.RawQuery
 
 	if raw != "" {
-		path = path + "?" + raw
+		urlPath = urlPath + "?" + raw
 	}
 
 	return fmt.Sprintf("%s[request recv] %s | %s",
-		logWithCtxKeys(gCtx.Keys), path, gCtx.ClientIP())
+		logWithCtxKeys(gCtx.Keys), urlPath, gCtx.ClientIP())
 }
 
 // customLogDoneFormatter is a custom log done formatter.

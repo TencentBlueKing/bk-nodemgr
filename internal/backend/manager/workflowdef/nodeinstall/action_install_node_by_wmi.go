@@ -17,13 +17,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
@@ -40,25 +41,28 @@ const (
 
 // NewActionInstallNodeByWMI get a new action.
 func NewActionInstallNodeByWMI(
-	installerFileGroup iface.FileGroup,
-	crypter crypter.Crypter,
+	installerFileGroup fileiface.FileGroup,
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	provider discover.Provider,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
 ) action.Definition {
 
 	return &actionInstallNodeByWMI{
 		installerGroup:        installerFileGroup,
-		crypter:               crypter,
+		storageHostCredit:     storageHostCredit,
 		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		provider:              provider,
+		passwordVault:         passwordVault,
 	}
 }
 
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // InstallParamsWin this struct defines the parameters for installing agent.
@@ -77,11 +81,12 @@ type InstallParamsWin struct {
 }
 
 type actionInstallNodeByWMI struct {
-	installerGroup        iface.FileGroup
-	crypter               crypter.Crypter
+	installerGroup        fileiface.FileGroup
 	logger                logger.Logger
+	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	provider              discover.Provider
+	passwordVault         creditvault.IHostPasswordVault
 }
 
 // Name returns the name of the action.
@@ -149,7 +154,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	client, err := buildWMIClient(ctx.Ctx, act.logger, act.crypter, info)
+	client, err := generateWMIClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -179,7 +184,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	if toolFile.FileObject() != iface.LocalFile {
+	if toolFile.FileObject() != fileiface.LocalFile {
 		err = fmt.Errorf("installer file is not a local file, file-info(%v)", toolFile.Info())
 
 		return err

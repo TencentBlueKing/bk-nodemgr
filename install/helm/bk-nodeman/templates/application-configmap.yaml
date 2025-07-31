@@ -28,6 +28,8 @@ data:
 
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}
 
+    bkSaaS: {{ .Values.application.config.bkSaaS | toYaml | nindent 6 }}
+
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:

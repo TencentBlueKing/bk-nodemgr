@@ -184,8 +184,8 @@ type ProxyServer struct {
 	HTTPServer `yaml:",inline"`
 }
 
-// APIGateway the config of api-gateway.
-type APIGateway struct {
+// APIGatewayClient the config of api-gateway.
+type APIGatewayClient struct {
 	// Endpoints is a seed list of host:port addresses of api gateway nodes.
 	Endpoints []string `yaml:"endpoints"`
 	// AppCode is the BlueKing app code of nodeman to request api gateway.
@@ -207,7 +207,7 @@ type APIGateway struct {
 }
 
 // Validate validates the config.
-func (conf APIGateway) Validate() error {
+func (conf APIGatewayClient) Validate() error {
 	if len(conf.Endpoints) == 0 {
 		return errors.New("endpoints of api-gateway is empty")
 	}
@@ -233,16 +233,8 @@ func (conf APIGateway) Validate() error {
 
 // CMDB the config of cmdb.
 type CMDB struct {
-	SupplierAccount string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
-	APIGateway      `yaml:",inline" usage:"api-gateway config of cmdb"`
-}
-
-// GSE the config of gse.
-type GSE struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of cmdb"`
-
-	PluginSlotID    int    `yaml:"pluginSlotID"`
-	PluginSlotToken string `yaml:"pluginSlotToken"`
+	SupplierAccount  string `yaml:"supplierAccount" usage:"cmdb api request parameter"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
 }
 
 // Validate validates the config.
@@ -251,8 +243,75 @@ func (conf CMDB) Validate() error {
 		return errors.New("supplier account is empty")
 	}
 
-	if err := conf.APIGateway.Validate(); err != nil {
+	if err := conf.APIGatewayClient.Validate(); err != nil {
 		return fmt.Errorf("api-gateway config of cmdb is invalid: %s", err)
+	}
+
+	return nil
+}
+
+// GSE the config of gse.
+type GSE struct {
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
+
+	PluginSlotID    int    `yaml:"pluginSlotID"`
+	PluginSlotToken string `yaml:"pluginSlotToken"`
+}
+
+// CreditVault the config of credit vault.
+type CreditVault struct {
+	HostCreditVault HostCreditVault `yaml:"hostCreditVault" usage:"host credit vault config of backend service"`
+}
+
+// Validate validates the config.
+func (vault CreditVault) Validate() error {
+	if err := vault.HostCreditVault.Validate(); err != nil {
+		return fmt.Errorf("host credit vault config of backend service is invalid: %s", err)
+	}
+
+	return nil
+}
+
+// HostCreditVault the config of host credit vault.
+type HostCreditVault struct {
+	Enable bool   `yaml:"enable" usage:"enable credit vault"`
+	Type   string `yaml:"type" usage:"type of credit vault"`
+	IEGTJJ IEGTJJ `yaml:"iegtjj" usage:"ieg tjj config of backend service"`
+}
+
+// Validate validates the config.
+func (vault HostCreditVault) Validate() error {
+	if !vault.Enable {
+		return nil
+	}
+
+	switch vault.Type {
+	case "iegtjj":
+		return vault.IEGTJJ.Validate()
+	default:
+		return errors.New("invalid type of host credit vault")
+	}
+}
+
+// IEGTJJ the config of iegtjj.
+type IEGTJJ struct {
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of cmdb"`
+	Key              string `yaml:"key" usage:"key of iegtjj"`
+	SecretKey        string `yaml:"secretKey" usage:"secret key of iegtjj"`
+}
+
+// Validate validates the config.
+func (iegtjj IEGTJJ) Validate() error {
+	if iegtjj.Key == "" {
+		return errors.New("key of iegtjj is empty")
+	}
+
+	if iegtjj.SecretKey == "" {
+		return errors.New("secret key of iegtjj is empty")
+	}
+
+	if err := iegtjj.APIGatewayClient.Validate(); err != nil {
+		return fmt.Errorf("api-gateway config of iegtjj is invalid: %s", err)
 	}
 
 	return nil
@@ -366,4 +425,54 @@ type GSEPlugin struct {
 	PidFile                 string `yaml:"pidFile" usage:"pid file to save pid"`
 	MessageDomainSocketPath string `yaml:"messageDomainSocketPath" usage:"message domain socket path of gse agent plugin"`
 	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
+}
+
+// BKSaas the config of bk SaaS.
+type BKSaas struct {
+	BKLogin BKLogin `yaml:"bkLogin" usage:"bklogin config of bk SaaS"`
+}
+
+// Validate validates the config.
+func (saas *BKSaas) Validate() error {
+	if err := saas.BKLogin.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bkSaaS config: %w", err)
+	}
+
+	return nil
+}
+
+// BKLogin the config of bklogin.
+type BKLogin struct {
+	// LoginURL defines the login url of bklogin.
+	LoginURL string `yaml:"loginURL" usage:"login url of bklogin"`
+
+	// TLS defines the tls config of bklogin.
+	TLS TLSConfig `yaml:"tls" usage:"tls config of bklogin"`
+}
+
+// Validate validates the config.
+func (bklogin *BKLogin) Validate() error {
+	if bklogin.LoginURL == "" {
+		return errors.New("login url of bkLogin is empty")
+	}
+
+	if err := bklogin.TLS.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bklogin config: %w", err)
+	}
+
+	return nil
+}
+
+// APIGateWayServer defines the api gateway config of backend service.
+type APIGateWayServer struct {
+	PublickeyPem string `yaml:"publickeyPem" usage:"publickey pem of api gateway, which is saved in base64 format"`
+}
+
+// Validate validates the config.
+func (conf *APIGateWayServer) Validate() error {
+	if conf.PublickeyPem == "" {
+		return errors.New("publickey pem of api gateway is empty")
+	}
+
+	return nil
 }

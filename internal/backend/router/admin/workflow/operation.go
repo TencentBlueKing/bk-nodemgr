@@ -12,11 +12,11 @@
 package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
 // RetryOperation ...
-func (h *handler) RetryOperation(ctx *rest.Context) (interface{}, error) {
+func (h *handler) RetryOperation(_ *restserver.Context) (interface{}, error) {
 	resp := new(RetryOperationResp)
 
 	return resp, nil

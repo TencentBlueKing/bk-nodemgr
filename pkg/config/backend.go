@@ -57,23 +57,25 @@ const (
 
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode            RunMode         `yaml:"runMode" usage:"run mode of service"`
-	TenantMode         tenant.Mode     `yaml:"tenantMode" usage:"tenant mode of service"`
-	CMDB               CMDB            `yaml:"cmdb" usage:"cmdb config of backend service"`
-	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
-	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
-	HTTPServer         HTTPServer      `yaml:"httpServer" usage:"http server config of backend service"`
-	AdminServer        HTTPServer      `yaml:"adminServer" usage:"admin server config of backend service"`
-	CallbackServer     CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
-	ProxyServer        ProxyServer     `yaml:"proxyServer" usage:"proxy server config of backend service"`
-	Etcd               Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
-	Redis              Redis           `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB            MongoDB         `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log                Log             `yaml:"log" usage:"log config of backend service"`
-	System             System          `yaml:"system" usage:"system config of backend service"`
-	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GSEDeployConfs     []GSEDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
-	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	RunMode            RunMode          `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode      `yaml:"tenantMode" usage:"tenant mode of service"`
+	CMDB               CMDB             `yaml:"cmdb" usage:"cmdb config of backend service"`
+	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
+	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
+	HTTPServer         HTTPServer       `yaml:"httpServer" usage:"http server config of backend service"`
+	AdminServer        HTTPServer       `yaml:"adminServer" usage:"admin server config of backend service"`
+	CallbackServer     CallbackServer   `yaml:"callbackServer" usage:"callback server config of backend service"`
+	ProxyServer        ProxyServer      `yaml:"proxyServer" usage:"proxy server config of backend service"`
+	Etcd               Etcd             `yaml:"etcd" usage:"etcd config of backend service"`
+	Redis              Redis            `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB            MongoDB          `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log                Log              `yaml:"log" usage:"log config of backend service"`
+	System             System           `yaml:"system" usage:"system config of backend service"`
+	EncryptKey         string           `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	GSEDeployConfs     []GSEDeployConf  `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	InstallerFileGroup FileGroup        `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
+	APIGateWayServer   APIGateWayServer `yaml:"apiGateWayServer" usage:"api gateway config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -161,6 +163,10 @@ func (svc *BackendService) LoadFromFile(path string) error {
 // Validate validates the config.
 func (svc *BackendService) Validate() error {
 	if err := svc.Workflow.Validate(); err != nil {
+		return err
+	}
+
+	if err := svc.CreditVault.Validate(); err != nil {
 		return err
 	}
 

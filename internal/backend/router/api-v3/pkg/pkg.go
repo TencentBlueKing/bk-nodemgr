@@ -14,7 +14,7 @@ package pkg
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -38,11 +38,11 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/release/list", rest.RestHandlerFunc(h.ListRelease))
-	h.rg.POST("/release/set_labels", rest.RestHandlerFunc(h.SetReleaseLabels))
-	h.rg.POST("/release/enable", rest.RestHandlerFunc(h.EnableRelease))
-	h.rg.POST("/release/disable", rest.RestHandlerFunc(h.DisableRelease))
-	h.rg.POST("/release/set_as_default", rest.RestHandlerFunc(h.SetAsDefaultRelease))
-	h.rg.POST("/release/cancel_as_default", rest.RestHandlerFunc(h.CancelAsDefaultRelease))
-	h.rg.POST("/release/delete", rest.RestHandlerFunc(h.DeleteRelease))
+	h.rg.POST("/release/list", restserver.Handler(h.ListRelease))
+	h.rg.POST("/release/set_labels", restserver.Handler(h.SetReleaseLabels))
+	h.rg.POST("/release/enable", restserver.Handler(h.EnableRelease))
+	h.rg.POST("/release/disable", restserver.Handler(h.DisableRelease))
+	h.rg.POST("/release/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
+	h.rg.POST("/release/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
+	h.rg.POST("/release/delete", restserver.Handler(h.DeleteRelease))
 }

@@ -311,15 +311,18 @@ message PackageReleaseDeleteResp {
   Data data = 4;
 }
 
+// CountRequestItem describes  the HTTP request body when count release
+// deployed_host.
+message CountRequestItem {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
 // PackageReleaseDeployedHostCountReq describes the HTTP request body when count
 // deployed host.
 message PackageReleaseDeployedHostCountReq {
-  message CountRequestItem {
-    int64 generation = 1;
-    string release_type = 2;
-    Platform platform = 3;
-    string version = 4;
-  }
   repeated CountRequestItem request_items = 1;
 }
 
@@ -472,8 +475,8 @@ service Package {
     };
   }
 
-  // DeployedHostCountResp count deployed host.
-  rpc DeployedHostCountResp(PackageReleaseDeployedHostCountReq)
+  // DeployedHostCount count deployed host.
+  rpc DeployedHostCount(PackageReleaseDeployedHostCountReq)
       returns (PackageReleaseDeployedHostCountResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/deployed_host/count"

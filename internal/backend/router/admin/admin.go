@@ -13,24 +13,27 @@ package admin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.Logger
+	rg           *gin.RouterGroup
+	logger       logger.Logger
+	authIdentity restserver.AuthIdentity
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/admin"),
-		logger: capability.Logger,
+		rg:           rg.Group("/admin"),
+		logger:       capability.Logger,
+		authIdentity: capability.AuthIdentity,
 	}
 }
 
@@ -39,6 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	// TODO: 设置权限封禁
+	// h.rg.Use(rest.MiddlewareAuth(h.authIdentity))
 
 	workflow.Load(h.rg, capability)
 	globalsettings.Load(h.rg, capability)

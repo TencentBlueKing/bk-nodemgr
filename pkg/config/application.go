@@ -12,6 +12,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -38,13 +40,14 @@ const (
 
 // BackendGateway the config of backend gateway config.
 type BackendGateway struct {
-	APIGateway `yaml:",inline" usage:"api-gateway config of backend"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of backend"`
 }
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
 	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
 	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
 	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
@@ -156,6 +159,10 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *ApplicationService) Validate() error {
+	if err := svc.BKSaas.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
 	// TODO: validate the config
 	return nil
 }
@@ -167,4 +174,18 @@ func EnvGet(key, fallback string) string {
 	}
 
 	return fallback
+}
+
+// Front front setting of application service.
+type Front struct {
+	BKLoginURL string `yaml:"bkLoginURL" usage:"bk login url of front setting"`
+}
+
+// Validate validates the config.
+func (svc *Front) Validate() error {
+	if svc.BKLoginURL == "" {
+		return errors.New("failed to validate front config: bkLoginURL can not be empty")
+	}
+
+	return nil
 }

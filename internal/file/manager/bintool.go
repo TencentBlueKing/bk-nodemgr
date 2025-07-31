@@ -15,7 +15,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -72,7 +72,7 @@ func (m *Manager) UploadOriginBinTool(
 	pkgName := m.wrapOriginPackageName(releaseBinToolFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginBinTool.Store(ctx, iface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginBinTool.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin bintool package, failed to upload to upstream. err: %v", err)
 
 		return nil, err
@@ -237,7 +237,7 @@ func (m *Manager) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 
 	// upload to upstream.
 	if err = m.upstreamReleaseBinTool.Store(
-		ctx, iface.FileInfo{Name: releaseBinToolFileName}, generatedFile, true); err != nil {
+		ctx, fileiface.FileInfo{Name: releaseBinToolFileName}, generatedFile, true); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to upload to upstream. err: %v", err)
 
 		return err

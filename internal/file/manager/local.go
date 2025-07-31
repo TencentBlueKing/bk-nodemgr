@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -25,7 +25,7 @@ import (
 )
 
 type localFile struct {
-	file iface.File
+	file fileiface.File
 	path string
 }
 
@@ -48,7 +48,7 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
-	version string) (iface.File, string, error) {
+	version string) (fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
 		return nil, "", fmt.Errorf("not support generation: %d", gen)
@@ -67,7 +67,7 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 }
 
 // EnsureReleaseToLocal ensure the release to local.
-func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (iface.File, string, error) {
+func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (fileiface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
 		info := cache.file.Info()
@@ -78,7 +78,7 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 		}
 	}
 
-	var ufg iface.FileGroup
+	var ufg fileiface.FileGroup
 	switch release.Type {
 	case types.ReleaseTypeAgent:
 		ufg = m.upstreamReleaseAgent
@@ -118,7 +118,7 @@ func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Relea
 	}
 
 	// save file to loca.
-	if err = lfg.Store(ctx, iface.FileInfo{Name: release.FileName}, content, true); err != nil {
+	if err = lfg.Store(ctx, fileiface.FileInfo{Name: release.FileName}, content, true); err != nil {
 		return nil, "", fmt.Errorf("failed to store file, filename(%s), err: %w", release.FileName, err)
 	}
 

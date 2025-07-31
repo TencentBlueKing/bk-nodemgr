@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -19,8 +19,8 @@ import (
 type testHeaderSetter struct{}
 
 // GetAuthHeader ...
-func (testHeaderSetter) GetAuthHeader() (string, error) {
-	return os.Getenv("BK_REPO_AUTHHEADER"), nil
+func (testHeaderSetter) GetAuthHeader() string {
+	return os.Getenv("BK_REPO_AUTHHEADER")
 }
 
 // testClient ...
@@ -30,18 +30,18 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	httpClient, err := client.NewClient(&ssl.TLSConfig{
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientCap := &client.Capability{
-		Client:               httpClient,
-		Discover:             discovery.NewDiscovery("bkrepo", []string{os.Getenv("BK_REPO_ENDPOINT")}),
-		ToleranceLatencyTime: client.ToleranceLatencyTimeDefault,
-		MetricOpts:           client.MetricOption{},
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{os.Getenv("BK_REPO_ENDPOINT")}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
 		Logger:               logger.LoggerDefault{},
 	}
 
@@ -139,7 +139,7 @@ func Test_Store(t *testing.T) {
 				return
 			}
 
-			err = group.Store(tt.args.ctx, iface.FileInfo{
+			err = group.Store(tt.args.ctx, fileiface.FileInfo{
 				Name: tt.args.fileName,
 			}, io.NopCloser(bytes.NewReader([]byte(tt.args.fileContent))), true)
 			if err != nil {

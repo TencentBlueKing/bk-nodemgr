@@ -14,8 +14,8 @@ package agent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
@@ -40,31 +40,25 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", rest.RestHandlerFunc(h.Install))
+	h.rg.POST("/install", restserver.Handler(h.Install))
 }
 
 // Install agent.
-func (h *handler) Install(ctx *rest.Context) (interface{}, error) {
-	sCtx, err := ctx.GetContext()
-	if err != nil {
-		h.logger.Errorf("failed to install agent, failed to get request context. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
-	}
-
+func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.NodeAgentInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to decode request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent, failed to validate request body. err: %v", err)
-		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to validate request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallAgent(sCtx, req.ConvertAgentParamToTypes())
+	workflowID, err := h.backendHandler.InstallAgent(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(sCtx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
 		return nil, err
 	}
 	resp := new(protoApplication.NodeAgentInstallResp)
