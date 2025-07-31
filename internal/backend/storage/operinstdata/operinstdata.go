@@ -496,7 +496,7 @@ func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 
 // processStoppingEvents ...
 func (s *Storage) processStoppingEvents(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second) // nolint: mnd
 	defer cancel()
 
 	notifications := s.getNotifications()
@@ -593,6 +593,7 @@ func (s *Storage) existsAction(ctx context.Context, operInstID string, actionNam
 			return nil
 		}
 	}
+
 	return errors.New("no found action")
 }
 

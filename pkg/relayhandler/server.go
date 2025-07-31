@@ -164,7 +164,9 @@ func (m *serverMessager) DecodeClientPushRequest(data *ServerReceivedData) (
 }
 
 // RespondCallback sends the callback resp.
-func (m *serverMessager) RespondCallback(ctx context.Context, messageID string, httpCode int, content []byte, agentIDs ...string) error {
+func (m *serverMessager) RespondCallback(ctx context.Context,
+	messageID string, httpCode int, content []byte, agentIDs ...string) error {
+
 	resp := &protoRelay.CallbackResp{
 		Base: protoRelay.Base{
 			MessageID:   messageID,

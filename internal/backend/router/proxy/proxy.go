@@ -158,7 +158,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	}
 
 	if err := h.proxyMessanger.RespondCallback(
-		context.Background(),
+		ctx,
 		msg.MessageID,
 		resp.StatusCode,
 		body,

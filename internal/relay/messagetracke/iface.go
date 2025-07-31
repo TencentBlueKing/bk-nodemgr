@@ -15,7 +15,7 @@ import (
 	"context"
 )
 
-// MessageStore defines the interface for message storage.
+// MessageTracker is the interface for message storage.
 type MessageTracker interface {
 	// Store stores a message.
 	MarkedAcked(ctx context.Context, mid string) error
