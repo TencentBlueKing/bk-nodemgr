@@ -42,8 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"BK_SHARED_RES_BASE_JS_URL": h.frontSetting.BKSharedResBaseJsURL(),
-		"BK_LOGIN_URL":              h.frontSetting.BKLoginURL(),
-		"SITE_URL":                  h.frontSetting.SiteUrl(),
+		"BK_LOGIN_URL":             h.frontSetting.BKLoginURL(),
+		"BK_REQUEST_ID_HEADER_KEY": h.frontSetting.BKRequestIDHeaderKey(),
 	})
 }

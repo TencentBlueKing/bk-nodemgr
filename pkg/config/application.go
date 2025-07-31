@@ -12,6 +12,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,10 +47,9 @@ type BackendGateway struct {
 type ApplicationService struct {
 	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
 	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	BKLogin     BKLogin        `yaml:"bklogin" usage:"bk login config of application service"`
+	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
-	Front       Front          `yaml:"front" usage:"front setting of application service"`
 	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
 	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
 	Log         Log            `yaml:"log" usage:"log config of application service"`
@@ -159,11 +159,7 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *ApplicationService) Validate() error {
-	if err := svc.BKLogin.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
-	}
-
-	if err := svc.Front.Validate(); err != nil {
+	if err := svc.BKSaas.Validate(); err != nil {
 		return fmt.Errorf("failed to validate application config: %w", err)
 	}
 
@@ -182,19 +178,13 @@ func EnvGet(key, fallback string) string {
 
 // Front front setting of application service.
 type Front struct {
-	BKLoginURL           string `yaml:"bkLoginURL" usage:"bk login url of front setting"`
-	BKSharedResBaseJsUrl string `yaml:"bkSharedResBaseJsUrl" usage:"bk shared res base js url of front setting"`
-	SiteURL              string `yaml:"siteURL" usage:"site url of front setting"`
+	BKLoginURL string `yaml:"bkLoginURL" usage:"bk login url of front setting"`
 }
 
 // Validate validates the config.
 func (svc *Front) Validate() error {
 	if svc.BKLoginURL == "" {
-		return fmt.Errorf("failed to validate front config: bkLoginURL can not be empty")
-	}
-
-	if svc.SiteURL == "" {
-		return fmt.Errorf("failed to validate front config: siteURL can not be empty")
+		return errors.New("failed to validate front config: bkLoginURL can not be empty")
 	}
 
 	return nil

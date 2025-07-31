@@ -427,6 +427,20 @@ type GSEPlugin struct {
 	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
 }
 
+// BKSaas the config of bk SaaS.
+type BKSaas struct {
+	BKLogin BKLogin `yaml:"bkLogin" usage:"bklogin config of bk SaaS"`
+}
+
+// Validate validates the config.
+func (saas *BKSaas) Validate() error {
+	if err := saas.BKLogin.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bkSaaS config: %w", err)
+	}
+
+	return nil
+}
+
 // BKLogin the config of bklogin.
 type BKLogin struct {
 	// LoginURL defines the login url of bklogin.
@@ -439,7 +453,7 @@ type BKLogin struct {
 // Validate validates the config.
 func (bklogin *BKLogin) Validate() error {
 	if bklogin.LoginURL == "" {
-		return errors.New("login url of bklogin is empty")
+		return errors.New("login url of bkLogin is empty")
 	}
 
 	if err := bklogin.TLS.Validate(); err != nil {

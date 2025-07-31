@@ -36,7 +36,8 @@ import (
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bklogin"
+	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
+	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -99,15 +100,18 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 		return nil, fmt.Errorf("failed to new service: %w", err)
 	}
 
-	svc.Cap.AuthIdentity, err = svc.newBKTicketAuthIdentity(conf.BKLogin)
+	bkloginHandler, err := newBKLoginHandler(conf.BKSaas.BKLogin, svc.Cap.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new service: %w", err)
 	}
 
-	svc.Cap.FrontSetting = frontsetting.NewFrontSetting(
-		conf.Front.BKLoginURL,
-		conf.Front.BKSharedResBaseJsUrl,
-		conf.Front.SiteURL,
+	svc.Cap.AuthIdentity = bkloginHandler.GetAuthIdentity()
+
+	svc.Cap.FrontSetting, _ = frontsetting.NewFrontSetting(
+		frontsetting.Option{
+			BKLoginURL:           bkloginHandler.GetLoginURL(),
+			BKRequestIDHeaderKEy: bksaasheader.KeyBKRequestID,
+		},
 	)
 
 	if err := svc.registerRestServer(conf); err != nil {
@@ -272,19 +276,8 @@ func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
 	return apigwClientConf
 }
 
-func (svc *Service) newBKTicketAuthIdentity(conf config.BKLogin) (restserver.AuthIdentity, error) {
-	bkloginHandler, err := newBKLoginHandler(conf, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to register rest apigwserver: %w", err)
-	}
-
-	authIdentity := bkloginHandler.GetAuthIdentity()
-
-	return authIdentity, nil
-}
-
 // newBKLoginHandler creates a new bklogin handler.
-func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bklogin.IHandler, error) {
+func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bksaasbklogin.IHandler, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -304,7 +297,7 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bklogin.IHand
 		Logger:               logger,
 	}
 
-	bkloginHandler, err := bklogin.New(clientCap, &bklogin.Config{LoginURL: conf.LoginURL}, bklogin.WithLogger(logger))
+	bkloginHandler, err := bksaasbklogin.New(clientCap, &bksaasbklogin.Config{LoginURL: conf.LoginURL}, bksaasbklogin.WithLogger(logger))
 	if err != nil {
 		return nil, fmt.Errorf("failed to new bklogin handler: %w", err)
 	}

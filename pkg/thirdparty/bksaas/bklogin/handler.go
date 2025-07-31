@@ -22,6 +22,9 @@ import (
 
 // IHandler defines the handler interface.
 type IHandler interface {
+	// GetLoginURL get the login url.
+	GetLoginURL() string
+
 	// Verify verify the bk_ticket.
 	Verify(ctx context.Context, bkTicket string) (string, error)
 
@@ -104,4 +107,9 @@ func (h *Handler) GetAuthIdentity() *AuthIdentity {
 	return &AuthIdentity{
 		handler: h,
 	}
+}
+
+// GetLoginURL ...
+func (h *Handler) GetLoginURL() string {
+	return h.conf.LoginURL
 }

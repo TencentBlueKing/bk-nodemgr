@@ -10,46 +10,64 @@
 
 package frontsetting
 
+import (
+	"fmt"
+)
+
 // notice: this file use interface to avoid this setting changed by other package.
 
 // IFrontSetting front setting.
-type IFrontSetting interface {
-	// BKSharedResBaseJsURL the front setting field.
-	BKSharedResBaseJsURL() string
-	// BKLoginURL the front setting field.
+type IFrontSetting interface { // BKLoginURL the front setting field.
 	BKLoginURL() string
-	// SiteUrl the front setting field.
-	SiteUrl() string
+	//BKRequestIDHeaderKey the front setting field.
+	BKRequestIDHeaderKey() string
 }
 
 // FrontSetting front setting.
 type FrontSetting struct {
 	bkloginURL           string
-	bkSharedResBaseJsUrl string
-	bkAPIPrefix          string
-	siteURL              string
+	bkRequestIDHeaderKEy string
+}
+
+// Option front setting option.
+type Option struct {
+	BKLoginURL           string
+	BKRequestIDHeaderKEy string
+}
+
+// Validate validate.
+func (option *Option) Validate() error {
+	if option.BKLoginURL == "" {
+		return fmt.Errorf("bk login url is empty")
+	}
+
+	if option.BKRequestIDHeaderKEy == "" {
+		return fmt.Errorf("bk request id header key is empty")
+	}
+
+	return nil
 }
 
 // NewFrontSetting new front setting.
-func NewFrontSetting(bkloginURL string, bkSharedResBaseJsUrl string, siteURL string) *FrontSetting {
-	return &FrontSetting{
-		bkloginURL:           bkloginURL,
-		bkSharedResBaseJsUrl: bkSharedResBaseJsUrl,
-		siteURL:              siteURL,
+func NewFrontSetting(opt Option) (*FrontSetting, error) {
+	if err := opt.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to new front setting: %v", err)
 	}
-}
 
-// BKSharedResBaseJsURL get bk shared res base js url.
-func (f *FrontSetting) BKSharedResBaseJsURL() string {
-	return f.bkSharedResBaseJsUrl
+	setting := &FrontSetting{
+		bkloginURL:           opt.BKLoginURL,
+		bkRequestIDHeaderKEy: opt.BKRequestIDHeaderKEy,
+	}
+
+	return setting, nil
 }
 
 // BKLoginURL get bk login url.
-func (f *FrontSetting) BKLoginURL() string {
-	return f.bkloginURL
+func (setting *FrontSetting) BKLoginURL() string {
+	return setting.bkloginURL
 }
 
-// SiteUrl get site url.
-func (f *FrontSetting) SiteUrl() string {
-	return f.siteURL
+// BKRequestIDHeaderKey get bk request id header key.
+func (setting *FrontSetting) BKRequestIDHeaderKey() string {
+	return setting.bkRequestIDHeaderKEy
 }

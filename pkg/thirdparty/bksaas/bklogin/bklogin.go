@@ -18,7 +18,7 @@ import (
 
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
-	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
+	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 )
 
 // cli client for bkoa.
@@ -42,7 +42,7 @@ func newClient(c *restclient.Capability) (*cli, error) {
 // nolint: unparam
 func (c *cli) getCommonHeader() (http.Header, error) {
 	header := http.Header{}
-	header.Set(apigwheader.BKRIDKey, identifier.GenRequestID())
+	header.Set(bksaasheader.KeyBKRequestID, identifier.GenRequestID())
 
 	return header, nil
 }

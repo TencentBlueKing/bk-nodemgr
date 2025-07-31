@@ -874,25 +874,21 @@ application:
       toStderr: false
       alsoToStderr: false
 
-    ## defines the front-setting related settings.
-    front:
-      siteURL: "/"
-      bkLoginURL: ""
-
-    bklogin:
-      loginURL: ""
-      # defines tls related options.
-      tls:
-        # server should be accessed without verifying the TLS certificate.
-        insecureSkipVerify: false
-        # server requires TLS client certificate authentication.
-        certFile: ""
-        # server requires TLS client certificate authentication.
-        keyFile: ""
-        # trusted root certificates for server.
-        caFile: ""
-        # the password to decrypt the certificate.
-        password: ""
+    bkSaaS:
+      bkLogin:
+        loginURL: ""
+        # defines tls related options.
+        tls:
+          # server should be accessed without verifying the TLS certificate.
+          insecureSkipVerify: false
+          # server requires TLS client certificate authentication.
+          certFile: ""
+          # server requires TLS client certificate authentication.
+          keyFile: ""
+          # trusted root certificates for server.
+          caFile: ""
+          # the password to decrypt the certificate.
+          password: ""
 
 ## Nodeman file
 ##

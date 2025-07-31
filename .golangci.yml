@@ -724,3 +724,7 @@ linters-settings:
         alias: applicationapiv3
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3
         alias: backendapiv3
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header
+        alias: bksaasheader
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin
+        alias: bksaasbklogin
