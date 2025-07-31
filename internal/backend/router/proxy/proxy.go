@@ -27,6 +27,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: This url bind with the backend node install workflow.
+const (
+	// backendCallbackUrlPrefix is the prefix of the callback URL for the backend.
+	backendCallbackURLPrefix = "callback/workflow/node_install/"
+)
+
 type handler struct {
 	rg             *gin.RouterGroup
 	provider       discover.Provider
@@ -76,10 +82,38 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 		h.handleCallback(ctx, data)
 
 		return
+	case protoRelay.MessageTypeAckReq:
+		h.handleAck(ctx, data)
 
+		return
+	case protoRelay.MessageTypeClientPushReq:
+		h.handleClientPush(ctx, data)
+
+		return
 	default:
+		h.logger.ErrorCtxf(ctx, "unknown message type: %s", data.MessageType)
 		return
 	}
+}
+
+func (h *handler) handleAck(ctx context.Context, data *relayhandler.ServerReceivedData) {
+	h.logger.InfoCtxf(ctx, "received ack request. agent-id(%s)", data.AgentID)
+	msg, err := h.proxyMessanger.DecodeAckRequest(data)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+			data.AgentID, err)
+
+		return
+	}
+
+	if err := h.proxyMessanger.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to handle ack. agent-id(%s), err: %v",
+			data.AgentID, err)
+
+		return
+	}
+	h.logger.InfoCtxf(ctx, "ack handled successfully. agent-id(%s), original-message-id(%s)",
+		data.AgentID, msg.OriginalMessageID)
 }
 
 func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerReceivedData) {
@@ -137,4 +171,60 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	}
 
 	h.logger.InfoCtxf(ctx, "responded proxy callback. agent-id(%s)", data.AgentID)
+}
+
+func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.ServerReceivedData) {
+	go h.proxyMessanger.SendAck(ctx, data.MessageID, data.AgentID)
+
+	if err := h.proxyMessanger.MarkProcessed(ctx, data.MessageID); err != nil {
+		h.logger.ErrorCtxf(ctx, "mark processed failed, err: %v", err)
+		return
+	}
+
+	msg, err := h.proxyMessanger.DecodeClientPushRequest(data)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+			data.AgentID, err)
+
+		return
+	}
+
+	go h.callbackBackend(ctx, msg, data.AgentID)
+}
+
+func (h *handler) callbackBackend(ctx context.Context, msg *protoRelay.ClientPushReq, agentID string) {
+	callbackEndpoint, err := h.provider.GetEndpoint(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		discover.NewRandomSelector())
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s), err: %v",
+			agentID, err)
+
+		return
+	}
+
+	h.logger.InfoCtxf(ctx, "try to redirect request to callback endpoint(%s), agent-id(%s)",
+		callbackEndpoint.GetIPV4Address(), agentID)
+
+	url := backendCallbackURLPrefix + msg.URL
+
+	resp, err := http.Post(
+		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), url),
+		"application/json",
+		bytes.NewReader(msg.Body))
+
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), err: %v",
+			agentID, err)
+
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), status-code(%d)",
+			agentID, resp.StatusCode)
+
+		return
+	}
 }

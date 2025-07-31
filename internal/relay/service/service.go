@@ -17,11 +17,13 @@ import (
 	"io"
 	"runtime"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -76,7 +78,14 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		DomainSocketPath: conf.Plugin.MessageDomainSocketPath,
 		LocalSocketPort:  conf.Plugin.MessageLocalSocketPort,
 		Logger:           svc.Cap.Logger,
+		MessageIDPath:    conf.MessageIDPath,
+		PluginName:       conf.PluginName,
 	})
+
+	dispatcher := svc.Cap.Messager.EventDispatcher()
+
+	fmt.Println("register echo handler")
+	dispatcher.RegisterHandler(protoRelay.EventTypeEcho, manager.EchoHandler)
 
 	callbackServer := rest.NewServer(
 		svc.ctx,

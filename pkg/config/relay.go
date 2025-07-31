@@ -25,10 +25,12 @@ const (
 	defaultRelayAdvertiseIPv4  = "127.0.0.1"
 	defaultRelayAdvertiseIPv6  = "::1"
 
-	defaultRelayLogDir       = "/bk-nodeman/log/"
-	defaultRelayLogMaxNum    = 10
-	defaultRelayLogMaxSizeMB = 200
-	defaultRelayLogLevel     = "INFO"
+	defaultRelayLogDir        = "/bk-nodeman/log/"
+	defaultRelayLogMaxNum     = 10
+	defaultRelayLogMaxSizeMB  = 200
+	defaultRelayLogLevel      = "INFO"
+	defaultRelayMessageIDPath = "/usr/local/gse2/proxy/bin/tmp/message_id"
+	defaultRelayPluginName    = "bk-nodemgr-relay"
 )
 
 // RelayService the config of relay service.
@@ -36,9 +38,11 @@ type RelayService struct {
 	Plugin         GSEPlugin      `yaml:"plugin" usage:"gse agent plugin config of relay service"`
 	AgentFileGroup FileGroup      `yaml:"agentFileGroup" usage:"agent file group config of relay service"`
 	ProxyFileGroup FileGroup      `yaml:"proxyFileGroup" usage:"proxy file group config of relay service"`
+	MessageIDPath  string         `yaml:"messageIDPath" usage:"message id full path of relay service"`
 	CallbackServer CallbackServer `yaml:"callbackServer" usage:"callback server config of relay service"`
 	FileServer     HTTPServer     `yaml:"fileServer" usage:"file server config of relay service"`
 	Log            Log            `yaml:"log" usage:"log config of relay service"`
+	PluginName     string         `yaml:"pluginName" usage:"gse agent plugin name of relay service"`
 }
 
 // NewRelayService generates a new RelayService with default value.
@@ -68,6 +72,8 @@ func NewRelayService() *RelayService {
 			MaxNum:    defaultRelayLogMaxNum,
 			Level:     defaultRelayLogLevel,
 		},
+		MessageIDPath: defaultRelayMessageIDPath,
+		PluginName:    defaultRelayPluginName,
 	}
 }
 

@@ -14,12 +14,9 @@ package relayhandler
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-)
-
-const (
-	pluginName = "bk-nodemgr-proxy"
 )
 
 // ClientMessager provides the managements for receiving and sending messages via client side gse agent.
@@ -31,6 +28,9 @@ type ClientMessager interface {
 	Stop(ctx context.Context) error
 
 	CallbackClient
+
+	// EventDispatcher returns the event dispatcher.
+	EventDispatcher() manager.EventDispatcher
 }
 
 // CallbackClient defines the callback client.
@@ -50,9 +50,7 @@ type ServerMessager interface {
 	// DecodeBaseRequest decodes the base request.
 	DecodeBaseRequest(req []byte) (*ServerReceivedData, error)
 
-	// PushToClient sends the server push to client.
-	PushToClient(ctx context.Context, eventType protoRelay.EventType,
-		payload []byte, agentIDs ...string) error
+	PushServer
 
 	CallbackServer
 }
@@ -63,6 +61,28 @@ type ServerReceivedData struct {
 	MessageType protoRelay.MessageType
 	AgentID     string
 	Content     []byte
+}
+
+// PushServer defines the server handler.
+type PushServer interface {
+	// PushToClient sends the server push to client.
+	PushToClient(ctx context.Context,
+		eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error
+
+	// SendAck sends the ack to client.
+	SendAck(ctx context.Context, OriginalMessageID string, agentIDs ...string)
+
+	// MarkProcessed marks a message ID as processed.
+	MarkProcessed(ctx context.Context, mid string) error
+
+	// MarkedAckedAck handles the ack.
+	MarkAcked(ctx context.Context, OriginalMessageID string) error
+
+	// DecodeAckRequest decodes the ack request.
+	DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error)
+
+	// DecodeClientPushRequest decodes the callback request.
+	DecodeClientPushRequest(data *ServerReceivedData) (*protoRelay.ClientPushReq, error)
 }
 
 // CallbackServer defines the callback server.

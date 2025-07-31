@@ -8,10 +8,10 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package proxy defines the proxy protocol.
-package proxy
+// Package relay defines the relay protocol.
+package relay
 
-// MessageType defines the proxy message type.
+// MessageType defines the relay message type.
 type MessageType string
 
 const (
@@ -21,16 +21,22 @@ const (
 	// MessageTypeCallbackResp describes the callback response message type.
 	MessageTypeCallbackResp MessageType = "callback_resp"
 
-	// MessageTypeServerPush describes the server push message type.
-	MessageTypeServerPush MessageType = "server_push"
+	// MessageTypeServerPushReq describes the server push message type.
+	MessageTypeServerPushReq MessageType = "server_push_req"
+
+	// MessageTypeClientPushReq describes the client push data message type.
+	MessageTypeClientPushReq MessageType = "client_push_req"
+
+	// MessageTypeAckReq describes the ack request message type.
+	MessageTypeAckReq MessageType = "ack_req"
 )
 
-// EventType defines the event type.
-type EventType string
+// ServerPushEventType defines the event type.
+type ServerPushEventType string
 
 const (
-	// EventTypeCheckReleaseExist describes the check release exist event type.
-	EventTypeCheckReleaseExist EventType = "check_release_exist"
+	// EventTypeEcho describes the echo event type.
+	EventTypeEcho ServerPushEventType = "echo"
 )
 
 // Base defines the base info.
@@ -61,22 +67,36 @@ type CallbackResp struct {
 	Body     []byte `json:"body"`
 }
 
-// ServerPush describes the server push.
-type ServerPush struct {
+// ServerPushReq describes the server push request.
+type ServerPushReq struct {
 	Base
 
 	// EventType describes the event type.
-	EventType EventType `json:"event_type"`
+	EventType ServerPushEventType `json:"event_type"`
 
 	// Payload describes the payload.
 	Payload []byte `json:"payload"`
 }
 
-// CheckReleaseExistEvent describes the check release exist event.
-type CheckReleaseExistEvent struct {
-	// Filename describes the filename.
-	Filename string `json:"filename"`
+// ClientPushReq defines the client push data.
+type ClientPushReq struct {
+	Base
 
-	// MD5 describes the md5.
-	MD5 string `json:"md5"`
+	// URL describes the url to ClientPushData.
+	URL string `json:"url"`
+
+	// Body describes the body to ClientPushData.
+	Body []byte `json:"body"`
+}
+
+// AckReq describes the ack request.
+type AckReq struct {
+	Base
+	OriginalMessageID string `json:"original_message_id"`
+}
+
+// EchoEvent describes the echo request.
+type EchoEvent struct {
+	// Message describes the message.
+	Message string `json:"message"`
 }
