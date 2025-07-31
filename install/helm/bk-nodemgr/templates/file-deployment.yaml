@@ -1,19 +1,19 @@
-{{- if .Values.backend.enabled }}
+{{- if .Values.file.enabled }}
 apiVersion: {{ template "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ template "bk-nodeman.fullname" . }}-backend
+  name: {{ template "bk-nodemgr.fullname" . }}-file
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
-    values-hash: "{{ toYaml .Values.backend | sha256sum | trunc 63 }}"
+    values-hash: "{{ toYaml .Values.file | sha256sum | trunc 63 }}"
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ include "bk-nodeman.replicaCount" ( dict "root" .Values "module" .Values.backend ) }}
+  replicas: {{ include "bk-nodemgr.replicaCount" ( dict "root" .Values "module" .Values.file ) }}
   {{- if .Values.updateStrategy }}
   strategy:
     type: {{ .Values.updateStrategy.type }}
@@ -26,7 +26,7 @@ spec:
   selector:
     matchLabels:
       {{- include "common.labels.matchLabels" . | nindent 6 }}
-      app: nodeman-backend
+      app: nodemgr-file
   template:
     metadata:
       labels:
@@ -34,16 +34,16 @@ spec:
         {{- if .Values.podLabels }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
         {{- end }}
-        app: nodeman-backend
-      {{- if .Values.backend.podAnnotations }}
+        app: nodemgr-file
+      {{- if .Values.file.podAnnotations }}
       annotations:
-        {{- include "common.tplvalues.render" (dict "value" .Values.backend.podAnnotations "context" $) | nindent 8 }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.file.podAnnotations "context" $) | nindent 8 }}
       {{- else if .Values.podAnnotations }}
       annotations:
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "bk-nodeman.imagePullSecrets" . | nindent 6 }}
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
@@ -53,7 +53,7 @@ spec:
       # yamllint enable rule:indentation
       {{- end }}
       {{- if .Values.nodeSelector }}
-      nodeSelector: {{- include "common.tplvalues.render" (dict "value" (merge .Values.backend.nodeSelector .Values.nodeSelector) "context" $) | nindent 8 }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" (merge .Values.file.nodeSelector .Values.nodeSelector) "context" $) | nindent 8 }}
       {{- end }}
       {{- if .Values.tolerations }}
       tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
@@ -72,42 +72,40 @@ spec:
                   - key: app
                     operator: In
                     values:
-                      {{- if .Values.backend.hostNetwork }}
-                      - nodeman-backend
+                      {{- if .Values.file.hostNetwork }}
+                      - nodemgr-file
                       {{- else }}
-                      - nodeman-no-affinity
+                      - nodemgr-no-affinity
                     {{- end }}
               topologyKey: kubernetes.io/hostname
               namespaces: []
       {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
       containers:
-        - name: {{ template "bk-nodeman.fullname" . }}-backend
-          {{- if len .Values.backend.imageTag }}
+        - name: {{ template "bk-nodemgr.fullname" . }}-file
+          {{- if len .Values.file.imageTag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command:
-            - {{ .Values.common.binPath }}/bk-nodeman-backend
-          args: 
-            - -f 
-            - {{ .Values.common.etcPath }}/backend_conf.yaml
+            - {{ .Values.common.binPath }}/bk-nodemgr-file
+          args:
+            - -f
+            - {{ .Values.common.etcPath }}/file_conf.yaml
           env:
-            - name: NODEMAN-MODULE
-              value: backend
+            - name: NODEMGR-MODULE
+              value: file
           ports:
             - name: service-http
-              containerPort: {{ .Values.backend.config.httpServer.port }}
-            - name: callback-http
-              containerPort: {{ .Values.backend.config.callbackServer.port }}
-            - name: proxy-http
-              containerPort: {{ .Values.backend.config.proxyServer.port }}
+              containerPort: {{ .Values.file.config.httpServer.port }}
+            - name: admin-http
+              containerPort: {{ .Values.file.config.adminServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -135,26 +133,26 @@ spec:
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 10 }}
           {{- end }}
           volumeMounts:
-            - name: nodeman-cert
+            - name: nodemgr-cert
               mountPath: {{ .Values.common.certPath }}
-            - name: nodeman-etc
+            - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- else }}
-          resources: {{- toYaml .Values.backend.resources | nindent 12 }}
+          resources: {{- toYaml .Values.file.resources | nindent 12 }}
           {{- end }}
 
       initContainers:
-        - name: {{ template "bk-nodeman.fullname" . }}-backend-check-mongodb
-          {{- if len .Values.backend.imageTag }}
+        - name: {{ template "bk-nodemgr.fullname" . }}-file-check-mongodb
+          {{- if len .Values.file.imageTag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: ["sh", "-c"]
@@ -171,7 +169,7 @@ spec:
             while [ ${ret} -ne 0 ]
             do
                 {{- if .Values.mongodb.enabled }}
-                ${mongobin} {{ template "bk-nodeman.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.authSource }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
+                ${mongobin} {{ template "bk-nodemgr.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.authSource }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
                 {{- else }}
                 ${mongobin} {{ .Values.externalMongodb.hosts }}/{{ .Values.externalMongodb.authSource }} -u {{ .Values.externalMongodb.username }} -p {{ .Values.externalMongodb.password }} --eval "db.runCommand({ping: 1})"
                 {{- end }}
@@ -185,67 +183,15 @@ spec:
             echo "check mongodb done"
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
-        - name: {{ template "bk-nodeman.fullname" . }}-backend-check-redis
-          {{- if len .Values.backend.imageTag }}
+        - name: {{ template "bk-nodemgr.fullname" . }}-file-init
+          {{- if len .Values.file.imageTag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
-          {{- end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          command: ["sh", "-c"]
-          args:
-          - |
-            /bin/sh <<'EOF'
-
-            redisbin="redis-cli"
-
-            {{- if .Values.redis.enabled }}
-            check_args="-h {{ template "bk-nodeman.fullname" . }}-redis-headless -p {{ .Values.redis.service.ports.redis }} -a {{ .Values.redis.password }} --no-auth-warning -c ping"
-            {{- else }}
-            {{- if eq .Values.externalRedis.username "default" }}
-            {{- if eq .Values.externalRedis.type "sentinel" }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} -a {{ .Values.externalRedis.sentinelPassword }} --no-auth-warning -c ping"
-            {{- else }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} -a {{ .Values.externalRedis.password }} --no-auth-warning -c ping"
-            {{- end }}
-            {{- else }}
-            {{- if eq .Values.externalRedis.type "sentinel" }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} --user {{ .Values.externalRedis.username }} -a {{ .Values.externalRedis.sentinelPassword }} --no-auth-warning -c ping"
-            {{- else }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} --user {{ .Values.externalRedis.username }} -a {{ .Values.externalRedis.password }} --no-auth-warning -c ping"
-            {{- end }}
-            {{- end }}
-            {{- end }}
-
-            # check redis.
-            try_times=1
-            ret=1
-            sleep_time=1
-            while [ ${ret} -ne 0 ]
-            do
-                ${redisbin} ${check_args}
-                ret=$?
-                echo try to check ${try_times} times
-                try_times=$((try_times+1))
-                sleep ${sleep_time}
-            done
-
-            echo "check redis done"
-            EOF
-          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
-        - name: {{ template "bk-nodeman.fullname" . }}-backend-init
-          {{- if len .Values.backend.imageTag }}
-          {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
-          {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
-          {{- end }}
-          {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: ["sh", "-c"]
@@ -275,10 +221,10 @@ spec:
             fi
 
             # sed local config file.
-            cp /tmp/backend_conf.yaml {{ .Values.common.etcPath }}/backend_conf.yaml
-            sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
-            sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
-            
+            cp /tmp/file_conf.yaml {{ .Values.common.etcPath }}/file_conf.yaml
+            sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/file_conf.yaml
+            sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/file_conf.yaml
+
             echo "local module init done"
             EOF
           env:
@@ -291,20 +237,20 @@ spec:
               fieldRef:
                 fieldPath: status.podIPs
           volumeMounts:
-            - name: {{ template "bk-nodeman.fullname" . }}-backend-config
+            - name: {{ template "bk-nodemgr.fullname" . }}-file-config
               mountPath: /tmp
-            - name: nodeman-etc
+            - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
-      hostNetwork: {{ .Values.backend.hostNetwork }}
+      hostNetwork: {{ .Values.file.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:
-      - name: nodeman-cert
+      - name: nodemgr-cert
         configMap:
-          name: {{ template "bk-nodeman.fullname" . }}-certs
-      - name: {{ template "bk-nodeman.fullname" . }}-backend-config
+          name: {{ template "bk-nodemgr.fullname" . }}-certs
+      - name: {{ template "bk-nodemgr.fullname" . }}-file-config
         configMap:
-          name: {{ template "bk-nodeman.fullname" . }}-backend-config
-      - name: nodeman-etc
+          name: {{ template "bk-nodemgr.fullname" . }}-file-config
+      - name: nodemgr-etc
         emptyDir: {}
 {{- end }}

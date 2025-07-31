@@ -1,43 +1,43 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "bk-nodeman.name" -}}
+{{- define "bk-nodemgr.name" -}}
 {{- include "common.names.name" . -}}
 {{- end -}}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "bk-nodeman.fullname" -}}
+{{- define "bk-nodemgr.fullname" -}}
 {{- include "common.names.fullname" . -}}
 {{- end -}}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "bk-nodeman.chart" -}}
+{{- define "bk-nodemgr.chart" -}}
 {{- include "common.names.chart" . -}}
 {{- end -}}
 
 {{/*
-Return the proper bk-nodeman image name
+Return the proper bk-nodemgr image name
 */}}
-{{- define "bk-nodeman.image" -}}
+{{- define "bk-nodemgr.image" -}}
 {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
-Return the proper bk-nodeman image registry secret names
+Return the proper bk-nodemgr image registry secret names
 */}}
-{{- define "bk-nodeman.imagePullSecrets" -}}
+{{- define "bk-nodemgr.imagePullSecrets" -}}
 {{ include "common.images.pullSecrets" (dict "images" (list .Values.image) "global" .Values.global) }}
 {{- end -}}
 
 {{/*
-Return the proper bk-nodeman replica count
-{{ include "bk-nodeman.replicaCount" ( dict "module" .Values.path.to.module ) }}
+Return the proper bk-nodemgr replica count
+{{ include "bk-nodemgr.replicaCount" ( dict "module" .Values.path.to.module ) }}
 */}}
-{{- define "bk-nodeman.replicaCount" -}}
+{{- define "bk-nodemgr.replicaCount" -}}
 {{- if gt .root.replicaCount 1.0 }}
 {{- .root.replicaCount -}}
 {{- else -}}

@@ -1,0 +1,72 @@
+{{- if .Values.apigwSync.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync-definition
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  definition.yaml: |
+    spec_version: {{ .Values.apigwSync.config.spec_version }}
+
+    release:
+      version: {{ .Values.apigwSync.config.release.version }}
+      title: {{ .Values.apigwSync.config.release.title | quote }}
+      comment: {{ .Values.apigwSync.config.release.comment | quote }}
+
+    apigateway:
+      description: {{ .Values.apigwSync.config.apigateway.description | quote }}
+      description_en: {{ .Values.apigwSync.config.apigateway.description_en | quote }}
+      # 是否公开；公开，则用户可查看资源文档、申请资源权限；不公开，则网关对用户隐藏
+      is_public: {{ .Values.apigwSync.config.apigateway.is_public }}
+      # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；非官方网关，去除此配置
+      api_type: 1
+      # 网关维护人员，仅维护人员有管理网关的权限
+      maintainers:
+      {{- range .Values.apigwSync.config.apigateway.maintainers }}
+        - {{ . }}
+      {{- end }}
+        # 定义环境信息，用于命令 `sync_apigw_stage`
+    stages:
+    {{- range .Values.apigwSync.config.stages }}
+      - name: {{ .name | quote }}
+        description: {{ .description | quote }}
+        description_en: {{ .description_en | quote }}
+        backends:
+        {{- range .backends }}
+          - name: {{ .name | quote }}
+            config:
+              timeout: {{ .config.timeout }}
+              loadbalance: {{ .config.loadbalance | quote }}
+              hosts:
+              {{- range .config.hosts }}
+                - host: {{ .host | quote }}
+                  weight: {{ .weight }}
+              {{- end }}
+            {{- if .plugin_configs}}
+            plugin_configs: {{ .plugin_configs | toYaml | nindent 14 }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    resource_docs:
+      basedir: "/data/apidocs/"
+
+    grant_permissions:
+    {{- range .Values.apigwSync.config.grant_permissions }}
+      - bk_app_code: {{ .bk_app_code }}
+        grant_dimension: {{ .grant_dimension }}
+        {{- if eq .grant_dimension "resource"}}
+        # 如果是按照 resource 维度授权，需要提供如下的具体 resource_name
+        resource_names:
+        {{- range .resource_names }}
+          - {{ . }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+{{- end }}

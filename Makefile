@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build all clean doc tools script_tools
+.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools script_tools
 
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
@@ -43,23 +43,23 @@ pre:
 
 backend: pre
 	@$(ECHO) "Building backend $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-backend $(ROOT_DIR)/cmd/backend/main.go
-	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-backend"
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-backend $(ROOT_DIR)/cmd/backend/main.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-backend"
 
 application: pre
 	@$(ECHO) "Building application $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-application $(ROOT_DIR)/cmd/application/*.go
-	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-application"
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-application $(ROOT_DIR)/cmd/application/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-application"
 
 file: pre
 	@$(ECHO) "Building file $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-file $(ROOT_DIR)/cmd/file/*.go
-	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-file"
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-file $(ROOT_DIR)/cmd/file/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-file"
 
 relay: pre
 	@$(ECHO) "Building proxy $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodeman-relay $(ROOT_DIR)/cmd/relay/*.go
-	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodeman-relay"
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-relay"
 
 front: pre
 	@$(ECHO) "Building frontend..."
@@ -103,11 +103,20 @@ script_tools: pre
 	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/bintool.tgz"
 	@$(ECHO) "Built successfully script tools"
 
-docker-build: backend application file front tools
+docker-build-server: backend application file front tools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
-	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodeman:v${VERSION} .
-	@$(ECHO) "Built successfully docker images bk-nodeman:v${VERSION}"
+	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:v${VERSION} .
+	@$(ECHO) "Built successfully docker images bk-nodemgr-server:v${VERSION}"
+
+docker-build-apigw-sync: pre
+	@$(ECHO) "Building docker image bk-nodemgr-apigw-sync..."
+	@$(MKDIR) $(OUTPUT_DIR)/apigw-sync
+	@$(CP) -R $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/support-files $(OUTPUT_DIR)/apigw-sync/
+	@$(CP) -R $(ROOT_DIR)/docs/apigw/* $(OUTPUT_DIR)/apigw-sync/support-files
+	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/Dockerfile $(OUTPUT_DIR)/apigw-sync
+	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:v${VERSION} .
+	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:v${VERSION}"
 
 all: backend application file relay front tools script_tools
 

@@ -38,7 +38,7 @@ extraDeploy: [ ]
 
 image:
   registry: "hub.bktencent.com"
-  repository: blueking/bk-nodeman
+  repository: blueking/bk-nodemgr-server
   tag: v0.1.0
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -54,7 +54,7 @@ image:
   ##
   pullSecrets: [ ]
 
-## @param extraEnvVars Array with extra environment variables to add to the bk-nodeman container
+## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container
 ## e.g:
 ## extraEnvVars:
 ##   - name: FOO
@@ -69,14 +69,14 @@ extraEnvVarsCM: ""
 ##
 extraEnvVarsSecret: ""
 
-## @section bk-nodeman deployment parameters
+## @section bk-nodemgr deployment parameters
 
-## @param replicaCount Number of bk-nodeman replicas to deploy
+## @param replicaCount Number of bk-nodemgr replicas to deploy
 ## NOTE: ReadWriteMany PVC(s) are required if replicaCount > 1
 ##
 replicaCount: 1
-## @param updateStrategy.type bk-nodeman deployment strategy type
-## @param updateStrategy.rollingUpdate bk-nodeman deployment rolling update configuration parameters
+## @param updateStrategy.type bk-nodemgr deployment strategy type
+## @param updateStrategy.rollingUpdate bk-nodemgr deployment rolling update configuration parameters
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
 ## NOTE: Set it to `Recreate` if you use a PV that cannot be mounted on multiple pods
 ## e.g:
@@ -101,17 +101,17 @@ schedulerName: ""
 serviceAccount:
   create: true
   name: ""
-## @param hostAliases [array] bk-nodeman pod host aliases
+## @param hostAliases [array] bk-nodemgr pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
 hostAliases: [ ]
-## @param extraVolumes Optionally specify extra list of additional volumes for bk-nodeman pods
+## @param extraVolumes Optionally specify extra list of additional volumes for bk-nodemgr pods
 ##
 extraVolumes: [ ]
-## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for bk-nodeman container(s)
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for bk-nodemgr container(s)
 ##
 extraVolumeMounts: [ ]
-## @param sidecars Add additional sidecar containers to the bk-nodeman pod
+## @param sidecars Add additional sidecar containers to the bk-nodemgr pod
 ## e.g:
 ## sidecars:
 ##   - name: your-image-name
@@ -122,14 +122,14 @@ extraVolumeMounts: [ ]
 ##         containerPort: 1234
 ##
 sidecars: [ ]
-## @param initContainers Add additional init containers to the bk-nodeman pods
+## @param initContainers Add additional init containers to the bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ## e.g:
 ## initContainers:
 ##  - name: your-image-name
 ##    image: your-image
 ##    imagePullPolicy: Always
-##    command: ['sh', '-c', 'copy addons from git and push to /bk-nodeman/addons. Should work with extraVolumeMounts and extraVolumes']
+##    command: ['sh', '-c', 'copy addons from git and push to /bk-nodemgr/addons. Should work with extraVolumeMounts and extraVolumes']
 ##
 initContainers: [ ]
 
@@ -142,11 +142,11 @@ initContainerResources:
     memory: 128Mi
     cpu: 200m
 
-## @param podLabels Extra labels for bk-nodeman pods
+## @param podLabels Extra labels for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
 podLabels: { }
-## @param podAnnotations Annotations for bk-nodeman pods
+## @param podAnnotations Annotations for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
 podAnnotations: { }
@@ -194,10 +194,10 @@ tolerations: [ ]
 ##
 terminationGracePeriodSeconds: 30
 ##
-## bk-nodeman containers' resource requests and limits
+## bk-nodemgr containers' resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-## @param resources.limits The resources limits for the bk-nodeman container
-## @param resources.requests [object] The requested resources for the bk-nodeman container
+## @param resources.limits The resources limits for the bk-nodemgr container
+## @param resources.requests [object] The requested resources for the bk-nodemgr container
 ##
 ## resources:
 ##   limits:
@@ -208,26 +208,26 @@ terminationGracePeriodSeconds: 30
 ##     cpu: 500m
 
 ## Container ports
-## @param containerPort bk-nodeman HTTP container port
+## @param containerPort bk-nodemgr HTTP container port
 ##
 containerPort: 5000
 ## Configure Pods Security Context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
-## @param podSecurityContext.enabled Enabled bk-nodeman pods' Security Context
-## @param podSecurityContext.fsGroup Set bk-nodeman pod's Security Context fsGroup
+## @param podSecurityContext.enabled Enabled bk-nodemgr pods' Security Context
+## @param podSecurityContext.fsGroup Set bk-nodemgr pod's Security Context fsGroup
 ##
 podSecurityContext:
   enabled: false
   fsGroup: 1001
 ## Configure Container Security Context (only main container)
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
-## @param containerSecurityContext.enabled Enabled bk-nodeman containers' Security Context
-## @param containerSecurityContext.runAsUser Set bk-nodeman container's Security Context runAsUser
+## @param containerSecurityContext.enabled Enabled bk-nodemgr containers' Security Context
+## @param containerSecurityContext.runAsUser Set bk-nodemgr container's Security Context runAsUser
 ##
 containerSecurityContext:
   enabled: false
   runAsUser: 1001
-## Configure extra options for bk-nodeman containers' liveness and readiness probes
+## Configure extra options for bk-nodemgr containers' liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe
 ## @param livenessProbe.path Path for to check for livenessProbe
@@ -269,11 +269,11 @@ customLivenessProbe: { }
 #
 customReadinessProbe: { }
 
-## bk-nodeman Autoscaling configuration
+## bk-nodemgr Autoscaling configuration
 ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
-## @param autoscaling.enabled Enable Horizontal POD autoscaling for bk-nodeman
-## @param autoscaling.minReplicas Minimum number of bk-nodeman replicas
-## @param autoscaling.maxReplicas Maximum number of bk-nodeman replicas
+## @param autoscaling.enabled Enable Horizontal POD autoscaling for bk-nodemgr
+## @param autoscaling.minReplicas Minimum number of bk-nodemgr replicas
+## @param autoscaling.maxReplicas Maximum number of bk-nodemgr replicas
 ## @param autoscaling.targetCPU Target CPU utilization percentage
 ## @param autoscaling.targetMemory Target Memory utilization percentage
 ##
@@ -284,49 +284,21 @@ autoscaling:
   targetCPU: 50
   targetMemory: 50
 
-## 蓝鲸日志采集
-##
-bkLogConfig:
-  enabled: false
-  dataId: 1
-
-## 蓝鲸APIGateway的URL配置模板
-bkApiUrlTmpl: "http://bkapi.example.com/api/{api_name}"
-
-## 蓝鲸APIGateway网关名称
-bkApigatewayName: "bk-nodeman"
-
-## 蓝鲸网关组件应用配置信息
-bkComponentAppCode: "bk_nodeman"
-bkComponentAppSecret: ""
-
-## 蓝鲸APIGateway网关授权应用列表
-## 示例: [{"bk_app_code":"app-1"},{"bk_app_code":"app-2"}]
-bkApigatewayGrantAppCodeList: ''
-
-## 配置bkApigatewayPublicKey用于对接apigateway解析jwt, base64
-bkApigatewayPublicKey: ""
-
-## 同步APIGateway资源配置
-apigwSync:
-  ## 默认为false不同步网关配置
-  enabled: false
-
-## bk-gse common base configuration
+## bk-nodemgr common base configuration
 ##
 common:
   ## @param etc path.
   ##
-  etcPath: "/bk-nodeman/etc"
+  etcPath: "/bk-nodemgr/etc"
   ## @param bin path.
   ##
-  binPath: "/bk-nodeman/bin"
+  binPath: "/bk-nodemgr/bin"
   ## @param log path.
   ##
-  logPath: "/bk-nodeman/logs"
+  logPath: "/bk-nodemgr/logs"
   ## @param cert path.
   ##
-  certPath: "/bk-nodeman/cert"
+  certPath: "/bk-nodemgr/cert"
 
 ## etcd chart configuration
 ## ref: https://github.com/bitnami/charts/blob/master/bitnami/etcd/values.yaml
@@ -358,7 +330,7 @@ etcd:
   persistence:
     enabled: false
 
-## If the etcd included in the chart is disabled, bk-nodeman will use below
+## If the etcd included in the chart is disabled, bk-nodemgr will use below
 ## parameters to connect to an external etcd service.
 externalEtcd:
   endpoints:
@@ -412,7 +384,7 @@ redis:
     ##
     enabled: false
 
-## If the redis cluster included in the chart is disabled, bk-nodeman will use below
+## If the redis cluster included in the chart is disabled, bk-nodemgr will use below
 ## parameters to connect to an external redis service.
 externalRedis:
   ## external redis cluster service types('cluster' 'standalone' 'sentinel')
@@ -481,10 +453,10 @@ mongodb:
     rootPassword: "defaultpassword"
     ## MongoDB&reg; custom users and databases
     ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-users-and-databases-on-first-run
-    username: "nodeman"
+    username: "nodemgr"
     password: "defaultpassword"
-    database: "nodeman"
-    authSource: "nodeman"
+    database: "nodemgr"
+    authSource: "admin"
     ## @param auth.replicaSetKey Key used for authentication in the replicaset (only when `architecture=replicaset`)
     ##
     replicaSetKey: ""
@@ -506,7 +478,7 @@ mongodb:
     ##
     size: 10Gi
 
-## If the Mongodb included in the chart is disabled, bk-nodeman will use below
+## If the Mongodb included in the chart is disabled, bk-nodemgr will use below
 ## parameters to connect to an external mongodb.
 externalMongodb:
   ## @param replicaSetName Name of the replica set
@@ -517,9 +489,9 @@ externalMongodb:
   hosts: ""
   ## MongoDB&reg; custom users and databases
   ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-users-and-databases-on-first-run
-  username: "nodeman"
+  username: "nodemgr"
   password: "defaultpassword"
-  database: "nodeman"
+  database: "nodemgr"
   authSource: "admin"
   authMechanism: "SCRAM-SHA-256"
 
@@ -762,7 +734,7 @@ backend:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodeman/log"
+      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
@@ -818,11 +790,11 @@ application:
     advertiseIPV4: ""
     advertiseIPV6: ""
 
-    # defines the nodeman backend (BK API gateway) related settings.
+    # defines the nodemgr backend (BK API gateway) related settings.
     backend:
       # endpoints is a seed list of host:port addresses of apigw nodes.
       endpoints:
-        - "https://example.com/api/bk-nodeman/prod"
+        - "https://example.com/api/bk-nodemgr/prod"
       # appCode is the BlueKing app code of NodeMan to request api gateway.
       appCode: ""
       # appSecret is the BlueKing app secret of NodeMan to request api gateway.
@@ -867,7 +839,7 @@ application:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodeman/log"
+      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
@@ -958,13 +930,13 @@ file:
       secretKey: ""
 
     tempFileGroup:
-      fullPath: "/bk-nodeman/file/temp"
+      fullPath: "/bk-nodemgr/file/temp"
 
     cacheFileGroup:
-      fullPath: "/bk-nodeman/file/cache"
+      fullPath: "/bk-nodemgr/file/cache"
 
     installerFileGroup:
-      fullPath: "/bk-nodeman/file/tools"
+      fullPath: "/bk-nodemgr/file/tools"
 
     # defines the gse related settings.
     gse:
@@ -1008,9 +980,65 @@ file:
 
     ## defines the log related settings.
     log:
-      dir: "/bk-nodeman/log"
+      dir: "/bk-nodemgr/log"
       level: "INFO"
       maxNum: 10
       maxSizeMB: 200
       toStderr: false
       alsoToStderr: false
+
+## Nodeman apigw-sync
+apigwSync:
+  enabled: false
+  repository: "bk-nodemgr-apigw-sync"
+  imageTag: "stage"
+  extraEnvVars:
+    - name: BK_APIGW_NAME
+      value: "bk-nodemgr"
+    - name: BK_APP_CODE
+      value: "bk-nodemgr"
+    - name: BK_APP_SECRET
+      value: ""
+    - name: BK_API_URL_TMPL
+      value: "http://bkapi.example.com/api/{api_name}"
+    - name: RELEASE_STAGES
+      value: "stage"
+    - name: NO_PUB
+      value: "true"
+  config:
+    spec_version: 1
+    release:
+      version: "v1.0.0"
+      title: "v1.0.0"
+      comment: "v1.0.0"
+    apigateway:
+      description: "蓝鲸节点管理"
+      description_en: "bk-nodemgr"
+      is_public: false
+      maintainers:
+        - "admin"
+    stages:
+      - name:
+        description:
+        description_en:
+        backends:
+          - name: "default"
+            config:
+              timeout: 60
+              loadbalance: "roundrobin"
+              hosts:
+                # 网关调用后端服务的默认域名或IP，不包含Path，比如：http://api.example.com
+                - host: "https://example.com"
+                  weight: 100
+            plugin_configs:
+              - type: bk-rate-limit
+                yaml: |-
+                  rates:
+                    __default:
+                    - period: 1
+                      tokens: 100
+    grant_permissions:
+      - bk_app_code: "bk-nodemgr"
+        grant_dimension: "resource"
+        resource_names:
+          - "resource_name_1"

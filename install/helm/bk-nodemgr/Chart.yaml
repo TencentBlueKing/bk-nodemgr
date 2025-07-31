@@ -1,7 +1,7 @@
 apiVersion: v2
 appVersion: v0.1.0
-name: bk-nodeman
-description: Blueking NodeMan provides services to help operation and maintenance personnel to realize Agent installation, plug-in management and other back-end service management.
+name: bk-nodemgr
+description: Blueking NodeMgr provides services to help operation and maintenance personnel to realize Agent installation, plug-in management and other back-end service management.
 type: application
 version: v0.1.0
 dependencies:

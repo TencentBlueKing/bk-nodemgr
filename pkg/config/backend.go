@@ -32,7 +32,7 @@ const (
 	defaultBackendCallbackPort   = 8002
 	defaultBackendProxyBindIP    = "127.0.0.1"
 	defaultBackendProxyPort      = 8003
-	defaultBackendLogDir         = "/bk-nodeman/log/"
+	defaultBackendLogDir         = "/bk-nodemgr/log/"
 	defaultBackendLogMaxNum      = 10
 	defaultBackendLogMaxSizeMB   = 200
 	defaultBackendLogLevel       = "INFO"
@@ -42,7 +42,7 @@ const (
 	defaultBackendAdvertiseIPv4  = "127.0.0.1"
 	defaultBackendAdvertiseIPv6  = "::1"
 
-	defaultInstallerFileGroup = "/bk-nodeman/file/tools"
+	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
 
 	defaultGseDeployConfLinuxGeneration    = 2
 	defaultGseDeployConfLinuxOsType        = string(criteria.OSLinux)

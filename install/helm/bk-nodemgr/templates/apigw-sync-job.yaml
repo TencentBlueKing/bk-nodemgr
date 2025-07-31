@@ -1,0 +1,75 @@
+{{- if .Values.apigwSync.enabled }}
+apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    values-hash: "{{ toYaml .Values.apigwSync | sha256sum | trunc 63 }}"
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: 10
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        {{- if .Values.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+        app: nodemgr-apigw-sync
+    spec:
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      # yamllint disable rule:indentation
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      # yamllint enable rule:indentation
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" (merge .Values.apigwSync.nodeSelector .Values.nodeSelector) "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync
+          {{- if len .Values.apigwSync.imageTag }}
+          {{- if len .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.apigwSync.imageTag }}
+          {{- else }}
+          image: {{ .Values.image.registry }}/{{ .Values.apigwSync.repository }}:{{ .Values.apigwSync.imageTag }}
+          {{- end }}
+          {{- else }}
+          image: {{ template "bk-nodemgr.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          volumeMounts:
+            - name: apigw-sync-config
+              mountPath: "/data/definition.yaml"
+              subPath: definition.yaml
+          command:
+            - bash
+          args:
+            - bin/sync-apigateway.sh
+          env:
+          {{- toYaml .Values.apigwSync.extraEnvVars | nindent 12 }}
+      volumes:
+      - name: apigw-sync-config
+        configMap:
+          name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync-definition
+      restartPolicy: Never
+{{- end }}

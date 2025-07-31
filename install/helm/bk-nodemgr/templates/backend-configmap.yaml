@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "bk-nodeman.fullname" . }}-backend-config
+  name: {{ template "bk-nodemgr.fullname" . }}-backend-config
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -49,7 +49,7 @@ data:
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:
-        - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
+        - {{ template "bk-nodemgr.fullname" . }}-etcd-headless:2379
       {{- else }}
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
       username: {{ .Values.externalEtcd.username }}
@@ -61,7 +61,7 @@ data:
 
     redis:
       {{- if .Values.redis.enabled }}
-      host: {{ template "bk-nodeman.fullname" . }}-redis-headless
+      host: {{ template "bk-nodemgr.fullname" . }}-redis-headless
       port: {{ .Values.redis.service.ports.redis }}
       password: {{ .Values.redis.password }}
       {{- else }}
@@ -74,7 +74,7 @@ data:
     mongodb:
       {{- if .Values.mongodb.enabled }}
       hosts:
-        - {{ template "bk-nodeman.fullname" . }}-mongodb-headless
+        - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless
       username: {{ .Values.mongodb.auth.username }}
       password: {{ .Values.mongodb.auth.password }}
       database: {{ .Values.mongodb.auth.database }}

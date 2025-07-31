@@ -9,20 +9,20 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repos
 RUN apk add mongodb && rm -f /usr/bin/mongod /usr/bin/mongos
 
 RUN mkdir -p \
-    /bk-nodeman/bin \
-    /bk-nodeman/etc \
-    /bk-nodeman/cert \
-    /bk-nodeman/log \
-    /bk-nodeman/static \
-    /bk-nodeman/file/tools \
-    /bk-nodeman/file/cache \
-    /bk-nodeman/file/local \
-    /bk-nodeman/file/temp
+    /bk-nodemgr/bin \
+    /bk-nodemgr/etc \
+    /bk-nodemgr/cert \
+    /bk-nodemgr/log \
+    /bk-nodemgr/static \
+    /bk-nodemgr/file/tools \
+    /bk-nodemgr/file/cache \
+    /bk-nodemgr/file/local \
+    /bk-nodemgr/file/temp
 
-COPY bk-nodeman-backend /bk-nodeman/bin/
-COPY bk-nodeman-application /bk-nodeman/bin/
-COPY bk-nodeman-file /bk-nodeman/bin/
-COPY tools/ /bk-nodeman/file/tools
-COPY dist/ /bk-nodeman/static/
+COPY bk-nodemgr-backend /bk-nodemgr/bin/
+COPY bk-nodemgr-application /bk-nodemgr/bin/
+COPY bk-nodemgr-file /bk-nodemgr/bin/
+COPY tools/ /bk-nodemgr/file/tools
+COPY dist/ /bk-nodemgr/static/
 
-WORKDIR /bk-nodeman/bin
+WORKDIR /bk-nodemgr/bin

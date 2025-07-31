@@ -1,8 +1,8 @@
-{{- if .Values.application.enabled }}
+{{- if .Values.file.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "bk-nodeman.fullname" . }}-application-config
+  name: {{ template "bk-nodemgr.fullname" . }}-file-config
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -11,29 +11,35 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
-  application_conf.yaml: |
-    runMode: {{ .Values.application.config.runMode }}
+  file_conf.yaml: |
+    runMode: {{ .Values.file.config.runMode }}
 
-    tenantMode: {{ .Values.application.config.tenantMode }}
+    tenantMode: {{ .Values.file.config.tenantMode }}
 
-    httpServer: {{ .Values.application.config.httpServer | toYaml | nindent 6 }}
+    inContainer: true
+
+    httpServer: {{ .Values.file.config.httpServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    adminServer: {{ .Values.application.config.adminServer | toYaml | nindent 6 }}
+    adminServer: {{ .Values.file.config.adminServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    backend: {{ .Values.application.config.backend | toYaml | nindent 6 }}
+    tempFileGroup: {{ .Values.file.config.tempFileGroup | toYaml | nindent 6 }}
 
-    log: {{ .Values.application.config.log | toYaml | nindent 6 }}
+    cacheFileGroup: {{ .Values.file.config.cacheFileGroup | toYaml | nindent 6 }}
 
-    bkSaaS: {{ .Values.application.config.bkSaaS | toYaml | nindent 6 }}
+    installerFileGroup: {{ .Values.file.config.installerFileGroup | toYaml | nindent 6 }}
+
+    gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
+
+    log: {{ .Values.file.config.log | toYaml | nindent 6 }}
 
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:
-        - {{ template "bk-nodeman.fullname" . }}-etcd-headless:2379
+        - {{ template "bk-nodemgr.fullname" . }}-etcd-headless:2379
       {{- else }}
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
       username: {{ .Values.externalEtcd.username }}
@@ -46,7 +52,7 @@ data:
     mongodb:
       {{- if .Values.mongodb.enabled }}
       hosts:
-        - {{ template "bk-nodeman.fullname" . }}-mongodb-headless
+        - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless
       username: {{ .Values.mongodb.auth.username }}
       password: {{ .Values.mongodb.auth.password }}
       database: {{ .Values.mongodb.auth.database }}
@@ -61,4 +67,6 @@ data:
       authSource: {{ .Values.externalMongodb.authSource }}
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
+
+    repo: {{ .Values.file.config.repo | toYaml | nindent 6 }}
 {{- end }}

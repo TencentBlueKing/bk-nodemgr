@@ -31,8 +31,8 @@ const (
 	defaultApplicationHTTPPort      = 5000
 	defaultApplicationAdminBindIP   = "127.0.0.1"
 	defaultApplicationAdminPort     = 5001
-	defaultApplicationHTTPStaticDir = "/bk-nodeman/static/"
-	defaultApplicationLogDir        = "/bk-nodeman/log/"
+	defaultApplicationHTTPStaticDir = "/bk-nodemgr/static/"
+	defaultApplicationLogDir        = "/bk-nodemgr/log/"
 	defaultApplicationLogMaxNum     = 10
 	defaultApplicationLogMaxSizeMB  = 200
 	defaultApplicationLogLevel      = "INFO"

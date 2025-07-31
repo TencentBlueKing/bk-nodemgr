@@ -1,26 +1,23 @@
-{{- if .Values.file.enabled }}
+{{- if .Values.application.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "bk-nodeman.fullname" . }}-file
+  name: {{ template "bk-nodemgr.fullname" . }}-application
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
-    app: nodeman-file
-    metric: nodeman-file-metric
+    app: nodemgr-application
+    metric: nodemgr-application-metric
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   selector:
-    app: nodeman-file
+    app: nodemgr-application
   ports:
     - name: service-http
-      port: {{ .Values.file.config.httpServer.port }}
+      port: {{ .Values.application.config.httpServer.port }}
       targetPort: service-http
-    - name: admin-http
-      port: {{ .Values.file.config.adminServer.port }}
-      targetPort: admin-http
 {{- end }}

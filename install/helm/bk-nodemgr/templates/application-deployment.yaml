@@ -2,7 +2,7 @@
 apiVersion: {{ template "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ template "bk-nodeman.fullname" . }}-application
+  name: {{ template "bk-nodemgr.fullname" . }}-application
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
@@ -13,7 +13,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ include "bk-nodeman.replicaCount" ( dict "root" .Values "module" .Values.application ) }}
+  replicas: {{ include "bk-nodemgr.replicaCount" ( dict "root" .Values "module" .Values.application ) }}
   {{- if .Values.updateStrategy }}
   strategy:
     type: {{ .Values.updateStrategy.type }}
@@ -26,7 +26,7 @@ spec:
   selector:
     matchLabels:
       {{- include "common.labels.matchLabels" . | nindent 6 }}
-      app: nodeman-application
+      app: nodemgr-application
   template:
     metadata:
       labels:
@@ -34,7 +34,7 @@ spec:
         {{- if .Values.podLabels }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
         {{- end }}
-        app: nodeman-application
+        app: nodemgr-application
       {{- if .Values.application.podAnnotations }}
       annotations:
         {{- include "common.tplvalues.render" (dict "value" .Values.application.podAnnotations "context" $) | nindent 8 }}
@@ -43,7 +43,7 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "bk-nodeman.imagePullSecrets" . | nindent 6 }}
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
@@ -73,16 +73,16 @@ spec:
                     operator: In
                     values:
                       {{- if .Values.application.hostNetwork }}
-                      - nodeman-application
+                      - nodemgr-application
                       {{- else }}
-                      - nodeman-no-affinity
+                      - nodemgr-no-affinity
                     {{- end }}
               topologyKey: kubernetes.io/hostname
               namespaces: []
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.application.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
       containers:
-        - name: {{ template "bk-nodeman.fullname" . }}-application
+        - name: {{ template "bk-nodemgr.fullname" . }}-application
           {{- if len .Values.application.imageTag }}
           {{- if len .Values.global.imageRegistry }}
           image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
@@ -90,14 +90,14 @@ spec:
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command:
-            - {{ .Values.common.binPath }}/bk-nodeman-application
-          args: 
+            - {{ .Values.common.binPath }}/bk-nodemgr-application
+          args:
             - webserver
-            - -f 
+            - -f
             - {{ .Values.common.etcPath }}/application_conf.yaml
           env:
             - name: NODEMAN-MODULE
@@ -132,9 +132,9 @@ spec:
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 10 }}
           {{- end }}
           volumeMounts:
-            - name: nodeman-cert
+            - name: nodemgr-cert
               mountPath: {{ .Values.common.certPath }}
-            - name: nodeman-etc
+            - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
@@ -143,7 +143,7 @@ spec:
           {{- end }}
 
       initContainers:
-        - name: {{ template "bk-nodeman.fullname" . }}-application-check-mongodb
+        - name: {{ template "bk-nodemgr.fullname" . }}-application-check-mongodb
           {{- if len .Values.application.imageTag }}
           {{- if len .Values.global.imageRegistry }}
           image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
@@ -151,7 +151,7 @@ spec:
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: ["sh", "-c"]
@@ -168,7 +168,7 @@ spec:
             while [ ${ret} -ne 0 ]
             do
                 {{- if .Values.mongodb.enabled }}
-                ${mongobin} {{ template "bk-nodeman.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.authSource }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
+                ${mongobin} {{ template "bk-nodemgr.fullname" . }}-mongodb-headless:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.authSource }} -u {{ .Values.mongodb.auth.username }} -p {{ .Values.mongodb.auth.password }} --eval "db.runCommand({ping: 1})"
                 {{- else }}
                 ${mongobin} {{ .Values.externalMongodb.hosts }}/{{ .Values.externalMongodb.authSource }} -u {{ .Values.externalMongodb.username }} -p {{ .Values.externalMongodb.password }} --eval "db.runCommand({ping: 1})"
                 {{- end }}
@@ -182,7 +182,7 @@ spec:
             echo "check mongodb done"
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
-        - name: {{ template "bk-nodeman.fullname" . }}-application-init
+        - name: {{ template "bk-nodemgr.fullname" . }}-application-init
           {{- if len .Values.application.imageTag }}
           {{- if len .Values.global.imageRegistry }}
           image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
@@ -190,7 +190,7 @@ spec:
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
           {{- end }}
           {{- else }}
-          image: {{ template "bk-nodeman.image" . }}
+          image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: ["sh", "-c"]
@@ -223,7 +223,7 @@ spec:
             cp /tmp/application_conf.yaml {{ .Values.common.etcPath }}/application_conf.yaml
             sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/application_conf.yaml
             sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/application_conf.yaml
-            
+
             echo "local module init done"
             EOF
           env:
@@ -236,20 +236,20 @@ spec:
               fieldRef:
                 fieldPath: status.podIPs
           volumeMounts:
-            - name: {{ template "bk-nodeman.fullname" . }}-application-config
+            - name: {{ template "bk-nodemgr.fullname" . }}-application-config
               mountPath: /tmp
-            - name: nodeman-etc
+            - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       hostNetwork: {{ .Values.application.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:
-      - name: nodeman-cert
+      - name: nodemgr-cert
         configMap:
-          name: {{ template "bk-nodeman.fullname" . }}-certs
-      - name: {{ template "bk-nodeman.fullname" . }}-application-config
+          name: {{ template "bk-nodemgr.fullname" . }}-certs
+      - name: {{ template "bk-nodemgr.fullname" . }}-application-config
         configMap:
-          name: {{ template "bk-nodeman.fullname" . }}-application-config
-      - name: nodeman-etc
+          name: {{ template "bk-nodemgr.fullname" . }}-application-config
+      - name: nodemgr-etc
         emptyDir: {}
 {{- end }}
