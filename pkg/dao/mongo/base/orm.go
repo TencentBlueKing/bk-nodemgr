@@ -82,6 +82,9 @@ type IOrm[P Pointer[T], T any] interface {
 
 	// DeleteMany delete multiple data.
 	DeleteMany(ctx context.Context, filter bson.D) error
+
+	// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
+	UpdateFieldsBulk(ctx context.Context, updates []*DocumentFieldUpdate) error
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -227,6 +230,26 @@ func (orm *Orm[P, T]) buildUpdateField(key string, value any) bson.D {
 	return update
 }
 
+// buildUpdateFields build update fields param for multiple fields.
+func (orm *Orm[P, T]) buildUpdateFields(fields map[string]any) bson.D {
+	nowTime := time.Now()
+	updateFields := bson.M{
+		"basic.is_deleted": false,
+		"basic.updated_at": nowTime,
+	}
+
+	for key, value := range fields {
+		updateFields[key] = value
+	}
+
+	return bson.D{
+		{
+			Key:   "$set",
+			Value: updateFields,
+		},
+	}
+}
+
 // Count this is a common operation for mongo db.
 func (orm *Orm[P, T]) Count(ctx context.Context, filter bson.D) (int64, error) {
 	num, err := orm.dao.GetClient().CountDocuments(ctx, filter)
@@ -314,6 +337,48 @@ func (orm *Orm[P, T]) DeleteMany(ctx context.Context, filter bson.D) error {
 	if result.MatchedCount > 0 {
 		orm.dao.GetLogger().Infof("deleted networkunits, deleted-count(%v)", result.MatchedCount)
 	}
+
+	return nil
+}
+
+// DocumentFieldUpdate represents a document update operation with specific fields.
+type DocumentFieldUpdate struct {
+	Filter bson.D
+	Fields map[string]any
+}
+
+// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
+func (orm *Orm[P, T]) UpdateFieldsBulk(ctx context.Context, updates []*DocumentFieldUpdate) error {
+	if len(updates) == 0 {
+		return nil
+	}
+
+	models := make([]mongo.WriteModel, 0, len(updates))
+	for _, update := range updates {
+		if len(update.Fields) == 0 {
+			continue
+		}
+
+		updateDoc := orm.buildUpdateFields(update.Fields)
+		model := mongo.NewUpdateOneModel().
+			SetFilter(update.Filter).
+			SetUpdate(updateDoc).
+			SetUpsert(false)
+
+		models = append(models, model)
+	}
+
+	if len(models) == 0 {
+		return nil
+	}
+
+	result, err := orm.dao.GetClient().BulkWrite(ctx, models)
+	if err != nil {
+		return err
+	}
+
+	orm.dao.GetLogger().Infof("bulk updated fields, table(%s), matched-count(%d), modified-count(%d)",
+		orm.dao.GetTableName(), result.MatchedCount, result.ModifiedCount)
 
 	return nil
 }

@@ -33,6 +33,7 @@ import (
 )
 
 // Manager defines the manager interface.
+// nolint: interfacebloat
 type Manager interface {
 	// Start starts the manager.
 	Start(ctx context.Context) error
@@ -66,6 +67,12 @@ type Manager interface {
 
 	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
 	LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error)
+
+	// LaunchSyncAgentState launch a task to sync agent state from gse. returns the workflow-id.
+	LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error)
+
+	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
+	LaunchSyncAllAgentState(ctx context.Context) (string, error)
 }
 
 // InstallNodeParam install node param.
@@ -227,7 +234,7 @@ func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 	return nil
 }
 
-// registerActionDefs init action defs
+// registerActionDefs init action defs.
 func (mgr *manager) registerActionDefs() error {
 	if err := mgr.registerOnceOperationActions(); err != nil {
 		return fmt.Errorf("register once operation actions failed, err: %w", err)
@@ -269,6 +276,8 @@ func (mgr *manager) registerActionDefSyncData() error {
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
 		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
 		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
+		syncdata.NewActionSyncAgentState(mgr.conf.GSEHandler, mgr.conf.StorageTopo, mgr.logger),
+		syncdata.NewActionGenOperSyncAgentState(mgr.conf.StorageTopo, mgr.workflowMgr),
 	)
 }
 
@@ -777,4 +786,86 @@ func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
 		"inner_ipv6":     info.Host.Static.InnerIPV6,
 		"node_version":   info.Host.Dynamic.NodeVersion,
 	}
+}
+
+// LaunchSyncAgentState launch a task to sync agent state.
+func (mgr *manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	hosts, err := mgr.conf.StorageTopo.FindHostWithDynamic(ctx, types.UnlimitedPage(), &types.HostCondition{
+		ExactInclude: &types.HostExactFields{
+			HostID: hostIDs,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to find hosts with dynamic info: %w", err)
+	}
+
+	hostAgentID := make([]*syncdata.HostIDAgentID, 0, len(hosts))
+	for _, host := range hosts {
+		hostAgentID = append(hostAgentID, &syncdata.HostIDAgentID{
+			HostID:  host.HostID,
+			AgentID: host.Dynamic.AgentID,
+		})
+	}
+
+	operationDef := syncdata.NewOperSyncAgentStateFromGSE(syncdata.OperParamSyncAgentStateFromGSE{
+		TenantID: tenantID,
+		Hosts:    hostAgentID,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAllAgentState launch a task to sync all agent state.
+func (mgr *manager) LaunchSyncAllAgentState(ctx context.Context) (string, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAllAgentStateFromGSE(syncdata.OperParamSyncAllAgentStateFromGSE{
+		TenantID: tenantID,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync all agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
 }

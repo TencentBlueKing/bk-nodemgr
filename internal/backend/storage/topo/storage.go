@@ -110,6 +110,7 @@ type IStorageAccessPoint interface {
 }
 
 // IStorageHost this interface defines the operations which is only for host.
+// nolint: interfacebloat
 type IStorageHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(ctx context.Context, host ...*types.Host) error
@@ -135,6 +136,12 @@ type IStorageHost interface {
 
 	// GetHostByID gets host by id.
 	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
+
+	// FindHostWithDynamic finds hosts with dynamic fields.
+	FindHostWithDynamic(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error)
+
+	// UpdateHostDynamicVersionAndStatus updates the dynamic version and status of a host.
+	UpdateHostDynamicVersionAndStatus(ctx context.Context, host ...*types.Host) error
 
 	// DistinctHost distincts host fields.
 	DistinctHost(ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (

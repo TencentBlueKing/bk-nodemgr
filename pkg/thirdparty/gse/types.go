@@ -23,12 +23,14 @@ type AgentInfo struct {
 	BKHostIP       string  `json:"bk_host_ip"`
 	BKOSType       string  `json:"bk_os_type"`
 	BKCPUArch      string  `json:"bk_cpu_architecture"`
-	ReportTime     uint64  `json:"report_time"`
 	ParentIP       string  `json:"parent_ip"`
 	ParentPort     uint    `json:"parent_port"`
+	ReportTime     uint64  `json:"report_time"`
 	Version        string  `json:"version"`
 	CPURate        float32 `json:"cpu_rate"`
 	MemRate        float32 `json:"mem_rate"`
+	CPUNum         uint    `json:"cpu_num"`
+	MemSize        uint64  `json:"mem_size"`
 	StartTime      uint64  `json:"start_time"`
 	LastWorkTime   uint64  `json:"last_work_time"`
 	ConnCycleTime  string  `json:"conn_cycle_time"`
@@ -42,14 +44,12 @@ type AgentInfo struct {
 
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
-	BKAgentID      string `json:"bk_agent_id"`
-	BKCloudID      int    `json:"bk_cloud_id"`
-	Version        string `json:"version"`
-	ReportTime     uint64 `json:"report_time"`
-	StatusCode     int    `json:"status_code"`
-	Status         string `json:"status"`
-	LastStatusCode int    `json:"last_status_code"`
-	LastStatus     string `json:"last_status"`
+	BKAgentID  string `json:"bk_agent_id"`
+	BKCloudID  int    `json:"bk_cloud_id"`
+	Version    string `json:"version"`
+	RunMode    int    `json:"run_mode"`
+	StatusCode int    `json:"status_code"`
+	ReportTime uint64 `json:"report_time"`
 }
 
 // Endpoint describes the basic endpoint information.

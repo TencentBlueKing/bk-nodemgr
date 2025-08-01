@@ -117,27 +117,29 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 
 		data[idx] = &types.AgentInfo{
 			AgentState: types.AgentState{
-				AgentID:        info.BKAgentID,
-				CloudID:        info.BKCloudID,
-				Version:        info.Version,
-				StatusCode:     types.AgentStatusCode(info.StatusCode),
-				LastStatusCode: types.AgentStatusCode(info.LastStatusCode),
-				ReportTime:     info.ReportTime,
+				AgentID:    info.BKAgentID,
+				CloudID:    info.BKCloudID,
+				Version:    info.Version,
+				RunMode:    info.RunMode,
+				StatusCode: types.AgentStatusCode(info.StatusCode),
+				ReportTime: info.ReportTime,
 			},
-			HostIP:        info.BKHostIP,
-			OSType:        osType,
-			Arch:          arch,
-			ParentIP:      info.ParentIP,
-			ParentPort:    info.ParentPort,
-			CPURate:       info.CPURate,
-			MemRate:       info.MemRate,
-			StartTime:     info.StartTime,
-			LastWorkTime:  info.LastWorkTime,
-			ConnCycleTime: info.ConnCycleTime,
-			Status:        info.Status,
-			LastStatus:    info.LastStatus,
-			RunMode:       info.RunMode,
-			Remark:        info.Remark,
+			HostIP:         info.BKHostIP,
+			OSType:         osType,
+			Arch:           arch,
+			ParentIP:       info.ParentIP,
+			ParentPort:     info.ParentPort,
+			CPURate:        info.CPURate,
+			MemRate:        info.MemRate,
+			CPUNum:         info.CPUNum,
+			MemSize:        info.MemSize,
+			StartTime:      info.StartTime,
+			LastWorkTime:   info.LastWorkTime,
+			ConnCycleTime:  info.ConnCycleTime,
+			LastStatusCode: types.AgentStatusCode(info.LastStatusCode),
+			Status:         info.Status,
+			LastStatus:     info.LastStatus,
+			Remark:         info.Remark,
 		}
 	}
 
@@ -165,12 +167,12 @@ func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 	data := make([]*types.AgentState, len(resp))
 	for idx, info := range resp {
 		data[idx] = &types.AgentState{
-			AgentID:        info.BKAgentID,
-			CloudID:        info.BKCloudID,
-			Version:        info.Version,
-			StatusCode:     types.AgentStatusCode(info.StatusCode),
-			LastStatusCode: types.AgentStatusCode(info.LastStatusCode),
-			ReportTime:     info.ReportTime,
+			AgentID:    info.BKAgentID,
+			CloudID:    info.BKCloudID,
+			Version:    info.Version,
+			RunMode:    info.RunMode,
+			StatusCode: types.AgentStatusCode(info.StatusCode),
+			ReportTime: info.ReportTime,
 		}
 	}
 

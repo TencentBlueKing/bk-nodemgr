@@ -42,4 +42,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/cmdb/host", restserver.Handler(h.SyncCmdbHost))
 	h.rg.POST("/cmdb/networkarea", restserver.Handler(h.SyncCmdbNetworkArea))
+	h.rg.POST("/gse/agent/state", restserver.Handler(h.SyncAgentState))
+	h.rg.POST("/gse/agent/state/all", restserver.Handler(h.SyncAllAgentState))
 }
