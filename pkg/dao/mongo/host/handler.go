@@ -93,7 +93,7 @@ type handler struct {
 
 func (h *handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao)
+		return d.(*dao) // nolint: forcetypeassert
 	}
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
@@ -105,7 +105,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 
 	// note: we can be sure that only the tenantDao func edit the daoMap,
 	// so we can just use the type assertion here.
-	return d.(*dao)
+	return d.(*dao) // nolint: forcetypeassert
 }
 
 // New create a new host handler.

@@ -33,7 +33,7 @@ import (
 )
 
 // Manager defines the manager interface.
-type Manager interface {
+type Manager interface { // nolint: interfacebloat
 	// Start starts the manager.
 	Start(ctx context.Context) error
 
@@ -227,7 +227,7 @@ func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 	return nil
 }
 
-// registerActionDefs init action defs
+// registerActionDefs init action defs.
 func (mgr *manager) registerActionDefs() error {
 	if err := mgr.registerOnceOperationActions(); err != nil {
 		return fmt.Errorf("register once operation actions failed, err: %w", err)

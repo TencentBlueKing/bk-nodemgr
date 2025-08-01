@@ -237,7 +237,7 @@ func (s *Storage) DistinctHost(
 	return result, nil
 }
 
-func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.OptFn, error) {
+func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.OptFn, error) { //nolint:unparam
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
