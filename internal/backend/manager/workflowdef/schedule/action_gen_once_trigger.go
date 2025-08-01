@@ -23,19 +23,21 @@ import (
 )
 
 const (
-	// ActionNameGenScheduleSyncHostOnceTrigger defines the action name.
-	ActionNameGenScheduleSyncHostOnceTrigger = "gen_schedule_sync_host_once_trigger"
+	// ActionNameGenScheduleOnceTrigger defines the action name.
+	ActionNameGenScheduleOnceTrigger = "gen_once_trigger_%s"
 )
 
-// SyncHostOnceTriggerFunc defines the function type for generating a schedule once trigger.
-type SyncHostOnceTriggerFunc func(ctx context.Context) (string, error)
+// OnceTriggerFunc defines the function type for generating a schedule once trigger.
+type OnceTriggerFunc func(ctx context.Context) (string, error)
 
-// NewActionGenScheduleSyncHostOnceTrigger creates a new action to generate a schedule once trigger.
-func NewActionGenScheduleSyncHostOnceTrigger(
+// NewActionGenScheduleOnceTrigger creates a new action to generate a schedule once trigger.
+func NewActionGenScheduleOnceTrigger(
+	name string,
 	operInstCtl workflow.IStorageOperationInstance,
-	operFunc SyncHostOnceTriggerFunc) action.Definition {
+	operFunc OnceTriggerFunc) action.Definition {
 
 	return &actionGenScheduleOnceTrigger{
+		name:        name,
 		operInstCtl: operInstCtl,
 		operFunc:    operFunc,
 	}
@@ -48,13 +50,14 @@ type GenScheduleOnceTriggerParam struct {
 
 // actionGenScheduleOnceTrigger implements the action.Definition interface.
 type actionGenScheduleOnceTrigger struct {
+	name        string
 	operInstCtl workflow.IStorageOperationInstance
-	operFunc    SyncHostOnceTriggerFunc
+	operFunc    OnceTriggerFunc
 }
 
 // Name returns the name of the action.
 func (act *actionGenScheduleOnceTrigger) Name() string {
-	return ActionNameGenScheduleSyncHostOnceTrigger
+	return fmt.Sprintf(ActionNameGenScheduleOnceTrigger, act.name)
 }
 
 // Version returns the version of the action.
@@ -104,7 +107,7 @@ func (act *actionGenScheduleOnceTrigger) Do(ctx *action.InstanceContext) error {
 	triggerID, err := act.operFunc(tenantCtx)
 	if err != nil {
 		return fmt.Errorf("failed to generate schedule once trigger, action name(%s), tenant-id(%s), err: %w",
-			ActionNameGenScheduleSyncHostOnceTrigger, param.TenantID, err)
+			act.Name(), param.TenantID, err)
 	}
 
 	ctx.Data.PrivateData["child_trigger_id"] = triggerID

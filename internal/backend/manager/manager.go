@@ -307,9 +307,12 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 	)
 }
 
+// registerActionDefSchedule registers the action definitions for schedule operations.
+// nolint: lll
 func (mgr *manager) registerActionDefSchedule() error {
 	return mgr.workflowMgr.RegisterActions(
-		schedule.NewActionGenScheduleSyncHostOnceTrigger(mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
+		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
+		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
 	)
 }
 

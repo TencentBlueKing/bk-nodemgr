@@ -33,6 +33,9 @@ const (
 
 	// SyncCmdbNetworkAreaWorkflowName defines the name of the sync cmdb network area workflow.
 	SyncCmdbNetworkAreaWorkflowName = "schedule_sync_cmdb_network_area"
+
+	// SyncGseAgentStateWorkflowName defines the name of the sync GSE agent state workflow.
+	SyncGseAgentStateWorkflowName = "schedule_sync_gse_agent_state"
 )
 
 // ScheduleWorkflowFunc defines the function type for scheduling workflows.
@@ -43,6 +46,7 @@ func (mgr *manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 	return map[string]ScheduleWorkflowFunc{
 		SyncCmdbHostWorkflowName:        mgr.ScheduleSyncHostFromCMDB,
 		SyncCmdbNetworkAreaWorkflowName: mgr.ScheduleSyncNetworkAreaFromCMDB,
+		SyncGseAgentStateWorkflowName:   mgr.ScheduleSyncAllAgentStateFromGSE,
 	}
 }
 
@@ -137,8 +141,8 @@ func (mgr *manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 		return fmt.Errorf("create schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
 	}
 
-	operationDef := schedule.NewOperScheduleSyncHostOperation(
-		schedule.OperParamScheduleSyncHostOperation{TenantID: tenantID})
+	operationDef := schedule.NewOperScheduleOnceTriggerOperation(
+		schedule.OperParamScheduleOnceTriggerOperation{TenantID: tenantID}, SyncCmdbHostWorkflowName)
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		mgr.logger.Errorf("create operation for schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
@@ -200,6 +204,60 @@ func (mgr *manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 	}
 
 	mgr.logger.InfoCtxf(ctx, "new schedule sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	err = triggerCtl.RunTrigger(ctx)
+	if err != nil {
+		mgr.logger.Errorf("run schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		return fmt.Errorf("run schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
+	}
+
+	return nil
+}
+
+// ScheduleSyncAllAgentStateFromGSE creates a new schedule workflow to sync agent state from GSE.
+func (mgr *manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		mgr.logger.Errorf("get tenant id failed: %v", err)
+		return fmt.Errorf("get tenant id failed: %w", err)
+	}
+
+	metadataPeriodic, err := trigger.NewMetadataPeriodic(1*time.Minute, false)
+	if err != nil {
+		mgr.logger.Errorf("create periodic metadata failed: %v", err)
+		return fmt.Errorf("create periodic metadata failed: %w", err)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryPeriodic, metadataPeriodic)
+	if err != nil {
+		mgr.logger.Errorf("create periodic trigger failed: %v", err)
+		return fmt.Errorf("create periodic trigger failed: %w", err)
+	}
+
+	scheduleWf := &types.ScheduleWorkflow{
+		WorkflowID:   identifier.GenWorkflowID(),
+		WorkflowName: SyncGseAgentStateWorkflowName,
+		TriggerID:    triggerCtl.GetTriggerID(),
+		Operator:     runtime.SystemName,
+		OperateTime:  time.Now(),
+	}
+
+	err = mgr.conf.StorageSchedule.CreateScheduleWorkflow(ctx, scheduleWf)
+	if err != nil {
+		mgr.logger.Errorf("create schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		return fmt.Errorf("create schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
+	}
+
+	operationDef := schedule.NewOperScheduleOnceTriggerOperation(
+		schedule.OperParamScheduleOnceTriggerOperation{TenantID: tenantID}, SyncGseAgentStateWorkflowName)
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		mgr.logger.Errorf("create operation for schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		return fmt.Errorf("create operation for schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
+	}
+
+	mgr.logger.InfoCtxf(ctx, "new schedule sync all agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
 	err = triggerCtl.RunTrigger(ctx)

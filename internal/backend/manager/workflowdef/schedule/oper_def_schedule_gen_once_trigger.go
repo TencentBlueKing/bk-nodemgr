@@ -12,46 +12,51 @@
 package schedule
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameScheduleSyncHostOperation defines the operation definition name.
-const OperDefNameScheduleSyncHostOperation = "schedule_sync_host_operation"
+// OperDefNameScheduleOnceTriggerOperation defines the operation definition name.
+const OperDefNameScheduleOnceTriggerOperation = "schedule_once_trigger_operation"
 
-// NewOperScheduleSyncHostOperation new an operation.
-func NewOperScheduleSyncHostOperation(param OperParamScheduleSyncHostOperation) operation.Definition {
-	return &operScheduleSyncHostOperation{
-		param: param,
+// NewOperScheduleOnceTriggerOperation new an operation.
+func NewOperScheduleOnceTriggerOperation(
+	param OperParamScheduleOnceTriggerOperation, actName string) operation.Definition {
+
+	return &operScheduleOnceTriggerOperation{
+		param:   param,
+		actName: actName,
 	}
 }
 
-// operScheduleSyncHostOperation implements the operation.Definition interface.
-type operScheduleSyncHostOperation struct {
-	param OperParamScheduleSyncHostOperation
+// operScheduleOnceTriggerOperation implements the operation.Definition interface.
+type operScheduleOnceTriggerOperation struct {
+	param   OperParamScheduleOnceTriggerOperation
+	actName string
 }
 
-// OperParamScheduleSyncHostOperation defines the parameters for operScheduleSyncHostOperation.
-type OperParamScheduleSyncHostOperation struct {
+// OperParamScheduleOnceTriggerOperation defines the parameters for operScheduleOnceTriggerOperation.
+type OperParamScheduleOnceTriggerOperation struct {
 	TenantID string `json:"tenant_id"`
 }
 
 // Name returns the name.
-func (oper *operScheduleSyncHostOperation) Name() string {
-	return OperDefNameScheduleSyncHostOperation
+func (oper *operScheduleOnceTriggerOperation) Name() string {
+	return OperDefNameScheduleOnceTriggerOperation
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operScheduleSyncHostOperation) ActionDefNames() []string {
+func (oper *operScheduleOnceTriggerOperation) ActionDefNames() []string {
 	return []string{
-		ActionNameGenScheduleSyncHostOnceTrigger,
+		fmt.Sprintf(ActionNameGenScheduleOnceTrigger, oper.actName),
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operScheduleSyncHostOperation) DefaultParameters() operation.Param {
+func (oper *operScheduleOnceTriggerOperation) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
