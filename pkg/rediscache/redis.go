@@ -54,7 +54,7 @@ func (c *RedisCache) SetWithExpiration(ctx context.Context,
 	return c.client.Set(ctx, key, value, ttl).Err()
 }
 
-// Set stores a value with a key without expiration.
+// Set stores a value with a key with default expiration.
 func (c *RedisCache) Set(ctx context.Context, key string, value []byte) error {
 	return c.client.Set(ctx, key, value, c.defaultTTL).Err()
 }

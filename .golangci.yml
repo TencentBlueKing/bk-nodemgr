@@ -595,6 +595,8 @@ linters-settings:
       - m *operMgr
       - g *Group
       - t *Transfer
+      - m *clientMessager
+      - m *serverMessager
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false

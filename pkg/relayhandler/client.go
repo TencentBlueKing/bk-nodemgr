@@ -29,7 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
 )
 
-// ClientMessagerConfig defines the config.s
+// ClientMessagerConfig defines the config.
 type ClientMessagerConfig struct {
 	// PluginVersion is the plugin version.
 	PluginVersion string `json:"plugin_version"`
