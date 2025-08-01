@@ -50,7 +50,7 @@ type ClientMessagerConfig struct {
 }
 
 // NewClientMessager creates a new client messager.
-func NewClientMessager(conf ClientMessagerConfig) *clientMessager {
+func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
 	return &clientMessager{
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
@@ -71,7 +71,7 @@ type clientMessager struct {
 	eventDispatcher manager.EventDispatcher
 
 	retrier        *retrier.ExpoBackoff
-	fileMsgTracker messagetracker.MessageTracker
+	fileMsgTracker messagetracker.IMessageTracker
 }
 
 // Start starts the messager.

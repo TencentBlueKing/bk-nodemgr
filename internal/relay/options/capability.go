@@ -31,7 +31,7 @@ type Capability struct {
 	ProxyFileGroup fileiface.FileGroup
 
 	// Messager messager.
-	Messager relayhandler.ClientMessager
+	Messager relayhandler.IClientMessager
 }
 
 // Start start the capability.

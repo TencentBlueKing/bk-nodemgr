@@ -19,28 +19,28 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-// ClientMessager provides the managements for receiving and sending messages via client side gse agent.
-type ClientMessager interface {
+// IClientMessager provides the managements for receiving and sending messages via client side gse agent.
+type IClientMessager interface {
 	// Start starts the messager.
 	Start(ctx context.Context) error
 
 	// Stop stops the messager.
 	Stop(ctx context.Context) error
 
-	CallbackClient
+	ICallbackClient
 
 	// EventDispatcher returns the event dispatcher.
 	EventDispatcher() manager.EventDispatcher
 }
 
-// CallbackClient defines the callback client.
-type CallbackClient interface {
+// ICallbackClient defines the callback client.
+type ICallbackClient interface {
 	// RequestCallback sends request to url. returns the response body and http code.
 	RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error)
 }
 
-// ServerMessager provides the managements for receiving and sending messages via server side gse api.
-type ServerMessager interface {
+// IServerMessager provides the managements for receiving and sending messages via server side gse api.
+type IServerMessager interface {
 	// Start starts the messager.
 	Start(ctx context.Context) error
 
@@ -50,9 +50,9 @@ type ServerMessager interface {
 	// DecodeBaseRequest decodes the base request.
 	DecodeBaseRequest(req []byte) (*ServerReceivedData, error)
 
-	PushServer
+	IPushServer
 
-	CallbackServer
+	ICallbackServer
 }
 
 // ServerReceivedData defines the server received data.
@@ -63,8 +63,8 @@ type ServerReceivedData struct {
 	Content     []byte
 }
 
-// PushServer defines the server handler.
-type PushServer interface {
+// IPushServer defines the server handler.
+type IPushServer interface {
 	// PushToClient sends the server push to client.
 	PushToClient(ctx context.Context,
 		eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error
@@ -85,8 +85,8 @@ type PushServer interface {
 	DecodeClientPushRequest(data *ServerReceivedData) (*protoRelay.ClientPushReq, error)
 }
 
-// CallbackServer defines the callback server.
-type CallbackServer interface {
+// ICallbackServer defines the callback server.
+type ICallbackServer interface {
 	// DecodeCallbackRequest decodes the callback request.
 	DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error)
 

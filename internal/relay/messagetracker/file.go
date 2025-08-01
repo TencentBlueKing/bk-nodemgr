@@ -35,7 +35,7 @@ type FileTracker struct {
 }
 
 // NewFileManager creates a new FileTracker with the specified storage path.
-func NewFileManager(ctx context.Context, storagePath string) MessageTracker {
+func NewFileManager(ctx context.Context, storagePath string) IMessageTracker {
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 		if err := os.MkdirAll(storagePath, 0750); err != nil { //nolint: mnd
 			return nil

@@ -32,7 +32,7 @@ type RedisTracker struct {
 }
 
 // NewRedisTracker creates a new RedisTracker instance.
-func NewRedisTracker(cache *rediscache.RedisCache) MessageTracker {
+func NewRedisTracker(cache *rediscache.RedisCache) IMessageTracker {
 	return &RedisTracker{
 		cache:      cache,
 		expiration: defaultexpiration,

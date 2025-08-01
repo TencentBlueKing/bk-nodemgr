@@ -58,7 +58,7 @@ type ServerMessagerConfig struct {
 }
 
 // NewServerMessager creates a new server messager.
-func NewServerMessager(conf ServerMessagerConfig) *serverMessager {
+func NewServerMessager(conf ServerMessagerConfig) IServerMessager {
 	return &serverMessager{
 		config: conf,
 	}
@@ -72,7 +72,7 @@ type serverMessager struct {
 
 	retrier *retrier.ExpoBackoff
 
-	redisMsgTracker messagetracker.MessageTracker
+	redisMsgTracker messagetracker.IMessageTracker
 }
 
 // Start starts the messager.

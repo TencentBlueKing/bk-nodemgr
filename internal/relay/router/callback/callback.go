@@ -29,7 +29,7 @@ const (
 
 type handler struct {
 	rg     *gin.RouterGroup
-	client relayhandler.CallbackClient
+	client relayhandler.ICallbackClient
 	logger logger.Logger
 }
 

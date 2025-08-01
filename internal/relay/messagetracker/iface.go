@@ -15,8 +15,8 @@ import (
 	"context"
 )
 
-// MessageTracker is the interface for message storage.
-type MessageTracker interface {
+// IMessageTracker is the interface for message storage.
+type IMessageTracker interface {
 	// TryMarkProcessed tries to mark a message ID as processed.
 	TryMarkProcessed(ctx context.Context, mid string) (bool, error)
 
