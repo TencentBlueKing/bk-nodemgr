@@ -127,15 +127,20 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("find %d hosts from cmdb, %d hosts in db", len(cmdbData), len(dbData)))
-	upsertHosts, deleteHostIDs, err := act.compareData(cmdbData, dbData)
+	updateHosts, insertHosts, deleteHostIDs, err := act.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("comapred hosts, %d hosts need to upsert, %d hosts need to delete",
-		len(upsertHosts), len(deleteHostIDs)))
+	ctx.Data.LogI(
+		fmt.Sprintf("comapred hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
+			len(updateHosts), len(insertHosts), len(deleteHostIDs)))
 
-	if err = act.storageHost.UpsertManyHostStatic(tenantCtx, upsertHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHostStatic(tenantCtx, updateHosts...); err != nil {
+		return err
+	}
+
+	if err = act.storageHost.UpsertManyHost(tenantCtx, insertHosts...); err != nil {
 		return err
 	}
 
@@ -146,8 +151,11 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) ([]*types.Host, []int64, error) {
-	upsertHosts := make([]*types.Host, 0)
+func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
+	[]*types.Host, []*types.Host, []int64, error) {
+
+	updateHosts := make([]*types.Host, 0)
+	insertHosts := make([]*types.Host, 0)
 	deleteHostIDs := make([]int64, 0)
 
 	// Convert CMDB data into maps for quick lookup
@@ -155,7 +163,7 @@ func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
 		return host.HostID
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("convert cmdb data to map failed, err: %w", err)
+		return nil, nil, nil, fmt.Errorf("convert cmdb data to map failed, err: %w", err)
 	}
 
 	// Handle hosts in the database
@@ -163,7 +171,7 @@ func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
 		if cmdbHost, exists := cmdbHostMap[host.HostID]; exists {
 			// The host exists in the CMDB and is added to the update list
 			// Note: cmdbHost is used here instead of host, because we want to use the CMDB data as the prevailing one
-			upsertHosts = append(upsertHosts, cmdbHost)
+			updateHosts = append(updateHosts, cmdbHost)
 			delete(cmdbHostMap, host.HostID)
 		} else {
 			// The host does not exist in the CMDB and should be removed from the database
@@ -173,8 +181,12 @@ func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
 
 	// Handling Hosts that Only Exist in the CMDB (New Hosts)
 	for _, host := range cmdbHostMap {
-		upsertHosts = append(upsertHosts, host)
+		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
+		if host.Static.SyncedAgentID != "" {
+			host.Dynamic.AgentID = host.Static.SyncedAgentID
+		}
+		insertHosts = append(insertHosts, host)
 	}
 
-	return upsertHosts, deleteHostIDs, nil
+	return updateHosts, insertHosts, deleteHostIDs, nil
 }

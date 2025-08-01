@@ -104,32 +104,34 @@ func (code AgentStatusCode) ToNodeStatus() NodeStatus {
 
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
-	AgentID        string
-	CloudID        int
-	Version        string
-	ReportTime     uint64
-	StatusCode     AgentStatusCode
-	LastStatusCode AgentStatusCode
+	AgentID    string
+	CloudID    int
+	Version    string
+	RunMode    int
+	StatusCode AgentStatusCode
+	ReportTime uint64
 }
 
 // AgentInfo represents the gse agent information.
 type AgentInfo struct {
 	AgentState
 
-	HostIP        string
-	OSType        criteria.OSType
-	Arch          criteria.CPUArch
-	ParentIP      string
-	ParentPort    uint
-	CPURate       float32
-	MemRate       float32
-	StartTime     uint64
-	LastWorkTime  uint64
-	ConnCycleTime string
-	Status        string
-	LastStatus    string
-	RunMode       int
-	Remark        string
+	HostIP         string
+	OSType         criteria.OSType
+	Arch           criteria.CPUArch
+	ParentIP       string
+	ParentPort     uint
+	CPURate        float32
+	MemRate        float32
+	CPUNum         uint
+	MemSize        uint64
+	StartTime      uint64
+	LastWorkTime   uint64
+	LastStatusCode AgentStatusCode
+	ConnCycleTime  string
+	Status         string
+	LastStatus     string
+	Remark         string
 }
 
 // Endpoint represents the gse execution/transmission target.

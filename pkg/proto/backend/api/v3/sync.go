@@ -10,6 +10,8 @@
 
 package v3
 
+import "errors"
+
 // Validate check body.
 func (x *SyncCmdbHostReq) Validate() error {
 	return nil
@@ -26,4 +28,25 @@ func (req *SyncCmdbNetworkAreaReq) Validate() error {
 
 // AutoConvert auto convert.
 func (req *SyncCmdbNetworkAreaReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAgentStateReq) Validate() error {
+	if len(x.HostIds) == 0 {
+		return errors.New("host_ids is required")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAgentStateReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAllAgentStateReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAllAgentStateReq) AutoConvert() {
 }

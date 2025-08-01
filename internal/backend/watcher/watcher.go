@@ -292,13 +292,15 @@ func (w *Watcher) handleHostResource(ctx context.Context, event *types.HostEvent
 		if !ok {
 			w.mu.Lock()
 			defer w.mu.Unlock()
+			// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
+			event.Detail.Dynamic.AgentID = event.Detail.Static.SyncedAgentID
 			w.waitingCompleteDataHostMap[event.Detail.HostID] = event.Detail
 
 			return nil
 		}
 
 		event.Detail.Static.BizID = host.Static.BizID
-		err := w.conf.StorageTopo.UpsertManyHostStatic(ctx, event.Detail)
+		err := w.conf.StorageTopo.UpsertManyHost(ctx, event.Detail)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHost failed: %w", err)
 		}
@@ -347,7 +349,7 @@ func (w *Watcher) handleHostRelationResource(ctx context.Context, event *types.H
 		}
 
 		host.Static.BizID = event.Detail.Static.BizID
-		err := w.conf.StorageTopo.UpsertManyHostStatic(ctx, host)
+		err := w.conf.StorageTopo.UpsertManyHost(ctx, host)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHost failed: %w", err)
 		}

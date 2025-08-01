@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -46,6 +47,12 @@ type IHandler interface {
 
 	// UpdateDynamicMany updates host dynamics. will not insert.
 	UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error
+
+	// FindWithDynamic finds hosts with dynamic fields.
+	FindWithDynamic(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, error)
+
+	// UpdateDynamicVersionAndStatus updates the dynamic version and status of a host.
+	UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*types.Host) error
 
 	IDistinctor
 }
@@ -498,6 +505,64 @@ func (h *handler) DeleteMany(ctx context.Context, hostIDs ...int64) error {
 	filter := base.AliveFilter()
 	filter = WithHostID(hostIDs...)(filter)
 	if err := h.tenantDao(tenantID).DeleteMany(ctx, filter); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// FindWithDynamic finds hosts with dynamic fields.
+func (h *handler) FindWithDynamic(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+	findOpt.SetProjection(bson.D{{Key: FieldKeyHostID, Value: 1}, {Key: FieldKeyDynamic, Value: 1}})
+
+	hosts, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, nil
+}
+
+// UpdateDynamicVersionAndStatus updates the dynamic version and status of a host.
+func (h *handler) UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return err
+	}
+
+	docs := make([]*base.DocumentFieldUpdate, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: bson.D{{Key: FieldKeyHostID, Value: host.HostID}},
+			Fields: map[string]any{
+				FieldKeyDynamicNodeVersion: host.Dynamic.NodeVersion,
+				FieldKeyDynamicNodeStatus:  host.Dynamic.NodeStatus,
+			},
+		})
+	}
+
+	if err := h.tenantDao(tenantID).UpdateFieldsBulk(ctx, docs); err != nil {
+		h.logger.Errorf("failed to update host dynamic version and status: %v", err)
 		return err
 	}
 

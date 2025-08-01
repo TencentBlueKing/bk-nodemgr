@@ -117,6 +117,72 @@
           "Sync"
         ]
       }
+    },
+    "/api/v3/sync/gse/agent/state": {
+      "post": {
+        "operationId": "Sync_SyncAgentState",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAgentStateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncAgentStateReq describes the HTTP request body when sync agent state.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAgentStateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
+    "/api/v3/sync/gse/agent/state/all": {
+      "post": {
+        "operationId": "Sync_SyncAllAgentState",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllAgentStateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncAllAgentStateReq describes the HTTP request body when sync all agent\nstate.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncAllAgentStateReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
     }
   },
   "definitions": {
@@ -145,6 +211,77 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v3SyncAgentStateReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "SyncAgentStateReq describes the HTTP request body when sync agent state."
+    },
+    "v3SyncAgentStateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAgentStateRespData"
+        }
+      },
+      "description": "SyncAgentStateResp describes the HTTP response body when sync agent state."
+    },
+    "v3SyncAgentStateRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncAllAgentStateReq": {
+      "type": "object",
+      "description": "SyncAllAgentStateReq describes the HTTP request body when sync all agent\nstate."
+    },
+    "v3SyncAllAgentStateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncAllAgentStateRespData"
+        }
+      },
+      "description": "SyncAllAgentStateResp describes the HTTP response body when sync all agent\nstate."
+    },
+    "v3SyncAllAgentStateRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
         }
       }
     },

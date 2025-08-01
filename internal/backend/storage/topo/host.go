@@ -102,10 +102,7 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
 	[]*types.Host, int64, error) {
 
-	opts, err := convertHostConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, 0, err
-	}
+	opts := convertHostConditionsToOptions(conditions...)
 
 	return s.daoHost.List(ctx, page, opts...)
 }
@@ -117,20 +114,14 @@ func (s *Storage) ListHostOrderByUpdateTime(ctx context.Context, page types.Page
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(base.FieldKeyUpdatedAt))
 
-	opts, err := convertHostConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, 0, err
-	}
+	opts := convertHostConditionsToOptions(conditions...)
 
 	return s.daoHost.List(ctx, page, opts...)
 }
 
 // CountHost counts host by conditions.
 func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondition) (int64, error) {
-	opts, err := convertHostConditionsToOptions(conditions...)
-	if err != nil {
-		return 0, err
-	}
+	opts := convertHostConditionsToOptions(conditions...)
 
 	return s.daoHost.Count(ctx, opts...)
 }
@@ -142,10 +133,7 @@ func (s *Storage) DistinctHost(
 	ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 	*types.HostDistinctResult, error) {
 
-	opts, err := convertHostConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, err
-	}
+	opts := convertHostConditionsToOptions(conditions...)
 
 	result := new(types.HostDistinctResult)
 
@@ -237,7 +225,7 @@ func (s *Storage) DistinctHost(
 	return result, nil
 }
 
-func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.OptFn, error) { //nolint:unparam
+func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.OptFn {
 	opts := make([]host.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -303,7 +291,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) ([]host.
 		}
 	}
 
-	return opts, nil
+	return opts
 }
 
 // DeleteManyHost delete many hosts by hostIDs.
@@ -317,4 +305,30 @@ func (s *Storage) DeleteManyHost(ctx context.Context, hostIDs ...int64) error {
 	}
 
 	return s.daoHost.DeleteMany(ctx, hostIDs...)
+}
+
+// FindHostWithDynamic finds hosts with dynamic fields.
+func (s *Storage) FindHostWithDynamic(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
+	[]*types.Host, error) {
+
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+
+	return s.daoHost.FindWithDynamic(ctx, page, opts...)
+}
+
+// UpdateHostDynamicVersionAndStatus updates the dynamic version and status of a host.
+func (s *Storage) UpdateHostDynamicVersionAndStatus(ctx context.Context, host ...*types.Host) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if err := s.daoHost.UpdateDynamicVersionAndStatus(ctx, host...); err != nil {
+		return fmt.Errorf("failed to update host dynamic version and status, err: %w", err)
+	}
+
+	return nil
 }

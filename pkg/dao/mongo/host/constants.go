@@ -51,6 +51,9 @@ const (
 
 	// Dynamic fields.
 
+	// FieldKeyDynamic the dynamic field key.
+	FieldKeyDynamic = "data.dynamic"
+
 	// FieldKeyDynamicNodeRole the dynamic node role field key.
 	FieldKeyDynamicNodeRole = "data.dynamic.node_role"
 
