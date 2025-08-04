@@ -33,7 +33,8 @@ import (
 )
 
 // Manager defines the manager interface.
-type Manager interface { // nolint: interfacebloat
+// nolint: interfacebloat
+type Manager interface {
 	// Start starts the manager.
 	Start(ctx context.Context) error
 

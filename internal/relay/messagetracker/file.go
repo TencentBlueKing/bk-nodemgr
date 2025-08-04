@@ -22,8 +22,9 @@ import (
 )
 
 const (
-	filePrefix = "bkmgr_relay_"
-	fileSuffix = ".msg"
+	filePrefix           = "bkmgr_relay_"
+	fileSuffix           = ".msg"
+	fileRecoveryinterval = 4 * time.Hour
 )
 
 // FileTracker manages file storage for messages and implements MessageStore interface.
@@ -49,7 +50,7 @@ func NewFileManager(ctx context.Context, storagePath string) IMessageTracker {
 	fm.loadExistingFiles()
 
 	go func() {
-		ticker := time.NewTicker(4 * time.Hour) //nolint: mnd
+		ticker := time.NewTicker(fileRecoveryinterval)
 		defer ticker.Stop()
 
 		for {
