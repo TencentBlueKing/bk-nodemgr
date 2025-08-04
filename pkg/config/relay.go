@@ -25,7 +25,7 @@ const (
 	defaultRelayAdvertiseIPv4  = "127.0.0.1"
 	defaultRelayAdvertiseIPv6  = "::1"
 
-	defaultRelayLogDir        = "/bk-nodeman/log/"
+	defaultRelayLogDir        = "/bk-nodemgr/log/"
 	defaultRelayLogMaxNum     = 10
 	defaultRelayLogMaxSizeMB  = 200
 	defaultRelayLogLevel      = "INFO"
