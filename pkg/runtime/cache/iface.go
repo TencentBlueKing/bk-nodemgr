@@ -55,6 +55,7 @@ type defaultKeyGenerator struct {
 	prefix string
 }
 
+// Generate generates a cache key.
 func (g *defaultKeyGenerator) Generate(components ...string) string {
 	key := g.prefix
 	for _, comp := range components {
