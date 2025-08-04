@@ -13,7 +13,6 @@ package manager
 
 import (
 	"encoding/json"
-	"fmt"
 
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 )
@@ -25,5 +24,5 @@ func EchoHandler(payLoad []byte) {
 		return
 	}
 
-	fmt.Println("Received echo message:", echo.Message)
+	// example
 }

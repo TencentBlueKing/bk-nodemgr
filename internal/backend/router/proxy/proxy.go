@@ -65,7 +65,7 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 
 	body, err := io.ReadAll(gCtx.Request.Body)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to read request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to read request body: %v", err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 
 	data, err := h.proxyMessanger.DecodeBaseRequest(body)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message: %v", err)
 		return
 	}
 
@@ -100,14 +100,14 @@ func (h *handler) handleAck(ctx context.Context, data *relayhandler.ServerReceiv
 	h.logger.InfoCtxf(ctx, "received ack request. agent-id(%s)", data.AgentID)
 	msg, err := h.proxyMessanger.DecodeAckRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
 	}
 
 	if err := h.proxyMessanger.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to handle ack. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to handle ack. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -119,7 +119,7 @@ func (h *handler) handleAck(ctx context.Context, data *relayhandler.ServerReceiv
 func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerReceivedData) {
 	msg, err := h.proxyMessanger.DecodeCallbackRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -130,7 +130,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 		discover.EndpointNameBackendCallback,
 		discover.NewRandomSelector())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -143,7 +143,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 		"application/json",
 		bytes.NewReader(msg.Body))
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -151,7 +151,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to read response body. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to read response body. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -164,7 +164,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 		body,
 		data.AgentID,
 	); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to respond proxy callback. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to respond proxy callback. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -178,7 +178,7 @@ func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.Serve
 
 	marked, err := h.proxyMessanger.TryMarkProcessed(ctx, data.MessageID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to mark message process. message-id(%s), err: %v", data.MessageID, err)
+		h.logger.ErrorCtxf(ctx, "failed to mark message process. message-id(%s): %v", data.MessageID, err)
 		return
 	}
 
@@ -189,7 +189,7 @@ func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.Serve
 
 	msg, err := h.proxyMessanger.DecodeClientPushRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s): %v",
 			data.AgentID, err)
 
 		return
@@ -204,7 +204,7 @@ func (h *handler) callbackBackend(ctx context.Context, msg *protoRelay.ClientPus
 		discover.EndpointNameBackendCallback,
 		discover.NewRandomSelector())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to get callback endpoint. agent-id(%s): %v",
 			agentID, err)
 
 		return
@@ -221,7 +221,7 @@ func (h *handler) callbackBackend(ctx context.Context, msg *protoRelay.ClientPus
 		bytes.NewReader(msg.Body))
 
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to send request to callback. agent-id(%s): %v",
 			agentID, err)
 
 		return
