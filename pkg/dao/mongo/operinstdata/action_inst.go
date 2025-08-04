@@ -213,7 +213,7 @@ func (h *handler) GetActInstPrivateData(ctx context.Context,
 	}
 
 	if actionName == "" {
-		return nil, errors.New("actionName is empty")
+		return nil, errors.New("action name is empty")
 	}
 
 	filter := base.AliveFilter()
@@ -315,7 +315,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	if actionName == "" {
-		return nil, errors.New("actionName is empty")
+		return nil, errors.New("action name is empty")
 	}
 
 	filter := base.AliveFilter()

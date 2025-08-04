@@ -25,10 +25,10 @@ type ICache interface {
 	// Set stores a value with a key. using default ttl.
 	Set(ctx context.Context, key string, value []byte) error
 
-	// SetNX sets a value with a key if the key exist will return error.
+	// SetNX sets a value with a key if the key exist will return false.
 	SetNX(ctx context.Context, key string, value []byte) (bool, error)
 
-	// SetNXWithExpiration sets a value with an expiration time.
+	// SetNXWithExpiration sets a value with an expiration time if the key exist will return false.
 	SetNXWithExpiration(ctx context.Context, key string, value []byte, expiration time.Duration) (bool, error)
 
 	// SetWithExpiration sets a value with an expiration time.

@@ -51,7 +51,7 @@ func (rt *RedisTracker) IsAcked(ctx context.Context, mid string) (bool, error) {
 	return rt.cache.Exists(ctx, key)
 }
 
-// TryMarkProcessed marks a message ID as processed.
+// TryMarkProcessed marks a message ID as processed.if key exists, return false.
 func (rt *RedisTracker) TryMarkProcessed(ctx context.Context, mid string) (bool, error) {
 	key := processedPrefix + mid
 	return rt.cache.SetNXWithExpiration(ctx, key, []byte("1"), rt.expiration)
