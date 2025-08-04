@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -213,7 +214,13 @@ func (h *handler) callbackBackend(ctx context.Context, msg *protoRelay.ClientPus
 	h.logger.InfoCtxf(ctx, "try to redirect request to callback endpoint(%s), agent-id(%s)",
 		callbackEndpoint.GetIPV4Address(), agentID)
 
-	url := backendCallbackURLPrefix + msg.URL
+	url, err := url.JoinPath(backendCallbackURLPrefix, msg.URL)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to format callback endpoint url. agent-id(%s),prefix-url(%s),msg-url(%s): %v",
+			agentID, backendCallbackURLPrefix, msg.URL, err)
+
+		return
+	}
 
 	resp, err := http.Post(
 		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), url),
