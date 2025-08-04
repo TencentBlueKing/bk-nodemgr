@@ -52,7 +52,7 @@ func (rc *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get redis cache. key(%s), err: %w", key, err)
+		return nil, fmt.Errorf("failed to get redis cache. key(%s): %w", key, err)
 	}
 
 	return data, nil
@@ -68,7 +68,7 @@ func (rc *RedisCache) SetWithExpiration(ctx context.Context,
 
 	err := rc.client.Set(ctx, key, value, ttl).Err()
 	if err != nil {
-		return fmt.Errorf("failed to set redis cache. key(%s), err: %w", key, err)
+		return fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
 	return nil
@@ -82,7 +82,7 @@ func (rc *RedisCache) Set(ctx context.Context, key string, value []byte) error {
 
 	err := rc.client.Set(ctx, key, value, rc.defaultTTL).Err()
 	if err != nil {
-		return fmt.Errorf("failed to set redis cache. key(%s), err: %w", key, err)
+		return fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
 	return nil
@@ -95,7 +95,7 @@ func (rc *RedisCache) SetNX(ctx context.Context, key string, value []byte) (bool
 	}
 	exists, err := rc.client.SetNX(ctx, key, value, rc.defaultTTL).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to set redis cache. key(%s), err: %w", key, err)
+		return false, fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
 	return exists, nil
@@ -111,7 +111,7 @@ func (rc *RedisCache) SetNXWithExpiration(ctx context.Context,
 
 	exists, err := rc.client.SetNX(ctx, key, value, expiration).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to set redis cache. key(%s), err: %w", key, err)
+		return false, fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
 	return exists, nil
@@ -124,10 +124,10 @@ func (rc *RedisCache) Exists(ctx context.Context, key string) (bool, error) {
 	}
 	count, err := rc.client.Exists(ctx, key).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to check redis cache. key(%s), err: %w", key, err)
+		return false, fmt.Errorf("failed to check redis cache. key(%s): %w", key, err)
 	}
 
-	return count > 0, err
+	return count > 0, nil
 }
 
 // Delete removes a value by key.
@@ -138,7 +138,7 @@ func (rc *RedisCache) Delete(ctx context.Context, key string) (bool, error) {
 
 	count, err := rc.client.Del(ctx, key).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to delete redis cache. key(%s), err: %w", key, err)
+		return false, fmt.Errorf("failed to delete redis cache. key(%s): %w", key, err)
 	}
 
 	return count > 0, err

@@ -123,7 +123,7 @@ func (m *clientMessager) messageCallback(messageID string, content []byte) {
 
 	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
-		m.config.Logger.Errorf("failed to unmarshal base message. message-id(%s), err: %v", content, err)
+		m.config.Logger.Errorf("failed to unmarshal base message. content(%s): %v", content, err)
 		return
 	}
 
@@ -149,12 +149,12 @@ func (m *clientMessager) messageCallback(messageID string, content []byte) {
 func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
 	var msg protoRelay.AckReq
 	if err := json.Unmarshal(content, &msg); err != nil {
-		m.config.Logger.Errorf("invalid push format, err: %v", err)
+		m.config.Logger.Errorf("invalid push format: %v", err)
 		return
 	}
 
 	if err := m.fileMsgTracker.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
-		m.config.Logger.Errorf("failed to mark acked. original-message-id(%s), err: %v", msg.OriginalMessageID, err)
+		m.config.Logger.Errorf("failed to mark acked. original-message-id(%s): %v", msg.OriginalMessageID, err)
 	}
 
 	m.config.Logger.Infof("ack received for message. original-message-id(%s)", msg.OriginalMessageID)
@@ -165,7 +165,7 @@ func (m *clientMessager) handleServerPush(ctx context.Context, messageID string,
 
 	exists, err := m.fileMsgTracker.TryMarkProcessed(ctx, messageID)
 	if err != nil {
-		m.config.Logger.Errorf("failed to mark message process. message-id(%s), error: %v", messageID, err)
+		m.config.Logger.Errorf("failed to mark message process. message-id(%s): %v", messageID, err)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (m *clientMessager) handleServerPush(ctx context.Context, messageID string,
 func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
 	var push protoRelay.ServerPushReq
 	if err := json.Unmarshal(content, &push); err != nil {
-		m.config.Logger.Errorf("invalid push format, err: %v", err)
+		m.config.Logger.Errorf("invalid push format: %v", err)
 		return
 	}
 
@@ -211,7 +211,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 	}
 	reqData, err := json.Marshal(req)
 	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed,err: %w", err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed: %w", err)
 	}
 
 	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
@@ -226,7 +226,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 			var resp protoRelay.CallbackResp
 			if err := json.Unmarshal(respData, &resp); err != nil {
 				return nil, http.StatusInternalServerError, fmt.Errorf(
-					"unmarshal response failed, err: %w", err)
+					"unmarshal response failed: %w", err)
 			}
 
 			return resp.Body, resp.HTTPCode, nil
@@ -246,11 +246,11 @@ func (m *clientMessager) sendAck(ctx context.Context, originalMessageID string) 
 
 	ackData, err := json.Marshal(ackReq)
 	if err != nil {
-		m.config.Logger.Errorf("failed to marshal ack request, err: %v", err)
+		m.config.Logger.Errorf("failed to marshal ack request: %v", err)
 	}
 
 	if err := m.client.SendMessage(ctx, ackReq.MessageID, ackData); err != nil {
-		m.config.Logger.Errorf("failed to send ack request, err: %v", err)
+		m.config.Logger.Errorf("failed to send ack request: %v", err)
 	}
 
 	m.config.Logger.Infof("ack sent for message. message-id(%s)", originalMessageID)
@@ -296,12 +296,12 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 			m.config.Logger.Infof("sending client push request (attempt %d). message-id(%s)", attempt, messageID)
 
 			if err := m.client.SendMessage(retryCtx, messageID, reqData); err != nil {
-				return fmt.Errorf("send message failed, err: %w", err)
+				return fmt.Errorf("send message failed: %w", err)
 			}
 
 			acked, err := m.fileMsgTracker.IsAcked(retryCtx, messageID)
 			if err != nil {
-				return fmt.Errorf("check ack failed, err: %w", err)
+				return fmt.Errorf("check ack failed: %w", err)
 			}
 			if !acked {
 				return errors.New("ack not received")

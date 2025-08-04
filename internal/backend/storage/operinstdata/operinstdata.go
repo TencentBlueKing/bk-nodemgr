@@ -188,7 +188,7 @@ func (s *Storage) GetActionInstancePrivateData(ctx context.Context, operationIns
 	}
 
 	if actionName == "" {
-		return nil, errors.New("actionName is empty")
+		return nil, errors.New("action name is empty")
 	}
 
 	return s.daoOperinstdata.GetActInstPrivateData(ctx, operationInstanceID, actionName)

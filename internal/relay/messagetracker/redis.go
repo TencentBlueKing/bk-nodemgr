@@ -43,7 +43,7 @@ func NewRedisTracker(cache *rediscache.RedisCache) IMessageTracker {
 // MarkAcked marks a message ID as acked.
 func (rt *RedisTracker) MarkAcked(ctx context.Context, mid string) error {
 	key := pendingAckPrefix + mid
-	return rt.cache.SetWithExpiration(ctx, key, []byte("1"), rt.expiration)
+	return rt.cache.SetWithExpiration(ctx, key, []byte(markedSigal), rt.expiration)
 }
 
 // IsAcked checks if a message ID is in the pending list.

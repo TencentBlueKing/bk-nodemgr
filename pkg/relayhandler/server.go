@@ -120,7 +120,7 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 
 	base := new(protoRelay.Base)
 	if err = json.Unmarshal([]byte(data.Content), base); err != nil {
-		return nil, fmt.Errorf("failed to decode base request content. data(%s), err: %w", data.Content, err)
+		return nil, fmt.Errorf("failed to decode base request content. data(%s): %w", data.Content, err)
 	}
 
 	return &ServerReceivedData{
@@ -135,7 +135,7 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error) {
 	result := new(protoRelay.CallbackReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, fmt.Errorf("failed to decode callback request content. data(%s), err: %w", data.Content, err)
+		return nil, fmt.Errorf("failed to decode callback request content. data(%s): %w", data.Content, err)
 	}
 
 	return result, nil
@@ -145,7 +145,7 @@ func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*proto
 func (m *serverMessager) DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error) {
 	result := new(protoRelay.AckReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, fmt.Errorf("failed to decode ack request content. data(%s), err: %w", data.Content, err)
+		return nil, fmt.Errorf("failed to decode ack request content. data(%s): %w", data.Content, err)
 	}
 
 	return result, nil
@@ -157,7 +157,7 @@ func (m *serverMessager) DecodeClientPushRequest(data *ServerReceivedData) (
 
 	result := new(protoRelay.ClientPushReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, fmt.Errorf("failed to decode client push request content. data(%s), err: %w", data.Content, err)
+		return nil, fmt.Errorf("failed to decode client push request content. data(%s): %w", data.Content, err)
 	}
 
 	return result, nil
@@ -177,7 +177,7 @@ func (m *serverMessager) RespondCallback(ctx context.Context,
 	}
 	respData, err := json.Marshal(resp)
 	if err != nil {
-		return fmt.Errorf("marshal callback resp failed, err: %w", err)
+		return fmt.Errorf("marshal callback resp failed: %w", err)
 	}
 
 	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
@@ -213,7 +213,7 @@ func (m *serverMessager) PushToClient(ctx context.Context,
 	}
 	pushData, err := json.Marshal(push)
 	if err != nil {
-		resultChan <- fmt.Errorf("marshal push data failed, err: %w", err)
+		resultChan <- fmt.Errorf("marshal push data failed: %w", err)
 		return resultChan
 	}
 
@@ -235,7 +235,7 @@ func (m *serverMessager) PushToClient(ctx context.Context,
 			result, err := m.client.Cluster().PluginDispatchMessage(
 				retryCtx, push.MessageID, pushData, agentIDs...)
 			if err != nil {
-				return fmt.Errorf("dispatch message failed, err: %w", err)
+				return fmt.Errorf("dispatch message failed: %w", err)
 			}
 
 			if result.Code != 0 || len(result.AgentResults) > 0 {
@@ -248,7 +248,7 @@ func (m *serverMessager) PushToClient(ctx context.Context,
 
 			acked, err := m.isMessageAcked(retryCtx, messageID)
 			if err != nil {
-				return fmt.Errorf("check ack failed, err: %w", err)
+				return fmt.Errorf("check ack failed: %w", err)
 			}
 			if !acked {
 				return errors.New("ack not received")
@@ -277,12 +277,12 @@ func (m *serverMessager) SendAck(ctx context.Context, originalMessageID string, 
 	}
 	respData, err := json.Marshal(resp)
 	if err != nil {
-		m.config.Logger.Errorf("failed to marshal ack request, err: %v", err)
+		m.config.Logger.Errorf("failed to marshal ack request: %v", err)
 	}
 
 	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
 	if err != nil {
-		m.config.Logger.Errorf("failed to send ack, err: %v", err)
+		m.config.Logger.Errorf("failed to send ack: %v", err)
 		return
 	}
 
@@ -310,8 +310,8 @@ func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, 
 func (m *serverMessager) TryMarkProcessed(ctx context.Context, mid string) (bool, error) {
 	marked, err := m.redisMsgTracker.TryMarkProcessed(ctx, mid)
 	if err != nil {
-		m.config.Logger.Errorf("mark processed failed, err: %v", mid, err)
-		return false, fmt.Errorf("failed to mark processed, err: %w", err)
+		m.config.Logger.Errorf("mark processed failed: %v", mid, err)
+		return false, fmt.Errorf("failed to mark processed: %w", err)
 	}
 
 	return marked, nil
@@ -320,8 +320,8 @@ func (m *serverMessager) TryMarkProcessed(ctx context.Context, mid string) (bool
 // MarkAcked marks a message ID as acked.
 func (m *serverMessager) MarkAcked(ctx context.Context, mid string) error {
 	if err := m.redisMsgTracker.MarkAcked(ctx, mid); err != nil {
-		m.config.Logger.Errorf("mark ack failed: %s, %v", mid, err)
-		return fmt.Errorf("failed to mark acked, err: %w", err)
+		m.config.Logger.Errorf("mark ack failed. mid(%s): %v", mid, err)
+		return fmt.Errorf("failed to mark acked: %w", err)
 	}
 
 	m.config.Logger.Infof("ACK received. message-id(%s)", mid)
