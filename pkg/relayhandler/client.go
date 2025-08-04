@@ -34,6 +34,7 @@ type ClientMessagerConfig struct {
 	// PluginVersion is the plugin version.
 	PluginVersion string `json:"plugin_version"`
 
+	// PluginName is the plugin name.
 	PluginName string `json:"plugin_name"`
 
 	// DomainSocketPath is the domain socket path when in unix node.
@@ -172,7 +173,7 @@ func (m *clientMessager) handleServerPush(ctx context.Context, messageID string,
 		return
 	}
 
-	go m.dispatcherServerPushEvent(content)
+	m.dispatcherServerPushEvent(content)
 }
 
 func (m *clientMessager) dispatcherServerPushEvent(content []byte) {

@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	pendingAckPrefix  = "relay:acked:"
-	processedPrefix   = "relay:processed:"
+	pendingAckPrefix  = "bknm:relay:acked:"
+	processedPrefix   = "bknm:relay:processed:"
 	defaultexpiration = 12 * time.Hour
 )
 
