@@ -1,0 +1,19 @@
+name: "Issue Done Labeler"
+on:
+  issues:
+    types: [closed] # 当issue被关闭时触发
+
+jobs:
+  set-issue:
+    runs-on: self-hosted
+    permissions:
+      issues: write
+    steps:
+      - name: Check and Update Labels
+        if: contains(github.event.issue.labels.*.name, 'product/todo')
+        run: |
+          gh issue edit "$NUMBER" --remove-label "product/todo" --add-label "product/done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
