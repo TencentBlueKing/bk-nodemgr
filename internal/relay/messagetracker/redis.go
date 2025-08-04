@@ -23,6 +23,7 @@ const (
 	pendingAckPrefix  = "bknm:relay:acked:"
 	processedPrefix   = "bknm:relay:processed:"
 	defaultexpiration = 12 * time.Hour
+	markedSigal       = "1"
 )
 
 // RedisTracker is a Redis-based implementation of a message store for relay operations.
@@ -54,5 +55,5 @@ func (rt *RedisTracker) IsAcked(ctx context.Context, mid string) (bool, error) {
 // TryMarkProcessed marks a message ID as processed.if key exists, return false.
 func (rt *RedisTracker) TryMarkProcessed(ctx context.Context, mid string) (bool, error) {
 	key := processedPrefix + mid
-	return rt.cache.SetNXWithExpiration(ctx, key, []byte("1"), rt.expiration)
+	return rt.cache.SetNXWithExpiration(ctx, key, []byte(markedSigal), rt.expiration)
 }

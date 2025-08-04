@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
@@ -97,7 +96,7 @@ func (m *serverMessager) Start(_ context.Context) error {
 	m.client = client
 
 	m.redisMsgTracker = messagetracker.NewRedisTracker(
-		rediscache.NewRedisCache(m.config.RedisClient, 12*time.Hour)) //nolint: mnd
+		rediscache.NewRedisCache(m.config.RedisClient, rediscache.DefaultTimeout))
 	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	m.config.Logger.Infof("started messager")
@@ -121,7 +120,7 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 
 	base := new(protoRelay.Base)
 	if err = json.Unmarshal([]byte(data.Content), base); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode base request content. data(%s), err: %w", data.Content, err)
 	}
 
 	return &ServerReceivedData{
@@ -136,7 +135,7 @@ func (m *serverMessager) DecodeBaseRequest(req []byte) (*ServerReceivedData, err
 func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error) {
 	result := new(protoRelay.CallbackReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode callback request content. data(%s), err: %w", data.Content, err)
 	}
 
 	return result, nil
@@ -146,7 +145,7 @@ func (m *serverMessager) DecodeCallbackRequest(data *ServerReceivedData) (*proto
 func (m *serverMessager) DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error) {
 	result := new(protoRelay.AckReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode ack request content. data(%s), err: %w", data.Content, err)
 	}
 
 	return result, nil
@@ -158,7 +157,7 @@ func (m *serverMessager) DecodeClientPushRequest(data *ServerReceivedData) (
 
 	result := new(protoRelay.ClientPushReq)
 	if err := json.Unmarshal(data.Content, result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode client push request content. data(%s), err: %w", data.Content, err)
 	}
 
 	return result, nil
@@ -178,7 +177,7 @@ func (m *serverMessager) RespondCallback(ctx context.Context,
 	}
 	respData, err := json.Marshal(resp)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal callback resp failed, err: %w", err)
 	}
 
 	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
@@ -214,7 +213,7 @@ func (m *serverMessager) PushToClient(ctx context.Context,
 	}
 	pushData, err := json.Marshal(push)
 	if err != nil {
-		resultChan <- fmt.Errorf("marshal push data failed: %w", err)
+		resultChan <- fmt.Errorf("marshal push data failed, err: %w", err)
 		return resultChan
 	}
 

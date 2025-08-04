@@ -140,15 +140,20 @@ func (fm *FileTracker) cleanupExpired(_ context.Context) error {
 		timePart := parts[2]
 		loc, _ := time.LoadLocation("Local")
 		fileTime, err := time.ParseInLocation("20060102-1504", timePart, loc)
+		if err != nil {
+			continue
+		}
+
+		if !fileTime.Before(cutoff) {
+			continue
+		}
 
 		idPart := parts[3]
 		messageID := strings.TrimSuffix(idPart, fileSuffix)
 
-		if err == nil && fileTime.Before(cutoff) {
-			_ = os.Remove(file)
-			delete(fm.messageSet, messageID)
-			delete(fm.ackedSet, messageID) // Remove from acked set as well
-		}
+		_ = os.Remove(file)
+		delete(fm.messageSet, messageID)
+		delete(fm.ackedSet, messageID) // Remove from acked set as well
 	}
 
 	return nil

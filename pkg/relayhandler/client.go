@@ -123,6 +123,7 @@ func (m *clientMessager) messageCallback(messageID string, content []byte) {
 
 	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
+		m.config.Logger.Errorf("failed to unmarshal base message. message-id(%s), err: %v", content, err)
 		return
 	}
 
@@ -210,7 +211,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 	}
 	reqData, err := json.Marshal(req)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed,err: %w", err)
 	}
 
 	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
@@ -224,7 +225,8 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		case respData := <-ch:
 			var resp protoRelay.CallbackResp
 			if err := json.Unmarshal(respData, &resp); err != nil {
-				return nil, http.StatusInternalServerError, err
+				return nil, http.StatusInternalServerError, fmt.Errorf(
+					"unmarshal response failed, err: %w", err)
 			}
 
 			return resp.Body, resp.HTTPCode, nil
