@@ -187,6 +187,11 @@ func (s *Storage) SetAsDefaultRelease(ctx context.Context,
 	plat platform.Platform,
 	version string) error {
 
+	// cancel all version as-default in this platform.
+	if err := s.daoRelease.CancelPlatformDefault(ctx, gen, releaseType, plat); err != nil {
+		return fmt.Errorf("failed to cancel all version in this platform as default. platform(%s)", plat.String())
+	}
+
 	return s.daoRelease.SetAsDefault(ctx, gen, releaseType, plat, version, true)
 }
 

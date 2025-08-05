@@ -23,6 +23,7 @@ import (
 	applicationapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
@@ -41,6 +42,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.mongodb.org/mongo-driver/mongo"
+	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -93,6 +96,16 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 	svc.Cap.BackendHandler, err = newBackendHandler(svc.conf.Backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new service: %w", err)
+	}
+
+	mongoClient, err := initMongoDB(&conf.MongoDB)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.StorageConfigPolicyTemplate, err = cptemplate.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return nil, err
 	}
 
 	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
@@ -357,4 +370,24 @@ func (svc *Service) GracefulShutdown() error {
 	blog.CloseLogs()
 
 	return nil
+}
+
+func initMongoDB(conf *config.MongoDB) (*mongo.Client, error) {
+	mongoClient, err := mongo.Connect(
+		context.Background(),
+		&mongoOptions.ClientOptions{
+			Hosts: conf.Hosts,
+			Auth: &mongoOptions.Credential{
+				Username:      conf.Username,
+				Password:      conf.Password,
+				AuthSource:    conf.AuthSource,
+				AuthMechanism: conf.AuthMechanism,
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return mongoClient, nil
 }

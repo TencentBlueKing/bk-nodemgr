@@ -13,7 +13,6 @@ package networkunit
 import (
 	"context"
 	"errors"
-	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -44,37 +43,23 @@ type IHandler interface {
 }
 
 type handler struct {
-	client *mongo.Database
+	dao    *dao
 	logger logger.Logger
-	// daoMap stores dao's containing tenant information.
-	// Do not edit the daoMap except with the tenantDao func.
-	daoMap sync.Map
 }
 
-func (h *handler) tenantDao(tenantID string) *dao {
-	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao)
-	}
-
-	newDaoClient := newDao(tenantID, h.client, h.logger)
-	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure networkunit indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
-	}
-
-	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
-
-	// note: we can be sure that only the tenantDao func edit the daoMap,
-	// so we can just use the type assertion here.
-	return d.(*dao)
-}
-
-// New create a new networkunit handler.
+// New create a new networkarea handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
-	return &handler{
-		client: client,
+	h := &handler{
+		dao:    newDao(client, logger),
 		logger: logger,
-		daoMap: sync.Map{},
 	}
+
+	if err := h.dao.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure networkunit indexes, err: %v",
+			errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	return h
 }
 
 // Count counts networkunit by conditions.
@@ -88,8 +73,9 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
+	filter = append(filter, tenantFilter(tenantID))
 
-	return h.tenantDao(tenantID).count(ctx, filter)
+	return h.dao.Count(ctx, filter)
 }
 
 // List lists networkunit by page and conditions.
@@ -105,15 +91,16 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
+	filter = append(filter, tenantFilter(tenantID))
 
-	num, err := h.tenantDao(tenantID).count(ctx, filter)
+	num, err := h.dao.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	networkUnits, err := h.tenantDao(tenantID).list(ctx, filter, findOpt)
+	networkUnits, err := h.dao.List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -138,10 +125,11 @@ func (h *handler) Get(ctx context.Context, networkUnitID int64) (*types.NetworkU
 	}
 
 	filter := base.AliveFilter()
-	opt := base.WithInt64Values("data.networkunit_id", networkUnitID)
+	opt := base.WithInt64Values(FieldKeyNetworkUnitID, networkUnitID)
 	filter = opt(filter)
+	filter = append(filter, tenantFilter(tenantID))
 
-	data, err := h.tenantDao(tenantID).get(ctx, filter)
+	data, err := h.dao.Get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +160,7 @@ func (h *handler) Create(ctx context.Context, networkUnit *types.NetworkUnit) (i
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	return h.tenantDao(networkUnit.TenantID).create(ctx, convertNetworkUnitFromTypes(networkUnit))
+	return h.dao.create(ctx, convertNetworkUnitFromTypes(networkUnit))
 }
 
 // UpdateMany updates networkunit.
@@ -199,7 +187,7 @@ func (h *handler) UpdateMany(ctx context.Context, networkUnits ...*types.Network
 		}
 	}
 
-	if err := h.tenantDao(tenantID).updateMany(ctx, data); err != nil {
+	if err := h.dao.updateMany(ctx, tenantID, data); err != nil {
 		return err
 	}
 
@@ -217,7 +205,7 @@ func (h *handler) DeleteMany(ctx context.Context, networkUnitIDs ...int64) error
 		return base.ErrEmptyParamData()
 	}
 
-	if err := h.tenantDao(tenantID).deleteMany(ctx, networkUnitIDs...); err != nil {
+	if err := h.dao.deleteMany(ctx, tenantID, networkUnitIDs...); err != nil {
 		return err
 	}
 

@@ -47,10 +47,17 @@ type handler struct {
 
 // New create a new trigger handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
-	return &handler{
+	h := &handler{
 		logger: logger,
 		dao:    newDao(client, logger),
 	}
+
+	if err := h.dao.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure trigger indexes, err: %v",
+			errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	return h
 }
 
 // Get get a specified trigger.

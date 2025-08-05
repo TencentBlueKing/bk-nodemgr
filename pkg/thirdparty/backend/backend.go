@@ -1020,3 +1020,150 @@ func (c *cli) deleteRelease(ctx context.Context, req *protoBackend.PackageReleas
 
 	return nil
 }
+
+func (c *cli) listConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyListReq) (
+	*protoBackend.ConfigPolicyListResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyListResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/list").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyGetReq) (
+	*protoBackend.ConfigPolicyGetResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyGetResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/get").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) createConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyCreateReq) (
+	*protoBackend.ConfigPolicyCreateResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyCreateResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/create").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("create config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyUpdateReq) (
+	*protoBackend.ConfigPolicyUpdateResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyUpdateResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/update").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) enableConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyEnableReq) (
+	*protoBackend.ConfigPolicyEnableResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyEnableResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/enable").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("enable config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) disableConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyDisableReq) (
+	*protoBackend.ConfigPolicyDisableResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyDisableResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/disable").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("disable config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) deleteConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyDeleteReq) (
+	*protoBackend.ConfigPolicyDeleteResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyDeleteResp)
+	err := c.client.Post().
+		SubResourcef("/policy/config/delete").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("delete config policy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

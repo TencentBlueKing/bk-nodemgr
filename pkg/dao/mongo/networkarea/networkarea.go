@@ -18,16 +18,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	tableName := TableName()
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	d := &dao{
-		tenantID:  tenantID,
-		client:    client.Collection(tableName),
-		logger:    logger,
-		tableName: tableName,
+		client: client.Collection(TableName()),
+		logger: logger,
 	}
 
 	d.IOrm = base.NewOrm[*NetworkArea, NetworkArea](d)
@@ -36,10 +32,8 @@ func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao 
 }
 
 type dao struct {
-	tenantID  string
-	client    *mongo.Collection
-	tableName string
-	logger    logger.Logger
+	client *mongo.Collection
+	logger logger.Logger
 	base.IOrm[*NetworkArea, NetworkArea]
 }
 
@@ -55,7 +49,7 @@ func (d *dao) GetLogger() logger.Logger {
 
 // GetTableName get the dao's table name.
 func (d *dao) GetTableName() string {
-	return d.tableName
+	return TableName()
 }
 
 // GetIndexes get the dao's indexes.
@@ -69,20 +63,8 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	return d.Count(ctx, append(filter, d.tenantFilter()))
-}
-
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*NetworkArea, error) {
-	return d.List(ctx, append(filter, d.tenantFilter()), findOpt)
-}
-
-func (d *dao) get(ctx context.Context, filter bson.D) (*NetworkArea, error) {
-	return d.Get(ctx, append(filter, d.tenantFilter()))
-}
-
-func (d *dao) upsertMany(ctx context.Context, networkAreas []*NetworkArea) error {
-	models := buildUpsertManyParams(d.tenantID, networkAreas)
+func (d *dao) upsertMany(ctx context.Context, tenantID string, networkAreas []*NetworkArea) error {
+	models := buildUpsertManyParams(tenantID, networkAreas)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -100,8 +82,8 @@ func (d *dao) upsertMany(ctx context.Context, networkAreas []*NetworkArea) error
 	return nil
 }
 
-func (d *dao) updateMany(ctx context.Context, networkAreas []*NetworkArea) error {
-	models := buildUpdateManyParams(d.tenantID, networkAreas)
+func (d *dao) updateMany(ctx context.Context, tenantID string, networkAreas []*NetworkArea) error {
+	models := buildUpdateManyParams(tenantID, networkAreas)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -115,8 +97,8 @@ func (d *dao) updateMany(ctx context.Context, networkAreas []*NetworkArea) error
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, networkAreaIDs ...int64) error {
-	models := buildDeleteManyParams(d.tenantID, networkAreaIDs...)
+func (d *dao) deleteMany(ctx context.Context, tenantID string, networkAreaIDs ...int64) error {
+	models := buildDeleteManyParams(tenantID, networkAreaIDs...)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -133,12 +115,12 @@ func (d *dao) deleteMany(ctx context.Context, networkAreaIDs ...int64) error {
 // tenantFilter additional tenant filter.
 // all tenants can filter global networkarea in query methods.
 // and the networkareas in their own tenant.
-func (d *dao) tenantFilter() bson.E {
+func tenantFilter(tenantID string) bson.E {
 	return bson.E{
 		Key: "$or",
 		Value: bson.A{
-			bson.D{{FieldKeyTenantID, d.tenantID}},
-			bson.D{{FieldKeyNetworkAreaID, base.GlobalNetworkAreaID}},
+			bson.D{{Key: FieldKeyTenantID, Value: tenantID}},
+			bson.D{{Key: FieldKeyNetworkAreaID, Value: base.GlobalNetworkAreaID}},
 		}}
 }
 

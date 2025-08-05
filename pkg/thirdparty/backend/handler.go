@@ -29,6 +29,7 @@ type Handler interface {
 	IHandlerNodeAgent
 	IHandlerNodeWorkflow
 	IHandlerRelease
+	IHandlerConfigPolicy
 
 	// ListBusiness list business within specified tenant in context.
 	// @param ctx context, contains tenant-id.
@@ -301,6 +302,34 @@ type IHandlerRelease interface {
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
+}
+
+// IHandlerConfigPolicy defines the backend handler for config policy.
+type IHandlerConfigPolicy interface {
+	// ListConfigPolicy lists config policy by page and conditions.
+	ListConfigPolicy(ctx context.Context, page types.Page, condition *types.ConfigPolicyCondition) (
+		[]*types.ConfigPolicy, int64, error)
+
+	// GetConfigPolicy gets config policy by config policy id.
+	GetConfigPolicy(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error)
+
+	// CountConfigPolicy counts config policy by conditions.
+	CountConfigPolicy(ctx context.Context, condition *types.ConfigPolicyCondition) (int64, error)
+
+	// CreateConfigPolicy creates config policy.
+	CreateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error)
+
+	// UpdateConfigPolicy updates config policy.
+	UpdateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error)
+
+	// EnableConfigPolicy enables config policy by config policy ids.
+	EnableConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
+
+	// DisableConfigPolicy disables config policy by config policy ids.
+	DisableConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
+
+	// DeleteConfigPolicy deletes config policy by config policy ids.
+	DeleteConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
 }
 
 type handler struct {
@@ -1126,4 +1155,121 @@ func (h *handler) DeleteRelease(ctx context.Context,
 	req.SetIdentifer(gen, releaseType, plat, version)
 
 	return h.cli.deleteRelease(ctx, req)
+}
+
+// ListConfigPolicy lists config policy.
+func (h *handler) ListConfigPolicy(ctx context.Context,
+	page types.Page,
+	condition *types.ConfigPolicyCondition) ([]*types.ConfigPolicy, int64, error) {
+
+	req := &protoBackend.ConfigPolicyListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listConfigPolicy(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, configPolicies := resp.ConvertConfigPoliciesToTypes()
+
+	return configPolicies, total, nil
+}
+
+// GetConfigPolicy gets config policy by config policy id.
+func (h *handler) GetConfigPolicy(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error) {
+	req := &protoBackend.ConfigPolicyGetReq{
+		ConfigpolicyId: configPolicyID,
+	}
+
+	resp, err := h.cli.getConfigPolicy(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertConfigPolicyToTypes(), nil
+}
+
+// CountConfigPolicy counts config policy.
+func (h *handler) CountConfigPolicy(ctx context.Context,
+	condition *types.ConfigPolicyCondition) (int64, error) {
+
+	req := &protoBackend.ConfigPolicyListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listConfigPolicy(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// CreateConfigPolicy creates config policy.
+func (h *handler) CreateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error) {
+	req := new(protoBackend.ConfigPolicyCreateReq)
+	req.ConvertConfigPolicyFromTypes(configPolicy)
+
+	resp, err := h.cli.createConfigPolicy(ctx, req)
+	if err != nil {
+		return -1, err
+	}
+
+	return resp.GetData().GetConfigpolicyId(), nil
+}
+
+// UpdateConfigPolicy updates config policy.
+func (h *handler) UpdateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error) {
+	req := new(protoBackend.ConfigPolicyUpdateReq)
+	req.ConvertConfigPolicyFromTypes(configPolicy)
+
+	resp, err := h.cli.updateConfigPolicy(ctx, req)
+	if err != nil {
+		return -1, err
+	}
+
+	return resp.GetData().GetConfigpolicyId(), nil
+}
+
+// EnableConfigPolicy enables config policy.
+func (h *handler) EnableConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
+	req := &protoBackend.ConfigPolicyEnableReq{ConfigpolicyId: configPolicyIDs}
+
+	_, err := h.cli.enableConfigPolicy(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DisableConfigPolicy disables config policy.
+func (h *handler) DisableConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
+	req := &protoBackend.ConfigPolicyDisableReq{ConfigpolicyId: configPolicyIDs}
+
+	_, err := h.cli.disableConfigPolicy(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteConfigPolicy deletes config policy.
+func (h *handler) DeleteConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
+	req := &protoBackend.ConfigPolicyDeleteReq{ConfigpolicyId: configPolicyIDs}
+
+	_, err := h.cli.deleteConfigPolicy(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

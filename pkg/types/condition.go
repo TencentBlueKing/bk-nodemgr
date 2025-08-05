@@ -417,3 +417,31 @@ type GlobalSettingsCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *GlobalSettingsFuzzyFields
 }
+
+// ConfigPolicyExactFields defines the config policy exact fields.
+type ConfigPolicyExactFields struct {
+	ConfigPolicyID []int64
+	BizID          []int64
+	NodeRole       []NodeRole
+	Enabled        []bool
+}
+
+// ConfigPolicyFuzzyFields defines the config policy fuzzy fields.
+type ConfigPolicyFuzzyFields struct {
+	ConfigPolicyName []string
+}
+
+// ConfigPolicyCondition defines the config policy condition.
+type ConfigPolicyCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ConfigPolicyExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ConfigPolicyFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ConfigPolicyExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ConfigPolicyFuzzyFields
+}

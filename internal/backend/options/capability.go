@@ -15,6 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
@@ -72,6 +73,9 @@ type Capability struct {
 
 	// StorageCredit credit storage.
 	StorageCredit credit.IStorage
+
+	// StorageConfigPolicy config policy storage.
+	StorageConfigPolicy configpolicy.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -154,6 +158,10 @@ func (capability *Capability) Start(ctx context.Context) error {
 	}
 
 	if err := capability.StorageCredit.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.StorageConfigPolicy.Start(ctx); err != nil {
 		return err
 	}
 

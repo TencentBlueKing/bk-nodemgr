@@ -13,7 +13,6 @@ package accesspoint
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -24,89 +23,51 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
-	return &dao{
-		tenantID: tenantID,
-		client:   client.Collection(TableName()),
-		logger:   logger,
-		counter:  counter.New(client, logger)}
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
+	d := &dao{
+		client:  client.Collection(TableName()),
+		logger:  logger,
+		counter: counter.New(client, logger)}
+
+	d.IOrm = base.NewOrm[*AccessPoint, AccessPoint](d)
+
+	return d
 }
 
 type dao struct {
-	tenantID string
-	client   *mongo.Collection
-	logger   logger.Logger
-	counter  counter.Handler
+	client  *mongo.Collection
+	logger  logger.Logger
+	counter counter.Handler
+	base.IOrm[*AccessPoint, AccessPoint]
+}
+
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetLogger get the dao's logger.
+func (d *dao) GetLogger() logger.Logger {
+	return d.logger
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return TableName()
 }
 
 // nolint:contextcheck
 // ensureIndexes ensures the required indexes for the collection.
-func (d *dao) ensureIndexes() error {
-	var indexes []mongo.IndexModel
-
+func (d *dao) GetIndexes() []mongo.IndexModel {
 	opts := new(options.IndexOptions)
-	indexes = append(indexes, mongo.IndexModel{
-		Keys:    bson.D{{Key: "data.accesspoint_id", Value: 1}},
-		Options: opts.SetUnique(true),
-	})
-
-	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
-	if err != nil {
-		return err
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: FieldKeyAccessPointID, Value: 1}},
+			Options: opts.SetUnique(true),
+		},
 	}
 
-	d.logger.Infof("created required indexes")
-
-	return nil
-}
-
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	num, err := d.client.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	if num < 0 {
-		return 0, fmt.Errorf("count documents get unexpected result: %d", num)
-	}
-
-	return num, nil
-}
-
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*AccessPoint, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result, err := d.client.Find(ctx, filter, findOpt)
-	if err != nil {
-		return nil, err
-	}
-
-	accesspoints := make([]*AccessPoint, 0)
-	for result.Next(ctx) {
-		table := &TableAccessPoint{}
-		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode accesspoint, err %v", err)
-
-			continue
-		}
-		accesspoints = append(accesspoints, table.Data)
-	}
-
-	return accesspoints, nil
-}
-
-func (d *dao) get(ctx context.Context, filter bson.D) (*AccessPoint, error) {
-	filter = append(filter, tenantFilter(d.tenantID))
-
-	result := &TableAccessPoint{}
-	err := d.client.FindOne(ctx, filter).Decode(result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Data, nil
+	return indexes
 }
 
 func (d *dao) create(ctx context.Context, accessPoint *AccessPoint) (int64, error) {
@@ -158,8 +119,8 @@ func (d *dao) createMany(ctx context.Context, accessPoints []*AccessPoint) ([]in
 	return sequences, nil
 }
 
-func (d *dao) updateMany(ctx context.Context, accessPoints []*AccessPoint) error {
-	models := buildUpdateManyParams(d.tenantID, accessPoints)
+func (d *dao) updateMany(ctx context.Context, tenantID string, accessPoints []*AccessPoint) error {
+	models := buildUpdateManyParams(tenantID, accessPoints)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -173,8 +134,8 @@ func (d *dao) updateMany(ctx context.Context, accessPoints []*AccessPoint) error
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, accessPointIDs ...int64) error {
-	models := buildDeleteManyParams(d.tenantID, accessPointIDs...)
+func (d *dao) deleteMany(ctx context.Context, tenantID string, accessPointIDs ...int64) error {
+	models := buildDeleteManyParams(tenantID, accessPointIDs...)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -194,8 +155,8 @@ func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo
 
 	for _, accessPoint := range accessPoints {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: "data.accesspoint_id", Value: accessPoint.AccessPointID},
-			bson.E{Key: "data.tenant_id", Value: tenantID})
+			bson.E{Key: FieldKeyAccessPointID, Value: accessPoint.AccessPointID},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID})
 
 		update := base.BuildUpsertParam(accessPoint)
 
@@ -208,8 +169,8 @@ func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo
 // buildDeleteManyParams build delete many params.
 func buildDeleteManyParams(tenantID string, accessPointIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: "data.accesspoint_id", Value: bson.D{{Key: "$in", Value: accessPointIDs}}},
-		bson.E{Key: "data.tenant_id", Value: tenantID}}
+		bson.E{Key: FieldKeyAccessPointID, Value: bson.D{{Key: "$in", Value: accessPointIDs}}},
+		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
 
 	update := base.BuildDeleteParam()
 
@@ -224,7 +185,7 @@ func tenantFilter(tenantID string) bson.E {
 	return bson.E{
 		Key: "$or",
 		Value: bson.A{
-			bson.D{{"data.tenant_id", tenantID}},
-			bson.D{{"data.networkarea_id", base.GlobalNetworkAreaID}},
+			bson.D{{Key: FieldKeyTenantID, Value: tenantID}},
+			bson.D{{Key: FieldKeyNetworkAreaID, Value: base.GlobalNetworkAreaID}},
 		}}
 }

@@ -15,6 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -29,6 +30,9 @@ type Capability struct {
 
 	// FileHandler the file handler.
 	FileHandler file.IHandler
+
+	// StorageConfigPolicyTemplate the storage of config policy template.
+	StorageConfigPolicyTemplate cptemplate.IStorage
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
@@ -46,6 +50,10 @@ type Capability struct {
 // Start starts all services in capability.
 func (c *Capability) Start(ctx context.Context) error {
 	if err := c.DiscoverProvider.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := c.StorageConfigPolicyTemplate.Start(ctx); err != nil {
 		return err
 	}
 
