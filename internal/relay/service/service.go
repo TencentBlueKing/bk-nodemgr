@@ -17,6 +17,7 @@ import (
 	"io"
 	"runtime"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
@@ -81,6 +82,11 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		MessageIDPath:    conf.MessageIDPath,
 		PluginName:       conf.PluginName,
 	})
+
+	// TODO: write basedir to config
+	svc.Cap.FileManager = file.NewFileManager(svc.ctx,
+		"",
+		svc.Cap.Logger)
 
 	dispatcher := svc.Cap.Messager.EventDispatcher()
 	dispatcher.RegisterHandler(protoRelay.EventTypeEcho, manager.EchoHandler)

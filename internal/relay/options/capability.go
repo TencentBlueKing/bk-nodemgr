@@ -14,6 +14,7 @@ package options
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -32,6 +33,9 @@ type Capability struct {
 
 	// Messager messager.
 	Messager relayhandler.IClientMessager
+
+	// FileManager file manager
+	FileManager file.IFileManager
 }
 
 // Start start the capability.
