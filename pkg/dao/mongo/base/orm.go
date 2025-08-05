@@ -202,7 +202,7 @@ func (orm *Orm[P, T]) EnsureIndexes() error {
 func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field string, value any) error {
 	update := orm.buildUpdateField(field, value)
 
-	result, err := orm.dao.GetClient().UpdateOne(ctx, filter, update)
+	result, err := orm.dao.GetClient().UpdateMany(ctx, filter, update)
 	if err != nil {
 		return err
 	}

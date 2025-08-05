@@ -117,11 +117,14 @@ func (h *handler) Statistics(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	instanceStatus, err := h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
-		ctx, convertWorkflowToTriggerID(workflows))
-	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list workflow instance status, err: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	var instanceStatus []*operation.InstanceStatus
+	if len(workflows) > 0 {
+		instanceStatus, err = h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
+			ctx, convertWorkflowToTriggerID(workflows))
+		if err != nil {
+			h.logger.ErrorCtxf(ctx, "failed to list workflow instance status, err: %v", err)
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+		}
 	}
 
 	workflowStatusMap := make(map[string]map[string]*types.NodeWorkflowOperationStatus)

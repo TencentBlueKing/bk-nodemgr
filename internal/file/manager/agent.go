@@ -158,7 +158,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "DESCRIPTION"},
+			filePath: []string{tgzPathNameAny1, "DESCRIPTION_EN"},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -319,12 +319,14 @@ func (m *Manager) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 			}
 
 			releasesMap[pkg.platform.String()] = &types.Release{
-				Generation: types.Generation2,
-				Type:       types.ReleaseTypeAgent,
-				Platform:   pkg.platform,
-				Version:    detail.Version,
-				FileName:   file.Info().Name,
-				MD5:        file.Info().MD5,
+				Generation:  types.Generation2,
+				Type:        types.ReleaseTypeAgent,
+				Platform:    pkg.platform,
+				Version:     detail.Version,
+				FileName:    file.Info().Name,
+				MD5:         file.Info().MD5,
+				ChangeLogEN: detail.ChangeLogEN,
+				ChangeLogZH: detail.ChangeLogZH,
 			}
 
 			return nil

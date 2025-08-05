@@ -230,7 +230,6 @@ func (h *handler) ListOperationInstanceStatus(ctx *restserver.Context) (interfac
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListStatusResp)
-
 	resp.ConvertWorkflowOperInstanceStatusFromTypes(result)
 
 	return resp.GetData(), nil
