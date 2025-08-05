@@ -336,7 +336,8 @@ func insertTemplateBlock(
 	return result
 }
 
-// nolint: gocognit
+// nolint:funlen,fnsize,gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
 func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPolicyTemplateBlock) {
 	if configPolicy == nil {
 		return

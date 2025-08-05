@@ -103,6 +103,7 @@ func (h *handler) UpsertMany(ctx context.Context, configPolicyTemplates ...*type
 
 		data[idx] = convertConfigPolicyTemplateFromTypes(configPolicyTemplate)
 	}
+
 	return h.tenantDao(tenantID).upsertMany(ctx, data)
 }
 

@@ -310,7 +310,11 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bksaasbklogin
 		Logger:               logger,
 	}
 
-	bkloginHandler, err := bksaasbklogin.New(clientCap, &bksaasbklogin.Config{LoginURL: conf.LoginURL}, bksaasbklogin.WithLogger(logger))
+	bkloginHandler, err := bksaasbklogin.New(
+		clientCap,
+		&bksaasbklogin.Config{LoginURL: conf.LoginURL},
+		bksaasbklogin.WithLogger(logger),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new bklogin handler: %w", err)
 	}

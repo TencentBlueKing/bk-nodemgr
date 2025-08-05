@@ -85,12 +85,16 @@ func (s *Storage) check() error {
 }
 
 // GetConfigPolicyTemplate gets the config policy template.
-func (s *Storage) GetConfigPolicyTemplate(ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
+func (s *Storage) GetConfigPolicyTemplate(
+	ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
+
 	return s.daoConfigPolicyTemplate.Get(ctx, configPolicyID)
 }
 
 // UpsertManyConfigPolicyTemplate upserts the config policy template.
-func (s *Storage) UpsertManyConfigPolicyTemplate(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
+func (s *Storage) UpsertManyConfigPolicyTemplate(
+	ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
+
 	return s.daoConfigPolicyTemplate.UpsertMany(ctx, configPolicyTemplates...)
 }
 
