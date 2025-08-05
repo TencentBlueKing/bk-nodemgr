@@ -36,13 +36,15 @@ const (
 )
 
 type fileManagerImpl struct {
-	baseDir   string
-	rootGroup fileiface.FileGroup
-	files     map[string]*fileiface.FileInfo
-	mutex     sync.RWMutex
-	refs      map[string]int
-	refLock   sync.Mutex
-	logger    logger.Logger
+	baseDir         string
+	rootGroup       fileiface.FileGroup
+	files           map[string]*fileiface.FileInfo
+	mutex           sync.RWMutex
+	refs            map[string]int
+	refLock         sync.Mutex
+	pendingDeletion map[string]*fileiface.FileInfo
+
+	logger logger.Logger
 }
 
 // NewFileManager creates a new file manager.
@@ -57,11 +59,13 @@ func NewFileManager(ctx context.Context, baseDir string, logger logger.Logger) I
 	}
 
 	fm := &fileManagerImpl{
-		baseDir:   baseDir,
-		rootGroup: rootGroup,
-		files:     make(map[string]*fileiface.FileInfo),
-		refs:      make(map[string]int),
-		logger:    logger,
+		baseDir:         baseDir,
+		rootGroup:       rootGroup,
+		files:           make(map[string]*fileiface.FileInfo),
+		refs:            make(map[string]int),
+		pendingDeletion: make(map[string]*fileiface.FileInfo),
+
+		logger: logger,
 	}
 	fm.restore(ctx)
 
@@ -184,7 +188,7 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 	defer fm.mutex.Unlock()
 
 	if oldInfo, exists := fm.files[filename]; exists {
-		fm.safeRemoveFile(oldInfo.FullPath)
+		fm.pendingDeletion[oldInfo.FullPath] = oldInfo
 	}
 
 	fm.files[filename] = &storedInfo
@@ -220,26 +224,62 @@ func (fm *fileManagerImpl) DownloadFile(ctx context.Context, filename string) (f
 	}, info, nil
 }
 
-func (fm *fileManagerImpl) FileExists(ctx context.Context, filename string) bool {
-	_, err := fm.GetFileInfo(ctx, filename)
-	return err == nil
+// FileExists check file exists.
+func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string) bool {
+	info, err := fm.GetFileInfo(ctx, filename)
+	if err != nil {
+		fm.logger.Errorf("failed to get file info. filename(%s): %v", filename, err)
+		return false
+	}
+
+	currentMD5 := info.MD5
+
+	stat, err := os.Stat(info.FullPath)
+	if err != nil {
+		fm.logger.Errorf("failed to stat file. fullPath(%s): %v", info.FullPath, err)
+		return false
+	}
+
+	if info.ModTime != stat.ModTime() {
+		currentMD5, err := local.MD5SumWithBuffer(info.FullPath)
+		if err != nil {
+			fm.logger.Errorf("failed to get file md5. fullPath(%s): %v", info.FullPath, err)
+			return false
+		}
+
+		info.MD5 = currentMD5
+		info.ModTime = stat.ModTime()
+		fm.logger.Infof("file has been modified. fullPath(%s)", info.FullPath)
+	}
+
+	if currentMD5 != mD5 {
+		return false
+	}
+
+	return true
 }
 
 func (fm *fileManagerImpl) runGC(ctx context.Context, maxAge time.Duration) {
 	cutoff := time.Now().Add(-maxAge)
 
-	toDelete := make([]*fileiface.FileInfo, 0)
+	allFiles := make([]*fileiface.FileInfo, 0)
 	fm.mutex.RLock()
 	for _, info := range fm.files {
 		if !info.ModTime.Before(cutoff) {
 			continue
 		}
-		toDelete = append(toDelete, info)
+		allFiles = append(allFiles, info)
+	}
+	for _, info := range fm.pendingDeletion {
+		if !info.ModTime.Before(cutoff) {
+			continue
+		}
+		allFiles = append(allFiles, info)
 	}
 
 	fm.mutex.RUnlock()
 
-	for _, info := range toDelete {
+	for _, info := range allFiles {
 		select {
 		case <-ctx.Done():
 			return

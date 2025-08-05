@@ -29,5 +29,5 @@ type IFileManager interface {
 	StoreFile(ctx context.Context, srcPath, filename string) (*iface.FileInfo, error)
 
 	// FileExists check file exists.
-	FileExists(ctx context.Context, filename string) bool
+	FileExists(ctx context.Context, filename, MD5 string) bool
 }

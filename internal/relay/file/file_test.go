@@ -31,7 +31,7 @@ const (
 
 // testClient ...
 func setupTestFileManager(t *testing.T) (IFileManager, string, func()) {
-	testFilePath := filepath.Join(baseDir, "test.go")
+	testFilePath := filepath.Join(baseDir, testFilename)
 
 	if err := os.WriteFile(testFilePath, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write test file: %v", err)
@@ -80,7 +80,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 	})
 
 	t.Run("FileExists", func(t *testing.T) {
-		exists := fm.FileExists(context.Background(), testFilename)
+		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
 		assert.True(t, exists, "file not exists")
 	})
 
@@ -123,9 +123,11 @@ func TestLargeFileStorageLifecycle(t *testing.T) {
 	})
 
 	t.Run("FileExists", func(t *testing.T) {
-		exists := fm.FileExists(context.Background(), testFilename)
+		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
 		assert.True(t, exists, "file should exist")
 	})
+	t.Log("wait GC...")
+	time.Sleep(30 * time.Second)
 }
 
 // calculateFileMD5 computes MD5 checksum for a file.
