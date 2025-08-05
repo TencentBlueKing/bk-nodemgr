@@ -173,7 +173,11 @@ func (h *handler) CreateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 	}
 
 	// create template.
-	template, _ := json.Marshal(cpTemplate)
+	template, err := json.Marshal(cpTemplate)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to create config policy, failed to marshal template. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 	if err := h.storageConfigPolicyTemplate.UpsertManyConfigPolicyTemplate(ctx, &types.ConfigPolicyTemplate{
 		TenantID: configPolicy.TenantID,
 		ID:       configPolicyID,
@@ -208,7 +212,11 @@ func (h *handler) UpdateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 	}
 
 	// upsert template.
-	template, _ := json.Marshal(cpTemplate)
+	template, err := json.Marshal(cpTemplate)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to update config policy, failed to marshal template. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 	if err := h.storageConfigPolicyTemplate.UpsertManyConfigPolicyTemplate(ctx, &types.ConfigPolicyTemplate{
 		TenantID: configPolicy.TenantID,
 		ID:       configPolicy.ID,
@@ -278,7 +286,9 @@ func (h *handler) DeleteConfigPolicy(ctx *restserver.Context) (interface{}, erro
 	return resp.GetData(), nil
 }
 
-func insertTemplateBlock(src []types.ConfigPolicyTemplateBlock, extra types.ConfigPolicyTemplateBlock) []types.ConfigPolicyTemplateBlock {
+func insertTemplateBlock(
+	src []types.ConfigPolicyTemplateBlock, extra types.ConfigPolicyTemplateBlock) []types.ConfigPolicyTemplateBlock {
+
 	result := make([]types.ConfigPolicyTemplateBlock, 0)
 
 	blockFound := false
@@ -326,6 +336,7 @@ func insertTemplateBlock(src []types.ConfigPolicyTemplateBlock, extra types.Conf
 	return result
 }
 
+// nolint: gocognit
 func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPolicyTemplateBlock) {
 	if configPolicy == nil {
 		return

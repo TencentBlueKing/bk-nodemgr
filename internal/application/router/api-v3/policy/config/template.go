@@ -26,6 +26,7 @@ var valueGroupKeyMap = map[string]struct{}{
 	valueGroupKeyProxyLoggerPath:  {},
 }
 
+// nolint: gochecknoglobals
 func isValueGroupKey(key string) bool {
 	_, ok := valueGroupKeyMap[key]
 	return ok
@@ -56,6 +57,7 @@ func findTemplateItem(blocks []types.ConfigPolicyTemplateBlock, blockID, itemID 
 	return types.ConfigPolicyTemplateItem{}, false
 }
 
+// nolint: lll, gochecknoglobals
 var agentConfig = []types.ConfigPolicyTemplateBlock{
 	{
 		ID:      "base_config",
@@ -179,6 +181,7 @@ var agentConfig = []types.ConfigPolicyTemplateBlock{
 	},
 }
 
+// nolint: lll, gochecknoglobals
 var proxyConfig = []types.ConfigPolicyTemplateBlock{
 	{
 		ID:      "base_config",
