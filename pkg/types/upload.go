@@ -31,11 +31,9 @@ const (
 
 // Upload defines the upload struct.
 type Upload struct {
-	UploadID    string
-	Category    UploadCategory
-	SavedName   string
-	ChangeLogEN string
-	ChangeLogZH string
-	Operator    string
-	CreatedAt   time.Time
+	UploadID  string
+	Category  UploadCategory
+	SavedName string
+	Operator  string
+	CreatedAt time.Time
 }
