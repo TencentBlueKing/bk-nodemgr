@@ -14,14 +14,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
 	agentmessage "github.com/TencentBlueKing/bk-gse-sdk/go/service/agent-message"
-	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
 )
 
 // ClientMessagerConfig defines the config.
@@ -29,8 +34,14 @@ type ClientMessagerConfig struct {
 	// PluginVersion is the plugin version.
 	PluginVersion string `json:"plugin_version"`
 
+	// PluginName is the plugin name.
+	PluginName string `json:"plugin_name"`
+
 	// DomainSocketPath is the domain socket path when in unix node.
 	DomainSocketPath string `json:"domain_socket_path"`
+
+	// MessageIDFullPath is the full path for message ID storage.
+	MessageIDPath string `json:"message_id_path"`
 
 	// LocalSocketPort is the local socket port when in windows node.
 	LocalSocketPort int `json:"local_socket_port"`
@@ -40,10 +51,12 @@ type ClientMessagerConfig struct {
 }
 
 // NewClientMessager creates a new client messager.
-func NewClientMessager(conf ClientMessagerConfig) *clientMessager {
+func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
 	return &clientMessager{
-		config:   conf,
-		messages: make(map[string]*synchronousData),
+		config:          conf,
+		messages:        make(map[string]*synchronousData),
+		eventDispatcher: manager.NewDefaultEventDispatcher(),
+		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageIDPath),
 	}
 }
 
@@ -55,6 +68,11 @@ type clientMessager struct {
 
 	messagesMutex sync.RWMutex
 	messages      map[string]*synchronousData
+
+	eventDispatcher manager.EventDispatcher
+
+	retrier        *retrier.ExpoBackoff
+	fileMsgTracker messagetracker.IMessageTracker
 }
 
 // Start starts the messager.
@@ -62,7 +80,7 @@ func (m *clientMessager) Start(ctx context.Context) error {
 	m.config.Logger.Infof("try to start messager: %+v", m.config)
 
 	client, err := agentmessage.New(
-		agentmessage.WithPluginName(pluginName),
+		agentmessage.WithPluginName(m.config.PluginName),
 		agentmessage.WithPluginVersion(m.config.PluginVersion),
 		agentmessage.WithDomainSocketPath(m.config.DomainSocketPath),
 		agentmessage.WithRecvCallback(m.messageCallback),
@@ -75,6 +93,8 @@ func (m *clientMessager) Start(ctx context.Context) error {
 	if err = client.Launch(ctx); err != nil {
 		return err
 	}
+
+	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	m.client = client
 	m.config.Logger.Infof("started messager")
@@ -92,43 +112,106 @@ func (m *clientMessager) Stop(ctx context.Context) error {
 	return nil
 }
 
+// EventDispatcher returns the event dispatcher.
+func (m *clientMessager) EventDispatcher() manager.EventDispatcher {
+	return m.eventDispatcher
+}
+
 // messageCallback receives messages from agent.
 func (m *clientMessager) messageCallback(messageID string, content []byte) {
 	m.config.Logger.Infof("receive message. message-id(%s), content(%s)", messageID, string(content))
 
-	var base protoProxy.Base
+	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
+		m.config.Logger.Errorf("failed to unmarshal base message. content(%s): %v", content, err)
 		return
 	}
 
 	switch base.MessageType {
-	case protoProxy.MessageTypeCallbackResp:
+	case protoRelay.MessageTypeCallbackResp:
 		go m.setSynchronousData(messageID, content)
 
+		return
+	case protoRelay.MessageTypeAckReq:
+		go m.handleAck(context.Background(), content)
+
+		return
+	case protoRelay.MessageTypeServerPushReq:
+		go m.handleServerPush(context.Background(), messageID, content)
+
+		return
+	default:
+		m.config.Logger.Errorf("unknown message type. type(%s)", base.MessageType)
 		return
 	}
 }
 
-// RequestCallback sends request to url. returns the response body and http code.
+func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
+	var msg protoRelay.AckReq
+	if err := json.Unmarshal(content, &msg); err != nil {
+		m.config.Logger.Errorf("invalid push format: %v", err)
+		return
+	}
+
+	if err := m.fileMsgTracker.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
+		m.config.Logger.Errorf("failed to mark acked. original-message-id(%s): %v", msg.OriginalMessageID, err)
+	}
+
+	m.config.Logger.Infof("ack received for message. original-message-id(%s)", msg.OriginalMessageID)
+}
+
+func (m *clientMessager) handleServerPush(ctx context.Context, messageID string, content []byte) {
+	go m.sendAck(ctx, messageID)
+
+	exists, err := m.fileMsgTracker.TryMarkProcessed(ctx, messageID)
+	if err != nil {
+		m.config.Logger.Errorf("failed to mark message process. message-id(%s): %v", messageID, err)
+		return
+	}
+
+	// already processed
+	if !exists {
+		return
+	}
+
+	m.dispatcherServerPushEvent(content)
+}
+
+func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
+	var push protoRelay.ServerPushReq
+	if err := json.Unmarshal(content, &push); err != nil {
+		m.config.Logger.Errorf("invalid push format: %v", err)
+		return
+	}
+
+	if m.eventDispatcher == nil {
+		m.config.Logger.Errorf("no event dispatcher registered for event. event-type(%s)", push.EventType)
+		return
+	}
+
+	m.config.Logger.Infof("dispatching event. event-type(%s)", push.EventType)
+	m.eventDispatcher.Dispatch(push.EventType, push.Payload)
+}
+
+// RequestCallback sends request to url. only transfer the response body to callback.
 func (m *clientMessager) RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error) {
 	if url == "" {
 		return nil, http.StatusInternalServerError, errors.New("invalid url")
 	}
-
 	messageID := identifier.GenMessageID()
 	ch := m.newSyncronousData(messageID)
 
-	req := &protoProxy.CallbackReq{
-		Base: protoProxy.Base{
+	req := &protoRelay.CallbackReq{
+		Base: protoRelay.Base{
 			MessageID:   messageID,
-			MessageType: protoProxy.MessageTypeCallbackReq,
+			MessageType: protoRelay.MessageTypeCallbackReq,
 		},
 		URL:  url,
 		Body: content,
 	}
 	reqData, err := json.Marshal(req)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed: %w", err)
 	}
 
 	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
@@ -140,14 +223,99 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		case <-ctx.Done():
 			return nil, http.StatusInternalServerError, ctx.Err()
 		case respData := <-ch:
-			var resp protoProxy.CallbackResp
+			var resp protoRelay.CallbackResp
 			if err := json.Unmarshal(respData, &resp); err != nil {
-				return nil, http.StatusInternalServerError, err
+				return nil, http.StatusInternalServerError, fmt.Errorf(
+					"unmarshal response failed: %w", err)
 			}
 
 			return resp.Body, resp.HTTPCode, nil
 		}
 	}
+}
+
+// sendAck sends an ACK to the server for a processed message.
+func (m *clientMessager) sendAck(ctx context.Context, originalMessageID string) {
+	ackReq := &protoRelay.AckReq{
+		Base: protoRelay.Base{
+			MessageID:   identifier.GenMessageID(),
+			MessageType: protoRelay.MessageTypeAckReq,
+		},
+		OriginalMessageID: originalMessageID,
+	}
+
+	ackData, err := json.Marshal(ackReq)
+	if err != nil {
+		m.config.Logger.Errorf("failed to marshal ack request: %v", err)
+	}
+
+	if err := m.client.SendMessage(ctx, ackReq.MessageID, ackData); err != nil {
+		m.config.Logger.Errorf("failed to send ack request: %v", err)
+	}
+
+	m.config.Logger.Infof("ack sent for message. message-id(%s)", originalMessageID)
+}
+
+// ClientPushReq sends a client push request asynchronously and returns a channel for results.
+func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, body []byte) <-chan error {
+	resultChan := make(chan error, 1)
+
+	if callbackURL == "" {
+		resultChan <- errors.New("invalid url")
+		return resultChan
+	}
+
+	messageID := identifier.GenMessageID()
+	req := &protoRelay.CallbackReq{
+		Base: protoRelay.Base{
+			MessageID:   messageID,
+			MessageType: protoRelay.MessageTypeClientPushReq,
+		},
+		URL:  callbackURL,
+		Body: body,
+	}
+	reqData, err := json.Marshal(req)
+	if err != nil {
+		resultChan <- fmt.Errorf("marshal request failed: %w", err)
+		return resultChan
+	}
+
+	go func() {
+		defer close(resultChan)
+
+		retryCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		retryErr := m.retrier.Do(retryCtx, func(attempt int) error {
+			select {
+			case <-retryCtx.Done():
+				return retryCtx.Err()
+			default:
+			}
+
+			m.config.Logger.Infof("sending client push request (attempt %d). message-id(%s)", attempt, messageID)
+
+			if err := m.client.SendMessage(retryCtx, messageID, reqData); err != nil {
+				return fmt.Errorf("send message failed: %w", err)
+			}
+
+			acked, err := m.fileMsgTracker.IsAcked(retryCtx, messageID)
+			if err != nil {
+				return fmt.Errorf("check ack failed: %w", err)
+			}
+			if !acked {
+				return errors.New("ack not received")
+			}
+
+			m.config.Logger.Infof("client push request acknowledged. message-id(%s)", messageID)
+
+			return nil
+		})
+
+		resultChan <- retryErr
+	}()
+
+	return resultChan
 }
 
 func (m *clientMessager) newSyncronousData(messageID string) <-chan []byte {

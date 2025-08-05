@@ -14,8 +14,8 @@
         "pkg/config/config.go"
       ],
       "related_files": [
-        "install/helm/bk-nodeman/values.yaml",
-        "install/helm/bk-nodeman/templates/backend-configmap.yaml"
+        "install/helm/bk-nodemgr/values.yaml",
+        "install/helm/bk-nodemgr/templates/backend-configmap.yaml"
       ]
     },
     {
@@ -27,8 +27,8 @@
         "pkg/config/config.go"
       ],
       "related_files": [
-        "install/helm/bk-nodeman/values.yaml",
-        "install/helm/bk-nodeman/templates/application-configmap.yaml"
+        "install/helm/bk-nodemgr/values.yaml",
+        "install/helm/bk-nodemgr/templates/application-configmap.yaml"
       ]
     },
     {
@@ -40,8 +40,8 @@
         "pkg/config/config.go"
       ],
       "related_files": [
-        "install/helm/bk-nodeman/values.yaml",
-        "install/helm/bk-nodeman/templates/file-configmap.yaml"
+        "install/helm/bk-nodemgr/values.yaml",
+        "install/helm/bk-nodemgr/templates/file-configmap.yaml"
       ]
     },
     {

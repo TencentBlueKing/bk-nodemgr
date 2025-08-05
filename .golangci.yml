@@ -595,6 +595,8 @@ linters-settings:
       - m *operMgr
       - g *Group
       - t *Transfer
+      - m *clientMessager
+      - m *serverMessager
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
@@ -648,6 +650,11 @@ linters-settings:
       # Using `clientv3` alias for `go.etcd.io/etcd/client/v3`
       - pkg: go.etcd.io/etcd/client/v3
         alias: clientv3
+      # Using `serverapi` alias for `bk-gse-sdk`
+      - pkg: github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api
+        alias: serverapi
+      - pkg: github.com/TencentBlueKing/bk-gse-sdk/go/service/agent-message
+        alias: agentmessage
       # protocols
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3
         alias: protoApplication
@@ -655,8 +662,8 @@ linters-settings:
         alias: protoBackend
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3
         alias: protoFile
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy
-        alias: protoProxy
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
+        alias: protoRelay
       # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
       - pkg: github.com/testcontainers/testcontainers-go
         alias: tc
@@ -673,7 +680,7 @@ linters-settings:
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment
         alias: nodedeployment
       # Using `nodeworkflow` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow`
-      - pkg: "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow
         alias: nodeworkflow
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface

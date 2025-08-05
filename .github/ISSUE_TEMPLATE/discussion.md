@@ -1,5 +1,5 @@
 ---
-name: 功能建议/讨论
+name: 建议/讨论
 about: 提出新功能建议或项目改进方向的讨论
 title: '[IDEA] '
 labels: 'kind/need-discussion'

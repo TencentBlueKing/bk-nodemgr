@@ -14,33 +14,33 @@ package relayhandler
 import (
 	"context"
 
-	protoProxy "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/proxy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-const (
-	pluginName = "bk-nodemgr-proxy"
-)
-
-// ClientMessager provides the managements for receiving and sending messages via client side gse agent.
-type ClientMessager interface {
+// IClientMessager provides the managements for receiving and sending messages via client side gse agent.
+type IClientMessager interface {
 	// Start starts the messager.
 	Start(ctx context.Context) error
 
 	// Stop stops the messager.
 	Stop(ctx context.Context) error
 
-	CallbackClient
+	ICallbackClient
+
+	// EventDispatcher returns the event dispatcher.
+	EventDispatcher() manager.EventDispatcher
 }
 
-// CallbackClient defines the callback client.
-type CallbackClient interface {
+// ICallbackClient defines the callback client.
+type ICallbackClient interface {
 	// RequestCallback sends request to url. returns the response body and http code.
 	RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error)
 }
 
-// ServerMessager provides the managements for receiving and sending messages via server side gse api.
-type ServerMessager interface {
+// IServerMessager provides the managements for receiving and sending messages via server side gse api.
+type IServerMessager interface {
 	// Start starts the messager.
 	Start(ctx context.Context) error
 
@@ -50,21 +50,45 @@ type ServerMessager interface {
 	// DecodeBaseRequest decodes the base request.
 	DecodeBaseRequest(req []byte) (*ServerReceivedData, error)
 
-	CallbackServer
+	IPushServer
+
+	ICallbackServer
 }
 
 // ServerReceivedData defines the server received data.
 type ServerReceivedData struct {
 	MessageID   string
-	MessageType protoProxy.MessageType
+	MessageType protoRelay.MessageType
 	AgentID     string
 	Content     []byte
 }
 
-// CallbackServer defines the callback server.
-type CallbackServer interface {
+// IPushServer defines the server handler.
+type IPushServer interface {
+	// PushToClient sends the server push to client.
+	PushToClient(ctx context.Context,
+		eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error
+
+	// SendAck sends the ack to client.
+	SendAck(ctx context.Context, OriginalMessageID string, agentIDs ...string)
+
+	// TryMarkProcessed tries to mark the message as processed. if it has been processed, return false.
+	TryMarkProcessed(ctx context.Context, mid string) (bool, error)
+
+	// MarkedAckedAck handles the ack.
+	MarkAcked(ctx context.Context, OriginalMessageID string) error
+
+	// DecodeAckRequest decodes the ack request.
+	DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error)
+
+	// DecodeClientPushRequest decodes the callback request.
+	DecodeClientPushRequest(data *ServerReceivedData) (*protoRelay.ClientPushReq, error)
+}
+
+// ICallbackServer defines the callback server.
+type ICallbackServer interface {
 	// DecodeCallbackRequest decodes the callback request.
-	DecodeCallbackRequest(data *ServerReceivedData) (*protoProxy.CallbackReq, error)
+	DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error)
 
 	// RespondCallback sends the callback response.
 	RespondCallback(ctx context.Context, messageID string, httpCode int, content []byte, agentIDs ...string) error

@@ -1,0 +1,33 @@
+openapi: 3.0.1
+servers:
+  - url: /
+info:
+  version: '2.0'
+  title: 蓝鲸节点管理
+  description: '蓝鲸节点管理'
+paths:
+  /node/agent/install:
+    post:
+      operationId: node_install_agent
+      description: ''
+      tags: []
+      responses:
+        '200':
+          description: success create operation
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/agent/install
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: [ ]
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:

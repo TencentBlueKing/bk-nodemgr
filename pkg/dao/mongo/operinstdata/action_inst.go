@@ -41,6 +41,9 @@ type IActionInstData interface {
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
 	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...action.Message) error
 
+	// GetActInstPrivateData get action inst data private data.
+	GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error)
+
 	// AddActInstPrivateData add action inst data private data.
 	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
 
@@ -197,6 +200,44 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 	return nil
 }
 
+// GetActInstPrivateData get action inst data private data.
+func (h *handler) GetActInstPrivateData(ctx context.Context,
+	operInstID string, actionName string) (map[string]any, error) {
+
+	if ctx == nil {
+		return nil, errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("action name is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	field := FieldKeyActInstPrivateData(actionName)
+	operInstData, err := h.dao.get(ctx, filter, field)
+	if err != nil {
+		return nil, err
+	}
+
+	actionInstData, ok := operInstData.ActionInstDataMap[actionName]
+	if !ok {
+		return nil, errors.New("action inst private data not found")
+	}
+
+	return actionInstData.PrivateData, nil
+}
+
 // UpdateActionInstData upsert action inst data.
 func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
 	if ctx == nil {
@@ -274,7 +315,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	if actionName == "" {
-		return nil, errors.New("actionName is empty")
+		return nil, errors.New("action name is empty")
 	}
 
 	filter := base.AliveFilter()

@@ -1,0 +1,23 @@
+{{- if .Values.application.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-application-headless
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    app: nodemgr-application
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app: nodemgr-application
+  clusterIP: None
+  ports:
+    - name: service-http
+      port: {{ .Values.application.config.httpServer.port }}
+      targetPort: service-http
+{{- end }}

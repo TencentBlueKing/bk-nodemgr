@@ -125,7 +125,7 @@ func (s *Storage) registerScheduler() error {
 		defer s.stopOperInstsMutex.Unlock()
 		s.stopOperInsts[stopInstID] = struct{}{}
 
-		go s.checkNotifyStopping(s.Ctx)
+		go s.checkNotifyStopping(s.Ctx) // nolint: errcheck
 	})
 
 	return nil
@@ -173,6 +173,25 @@ func (s *Storage) GetActionInstanceLifecycle(ctx context.Context, operationInsta
 	}
 
 	return s.daoOperinstdata.GetActInstLifecycle(ctx, operationInstanceID, actionName)
+}
+
+// GetActionInstancePrivateData gets action instance private data.
+func (s *Storage) GetActionInstancePrivateData(ctx context.Context, operationInstanceID, actionName string) (
+	map[string]any, error) {
+
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operationInstanceID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("action name is empty")
+	}
+
+	return s.daoOperinstdata.GetActInstPrivateData(ctx, operationInstanceID, actionName)
 }
 
 // UpdateActionInstanceLifecycle updates action instance lifecycle.
@@ -387,10 +406,10 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 
 // WatchOperInstStopping watches operation instance stopping.
 func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{} {
-	c := make(chan struct{}, 1)
+	channel := make(chan struct{}, 1)
 	subscription := &StopEventSubscription{
 		OperInstID: operationInstanceID,
-		C:          c,
+		C:          channel,
 	}
 
 	subscriptionID := uuid.New().String()
@@ -414,7 +433,7 @@ func (s *Storage) WatchOperInstStopping(ctx context.Context, operationInstanceID
 		}
 	}()
 
-	return c
+	return channel
 }
 
 // MarkOperInstStopping mark task stopping.
@@ -466,7 +485,7 @@ func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 			return nil, err
 		}
 
-		return nil, nil
+		return nil, nil // nolint: nilnil
 	})
 	if err != nil {
 		return err
@@ -477,7 +496,7 @@ func (s *Storage) checkNotifyStopping(ctx context.Context) error {
 
 // processStoppingEvents ...
 func (s *Storage) processStoppingEvents(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second) // nolint: mnd
 	defer cancel()
 
 	notifications := s.getNotifications()
@@ -574,6 +593,7 @@ func (s *Storage) existsAction(ctx context.Context, operInstID string, actionNam
 			return nil
 		}
 	}
+
 	return errors.New("no found action")
 }
 

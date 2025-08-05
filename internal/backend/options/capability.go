@@ -98,7 +98,7 @@ type Capability struct {
 	DiscoverProvider discover.Provider
 
 	// ProxyMessager provides the proxy messager.
-	ProxyMessager relayhandler.ServerMessager
+	ProxyMessager relayhandler.IServerMessager
 
 	// CreditVault credit vault.
 	CreditVault creditvault.ICreditVault

@@ -254,6 +254,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		AppSecret:     conf.GSE.AppSecret,
 		GSEBaseURL:    conf.GSE.Endpoints[0],
 		SkipTLSVerify: conf.GSE.TLS.InsecureSkipVerify,
+		RedisClient:   redisClient,
 		Logger:        svc.Cap.Logger,
 	})
 

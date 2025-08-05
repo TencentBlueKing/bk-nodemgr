@@ -1,0 +1,96 @@
+{{- if .Values.backend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-backend-config
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  backend_conf.yaml: |
+    runMode: {{ .Values.backend.config.runMode }}
+
+    tenantMode: {{ .Values.backend.config.tenantMode }}
+
+    system: {{ .Values.backend.config.system | toYaml | nindent 6 }}
+
+    encryptKey: {{ .Values.backend.config.encryptKey }}
+
+    httpServer: {{ .Values.backend.config.httpServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    callbackServer: {{ .Values.backend.config.callbackServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    proxyServer: {{ .Values.backend.config.proxyServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    workflow: {{ .Values.backend.config.workflow | toYaml | nindent 6 }}
+
+    cmdb: {{ .Values.backend.config.cmdb | toYaml | nindent 6 }}
+
+    gse: {{ .Values.backend.config.gse | toYaml | nindent 6 }}
+
+    creditVault: {{ .Values.backend.config.creditVault | toYaml | nindent 6 }}
+
+    log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
+
+    etcd:
+      {{- if .Values.etcd.enabled }}
+      endpoints:
+        - {{ template "bk-nodemgr.fullname" . }}-etcd-headless:2379
+      {{- else }}
+      endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
+      username: {{ .Values.externalEtcd.username }}
+      password: {{ .Values.externalEtcd.password }}
+      ca: {{ .Values.externalEtcd.ca }}
+      cert: {{ .Values.externalEtcd.cert }}
+      key: {{ .Values.externalEtcd.key }}
+      {{- end}}
+
+    redis:
+      {{- if .Values.redis.enabled }}
+      host: {{ template "bk-nodemgr.fullname" . }}-redis-headless
+      port: {{ .Values.redis.service.ports.redis }}
+      password: {{ .Values.redis.password }}
+      {{- else }}
+      host: {{ .Values.externalRedis.host }}
+      port: {{ .Values.externalRedis.port }}
+      password: {{ .Values.externalRedis.password }}
+      {{- end}}
+      db: 0
+
+    mongodb:
+      {{- if .Values.mongodb.enabled }}
+      hosts:
+        - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless
+      username: {{ .Values.mongodb.auth.username }}
+      password: {{ .Values.mongodb.auth.password }}
+      database: {{ .Values.mongodb.auth.database }}
+      authSource: {{ .Values.mongodb.auth.database }}
+      authMechanism: SCRAM-SHA-256
+      {{- else }}
+      hosts:
+        - {{ .Values.externalMongodb.hosts }}
+      username: {{ .Values.externalMongodb.username }}
+      password: {{ .Values.externalMongodb.password }}
+      database: {{ .Values.externalMongodb.database }}
+      authSource: {{ .Values.externalMongodb.authSource }}
+      authMechanism: {{ .Values.externalMongodb.authMechanism }}
+      {{- end}}
+      {{- end }}
+
+    gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
+
+    apiGateWayServer: {{ .Values.backend.config.apiGateWayServer | toYaml | nindent 6 }}
