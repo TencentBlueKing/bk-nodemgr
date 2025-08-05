@@ -87,9 +87,23 @@ type ConfigPolicyTemplateItem struct {
 type ConfigPolicyTemplateType int
 
 const (
-	ConfigPolicyTemplateTypeString       ConfigPolicyTemplateType = 0
-	ConfigPolicyTemplateTypeInt          ConfigPolicyTemplateType = 1
-	ConfigPolicyTemplateTypeBool         ConfigPolicyTemplateType = 2
+	// ConfigPolicyTemplateTypeString defines the config policy template type string.
+	// regards value_string as the value.
+	ConfigPolicyTemplateTypeString ConfigPolicyTemplateType = 0
+
+	// ConfigPolicyTemplateTypeInt defines the config policy template type int.
+	// regards value_int as the value.
+	ConfigPolicyTemplateTypeInt ConfigPolicyTemplateType = 1
+
+	// ConfigPolicyTemplateTypeBool defines the config policy template type bool.
+	// regards value_bool as the value.
+	ConfigPolicyTemplateTypeBool ConfigPolicyTemplateType = 2
+
+	// ConfigPolicyTemplateTypeStringSelect defines the config policy template type string select.
+	// regards value_string_select as the options, and value_string as the value.
 	ConfigPolicyTemplateTypeStringSelect ConfigPolicyTemplateType = 3
-	ConfigPolicyTemplateTypeIntSelect    ConfigPolicyTemplateType = 4
+
+	// ConfigPolicyTemplateTypeIntSelect defines the config policy template type int select.
+	// regards value_int_select as the options, and value_int as the value.
+	ConfigPolicyTemplateTypeIntSelect ConfigPolicyTemplateType = 4
 )
