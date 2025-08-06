@@ -174,6 +174,45 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 				return nil
 			},
 		},
+		{
+			filePath: []string{tgzPathNameAny1, "support-files", "templates", "#etc#gse#gse_file_proxy.conf"},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_file_proxy.conf template file. err: %w", err)
+				}
+
+				detail.ConfigTemplate["file"] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "support-files", "templates", "#etc#gse#gse_data_proxy.conf"},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_data_proxy.conf template file. err: %w", err)
+				}
+
+				detail.ConfigTemplate["data"] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "support-files", "env", "gse_proxy.env"},
+			callback: func(_ []string, r io.Reader) error {
+				environ, err := parseEnvFile(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_proxy.env file. err: %w", err)
+				}
+
+				detail.ConfigEnviron = environ
+
+				return nil
+			},
+		},
 	}); err != nil {
 		return nil, fmt.Errorf("failed to check origin server package. err: %w", err)
 	}

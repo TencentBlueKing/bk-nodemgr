@@ -73,19 +73,21 @@ func StringListToReleaseTypeList(releaseTypeList []string) []ReleaseType {
 
 // Release defines the release package information.
 type Release struct {
-	Generation  Generation
-	Type        ReleaseType
-	Version     string
-	Platform    platform.Platform
-	Labels      []string
-	ChangeLogEN string
-	ChangeLogZH string
-	FileName    string
-	MD5         string
-	Enabled     bool
-	AsDefault   bool
-	UpdatedAt   time.Time
-	Operator    string
+	Generation     Generation
+	Type           ReleaseType
+	Version        string
+	Platform       platform.Platform
+	Labels         []string
+	ChangeLogEN    string
+	ChangeLogZH    string
+	FileName       string
+	MD5            string
+	Enabled        bool
+	AsDefault      bool
+	ConfigTemplate map[string]string
+	ConfigEnviron  map[string]any
+	UpdatedAt      time.Time
+	Operator       string
 }
 
 // ReleaseCert defines the cert, it is kind of Release.
@@ -105,12 +107,22 @@ type ReleaseBinTool struct {
 type OriginPkgDetail struct {
 	fileiface.FileInfo
 
-	UploadID    string
-	Existed     bool
-	Version     string
-	Platforms   []platform.Platform
-	ChangeLogEN string
-	ChangeLogZH string
+	UploadID       string
+	Existed        bool
+	Version        string
+	Platforms      []platform.Platform
+	ChangeLogEN    string
+	ChangeLogZH    string
+	ConfigTemplate map[string]string
+	ConfigEnviron  map[string]any
+}
+
+// NewOriginPkgDetail creates a new OriginPkgDetail.
+func NewOriginPkgDetail() *OriginPkgDetail {
+	return &OriginPkgDetail{
+		ConfigTemplate: make(map[string]string),
+		ConfigEnviron:  make(map[string]any),
+	}
 }
 
 // TargetPkgDetail defines the detail of target package.
