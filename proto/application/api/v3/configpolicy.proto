@@ -154,7 +154,7 @@ message ConfigPolicyDeleteResp {
   Data data = 4;
 }
 
-service ConfigPolicyService {
+service ConfigPolicyAPI {
   // ListConfigPolicy lists config policy.
   rpc ConfigPolicyList(ConfigPolicyListReq) returns (ConfigPolicyListResp) {
     option (google.api.http) = {

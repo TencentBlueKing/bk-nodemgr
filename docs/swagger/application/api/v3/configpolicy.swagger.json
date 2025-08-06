@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "ConfigPolicyService"
+      "name": "ConfigPolicyAPI"
     }
   ],
   "consumes": [
@@ -19,7 +19,7 @@
     "/api/v3/policy/config/create": {
       "post": {
         "summary": "CreateConfigPolicy creates config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyCreate",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyCreate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -46,14 +46,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/delete": {
       "post": {
         "summary": "DeleteConfigPolicy deletes config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyDelete",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyDelete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -80,14 +80,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/disable": {
       "post": {
         "summary": "DisableConfigPolicy disables config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyDisable",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyDisable",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -114,14 +114,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/enable": {
       "post": {
         "summary": "EnableConfigPolicy enables config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyEnable",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyEnable",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -148,14 +148,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/get": {
       "post": {
         "summary": "GetConfigPolicy gets config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyGet",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyGet",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -182,14 +182,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/list": {
       "post": {
         "summary": "ListConfigPolicy lists config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyList",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyList",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -216,14 +216,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/template": {
       "post": {
         "summary": "TemplateConfigPolicy gets config policy template.",
-        "operationId": "ConfigPolicyService_ConfigPolicyTemplate",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -250,14 +250,14 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     },
     "/api/v3/policy/config/update": {
       "post": {
         "summary": "UpdateConfigPolicy updates config policy.",
-        "operationId": "ConfigPolicyService_ConfigPolicyUpdate",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -284,7 +284,7 @@
           }
         ],
         "tags": [
-          "ConfigPolicyService"
+          "ConfigPolicyAPI"
         ]
       }
     }
