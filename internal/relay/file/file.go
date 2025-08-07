@@ -31,6 +31,8 @@ import (
 const (
 	fileRecoveryInterval  = 1 * time.Hour
 	defaultExpirationTime = 24 * time.Hour
+	dirSeparator          = "_"
+	dirDot                = "."
 )
 
 type fileManagerImpl struct {
@@ -117,12 +119,12 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 		return nil, fmt.Errorf("failed to create sub group: %w", err)
 	}
 
-	srcFile, err := os.Open(srcPath)
+	srcFile, err := os.Open(srcPath) // nolint: gosec
 	if err != nil {
 		fm.safeRemove(destDir)
 		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer srcFile.Close()
+	defer srcFile.Close() // nolint: errcheck
 
 	fileInfo := fileiface.FileInfo{Name: filename}
 	if err := subGroup.Store(ctx, fileInfo, srcFile, true); err != nil {
@@ -221,7 +223,7 @@ func isSubPath(targetPath, baseDir string) bool {
 		return false
 	}
 
-	return !strings.HasPrefix(rel, "..") && rel != ".."
+	return !strings.HasPrefix(rel, dirDot) && rel != dirDot
 }
 
 type fileVersion struct {
@@ -293,8 +295,8 @@ func removeAll(absPath string) error {
 }
 
 func splitDirectoryTime(groupName string) (time.Time, error) {
-	parts := strings.SplitN(groupName, "_", 2) // nolint: mnd
-	if len(parts) < 2 {                        // nolint: mnd
+	parts := strings.SplitN(groupName, dirSeparator, 2) // nolint: mnd
+	if len(parts) < 2 {                                 // nolint: mnd
 		return time.Time{}, errors.New("invalid group name")
 	}
 	storeTime, err := time.Parse("20060102150405", parts[0])
