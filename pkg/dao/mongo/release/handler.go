@@ -68,6 +68,12 @@ type IHandler interface {
 		version string,
 		asDefault bool) error
 
+	// CancelPlatformDefault cancel a release's all version asDefault by one platform.
+	CancelPlatformDefault(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform) error
+
 	// Count counts releases.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
@@ -89,10 +95,17 @@ type handler struct {
 
 // New create a new trigger handler.
 func New(client *mongo.Database, logger logger.Logger) IHandler {
-	return &handler{
+	h := &handler{
 		logger: logger,
 		dao:    newDao(client, logger),
 	}
+
+	if err := h.dao.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure release indexes, err: %v",
+			errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	return h
 }
 
 // Get gets a release.
@@ -266,6 +279,30 @@ func (h *handler) SetAsDefault(ctx context.Context,
 	return h.dao.UpdateField(ctx, filter, FieldKeyAsDefault, asDefault)
 }
 
+// CancelPlatformDefault cancel a release's all version asDefault by one platform.
+func (h *handler) CancelPlatformDefault(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gen),
+		WithType(releaseType),
+		WithCPUArch(string(plat.Arch)),
+		WithOSType(string(plat.OS)),
+	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.dao.UpdateField(ctx, filter, FieldKeyAsDefault, false)
+}
+
 // Count counts releases.
 func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	if ctx == nil {
@@ -338,33 +375,37 @@ func convertReleaseToTypes(release *Release) *types.Release {
 			Arch: criteria.CPUArch(release.CPUArch),
 			OS:   criteria.OSType(release.OSType),
 		},
-		Labels:      release.Labels,
-		ChangeLogEN: release.ChangeLogEN,
-		ChangeLogZH: release.ChangeLogZH,
-		FileName:    release.FileName,
-		MD5:         release.MD5,
-		Enabled:     release.Enabled,
-		AsDefault:   release.AsDefault,
-		UpdatedAt:   release.UpdatedAt,
-		Operator:    release.Operator,
+		Labels:         release.Labels,
+		ChangeLogEN:    release.ChangeLogEN,
+		ChangeLogZH:    release.ChangeLogZH,
+		FileName:       release.FileName,
+		MD5:            release.MD5,
+		Enabled:        release.Enabled,
+		AsDefault:      release.AsDefault,
+		ConfigTemplate: release.ConfigTemplate,
+		ConfigEnviron:  release.ConfigEnviron,
+		UpdatedAt:      release.UpdatedAt,
+		Operator:       release.Operator,
 	}
 }
 
 func convertReleaseFromTypes(release *types.Release) *Release {
 	return &Release{
-		Generation:  int64(release.Generation),
-		Type:        string(release.Type),
-		Version:     release.Version,
-		CPUArch:     string(release.Platform.Arch),
-		OSType:      string(release.Platform.OS),
-		Labels:      release.Labels,
-		ChangeLogEN: release.ChangeLogEN,
-		ChangeLogZH: release.ChangeLogZH,
-		FileName:    release.FileName,
-		MD5:         release.MD5,
-		Enabled:     release.Enabled,
-		AsDefault:   release.AsDefault,
-		UpdatedAt:   release.UpdatedAt,
-		Operator:    release.Operator,
+		Generation:     int64(release.Generation),
+		Type:           string(release.Type),
+		Version:        release.Version,
+		CPUArch:        string(release.Platform.Arch),
+		OSType:         string(release.Platform.OS),
+		Labels:         release.Labels,
+		ChangeLogEN:    release.ChangeLogEN,
+		ChangeLogZH:    release.ChangeLogZH,
+		FileName:       release.FileName,
+		MD5:            release.MD5,
+		Enabled:        release.Enabled,
+		AsDefault:      release.AsDefault,
+		ConfigTemplate: release.ConfigTemplate,
+		ConfigEnviron:  release.ConfigEnviron,
+		UpdatedAt:      release.UpdatedAt,
+		Operator:       release.Operator,
 	}
 }

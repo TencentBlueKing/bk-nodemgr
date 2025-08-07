@@ -20,13 +20,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+func newDao(client *mongo.Database, logger logger.Logger) *dao {
 	tableName := TableName()
 	d := &dao{
-		tenantID:  tenantID,
 		client:    client.Collection(tableName),
 		logger:    logger,
 		tableName: tableName,
@@ -39,7 +37,6 @@ func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao 
 }
 
 type dao struct {
-	tenantID  string
 	client    *mongo.Collection
 	tableName string
 	logger    logger.Logger
@@ -74,18 +71,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	return d.Count(ctx, append(filter, d.tenantFilter()))
-}
-
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*NetworkUnit, error) {
-	return d.List(ctx, append(filter, d.tenantFilter()), findOpt)
-}
-
-func (d *dao) get(ctx context.Context, filter bson.D) (*NetworkUnit, error) {
-	return d.Get(ctx, append(filter, d.tenantFilter()))
-}
-
 func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, error) {
 	newSequence, err := d.counter.Generate(ctx, TableName())
 	if err != nil {
@@ -108,8 +93,8 @@ func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, erro
 	return newSequence, nil
 }
 
-func (d *dao) updateMany(ctx context.Context, networkunits []*NetworkUnit) error {
-	models := buildUpdateManyParams(d.tenantID, networkunits)
+func (d *dao) updateMany(ctx context.Context, tenantID string, networkunits []*NetworkUnit) error {
+	models := buildUpdateManyParams(tenantID, networkunits)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -123,8 +108,8 @@ func (d *dao) updateMany(ctx context.Context, networkunits []*NetworkUnit) error
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, networkUnitIDs ...int64) error {
-	models := buildDeleteManyParams(d.tenantID, networkUnitIDs...)
+func (d *dao) deleteMany(ctx context.Context, tenantID string, networkUnitIDs ...int64) error {
+	models := buildDeleteManyParams(tenantID, networkUnitIDs...)
 
 	result, err := d.client.BulkWrite(ctx, models)
 	if err != nil {
@@ -142,12 +127,12 @@ func (d *dao) deleteMany(ctx context.Context, networkUnitIDs ...int64) error {
 // global networkarea is a special networkarea, it belongs to system tenant, but it can be seen by all tenants.
 // this scene is also ensured in CMDB.
 // a query from a tenant, should be filtered in its own tenant, and plus the global networkarea.
-func (d *dao) tenantFilter() bson.E {
+func tenantFilter(tenantID string) bson.E {
 	return bson.E{
 		Key: "$or",
 		Value: bson.A{
-			bson.D{{FieldKeyTenantID, d.tenantID}},
-			bson.D{{FieldKeyNetworkAreaID, base.GlobalNetworkAreaID}},
+			bson.D{{Key: FieldKeyTenantID, Value: tenantID}},
+			bson.D{{Key: FieldKeyNetworkAreaID, Value: base.GlobalNetworkAreaID}},
 		}}
 }
 

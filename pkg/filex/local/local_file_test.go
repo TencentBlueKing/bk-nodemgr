@@ -27,7 +27,7 @@ func testFilePath(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	return os.Getenv("PATH")
+	return os.Getenv("LOCAL_FILE_PATH")
 }
 
 // TestNewLocalFile ...
@@ -52,7 +52,7 @@ func TestNewLocalFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewLocalFile(tt.args.fullPath)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewLocalFile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewLocalFile() error = %v, wantErr %v. path(%s)", err, tt.wantErr, tt.args.fullPath)
 				return
 			}
 
@@ -61,7 +61,7 @@ func TestNewLocalFile(t *testing.T) {
 			info := got.Info()
 			t.Logf("FileInfo = %v", info)
 
-			file, err := os.Create(filepath.Join(filepath.Base(tt.args.fullPath), "test.txt"))
+			file, err := os.Create(filepath.Join(filepath.Dir(tt.args.fullPath), "test.txt"))
 			if err != nil {
 				t.Fatalf("Create() error = %v", err)
 			}

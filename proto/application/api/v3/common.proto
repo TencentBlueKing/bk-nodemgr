@@ -177,3 +177,52 @@ message TargetVersion {
   string cpu_arch = 2;
   string os_type = 3;
 }
+
+// ConfigPolicyScope describes the config policy scope.
+message ConfigPolicyScope {
+  optional int64 bk_networkarea_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string os_type = 3;
+  optional string cpu_arch = 4;
+}
+
+// ConfigPolicyConfig describes the config policy config.
+message ConfigPolicyConfigItem {
+  optional string id = 1;
+  optional bool enabled = 2;
+  optional string name_en = 3;
+  optional string name_zh = 4;
+  optional string remark_en = 5;
+  optional string remark_zh = 6;
+  optional string key = 7;
+  optional int64 type = 8;
+  optional string value_string = 9;
+  optional int64 value_int = 10;
+  optional bool value_bool = 11;
+  repeated string value_string_select = 12;
+  repeated int64 value_int_select = 13;
+}
+
+// ConfigPolicyConfigBlock describes the config policy config block.
+message ConfigPolicyConfigBlock {
+  optional string id = 1;
+  optional string title_en = 2;
+  optional string title_zh = 3;
+  repeated ConfigPolicyConfigItem items = 4;
+}
+
+// ConfigPolocy decribes the config policy.
+message ConfigPolicy {
+  optional string tenant_id = 1;
+  optional int64 configpolicy_id = 2;
+  optional string configpolicy_name = 3;
+  optional string node_role = 4;
+  repeated int64 biz_id = 5;
+  optional string remark = 6;
+  repeated ConfigPolicyScope scopes = 7;
+  repeated ConfigPolicyConfigBlock configs = 8;
+  optional bool enabled = 9;
+  optional int64 updated_time = 10;
+  optional string operator = 11;
+  optional int64 version = 12;
+}

@@ -25,7 +25,7 @@ func testDirPath(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	return os.Getenv("DIR_PATH")
+	return os.Getenv("LOCAL_DIR_PATH")
 }
 
 // TestNewLocalDir ...
@@ -60,16 +60,6 @@ func TestNewLocalDir(t *testing.T) {
 			fn = func(dir *LocalDir) {
 				t.Logf("dir: %s", dir.name)
 				t.Logf("fullPath: %s", dir.fullPath)
-
-				for _, file := range dir.fileMap {
-					t.Logf("file: %s", file.Name())
-				}
-
-				t.Log("\n")
-
-				for _, subDir := range dir.subDirs {
-					fn(subDir)
-				}
 			}
 
 			fn(got)

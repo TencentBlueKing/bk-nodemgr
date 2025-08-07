@@ -50,6 +50,7 @@ type ApplicationService struct {
 	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
+	MongoDB     MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
 	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
 	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
 	Log         Log            `yaml:"log" usage:"log config of application service"`

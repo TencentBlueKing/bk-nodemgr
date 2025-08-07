@@ -177,6 +177,12 @@ func (s *Storage) DisableRelease(ctx context.Context,
 	plat platform.Platform,
 	version string) error {
 
+	// cancel this release as default.
+	if err := s.daoRelease.SetAsDefault(ctx, gen, releaseType, plat, version, false); err != nil {
+		return fmt.Errorf("failed to cancel this release as default. platform(%s), version(%s)",
+			plat.String(), version)
+	}
+
 	return s.daoRelease.SetEnabled(ctx, gen, releaseType, plat, version, false)
 }
 
@@ -186,6 +192,11 @@ func (s *Storage) SetAsDefaultRelease(ctx context.Context,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
 	version string) error {
+
+	// cancel all version as-default in this platform.
+	if err := s.daoRelease.CancelPlatformDefault(ctx, gen, releaseType, plat); err != nil {
+		return fmt.Errorf("failed to cancel all version in this platform as default. platform(%s)", plat.String())
+	}
 
 	return s.daoRelease.SetAsDefault(ctx, gen, releaseType, plat, version, true)
 }

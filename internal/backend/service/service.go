@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
@@ -219,6 +220,11 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	svc.Cap.StorageCredit, err = credit.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger, svc.Cap.Crypter)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Cap.StorageConfigPolicy, err = configpolicy.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
 	if err != nil {
 		return nil, err
 	}

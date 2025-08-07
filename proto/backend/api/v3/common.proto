@@ -153,3 +153,29 @@ message Platform {
   string os_type = 1;
   string cpu_arch = 2;
 }
+
+// ConfigPolicyScope describes the config policy scope.
+message ConfigPolicyScope {
+  optional int64 bk_networkarea_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string os_type = 3;
+  optional string cpu_arch = 4;
+}
+
+// ConfigPolocy decribes the config policy.
+message ConfigPolicy {
+  optional string tenant_id = 1;
+  optional int64 configpolicy_id = 2;
+  optional string configpolicy_name = 3;
+  optional string node_role = 4;
+  repeated int64 biz_id = 5;
+  optional string remark = 6;
+  repeated ConfigPolicyScope scopes = 7;
+  map<string, string> configs_string = 8;
+  map<string, int64> configs_int = 9;
+  map<string, bool> configs_bool = 10;
+  optional bool enabled = 11;
+  optional int64 updated_time = 12;
+  optional string operator = 13;
+  optional int64 version = 14;
+}

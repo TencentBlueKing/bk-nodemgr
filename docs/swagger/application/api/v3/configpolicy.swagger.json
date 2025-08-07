@@ -1,0 +1,901 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "configpolicy.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ConfigPolicyAPI"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/policy/config/create": {
+      "post": {
+        "summary": "CreateConfigPolicy creates config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyCreateReq describes HTTP request body when create config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/delete": {
+      "post": {
+        "summary": "DeleteConfigPolicy deletes config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyDeleteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyDeleteReq describes HTTP request body when delete config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/disable": {
+      "post": {
+        "summary": "DisableConfigPolicy disables config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyDisable",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/enable": {
+      "post": {
+        "summary": "EnableConfigPolicy enables config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyEnable",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyEnableReq describes HTTP request body when enable config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/get": {
+      "post": {
+        "summary": "GetConfigPolicy gets config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyGetReq describes HTTP request body when get config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/list": {
+      "post": {
+        "summary": "ListConfigPolicy lists config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyListReq describes HTTP request body when list config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/template": {
+      "post": {
+        "summary": "TemplateConfigPolicy gets config policy template.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyTemplateReq describes HTTP request body when get config policy\ntemplate.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/update": {
+      "post": {
+        "summary": "UpdateConfigPolicy updates config policy.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyUpdateReq describes HTTP request body when update config policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3ConfigPolicy": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "configpolicy_name": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "remark": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyScope"
+          }
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "updated_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ConfigPolocy decribes the config policy."
+    },
+    "v3ConfigPolicyConfigBlock": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title_en": {
+          "type": "string"
+        },
+        "title_zh": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigItem"
+          }
+        }
+      },
+      "description": "ConfigPolicyConfigBlock describes the config policy config block."
+    },
+    "v3ConfigPolicyConfigItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name_en": {
+          "type": "string"
+        },
+        "name_zh": {
+          "type": "string"
+        },
+        "remark_en": {
+          "type": "string"
+        },
+        "remark_zh": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "value_string": {
+          "type": "string"
+        },
+        "value_int": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "value_bool": {
+          "type": "boolean"
+        },
+        "value_string_select": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "value_int_select": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ConfigPolicyConfig describes the config policy config."
+    },
+    "v3ConfigPolicyCreateReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_name": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "remark": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyScope"
+          }
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
+          }
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyCreateReq describes HTTP request body when create config policy."
+    },
+    "v3ConfigPolicyCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyCreateRespData"
+        }
+      },
+      "description": "ConfigPolicyCreateResp describes HTTP response body when create config\npolicy."
+    },
+    "v3ConfigPolicyCreateRespData": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3ConfigPolicyDeleteReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ConfigPolicyDeleteReq describes HTTP request body when delete config policy."
+    },
+    "v3ConfigPolicyDeleteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyDeleteRespData"
+        }
+      },
+      "description": "ConfigPolicyDeleteResp describes HTTP response body when delete config\npolicy."
+    },
+    "v3ConfigPolicyDeleteRespData": {
+      "type": "object"
+    },
+    "v3ConfigPolicyDisableReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy."
+    },
+    "v3ConfigPolicyDisableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyDisableRespData"
+        }
+      },
+      "description": "ConfigPolicyDisableResp describes HTTP response body when disable config\npolicy."
+    },
+    "v3ConfigPolicyDisableRespData": {
+      "type": "object"
+    },
+    "v3ConfigPolicyEnableReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ConfigPolicyEnableReq describes HTTP request body when enable config policy."
+    },
+    "v3ConfigPolicyEnableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyEnableRespData"
+        }
+      },
+      "description": "ConfigPolicyEnableResp describes HTTP response body when enable config\npolicy."
+    },
+    "v3ConfigPolicyEnableRespData": {
+      "type": "object"
+    },
+    "v3ConfigPolicyExactConditions": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "ConfigPolicyExactConditions describes config policy exact conditions."
+    },
+    "v3ConfigPolicyFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "configpolicy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "ConfigPolicyFuzzyConditions describes config policy fuzzy conditions."
+    },
+    "v3ConfigPolicyGetReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ConfigPolicyGetReq describes HTTP request body when get config policy."
+    },
+    "v3ConfigPolicyGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicy"
+        }
+      },
+      "description": "ConfigPolicyGetResp describes HTTP response body when get config policy."
+    },
+    "v3ConfigPolicyListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyFuzzyConditions"
+        }
+      },
+      "description": "ConfigPolicyListReq describes HTTP request body when list config policy."
+    },
+    "v3ConfigPolicyListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyListRespData"
+        }
+      },
+      "description": "ConfigPolicyListResp describes HTTP response body when list config policy."
+    },
+    "v3ConfigPolicyListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicy"
+          }
+        }
+      }
+    },
+    "v3ConfigPolicyScope": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyScope describes the config policy scope."
+    },
+    "v3ConfigPolicyTemplateReq": {
+      "type": "object",
+      "properties": {
+        "node_role": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyTemplateReq describes HTTP request body when get config policy\ntemplate."
+    },
+    "v3ConfigPolicyTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyTemplateRespData"
+        }
+      },
+      "description": "ConfigPolicyTemplateResp describes HTTP response body when get config policy\ntemplate."
+    },
+    "v3ConfigPolicyTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
+          }
+        }
+      }
+    },
+    "v3ConfigPolicyUpdateReq": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "configpolicy_name": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "remark": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyScope"
+          }
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyUpdateReq describes HTTP request body when update config policy."
+    },
+    "v3ConfigPolicyUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyUpdateRespData"
+        }
+      },
+      "description": "ConfigPolicyUpdateResp describes HTTP response body when update config\npolicy."
+    },
+    "v3ConfigPolicyUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    }
+  }
+}

@@ -61,11 +61,11 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	indexes := []mongo.IndexModel{
 		{
 			Keys: bson.D{
-				{Key: FieldKeyGeneration, Value: 1},
-				{Key: FieldKeyType, Value: 1},
-				{Key: FieldKeyCPUArch, Value: 1},
-				{Key: FieldKeyOSType, Value: 1},
-				{Key: FieldKeyVersion, Value: 1}},
+				bson.E{Key: FieldKeyGeneration, Value: 1},
+				bson.E{Key: FieldKeyType, Value: 1},
+				bson.E{Key: FieldKeyCPUArch, Value: 1},
+				bson.E{Key: FieldKeyOSType, Value: 1},
+				bson.E{Key: FieldKeyVersion, Value: 1}},
 			Options: mongoOptions.Index().SetUnique(true),
 		},
 	}
@@ -96,11 +96,11 @@ func buildUpsertManyParams(releases []*Release) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0, len(releases))
 	for _, release := range releases {
 		filter := bson.D{
-			{Key: FieldKeyGeneration, Value: release.Generation},
-			{Key: FieldKeyType, Value: release.Type},
-			{Key: FieldKeyCPUArch, Value: release.CPUArch},
-			{Key: FieldKeyOSType, Value: release.OSType},
-			{Key: FieldKeyVersion, Value: release.Version},
+			bson.E{Key: FieldKeyGeneration, Value: release.Generation},
+			bson.E{Key: FieldKeyType, Value: release.Type},
+			bson.E{Key: FieldKeyCPUArch, Value: release.CPUArch},
+			bson.E{Key: FieldKeyOSType, Value: release.OSType},
+			bson.E{Key: FieldKeyVersion, Value: release.Version},
 		}
 
 		update := base.BuildUpsertParam(release)

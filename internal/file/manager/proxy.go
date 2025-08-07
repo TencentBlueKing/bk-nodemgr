@@ -128,12 +128,14 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 			}
 
 			releasesMap[pkg.platform.String()] = &types.Release{
-				Generation: types.Generation2,
-				Type:       types.ReleaseTypeProxy,
-				Platform:   pkg.platform,
-				Version:    detail.Version,
-				FileName:   file.Info().Name,
-				MD5:        file.Info().MD5,
+				Generation:     types.Generation2,
+				Type:           types.ReleaseTypeProxy,
+				Platform:       pkg.platform,
+				Version:        detail.Version,
+				FileName:       file.Info().Name,
+				MD5:            file.Info().MD5,
+				ConfigTemplate: detail.ConfigTemplate,
+				ConfigEnviron:  detail.ConfigEnviron,
 			}
 
 			return nil

@@ -1,0 +1,227 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// ConfigPolicyExactConditions describes config policy exact conditions.
+message ConfigPolicyExactConditions {
+  repeated int64 configpolicy_id = 1;
+  repeated int64 biz_id = 2;
+  repeated string node_role = 3;
+  repeated bool enabled = 4;
+}
+
+// ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
+message ConfigPolicyFuzzyConditions { repeated string configpolicy_name = 1; }
+
+// ConfigPolicyListReq describes HTTP request body when list config policy.
+message ConfigPolicyListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  ConfigPolicyExactConditions exact_include_conditions = 3;
+  ConfigPolicyFuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// ConfigPolicyListResp describes HTTP response body when list config policy.
+message ConfigPolicyListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    int64 total = 1;
+    repeated ConfigPolicy items = 2;
+  }
+  Data data = 4;
+}
+
+// ConfigPolicyTemplateReq describes HTTP request body when get config policy
+// template.
+message ConfigPolicyTemplateReq { string node_role = 1; }
+
+// ConfigPolicyTemplateResp describes HTTP response body when get config policy
+// template.
+message ConfigPolicyTemplateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { repeated ConfigPolicyConfigBlock templates = 1; }
+  Data data = 4;
+}
+
+// ConfigPolicyGetReq describes HTTP request body when get config policy.
+message ConfigPolicyGetReq { int64 configpolicy_id = 1; }
+
+// ConfigPolicyGetResp describes HTTP response body when get config policy.
+message ConfigPolicyGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  ConfigPolicy data = 4;
+}
+
+// ConfigPolicyCreateReq describes HTTP request body when create config policy.
+message ConfigPolicyCreateReq {
+  string configpolicy_name = 1;
+  string node_role = 2;
+  repeated int64 biz_id = 3;
+  string remark = 4;
+  repeated ConfigPolicyScope scopes = 5;
+  repeated ConfigPolicyConfigBlock configs = 6;
+  string operator = 7;
+}
+
+// ConfigPolicyCreateResp describes HTTP response body when create config
+// policy.
+message ConfigPolicyCreateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 configpolicy_id = 1; }
+  Data data = 4;
+}
+
+// ConfigPolicyUpdateReq describes HTTP request body when update config policy.
+message ConfigPolicyUpdateReq {
+  int64 configpolicy_id = 1;
+  string configpolicy_name = 2;
+  string node_role = 3;
+  repeated int64 biz_id = 4;
+  string remark = 5;
+  repeated ConfigPolicyScope scopes = 6;
+  repeated ConfigPolicyConfigBlock configs = 7;
+  bool enabled = 8;
+  string operator = 9;
+}
+
+// ConfigPolicyUpdateResp describes HTTP response body when update config
+// policy.
+message ConfigPolicyUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data { optional int64 configpolicy_id = 1; }
+  Data data = 4;
+}
+
+// ConfigPolicyEnableReq describes HTTP request body when enable config policy.
+message ConfigPolicyEnableReq { repeated int64 configpolicy_id = 1; }
+
+// ConfigPolicyEnableResp describes HTTP response body when enable config
+// policy.
+message ConfigPolicyEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// ConfigPolicyDisableReq describes HTTP request body when disable config
+// policy.
+message ConfigPolicyDisableReq { repeated int64 configpolicy_id = 1; }
+
+// ConfigPolicyDisableResp describes HTTP response body when disable config
+// policy.
+message ConfigPolicyDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// ConfigPolicyDeleteReq describes HTTP request body when delete config policy.
+message ConfigPolicyDeleteReq { repeated int64 configpolicy_id = 1; }
+
+// ConfigPolicyDeleteResp describes HTTP response body when delete config
+// policy.
+message ConfigPolicyDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+service ConfigPolicyAPI {
+  // ListConfigPolicy lists config policy.
+  rpc ConfigPolicyList(ConfigPolicyListReq) returns (ConfigPolicyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/list"
+      body : "*"
+    };
+  }
+
+  // GetConfigPolicy gets config policy.
+  rpc ConfigPolicyGet(ConfigPolicyGetReq) returns (ConfigPolicyGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/get"
+      body : "*"
+    };
+  }
+
+  // TemplateConfigPolicy gets config policy template.
+  rpc ConfigPolicyTemplate(ConfigPolicyTemplateReq)
+      returns (ConfigPolicyTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/template"
+      body : "*"
+    };
+  }
+
+  // CreateConfigPolicy creates config policy.
+  rpc ConfigPolicyCreate(ConfigPolicyCreateReq)
+      returns (ConfigPolicyCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/create"
+      body : "*"
+    };
+  }
+
+  // UpdateConfigPolicy updates config policy.
+  rpc ConfigPolicyUpdate(ConfigPolicyUpdateReq)
+      returns (ConfigPolicyUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/update"
+      body : "*"
+    };
+  }
+
+  // EnableConfigPolicy enables config policy.
+  rpc ConfigPolicyEnable(ConfigPolicyEnableReq)
+      returns (ConfigPolicyEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/enable"
+      body : "*"
+    };
+  }
+
+  // DisableConfigPolicy disables config policy.
+  rpc ConfigPolicyDisable(ConfigPolicyDisableReq)
+      returns (ConfigPolicyDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/disable"
+      body : "*"
+    };
+  }
+
+  // DeleteConfigPolicy deletes config policy.
+  rpc ConfigPolicyDelete(ConfigPolicyDeleteReq)
+      returns (ConfigPolicyDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/delete"
+      body : "*"
+    };
+  }
+}

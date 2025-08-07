@@ -12,11 +12,13 @@
 package manager
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -457,4 +459,56 @@ func (m *Manager) fetchReleaseAgentLocal(
 	}
 
 	return m.tempFileGroup.GetFile(ctx, localFileName)
+}
+
+func parseEnvFile(r io.Reader) (map[string]any, error) {
+	result := make(map[string]any)
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		line := scanner.Text()
+		line = strings.TrimSpace(line)
+		if len(line) == 0 || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
+			continue
+		}
+
+		index := strings.Index(line, "=")
+		if index < 0 {
+			continue
+		}
+
+		// key should be in format __key__
+		key := "__" + strings.TrimSpace(line[:index]) + "__"
+		value := strings.TrimSpace(line[index+1:])
+
+		// get value according to the type.
+		//
+		// string value.
+		if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+			result[key] = value[1 : len(value)-1]
+			continue
+		}
+
+		// bool value.
+		if value == "true" {
+			result[key] = true
+			continue
+		}
+		if value == "false" {
+			result[key] = false
+			continue
+		}
+
+		// integer value.
+		if v, err := strconv.ParseInt(value, 10, 0); err == nil {
+			result[key] = v
+			continue
+		}
+
+		// default is string value.
+		result[key] = value
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to scan env file: %w", err)
+	}
+	return result, nil
 }
