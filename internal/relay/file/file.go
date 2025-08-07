@@ -104,57 +104,6 @@ func (fm *fileManagerImpl) restore(ctx context.Context) {
 	fm.sortAndPruneFileVersions(fileVersions)
 }
 
-type fileVersion struct {
-	subGroup fileiface.FileGroup
-	ModTime  time.Time
-}
-
-func (fm *fileManagerImpl) extractFileVersions(ctx context.Context,
-	subGroups []fileiface.FileGroup) map[string][]fileVersion {
-
-	fileVersions := make(map[string][]fileVersion)
-
-	for _, group := range subGroups {
-		storeTime, err := splitDirectoryTime(group.Name())
-		if err != nil {
-			continue
-		}
-
-		files, err := group.AllFiles(ctx)
-		if err != nil || len(files) != 1 {
-			fm.logger.Errorf("failed to get files: %s, %v", group.Name(), err)
-			continue
-		}
-
-		info := files[0].Info()
-		v := fileVersion{
-			subGroup: group,
-			ModTime:  storeTime,
-		}
-		fileVersions[info.Name] = append(fileVersions[info.Name], v)
-	}
-
-	return fileVersions
-}
-
-func (fm *fileManagerImpl) sortAndPruneFileVersions(fileVersions map[string][]fileVersion) {
-	for filename, versions := range fileVersions {
-		sort.Slice(versions, func(i, j int) bool {
-			return versions[i].ModTime.After(versions[j].ModTime)
-		})
-
-		fm.files[filename] = &cacheInfo{
-			fileGroup:    versions[0].subGroup,
-			lastAccessed: time.Now(),
-			fileName:     filename,
-		}
-
-		for _, old := range versions[1:] {
-			fm.safeRemove(local.GetLocalFileGroupAbsDirPath(old.subGroup))
-		}
-	}
-}
-
 // StoreFile store file form srcPath.
 func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename string) (*fileiface.FileInfo, error) {
 	destDir, err := fm.cleanOldAndCreateNewLocalDir(filename)
@@ -224,24 +173,7 @@ func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string)
 		return false
 	}
 
-	filePath := local.GetLocalFileAbsFilePath(info)
-	stat, err := os.Stat(filePath)
-	if err != nil {
-		fm.logger.Errorf("failed to stat file. filepath(%s): %v", filePath, err)
-		return false
-	}
-
-	currentMD5 := info.Info().MD5
-	if info.Info().ModTime != stat.ModTime() {
-		currentMD5, err = local.MD5SumWithBuffer(filePath)
-		if err != nil {
-			fm.logger.Errorf("failed to get file md5. filepath(%s): %v", filePath, err)
-			return false
-		}
-		// TODO: write md5 and modtime to filegroup
-	}
-
-	return currentMD5 == mD5
+	return info.Info().MD5 == mD5
 }
 
 func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {
@@ -290,6 +222,57 @@ func isSubPath(targetPath, baseDir string) bool {
 	}
 
 	return !strings.HasPrefix(rel, "..") && rel != ".."
+}
+
+type fileVersion struct {
+	subGroup fileiface.FileGroup
+	ModTime  time.Time
+}
+
+func (fm *fileManagerImpl) extractFileVersions(ctx context.Context,
+	subGroups []fileiface.FileGroup) map[string][]fileVersion {
+
+	fileVersions := make(map[string][]fileVersion)
+
+	for _, group := range subGroups {
+		storeTime, err := splitDirectoryTime(group.Name())
+		if err != nil {
+			continue
+		}
+
+		files, err := group.AllFiles(ctx)
+		if err != nil || len(files) != 1 {
+			fm.logger.Errorf("failed to get files: %s, %v", group.Name(), err)
+			continue
+		}
+
+		info := files[0].Info()
+		v := fileVersion{
+			subGroup: group,
+			ModTime:  storeTime,
+		}
+		fileVersions[info.Name] = append(fileVersions[info.Name], v)
+	}
+
+	return fileVersions
+}
+
+func (fm *fileManagerImpl) sortAndPruneFileVersions(fileVersions map[string][]fileVersion) {
+	for filename, versions := range fileVersions {
+		sort.Slice(versions, func(i, j int) bool {
+			return versions[i].ModTime.After(versions[j].ModTime)
+		})
+
+		fm.files[filename] = &cacheInfo{
+			fileGroup:    versions[0].subGroup,
+			lastAccessed: time.Now(),
+			fileName:     filename,
+		}
+
+		for _, old := range versions[1:] {
+			fm.safeRemove(local.GetLocalFileGroupAbsDirPath(old.subGroup))
+		}
+	}
 }
 
 func removeAll(absPath string) error {

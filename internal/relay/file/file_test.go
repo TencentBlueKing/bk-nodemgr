@@ -26,13 +26,12 @@ import (
 
 const (
 	baseDir      = ""
+	filedir      = ""
 	testFilename = "gse_agent_inner-v2.1.6-beta.59.tgz"
 )
 
 // Setup a test file manager without creating test file
 func setupTestFileManager(t *testing.T) (IFileManager, string, func()) {
-	baseDir := "/data/home/coonnerlian/workspace/tmp/"
-	filedir := "/data/home/coonnerlian/workspace/"
 	testFileName := "gse_agent_inner-v2.1.6-beta.59.tgz"
 	testFilePath := filepath.Join(filedir, testFileName)
 
@@ -93,7 +92,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 		assert.NoError(t, err, "read file failed")
 		assert.Equal(t, []byte("hello"), data, "file content not match")
 	})
-
+	time.Sleep(50 * time.Second)
 	t.Run("FileExists", func(t *testing.T) {
 		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
 		assert.True(t, exists, "file not exists")
