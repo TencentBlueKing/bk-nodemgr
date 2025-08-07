@@ -18,7 +18,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -52,62 +51,20 @@ func NewLocalDir(fullPath string, logger logger.Logger) (*LocalDir, error) {
 	group := &LocalDir{
 		name:     filepath.Base(fullPath),
 		fullPath: fullPath,
-		fileMap:  make(map[string]*LocalFile),
 		absDirs:  fileiface.ConvertAbsPathToAbsDirs(fullPath),
-		subDirs:  make([]*LocalDir, 0),
 		logger:   logger,
 	}
 
-	err = group.loadContent()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load directory content, err: %w", err)
-	}
-
 	return group, nil
-}
-
-func (group *LocalDir) loadContent() error {
-	entries, err := afero.ReadDir(rFs(), group.fullPath)
-	if err != nil {
-		return fmt.Errorf("read dir failed, err: %w", err)
-	}
-
-	for _, entry := range entries {
-		fullPath := filepath.Join(group.fullPath, entry.Name())
-
-		if entry.IsDir() {
-			subDir, err := NewLocalDir(fullPath, group.logger)
-			if err != nil {
-				group.logger.Warnf("failed to create local file group, subgroup(%s), err: %w", fullPath, err)
-				continue
-			}
-
-			group.subDirs = append(group.subDirs, subDir)
-		} else {
-			file, err := NewLocalFile(fullPath)
-			if err != nil {
-				group.logger.Warnf("failed to create local file, file(%s), err: %w", fullPath, err)
-				continue
-			}
-
-			group.fileMap[entry.Name()] = file
-		}
-	}
-
-	return nil
 }
 
 // LocalDir local file group.
 // nolint: revive
 type LocalDir struct {
 	name     string
-	fileMap  map[string]*LocalFile
 	fullPath string
 	absDirs  []string
-	subDirs  []*LocalDir
 	logger   logger.Logger
-
-	mutex sync.Mutex
 }
 
 // Name the name of file group.
@@ -117,45 +74,65 @@ func (group *LocalDir) Name() string {
 
 // SubGroups the sub groups of file group.
 func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, error) {
-	subGroups := make([]fileiface.FileGroup, 0, len(group.subDirs))
-	for _, subDir := range group.subDirs {
-		subGroups = append(subGroups, subDir)
+	entries, err := afero.ReadDir(rFs(), group.fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("read dir failed, err: %w", err)
+	}
+
+	subGroups := make([]fileiface.FileGroup, 0)
+	for _, entry := range entries {
+		fullPath := filepath.Join(group.fullPath, entry.Name())
+
+		if entry.IsDir() {
+			subDir, err := NewLocalDir(fullPath, group.logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create local file group, subgroup(%s), err: %w", fullPath, err)
+			}
+
+			subGroups = append(subGroups, subDir)
+		}
 	}
 
 	return subGroups, nil
 }
 
-// GetFile the func will get a file from the file group.
-func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, error) {
-	group.mutex.Lock()
-	defer group.mutex.Unlock()
-
-	file, ok := group.fileMap[name]
-	if !ok {
-		return nil, fmt.Errorf("file not found, name(%s)", name)
-	}
-
-	return file, nil
-}
-
 // AllFiles the files of file group.
 func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
-	group.mutex.Lock()
-	defer group.mutex.Unlock()
+	entries, err := afero.ReadDir(rFs(), group.fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("read dir failed, err: %w", err)
+	}
 
-	files := make([]fileiface.File, 0, len(group.fileMap))
-	for _, file := range group.fileMap {
-		files = append(files, file)
+	files := make([]fileiface.File, 0)
+	for _, entry := range entries {
+		fullPath := filepath.Join(group.fullPath, entry.Name())
+
+		if !entry.IsDir() {
+			file, err := NewLocalFile(fullPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create local file. file(%s), err: %w", fullPath, err)
+			}
+
+			files = append(files, file)
+		}
 	}
 
 	return files, nil
 }
 
+// GetFile the func will get a file from the file group.
+func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, error) {
+	fullPath := filepath.Join(group.fullPath, name)
+	file, err := NewLocalFile(fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create local file. file(%s), err: %w", fullPath, err)
+	}
+
+	return file, nil
+}
+
 // Store the func will store a file into the file group.
 func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
-	group.mutex.Lock()
-	defer group.mutex.Unlock()
-
 	if ctx == nil {
 		return errors.New("context cannot be nil")
 	}
@@ -224,13 +201,6 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 		return fmt.Errorf("write file content failed: %w", err)
 	}
 
-	localFile, err := NewLocalFile(fileFullPath)
-	if err != nil {
-		return fmt.Errorf("create local file failed, err: %w", err)
-	}
-
-	group.fileMap[info.Name] = localFile
-
 	return nil
 }
 
@@ -280,20 +250,10 @@ func (group *LocalDir) AbsDirs() []string {
 
 // Remove the func will delete a file from the file group.
 func (group *LocalDir) Remove(_ context.Context, name string) error {
-	group.mutex.Lock()
-	defer group.mutex.Unlock()
-
-	file, ok := group.fileMap[name]
-	if !ok {
-		return fmt.Errorf("file not found, name(%s)", name)
-	}
-
-	if file.fullPath == "" {
+	fullPath := filepath.Join(group.fullPath, name)
+	if fullPath == "" {
 		return fmt.Errorf("file full path is empty, name(%s)", name)
 	}
 
-	// delete file whether the remove successfully.
-	delete(group.fileMap, name)
-
-	return os.Remove(file.fullPath)
+	return os.Remove(fullPath)
 }

@@ -20,22 +20,30 @@ import (
 // FileGroup directory interface.
 type FileGroup interface {
 	// Name the name of file group.
+	// It is named since this file group is init.
 	Name() string
 
+	// AbsDirs the func will return the abs dirs of file group.
+	AbsDirs() []string
+
+	/**
+	 * The following methods will cause actual action, such as DiskIO, NetworkIO, etc.
+	 */
+
 	// SubGroups the sub groups of file group.
+	// It should lists all sub groups with actual action.
 	SubGroups(ctx context.Context) ([]FileGroup, error)
 
-	// GetFile get a file by name.
-	GetFile(ctx context.Context, name string) (File, error)
-
 	// AllFiles the all files of file group.
+	// It should lists all files with actual action.
 	AllFiles(ctx context.Context) ([]File, error)
+
+	// GetFile get a file by name.
+	// It should get file with actual action.
+	GetFile(ctx context.Context, name string) (File, error)
 
 	// Store the func will store a file into the file group.
 	Store(ctx context.Context, info FileInfo, file io.ReadCloser, overwrite bool) error
-
-	// AbsDir the func will return the abs dirs of file group.
-	AbsDirs() []string
 
 	// Remove the func will delete a file from the file group.
 	// Remove(ctx context.Context, name string) error
@@ -46,13 +54,15 @@ type File interface {
 	// FileObject the file object.
 	FileObject() FileObject
 
-	FileContent
-
 	// Info the info of file.
+	// It is a cache read since the file is got from the file group.
+	// Re-get the file if you want it fresh.
 	Info() FileInfo
 
 	// AbsDir the func will return the abs dirs of file.
 	AbsDirs() []string
+
+	FileContent
 }
 
 // FileInfo file info.
