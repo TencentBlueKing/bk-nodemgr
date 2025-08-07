@@ -19,11 +19,8 @@ import (
 
 // IFileManager defines the file manager interface.
 type IFileManager interface {
-	// GetFileInfo get file info.
-	GetFileInfo(ctx context.Context, filename string) (*iface.FileInfo, error)
-
-	// DownloadFile returnn file content.
-	DownloadFile(ctx context.Context, filename string) (iface.FileContent, *iface.FileInfo, error)
+	// GetFile get file info.
+	GetFile(ctx context.Context, filename string) (iface.File, error)
 
 	// StoreFile store file form srcPath.
 	StoreFile(ctx context.Context, srcPath, filename string) (*iface.FileInfo, error)

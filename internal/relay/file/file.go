@@ -18,16 +18,14 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-
-	"github.com/google/uuid"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 const (
@@ -38,13 +36,23 @@ const (
 type fileManagerImpl struct {
 	baseDir         string
 	rootGroup       fileiface.FileGroup
-	files           map[string]*fileiface.FileInfo
+	files           map[string]*cacheInfo
 	mutex           sync.RWMutex
-	refs            map[string]int
-	refLock         sync.Mutex
-	pendingDeletion map[string]*fileiface.FileInfo
+	pendingDeletion map[string]*cacheInfo
+	logger          logger.Logger
+}
 
-	logger logger.Logger
+type cacheInfo struct {
+	fileGroup    fileiface.FileGroup
+	lastAccessed time.Time
+	fileName     string
+	fileLock     sync.Mutex
+}
+
+func (info *cacheInfo) updateLastAccessed() {
+	info.fileLock.Lock()
+	defer info.fileLock.Unlock()
+	info.lastAccessed = time.Now()
 }
 
 // NewFileManager creates a new file manager.
@@ -55,17 +63,15 @@ func NewFileManager(ctx context.Context, baseDir string, logger logger.Logger) I
 
 	rootGroup, err := local.NewLocalDir(baseDir, logger)
 	if err != nil {
-		logger.Warnf("failed to create root group.basedir(%s): %v", err)
+		logger.Errorf("failed to create root group.basedir(%s): %v", err)
 	}
 
 	fm := &fileManagerImpl{
 		baseDir:         baseDir,
 		rootGroup:       rootGroup,
-		files:           make(map[string]*fileiface.FileInfo),
-		refs:            make(map[string]int),
-		pendingDeletion: make(map[string]*fileiface.FileInfo),
-
-		logger: logger,
+		files:           make(map[string]*cacheInfo),
+		pendingDeletion: make(map[string]*cacheInfo),
+		logger:          logger,
 	}
 	fm.restore(ctx)
 
@@ -86,19 +92,26 @@ func NewFileManager(ctx context.Context, baseDir string, logger logger.Logger) I
 	return fm
 }
 
+// restore restores the file manager.
 func (fm *fileManagerImpl) restore(ctx context.Context) {
-	fm.files = make(map[string]*fileiface.FileInfo)
-
 	subGroups, err := fm.rootGroup.SubGroups(ctx)
 	if err != nil {
-		fm.logger.Warnf("failed to get sub groups: %v", err)
+		fm.logger.Errorf("failed to get sub groups: %v", err)
 		return
 	}
-	type fileVersion struct {
-		GroupPath string
-		ModTime   time.Time
-		Info      *fileiface.FileInfo
-	}
+
+	fileVersions := fm.extractFileVersions(ctx, subGroups)
+	fm.sortAndPruneFileVersions(fileVersions)
+}
+
+type fileVersion struct {
+	subGroup fileiface.FileGroup
+	ModTime  time.Time
+}
+
+func (fm *fileManagerImpl) extractFileVersions(ctx context.Context,
+	subGroups []fileiface.FileGroup) map[string][]fileVersion {
+
 	fileVersions := make(map[string][]fileVersion)
 
 	for _, group := range subGroups {
@@ -108,239 +121,192 @@ func (fm *fileManagerImpl) restore(ctx context.Context) {
 		}
 
 		files, err := group.AllFiles(ctx)
-		if err != nil || len(files) == 0 {
-			fm.logger.Warnf("failed to get files in group %s: %v", group.Name(), err)
+		if err != nil || len(files) != 1 {
+			fm.logger.Errorf("failed to get files: %s, %v", group.Name(), err)
 			continue
 		}
 
 		info := files[0].Info()
-		absDirs := group.AbsDirs()
-		filePath := filepath.Join(filepath.Join(absDirs...), info.Name)
-
 		v := fileVersion{
-			GroupPath: filepath.Join(fm.baseDir, group.Name()),
-			ModTime:   storeTime,
-			Info: &fileiface.FileInfo{
-				Name:         info.Name,
-				Size:         info.Size,
-				MD5:          info.MD5,
-				ModTime:      storeTime,
-				FullPath:     filePath,
-				Description:  info.Description,
-				ExtendFields: info.ExtendFields,
-			},
+			subGroup: group,
+			ModTime:  storeTime,
 		}
-
 		fileVersions[info.Name] = append(fileVersions[info.Name], v)
 	}
 
+	return fileVersions
+}
+
+func (fm *fileManagerImpl) sortAndPruneFileVersions(fileVersions map[string][]fileVersion) {
 	for filename, versions := range fileVersions {
 		sort.Slice(versions, func(i, j int) bool {
 			return versions[i].ModTime.After(versions[j].ModTime)
 		})
 
-		latest := versions[0]
-		fm.files[filename] = latest.Info
+		fm.files[filename] = &cacheInfo{
+			fileGroup:    versions[0].subGroup,
+			lastAccessed: time.Now(),
+			fileName:     filename,
+		}
 
 		for _, old := range versions[1:] {
-			if err := os.RemoveAll(old.GroupPath); err != nil {
-				fm.logger.Warnf("failed to remove old file. groupPath(%s): %v", old.GroupPath, err)
-			}
+			fm.safeRemove(local.GetLocalFileGroupAbsDirPath(old.subGroup))
 		}
 	}
 }
 
 // StoreFile store file form srcPath.
 func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename string) (*fileiface.FileInfo, error) {
-	destDir := getStoreDestDir(fm.baseDir)
-
-	if err := os.MkdirAll(destDir, 0750); err != nil { // nolint: mnd
-		return nil, fmt.Errorf("failed to create store dir. destDir(%s): %w", destDir, err)
+	destDir, err := fm.cleanOldAndCreateNewLocalDir(filename)
+	if err != nil {
+		return nil, err
 	}
 
 	subGroup, err := local.NewLocalDir(destDir, fm.logger)
 	if err != nil {
-		fm.removeAll(destDir)
-		return nil, fmt.Errorf("failed to create sub group. destDir(%s): %w", destDir, err)
+		fm.safeRemove(destDir)
+		return nil, fmt.Errorf("failed to create sub group: %w", err)
 	}
 
-	srcFile, err := os.Open(srcPath) // nolint: gosec
+	srcFile, err := os.Open(srcPath)
 	if err != nil {
-		fm.removeAll(destDir)
-		return nil, fmt.Errorf("failed to open file. srcPath(%s): %w", srcPath, err)
+		fm.safeRemove(destDir)
+		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer srcFile.Close() // nolint: errcheck
+	defer srcFile.Close()
 
-	if err := subGroup.Store(ctx, fileiface.FileInfo{Name: filename}, srcFile, true); err != nil {
-		fm.removeAll(destDir)
-		return nil, fmt.Errorf("failed to store file. filename(%s): %w", filename, err)
+	fileInfo := fileiface.FileInfo{Name: filename}
+	if err := subGroup.Store(ctx, fileInfo, srcFile, true); err != nil {
+		fm.safeRemove(destDir)
+		return nil, fmt.Errorf("failed to store file: %w", err)
 	}
 
 	file, err := subGroup.GetFile(ctx, filename)
 	if err != nil {
-		fm.removeAll(destDir)
-		return nil, fmt.Errorf("failed to get file. filename(%s): %w", filename, err)
+		fm.safeRemove(destDir)
+		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
-
 	storedInfo := file.Info()
 
 	fm.mutex.Lock()
 	defer fm.mutex.Unlock()
-
-	if oldInfo, exists := fm.files[filename]; exists {
-		fm.pendingDeletion[oldInfo.FullPath] = oldInfo
+	fm.files[filename] = &cacheInfo{
+		fileGroup:    subGroup,
+		fileName:     filename,
+		lastAccessed: time.Now(),
 	}
-
-	fm.files[filename] = &storedInfo
 
 	return &storedInfo, nil
 }
 
-func (fm *fileManagerImpl) GetFileInfo(_ context.Context, filename string) (
-	*fileiface.FileInfo, error) {
+// GetFileInfo get file info, this func will refresh the file survival time.
+func (fm *fileManagerImpl) GetFile(ctx context.Context, filename string) (
+	fileiface.File, error) {
 
 	fm.mutex.RLock()
-	defer fm.mutex.RUnlock()
-
 	info, exists := fm.files[filename]
+	fm.mutex.RUnlock()
+
 	if !exists {
 		return nil, os.ErrNotExist
 	}
 
-	return info, nil
-}
+	info.updateLastAccessed()
 
-func (fm *fileManagerImpl) DownloadFile(ctx context.Context, filename string) (fileiface.FileContent,
-	*fileiface.FileInfo, error) {
-
-	info, err := fm.GetFileInfo(ctx, filename)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return &fileContent{
-		path: info.FullPath,
-		fm:   fm,
-	}, info, nil
+	return info.fileGroup.GetFile(ctx, filename)
 }
 
 // FileExists check file exists.
 func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string) bool {
-	info, err := fm.GetFileInfo(ctx, filename)
+	info, err := fm.GetFile(ctx, filename)
 	if err != nil {
-		fm.logger.Errorf("failed to get file info. filename(%s): %v", filename, err)
+		fm.logger.Errorf("failed to get file. filename(%s): %v", filename, err)
 		return false
 	}
 
-	currentMD5 := info.MD5
-
-	stat, err := os.Stat(info.FullPath)
+	filePath := local.GetLocalFileAbsFilePath(info)
+	stat, err := os.Stat(filePath)
 	if err != nil {
-		fm.logger.Errorf("failed to stat file. fullPath(%s): %v", info.FullPath, err)
+		fm.logger.Errorf("failed to stat file. filepath(%s): %v", filePath, err)
 		return false
 	}
 
-	if info.ModTime != stat.ModTime() {
-		currentMD5, err := local.MD5SumWithBuffer(info.FullPath)
+	currentMD5 := info.Info().MD5
+	if info.Info().ModTime != stat.ModTime() {
+		currentMD5, err = local.MD5SumWithBuffer(filePath)
 		if err != nil {
-			fm.logger.Errorf("failed to get file md5. fullPath(%s): %v", info.FullPath, err)
+			fm.logger.Errorf("failed to get file md5. filepath(%s): %v", filePath, err)
 			return false
 		}
-
-		info.MD5 = currentMD5
-		info.ModTime = stat.ModTime()
-		fm.logger.Infof("file has been modified. fullPath(%s)", info.FullPath)
+		// TODO: write md5 and modtime to filegroup
 	}
 
-	if currentMD5 != mD5 {
-		return false
-	}
-
-	return true
+	return currentMD5 == mD5
 }
 
-func (fm *fileManagerImpl) runGC(ctx context.Context, maxAge time.Duration) {
+func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {
 	cutoff := time.Now().Add(-maxAge)
 
-	allFiles := make([]*fileiface.FileInfo, 0)
 	fm.mutex.RLock()
 	for _, info := range fm.files {
-		if !info.ModTime.Before(cutoff) {
+		info.fileLock.Lock()
+		defer info.fileLock.Unlock()
+		if !info.lastAccessed.Before(cutoff) {
 			continue
 		}
-		allFiles = append(allFiles, info)
+		delete(fm.files, info.fileName)
+		go fm.safeRemove(local.GetLocalFileGroupAbsDirPath(info.fileGroup))
 	}
+	defer fm.mutex.RUnlock()
+
 	for _, info := range fm.pendingDeletion {
-		if !info.ModTime.Before(cutoff) {
+		info.fileLock.Lock()
+		defer info.fileLock.Unlock()
+		if !info.lastAccessed.Before(cutoff) {
 			continue
 		}
-		allFiles = append(allFiles, info)
-	}
 
-	fm.mutex.RUnlock()
-
-	for _, info := range allFiles {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			if !fm.canSafelyRemove(info.FullPath) {
-				continue
-			}
-			fm.safeRemoveFile(info.FullPath)
-			fm.mutex.Lock()
-			delete(fm.files, info.Name)
-			fm.mutex.Unlock()
-
-			fm.refLock.Lock()
-			delete(fm.refs, info.FullPath)
-			fm.refLock.Unlock()
-
-			fm.logger.Infof("remove expired file. filename(%s),filepath(%s)", info.Name, info.FullPath)
-		}
+		go fm.safeRemove(local.GetLocalFileGroupAbsDirPath(info.fileGroup))
 	}
 }
 
-func (fm *fileManagerImpl) safeRemoveFile(path string) {
-	dir := filepath.Dir(path)
+// safeRemove remove file from file manager.check the file is in baseDir and legal dir.
+func (fm *fileManagerImpl) safeRemove(groupPath string) {
+	if !isSubPath(groupPath, fm.baseDir) {
+		fm.logger.Errorf("attempted to remove file outside of baseDir. path(%s)", groupPath)
 
-	if err := os.RemoveAll(dir); err != nil {
-		fm.logger.Errorf("failed to remove dir. dir(%s): %v", dir, err)
+		return
+	}
+	if err := removeAll(groupPath); err != nil {
+		fm.logger.Errorf("failed to remove group. groupPath(%s): %v",
+			groupPath, err)
 	}
 }
 
-func (fm *fileManagerImpl) canSafelyRemove(path string) bool {
-	if fm.getRefCount(path) > 0 {
+func isSubPath(targetPath, baseDir string) bool {
+	rel, err := filepath.Rel(baseDir, targetPath)
+	if err != nil {
 		return false
 	}
 
-	return true
+	return !strings.HasPrefix(rel, "..") && rel != ".."
 }
 
-func (fm *fileManagerImpl) decrementRef(path string) {
-	fm.refLock.Lock()
-	defer fm.refLock.Unlock()
+func removeAll(absPath string) error {
+	if absPath == "" ||
+		absPath == "/" ||
+		strings.HasPrefix(absPath, "/dev/") ||
+		strings.HasPrefix(absPath, "/sys/") ||
+		strings.HasPrefix(absPath, "/proc/") {
 
-	if count, exists := fm.refs[path]; exists {
-		if count <= 1 {
-			delete(fm.refs, path)
-		} else {
-			fm.refs[path] = count - 1
-		}
+		return fmt.Errorf("failed to remove all, got invalid path(%s)", absPath)
 	}
-}
 
-func (fm *fileManagerImpl) getRefCount(path string) int {
-	fm.refLock.Lock()
-	defer fm.refLock.Unlock()
-
-	return fm.refs[path]
-}
-
-func (fm *fileManagerImpl) removeAll(path string) {
-	if err := os.RemoveAll(path); err != nil {
-		fm.logger.Errorf("failed to remove dir. dir(%s): %v", path, err)
+	if err := os.RemoveAll(absPath); err != nil {
+		return fmt.Errorf("failed to remove all(%s): %w", absPath, err)
 	}
+
+	return nil
 }
 
 func splitDirectoryTime(groupName string) (time.Time, error) {
@@ -353,7 +319,34 @@ func splitDirectoryTime(groupName string) (time.Time, error) {
 	return storeTime, err
 }
 
-func getStoreDestDir(baseDir string) string {
-	dirName := fmt.Sprintf("%s_%s", time.Now().Format("20060102150405"), uuid.New().String())
-	return filepath.Join(baseDir, dirName)
+func getDirSeq(dirName string) int64 {
+	splitDirectory := strings.Split(dirName, "_")
+	if len(splitDirectory) < 2 { // nolint: mnd
+		return 0
+	}
+	seqInt, _ := strconv.Atoi(splitDirectory[1])
+
+	return int64(seqInt)
+}
+
+func (fm *fileManagerImpl) cleanOldAndCreateNewLocalDir(filename string) (string, error) {
+	fm.mutex.Lock()
+	defer fm.mutex.Unlock()
+	var seq int64
+	if oldInfo, exists := fm.files[filename]; exists {
+		oldPath := local.GetLocalFileGroupAbsFilePath(oldInfo.fileGroup, filename)
+		fm.pendingDeletion[oldPath] = oldInfo
+		seq = getDirSeq(oldInfo.fileGroup.Name()) + 1
+	}
+
+	destDir := filepath.Join(fm.baseDir, getStorageDirName(seq))
+	if err := os.MkdirAll(destDir, 0750); err != nil { // nolint: mnd
+		return "", fmt.Errorf("failed to create store dir. destDir(%s): %w", destDir, err)
+	}
+
+	return destDir, nil
+}
+
+func getStorageDirName(seq int64) string {
+	return fmt.Sprintf("%s_%d", time.Now().Format("20060102150405"), seq)
 }

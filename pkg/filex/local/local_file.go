@@ -62,7 +62,6 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 			Size:         stat.Size(),
 			MD5:          md5Str,
 			ModTime:      stat.ModTime(),
-			FullPath:     fullPath,
 			Description:  "",
 			ExtendFields: nil,
 		},

@@ -70,9 +70,6 @@ type FileInfo struct {
 	// ModTime the mod time of file.
 	ModTime time.Time
 
-	// FullPath the full path of file.
-	FullPath string
-
 	// Description the description of file.
 	Description string
 
