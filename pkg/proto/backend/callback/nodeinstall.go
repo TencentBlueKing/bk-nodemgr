@@ -93,11 +93,11 @@ func (x *ReportStatusReq) Validate() error {
 
 // Validate check request body.
 func (x *ReportDataReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
-	if x.AgentId == "" {
+	if x.GetAgentId() == "" {
 		return errors.New("agent_id is required")
 	}
 
@@ -106,4 +106,23 @@ func (x *ReportDataReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *ReportDataReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportPrivateDataReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+	if len(x.GetPrivateData()) == 0 {
+		return errors.New("action_private_data is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportPrivateDataReq) AutoConvert() {
 }
