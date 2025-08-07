@@ -907,6 +907,33 @@ func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseL
 	return resp, nil
 }
 
+func (c *cli) distinctRelease(ctx context.Context, req *protoBackend.PackageReleaseDistinctReq) (
+	*protoBackend.PackageReleaseDistinctResp, error) {
+
+	resp := new(protoBackend.PackageReleaseDistinctResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/distinct").
+		WithContext(ctx).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct release failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("distinct release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageReleaseSetLabelsReq) error {
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
 	err := c.client.Post().

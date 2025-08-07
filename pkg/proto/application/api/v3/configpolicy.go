@@ -149,18 +149,53 @@ func (x *ConfigPolicyGetResp) ConvertConfigPolicyFromTypes(configPolicy *types.C
 }
 
 // Validate check body.
-func (x *ConfigPolicyTemplateReq) Validate() error {
+func (x *ConfigPolicyGetTemplateReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *ConfigPolicyTemplateReq) AutoConvert() {
+func (x *ConfigPolicyGetTemplateReq) AutoConvert() {
 }
 
 // ConvertTemplateFromTypes convert template from types.
-func (x *ConfigPolicyTemplateResp) ConvertTemplateFromTypes(blocks []types.ConfigPolicyTemplateBlock) {
-	x.Data = &ConfigPolicyTemplateResp_Data{
+func (x *ConfigPolicyGetTemplateResp) ConvertTemplateFromTypes(blocks []types.ConfigPolicyTemplateBlock) {
+	x.Data = &ConfigPolicyGetTemplateResp_Data{
 		Templates: convertConfigPolicyConfigsFromTypes(blocks),
+	}
+}
+
+// Validate check body.
+func (x *ConfigPolicyListPlatformReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyListPlatformReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *ConfigPolicyListPlatformReq) ConvertConditionsToTypes() *types.ReleaseCondition {
+	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(x.GetNodeRole()))
+	if err != nil {
+		return &types.ReleaseCondition{}
+	}
+
+	return &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Type: []types.ReleaseType{releaseType},
+		},
+	}
+}
+
+// ConvertPlatformFromTypes convert platform from types.
+func (x *ConfigPolicyListPlatformResp) ConvertPlatformFromTypes(result *types.ReleaseDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &ConfigPolicyListPlatformResp_Data{
+		OsType:  result.OSType,
+		CpuArch: result.CPUArch,
 	}
 }
 

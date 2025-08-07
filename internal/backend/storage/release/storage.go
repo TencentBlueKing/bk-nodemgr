@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,6 +39,11 @@ type IStorage interface {
 	// ListRelease lists release by page and conditions.
 	ListRelease(ctx context.Context, page types.Page, conditions ...*types.ReleaseCondition) (
 		[]*types.Release, int64, error)
+
+	// DistinctRelease distincts release by conditions.
+	DistinctRelease(
+		ctx context.Context, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
 	CountRelease(ctx context.Context, conditions ...*types.ReleaseCondition) (int64, error)
@@ -154,6 +160,40 @@ func (s *Storage) ListRelease(ctx context.Context, page types.Page, conditions .
 	}
 
 	return s.daoRelease.List(ctx, page, opts...)
+}
+
+// DistinctRelease distincts release by conditions.
+func (s *Storage) DistinctRelease(
+	ctx context.Context, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	opts, err := convertReleaseconditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := new(types.ReleaseDistinctResult)
+
+	gp := gopool.NewPool()
+	if request.OSType {
+		gp.Go(func() error {
+			var err error
+			result.OSType, err = s.daoRelease.DistinctOsType(ctx, opts...)
+			return err
+		})
+	}
+	if request.CPUArch {
+		gp.Go(func() error {
+			var err error
+			result.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, opts...)
+			return err
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // CountRelease counts release by conditions.

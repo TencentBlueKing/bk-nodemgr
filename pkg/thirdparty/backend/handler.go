@@ -260,6 +260,10 @@ type IHandlerRelease interface {
 	// CountRelease counts release by conditions.
 	CountRelease(ctx context.Context, condition *types.ReleaseCondition) (int64, error)
 
+	// DistinctRelease distincts release by conditions.
+	DistinctRelease(ctx context.Context, request types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
+
 	// SetReleaseLabels sets release labels.
 	SetReleaseLabels(ctx context.Context,
 		gen types.Generation,
@@ -1076,6 +1080,23 @@ func (h *handler) CountRelease(ctx context.Context, condition *types.ReleaseCond
 	}
 
 	return resp.GetData().GetTotal(), nil
+}
+
+// DistinctRelease distincts release by conditions.
+func (h *handler) DistinctRelease(ctx context.Context, request types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	req := &protoBackend.PackageReleaseDistinctReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctRelease(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }
 
 // SetReleaseLabels sets release labels.

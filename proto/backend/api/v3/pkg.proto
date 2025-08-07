@@ -39,6 +39,26 @@ message PackageReleaseListResp {
   Data data = 4;
 }
 
+// PackageReleaseDistinctReq describes the HTTP request body when distinct
+// release.
+message PackageReleaseDistinctReq {
+  PackageReleaseExactConditions exact_include_conditions = 1;
+}
+
+// PackageReleaseDistinctResp describes the HTTP response body when distinct
+// release.
+message PackageReleaseDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated string os_type = 1;
+    repeated string cpu_arch = 2;
+  }
+  Data data = 4;
+}
+
 // PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
 message PackageReleaseSetLabelsReq {
   int64 generation = 1;

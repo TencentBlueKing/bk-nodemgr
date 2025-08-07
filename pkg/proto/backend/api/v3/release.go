@@ -162,6 +162,58 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 	return data.GetTotal(), result
 }
 
+// Validate validates the request.
+func (x *PackageReleaseDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert automatically converts the request to types.
+func (x *PackageReleaseDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts the request to types.
+func (x *PackageReleaseDistinctReq) ConvertConditionsToTypes() *types.ReleaseCondition {
+	return convertReleaseConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// ConvertConditionsFromTypes converts the request to types.
+func (x *PackageReleaseDistinctReq) ConvertConditionsFromTypes(condition *types.ReleaseCondition) error {
+	exactCond, err := convertReleaseConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+
+	return nil
+}
+
+// ConvertResultFromTypes converts the result from types.
+func (x *PackageReleaseDistinctResp) ConvertResultFromTypes(result *types.ReleaseDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &PackageReleaseDistinctResp_Data{
+		OsType:  formatRespSlice(result.OSType),
+		CpuArch: formatRespSlice(result.CPUArch),
+	}
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x *PackageReleaseDistinctResp) ConvertResultToTypes() *types.ReleaseDistinctResult {
+	if x.GetData() == nil {
+		return &types.ReleaseDistinctResult{}
+	}
+
+	data := x.GetData()
+
+	return &types.ReleaseDistinctResult{
+		OSType:  data.GetOsType(),
+		CPUArch: data.GetCpuArch(),
+	}
+}
+
 // Validate check body.
 func (x *PackageReleaseSetLabelsReq) Validate() error {
 	return nil

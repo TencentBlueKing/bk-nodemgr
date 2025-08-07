@@ -52,7 +52,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/list", restserver.Handler(h.ListConfigPolicy))
 	h.rg.POST("/get", restserver.Handler(h.GetConfigPolicy))
-	h.rg.POST("/template", restserver.Handler(h.TemplateConfigPolicy))
+	h.rg.POST("/list_platform", restserver.Handler(h.ListConfigPolicyPlatform))
+	h.rg.POST("/get_template", restserver.Handler(h.GetConfigPolicyTemplate))
 	h.rg.POST("/create", restserver.Handler(h.CreateConfigPolicy))
 	h.rg.POST("/update", restserver.Handler(h.UpdateConfigPolicy))
 	h.rg.POST("/enable", restserver.Handler(h.EnableConfigPolicy))
@@ -139,15 +140,37 @@ func (h *handler) GetConfigPolicy(ctx *restserver.Context) (interface{}, error) 
 	return resp.GetData(), nil
 }
 
-// TemplateConfigPolicy gets config policy template.
-func (h *handler) TemplateConfigPolicy(ctx *restserver.Context) (interface{}, error) {
-	req := new(protoApplication.ConfigPolicyTemplateReq)
+// ListConfigPolicyPlatform lists config policy platform.
+func (h *handler) ListConfigPolicyPlatform(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoApplication.ConfigPolicyListPlatformReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to list config policy platform, failed to decode request body. err: %v", err)
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	result, err := h.backendHandler.DistinctRelease(ctx,
+		types.NewReleaseDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to list config policy platform, failed to distinct release. err: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.ConfigPolicyListPlatformResp)
+	resp.ConvertPlatformFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+// GetConfigPolicyTemplate gets config policy template.
+func (h *handler) GetConfigPolicyTemplate(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoApplication.ConfigPolicyGetTemplateReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to get config policy template, failed to decode request body. err: %v", err)
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	resp := new(protoApplication.ConfigPolicyTemplateResp)
+	resp := new(protoApplication.ConfigPolicyGetTemplateResp)
 	resp.ConvertTemplateFromTypes(getConfigTemplate(types.NodeRole(req.GetNodeRole())))
 
 	return resp.GetData(), nil
