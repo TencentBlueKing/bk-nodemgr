@@ -193,8 +193,9 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 	}
 
 	return &NodeConf{
-		PreSetting:    nodeConf.PreSetting,
-		CustomSetting: nodeConf.CustomSetting,
+		ConfigTemplate: nodeConf.ConfigTemplate,
+		PreSetting:     nodeConf.PreSetting,
+		CustomSetting:  nodeConf.CustomSetting,
 	}, nil
 }
 
@@ -224,8 +225,9 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 	}
 
 	return &types.NodeConf{
-		PreSetting:    nodeConf.PreSetting,
-		CustomSetting: nodeConf.CustomSetting,
+		ConfigTemplate: nodeConf.ConfigTemplate,
+		PreSetting:     nodeConf.PreSetting,
+		CustomSetting:  nodeConf.CustomSetting,
 	}, nil
 }
 

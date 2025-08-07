@@ -19,8 +19,10 @@ import (
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -42,12 +44,14 @@ func NewActionRenderNodeDeployment(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageHost topo.IStorageHost,
 	storageDomainGse topo.IStorageDomainGse,
+	storageRelease release.IStorage,
 	logger logger.Logger) action.Definition {
 
 	return &actionRenderNodeDeployment{
 		storageNodeDeployment: storageNodeDeployment,
 		storageHost:           storageHost,
 		storageDomainGse:      storageDomainGse,
+		storageRelease:        storageRelease,
 		logger:                logger,
 	}
 }
@@ -61,6 +65,7 @@ type actionRenderNodeDeployment struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageHost           topo.IStorageHost
 	storageDomainGse      topo.IStorageDomainGse
+	storageRelease        release.IStorage
 
 	logger logger.Logger
 }
@@ -130,13 +135,21 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
 
+	// get release of this node.
+	releasePkg, err := act.getRelease(tenantCtx, info)
+	if err != nil {
+		return fmt.Errorf("get release failed, err: %w", err)
+	}
+	nodeConf.PreSetting = releasePkg.ConfigEnviron
+	nodeConf.ConfigTemplate = releasePkg.ConfigTemplate
+
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.renderPreSetting(tenantCtx, nodeConf, &info.Host); err != nil {
-			return fmt.Errorf("render pre setting failed, err: %w", err)
+		if err := act.renderLogicSetting(tenantCtx, nodeConf, &info.Host); err != nil {
+			return fmt.Errorf("render logic setting failed, err: %w", err)
 		}
 
-		act.logger.Infof("rendered pre setting, token: %s", param.Token)
+		act.logger.Infof("rendered logic setting, token: %s", param.Token)
 
 		return nil
 	})
@@ -168,190 +181,26 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionRenderNodeDeployment) renderPreSetting(ctx context.Context, nodeConf *types.NodeConf,
-	host *types.Host) error {
-
-	if err := act.renderDefaultSetting(nodeConf.PreSetting, host.Dynamic.NodeRole); err != nil {
-		return fmt.Errorf("render default setting failed, err: %w", err)
+func (act *actionRenderNodeDeployment) getRelease(ctx context.Context, info *types.DeploymentInfo) (*types.Release, error) {
+	// get default environs from release.
+	releastType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return nil, fmt.Errorf("convert node role to release type failed, err: %w", err)
+	}
+	rls, err := act.storageRelease.GetRelease(ctx,
+		info.Host.Dynamic.NodeGeneration,
+		releastType,
+		platform.Platform{
+			OS:   info.Host.Dynamic.NodeOsType,
+			Arch: info.Host.Dynamic.NodeCPUArch,
+		},
+		info.Host.Dynamic.NodeVersion,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get release failed, err: %w", err)
 	}
 
-	if err := act.renderLogicSetting(ctx, nodeConf, host); err != nil {
-		return fmt.Errorf("render logic setting failed, err: %w", err)
-	}
-
-	return nil
-}
-
-func (act *actionRenderNodeDeployment) renderDefaultSetting(preSetting map[string]any, nodeRole types.NodeRole,
-) error {
-
-	switch nodeRole {
-	case types.NodeRoleAgent:
-		for k, v := range GseAgentSettingDefault() {
-			if preSetting[k] == nil {
-				preSetting[k] = v
-			}
-		}
-	case types.NodeRoleProxy:
-		for k, v := range GseProxySettingDefault() {
-			if preSetting[k] == nil {
-				preSetting[k] = v
-			}
-		}
-	default:
-		return fmt.Errorf("unsupported node role: %s", nodeRole)
-	}
-
-	return nil
-}
-
-// GseAgentSettingDefault return default gse agent setting
-// nolint: mnd
-func GseAgentSettingDefault() map[string]any {
-	return map[string]any{
-		"__BK_GSE_HOME_DIR__":                           "/usr/local/gse/agent",
-		"__BK_GSE_RUN_MODE__":                           "agent",
-		"__BK_GSE_CLOUD_ID__":                           0,
-		"__BK_GSE_ZONE_ID__":                            "default",
-		"__BK_GSE_CITY_ID__":                            "default",
-		"__BK_GSE_ENABLE_STATIC_ACCESS__":               false,
-		"__BK_GSE_ENABLE_FAKE_SEED__":                   false,
-		"__BK_GSE_ACCESS_CLUSTER_ENDPOINTS__":           "127.0.0.1:28668",
-		"__BK_GSE_ACCESS_DATA_ENDPOINTS__":              "127.0.0.1:28625",
-		"__BK_GSE_ACCESS_FILE_ENDPOINTS__":              "127.0.0.1:28925",
-		"__BK_GSE_AGENT_BASE_TLS_CA_FILE__":             "",
-		"__BK_GSE_AGENT_BASE_TLS_CERT_FILE__":           "",
-		"__BK_GSE_AGENT_BASE_TLS_KEY_FILE__":            "",
-		"__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__":       "",
-		"__BK_GSE_AGENT_BASE_PROCESSOR_NUM__":           4,
-		"__BK_GSE_AGENT_BASE_PROCESSOR_QUEUE_SIZE__":    4096,
-		"__BK_GSE_AGENT_BASE_ALARM_EVENT_DATA_ID__":     1000,
-		"__BK_GSE_AGENT_BASE_PLUGIN_IPC__":              "${BK_GSE_HOME_DIR}/data/ipc.state.message",
-		"__BK_GSE_PROXY_TLS_CA_FILE__":                  "",
-		"__BK_GSE_PROXY_TLS_CERT_FILE__":                "",
-		"__BK_GSE_PROXY_TLS_KEY_FILE__":                 "",
-		"__BK_GSE_PROXY_TLS_PASSWORD_FILE__":            "",
-		"__BK_GSE_PROXY_BIND_IP__":                      "::",
-		"__BK_GSE_PROXY_BIND_PORT__":                    28668,
-		"__BK_GSE_PROXY_THREAD_NUM__":                   4,
-		"__BK_GSE_TASK_PROC_EVENT_DATA_ID__":            1100008,
-		"__BK_GSE_TASK_CONCURRENCE_COUNT__":             100,
-		"__BK_GSE_TASK_SCRIPT_FILE_EXPIRE_TIME_HOUR__":  72,
-		"__BK_GSE_DATA_IPC__":                           "${BK_GSE_HOME_DIR}/data/ipc.state.report",
-		"__BK_GSE_DATA_ENABLE_COMPRESSION__":            false,
-		"__BK_GSE_FILE_MAX_TRANSFER_SPEED_MB_PER_SEC__": 100,
-		"__BK_GSE_FILE_MAX_TRANSFER_CONCURRENT_NUM__":   10,
-		"__BK_GSE_FILE_BT_LISTEN_INTERFACE__":           "",
-		"__BK_GSE_FILE_BT_OUTGOING_INTERFACE__":         "",
-		"__BK_GSE_FILE_BT_ENABLE_OUTGOING_INTERFACE__":  true,
-		"__BK_GSE_LOG_PATH__":                           "${BK_GSE_HOME_DIR}/logs",
-		"__BK_GSE_LOG_LEVEL__":                          "INFO",
-		"__BK_GSE_LOG_FILESIZE_MB__":                    200,
-		"__BK_GSE_LOG_FILENUM__":                        10,
-		"__BK_GSE_LOG_ROTATE__":                         0,
-		"__BK_GSE_LOG_FLUSH_INTERVAL_MS__":              100,
-		"__BK_GSE_EXTRA_CONFIG_DIRECTORY__":             "",
-	}
-}
-
-// GseProxySettingDefault return default gse proxy setting
-// nolint: mnd,funlen,fnsize
-// NOCC: golint/fnsize(func design is not suitable for splitting).
-func GseProxySettingDefault() map[string]any {
-	return map[string]any{
-		"__BK_GSE_HOME_DIR__":                               "/usr/local/gse/proxy",
-		"__BK_GSE_RUN_MODE__":                               "proxy",
-		"__BK_GSE_ENABLE_STATIC_ACCESS__":                   false,
-		"__BK_GSE_ENABLE_FAKE_SEED__":                       false,
-		"__BK_GSE_ACCESS_CLUSTER_ENDPOINTS__":               "127.0.0.1:28668",
-		"__BK_GSE_ACCESS_DATA_ENDPOINTS__":                  "127.0.0.1:28625",
-		"__BK_GSE_ACCESS_FILE_ENDPOINTS__":                  "127.0.0.1:28925",
-		"__BK_GSE_AGENT_BASE_TLS_CA_FILE__":                 "",
-		"__BK_GSE_AGENT_BASE_TLS_CERT_FILE__":               "",
-		"__BK_GSE_AGENT_BASE_TLS_KEY_FILE__":                "",
-		"__BK_GSE_AGENT_BASE_TLS_PASSWORD_FILE__":           "",
-		"__BK_GSE_AGENT_BASE_PROCESSOR_NUM__":               4,
-		"__BK_GSE_AGENT_BASE_PROCESSOR_QUEUE_SIZE__":        4096,
-		"__BK_GSE_AGENT_BASE_ALARM_EVENT_DATA_ID__":         1000,
-		"__BK_GSE_AGENT_BASE_PLUGIN_IPC__":                  "${BK_GSE_HOME_DIR}/data/ipc.state.message",
-		"__BK_GSE_PROXY_TLS_CA_FILE__":                      "",
-		"__BK_GSE_PROXY_TLS_CERT_FILE__":                    "",
-		"__BK_GSE_PROXY_TLS_KEY_FILE__":                     "",
-		"__BK_GSE_PROXY_TLS_PASSWORD_FILE__":                "",
-		"__BK_GSE_PROXY_BIND_IP__":                          "::",
-		"__BK_GSE_PROXY_BIND_PORT__":                        28668,
-		"__BK_GSE_PROXY_THREAD_NUM__":                       4,
-		"__BK_GSE_TASK_PROC_EVENT_DATA_ID__":                1100008,
-		"__BK_GSE_TASK_CONCURRENCE_COUNT__":                 100,
-		"__BK_GSE_TASK_SCRIPT_FILE_EXPIRE_TIME_HOUR__":      72,
-		"__BK_GSE_DATA_IPC__":                               "${BK_GSE_HOME_DIR}/data/ipc.state.report",
-		"__BK_GSE_DATA_ENABLE_COMPRESSION__":                false,
-		"__BK_GSE_FILE_MAX_TRANSFER_SPEED_MB_PER_SEC__":     100,
-		"__BK_GSE_FILE_MAX_TRANSFER_CONCURRENT_NUM__":       10,
-		"__BK_GSE_FILE_BT_LISTEN_INTERFACE__":               "",
-		"__BK_GSE_FILE_BT_OUTGOING_INTERFACE__":             "",
-		"__BK_GSE_FILE_BT_ENABLE_OUTGOING_INTERFACE__":      true,
-		"__BK_GSE_EXTRA_CONFIG_DIRECTORY__":                 "",
-		"__BK_GSE_CLOUD_ID__":                               0,
-		"__BK_GSE_ZONE_ID__":                                "default",
-		"__BK_GSE_CITY_ID__":                                "default",
-		"__BK_GSE_DATA_AGENT_BIND_IP__":                     "::",
-		"__BK_GSE_DATA_AGENT_BIND_PORT__":                   28625,
-		"__BK_GSE_DATA_AGENT_THREAD_NUM__":                  24,
-		"__BK_GSE_DATA_MAX_MESSAGE_SIZE__":                  10485760,
-		"__BK_GSE_DATA_AGENT_TLS_CA_FILE__":                 "",
-		"__BK_GSE_DATA_AGENT_TLS_CERT_FILE__":               "",
-		"__BK_GSE_DATA_AGENT_TLS_KEY_FILE__":                "",
-		"__BK_GSE_DATA_AGENT_TLS_PASSWORD_FILE__":           "",
-		"__BK_GSE_DATA_PROXY_TLS_CA_FILE__":                 "",
-		"__BK_GSE_DATA_PROXY_TLS_CERT_FILE__":               "",
-		"__BK_GSE_DATA_PROXY_TLS_KEY_FILE__":                "",
-		"__BK_GSE_DATA_PROXY_TLS_PASSWORD_FILE__":           "",
-		"__BK_GSE_DATA_PROXY_ENDPOINTS__":                   "127.0.0.1:28625",
-		"__BK_GSE_DATA_METRIC_EXPORTER_BIND_IP__":           "::",
-		"__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__":         29402,
-		"__BK_GSE_DATA_METRIC_EXPORTER_THREAD_NUM__":        8,
-		"__BK_GSE_FILE_AGENT_BIND_IP__":                     "::",
-		"__BK_GSE_FILE_AGENT_BIND_PORT__":                   28925,
-		"__BK_GSE_FILE_AGENT_BIND_PORT_V1__":                58925,
-		"__BK_GSE_FILE_AGENT_ADVERTISE_IPV4__":              "127.0.0.1",
-		"__BK_GSE_FILE_AGENT_ADVERTISE_IPV6__":              "::1",
-		"__BK_GSE_FILE_AGENT_THREAD_NUM__":                  24,
-		"__BK_GSE_FILE_AGENT_TLS_CA_FILE__":                 "",
-		"__BK_GSE_FILE_AGENT_TLS_CERT_FILE__":               "",
-		"__BK_GSE_FILE_AGENT_TLS_KEY_FILE__":                "",
-		"__BK_GSE_FILE_AGENT_TLS_PASSWORD_FILE__":           "",
-		"__BK_GSE_FILE_BITTORRENT_BIND_IP__":                "::",
-		"__BK_GSE_FILE_BITTORRENT_BIND_PORT__":              10020,
-		"__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__":      10030,
-		"__BK_GSE_FILE_BITTORRENT_SPEED_LIMIT_MB_PER_SEC__": 10000,
-		"__BK_GSE_FILE_TOPOLOGY_BIND_IP__":                  "::",
-		"__BK_GSE_FILE_TOPOLOGY_BIND_PORT__":                28930,
-		"__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__":         58930,
-		"__BK_GSE_FILE_TOPOLOGY_ADVERTISE_IP__":             "127.0.0.1",
-		"__BK_GSE_FILE_TOPOLOGY_THREAD_NUM__":               4,
-		"__BK_GSE_FILE_TOPOLOGY_TLS_CA_FILE__":              "",
-		"__BK_GSE_FILE_TOPOLOGY_TLS_PASSWORD_FILE__":        "",
-		"__BK_GSE_FILE_TOPOLOGY_TLS_SVR_CERT_FILE__":        "",
-		"__BK_GSE_FILE_TOPOLOGY_TLS_SVR_KEY_FILE__":         "",
-		"__BK_GSE_FILE_TOPOLOGY_TLS_CLI_CERT_FILE__":        "",
-		"__BK_GSE_FILE_TOPOLOGY_TLS_CLI_KEY_FILE__":         "",
-		"__BK_GSE_FILE_PROXY_UPSTREAM_IP__":                 "127.0.0.1",
-		"__BK_GSE_FILE_PROXY_UPSTREAM_PORT__":               28930,
-		"__BK_GSE_FILE_PROXY_REPORT_IP__":                   "127.0.0.1",
-		"__BK_GSE_FILE_PROXY_REPORT_PORT__":                 28930,
-		"__BK_GSE_FILE_CACHE_DIRS__":                        "./file_cache",
-		"__BK_GSE_FILE_CACHE_EXPIRED_TIME_SEC__":            7200,
-		"__BK_GSE_FILE_METRIC_EXPORTER_BIND_IP__":           "::",
-		"__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__":         29404,
-		"__BK_GSE_FILE_METRIC_EXPORTER_THREAD_NUM__":        8,
-		"__BK_GSE_LOG_PATH__":                               "${BK_GSE_HOME_DIR}/logs",
-		"__BK_GSE_LOG_LEVEL__":                              "INFO",
-		"__BK_GSE_LOG_FILESIZE_MB__":                        200,
-		"__BK_GSE_LOG_FILENUM__":                            10,
-		"__BK_GSE_LOG_ROTATE__":                             0,
-		"__BK_GSE_LOG_FLUSH_INTERVAL_MS__":                  100,
-	}
+	return rls, nil
 }
 
 const (

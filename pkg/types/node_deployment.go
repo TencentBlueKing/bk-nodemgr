@@ -224,10 +224,22 @@ func (info DeploymentInfo) Validate() error {
 	return nil
 }
 
+const (
+	// ConfigKeyAgent agent config key.
+	ConfigKeyAgent = "agent"
+
+	// ConfigKeyFile file config key.
+	ConfigKeyFile = "file"
+
+	// ConfigKeyData data config key.
+	ConfigKeyData = "data"
+)
+
 // NodeConf this is the node conf for node deployment.
 type NodeConf struct {
-	PreSetting    map[string]any
-	CustomSetting map[string]any
+	ConfigTemplate map[string]string
+	PreSetting     map[string]any
+	CustomSetting  map[string]any
 }
 
 // TargetVersion this is the target version for node.

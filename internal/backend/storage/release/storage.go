@@ -28,6 +28,13 @@ import (
 type IStorage interface {
 	basestorage.Interface
 
+	// GetRelease gets release by generation, release type, platform and version.
+	GetRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) (*types.Release, error)
+
 	// ListRelease lists release by page and conditions.
 	ListRelease(ctx context.Context, page types.Page, conditions ...*types.ReleaseCondition) (
 		[]*types.Release, int64, error)
@@ -125,6 +132,16 @@ func (s *Storage) check() error {
 	}
 
 	return nil
+}
+
+// GetRelease gets release by generation, release type, platform and version.
+func (s *Storage) GetRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) (*types.Release, error) {
+
+	return s.daoRelease.Get(ctx, gen, releaseType, plat, version)
 }
 
 // ListRelease lists release by page and conditions.
@@ -252,16 +269,4 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 	}
 
 	return opts, nil
-}
-
-// ConvertNodeRoleToReleaseType convert role to release type.
-func ConvertNodeRoleToReleaseType(role types.NodeRole) (types.ReleaseType, error) {
-	switch role {
-	case types.NodeRoleAgent:
-		return types.ReleaseTypeAgent, nil
-	case types.NodeRoleProxy:
-		return types.ReleaseTypeProxy, nil
-	default:
-		return "", fmt.Errorf("invalid node role. role(%s)", role)
-	}
 }

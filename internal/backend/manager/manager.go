@@ -292,7 +292,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.logger),
+		nodeinstall.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.logger),
 		nodeinstall.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
 		nodeinstall.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
 		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),

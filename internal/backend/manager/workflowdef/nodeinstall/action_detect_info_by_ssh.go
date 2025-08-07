@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -156,7 +157,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	info.Host.Dynamic.NodeOsType = osType
 	info.Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := release.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
 	if err != nil {
 		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
 		return err

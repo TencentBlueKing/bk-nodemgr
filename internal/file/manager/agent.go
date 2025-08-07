@@ -178,7 +178,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 					return fmt.Errorf("failed to read gse_agent.conf template file. err: %w", err)
 				}
 
-				detail.ConfigTemplate["agent"] = string(content)
+				detail.ConfigTemplate[types.ConfigKeyAgent] = string(content)
 
 				return nil
 			},

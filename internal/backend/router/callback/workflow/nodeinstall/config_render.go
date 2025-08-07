@@ -32,17 +32,6 @@ type Template struct {
 // ConfigFieldRegex is the regex of config field.
 const ConfigFieldRegex = `__BK_.*?__`
 
-const (
-	// UniqueKeyAgent is the unique key of agent.
-	UniqueKeyAgent = "agent"
-
-	// UniqueKeyData is the unique key of data.
-	UniqueKeyData = "data"
-
-	// UniqueKeyFile is the unique key of file.
-	UniqueKeyFile = "file"
-)
-
 // RenderConfig render config.
 func RenderConfig(template Template, nodeConf *types.NodeConf) (map[string]any, error) {
 	config, err := renderPreSetting(template.Content, nodeConf)

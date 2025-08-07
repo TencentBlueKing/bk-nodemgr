@@ -223,7 +223,7 @@ func (mgr *manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error 
 		return fmt.Errorf("get tenant id failed: %w", err)
 	}
 
-	metadataPeriodic, err := trigger.NewMetadataPeriodic(1*time.Minute, false)
+	metadataPeriodic, err := trigger.NewMetadataPeriodic(30*time.Minute, false)
 	if err != nil {
 		mgr.logger.Errorf("create periodic metadata failed: %v", err)
 		return fmt.Errorf("create periodic metadata failed: %w", err)

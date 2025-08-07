@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,8 +45,8 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 	}
 
 	conf, err := RenderConfig(Template{
-		UniqueKey: UniqueKeyData,
-		Content:   DefaultTemplateGseDataProxy,
+		UniqueKey: types.ConfigKeyData,
+		Content:   nodeConf.ConfigTemplate[types.ConfigKeyData],
 	}, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse data proxy config failed, err: %s", err)
@@ -58,36 +59,3 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 
 	return
 }
-
-// DefaultTemplateGseDataProxy  gse data agent.
-const DefaultTemplateGseDataProxy = `{
-    "run_mode": "proxy",
-    "cloud_id": __BK_GSE_CLOUD_ID__,
-    "zone_id": "__BK_GSE_ZONE_ID__",
-    "city_id": "__BK_GSE_CITY_ID__",
-    "agent": {
-        "tls_ca_file": "__BK_GSE_DATA_AGENT_TLS_CA_FILE__",
-        "tls_cert_file": "__BK_GSE_DATA_AGENT_TLS_CERT_FILE__",
-        "tls_key_file": "__BK_GSE_DATA_AGENT_TLS_KEY_FILE__",
-        "tls_passwd_file": "__BK_GSE_DATA_AGENT_TLS_PASSWORD_FILE__",
-        "tls_proxy_cert_file": "__BK_GSE_DATA_PROXY_TLS_CERT_FILE__",
-        "tls_proxy_key_file": "__BK_GSE_DATA_PROXY_TLS_KEY_FILE__",
-        "bind_ip": "__BK_GSE_DATA_AGENT_BIND_IP__",
-        "bind_port": __BK_GSE_DATA_AGENT_BIND_PORT__,
-        "thread_num": __BK_GSE_DATA_AGENT_THREAD_NUM__,
-        "proxy_endpoints": "__BK_GSE_DATA_PROXY_ENDPOINTS__"
-    },
-    "metric":{
-        "exporter_bind_ip": "__BK_GSE_DATA_METRIC_EXPORTER_BIND_IP__",
-        "exporter_bind_port": __BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__,
-        "exporter_thread_num": __BK_GSE_DATA_METRIC_EXPORTER_THREAD_NUM__
-    },
-    "logger":{
-        "path": "__BK_GSE_LOG_PATH__",
-        "level": "__BK_GSE_LOG_LEVEL__",
-        "filesize_mb": __BK_GSE_LOG_FILESIZE_MB__,
-        "filenum": __BK_GSE_LOG_FILENUM__,
-        "rotate": __BK_GSE_LOG_ROTATE__,
-        "flush_interval_ms": __BK_GSE_LOG_FLUSH_INTERVAL_MS__
-    }
-}`

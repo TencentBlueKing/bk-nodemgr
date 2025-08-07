@@ -12,6 +12,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -69,6 +70,30 @@ func StringListToReleaseTypeList(releaseTypeList []string) []ReleaseType {
 	}
 
 	return data
+}
+
+// ConvertReleaseTypeToNodeRole convert release type to node role.
+func ConvertReleaseTypeToNodeRole(releaseType ReleaseType) (NodeRole, error) {
+	switch releaseType {
+	case ReleaseTypeAgent:
+		return NodeRoleAgent, nil
+	case ReleaseTypeProxy:
+		return NodeRoleProxy, nil
+	default:
+		return "", fmt.Errorf("invalid release type. type(%s)", releaseType)
+	}
+}
+
+// ConvertNodeRoleToReleaseType convert role to release type.
+func ConvertNodeRoleToReleaseType(role NodeRole) (ReleaseType, error) {
+	switch role {
+	case NodeRoleAgent:
+		return ReleaseTypeAgent, nil
+	case NodeRoleProxy:
+		return ReleaseTypeProxy, nil
+	default:
+		return "", fmt.Errorf("invalid node role. role(%s)", role)
+	}
 }
 
 // Release defines the release package information.
