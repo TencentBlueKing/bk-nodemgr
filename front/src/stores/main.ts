@@ -1,13 +1,22 @@
 import { defineStore } from 'pinia';
 
 export const useMainStore = defineStore('mainStore', {
-  state: () => ({
+  state: (): {
+    globalPageSize: number;
+    windowInnerHeight: number;
+    businessList: Business[];
+    selectedBusinessId: number[];
+    selectedBusinessName: string[];
+    agentSetupType: string;
+    configEditData: ConfigPolicy | null;
+  } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
     businessList: [] as Business[], // 业务列表
     selectedBusinessId: [] as number[], // 当前业务id
     selectedBusinessName: [] as string[], // 当前业务名称
-    agentSetupType: 'setup' // 代理安装方式
+    agentSetupType: 'setup', // 代理安装方式
+    configEditData: null,
   }),
   actions: {
     // 更新全局分页
@@ -29,6 +38,9 @@ export const useMainStore = defineStore('mainStore', {
     updateAgentSetupType(type: string) {
       this.agentSetupType = type;
     },
+    updateConfigEditData(data: ConfigPolicy) {
+      this.configEditData = data;
+    }
   },
 });
 

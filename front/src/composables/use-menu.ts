@@ -84,6 +84,38 @@ const navList = [
   {
     routeName: 'ruleManager',
     title: i18n.global.t('策略管理'),
+    group: [
+      {
+        title: i18n.global.t('策略'),
+        children: [
+          {
+            routeName: 'agentStrategy',
+            icon: 'nodeman-icon nc-workarea',
+            title: i18n.global.t('Agent 策略'),
+          },
+          {
+            routeName: 'proxyStrategy',
+            icon: 'nodeman-icon nc-topo',
+            title: i18n.global.t('Proxy 策略'),
+          },
+          {
+            routeName: 'pluginStrategy',
+            icon: 'nodeman-icon nc-topo',
+            title: i18n.global.t('插件策略'),
+          },
+        ]
+      },
+      {
+        title: i18n.global.t('历史'),
+        children: [
+          {
+            routeName: 'strategyTaskHistory',
+            icon: 'nodeman-icon nc-record',
+            title: i18n.global.t('历史任务'),
+          }
+        ]
+      },
+    ]
   },
   {
     routeName: 'pkgManager',
