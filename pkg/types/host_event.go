@@ -39,6 +39,9 @@ const (
 
 	// EventTypeDelete represents the delete event type.
 	EventTypeDelete EventType = "delete"
+
+	// EventTypeBlank represents an blank event type.
+	EventTypeBlank EventType = ""
 )
 
 // Validate validates the change type.
