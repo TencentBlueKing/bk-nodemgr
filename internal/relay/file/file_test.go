@@ -46,11 +46,11 @@ func setupTestFileManager(t *testing.T) (IFileManager, string, func()) {
 
 // CalculateFileMD5 computes the MD5 checksum for a file
 func calculateFileMD5(filePath string) string {
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // nolint: gosec
 	if err != nil {
 		return ""
 	}
-	defer file.Close()
+	defer file.Close() // nolint: errcheck
 
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
@@ -82,7 +82,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 	})
 
 	t.Run("FileExists", func(t *testing.T) {
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
 		assert.True(t, exists, "file not exists")
 	})
@@ -102,7 +102,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 
 	t.Log("wait GC...")
 	time.Sleep(10 * time.Second)
-	t.Run("FileExists", func(t *testing.T) {
+	t.Run("FileNotExists", func(t *testing.T) {
 		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
 		assert.False(t, exists, "file should not exists")
 	})

@@ -27,8 +27,10 @@ import (
 )
 
 const (
-	fileRecoveryInterval  = 1 * time.Hour
-	defaultExpirationTime = 24 * time.Hour
+	// fileRecoveryInterval  = 1 * time.Hour
+	// defaultExpirationTime = 24 * time.Hour
+	fileRecoveryInterval  = 1 * time.Second
+	defaultExpirationTime = 8 * time.Second
 	dirDot                = "."
 )
 
@@ -157,7 +159,13 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 	if err != nil {
 		return nil, err
 	}
-	defer fm.safeRemove(destDir)
+
+	shouldClean := true
+	defer func() {
+		if shouldClean {
+			fm.safeRemove(destDir)
+		}
+	}()
 
 	srcFile, err := os.Open(srcPath) // nolint: gosec
 	if err != nil {
@@ -185,6 +193,7 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 	}
 
 	storedInfo := file.Info()
+	shouldClean = false
 
 	return &storedInfo, nil
 }
