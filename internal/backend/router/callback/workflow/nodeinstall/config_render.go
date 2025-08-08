@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/orderjson"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -33,7 +34,7 @@ type Template struct {
 const ConfigFieldRegex = `__BK_.*?__`
 
 // RenderConfig render config.
-func RenderConfig(template Template, nodeConf *types.NodeConf) (map[string]any, error) {
+func RenderConfig(template Template, nodeConf *types.NodeConf) (*orderjson.OrderedData, error) {
 	config, err := renderPreSetting(template.Content, nodeConf)
 	if err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func RenderConfig(template Template, nodeConf *types.NodeConf) (map[string]any, 
 	return config, nil
 }
 
-func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (map[string]any, error) {
+func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderjson.OrderedData, error) {
 	re := regexp.MustCompile(ConfigFieldRegex)
 	result := re.FindAllStringSubmatch(templateContent, -1)
 
@@ -80,15 +81,15 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (map[str
 		}
 	}
 
-	config := make(map[string]any)
-	if err := json.Unmarshal([]byte(configStr), &config); err != nil {
+	config := new(orderjson.OrderedData)
+	if err := json.Unmarshal([]byte(configStr), config); err != nil {
 		return nil, err
 	}
 
 	return config, nil
 }
 
-func renderCustomSetting(uniqueKey string, config map[string]any, key string, value any) error {
+func renderCustomSetting(uniqueKey string, config *orderjson.OrderedData, key string, value any) error {
 	if key == "" {
 		return errors.New("key cannot be empty")
 	}
@@ -102,40 +103,27 @@ func renderCustomSetting(uniqueKey string, config map[string]any, key string, va
 	if keys[0] != uniqueKey {
 		return nil
 	}
-
 	keys = keys[1:]
 
 	target := config
-
 	for i, k := range keys {
 		if i == len(keys)-1 {
-			target[k] = value
+			target.Set(k, value)
 			break
 		}
 
-		// Check the existing values
-		existingVal, exists := target[k]
-		if !exists {
-			// If the existing value does not exist, replace it with a new map
-			newMap := make(map[string]any)
-			target[k] = newMap
-			target = newMap
-		} else if existingVal == nil {
-			// The existing value is nil and replaced with a new map
-			newMap := make(map[string]any)
-			target[k] = newMap
-			target = newMap
-		} else {
-			// key exists, try to convert to map
-			subMap, ok := existingVal.(map[string]any)
-			if !ok {
-				return fmt.Errorf(
-					"path conflict at %q: expected map but got %T in key path %q",
-					k, existingVal, key,
-				)
-			}
-			target = subMap
+		subTarget, err := target.Get(k)
+		if err != nil {
+			subTarget = new(orderjson.OrderedData)
+			target.Set(k, subTarget)
 		}
+
+		orderData, ok := subTarget.(*orderjson.OrderedData)
+		if !ok {
+			return fmt.Errorf("key %s is not a valid order data", k)
+		}
+
+		target = orderData
 	}
 
 	return nil
