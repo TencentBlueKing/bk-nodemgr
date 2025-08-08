@@ -26,18 +26,22 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ github.event.issue.user.login }}
 
-      # 关闭 issue 时移除 todo 标签
+      # 关闭 issue 时移除 todo/doing 标签
       - uses: actions-ecosystem/action-remove-labels@v1
         if: |
           github.event.action == 'closed' &&
-          contains(github.event.issue.labels.*.name, 'product/todo')
+          (contains(github.event.issue.labels.*.name, 'product/todo') || contains(github.event.issue.labels.*.name, 'product/doing'))
         with:
-          labels: product/todo
+          labels: |
+            product/todo
+            product/doing
 
-      # 关闭 issue 时添加 done 标签
+      # 关闭 issue 时添加 for test/done 标签
       - uses: actions-ecosystem/action-add-labels@v1
         if: |
           github.event.action == 'closed' &&
-          contains(github.event.issue.labels.*.name, 'product/todo')
+          contains(github.event.issue.labels.*.name, 'product/doing')
         with:
-          labels: product/done
+          labels: |
+            product/for test
+            product/done
