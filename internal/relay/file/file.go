@@ -27,11 +27,10 @@ import (
 )
 
 const (
-	// fileRecoveryInterval  = 1 * time.Hour
-	// defaultExpirationTime = 24 * time.Hour
-	fileRecoveryInterval  = 1 * time.Second
-	defaultExpirationTime = 8 * time.Second
-	dirDot                = "."
+	fileRecoveryInterval  = 1 * time.Hour
+	defaultExpirationTime = 24 * time.Hour
+
+	dirDot = "."
 )
 
 type fileManagerImpl struct {
