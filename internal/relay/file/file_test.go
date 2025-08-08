@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	baseDir      = ""
-	filedir      = ""
+	baseDir      = "/data/home/coonnerlian/workspace/tmp"
+	filedir      = "/data/home/coonnerlian/workspace/"
 	testFilename = "gse_agent_inner-v2.1.6-beta.59.tgz"
 )
 
@@ -71,17 +71,24 @@ func TestFileStorageLifecycle(t *testing.T) {
 		assert.Greater(t, info.Size, int64(0), "file size is zero")
 	})
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	t.Run("StoreFile", func(t *testing.T) {
 		info, err := fm.StoreFile(context.Background(), srcPath, testFilename)
 		assert.NoError(t, err, "file store failed")
 		assert.Equal(t, testFilename, info.Name, "file name not match")
+		assert.Equal(t, info.MD5, calculateFileMD5(srcPath), "file md5 not match")
 		assert.Greater(t, info.Size, int64(0), "file size is zero")
 	})
 
+	t.Run("FileExists", func(t *testing.T) {
+		time.Sleep(5 * time.Second)
+		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
+		assert.True(t, exists, "file not exists")
+	})
+
 	t.Run("DownloadFile", func(t *testing.T) {
-		time.Sleep(10 * time.Second)
+		time.Sleep(2 * time.Second)
 		file, err := fm.GetFile(context.Background(), testFilename)
 		assert.NoError(t, err, "failed to download file")
 		reader, err := file.Content(context.Background())
@@ -92,11 +99,11 @@ func TestFileStorageLifecycle(t *testing.T) {
 		assert.NoError(t, err, "read file failed")
 		assert.Equal(t, []byte("hello"), data, "file content not match")
 	})
-	time.Sleep(50 * time.Second)
+
+	t.Log("wait GC...")
+	time.Sleep(10 * time.Second)
 	t.Run("FileExists", func(t *testing.T) {
 		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
-		assert.True(t, exists, "file not exists")
+		assert.False(t, exists, "file should not exists")
 	})
-	t.Log("wait GC...")
-	time.Sleep(5 * time.Second)
 }
