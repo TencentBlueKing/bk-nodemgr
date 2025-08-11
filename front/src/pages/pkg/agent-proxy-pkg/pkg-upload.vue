@@ -4,7 +4,7 @@
     type="formdata"
     :tip="'支持 tgz、tar、gz 扩展名格式文件'"
     :url="url"
-    :size="100"
+    :size="1000"
     :multiple="false"
     :limit="1"
     with-credentials

@@ -31,18 +31,16 @@
             </Radio.Group>
             <Select
               v-else-if="item.type === 3"
-              v-model="item.value_string_select"
+              v-model="item.value_string"
               :list="getList(index, ind, 'string')"
-              multiple
               :disabled="!item.enabled"
               @change="updateValue"
             ></Select>
             <Select
               v-else-if="item.type === 4"
-              v-model="item.value_int_select"
+              v-model="item.value_int"
               :list="getList(index, ind, 'number')"
               :disabled="!item.enabled"
-              multiple
               @change="updateValue"
             ></Select>
           </div>
@@ -58,11 +56,13 @@ import { cloneDeep } from "lodash";
 import { useRoute } from 'vue-router';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { onMounted } from "vue";
+import { useMainStore } from "@/stores/main";
 
 const emit = defineEmits(["updateConfig"]);
 const route = useRoute();
+const mainStore = useMainStore();
 const nodeRole = computed(() => route.params.node_role);
-let originTemplates: ConfigPolicyConfigBlock[] = [];
+const isEdit = computed(() => route.name === "editConfig");
 const configTemplates = ref<ConfigPolicyConfigBlock[]>([]);
 const typeMap = {
   0: "string",
@@ -80,10 +80,9 @@ const getList = (
   ind: number,
   type: 'string' | 'number'
 ): { value: string | number; label: string }[] => {
-  const templateItem = originTemplates[index]?.items[ind];
+  const templateItem = configTemplates.value[index]?.items[ind];
 
   if (!templateItem) {
-    // return [{ value: "-1", label: "不限" }];
     return [];
   }
 
@@ -97,20 +96,20 @@ const getList = (
     label: String(item),
   })) || []; // 如果未定义，使用空数组以避免错误
 
-  return [
-    // { value: "-1", label: "不限" },
-    ...mappedList,
-  ];
+  return mappedList;
 };
 
 // 获取配置
 const getConfigs = async () => {
+  if (isEdit && mainStore.configEditData) {
+    configTemplates.value = cloneDeep(mainStore.configEditData.configs);
+    return;
+  }
   const res = await ConfigPolicyAPIService.ConfigPolicyTemplate({
     node_role: nodeRole.value
   }).catch(() => ({
     templates: []
   }));
-  originTemplates = res.templates;
   configTemplates.value = cloneDeep(res.templates);
 }
 onMounted(async () => {

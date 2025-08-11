@@ -64,7 +64,11 @@
           field="version"
           :title="'版本'"
           :min-width="120"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ `V${row.version}` }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="biz_name"
           :title="'业务'"
@@ -259,7 +263,10 @@ const pageValueChange = async (current: number) => {
   await getConfigPolicyList();
 };
 const handleUpdate = async (row: ConfigPolicy) => {
-  mainStore.updateConfigEditData({...row})
+  const res = await ConfigPolicyAPIService.ConfigPolicyGet({
+    configpolicy_id: row.configpolicy_id
+  })
+  mainStore.updateConfigEditData({...res})
   router.push({
     name: 'editConfig',
     params: {

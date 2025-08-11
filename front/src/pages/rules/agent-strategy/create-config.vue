@@ -46,11 +46,12 @@
               prefix="管控区域"
               auto-focus
               filterable
+              @change="handleChangeArea(item)"
             >
               <Select.Option
                 v-for="option in networkAreaList"
                 :key="option.bk_networkarea_id"
-                :id="option.bk_networkarea_id"
+                :id="String(option.bk_networkarea_id)"
                 :name="option.bk_networkarea_name"
               >
                 {{ option.bk_networkarea_name }}
@@ -58,14 +59,15 @@
             </Select>
             <Select
               v-model="item.bk_networkunit_id"
-              prefix="管控区域"
+              prefix="管控单元"
+              :disabled="item.bk_networkarea_id === '-1'"
               auto-focus
               filterable
             >
               <Select.Option
-                v-for="option in networkUnitList"
+                v-for="option in filterNetworkUnitList(item.bk_networkarea_id)"
                 :key="option.bk_networkarea_id"
-                :id="option.bk_networkunit_id"
+                :id="String(option.bk_networkunit_id)"
                 :name="option.bk_networkunit_name"
               >
                 {{ option.bk_networkunit_name }}
@@ -105,14 +107,14 @@
           >
         </div>
         <config-template @update-config="updateConfig"></config-template>
-        <div class="text-[#E71818] text-[12px] flex items-center" v-if="isEdit">
+        <div class="text-[#E71818] text-[12px] flex items-center" v-if="isEdit && mainStore.configEditData">
           <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
           <span class="mr-[3px] ml-[9px]"
             >编辑器内容有改动，保存该配置版本将会由</span
           >
-          <Tag theme="warning">V1</Tag>
+          <Tag theme="warning">{{ `V${mainStore.configEditData.version}` }}</Tag>
           <span class="mx-[3px]">升级为</span>
-          <Tag theme="success">V2</Tag>
+          <Tag theme="success">{{ `V${mainStore.configEditData.version + 1}` }}</Tag>
         </div>
       </Form.FormItem>
     </Form>
@@ -151,8 +153,8 @@ const initData = {
   remark: '',
   scopes: [
     {
-      bk_networkarea_id: -1,
-      bk_networkunit_id: -1,
+      bk_networkarea_id: '-1',
+      bk_networkunit_id: '-1',
       os_type: "-1",
       cpu_arch: "-1",
     },
@@ -166,8 +168,8 @@ const configpolicyId = ref();
 const rules = {};
 const handleAdd = () => {
   formData.scopes.push({
-    bk_networkarea_id: -1,
-    bk_networkunit_id: -1,
+    bk_networkarea_id: '-1',
+    bk_networkunit_id: '-1',
     os_type: "-1",
     cpu_arch: "-1",
   });
@@ -182,15 +184,23 @@ const updateConfig = (configs: ConfigPolicyConfigBlock[]) => {
 }
 const handleSubmit = async () => {
   let res;
+  const scopes = formData.scopes.map((item: any) => ({
+    bk_networkarea_id: Number(item.bk_networkarea_id),
+    bk_networkunit_id: Number(item.bk_networkunit_id),
+    os_type: item.os_type === '-1' ? '' : item.os_type,
+    cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
+  }));
   if(isEdit.value) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
       configpolicy_id: configpolicyId.value,
       ...formData,
+      scopes,
       operator: userStore.user?.username
     }).catch(() => false);
   } else {
     res = await ConfigPolicyAPIService.ConfigPolicyCreate({
       ...formData,
+      scopes,
       operator: userStore.user?.username
     }).catch(() => false);
   }
@@ -202,7 +212,7 @@ const handleCancel = () => {
   router.replace({ name: "agentStrategy" });
 };
 const networkAreaList = ref<NetworkArea[]>([]);
-// 管控全域
+// 管控区域
 const getNetworkAreaList = async () => {
   const res = await TopoService.NetworkAreaList({}).catch(() => ({
     total: 0,
@@ -220,6 +230,9 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
+const filterNetworkUnitList = (id: number | string) => {
+  return networkUnitList.value.filter((item: NetworkUnit) => item.bk_networkarea_id === Number(id) || item.bk_networkunit_id === -1);
+}
 const getNetworkUnitList = async () => {
   const res = await TopoService.NetworkUnitList({}).catch(() => ({
     total: 0,
@@ -271,12 +284,20 @@ const getPlatform = async () => {
     }))
   );
 };
+const handleChangeArea = (item: any) => {
+  item.bk_networkunit_id = '-1';
+}
 watch(
   () => route.name,
   () => {
     if (route.name === "editConfig" && mainStore.configEditData) {
       configpolicyId.value = mainStore.configEditData.configpolicy_id;
       Object.assign(formData, mainStore.configEditData);
+      formData.scopes = mainStore.configEditData.scopes.map((item: any) => ({
+        ...item,
+        bk_networkarea_id: String(item.bk_networkarea_id),
+        bk_networkunit_id: String(item.bk_networkunit_id),
+      }));
     }
   },
   { immediate: true }
