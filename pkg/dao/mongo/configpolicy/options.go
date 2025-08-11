@@ -46,7 +46,9 @@ func WithFuzzyConfigPolicyName(names ...string) OptFn {
 }
 
 // WithEnabledScope filters by enabled scope.
-func WithEnabledScope(bizID, networkAreaID, networkUnitID int64, osType criteria.OSType, cpuArch criteria.CPUArch) OptFn {
+func WithEnabledScope(
+	bizID, networkAreaID, networkUnitID int64, osType criteria.OSType, cpuArch criteria.CPUArch) OptFn {
+
 	opts := bson.D{
 		bson.E{
 			Key:   FieldKeyBizID,
