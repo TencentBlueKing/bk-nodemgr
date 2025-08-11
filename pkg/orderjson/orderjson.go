@@ -13,9 +13,8 @@ package orderjson
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
-
-	"github.com/bsm/gomega/gstruct/errors"
 )
 
 // OrderedData is a json data can be marshalled and unmarshalled in ordered.
