@@ -12,7 +12,9 @@ package configpolicy
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn provides filtering options.
@@ -41,4 +43,28 @@ func WithEnabled(enabled ...bool) OptFn {
 // WithFuzzyConfigPolicyName filters by config policy name.
 func WithFuzzyConfigPolicyName(names ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyConfigPolicyName, names...)
+}
+
+// WithEnabledScope filters by enabled scope.
+func WithEnabledScope(bizID, networkAreaID, networkUnitID int64, osType criteria.OSType, cpuArch criteria.CPUArch) OptFn {
+	opts := bson.D{
+		bson.E{
+			Key:   FieldKeyBizID,
+			Value: bson.M{"$in": []int64{-1, bizID}},
+		},
+		bson.E{
+			Key: FieldKeyScopes,
+			Value: bson.M{"$elemMatch": bson.M{
+				"networkarea_id": bson.M{"$in": []int64{-1, networkAreaID}},
+				"networkunit_id": bson.M{"$in": []int64{-1, networkUnitID}},
+				"node_os_type":   bson.M{"$in": []string{"", string(osType)}},
+				"node_cpu_arch":  bson.M{"$in": []string{"", string(cpuArch)}},
+			}},
+		},
+		bson.E{Key: FieldKeyEnabled, Value: true},
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, opts...)
+	}
 }

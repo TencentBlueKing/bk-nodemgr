@@ -12,12 +12,12 @@ package nodeinstall
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -45,6 +45,7 @@ func NewActionRenderNodeDeployment(
 	storageHost topo.IStorageHost,
 	storageDomainGse topo.IStorageDomainGse,
 	storageRelease release.IStorage,
+	storageConfigPolicy configpolicy.IStorage,
 	logger logger.Logger) action.Definition {
 
 	return &actionRenderNodeDeployment{
@@ -52,6 +53,7 @@ func NewActionRenderNodeDeployment(
 		storageHost:           storageHost,
 		storageDomainGse:      storageDomainGse,
 		storageRelease:        storageRelease,
+		storageConfigPolicy:   storageConfigPolicy,
 		logger:                logger,
 	}
 }
@@ -66,6 +68,7 @@ type actionRenderNodeDeployment struct {
 	storageHost           topo.IStorageHost
 	storageDomainGse      topo.IStorageDomainGse
 	storageRelease        release.IStorage
+	storageConfigPolicy   configpolicy.IStorage
 
 	logger logger.Logger
 }
@@ -120,23 +123,23 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
+	ctx.Ctx, err = tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
 
-	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.storageNodeDeployment.GetNodeConf(tenantCtx, param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeConf(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
 
 	// get release of this node.
-	releasePkg, err := act.getRelease(tenantCtx, info)
+	releasePkg, err := act.getRelease(ctx.Ctx, info)
 	if err != nil {
 		return fmt.Errorf("get release failed, err: %w", err)
 	}
@@ -145,7 +148,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.renderLogicSetting(tenantCtx, nodeConf, &info.Host); err != nil {
+		if err := act.renderLogicSetting(ctx, nodeConf, &info.Host); err != nil {
 			return fmt.Errorf("render logic setting failed, err: %w", err)
 		}
 
@@ -155,7 +158,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		if err := act.renderCustomSetting(nodeConf, info); err != nil {
+		if err := act.renderCustomSetting(ctx, nodeConf, info); err != nil {
 			return fmt.Errorf("render custom setting failed, err: %w", err)
 		}
 
@@ -168,13 +171,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := act.storageNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeConf(ctx.Ctx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
-	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
+	act.renderNodeDeploymentInfo(ctx.Ctx, info, nodeConf)
 
-	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 
@@ -351,11 +354,11 @@ const (
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, nodeConf *types.NodeConf,
+func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceContext, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
-	if err := act.checkHostExist(ctx, host.HostID); err != nil {
+	if err := act.checkHostExist(ctx.Ctx, host.HostID); err != nil {
 		return err
 	}
 
@@ -438,7 +441,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.AgentPluginIPCPath
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.AgentDataIPCPath
 	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
-		ctx, host.Dynamic.NetworkUnitID)
+		ctx.Ctx, host.Dynamic.NetworkUnitID)
 
 	if err != nil {
 		return fmt.Errorf("check static access failed, err: %w", err)
@@ -448,7 +451,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
@@ -462,7 +465,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx context.Context, n
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
 			}
@@ -522,21 +525,54 @@ func forbiddenKeys() []string {
 }
 
 // renderCustomSetting load custom setting to the config presetting.
-func (act *actionRenderNodeDeployment) renderCustomSetting(conf *types.NodeConf, _ *types.DeploymentInfo) error {
-	if conf.CustomSetting == nil {
-		return errors.New("lack custom setting")
+func (act *actionRenderNodeDeployment) renderCustomSetting(
+	ctx *action.InstanceContext, conf *types.NodeConf, info *types.DeploymentInfo) error {
+
+	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicy(ctx.Ctx,
+		info.Host.Static.BizID,
+		info.Host.Static.NetworkAreaID,
+		info.Host.Dynamic.NetworkUnitID,
+		info.Host.Dynamic.NodeOsType,
+		info.Host.Dynamic.NodeCPUArch)
+	if err != nil {
+		return fmt.Errorf("match config policy failed. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), err: %w",
+			info.Host.Static.BizID,
+			info.Host.Static.NetworkAreaID,
+			info.Host.Dynamic.NetworkUnitID,
+			info.Host.Dynamic.NodeOsType,
+			info.Host.Dynamic.NodeCPUArch,
+			err)
+	}
+	ctx.Data.LogI(fmt.Sprintf("match config policy. "+
+		"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), matched(%t)",
+		info.Host.Static.BizID,
+		info.Host.Static.NetworkAreaID,
+		info.Host.Dynamic.NetworkUnitID,
+		info.Host.Dynamic.NodeOsType,
+		info.Host.Dynamic.NodeCPUArch,
+		matched))
+
+	if matched && configPolicy != nil {
+		act.logger.InfoCtxf(ctx.Ctx, "match config policy. configpolicy-id(%d), configpolicy-name(%s)",
+			configPolicy.ID, configPolicy.Name)
+		ctx.Data.LogI(fmt.Sprintf("match config policy. configpolicy-id(%d), configpolicy-name(%s)",
+			configPolicy.ID, configPolicy.Name))
+
+		conf.CustomSetting = configPolicy.Configs
 	}
 
-	for _, key := range forbiddenKeys() {
-		if _, ok := conf.CustomSetting[key]; ok {
-			return fmt.Errorf("this key is forbidden, key(%s)", key)
+	if conf.CustomSetting != nil {
+		for _, key := range forbiddenKeys() {
+			if _, ok := conf.CustomSetting[key]; ok {
+				return fmt.Errorf("this key is forbidden, key(%s)", key)
+			}
 		}
 	}
 
-	// TODO: Rendering strategy logic
-
 	return nil
 }
+
 func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
 	host, err := act.storageHost.GetHostByID(ctx, hostID)
 	if err != nil {

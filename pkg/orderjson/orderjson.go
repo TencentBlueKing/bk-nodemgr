@@ -37,7 +37,10 @@ func (o *OrderedData) Set(key string, value any) error {
 		o.orderedKeys = make([]string, 0)
 	}
 
-	o.orderedKeys = append(o.orderedKeys, key)
+	if _, ok := o.dataMap[key]; !ok {
+		o.orderedKeys = append(o.orderedKeys, key)
+	}
+
 	o.dataMap[key] = value
 
 	return nil

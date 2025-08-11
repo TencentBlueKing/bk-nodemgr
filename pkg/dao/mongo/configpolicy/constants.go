@@ -29,6 +29,12 @@ const (
 	// FieldKeyEnabled the enabled field key.
 	FieldKeyEnabled = "data.raw.enabled"
 
+	// FieldKeyUpdatedAt the updated at field key.
+	FieldKeyUpdatedAt = "data.raw.updated_at"
+
+	// FieldKeyScopes the scopes field key.
+	FieldKeyScopes = "data.raw.scopes"
+
 	// FieldKeyVersion the version field key.
 	FieldKeyVersion = "data.version"
 )

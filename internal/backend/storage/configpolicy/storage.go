@@ -14,10 +14,12 @@ package configpolicy
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,6 +28,11 @@ import (
 // IStorage defines the config policy storage interface.
 type IStorage interface {
 	basestorage.Interface
+
+	// MatchConfigPolicy matches the config policy.
+	MatchConfigPolicy(ctx context.Context,
+		bizID, networkAreaID, networkUnitID int64,
+		osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error)
 
 	// CountConfigPolicy counts the config policy by conditions.
 	CountConfigPolicy(ctx context.Context, conditions ...*types.ConfigPolicyCondition) (int64, error)
@@ -99,6 +106,29 @@ func (s *Storage) check() error {
 	}
 
 	return nil
+}
+
+// MatchConfigPolicy matches the config policy.
+func (s *Storage) MatchConfigPolicy(ctx context.Context,
+	bizID, networkAreaID, networkUnitID int64,
+	osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error) {
+
+	results, _, err := s.daoConfigPolicy.List(ctx,
+		types.Page{
+			Limit: 1,
+			Sort:  "-" + configpolicy.FieldKeyUpdatedAt,
+		},
+		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch),
+	)
+	if err != nil {
+		return nil, false, fmt.Errorf("list config policy failed, err: %w")
+	}
+
+	if len(results) == 0 {
+		return nil, false, nil
+	}
+
+	return results[0], true, nil
 }
 
 // CountConfigPolicy counts the config policy by conditions.

@@ -14,6 +14,7 @@ package manager
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
@@ -51,6 +52,7 @@ type Config struct {
 	StorageOperInst       operinstdata.IStorage
 	StorageSchedule       scheduleworkflow.IStorage
 	StorageHostCredit     credit.IStorageHostCredit
+	StorageConfigPolicy   configpolicy.IStorage
 
 	HostPasswordVault creditvault.IHostPasswordVault
 
