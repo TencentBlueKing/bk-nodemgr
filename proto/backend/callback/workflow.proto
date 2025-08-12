@@ -65,10 +65,13 @@ message ReportStatusReq {
   string oper_inst_id = 3;
 }
 
-// ReportPrivateDataReq describes the HTTP request body when report private
-// data.
-message ReportPrivateDataReq {
+// ReportFileState describes the HTTP request body when report relay file.
+message ReportFileStateReq {
   string action_name = 1;
   string oper_inst_id = 2;
-  map<string, string> private_data = 3;
+  message fileState {
+    string file_name = 1;
+    string file_status = 2;
+  }
+  repeated fileState file_state = 3;
 }

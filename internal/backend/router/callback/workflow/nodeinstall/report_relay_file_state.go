@@ -18,40 +18,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *handler) ReportPrivateData(gCtx *gin.Context) {
-	req := new(proto.ReportPrivateDataReq)
+const relayStateKey = "relay_state"
+
+func (h *handler) RelayReportFileState(gCtx *gin.Context) {
+	req := new(proto.ReportFileStateReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report private failed: %s", err)
+		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report private failed: %s", err)
+		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	h.logger.Infof("operation instance(%s), action(%s) ,report private data(%s)",
-		req.GetOperInstId(), req.GetActionName(), req.GetPrivateData())
+	h.logger.Infof("report relay file state. instance(%s), action(%s) ",
+		req.GetOperInstId(), req.GetActionName())
 
-	convertedData := convertMapStringToAny(req.GetPrivateData())
+	fileStateMap := make(map[string]string)
+	for _, fileState := range req.GetFileState() {
+		fileStateMap[fileState.GetFileName()] = fileState.GetFileStatus()
+	}
+
+	dataMap := make(map[string]any)
+	dataMap[relayStateKey] = fileStateMap
+
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
-		req.GetOperInstId(), req.GetActionName(), convertedData); err != nil {
+		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
 		h.logger.Errorf("update action private failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
 
 	gCtx.JSON(http.StatusOK, nil)
-}
-
-func convertMapStringToAny(input map[string]string) map[string]any {
-	result := make(map[string]any, len(input))
-	for key, value := range input {
-		result[key] = value
-	}
-
-	return result
 }

@@ -11,11 +11,14 @@
 // Package callback ...
 package callback
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Validate check request body.
 func (x *GetAgentConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -28,7 +31,7 @@ func (x *GetAgentConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetDataProxyConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -41,7 +44,7 @@ func (x *GetDataProxyConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetFileProxyConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -54,7 +57,7 @@ func (x *GetFileProxyConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetCheckListReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -67,7 +70,7 @@ func (x *GetCheckListReq) AutoConvert() {
 
 // Validate check request body.
 func (x *ReportLogReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -109,20 +112,29 @@ func (x *ReportDataReq) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *ReportPrivateDataReq) Validate() error {
+func (x *ReportFileStateReq) Validate() error {
 	if x.GetActionName() == "" {
 		return errors.New("action_name is required")
 	}
 	if x.GetOperInstId() == "" {
 		return errors.New("oper_inst_id is required")
 	}
-	if len(x.GetPrivateData()) == 0 {
-		return errors.New("action_private_data is required")
+	if len(x.GetFileState()) == 0 {
+		return errors.New("file_name is required")
+	}
+
+	if err := x.checkStatus(); err != nil {
+		return fmt.Errorf("check status failed, err: %w", err)
 	}
 
 	return nil
 }
 
+// TODO: check with relayProto.
+func (x *ReportFileStateReq) checkStatus() error {
+	return errors.New("implement me")
+}
+
 // AutoConvert auto convert.
-func (x *ReportPrivateDataReq) AutoConvert() {
+func (x *ReportFileStateReq) AutoConvert() {
 }

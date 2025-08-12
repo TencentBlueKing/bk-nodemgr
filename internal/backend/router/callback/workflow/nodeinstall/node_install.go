@@ -49,9 +49,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/report_log", h.ReportLog)
 	h.rg.POST("/report_status", h.ReportStatus)
 	h.rg.POST("/report_data", h.ReportData)
-	h.rg.POST("/report_private_data", h.ReportPrivateData)
 	h.rg.POST("/get_check_list", h.GetCheckList)
 	h.rg.POST("/get_agent_config", h.GetAgentConfig)
 	h.rg.POST("/get_data_proxy_config", h.GetDataProxyConfig)
 	h.rg.POST("/get_file_proxy_config", h.GetFileProxyConfig)
+	h.rg.POST("/relay/report_file_state", h.RelayReportFileState)
 }
