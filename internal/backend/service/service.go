@@ -45,7 +45,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -294,8 +293,6 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	globalsettings.InitGlobalSettings(svc.Cap.StorageGlobalSettings)
 
 	svc.watcher, err = watcher.NewWatcher(
 		watcher.Config{

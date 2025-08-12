@@ -25,20 +25,23 @@ import (
 
 // IHandler global settings handler interface.
 type IHandler interface {
-	// Get gets global settings by name.
-	Get(ctx context.Context, name string) (*types.GlobalSettings, error)
+	// Get gets global settings by key.
+	Get(ctx context.Context, key string) (*types.GlobalSettings, error)
 
 	// Count counts global settings by opts.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
+	// Exist checks if a global settings exists by key.
+	Exist(ctx context.Context, key string) (bool, error)
+
 	// List lists global settings by page and opts.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error)
 
-	// UpsertMany upserts global settings.
-	UpsertMany(ctx context.Context, settings ...*types.GlobalSettings) error
+	// Upsert upserts global settings.
+	Upsert(ctx context.Context, settings ...*types.GlobalSettings) error
 
 	// Delete deletes global settings.
-	DeleteMany(ctx context.Context, name ...string) error
+	Delete(ctx context.Context, name ...string) error
 }
 
 // Handler this is a Handler to operate global settings table.
@@ -77,7 +80,7 @@ func New(client *mongo.Database, logger logger.Logger) *Handler {
 	}
 }
 
-// Get gets global settings by setting name.
+// Get gets global settings by key.
 func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
@@ -88,7 +91,7 @@ func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, 
 	filter = WithSettingName(name)(filter)
 
 	data, err := h.tenantDao(tenantID).Get(ctx, filter)
-	if err != nil && err != mongo.ErrNoDocuments {
+	if err != nil {
 		return nil, err
 	}
 
@@ -113,6 +116,24 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	}
 
 	return count, nil
+}
+
+// Exist checks if a global settings exists by key.
+func (h *Handler) Exist(ctx context.Context, name string) (bool, error) {
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	filter := base.AliveFilter()
+	filter = WithSettingName(name)(filter)
+
+	exist, err := h.tenantDao(tenantID).Exist(ctx, filter)
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
 }
 
 // List lists global settings by page and opts.
@@ -147,15 +168,15 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 	return globalsettings, num, nil
 }
 
-// UpsertMany upserts global settings.
-func (h *Handler) UpsertMany(ctx context.Context, settings ...*types.GlobalSettings) error {
+// Upsert upserts global settings.
+func (h *Handler) Upsert(ctx context.Context, settings ...*types.GlobalSettings) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
 	}
 
 	if len(settings) == 0 {
-		return nil
+		return errors.New("no global settings to upsert")
 	}
 
 	dataList := make([]*GlobalSettings, 0, len(settings))
@@ -170,8 +191,8 @@ func (h *Handler) UpsertMany(ctx context.Context, settings ...*types.GlobalSetti
 	return nil
 }
 
-// DeleteMany deletes global settings.
-func (h *Handler) DeleteMany(ctx context.Context, name ...string) error {
+// Delete deletes global settings.
+func (h *Handler) Delete(ctx context.Context, name ...string) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err

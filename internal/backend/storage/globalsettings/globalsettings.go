@@ -84,12 +84,15 @@ func (s *Storage) ListGlobalSettings(
 }
 
 // CountGlobalSettings counts global settings by condition.
-func (s *Storage) CountGlobalSettings(
-	ctx context.Context, condition *types.GlobalSettingsCondition) (int64, error) {
-
+func (s *Storage) CountGlobalSettings(ctx context.Context, condition *types.GlobalSettingsCondition) (int64, error) {
 	opts := convertGlobalSettingsConditionsToOptions(condition)
 
 	return s.daoGlobalSettings.Count(ctx, opts...)
+}
+
+// ExistGlobalSettings checks if global settings exist by condition.
+func (s *Storage) ExistGlobalSettings(ctx context.Context, key string) (bool, error) {
+	return s.daoGlobalSettings.Exist(ctx, key)
 }
 
 // GetGlobalSetting gets a global settings by setting name.
@@ -99,29 +102,17 @@ func (s *Storage) GetGlobalSetting(ctx context.Context, name string) (string, er
 		return "", err
 	}
 
-	if setting == nil {
-		return "", nil
-	}
-
 	return setting.Value, nil
 }
 
-// UpsertManyGlobalSettings upserts many global settings.
-func (s *Storage) UpsertManyGlobalSettings(ctx context.Context, settings ...*types.GlobalSettings) error {
-	if len(settings) == 0 {
-		return nil
-	}
-
-	return s.daoGlobalSettings.UpsertMany(ctx, settings...)
+// UpsertGlobalSettings upserts many global settings.
+func (s *Storage) UpsertGlobalSettings(ctx context.Context, settings ...*types.GlobalSettings) error {
+	return s.daoGlobalSettings.Upsert(ctx, settings...)
 }
 
-// DeleteManyGlobalSettings deletes many global settings.
-func (s *Storage) DeleteManyGlobalSettings(ctx context.Context, settingName ...string) error {
-	if len(settingName) == 0 {
-		return errors.New("setting name cannot be empty")
-	}
-
-	return s.daoGlobalSettings.DeleteMany(ctx, settingName...)
+// DeleteGlobalSettings deletes many global settings.
+func (s *Storage) DeleteGlobalSettings(ctx context.Context, settingName ...string) error {
+	return s.daoGlobalSettings.Delete(ctx, settingName...)
 }
 
 // convertGlobalSettingsConditionsToOptions converts global settings conditions to options.

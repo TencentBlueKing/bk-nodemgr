@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -69,7 +69,7 @@ type Capability struct {
 	StorageRelease release.IStorage
 
 	// StorageGlobalSettings global settings storage.
-	StorageGlobalSettings globalsettings.IStorage
+	StorageGlobalSettings globalsettingsStorage.IStorage
 
 	// StorageCredit credit storage.
 	StorageCredit credit.IStorage

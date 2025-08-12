@@ -8,17 +8,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package globalsettings provides storage for global settings.
+// Package globalsettings provides a singleton for global settings.
 package globalsettings
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"errors"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IStorage defines the interface of global settings storage.
-type IStorage interface {
-	basestorage.Interface
+// PreDefinition returns the definition of global settings.
+func PreDefinition() []*types.GlobalSettings {
+	return []*types.GlobalSettings{}
+}
 
-	globalsettings.IStorage
+var (
+	errUninitialized = errors.New("global settings storage not initialized")
+	errNonexist      = errors.New("global settings not exist")
+)
+
+// ErrUninitialized returns an error indicating that the global settings storage is not initialized.
+func ErrUninitialized() error {
+	return errUninitialized
+}
+
+// ErrNonexist returns an error indicating that the global settings do not exist.
+func ErrNonexist() error {
+	return errNonexist
 }
