@@ -584,12 +584,8 @@ func (h *handler) CreateNetworkUnit(
 		return -1, err
 	}
 
-	req := &protoBackend.TopoNetworkUnitCreateReq{
-		BkNetworkunitName: networkUnit.Name,
-		BkNetworkareaId:   networkUnit.NetworkAreaID,
-	}
-	req.ConvertAccesspointsFromTypes(accessPoints)
-	req.ConvertLinksFromTypes(networkUnit.Links)
+	req := new(protoBackend.TopoNetworkUnitCreateReq)
+	req.ConvertNetworkUnitFromTypes(networkUnit, accessPoints...)
 
 	resp, err := h.cli.createNetworkUnit(ctx, tenantID, req)
 	if err != nil {
@@ -608,13 +604,8 @@ func (h *handler) UpdateNetworkUnit(
 		return err
 	}
 
-	req := &protoBackend.TopoNetworkUnitUpdateReq{
-		BkNetworkunitId:   networkUnit.ID,
-		BkNetworkunitName: networkUnit.Name,
-		BkNetworkareaId:   networkUnit.NetworkAreaID,
-	}
-	req.ConvertAccesspointsFromTypes(accessPoints)
-	req.ConvertLinksFromTypes(networkUnit.Links)
+	req := new(protoBackend.TopoNetworkUnitUpdateReq)
+	req.ConvertNetworkUnitFromTypes(networkUnit, accessPoints...)
 
 	_, err = h.cli.updateNetworkUnit(ctx, tenantID, req)
 	if err != nil {

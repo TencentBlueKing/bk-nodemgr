@@ -60,6 +60,26 @@ func (x *TopoNetworkUnitCreateReq) ConvertLinksFromTypes(links types.Links) {
 	x.Links = convertLinksFromTypes(links)
 }
 
+// ConvertDirectEndpointsToTypes convert endpoints from proto to types.
+func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsToTypes() *types.Endpoints {
+	return convertEndpointToTypes(x.GetDirectEndpoints())
+}
+
+// ConvertDirectEndpointsFromTypes convert endpoints from types to proto.
+func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsFromTypes(endpoints *types.Endpoints) {
+	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
+}
+
+// ConvertNetworkUnitFromTypes convert networkunit from types to proto.
+func (x *TopoNetworkUnitCreateReq) ConvertNetworkUnitFromTypes(networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) {
+	x.BkNetworkunitName = networkUnit.Name
+	x.BkNetworkareaId = networkUnit.NetworkAreaID
+	x.IsDirect = networkUnit.IsDirect
+	x.ConvertAccesspointsFromTypes(accessPoints)
+	x.ConvertLinksFromTypes(networkUnit.Links)
+	x.ConvertDirectEndpointsFromTypes(networkUnit.DirectEndpoints)
+}
+
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
 func (x *TopoNetworkUnitCreateResp) ConvertNetworkUnitFromTypes(networkUnitID int64) {
 	data := &TopoNetworkUnitCreateResp_Data{BkNetworkunitId: new(int64)}
@@ -107,6 +127,27 @@ func (x *TopoNetworkUnitUpdateReq) ConvertLinksFromTypes(links types.Links) {
 	x.Links = convertLinksFromTypes(links)
 }
 
+// ConvertDirectEndpointsToTypes convert endpoints from proto to types.
+func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsToTypes() *types.Endpoints {
+	return convertEndpointToTypes(x.GetDirectEndpoints())
+}
+
+// ConvertDirectEndpointsFromTypes convert endpoints from types to proto.
+func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsFromTypes(endpoints *types.Endpoints) {
+	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
+}
+
+// ConvertNetworkUnitFromTypes convert networkunit from types to proto.
+func (x *TopoNetworkUnitUpdateReq) ConvertNetworkUnitFromTypes(networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) {
+	x.BkNetworkunitId = networkUnit.ID
+	x.BkNetworkunitName = networkUnit.Name
+	x.BkNetworkareaId = networkUnit.NetworkAreaID
+	x.IsDirect = networkUnit.IsDirect
+	x.ConvertAccesspointsFromTypes(accessPoints)
+	x.ConvertLinksFromTypes(networkUnit.Links)
+	x.ConvertDirectEndpointsFromTypes(networkUnit.DirectEndpoints)
+}
+
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
 func (x *TopoNetworkUnitUpdateResp) ConvertNetworkUnitFromTypes(networkUnitID int64) {
 	data := &TopoNetworkUnitUpdateResp_Data{BkNetworkunitId: new(int64)}
@@ -137,9 +178,11 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	*data.BkNetworkunitId = networkUnit.ID
 	*data.BkNetworkunitName = networkUnit.Name
 	*data.BkNetworkareaId = networkUnit.NetworkAreaID
+	*data.IsDirect = networkUnit.IsDirect
 
 	data.Accesspoints = convertAccesspointsFromTypes(accessPoints)
 	data.Links = convertLinksFromTypes(networkUnit.Links)
+	data.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 
 	x.Data = data
 }
@@ -160,12 +203,14 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 	}
 
 	return &types.NetworkUnit{
-		TenantID:      data.GetTenantId(),
-		NetworkAreaID: data.GetBkNetworkareaId(),
-		ID:            data.GetBkNetworkunitId(),
-		Name:          data.GetBkNetworkunitName(),
-		AccessPoints:  accessPointIDs,
-		Links:         convertLinksToTypes(data.GetLinks()),
+		TenantID:        data.GetTenantId(),
+		NetworkAreaID:   data.GetBkNetworkareaId(),
+		ID:              data.GetBkNetworkunitId(),
+		Name:            data.GetBkNetworkunitName(),
+		AccessPoints:    accessPointIDs,
+		Links:           convertLinksToTypes(data.GetLinks()),
+		IsDirect:        data.GetIsDirect(),
+		DirectEndpoints: convertEndpointToTypes(data.GetDirectEndpoints()),
 	}, accessPointsMap
 }
 
@@ -230,6 +275,8 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, netw
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
 		item.Accesspoints = networkUnit.AccessPoints
 		item.Links = convertLinksFromTypes(networkUnit.Links)
+		*item.IsDirect = networkUnit.IsDirect
+		item.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 
 		items[idx] = item
 	}
@@ -251,12 +298,14 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 	result := make([]*types.NetworkUnit, len(items))
 	for idx, item := range items {
 		result[idx] = &types.NetworkUnit{
-			TenantID:      item.GetTenantId(),
-			NetworkAreaID: item.GetBkNetworkareaId(),
-			ID:            item.GetBkNetworkunitId(),
-			Name:          item.GetBkNetworkunitName(),
-			AccessPoints:  item.GetAccesspoints(),
-			Links:         convertLinksToTypes(item.GetLinks()),
+			TenantID:        item.GetTenantId(),
+			NetworkAreaID:   item.GetBkNetworkareaId(),
+			ID:              item.GetBkNetworkunitId(),
+			Name:            item.GetBkNetworkunitName(),
+			AccessPoints:    item.GetAccesspoints(),
+			Links:           convertLinksToTypes(item.GetLinks()),
+			IsDirect:        item.GetIsDirect(),
+			DirectEndpoints: convertEndpointToTypes(item.GetDirectEndpoints()),
 		}
 	}
 
@@ -308,6 +357,12 @@ func newEmptyNetworkUnit() *NetworkUnit {
 			File:    newEmptyLink(),
 			Data:    newEmptyLink(),
 		},
+		IsDirect: new(bool),
+		DirectEndpoints: &Endpoints{
+			Cluster: make([]string, 0),
+			File:    make([]string, 0),
+			Data:    make([]string, 0),
+		},
 	}
 }
 
@@ -322,6 +377,12 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 			Cluster: newEmptyLink(),
 			File:    newEmptyLink(),
 			Data:    newEmptyLink(),
+		},
+		IsDirect: new(bool),
+		DirectEndpoints: &Endpoints{
+			Cluster: make([]string, 0),
+			File:    make([]string, 0),
+			Data:    make([]string, 0),
 		},
 	}
 }
@@ -340,7 +401,11 @@ func newEmptyAccessPoint() *AccessPoint {
 		AccesspointId:   new(int64),
 		AccesspointName: new(string),
 		BkNetworkareaId: new(int64),
-		Endpoints:       &AccessPoint_Endpoints{},
+		Endpoints: &Endpoints{
+			Cluster: make([]string, 0),
+			File:    make([]string, 0),
+			Data:    make([]string, 0),
+		},
 	}
 }
 
@@ -406,5 +471,29 @@ func convertLinkFromTypes(link *types.Link) *Link {
 		BkNetworkareaId: link.NetworkAreaID,
 		BkNetworkunitId: link.NetworkUnitID,
 		AccesspointId:   link.AccessPointID,
+	}
+}
+
+func convertEndpointToTypes(endpoint *Endpoints) *types.Endpoints {
+	if endpoint == nil {
+		return nil
+	}
+
+	return &types.Endpoints{
+		Cluster: endpoint.Cluster,
+		File:    endpoint.File,
+		Data:    endpoint.Data,
+	}
+}
+
+func convertEndpointFromTypes(endpoint *types.Endpoints) *Endpoints {
+	if endpoint == nil {
+		return nil
+	}
+
+	return &Endpoints{
+		Cluster: endpoint.Cluster,
+		File:    endpoint.File,
+		Data:    endpoint.Data,
 	}
 }

@@ -100,7 +100,7 @@ func convertAccessPointFromTypes(accessPoint *types.AccessPoint) *AccessPoint {
 	*data.BkNetworkareaId = accessPoint.NetworkAreaID
 	*data.AccesspointId = accessPoint.ID
 	*data.AccesspointName = accessPoint.Name
-	data.Endpoints = &AccessPoint_Endpoints{
+	data.Endpoints = &Endpoints{
 		Cluster: accessPoint.Endpoints.Cluster,
 		File:    accessPoint.Endpoints.File,
 		Data:    accessPoint.Endpoints.Data,

@@ -175,6 +175,8 @@ message TopoNetworkUnitCreateReq {
   int64 bk_networkarea_id = 2;
   repeated AccessPoint accesspoints = 3;
   Links links = 4;
+  bool is_direct = 5;
+  Endpoints direct_endpoints = 6;
 }
 
 // TopoNetworkUnitCreateResp describes the HTTP response body when create
@@ -196,6 +198,8 @@ message TopoNetworkUnitUpdateReq {
   int64 bk_networkarea_id = 3;
   repeated AccessPoint accesspoints = 4;
   Links links = 5;
+  bool is_direct = 6;
+  Endpoints direct_endpoints = 7;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update

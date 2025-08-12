@@ -37,18 +37,19 @@ message Links {
   Link data = 3;
 }
 
+// Endpoints describes the links real address.
+message Endpoints {
+  repeated string cluster = 1;
+  repeated string file = 2;
+  repeated string data = 3;
+}
+
 // AccessPoint describes the access point informations.
 message AccessPoint {
   optional string tenant_id = 1;
   optional int64 accesspoint_id = 2;
   optional string accesspoint_name = 3;
   optional int64 bk_networkarea_id = 4;
-
-  message Endpoints {
-    repeated string cluster = 1;
-    repeated string file = 2;
-    repeated string data = 3;
-  }
   Endpoints endpoints = 5;
 }
 
@@ -60,6 +61,8 @@ message NetworkUnit {
   optional int64 bk_networkarea_id = 4;
   repeated AccessPoint accesspoints = 5;
   optional Links links = 6;
+  optional bool is_direct = 7;
+  Endpoints direct_endpoints = 8;
 }
 
 // NetworkUnitBrief describes the network unit brief informations.
@@ -71,6 +74,8 @@ message NetworkUnitBrief {
   optional int64 bk_networkarea_id = 4;
   repeated int64 accesspoints = 5;
   optional Links links = 6;
+  optional bool is_direct = 7;
+  Endpoints direct_endpoints = 8;
 }
 
 // HostState describes the host state informations. Usually contains
