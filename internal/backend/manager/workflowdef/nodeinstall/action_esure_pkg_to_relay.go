@@ -38,6 +38,9 @@ const (
 	// ActionNameEnsurePkgToRelay defines the action name.
 	ActionNameEnsurePkgToRelay = "ensure_pkg_to_relay"
 
+	// relayFileStateKey defines the relay file state key.
+	relayFileStateKey = "relay_file_state"
+
 	// QueryClientTimeout defines the query client timeout.
 	QueryClientTimeout = 3 * time.Second
 
@@ -323,13 +326,21 @@ func (act *actionEnsurePkgToRelay) waitForPkgState(ctx *action.InstanceContext, 
 				ctx.Data.OperationInstanceID, ctx.Data.Name, err)
 		}
 
-		pkgState, exists := privateDataMap[pkgName]
+		fileStateRaw, exists := privateDataMap[relayFileStateKey]
 		if !exists {
 			time.Sleep(waitForClientReportInterval)
 			continue
 		}
 
-		switch pkgState {
+		fileState, ok := fileStateRaw.(map[string]string)
+		if !ok {
+			act.logger.Errorf("unexpected type for file state, expecting map[string]string")
+			return errors.New("unexpected type for file state")
+		}
+
+		state := fileState[pkgName]
+		state = state.(string)
+		switch state {
 		case string(protoRelay.ClientReportSignalPkgComplete):
 			act.logger.Infof("wait for pkg state operation succeed. oper_inst_id(%s), action_name(%s), state(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
@@ -338,11 +349,11 @@ func (act *actionEnsurePkgToRelay) waitForPkgState(ctx *action.InstanceContext, 
 
 		case string(protoRelay.ClientReportSignalPkgUnComplete):
 			return fmt.Errorf("wait for pkg state operation succeed. oper_inst_id(%s), action_name(%s), state(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name, pkgState)
+				ctx.Data.OperationInstanceID, ctx.Data.Name, state)
 
 		default:
 			return fmt.Errorf("wait for pkg state operation failed. oper_inst_id(%s), action_name(%s), state(%s)",
-				pkgState, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				state, ctx.Data.OperationInstanceID, ctx.Data.Name)
 		}
 	}
 }

@@ -304,6 +304,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 		nodeinstall.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		nodeinstall.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
 	)
 }
 
