@@ -15,7 +15,10 @@ message ConfigPolicyExactConditions {
 }
 
 // ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
-message ConfigPolicyFuzzyConditions { repeated string configpolicy_name = 1; }
+message ConfigPolicyFuzzyConditions {
+  repeated string configpolicy_name = 1;
+  repeated string operator = 2;
+}
 
 // ConfigPolicyListReq describes HTTP request body when list config policy.
 message ConfigPolicyListReq {

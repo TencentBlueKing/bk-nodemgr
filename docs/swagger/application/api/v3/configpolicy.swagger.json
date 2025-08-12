@@ -697,6 +697,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "ConfigPolicyFuzzyConditions describes config policy fuzzy conditions."

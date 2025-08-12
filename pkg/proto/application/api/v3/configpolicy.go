@@ -69,6 +69,7 @@ func convertConfigPolicyConditionsToTypes(
 	if fuzzyCond != nil {
 		condition.FuzzyInclude = &types.ConfigPolicyFuzzyFields{
 			ConfigPolicyName: fuzzyCond.GetConfigpolicyName(),
+			Operator:         fuzzyCond.GetOperator(),
 		}
 	}
 

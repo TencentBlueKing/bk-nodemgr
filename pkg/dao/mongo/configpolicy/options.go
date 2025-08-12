@@ -45,6 +45,11 @@ func WithFuzzyConfigPolicyName(names ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyConfigPolicyName, names...)
 }
 
+// WithFuzzyOperator filters by config policy operator.
+func WithFuzzyOperator(operators ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyOperator, operators...)
+}
+
 // WithEnabledScope filters by enabled scope.
 func WithEnabledScope(
 	bizID, networkAreaID, networkUnitID int64, osType criteria.OSType, cpuArch criteria.CPUArch) OptFn {

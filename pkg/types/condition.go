@@ -429,6 +429,7 @@ type ConfigPolicyExactFields struct {
 // ConfigPolicyFuzzyFields defines the config policy fuzzy fields.
 type ConfigPolicyFuzzyFields struct {
 	ConfigPolicyName []string
+	Operator         []string
 }
 
 // ConfigPolicyCondition defines the config policy condition.

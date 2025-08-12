@@ -35,6 +35,9 @@ const (
 	// FieldKeyScopes the scopes field key.
 	FieldKeyScopes = "data.raw.scopes"
 
+	// FieldKeyOperator the operator field key.
+	FieldKeyOperator = "data.raw.operator"
+
 	// FieldKeyVersion the version field key.
 	FieldKeyVersion = "data.version"
 )

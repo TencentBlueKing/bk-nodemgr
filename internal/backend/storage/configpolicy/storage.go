@@ -204,7 +204,8 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 
 		if condition.FuzzyInclude != nil {
 			opts = append(opts,
-				configpolicy.WithFuzzyConfigPolicyName(condition.FuzzyExclude.ConfigPolicyName...))
+				configpolicy.WithFuzzyConfigPolicyName(condition.FuzzyInclude.ConfigPolicyName...),
+				configpolicy.WithFuzzyOperator(condition.FuzzyInclude.Operator...))
 		}
 
 		if condition.ExactExclude != nil {
