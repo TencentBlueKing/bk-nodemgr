@@ -499,6 +499,8 @@ func (mgr *manager) createOper(
 		return err
 	}
 
+	// TODO: distinguish between pagent and agent based on workunitID
+
 	var operationDef operation.Definition
 
 	switch deploy.Info.Host.Static.OSType {

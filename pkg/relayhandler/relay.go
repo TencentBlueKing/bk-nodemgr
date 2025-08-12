@@ -29,6 +29,8 @@ type IClientMessager interface {
 
 	ICallbackClient
 
+	IClientPush
+
 	// EventDispatcher returns the event dispatcher.
 	EventDispatcher() manager.EventDispatcher
 }
@@ -37,6 +39,11 @@ type IClientMessager interface {
 type ICallbackClient interface {
 	// RequestCallback sends request to url. returns the response body and http code.
 	RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error)
+}
+
+type IClientPush interface {
+	// ClientPushReq sends a client push request asynchronously and returns a channel for results.
+	ClientPushReq(ctx context.Context, callbackURL string, body []byte) <-chan error
 }
 
 // IServerMessager provides the managements for receiving and sending messages via server side gse api.

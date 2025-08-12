@@ -18,7 +18,7 @@ import (
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
@@ -83,13 +83,17 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		PluginName:       conf.PluginName,
 	})
 
-	// TODO: write basedir to config
+	// TODO: write basedir to config.
 	svc.Cap.FileManager = file.NewFileManager(svc.ctx,
 		"",
 		svc.Cap.Logger)
 
+	fileHandler := handler.NewClientHandler(svc.Cap.FileManager, svc.Cap.Messager, svc.Cap.Logger)
+
+	// register event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()
-	dispatcher.RegisterHandler(protoRelay.EventTypeEcho, manager.EchoHandler)
+	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeCheckPkgState, fileHandler.CheckPkgStats)
+	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeTransferPkgComplete, fileHandler.StoragePkg)
 
 	requestIDSetter := restserver.NewRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()

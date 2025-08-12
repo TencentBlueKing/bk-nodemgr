@@ -8,21 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package manager ...
-package manager
+package types
 
-import (
-	"encoding/json"
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 
-	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-)
-
-// EchoHandler is an example handler.
-func EchoHandler(payLoad []byte) {
-	var echo protoRelay.EchoEvent
-	if err := json.Unmarshal(payLoad, &echo); err != nil {
-		return
-	}
-
-	// example
+// RelayInfo defines the relay info.
+type RelayInfo struct {
+	// HostID is the proxy host id.
+	HostID int64
+	// AgentID is the proxy host id.
+	AgentID string
+	// PackageBasePath is the package base path.
+	NodeOsType criteria.OSType
+	// PackageBasePath is the package base path.
+	PackageDestDir string
 }

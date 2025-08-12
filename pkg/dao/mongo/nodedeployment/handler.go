@@ -352,6 +352,10 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return dbTargetVersion
 		}(),
+		RelayHostID:  info.RelayInfo.HostID,
+		RelayAgentID: info.RelayInfo.AgentID,
+		RelayOsType:  string(info.RelayInfo.NodeOsType),
+		RelayPkgPath: info.RelayInfo.PackageDestDir,
 	}
 
 	return data, nil

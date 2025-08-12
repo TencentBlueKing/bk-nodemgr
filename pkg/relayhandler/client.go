@@ -190,7 +190,7 @@ func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
 	}
 
 	m.config.Logger.Infof("dispatching event. event-type(%s)", push.EventType)
-	m.eventDispatcher.Dispatch(push.EventType, push.Payload)
+	m.eventDispatcher.Dispatch(context.Background(), push.EventType, push.Payload)
 }
 
 // RequestCallback sends request to url. only transfer the response body to callback.

@@ -31,14 +31,6 @@ const (
 	MessageTypeAckReq MessageType = "ack_req"
 )
 
-// ServerPushEventType defines the event type.
-type ServerPushEventType string
-
-const (
-	// EventTypeEcho describes the echo event type.
-	EventTypeEcho ServerPushEventType = "echo"
-)
-
 // Base defines the base info.
 type Base struct {
 	// MessageID describes the message-id.
@@ -95,8 +87,50 @@ type AckReq struct {
 	OriginalMessageID string `json:"original_message_id"`
 }
 
-// EchoEvent describes the echo request.
-type EchoEvent struct {
-	// Message describes the message.
-	Message string `json:"message"`
+// ServerPushEventType defines the event type.
+type ServerPushEventType string
+
+const (
+	// ServerPushEventTypeCheckPkgState describes the check pkg state event type.
+	ServerPushEventTypeCheckPkgState ServerPushEventType = "check_pkg_state"
+
+	// ServerPushEventTypeTransferPkgComplete describes the transfer pkg complete event type.
+	ServerPushEventTypeTransferPkgComplete ServerPushEventType = "transfer_pkg_complete"
+)
+
+// define server_push relay event struct.
+
+// CheckPkgStateReq describes the check pkg state request.
+type CheckPkgStateReq struct {
+	// ActionName describes the action name.
+	ActionName string `json:"action_name"`
+
+	// OperInstID describes the operation instance id.
+	OperInstID string `json:"oper_inst_id"`
+
+	// PkgName describes the package name.
+	PkgName string `json:"pkg_name"`
+
+	// MD5 describes the package md5.
+	MD5 string `json:"md5"`
 }
+
+// TransferPkgCompleteReq describes the transfer pkg complete request.
+type TransferPkgCompleteReq struct {
+	// PackageDestDir describes the source path.
+	PackageDestDir string `json:"package_dest_dir"`
+
+	// PkgName describes the package name.
+	PkgName string `json:"pkg_name"`
+}
+
+// ClientReportSignal defines the client report signal.
+type ClientReportSignal string
+
+const (
+	// ClientReportSignalPkgUnComplete describes the client report signal when pkg is uncomplete.
+	ClientReportSignalPkgUnComplete ClientReportSignal = "uncomplete"
+
+	// ClientReportSignalPkgComplete describes the client report signal when pkg is complete.
+	ClientReportSignalPkgComplete ClientReportSignal = "complete"
+)

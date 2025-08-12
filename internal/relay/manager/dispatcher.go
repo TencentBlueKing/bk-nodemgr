@@ -12,6 +12,7 @@
 package manager
 
 import (
+	"context"
 	"sync"
 
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
@@ -20,14 +21,14 @@ import (
 // EventDispatcher dispatches events.
 type EventDispatcher interface {
 	// Dispatch dispatches the event.
-	Dispatch(eventType protoRelay.ServerPushEventType, payload []byte)
+	Dispatch(ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte)
 
 	// RegisterHandler registers the handler for the event.
 	RegisterHandler(eventType protoRelay.ServerPushEventType, handler HandlerFunc)
 }
 
 // HandlerFunc is a function that handles the event.
-type HandlerFunc func([]byte)
+type HandlerFunc func(context.Context, []byte)
 
 type defaultEventDispatcher struct {
 	handlers map[protoRelay.ServerPushEventType]HandlerFunc
@@ -42,13 +43,13 @@ func NewDefaultEventDispatcher() EventDispatcher {
 }
 
 // Dispatch dispatches the event.
-func (d *defaultEventDispatcher) Dispatch(eventType protoRelay.ServerPushEventType, payload []byte) {
+func (d *defaultEventDispatcher) Dispatch(ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte) {
 	d.mux.RLock()
 	handler, exists := d.handlers[eventType]
 	d.mux.RUnlock()
 
 	if exists && handler != nil {
-		go handler(payload)
+		go handler(ctx, payload)
 	}
 }
 

@@ -116,6 +116,7 @@ type DeploymentVersionSupports struct {
 type DeploymentInfo struct {
 	BlockingActionName string
 	Host               Host
+	RelayInfo          RelayInfo
 
 	// LoginInfo is used to connect to host by ssh or wmi.
 	LoginInfo LoginInfo
