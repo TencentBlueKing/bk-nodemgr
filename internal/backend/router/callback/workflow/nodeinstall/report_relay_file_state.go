@@ -18,7 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const relayStateKey = "relay_state"
+const relayStateKey = "relay_file_state"
 
 func (h *handler) RelayReportFileState(gCtx *gin.Context) {
 	req := new(proto.ReportFileStateReq)
