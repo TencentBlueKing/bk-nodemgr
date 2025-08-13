@@ -29,7 +29,7 @@ type handler struct {
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg: rg.Group("/api/v3"),

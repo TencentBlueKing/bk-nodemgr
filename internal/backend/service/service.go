@@ -331,7 +331,10 @@ func loadSystemInfo(conf *config.BackendService) error {
 }
 
 // nolint: funlen
-func (svc *Service) registerRestServer(conf *config.BackendService, authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
+func (svc *Service) registerRestServer(
+	conf *config.BackendService,
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
+
 	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
 
