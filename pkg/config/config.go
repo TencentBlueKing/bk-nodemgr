@@ -165,13 +165,51 @@ func (conf Log) Validate() error {
 	return nil
 }
 
+// AuthIdentity the identity of auth.
+type AuthIdentity string
+
+const (
+	// AuthIdentityAPIGW api-gateway identity.
+	AuthIdentityAPIGW AuthIdentity = "api-gateway"
+	// AuthIdentityBKLogin bk-login identity.
+	AuthIdentityBKLogin AuthIdentity = "bk-login"
+	// AuthIdentityRestServer rest server identity.
+	AuthIdentityRestServer AuthIdentity = "rest-server"
+	// AuthIdentityNone none identity.
+	AuthIdentityNone AuthIdentity = "none"
+)
+
+// Validate validates the auth identity.
+func (authIdentity AuthIdentity) Validate() error {
+	switch authIdentity {
+	case AuthIdentityAPIGW, AuthIdentityBKLogin, AuthIdentityRestServer, AuthIdentityNone:
+		return nil
+	default:
+		return fmt.Errorf("invalid auth identity, identity(%s)", authIdentity)
+	}
+}
+
 // HTTPServer the config of http service.
 type HTTPServer struct {
-	BindIP        string `yaml:"bindIP"`
-	AdvertiseIPV4 string `yaml:"advertiseIPV4"`
-	AdvertiseIPV6 string `yaml:"advertiseIPV6"`
-	Port          int    `yaml:"port"`
-	StaticDir     string `yaml:"staticDir"`
+	BindIP        string       `yaml:"bindIP"`
+	AdvertiseIPV4 string       `yaml:"advertiseIPV4"`
+	AdvertiseIPV6 string       `yaml:"advertiseIPV6"`
+	Port          int          `yaml:"port"`
+	AuthIdentity  AuthIdentity `yaml:"authIdentity" usage:"identity of auth"`
+	StaticDir     string       `yaml:"staticDir"`
+}
+
+// Validate validates the config.
+func (conf HTTPServer) Validate() error {
+	if conf.BindIP == "" {
+		return errors.New("failed to validate http server config: bindIP is empty")
+	}
+
+	if conf.Port <= 0 {
+		return fmt.Errorf("failed to validate http server config: port(%d) must be greater than 0", conf.Port)
+	}
+
+	return nil
 }
 
 // CallbackServer the config of callback service.

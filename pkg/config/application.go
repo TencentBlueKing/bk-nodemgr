@@ -26,10 +26,10 @@ const (
 	// application service config default values.
 	defaultApplicationRunMode       = RunModeRelease
 	defaultApplicationTenantMode    = tenant.ModeSingle
-	defaultApplicationAPIGwUser     = "admin"
 	defaultApplicationHTTPBindIP    = "127.0.0.1"
 	defaultApplicationHTTPPort      = 5000
 	defaultApplicationHTTPStaticDir = "/bk-nodemgr/static/"
+	defaultApplicationHTTPIdentity  = AuthIdentityBKLogin
 	defaultApplicationLogDir        = "/bk-nodemgr/log/"
 	defaultApplicationLogMaxNum     = 10
 	defaultApplicationLogMaxSizeMB  = 200
@@ -59,9 +59,10 @@ func NewApplicationService() *ApplicationService {
 		RunMode:    defaultApplicationRunMode,
 		TenantMode: defaultApplicationTenantMode,
 		HTTPServer: HTTPServer{
-			BindIP:    defaultApplicationHTTPBindIP,
-			Port:      defaultApplicationHTTPPort,
-			StaticDir: defaultApplicationHTTPStaticDir,
+			BindIP:       defaultApplicationHTTPBindIP,
+			Port:         defaultApplicationHTTPPort,
+			StaticDir:    defaultApplicationHTTPStaticDir,
+			AuthIdentity: defaultApplicationHTTPIdentity,
 		},
 		Log: Log{
 			Dir:       defaultApplicationLogDir,
@@ -155,6 +156,10 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 func (svc *ApplicationService) Validate() error {
 	if err := svc.BKSaas.Validate(); err != nil {
 		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.HTTPServer.Validate(); err != nil {
+		return err
 	}
 
 	// TODO: validate the config

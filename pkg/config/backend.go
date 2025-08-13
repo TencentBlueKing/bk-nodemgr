@@ -12,6 +12,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,25 +23,29 @@ import (
 
 const (
 	// backend service config default values.
-	defaultBackendRunMode        = RunModeRelease
-	defaultBackendTenantMode     = tenant.ModeSingle
-	defaultBackendHTTPBindIP     = "127.0.0.1"
-	defaultBackendHTTPPort       = 8000
-	defaultBackendAdminBindIP    = "127.0.0.1"
-	defaultBackendAdminPort      = 8001
-	defaultBackendCallbackBindIP = "127.0.0.1"
-	defaultBackendCallbackPort   = 8002
-	defaultBackendProxyBindIP    = "127.0.0.1"
-	defaultBackendProxyPort      = 8003
-	defaultBackendLogDir         = "/bk-nodemgr/log/"
-	defaultBackendLogMaxNum      = 10
-	defaultBackendLogMaxSizeMB   = 200
-	defaultBackendLogLevel       = "INFO"
-	defaultBackendEncryptKey     = "1234567890abcdef"
-	defaultBackendSystemEnv      = "dev"
-	defaultBackendSystemEdition  = "ce"
-	defaultBackendAdvertiseIPv4  = "127.0.0.1"
-	defaultBackendAdvertiseIPv6  = "::1"
+	defaultBackendRunMode              = RunModeRelease
+	defaultBackendTenantMode           = tenant.ModeSingle
+	defaultBackendHTTPBindIP           = "127.0.0.1"
+	defaultBackendHTTPPort             = 8000
+	defaultBackendHTTPAuthIdentity     = AuthIdentityAPIGW
+	defaultBackendAdminBindIP          = "127.0.0.1"
+	defaultBackendAdminPort            = 8001
+	defaultBackendAdminAuthIdentity    = AuthIdentityRestServer
+	defaultBackendCallbackBindIP       = "127.0.0.1"
+	defaultBackendCallbackPort         = 8002
+	defaultBackendCallbackAuthIdentity = AuthIdentityNone
+	defaultBackendProxyBindIP          = "127.0.0.1"
+	defaultBackendProxyPort            = 8003
+	defaultBackendProxyAuthIdentity    = AuthIdentityNone
+	defaultBackendLogDir               = "/bk-nodemgr/log/"
+	defaultBackendLogMaxNum            = 10
+	defaultBackendLogMaxSizeMB         = 200
+	defaultBackendLogLevel             = "INFO"
+	defaultBackendEncryptKey           = "1234567890abcdef"
+	defaultBackendSystemEnv            = "dev"
+	defaultBackendSystemEdition        = "ce"
+	defaultBackendAdvertiseIPv4        = "127.0.0.1"
+	defaultBackendAdvertiseIPv6        = "::1"
 
 	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
 
@@ -86,17 +91,20 @@ func NewBackendService() *BackendService {
 		HTTPServer: HTTPServer{
 			BindIP:        defaultBackendHTTPBindIP,
 			Port:          defaultBackendHTTPPort,
+			AuthIdentity:  defaultBackendHTTPAuthIdentity,
 			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP: defaultBackendAdminBindIP,
-			Port:   defaultBackendAdminPort,
+			BindIP:       defaultBackendAdminBindIP,
+			Port:         defaultBackendAdminPort,
+			AuthIdentity: defaultBackendAdminAuthIdentity,
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer: HTTPServer{
 				BindIP:        defaultBackendCallbackBindIP,
 				Port:          defaultBackendCallbackPort,
+				AuthIdentity:  defaultBackendCallbackAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},
@@ -105,6 +113,7 @@ func NewBackendService() *BackendService {
 			HTTPServer: HTTPServer{
 				BindIP:        defaultBackendProxyBindIP,
 				Port:          defaultBackendProxyPort,
+				AuthIdentity:  defaultBackendProxyAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},
@@ -163,11 +172,27 @@ func (svc *BackendService) LoadFromFile(path string) error {
 // Validate validates the config.
 func (svc *BackendService) Validate() error {
 	if err := svc.Workflow.Validate(); err != nil {
-		return err
+		return fmt.Errorf("failed to validate backend service: %w", err)
 	}
 
 	if err := svc.CreditVault.Validate(); err != nil {
-		return err
+		return fmt.Errorf("failed to validate backend service: %w", err)
+	}
+
+	if err := svc.HTTPServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend service: %w", err)
+	}
+
+	if err := svc.AdminServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend service: %w", err)
+	}
+
+	if err := svc.CallbackServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend service: %w", err)
+	}
+
+	if err := svc.ProxyServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend service: %w", err)
 	}
 
 	return nil

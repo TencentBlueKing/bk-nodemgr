@@ -23,24 +23,22 @@ import (
 
 // handler api-v3 router handler.
 type handler struct {
-	rg           *gin.RouterGroup
-	authIdentity restserver.AuthIdentity
+	rg *gin.RouterGroup
 }
 
 // newHandler creates new router handler.
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:           rg.Group("/api/v3"),
-		authIdentity: capability.AuthIdentity,
+		rg: rg.Group("/api/v3"),
 	}
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) {
 	h := newHandler(rg, capability)
 
-	h.rg.Use(restserver.MiddlewareAuth(h.authIdentity))
+	h.rg.Use(restserver.MiddlewareAuth(authIdentity))
 
 	topo.Load(h.rg, capability)
 	node.Load(h.rg, capability)

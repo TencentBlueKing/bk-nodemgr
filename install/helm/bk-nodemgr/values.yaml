@@ -560,11 +560,13 @@ backend:
     httpServer:
       bindIP: "0.0.0.0"
       port: 8000
+      authIdentity: api-gateway
 
     ## defines the backend admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
       port: 8001
+      authIdentity: rest-server
 
     ## defines the backend callback server related settings.
     callbackServer:
@@ -831,6 +833,7 @@ application:
     httpServer:
       bindIP: "0.0.0.0"
       port: 5000
+      authIdentity: bk-login
 
     ## defines the log related settings.
     log:

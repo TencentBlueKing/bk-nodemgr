@@ -21,6 +21,9 @@ const (
 
 	// BKNodemgrRequestIDKey is request id header key.
 	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
+
+	// BKNodemgrAuthorization is authorization header key.
+	BKNodemgrAuthorization = "X-Bknodemgr-Authorization"
 )
 
 // BKTenantIDGetter get tenant id value.
@@ -35,4 +38,11 @@ func BKNodemgrRequestIDGetter(req *http.Request) string {
 	id := req.Header.Get(BKNodemgrRequestIDKey)
 
 	return id
+}
+
+// BKNodeMgrAuthorizationGetter get authorization value.
+func BKNodeMgrAuthorizationGetter(req *http.Request) string {
+	authorization := req.Header.Get(BKNodemgrAuthorization)
+
+	return authorization
 }

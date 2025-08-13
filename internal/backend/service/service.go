@@ -51,6 +51,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -248,7 +249,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.AuthIdentity, err = newBKJWTAuthIdentity(conf.APIGateWayServer)
+	bkJWTAuthIdentity, err := newBKJWTAuthIdentity(conf.APIGateWayServer)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +308,15 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.registerRestServer(conf)
+	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityAPIGW:      bkJWTAuthIdentity,
+		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+	}
+
+	if err := svc.registerRestServer(conf, authIdentityMap); err != nil {
+		return nil, fmt.Errorf("failed to new backend service: %w", err)
+	}
 
 	return svc, nil
 }
@@ -322,9 +331,15 @@ func loadSystemInfo(conf *config.BackendService) error {
 }
 
 // nolint: funlen
-func (svc *Service) registerRestServer(conf *config.BackendService) {
+func (svc *Service) registerRestServer(conf *config.BackendService, authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
 	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	httpServerAuthIdentity := authIdentityMap[conf.HTTPServer.AuthIdentity]
+	if httpServerAuthIdentity == nil {
+		return fmt.Errorf("backend no support this auth identity, auth-identity(%s): please use one of %v",
+			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
+	}
 
 	httpServer := restserver.NewServer(
 		svc.ctx,
@@ -339,7 +354,7 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
-		withAPIV3(svc.Cap),
+		withAPIV3(svc.Cap, httpServerAuthIdentity),
 		withBasic(svc.Cap),
 	)
 	svc.servers = append(svc.servers, httpServer)
@@ -390,6 +405,11 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		Port: conf.ProxyServer.Port,
 	})
 
+	adminServerAuthIdentity := authIdentityMap[conf.AdminServer.AuthIdentity]
+	if adminServerAuthIdentity == nil {
+		return fmt.Errorf("backend no support this auth identity, auth-identity(%s): please use one of %v",
+			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
+	}
 	adminServer := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
@@ -403,9 +423,11 @@ func (svc *Service) registerRestServer(conf *config.BackendService) {
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
-		withAdmin(svc.Cap),
+		withAdmin(svc.Cap, adminServerAuthIdentity),
 	)
 	svc.servers = append(svc.servers, adminServer)
+
+	return nil
 }
 
 func initRedis(conf *config.Redis) (*redis.Client, error) {
@@ -469,9 +491,9 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability) restserver.OptionFunc {
+func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		backendapiv3.Load(rg, capability)
+		backendapiv3.Load(rg, capability, authIdentity)
 	}
 }
 
@@ -483,9 +505,9 @@ func withBasic(capability *options.Capability) restserver.OptionFunc {
 }
 
 // withAdmin load admin.
-func withAdmin(capability *options.Capability) restserver.OptionFunc {
+func withAdmin(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		admin.Load(rg, capability)
+		admin.Load(rg, capability, authIdentity)
 	}
 }
 

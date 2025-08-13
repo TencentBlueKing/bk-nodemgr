@@ -21,7 +21,7 @@ const (
 	CookieKeyBKTicket = "bk_ticket"
 )
 
-var _ restserver.AuthIdentity = &AuthIdentity{}
+var _ restserver.IAuthIdentity = &AuthIdentity{}
 
 // AuthIdentity verify the ticket.
 type AuthIdentity struct {
