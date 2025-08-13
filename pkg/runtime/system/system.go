@@ -44,6 +44,9 @@ const (
 
 	// EditionEE Enterprise Edition.
 	EditionEE Edition = "ee"
+
+	// EditionInner Inner Edition.
+	EditionInner Edition = "inner"
 )
 
 // Validate Edition.

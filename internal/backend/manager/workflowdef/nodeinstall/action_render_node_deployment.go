@@ -397,24 +397,25 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 	gseAPIClientKeyFilePath := joinPath(osType, certDir, "gse_api_client.key")
 
 	// base setting
+	// always set tls settings no matter it is agent or proxy.
+	// cause agent and proxy share the same config template.
 	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSCAFile] = gseCaFilePath
 	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSCertFile] = gseAgentCertFilePath
 	nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSKeyFile] = gseAgentKeyFilePath
+	nodeConf.PreSetting[GseTemplateKeyProxyTLSCaFile] = gseCaFilePath
+	nodeConf.PreSetting[GseTemplateKeyProxyTLSCertFile] = gseServerCertFilePath
+	nodeConf.PreSetting[GseTemplateKeyProxyTLSKeyFile] = gseServerKeyFilePath
 
-	if system.GetEdition() == system.EditionEE {
+	if system.GetEdition() == system.EditionEE || system.GetEdition() == system.EditionInner {
 		nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSPasswordFile] = gsePasswordFilePath
+		nodeConf.PreSetting[GseTemplateKeyProxyTLSPasswordFile] = gsePasswordFilePath
+	} else {
+		nodeConf.PreSetting[GseTemplateKeyAgentBaseTLSPasswordFile] = ""
+		nodeConf.PreSetting[GseTemplateKeyProxyTLSPasswordFile] = ""
 	}
 
 	if host.Dynamic.NodeRole == types.NodeRoleProxy {
 		// proxy setting
-		nodeConf.PreSetting[GseTemplateKeyProxyTLSCaFile] = gseCaFilePath
-		nodeConf.PreSetting[GseTemplateKeyProxyTLSCertFile] = gseServerCertFilePath
-		nodeConf.PreSetting[GseTemplateKeyProxyTLSKeyFile] = gseServerKeyFilePath
-
-		if system.GetEdition() == system.EditionEE {
-			nodeConf.PreSetting[GseTemplateKeyProxyTLSPasswordFile] = gsePasswordFilePath
-		}
-
 		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSCaFile] = gseCaFilePath
 		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSCertFile] = gseServerCertFilePath
 		nodeConf.PreSetting[GseTemplateKeyDataAgentTLSKeyFile] = gseServerKeyFilePath

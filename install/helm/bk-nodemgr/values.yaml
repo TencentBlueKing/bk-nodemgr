@@ -543,7 +543,7 @@ backend:
     ## system: define the related settings of deployment environment.
     system:
       env: gse2
-      edition: ee
+      edition: ce
 
     ## defines the related settings of installer file group.
     installerFileGroup:

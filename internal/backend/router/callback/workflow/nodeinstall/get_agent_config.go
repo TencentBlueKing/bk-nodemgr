@@ -12,6 +12,7 @@
 package nodeinstall
 
 import (
+	"fmt"
 	"net/http"
 
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -44,9 +45,19 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		return
 	}
 
+	configTemplate, ok := nodeConf.ConfigTemplate[types.ConfigKeyAgent]
+	if !ok {
+		err := fmt.Errorf("config template not found: %s", types.ConfigKeyAgent)
+
+		h.logger.Errorf("get gse agent config failed, err: %v", err)
+		gCtx.IndentedJSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
 	conf, err := RenderConfig(Template{
 		UniqueKey: types.ConfigKeyAgent,
-		Content:   nodeConf.ConfigTemplate[types.ConfigKeyAgent],
+		Content:   configTemplate,
 	}, nodeConf)
 	if err != nil {
 		h.logger.Errorf("render gse agent config failed, err: %v", err)

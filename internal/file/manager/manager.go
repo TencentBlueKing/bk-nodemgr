@@ -458,7 +458,12 @@ func (m *Manager) fetchReleaseAgentLocal(
 		return nil, fmt.Errorf("failed to save release agent to temp file: %w", err)
 	}
 
-	return m.tempFileGroup.GetFile(ctx, localFileName)
+	localFile, err := m.tempFileGroup.GetFile(ctx, localFileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temp file: %w", err)
+	}
+
+	return localFile, nil
 }
 
 func parseEnvFile(r io.Reader) (map[string]any, error) {

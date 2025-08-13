@@ -127,7 +127,18 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 				return err
 			}
 
-			releasesMap[pkg.platform.String()] = &types.Release{
+			agentRelease, err := m.storageRelease.GetRelease(ctx,
+				types.Generation2,
+				types.ReleaseTypeAgent,
+				pkg.platform,
+				detail.Version)
+			if err != nil {
+				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get agent release. err: %v", err)
+
+				return err
+			}
+
+			proxyRelease := &types.Release{
 				Generation:     types.Generation2,
 				Type:           types.ReleaseTypeProxy,
 				Platform:       pkg.platform,
@@ -137,6 +148,14 @@ func (m *Manager) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 				ConfigTemplate: detail.ConfigTemplate,
 				ConfigEnviron:  detail.ConfigEnviron,
 			}
+			proxyRelease.ConfigTemplate[types.ConfigKeyAgent] = agentRelease.ConfigTemplate[types.ConfigKeyAgent]
+			for k, v := range agentRelease.ConfigEnviron {
+				if _, ok := proxyRelease.ConfigEnviron[k]; !ok {
+					proxyRelease.ConfigEnviron[k] = v
+				}
+			}
+
+			releasesMap[pkg.platform.String()] = proxyRelease
 
 			return nil
 		})
