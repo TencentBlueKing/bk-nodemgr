@@ -10,6 +10,7 @@ export interface ConfigPolicyExactConditions {
 // ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
 export interface ConfigPolicyFuzzyConditions {
   configpolicy_name: string[];
+  operator: string[];
 }
 
 // ConfigPolicyListReq describes HTTP request body when list config policy.

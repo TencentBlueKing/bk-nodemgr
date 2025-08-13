@@ -386,3 +386,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-macos:before {
 	content: "\e187";
 }
+.nc-package-agent:before {
+	content: "\e188";
+}
