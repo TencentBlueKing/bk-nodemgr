@@ -832,11 +832,6 @@ application:
       bindIP: "0.0.0.0"
       port: 5000
 
-    ## defines the application admin server related settings.
-    adminServer:
-      bindIP: "0.0.0.0"
-      port: 5001
-
     ## defines the log related settings.
     log:
       dir: "/bk-nodemgr/log"

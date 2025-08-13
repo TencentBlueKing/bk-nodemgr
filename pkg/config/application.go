@@ -29,8 +29,6 @@ const (
 	defaultApplicationAPIGwUser     = "admin"
 	defaultApplicationHTTPBindIP    = "127.0.0.1"
 	defaultApplicationHTTPPort      = 5000
-	defaultApplicationAdminBindIP   = "127.0.0.1"
-	defaultApplicationAdminPort     = 5001
 	defaultApplicationHTTPStaticDir = "/bk-nodemgr/static/"
 	defaultApplicationLogDir        = "/bk-nodemgr/log/"
 	defaultApplicationLogMaxNum     = 10
@@ -45,15 +43,14 @@ type BackendGateway struct {
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
-	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
-	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
-	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
-	MongoDB     MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
-	HTTPServer  HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
-	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
-	Log         Log            `yaml:"log" usage:"log config of application service"`
+	RunMode    RunMode        `yaml:"mode" usage:"run mode of service"`
+	TenantMode tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	BKSaas     BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	Backend    BackendGateway `yaml:"backend" usage:"backend gateway config"`
+	Etcd       Etcd           `yaml:"etcd" usage:"etcd config of application service"`
+	MongoDB    MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
+	HTTPServer HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
+	Log        Log            `yaml:"log" usage:"log config of application service"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -65,10 +62,6 @@ func NewApplicationService() *ApplicationService {
 			BindIP:    defaultApplicationHTTPBindIP,
 			Port:      defaultApplicationHTTPPort,
 			StaticDir: defaultApplicationHTTPStaticDir,
-		},
-		AdminServer: HTTPServer{
-			BindIP: defaultApplicationAdminBindIP,
-			Port:   defaultApplicationAdminPort,
 		},
 		Log: Log{
 			Dir:       defaultApplicationLogDir,
