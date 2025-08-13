@@ -99,6 +99,7 @@ func convertConfigPolicyConditionsFromTypes(conditions *types.ConfigPolicyCondit
 	if conditions.FuzzyInclude != nil {
 		fuzzyCond = new(ConfigPolicyFuzzyConditions)
 		fuzzyCond.ConfigpolicyName = conditions.FuzzyInclude.ConfigPolicyName
+		fuzzyCond.Operator = conditions.FuzzyInclude.Operator
 	}
 
 	if conditions.ExactExclude != nil || conditions.FuzzyExclude != nil {
