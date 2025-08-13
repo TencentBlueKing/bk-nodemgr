@@ -31,13 +31,14 @@ function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) 
 
   return new Promise<FetchReturnType<T, C>>((resolve, reject) => {
     const controller = new AbortController();
-    const BK_REQUEST_ID_HEADER_KEY = window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY.includes('BK_REQUEST_ID_HEADER_KEY') ? '' : window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY;
-    const requestID = BK_REQUEST_ID_HEADER_KEY || uniqueId();
-    const defaultHeaders = {
+    const BK_REQUEST_ID_HEADER_KEY = window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY.includes('BK_REQUEST_ID_HEADER_KEY')
+      ? 'X-Bkapi-Request-Id'
+      : window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY;
+    const requestID = uniqueId();
+    const defaultHeaders: Record<string, string> = {
       'cess-Control-Allow-Origin': '*',
-      'X-Bkapi-Request-Id': requestID,
     };
-
+    defaultHeaders[BK_REQUEST_ID_HEADER_KEY] = requestID;
     const request = OriginFetch(
       input,
       merge(
