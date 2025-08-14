@@ -62,7 +62,7 @@ func (mgr *manager) launchWorker() error {
 }
 
 // do executes the action defined by actionName for the operation instance with operationInstanceID.
-// nolint: funlen
+// nolint: funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
 	actionDef, ok := mgr.registeredActionDefs[actionName]
@@ -379,7 +379,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 
 		if doErr != nil {
 			mgr.logger.Errorf("failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
-				actionInstCtx.Data.OperationID, actionInstCtx.Data.Name, retryNum, doErr)
+				actionInstCtx.Data.OperationInstanceID, actionInstCtx.Data.Name, retryNum, doErr)
 			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 
