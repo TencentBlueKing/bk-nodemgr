@@ -25,27 +25,31 @@
 
 from __future__ import division
 from __future__ import print_function
-import sys
-import os
-import cmd
+
 import argparse
-import time
 import logging
 import ntpath
+import os
+import sys
+import time
 from base64 import b64encode
-
+from impacket import version
+from impacket.dcerpc.v5.dcom import wmi
+from impacket.dcerpc.v5.dcomrt import DCOMConnection, COMVERSION
+from impacket.dcerpc.v5.dtypes import NULL
 from impacket.examples import logger
 from impacket.examples.utils import parse_target
-from impacket import version
-from impacket.smbconnection import SMBConnection, SMB_DIALECT, SMB2_DIALECT_002, SMB2_DIALECT_21
-from impacket.dcerpc.v5.dcomrt import DCOMConnection, COMVERSION
-from impacket.dcerpc.v5.dcom import wmi
-from impacket.dcerpc.v5.dtypes import NULL
 from impacket.krb5.keytab import Keytab
+from impacket.smbconnection import SMBConnection, SMB_DIALECT, SMB2_DIALECT_002, SMB2_DIALECT_21
 from six import PY2
+
+import cmd
 
 OUTPUT_FILENAME = '__' + str(time.time())
 CODEC = sys.stdout.encoding
+
+# setting environment variable
+ENV_KEY_WMI_PASSWORD = 'WMI_PASSWORD'
 
 
 class WMIEXEC:
@@ -78,19 +82,20 @@ class WMIEXEC:
                                             self.__nthash, self.__aesKey, kdcHost=self.__kdcHost)
 
             dialect = smbConnection.getDialect()
-#             if dialect == SMB_DIALECT:
-#                 logging.info("SMBv1 dialect used")
-#             elif dialect == SMB2_DIALECT_002:
-#                 logging.info("SMBv2.0 dialect used")
-#             elif dialect == SMB2_DIALECT_21:
-#                 logging.info("SMBv2.1 dialect used")
-#             else:
-#                 logging.info("SMBv3.0 dialect used")
+        #             if dialect == SMB_DIALECT:
+        #                 logging.info("SMBv1 dialect used")
+        #             elif dialect == SMB2_DIALECT_002:
+        #                 logging.info("SMBv2.0 dialect used")
+        #             elif dialect == SMB2_DIALECT_21:
+        #                 logging.info("SMBv2.1 dialect used")
+        #             else:
+        #                 logging.info("SMBv3.0 dialect used")
         else:
             smbConnection = None
 
         dcom = DCOMConnection(addr, self.__username, self.__password, self.__domain, self.__lmhash, self.__nthash,
-                              self.__aesKey, oxidResolver=True, doKerberos=self.__doKerberos, kdcHost=self.__kdcHost, remoteHost=self.__remoteHost)
+                              self.__aesKey, oxidResolver=True, doKerberos=self.__doKerberos, kdcHost=self.__kdcHost,
+                              remoteHost=self.__remoteHost)
         try:
             iInterface = dcom.CoCreateInstanceEx(wmi.CLSID_WbemLevel1Login, wmi.IID_IWbemLevel1Login)
             iWbemLevel1Login = wmi.IWbemLevel1Login(iInterface)
@@ -445,7 +450,7 @@ if __name__ == '__main__':
         if options.A is not None:
             (domain, username, password) = load_smbclient_auth_file(options.A)
             logging.debug('loaded smbclient auth file: domain=%s, username=%s, password=%s' % (
-            repr(domain), repr(username), repr(password)))
+                repr(domain), repr(username), repr(password)))
 
         if options.target_ip is None:
             options.target_ip = address
@@ -457,6 +462,8 @@ if __name__ == '__main__':
             Keytab.loadKeysFromKeytab(options.keytab, username, domain, options)
             options.k = True
 
+        password = password if password else os.environ.get(ENV_KEY_WMI_PASSWORD)
+
         if password == '' and username != '' and options.hashes is None and options.no_pass is False and options.aesKey is None:
             from getpass import getpass
 
@@ -466,7 +473,8 @@ if __name__ == '__main__':
             options.k = True
 
         executer = WMIEXEC(' '.join(options.command), username, password, domain, options.hashes, options.aesKey,
-                           options.share, options.nooutput, options.k, options.dc_ip, options.target_ip, options.shell_type)
+                           options.share, options.nooutput, options.k, options.dc_ip, options.target_ip,
+                           options.shell_type)
         executer.run(address, options.silentcommand)
     except KeyboardInterrupt as e:
         logging.error(str(e))
