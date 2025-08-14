@@ -186,6 +186,40 @@
         ]
       }
     },
+    "/api/v3/policy/config/get_template": {
+      "post": {
+        "summary": "TemplateConfigPolicy gets config policy template.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyGetTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyGetTemplateReq describes HTTP request body when get config policy\ntemplate.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyGetTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
     "/api/v3/policy/config/list": {
       "post": {
         "summary": "ListConfigPolicy lists config policy.",
@@ -220,15 +254,15 @@
         ]
       }
     },
-    "/api/v3/policy/config/template": {
+    "/api/v3/policy/config/list_platform": {
       "post": {
-        "summary": "TemplateConfigPolicy gets config policy template.",
-        "operationId": "ConfigPolicyAPI_ConfigPolicyTemplate",
+        "summary": "ListConfigPolicyPlatform lists config policy platform.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyListPlatform",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3ConfigPolicyTemplateResp"
+              "$ref": "#/definitions/v3ConfigPolicyListPlatformResp"
             }
           },
           "default": {
@@ -241,11 +275,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "ConfigPolicyTemplateReq describes HTTP request body when get config policy\ntemplate.",
+            "description": "ConfigPolicyListPlatformReq describes HTTP request body when list config\npolicy platform.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3ConfigPolicyTemplateReq"
+              "$ref": "#/definitions/v3ConfigPolicyListPlatformReq"
             }
           }
         ],
@@ -663,6 +697,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "ConfigPolicyFuzzyConditions describes config policy fuzzy conditions."
@@ -695,6 +735,91 @@
         }
       },
       "description": "ConfigPolicyGetResp describes HTTP response body when get config policy."
+    },
+    "v3ConfigPolicyGetTemplateReq": {
+      "type": "object",
+      "properties": {
+        "node_role": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyGetTemplateReq describes HTTP request body when get config policy\ntemplate."
+    },
+    "v3ConfigPolicyGetTemplateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyGetTemplateRespData"
+        }
+      },
+      "description": "ConfigPolicyGetTemplateResp describes HTTP response body when get config\npolicy template."
+    },
+    "v3ConfigPolicyGetTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
+          }
+        }
+      }
+    },
+    "v3ConfigPolicyListPlatformReq": {
+      "type": "object",
+      "properties": {
+        "node_role": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyListPlatformReq describes HTTP request body when list config\npolicy platform."
+    },
+    "v3ConfigPolicyListPlatformResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyListPlatformRespData"
+        }
+      },
+      "description": "ConfigPolicyListPlatformResp describes HTTP response body when list config\npolicy platform."
+    },
+    "v3ConfigPolicyListPlatformRespData": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3ConfigPolicyListReq": {
       "type": "object",
@@ -768,46 +893,6 @@
         }
       },
       "description": "ConfigPolicyScope describes the config policy scope."
-    },
-    "v3ConfigPolicyTemplateReq": {
-      "type": "object",
-      "properties": {
-        "node_role": {
-          "type": "string"
-        }
-      },
-      "description": "ConfigPolicyTemplateReq describes HTTP request body when get config policy\ntemplate."
-    },
-    "v3ConfigPolicyTemplateResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3ConfigPolicyTemplateRespData"
-        }
-      },
-      "description": "ConfigPolicyTemplateResp describes HTTP response body when get config policy\ntemplate."
-    },
-    "v3ConfigPolicyTemplateRespData": {
-      "type": "object",
-      "properties": {
-        "templates": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3ConfigPolicyConfigBlock"
-          }
-        }
-      }
     },
     "v3ConfigPolicyUpdateReq": {
       "type": "object",

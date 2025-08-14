@@ -370,7 +370,7 @@ func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() (*ty
 	}
 
 	for _, item := range items {
-		role, err := ConvertReleaseTypeToNodeRole(types.ReleaseType(item.GetReleaseType()))
+		role, err := types.ConvertReleaseTypeToNodeRole(types.ReleaseType(item.GetReleaseType()))
 		if err != nil {
 			return nil, err
 		}

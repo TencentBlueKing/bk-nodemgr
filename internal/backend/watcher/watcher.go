@@ -19,10 +19,9 @@ import (
 	"time"
 
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -30,102 +29,63 @@ import (
 )
 
 const (
-	// HandleHostEvent is the watcher handle host resource.
-	HandleHostEvent = "handle_host_event"
-
-	// ScheduleInterval is the interval for the watcher scheduler.
-	ScheduleInterval = 1 * time.Second
-
-	// HandleWatchEventTimeout is the timeout for handling watch events.
-	HandleWatchEventTimeout = 30 * time.Second
-
-	// WatcherLockKey is the key for the watcher lock.
-	WatcherLockKey = "watcher_lock_key"
-
-	// HostEventChannelSize is the size of the host event channel.
-	HostEventChannelSize = 100
+	hostEventChannelSize               = 100
+	scheduleInterval                   = 1 * time.Second
+	handleWatchEventTimeout            = 30 * time.Second
+	cacheExpirationTime                = 2 * time.Minute
+	cacheKeyPrefix                     = "bknm:backend:watcher:"
+	cacheKeyLocker                     = cacheKeyPrefix + "locker"
+	watcherhandleEvnetScheduleTaskName = "watcher_handle_event_schedule_task"
 )
 
 // Config defines the configuration of watcher.
 type Config struct {
 	CmdbHandler cmdb.IHandler
 	StorageTopo topoStg.IStorage
+	Cache       cache.ICache
+	Logger      logger.Logger
 }
 
 // Watcher defines a watcher manager.
 type Watcher struct {
 	conf Config
 
-	id            string
-	logger        logger.Logger
-	mu            sync.Mutex
-	redsynclocker locker.MutexFactory
-	scheduler     scheduler.Scheduler
+	id        string
+	mu        sync.Mutex
+	scheduler scheduler.Scheduler
 
 	hostEventChannel           chan *types.HostEvent
 	waitingCompleteDataHostMap map[int64]*types.Host
 }
 
-// OptionFunc defines the function type for options.
-type OptionFunc func(*Watcher)
-
-// WithLogger sets the logger for the watcher.
-func WithLogger(logger logger.Logger) OptionFunc {
-	return func(w *Watcher) {
-		w.logger = logger
-	}
-}
-
-// WithDistributedLocker sets the distributed locker for the watcher.
-func WithDistributedLocker(locker locker.MutexFactory) OptionFunc {
-	return func(w *Watcher) {
-		w.redsynclocker = locker
-	}
-}
-
 // NewWatcher creates a new watcher manager.
-func NewWatcher(conf Config, opts ...OptionFunc) (*Watcher, error) {
+func NewWatcher(conf Config) (*Watcher, error) {
 	watcher := &Watcher{
 		conf:                       conf,
 		id:                         identifier.GenServiceID(),
-		logger:                     logger.LoggerDefault{},
 		mu:                         sync.Mutex{},
-		redsynclocker:              nil,
-		hostEventChannel:           make(chan *types.HostEvent, HostEventChannelSize),
+		hostEventChannel:           make(chan *types.HostEvent, hostEventChannelSize),
 		waitingCompleteDataHostMap: make(map[int64]*types.Host),
 	}
 
-	for _, opt := range opts {
-		opt(watcher)
-	}
-
-	watcher.scheduler = scheduler.NewScheduler(scheduler.WithLogger(watcher.logger))
-
-	if watcher.redsynclocker == nil {
-		return nil, errors.New("redsync locker is required")
-	}
+	watcher.scheduler = scheduler.NewScheduler(scheduler.WithLogger(watcher.conf.Logger))
 
 	return watcher, nil
 }
 
 // Start starts the watcher manager.
 func (w *Watcher) Start(ctx context.Context) error {
-	w.logger.Info("started watcher manager")
-	err := globalsettings.GetInstance().DeleteMany(ctx, types.HostEventCursor, types.HostRelationEventCursor)
-	if err != nil {
-		w.logger.Errorf("delete global settings failed: %v", err)
-		return err
-	}
+	w.conf.Logger.Info("started watcher manager")
 
 	if err := w.registerHostEventScheduler(); err != nil {
-		w.logger.Errorf("register host event scheduler failed: %v", err)
+		w.conf.Logger.Errorf("register host event scheduler failed: %v", err)
 		return fmt.Errorf("register host event scheduler failed: %w", err)
 	}
 
 	w.scheduler.Start()
 
 	go func() {
-		w.logger.Info("apply host event started")
+		w.conf.Logger.Info("apply host event started")
 		w.applyHostEvent(ctx)
 	}()
 
@@ -135,20 +95,19 @@ func (w *Watcher) Start(ctx context.Context) error {
 // registerHandleEventTask registers the task to handle host events.
 func (w *Watcher) registerHostEventScheduler() error {
 	err := w.scheduler.RegisterTask(scheduler.NewTask(
-		HandleHostEvent,
-		ScheduleInterval,
-		HandleWatchEventTimeout,
+		watcherhandleEvnetScheduleTaskName,
+		scheduleInterval,
+		handleWatchEventTimeout,
 		func(ctx context.Context) error {
-			err := w.redsynclocker.NewMutex(WatcherLockKey).TryLock()
-			if err != nil {
-				w.logger.Warnf("try acquire distributed lock failed, watcher(%s) is not the main watcher", w.id)
-				return err
+			if !w.isLock(ctx) {
+				w.conf.Logger.Info("not the master, skip handling host event")
+				return nil
 			}
 
 			gp := gopool.NewPool()
 			gp.Go(func() error {
 				if err := w.watchHostResource(ctx); err != nil {
-					w.logger.Errorf("handle host event failed: %v", err)
+					w.conf.Logger.Errorf("handle host event failed: %v", err)
 					return err
 				}
 
@@ -157,20 +116,24 @@ func (w *Watcher) registerHostEventScheduler() error {
 
 			gp.Go(func() error {
 				if err := w.watchHostRelationResource(ctx); err != nil {
-					w.logger.Errorf("handle host relation event failed: %v", err)
+					w.conf.Logger.Errorf("handle host relation event failed: %v", err)
 					return err
 				}
 
 				return nil
 			})
 
-			_ = gp.Wait()
+			err := gp.Wait()
+			if err != nil {
+				w.conf.Logger.Errorf("wait for handle host event failed: %v", err)
+				return fmt.Errorf("wait for handle host event failed: %w", err)
+			}
 
 			return nil
 		},
 	))
 	if err != nil {
-		w.logger.Errorf("register handle host event task failed: %v", err)
+		w.conf.Logger.Errorf("register handle host event task failed: %v", err)
 		return fmt.Errorf("register handle host event task failed: %w", err)
 	}
 
@@ -179,40 +142,35 @@ func (w *Watcher) registerHostEventScheduler() error {
 
 // watchHostResource watches the host resource events.
 func (w *Watcher) watchHostResource(ctx context.Context) error {
-	// TODO: use cache to store cursor instead of global settings
-	cursor, err := globalsettings.GetInstance().Get(ctx, types.HostEventCursor)
+	cursor, err := w.getCursor(ctx, types.HostEventCursor)
 	if err != nil {
-		w.logger.Errorf("get host event cursor failed: %v", err)
+		w.conf.Logger.Errorf("get host event cursor failed: %v", err)
 		return fmt.Errorf("get host event cursor failed: %w", err)
 	}
 
 	events, err := w.conf.CmdbHandler.WatchHostResourceEvent(ctx, cursor)
 	if err != nil {
-		w.logger.Errorf("watch host resource event failed: %v", err)
+		w.conf.Logger.Errorf("watch host resource event failed: %v", err)
 		return fmt.Errorf("watch host resource event failed: %w", err)
 	}
 
 	if len(events) == 0 {
-		w.logger.Info("no host resource event found")
+		w.conf.Logger.Info("no host resource event found")
 		return nil
 	}
 
 	for _, ev := range events {
 		select {
 		case w.hostEventChannel <- ev:
-			w.logger.Debugf("host event sent to channel: %s", ev.Cursor)
+			w.conf.Logger.Debugf("host event sent to channel: %s", ev.Cursor)
 		default:
-			w.logger.Warnf("host event channel is full, dropping event: %s", ev.Cursor)
+			w.conf.Logger.Warnf("host event channel is full, dropping event: %s", ev.Cursor)
 		}
 	}
 
-	err = globalsettings.GetInstance().UpsertMany(ctx, &types.GlobalSettings{
-		SettingName: types.HostEventCursor,
-		Value:       events[len(events)-1].Cursor,
-	})
-	if err != nil {
-		w.logger.Errorf("upsert host event cursor failed: %v", err)
-		return fmt.Errorf("upsert host event cursor failed: %w", err)
+	if err := w.setCursor(ctx, types.HostEventCursor, events[len(events)-1].Cursor); err != nil {
+		w.conf.Logger.Errorf("set host event cursor failed: %v", err)
+		return fmt.Errorf("set host event cursor failed: %w", err)
 	}
 
 	return nil
@@ -220,40 +178,35 @@ func (w *Watcher) watchHostResource(ctx context.Context) error {
 
 // watchHostRelationResource watches the host relation resource events.
 func (w *Watcher) watchHostRelationResource(ctx context.Context) error {
-	// TODO: use cache to store cursor instead of global settings
-	cursor, err := globalsettings.GetInstance().Get(ctx, types.HostRelationEventCursor)
+	cursor, err := w.getCursor(ctx, types.HostRelationEventCursor)
 	if err != nil {
-		w.logger.Errorf("get host relation event cursor failed: %v", err)
-		return fmt.Errorf("get host relation event cursor failed: %w", err)
+		w.conf.Logger.Errorf("get host event cursor failed: %v", err)
+		return fmt.Errorf("get host event cursor failed: %w", err)
 	}
 
 	events, err := w.conf.CmdbHandler.WatchHostRelationResourceEvent(ctx, cursor)
 	if err != nil {
-		w.logger.Errorf("watch host relation resource event failed: %v", err)
+		w.conf.Logger.Errorf("watch host relation resource event failed: %v", err)
 		return fmt.Errorf("watch host relation resource event failed: %w", err)
 	}
 
 	if len(events) == 0 {
-		w.logger.Info("no host relation resource event found")
+		w.conf.Logger.Info("no host relation resource event found")
 		return nil
 	}
 
 	for _, ev := range mergeHostEvent(events...) {
 		select {
 		case w.hostEventChannel <- ev:
-			w.logger.Debugf("host relation event sent to channel: %v", ev)
+			w.conf.Logger.Debugf("host relation event sent to channel: %v", ev)
 		default:
-			w.logger.Warnf("host relation event channel is full, dropping event: %v", ev)
+			w.conf.Logger.Warnf("host relation event channel is full, dropping event: %v", ev)
 		}
 	}
 
-	err = globalsettings.GetInstance().UpsertMany(ctx, &types.GlobalSettings{
-		SettingName: types.HostRelationEventCursor,
-		Value:       events[len(events)-1].Cursor,
-	})
-	if err != nil {
-		w.logger.Errorf("upsert host event cursor failed: %v", err)
-		return fmt.Errorf("upsert host event cursor failed: %w", err)
+	if err := w.setCursor(ctx, types.HostRelationEventCursor, events[len(events)-1].Cursor); err != nil {
+		w.conf.Logger.Errorf("set host relation event cursor failed: %v", err)
+		return fmt.Errorf("set host relation event cursor failed: %w", err)
 	}
 
 	return nil
@@ -264,22 +217,22 @@ func (w *Watcher) applyHostEvent(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			w.logger.Info("apply host event context done")
+			w.conf.Logger.Info("apply host event context done")
 		case event := <-w.hostEventChannel:
 			switch event.Resource {
 			case types.ResourceTypeHost:
 				if err := w.handleHostResource(ctx, event); err != nil {
-					w.logger.Errorf("handle host resource failed: %v", err)
+					w.conf.Logger.Errorf("handle host resource failed: %v", err)
 				}
 			case types.ResourceTypeHostRelation:
 				if err := w.handleHostRelationResource(ctx, event); err != nil {
-					w.logger.Errorf("handle host relation resource failed: %v", err)
+					w.conf.Logger.Errorf("handle host relation resource failed: %v", err)
 				}
 			default:
-				w.logger.Warnf("unknown resource type: %s", event.Resource)
+				w.conf.Logger.Warnf("unknown resource type: %s", event.Resource)
 			}
 		default:
-			w.logger.Debug("no host event to apply")
+			w.conf.Logger.Debug("no host event to apply")
 		}
 	}
 }
@@ -330,6 +283,8 @@ func (w *Watcher) handleHostResource(ctx context.Context, event *types.HostEvent
 		}
 
 		return nil
+	case types.EventTypeBlank:
+		return nil
 	default:
 		return fmt.Errorf("unknown event type: %s", event.EventType)
 	}
@@ -379,6 +334,8 @@ func (w *Watcher) handleHostRelationResource(ctx context.Context, event *types.H
 		}
 
 		return nil
+	case types.EventTypeBlank:
+		return nil
 	default:
 		return fmt.Errorf("unknown event type: %s", event.EventType)
 	}
@@ -393,6 +350,10 @@ func mergeHostEvent(events ...*types.HostEvent) []*types.HostEvent {
 	pendingProcess := make(map[int64]*types.HostEvent, 0)
 	result := make([]*types.HostEvent, 0, len(events))
 	for _, event := range events {
+		if event.Detail == nil {
+			continue
+		}
+
 		ev, ok := pendingProcess[event.Detail.HostID]
 		if !ok {
 			pendingProcess[event.Detail.HostID] = event
@@ -412,4 +373,79 @@ func mergeHostEvent(events ...*types.HostEvent) []*types.HostEvent {
 	}
 
 	return result
+}
+
+// getCursor retrieves the cursor for the given key from the cache.
+func (w *Watcher) getCursor(ctx context.Context, key string) (string, error) {
+	if key == "" {
+		return "", errors.New("get cursor from cache, key cannot be empty")
+	}
+
+	key = cacheKeyPrefix + key
+	exist, err := w.conf.Cache.Exists(ctx, key)
+	if err != nil {
+		return "", fmt.Errorf("check cursor exist failed: %w", err)
+	}
+
+	if !exist {
+		return "", nil
+	}
+
+	result, err := w.conf.Cache.Get(ctx, key)
+	if err != nil {
+		return "", fmt.Errorf("get cursor failed: %w", err)
+	}
+
+	return string(result), nil
+}
+
+// setCursor sets the cursor for the given key in the cache.
+func (w *Watcher) setCursor(ctx context.Context, key, value string) error {
+	if key == "" {
+		return errors.New("set cursor to cache, key cannot be empty")
+	}
+
+	key = cacheKeyPrefix + key
+	if err := w.conf.Cache.SetWithExpiration(ctx, key, []byte(value), cacheExpirationTime); err != nil {
+		return fmt.Errorf("set cursor failed: %w", err)
+	}
+
+	return nil
+}
+
+// isLock checks if the watcher is the master by trying to acquire a lock.
+func (w *Watcher) isLock(ctx context.Context) bool {
+	exist, err := w.conf.Cache.Exists(ctx, cacheKeyLocker)
+	if err != nil {
+		w.conf.Logger.Errorf("check locker failed: %v", err)
+		return false
+	}
+
+	if exist {
+		id, err := w.conf.Cache.Get(ctx, cacheKeyLocker)
+		if err != nil {
+			w.conf.Logger.Errorf("get locker id failed: %v", err)
+			return false
+		}
+
+		if string(id) != w.id {
+			return false
+		}
+
+		err = w.conf.Cache.SetWithExpiration(ctx, cacheKeyLocker, []byte(w.id), cacheExpirationTime)
+		if err != nil {
+			w.conf.Logger.Errorf("set locker by id(%s) failed: %v", w.id, err)
+			return false
+		}
+
+		return true
+	}
+
+	locked, err := w.conf.Cache.SetNXWithExpiration(ctx, cacheKeyLocker, []byte(w.id), cacheExpirationTime)
+	if err != nil {
+		w.conf.Logger.Errorf("set master lock failed: %v", err)
+		return false
+	}
+
+	return locked
 }

@@ -243,6 +243,17 @@ func Test_List(t *testing.T) {
 			wantNum:   1,
 			wantErr:   false,
 		},
+		{
+			name: "filter by scope",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:     []OptFn{WithEnabledScope(0, 1, 2, criteria.OSLinux, criteria.CPUArchAmd64)},
+			wantTotal: -1,
+			wantNum:   1,
+			wantErr:   false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -258,7 +269,7 @@ func Test_List(t *testing.T) {
 				t.Errorf("List() total = %d, wantTotal %d", total, tt.wantTotal)
 				return
 			}
-			t.Logf("List() total = %d", total)
+			t.Logf("List() total = %d, got = %d", total, len(got))
 
 			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
 				t.Errorf("List() num = %d, wantNum %d", len(got), tt.wantNum)

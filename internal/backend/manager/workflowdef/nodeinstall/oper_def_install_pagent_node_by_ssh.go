@@ -33,9 +33,8 @@ type operInstallPagentNodeBySSH struct {
 
 // OperParamInstallPagentNodeBySSH defines the parameters for operInstallNodeBySSH.
 type OperParamInstallPagentNodeBySSH struct {
-	Token       string `json:"token"`
-	Operator    string `json:"operator"`
-	RelayHostID string `json:"relay_host_id"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

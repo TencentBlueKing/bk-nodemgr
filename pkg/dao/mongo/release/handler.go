@@ -86,6 +86,17 @@ type IHandler interface {
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
+
+	IDistinctor
+}
+
+// IDistinctor defines the distinctor interface.
+type IDistinctor interface {
+	// DistinctOsType distincts os types.
+	DistinctOsType(ctx context.Context, opts ...OptFn) ([]string, error)
+
+	// DistinctCPUArch distincts cpu archs.
+	DistinctCPUArch(ctx context.Context, opts ...OptFn) ([]string, error)
 }
 
 type handler struct {
@@ -364,6 +375,26 @@ func (h *handler) Delete(ctx context.Context,
 	}
 
 	return h.dao.DeleteMany(ctx, filter)
+}
+
+// DistinctOsType distincts os types.
+func (h *handler) DistinctOsType(ctx context.Context, opts ...OptFn) ([]string, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.DistinctString(ctx, FieldKeyOSType, filter, nil)
+}
+
+// DistinctCPUArch distincts cpu archs.
+func (h *handler) DistinctCPUArch(ctx context.Context, opts ...OptFn) ([]string, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.DistinctString(ctx, FieldKeyCPUArch, filter, nil)
 }
 
 func convertReleaseToTypes(release *Release) *types.Release {

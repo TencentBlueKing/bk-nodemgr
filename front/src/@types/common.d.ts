@@ -175,3 +175,52 @@ interface TargetVersion {
   os_type: string;
 }
 
+// ConfigPolicyScope describes the config policy scope.
+interface ConfigPolicyScope {
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+  os_type: string;
+  cpu_arch: string;
+}
+
+// ConfigPolicyConfig describes the config policy config.
+interface ConfigPolicyConfigItem {
+  id: string;
+  enabled: boolean;
+  name_en: string;
+  name_zh: string;
+  remark_en: string;
+  remark_zh: string;
+  key: string;
+  type: number;
+  value_string: string;
+  value_int: number;
+  value_bool: boolean;
+  value_string_select: string[];
+  value_int_select: number[];
+}
+
+// ConfigPolicyConfigBlock describes the config policy config block.
+interface ConfigPolicyConfigBlock {
+  id: string;
+  title_en: string;
+  title_zh: string;
+  items: ConfigPolicyConfigItem[];
+}
+
+// ConfigPolocy decribes the config policy.
+interface ConfigPolicy {
+  tenant_id: string;
+  configpolicy_id: number;
+  configpolicy_name: string;
+  node_role: string;
+  biz_id: number[];
+  remark: string;
+  scopes: ConfigPolicyScope[];
+  configs: ConfigPolicyConfigBlock[];
+  enabled: boolean;
+  updated_time: number;
+  operator: string;
+  version: number;
+}
+

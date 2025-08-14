@@ -126,7 +126,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 // nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
 func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
-	detail := new(types.OriginPkgDetail)
+	detail := types.NewOriginPkgDetail()
 	var seenFile, seenData bool
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -182,7 +182,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 					return fmt.Errorf("failed to read gse_file_proxy.conf template file. err: %w", err)
 				}
 
-				detail.ConfigTemplate["file"] = string(content)
+				detail.ConfigTemplate[types.ConfigKeyFile] = string(content)
 
 				return nil
 			},
@@ -195,7 +195,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 					return fmt.Errorf("failed to read gse_data_proxy.conf template file. err: %w", err)
 				}
 
-				detail.ConfigTemplate["data"] = string(content)
+				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
 
 				return nil
 			},

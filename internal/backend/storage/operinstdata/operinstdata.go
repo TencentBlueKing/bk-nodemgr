@@ -622,7 +622,7 @@ func (s *Storage) UpsertActionInstancePrivateData(
 		return nil
 	}
 
-	if err := s.daoOperinstdata.AddActInstPrivateData(ctx, operInstID, actionName, privateData); err != nil {
+	if err := s.daoOperinstdata.PushActInstPrivateData(ctx, operInstID, actionName, privateData); err != nil {
 		return fmt.Errorf(
 			"failed to update operation instance private data, operation-inst-id(%s), action-name(%s), err: %w",
 			operInstID, actionName, err)

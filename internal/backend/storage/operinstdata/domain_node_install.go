@@ -28,6 +28,10 @@ type IDomainNodeInstall interface {
 	// PushActInstMsgs will append the oper inst action log.
 	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string,
 		msgs ...action.Message) error
+
+	// UpsertActionInstancePrivateData upserts action instance private data.
+	UpsertActionInstancePrivateData(
+		ctx context.Context, operInstID string, actionName string, privateData map[string]any) error
 }
 
 // UpdateOperInstActionStatus update the oper inst action status.

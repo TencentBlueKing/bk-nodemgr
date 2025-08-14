@@ -15,7 +15,10 @@ message ConfigPolicyExactConditions {
 }
 
 // ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
-message ConfigPolicyFuzzyConditions { repeated string configpolicy_name = 1; }
+message ConfigPolicyFuzzyConditions {
+  repeated string configpolicy_name = 1;
+  repeated string operator = 2;
+}
 
 // ConfigPolicyListReq describes HTTP request body when list config policy.
 message ConfigPolicyListReq {
@@ -39,18 +42,36 @@ message ConfigPolicyListResp {
   Data data = 4;
 }
 
-// ConfigPolicyTemplateReq describes HTTP request body when get config policy
+// ConfigPolicyGetTemplateReq describes HTTP request body when get config policy
 // template.
-message ConfigPolicyTemplateReq { string node_role = 1; }
+message ConfigPolicyGetTemplateReq { string node_role = 1; }
 
-// ConfigPolicyTemplateResp describes HTTP response body when get config policy
-// template.
-message ConfigPolicyTemplateResp {
+// ConfigPolicyGetTemplateResp describes HTTP response body when get config
+// policy template.
+message ConfigPolicyGetTemplateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
 
   message Data { repeated ConfigPolicyConfigBlock templates = 1; }
+  Data data = 4;
+}
+
+// ConfigPolicyListPlatformReq describes HTTP request body when list config
+// policy platform.
+message ConfigPolicyListPlatformReq { string node_role = 1; }
+
+// ConfigPolicyListPlatformResp describes HTTP response body when list config
+// policy platform.
+message ConfigPolicyListPlatformResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    repeated string os_type = 1;
+    repeated string cpu_arch = 2;
+  }
   Data data = 4;
 }
 
@@ -171,11 +192,20 @@ service ConfigPolicyAPI {
     };
   }
 
-  // TemplateConfigPolicy gets config policy template.
-  rpc ConfigPolicyTemplate(ConfigPolicyTemplateReq)
-      returns (ConfigPolicyTemplateResp) {
+  // ListConfigPolicyPlatform lists config policy platform.
+  rpc ConfigPolicyListPlatform(ConfigPolicyListPlatformReq)
+      returns (ConfigPolicyListPlatformResp) {
     option (google.api.http) = {
-      post : "/api/v3/policy/config/template"
+      post : "/api/v3/policy/config/list_platform"
+      body : "*"
+    };
+  }
+
+  // TemplateConfigPolicy gets config policy template.
+  rpc ConfigPolicyTemplate(ConfigPolicyGetTemplateReq)
+      returns (ConfigPolicyGetTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/get_template"
       body : "*"
     };
   }

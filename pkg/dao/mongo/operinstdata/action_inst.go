@@ -44,8 +44,8 @@ type IActionInstData interface {
 	// GetActInstPrivateData get action inst data private data.
 	GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error)
 
-	// AddActInstPrivateData add action inst data private data.
-	AddActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
+	// PushActInstPrivateData add action inst data private data.
+	PushActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
 
 	// UpdateActionInstContent update the action_inst_data's content.
 	UpdateActionInstContent(ctx context.Context, operInstID string, actionName string, content map[string]any) error
@@ -126,8 +126,8 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 	return nil
 }
 
-// AddActInstPrivateData add act inst private data.
-func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, actionName string,
+// PushActInstPrivateData push act inst private data.
+func (h *handler) PushActInstPrivateData(ctx context.Context, operInstID string, actionName string,
 	data map[string]any) error {
 
 	if ctx == nil {
@@ -154,12 +154,20 @@ func (h *handler) AddActInstPrivateData(ctx context.Context, operInstID string, 
 		filter = opt(filter)
 	}
 
+	operInstData, err := h.dao.get(ctx, filter)
+	if err != nil {
+		return err
+	}
+
 	for k, v := range data {
-		field := fmt.Sprintf("%s.%s", FieldKeyActInstPrivateData(actionName), k)
-		err := h.dao.updateField(ctx, filter, field, v)
-		if err != nil {
-			return err
-		}
+		operInstData.ActionInstDataMap[actionName].PrivateData[k] = v
+	}
+
+	err = h.dao.updateField(ctx, filter,
+		FieldKeyActionInstData(actionName), operInstData.ActionInstDataMap[actionName])
+
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -34,4 +34,7 @@ const (
 
 	// FieldKeyAsDefault defines the field key of as default.
 	FieldKeyAsDefault = "data.as_default"
+
+	// FieldKeyFileName defines the field key of as filename.
+	FieldKeyFileName = "data.filename"
 )

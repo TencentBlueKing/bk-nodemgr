@@ -46,6 +46,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -279,6 +280,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageOperInst:       svc.Cap.StorageOperInst,
 		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
 		StorageHostCredit:     svc.Cap.StorageCredit,
+		StorageConfigPolicy:   svc.Cap.StorageConfigPolicy,
 		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
 		ProxyMessager:         svc.Cap.ProxyMessager,
@@ -301,9 +303,9 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		watcher.Config{
 			CmdbHandler: svc.Cap.CmdbHandler,
 			StorageTopo: svc.Cap.StorageTopo,
+			Logger:      svc.Cap.Logger,
+			Cache:       rediscache.NewRedisCache(redisClient, rediscache.DefaultTimeout),
 		},
-		watcher.WithDistributedLocker(svc.Cap.LockerFactory),
-		watcher.WithLogger(svc.Cap.Logger),
 	)
 	if err != nil {
 		return nil, err

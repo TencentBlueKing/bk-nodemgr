@@ -119,7 +119,7 @@ func (m *clientMessager) EventDispatcher() manager.EventDispatcher {
 
 // messageCallback receives messages from agent.
 func (m *clientMessager) messageCallback(messageID string, content []byte) {
-	m.config.Logger.Infof("receive message. message-id(%s), content(%s)", messageID, string(content))
+	m.config.Logger.Infof("receive message. message-id(%s)", messageID)
 
 	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
@@ -127,6 +127,7 @@ func (m *clientMessager) messageCallback(messageID string, content []byte) {
 		return
 	}
 
+	m.config.Logger.Infof("begin to handle message. message-id(%s), type(%s)", messageID, base.MessageType)
 	switch base.MessageType {
 	case protoRelay.MessageTypeCallbackResp:
 		go m.setSynchronousData(messageID, content)
@@ -161,6 +162,7 @@ func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
 }
 
 func (m *clientMessager) handleServerPush(ctx context.Context, messageID string, content []byte) {
+	m.config.Logger.Infof("begin handle server push. message-id(%s)", messageID)
 	go m.sendAck(ctx, messageID)
 
 	exists, err := m.fileMsgTracker.TryMarkProcessed(ctx, messageID)
@@ -183,6 +185,8 @@ func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
 		m.config.Logger.Errorf("invalid push format: %v", err)
 		return
 	}
+
+	m.config.Logger.Infof("begin dispatching event. event-type(%s)", push.EventType)
 
 	if m.eventDispatcher == nil {
 		m.config.Logger.Errorf("no event dispatcher registered for event. event-type(%s)", push.EventType)
@@ -293,7 +297,8 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 			default:
 			}
 
-			m.config.Logger.Infof("sending client push request (attempt %d). message-id(%s)", attempt, messageID)
+			m.config.Logger.Infof("sending client push request.(callbackURL %s) (attempt %d). message-id(%s)",
+				callbackURL, attempt, messageID)
 
 			if err := m.client.SendMessage(retryCtx, messageID, reqData); err != nil {
 				return fmt.Errorf("send message failed: %w", err)
@@ -307,7 +312,7 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 				return errors.New("ack not received")
 			}
 
-			m.config.Logger.Infof("client push request acknowledged. message-id(%s)", messageID)
+			m.config.Logger.Infof("client push request acked successfully. message-id(%s)", messageID)
 
 			return nil
 		})

@@ -39,6 +39,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/release/list", restserver.Handler(h.ListRelease))
+	h.rg.POST("/release/distinct", restserver.Handler(h.DistinctRelease))
 	h.rg.POST("/release/set_labels", restserver.Handler(h.SetReleaseLabels))
 	h.rg.POST("/release/enable", restserver.Handler(h.EnableRelease))
 	h.rg.POST("/release/disable", restserver.Handler(h.DisableRelease))

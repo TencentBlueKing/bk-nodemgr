@@ -11,11 +11,16 @@
 // Package callback ...
 package callback
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
+)
 
 // Validate check request body.
 func (x *GetAgentConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -28,7 +33,7 @@ func (x *GetAgentConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetDataProxyConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -41,7 +46,7 @@ func (x *GetDataProxyConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetFileProxyConfReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -54,7 +59,7 @@ func (x *GetFileProxyConfReq) AutoConvert() {
 
 // Validate check request body.
 func (x *GetCheckListReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -67,7 +72,7 @@ func (x *GetCheckListReq) AutoConvert() {
 
 // Validate check request body.
 func (x *ReportLogReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
@@ -93,11 +98,11 @@ func (x *ReportStatusReq) Validate() error {
 
 // Validate check request body.
 func (x *ReportDataReq) Validate() error {
-	if x.Token == "" {
+	if x.GetToken() == "" {
 		return errors.New("token is required")
 	}
 
-	if x.AgentId == "" {
+	if x.GetAgentId() == "" {
 		return errors.New("agent_id is required")
 	}
 
@@ -106,4 +111,43 @@ func (x *ReportDataReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *ReportDataReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportFileStateReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+	if len(x.GetFileState()) == 0 {
+		return errors.New("file_name is required")
+	}
+
+	if err := x.checkStatus(); err != nil {
+		return fmt.Errorf("check status failed: %w", err)
+	}
+
+	return nil
+}
+
+func (x *ReportFileStateReq) checkStatus() error {
+	for _, state := range x.GetFileState() {
+		if state.GetFileName() == "" {
+			return errors.New("file_name is required")
+		}
+
+		if state.GetFileStatus() != string(relay.ClientReportPkgComplete) &&
+			state.GetFileStatus() != string(relay.ClientReportPkgUnComplete) {
+
+			return errors.New("fiel_status must be complete or uncomplete")
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportFileStateReq) AutoConvert() {
 }

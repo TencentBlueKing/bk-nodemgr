@@ -379,7 +379,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 
 		if doErr != nil {
 			mgr.logger.Errorf("failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
-				actionInstCtx.Data.OperationID, actionInstCtx.Data.Name, retryNum, doErr)
+				actionInstCtx.Data.OperationInstanceID, actionInstCtx.Data.Name, retryNum, doErr)
 			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 

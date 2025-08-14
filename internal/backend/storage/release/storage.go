@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,9 +29,21 @@ import (
 type IStorage interface {
 	basestorage.Interface
 
+	// GetRelease gets release by generation, release type, platform and version.
+	GetRelease(ctx context.Context,
+		gen types.Generation,
+		releaseType types.ReleaseType,
+		plat platform.Platform,
+		version string) (*types.Release, error)
+
 	// ListRelease lists release by page and conditions.
 	ListRelease(ctx context.Context, page types.Page, conditions ...*types.ReleaseCondition) (
 		[]*types.Release, int64, error)
+
+	// DistinctRelease distincts release by conditions.
+	DistinctRelease(
+		ctx context.Context, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
 	CountRelease(ctx context.Context, conditions ...*types.ReleaseCondition) (int64, error)
@@ -127,6 +140,16 @@ func (s *Storage) check() error {
 	return nil
 }
 
+// GetRelease gets release by generation, release type, platform and version.
+func (s *Storage) GetRelease(ctx context.Context,
+	gen types.Generation,
+	releaseType types.ReleaseType,
+	plat platform.Platform,
+	version string) (*types.Release, error) {
+
+	return s.daoRelease.Get(ctx, gen, releaseType, plat, version)
+}
+
 // ListRelease lists release by page and conditions.
 func (s *Storage) ListRelease(ctx context.Context, page types.Page, conditions ...*types.ReleaseCondition) (
 	[]*types.Release, int64, error) {
@@ -137,6 +160,40 @@ func (s *Storage) ListRelease(ctx context.Context, page types.Page, conditions .
 	}
 
 	return s.daoRelease.List(ctx, page, opts...)
+}
+
+// DistinctRelease distincts release by conditions.
+func (s *Storage) DistinctRelease(
+	ctx context.Context, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	opts, err := convertReleaseconditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := new(types.ReleaseDistinctResult)
+
+	gp := gopool.NewPool()
+	if request.OSType {
+		gp.Go(func() error {
+			var err error
+			result.OSType, err = s.daoRelease.DistinctOsType(ctx, opts...)
+			return err
+		})
+	}
+	if request.CPUArch {
+		gp.Go(func() error {
+			var err error
+			result.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, opts...)
+			return err
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // CountRelease counts release by conditions.
@@ -230,6 +287,7 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
+				release.WithFileName(condition.ExactInclude.FileName...),
 				release.WithGeneration(condition.ExactInclude.Generation...),
 				release.WithType(condition.ExactInclude.Type...),
 				release.WithVersion(condition.ExactInclude.Version...),
@@ -252,16 +310,4 @@ func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([
 	}
 
 	return opts, nil
-}
-
-// ConvertNodeRoleToReleaseType convert role to release type.
-func ConvertNodeRoleToReleaseType(role types.NodeRole) (types.ReleaseType, error) {
-	switch role {
-	case types.NodeRoleAgent:
-		return types.ReleaseTypeAgent, nil
-	case types.NodeRoleProxy:
-		return types.ReleaseTypeProxy, nil
-	default:
-		return "", fmt.Errorf("invalid node role. role(%s)", role)
-	}
 }

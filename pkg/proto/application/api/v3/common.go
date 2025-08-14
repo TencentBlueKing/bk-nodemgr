@@ -105,15 +105,3 @@ func ConvertPlatformFromTypes(plat platform.Platform) *Platform {
 		CpuArch: string(plat.Arch),
 	}
 }
-
-// ConvertReleaseTypeToNodeRole convert release type to node role.
-func ConvertReleaseTypeToNodeRole(releaseType types.ReleaseType) (types.NodeRole, error) {
-	switch releaseType {
-	case types.ReleaseTypeAgent:
-		return types.NodeRoleAgent, nil
-	case types.ReleaseTypeProxy:
-		return types.NodeRoleProxy, nil
-	default:
-		return "", fmt.Errorf("invalid release type. type(%s)", releaseType)
-	}
-}

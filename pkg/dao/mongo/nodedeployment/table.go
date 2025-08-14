@@ -109,8 +109,9 @@ type VersionSupports struct {
 
 // NodeConf this is the node conf for node deployment.
 type NodeConf struct {
-	PreSetting    map[string]any `json:"pre_setting" bson:"pre_setting"`
-	CustomSetting map[string]any `json:"custom_setting" bson:"custom_setting"`
+	ConfigTemplate map[string]string `json:"config_template" bson:"config_template"`
+	PreSetting     map[string]any    `json:"pre_setting" bson:"pre_setting"`
+	CustomSetting  map[string]any    `json:"custom_setting" bson:"custom_setting"`
 }
 
 // UniqueKey unique key of the table.

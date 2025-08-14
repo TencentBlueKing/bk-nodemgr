@@ -31,6 +31,9 @@ const (
 	defaultExpirationTime = 24 * time.Hour
 
 	dirDot = "."
+
+	fileNumbers = 1
+	fileIndex   = 0
 )
 
 type fileManagerImpl struct {
@@ -119,13 +122,13 @@ func (fm *fileManagerImpl) restore(ctx context.Context) {
 
 	for _, group := range subGroups {
 		files, err := group.AllFiles(ctx)
-		if err != nil || len(files) != 1 {
-			fm.logger.Errorf("failed to get files. groupname: %s, %v", group.Name(), err)
+		if err != nil || len(files) != fileNumbers {
+			fm.logger.Errorf("failed to get files. groupname(%s), %v", group.Name(), err)
 			continue
 		}
 
 		// if exist, check modtime.
-		info := files[0].Info()
+		info := files[fileIndex].Info()
 		filename := info.Name
 		if gruopName, ok := fm.fileNameToKeyMap[filename]; ok {
 			existsGroup := fm.filesRegistryMap[gruopName].fileTmpDir
@@ -166,7 +169,8 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 		}
 	}()
 
-	srcFile, err := os.Open(srcPath) // nolint: gosec
+	filepath := filepath.Join(srcPath, filename)
+	srcFile, err := os.Open(filepath) // nolint: gosec
 	if err != nil {
 		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
@@ -209,10 +213,11 @@ func (fm *fileManagerImpl) GetFile(ctx context.Context, filename string) (fileif
 
 	info, ok := fm.filesRegistryMap[groupDir]
 	if !ok || info == nil {
-		return nil, fmt.Errorf("fileinfo not found. groupDir(%s)", groupDir)
+		return nil, fmt.Errorf("fileinfo not found. groupdir(%s)", groupDir)
 	}
 
 	info.updateLastAccessed()
+	fm.logger.Infof("update last access time. filename(%s)", filename)
 
 	return info.fileTmpDir.GetFile(ctx, filename)
 }
@@ -224,6 +229,8 @@ func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string)
 		fm.logger.Infof("file not exists. filename(%s): %v", filename, err)
 		return false
 	}
+
+	fm.logger.Infof("check file exists. filename(%s) , expected mD5(%s), actual mD5(%s)", filename, mD5, info.Info().MD5)
 
 	return info.Info().MD5 == mD5
 }
@@ -248,19 +255,19 @@ func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {
 		delete(fm.filesRegistryMap, key)
 		go fm.safeRemove(local.GetLocalFileGroupAbsDirPath(info.fileTmpDir))
 
-		fm.logger.Infof("removing expired group: %s", groupname)
+		fm.logger.Infof("removing expired group(%s)", groupname)
 	}
 }
 
 // safeRemove remove file from file manager.check the file is in baseDir and legal dir.
 func (fm *fileManagerImpl) safeRemove(groupPath string) {
 	if !isSubPath(groupPath, fm.baseDir) {
-		fm.logger.Errorf("attempted to remove file outside of baseDir. path(%s)", groupPath)
+		fm.logger.Errorf("attempted to remove file outside of basedir. path(%s)", groupPath)
 
 		return
 	}
 	if err := removeAll(groupPath); err != nil {
-		fm.logger.Errorf("failed to remove group. groupPath(%s): %v",
+		fm.logger.Errorf("failed to remove group. group path(%s): %v",
 			groupPath, err)
 	}
 }
@@ -294,7 +301,7 @@ func removeAll(absPath string) error {
 func (fm *fileManagerImpl) createNewLocalDir() (string, *local.LocalDir, error) {
 	destDir := filepath.Join(fm.baseDir, fm.getStorageDirName())
 	if err := os.MkdirAll(destDir, 0750); err != nil { // nolint: mnd
-		return "", nil, fmt.Errorf("failed to create store dir. destDir(%s): %w", destDir, err)
+		return "", nil, fmt.Errorf("failed to create store dir. dest dir(%s): %w", destDir, err)
 	}
 
 	subGroup, err := local.NewLocalDir(destDir, fm.logger)

@@ -76,7 +76,7 @@ func (h *handler) UploadOriginAgent(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded origin agent, generation: %d, detail: %v", req.GetGeneration, detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin agent, generation: %d, detail: %v", req.GetGeneration(), detail)
 
 	resp := new(protoApplication.PackageUploadOriginAgentResp)
 	resp.ConvertResultFromTypes(false, detail)
@@ -111,7 +111,7 @@ func (h *handler) UploadOriginServer(ctx *restserver.Context) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded origin server, generation: %d, detail: %v", req.GetGeneration, detail)
+	h.logger.InfoCtxf(ctx, "uploaded origin server, generation: %d, detail: %v", req.GetGeneration(), detail)
 
 	resp := new(protoApplication.PackageUploadOriginServerResp)
 	resp.ConvertResultFromTypes(false, detail)

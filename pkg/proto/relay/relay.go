@@ -108,29 +108,32 @@ type CheckPkgStateReq struct {
 	// OperInstID describes the operation instance id.
 	OperInstID string `json:"oper_inst_id"`
 
-	// PkgName describes the package name.
-	PkgName string `json:"pkg_name"`
+	// FileList describes the file list.
+	FileList []FileInfo `json:"file_list"`
+}
 
-	// MD5 describes the package md5.
-	MD5 string `json:"md5"`
+// FileInfo defines the file info.
+type FileInfo struct {
+	FileName string `json:"file_name"`
+	FileMD5  string `json:"file_md5"`
 }
 
 // TransferPkgCompleteReq describes the transfer pkg complete request.
 type TransferPkgCompleteReq struct {
 	// PackageDestDir describes the source path.
-	PackageDestDir string `json:"package_dest_dir"`
+	PackageDestDirPath string `json:"package_dest_dir_path"`
 
 	// PkgName describes the package name.
-	PkgName string `json:"pkg_name"`
+	PkgName []string `json:"pkg_name"`
 }
 
-// ClientReportSignal defines the client report signal.
-type ClientReportSignal string
+// ClientReport defines the client report signal.
+type ClientReport string
 
 const (
-	// ClientReportSignalPkgUnComplete describes the client report signal when pkg is uncomplete.
-	ClientReportSignalPkgUnComplete ClientReportSignal = "uncomplete"
+	// ClientReportPkgUnComplete describes the client report signal when pkg is uncomplete.
+	ClientReportPkgUnComplete ClientReport = "uncomplete"
 
-	// ClientReportSignalPkgComplete describes the client report signal when pkg is complete.
-	ClientReportSignalPkgComplete ClientReportSignal = "complete"
+	// ClientReportPkgComplete describes the client report signal when pkg is complete.
+	ClientReportPkgComplete ClientReport = "complete"
 )

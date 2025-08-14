@@ -278,6 +278,7 @@ type NodeWorkflowOperInstanceStatusCondition struct {
 
 // ReleaseExactFields defines the release exact fields.
 type ReleaseExactFields struct {
+	FileName   []string
 	Generation []Generation
 	Platform   []platform.Platform
 	Type       []ReleaseType
@@ -429,6 +430,7 @@ type ConfigPolicyExactFields struct {
 // ConfigPolicyFuzzyFields defines the config policy fuzzy fields.
 type ConfigPolicyFuzzyFields struct {
 	ConfigPolicyName []string
+	Operator         []string
 }
 
 // ConfigPolicyCondition defines the config policy condition.

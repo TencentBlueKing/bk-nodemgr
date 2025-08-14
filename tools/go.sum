@@ -24,6 +24,8 @@ golang.org/dl v0.0.0-20250708172407-27a85deea5c3 h1:4sg0FihVzH+WOy1a0EzXBIjxL8Ql
 golang.org/dl v0.0.0-20250708172407-27a85deea5c3/go.mod h1:fwQ+hlTD8I6TIzOGkQqxQNfE2xqR+y7SzGaDkksVFkw=
 golang.org/dl v0.0.0-20250806180942-db69247c9fc7 h1:3rMAbEVX/qrfRfqQQsPakq02Ns6H7r6cIPvuwnQjDZc=
 golang.org/dl v0.0.0-20250806180942-db69247c9fc7/go.mod h1:fwQ+hlTD8I6TIzOGkQqxQNfE2xqR+y7SzGaDkksVFkw=
+golang.org/dl v0.0.0-20250812204734-236a62c85c37 h1:P/B1ESIkCwi0uOkNyxVU47Urezx8VMhD7N5/PGrfqmo=
+golang.org/dl v0.0.0-20250812204734-236a62c85c37/go.mod h1:fwQ+hlTD8I6TIzOGkQqxQNfE2xqR+y7SzGaDkksVFkw=
 golang.org/x/sys v0.28.0 h1:Fksou7UEQUWlKvIdsqzJmUmCX3cZuD2+P3XyyzwMhlA=
 golang.org/x/sys v0.28.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

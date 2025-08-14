@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -157,7 +158,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	info.Host.Dynamic.NodeOsType = osType
 	info.Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := release.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
 	if err != nil {
 		return err
 	}

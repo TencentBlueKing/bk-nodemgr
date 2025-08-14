@@ -20,6 +20,7 @@ import (
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
@@ -93,7 +94,7 @@ type actionEnsurePkgToRelay struct {
 
 // Name returns the name of the action.
 func (act *actionEnsurePkgToRelay) Name() string {
-	return ActionNameDetectInfoByWMI
+	return ActionNameEnsurePkgToRelay
 }
 
 // Version returns the version of the action.
@@ -103,7 +104,7 @@ func (act *actionEnsurePkgToRelay) Version() string {
 
 // Description returns the description of the action.
 func (act *actionEnsurePkgToRelay) Description() string {
-	return "Use wmi to connect to the target machine, transfer files through sftp, and execute the installation command"
+	return "query the relay machine to check whether the package exists. If not, pass the install and release packages to relay."
 }
 
 // Timeout returns the timeout of the action.
@@ -154,47 +155,57 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 
 	releasePkgInfo, err := act.getReleasePackageInfo(ctx.Ctx, info)
 	if err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to get release package info: %s", err))
 		err = fmt.Errorf("failed to get release package info: %w", err)
 
 		return err
 	}
+	ctx.Data.LogI(fmt.Sprintf("get release package.package name(%s)", releasePkgInfo.FileName))
 
 	installPkgInfo, err := act.getInstallerFile(ctx.Ctx, info)
 	if err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to get installer file: %s", err))
 		err = fmt.Errorf("failed to get installer file: %w", err)
 	}
+	ctx.Data.LogI(fmt.Sprintf("get installer package.package name(%s)", installPkgInfo.Info().Name))
 
 	relayInfo := &info.RelayInfo
-	gp := gopool.NewPool()
-
-	gp.Go(func() error {
-		return act.askClientPkgPresence(ctx, releasePkgInfo.FileName, releasePkgInfo.MD5, relayInfo.AgentID)
-	})
-
-	gp.Go(func() error {
-		return act.askClientPkgPresence(ctx, installPkgInfo.Info().Name, installPkgInfo.Info().MD5, relayInfo.AgentID)
-	})
-
-	if err := gp.Wait(); err != nil {
-		act.logger.ErrorCtxf(ctx.Ctx,
-			"failed to ask client pkg presence. host-id(%d): %s", info.Host.HostID, err)
+	filesToCheck := []protoRelay.FileInfo{
+		{
+			FileName: releasePkgInfo.FileName,
+			FileMD5:  releasePkgInfo.MD5,
+		},
+		{
+			FileName: installPkgInfo.Info().Name,
+			FileMD5:  installPkgInfo.Info().MD5,
+		},
+	}
+	if err := act.askClientPkgState(ctx, filesToCheck, relayInfo.AgentID); err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to ask client pkg presence. host-id(%d): %s", info.Host.HostID, err))
+		act.logger.ErrorCtxf(ctx.Ctx, "failed to ask client pkg presence. host-id(%d): %s", info.Host.HostID, err)
 
 		return err
 	}
 
+	ctx.Data.LogI(fmt.Sprintf("ask client package state success. wait relay send pkg state.relay-host-id(%d)",
+		info.RelayInfo.HostID))
+
 	// if pkg ready return directly. or transfer pkg.
 	var releaseTransferred, installerTransferred bool
-
 	// TODO: need to add pkg dest dir.
+	gp := gopool.NewPool()
 	gp.Go(func() error {
 		if err := act.waitForPkgState(ctx, releasePkgInfo.FileName); err != nil {
 			act.logger.Infof("wait for release package state. file(%s)", releasePkgInfo.FileName)
 			if transferErr := act.transferReleasePkg(
-				ctx.Ctx, types.ReleaseTypeAgent, &info.Host, relayInfo); transferErr != nil {
-				return fmt.Errorf("failed to transfer release pkg: %w", transferErr)
+				ctx, types.ReleaseTypeAgent, &info.Host, relayInfo); transferErr != nil {
+				ctx.Data.LogE(fmt.Sprintf("failed to transfer release package: %v", transferErr))
+
+				return fmt.Errorf("failed to transfer release package: %w", transferErr)
 			}
 			releaseTransferred = true
 		}
+		ctx.Data.LogI(fmt.Sprintf("wait for release package state success. file(%s)", releasePkgInfo.FileName))
 
 		return nil
 	})
@@ -202,11 +213,14 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 	gp.Go(func() error {
 		if err := act.waitForPkgState(ctx, installPkgInfo.Info().Name); err != nil {
 			act.logger.Infof("wait for release package state. file(%s)", installPkgInfo.Info().Name)
-			if transferErr := act.transferInstaller(ctx.Ctx, &info.Host, relayInfo); transferErr != nil {
-				return fmt.Errorf("failed to transfer installer pkg: %w", transferErr)
+			if transferErr := act.transferInstaller(ctx, &info.Host, relayInfo); transferErr != nil {
+				ctx.Data.LogE(fmt.Sprintf("failed to transfer installer package: %v", transferErr))
+
+				return fmt.Errorf("failed to transfer installer package: %w", transferErr)
 			}
 			installerTransferred = true
 		}
+		ctx.Data.LogI(fmt.Sprintf("wait for installer package state success. file(%s)", installPkgInfo.Info().Name))
 
 		return nil
 	})
@@ -215,16 +229,22 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	if releaseTransferred {
-		if err := act.sendTransferPkgCompleteToClient(ctx.Ctx, releasePkgInfo.FileName, relayInfo); err != nil {
-			return fmt.Errorf("failed to send transfer pkg completion for release to client: %w", err)
+	if releaseTransferred || installerTransferred {
+		var pkgNames []string
+		if releaseTransferred {
+			ctx.Data.LogI("release not transferred. file(%s)", releasePkgInfo.FileName)
+			pkgNames = append(pkgNames, releasePkgInfo.FileName)
 		}
-	}
+		if installerTransferred {
+			ctx.Data.LogI("installer not transferred. file(%s)", installPkgInfo.Info().Name)
+			pkgNames = append(pkgNames, installPkgInfo.Info().Name)
+		}
+		if err := act.sendTransferPkgCompleteToClient(ctx.Ctx, pkgNames, relayInfo); err != nil {
+			ctx.Data.LogE("failed to send transfer pkg completion to client")
 
-	if installerTransferred {
-		if err := act.sendTransferPkgCompleteToClient(ctx.Ctx, installPkgInfo.Info().Name, relayInfo); err != nil {
-			return fmt.Errorf("failed to send transfer pkg completion for installer to client: %w", err)
+			return fmt.Errorf("failed to send transfer pkg completion to client: %w", err)
 		}
+		ctx.Data.LogI("send transfer pkg completion to client success")
 	}
 
 	return nil
@@ -233,12 +253,20 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	ctx context.Context, info *types.DeploymentInfo) (*types.Release, error) {
 
+	FileName, err := nodepkg.FormatPkgName(
+		types.Generation2,
+		types.ReleaseTypeAgent,
+		platform.Platform{OS: info.Host.Dynamic.NodeOsType, Arch: info.Host.Dynamic.NodeCPUArch},
+		info.Host.Dynamic.NodeVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+	act.logger.Infof("get release package info. file name(%s)", FileName)
+
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Type:       []types.ReleaseType{types.ReleaseTypeAgent},
-			Generation: []types.Generation{info.Host.Dynamic.NodeGeneration},
-			Enabled:    []bool{true},
-			Version:    []string{info.Host.Dynamic.NodeVersion},
+			FileName: []string{FileName},
 		},
 	}
 	releases, _, err := act.storageRelease.ListRelease(ctx, types.UnlimitedPage(), cond)
@@ -246,8 +274,12 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 		return nil, err
 	}
 
-	if len(releases) != 1 {
-		return nil, errors.New("no release found")
+	if len(releases) == 0 {
+		return nil, fmt.Errorf("release package not found. file name(%s)", FileName)
+	}
+
+	if len(releases) > 1 {
+		return nil, fmt.Errorf("release package not unique. file name(%s)", FileName)
 	}
 
 	return releases[0], nil
@@ -269,24 +301,23 @@ func (act *actionEnsurePkgToRelay) getInstallerFile(
 	return installPkgInfo, nil
 }
 
-func (act *actionEnsurePkgToRelay) askClientPkgPresence(ctx *action.InstanceContext,
-	pkgName, mD5 string, agentID string) error {
+func (act *actionEnsurePkgToRelay) askClientPkgState(ctx *action.InstanceContext,
+	files []protoRelay.FileInfo, agentID string) error {
 
 	checkPkgEvent := protoRelay.CheckPkgStateReq{
 		ActionName: ctx.Data.Name,
 		OperInstID: ctx.Data.OperationInstanceID,
-		PkgName:    pkgName,
-		MD5:        mD5,
+		FileList:   files,
 	}
 
 	data, err := json.Marshal(checkPkgEvent)
 	if err != nil {
 		act.logger.Errorf("failed to marshal data: %v", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
 		protoRelay.ServerPushEventTypeCheckPkgState, data, agentID)
-
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -294,8 +325,8 @@ func (act *actionEnsurePkgToRelay) askClientPkgPresence(ctx *action.InstanceCont
 			return fmt.Errorf("query client pkg state failed: %w", err)
 		}
 	case <-time.After(QueryClientTimeout):
-		act.logger.Errorf("client push req timed out after (%s)", QueryClientTimeout)
-		return errors.New("client push req timed out")
+		act.logger.Errorf("wait client timed out after (%s)", QueryClientTimeout)
+		return errors.New("wait client timed out")
 	}
 
 	return nil
@@ -332,36 +363,42 @@ func (act *actionEnsurePkgToRelay) waitForPkgState(ctx *action.InstanceContext, 
 			continue
 		}
 
-		fileState, ok := fileStateRaw.(map[string]string)
+		fileState, ok := fileStateRaw.(map[string]any)
 		if !ok {
-			act.logger.Errorf("unexpected type for file state, expecting map[string]string")
+			act.logger.Errorf("unexpected type for file state, expecting map[string]any")
 			return errors.New("unexpected type for file state")
 		}
 
 		state := fileState[pkgName]
-		state = state.(string)
 		switch state {
-		case string(protoRelay.ClientReportSignalPkgComplete):
+		case string(protoRelay.ClientReportPkgComplete):
 			act.logger.Infof("wait for pkg state operation succeed. oper_inst_id(%s), action_name(%s), state(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 
 			return nil
 
-		case string(protoRelay.ClientReportSignalPkgUnComplete):
-			return fmt.Errorf("wait for pkg state operation succeed. oper_inst_id(%s), action_name(%s), state(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name, state)
+		case string(protoRelay.ClientReportPkgUnComplete):
+			act.logger.Infof("wait for pkg state operation succeed. file state complete.oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
+
+			return fmt.Errorf("wait for pkg state operation succeed.file state not complete. oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
 
 		default:
-			return fmt.Errorf("wait for pkg state operation failed. oper_inst_id(%s), action_name(%s), state(%s)",
-				state, ctx.Data.OperationInstanceID, ctx.Data.Name)
+			return fmt.Errorf(
+				"wait for pkg state operation failed. unexpected state. oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
 		}
 	}
 }
 
-func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx context.Context,
+func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx *action.InstanceContext,
 	rt types.ReleaseType, info *types.Host, relayInfo *types.RelayInfo) error {
 
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx,
+	act.logger.Infof("transfer release. host-id(%d)", relayInfo.HostID)
+	ctx.Data.LogI(fmt.Sprintf("transfer release to relay. relay-host-id(%d)", relayInfo.HostID))
+
+	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx.Ctx,
 		info.Dynamic.NodeGeneration,
 		rt,
 		platform.Platform{
@@ -372,13 +409,16 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx context.Context,
 		relayInfo.PackageDestDir,
 		&types.Host{HostID: relayInfo.HostID})
 	if err != nil {
-		return fmt.Errorf("failed to launch transfer release. host-id(%d): %w", relayInfo.HostID, err)
+		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer release. relay-host-id(%d): %v", relayInfo.HostID, err))
+		return fmt.Errorf("failed to launch transfer release. relay-host-id(%d): %w", relayInfo.HostID, err)
 	}
 
-	act.logger.InfoCtxf(ctx, "launched transfer release. task-id(%s), host-id(%d)",
+	ctx.Data.LogI(fmt.Sprintf("launched transfer release. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID))
+	act.logger.InfoCtxf(ctx.Ctx, "launched transfer release. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID)
 
-	result, err := transferHandler.WaitUntilDone(ctx)
+	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), relayInfo.HostID, err)
@@ -394,16 +434,21 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx context.Context,
 			transferHandler.GetTaskID(), relayInfo.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)",
+	ctx.Data.LogI(fmt.Sprintf("transfer release done. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID))
+	act.logger.InfoCtxf(ctx.Ctx, "transfer release done. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID)
 
 	return nil
 }
 
-func (act *actionEnsurePkgToRelay) transferInstaller(ctx context.Context,
+func (act *actionEnsurePkgToRelay) transferInstaller(ctx *action.InstanceContext,
 	info *types.Host, relayInfo *types.RelayInfo) error {
 
-	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
+	act.logger.Infof("transfer installer. host-id(%d)", info.HostID)
+	ctx.Data.LogI(fmt.Sprintf("transfer installer to relay. relay-host-id(%d)", relayInfo.HostID))
+
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx.Ctx,
 		types.Generation2,
 		platform.Platform{
 			OS:   info.Dynamic.NodeOsType,
@@ -412,13 +457,16 @@ func (act *actionEnsurePkgToRelay) transferInstaller(ctx context.Context,
 		relayInfo.PackageDestDir,
 		&types.Host{HostID: relayInfo.HostID})
 	if err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer installer. host-id(%d): %v", info.HostID, err))
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.HostID, err)
 	}
 
-	act.logger.InfoCtxf(ctx, "launched transfer installer. task-id(%s), host-id(%d)",
+	ctx.Data.LogI(fmt.Sprintf("launched transfer installer. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID))
+	act.logger.InfoCtxf(ctx.Ctx, "launched transfer installer. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), info.HostID)
 
-	result, err := transferHandler.WaitUntilDone(ctx)
+	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), info.HostID, err)
@@ -434,22 +482,27 @@ func (act *actionEnsurePkgToRelay) transferInstaller(ctx context.Context,
 			transferHandler.GetTaskID(), info.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer installer done. task-id(%s), host-id(%d)",
+	ctx.Data.LogI(fmt.Sprintf("transfer installer done. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID))
+	act.logger.InfoCtxf(ctx.Ctx, "transfer installer done. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), info.HostID)
 
 	return nil
 }
 
 func (act *actionEnsurePkgToRelay) sendTransferPkgCompleteToClient(
-	ctx context.Context, pkgName string, relayInfo *types.RelayInfo) error {
+	ctx context.Context, pkgNames []string, relayInfo *types.RelayInfo) error {
+
+	act.logger.Infof("send transfer pkg complete to client. agent-id(%s), pkg-names(%v)", relayInfo.AgentID, pkgNames)
 
 	transferPkgCompleteEvent := protoRelay.TransferPkgCompleteReq{
-		PackageDestDir: relayInfo.PackageDestDir,
-		PkgName:        pkgName,
+		PackageDestDirPath: relayInfo.PackageDestDir,
+		PkgName:            pkgNames,
 	}
 	data, err := json.Marshal(transferPkgCompleteEvent)
 	if err != nil {
 		act.logger.Errorf("failed to marshal data: %v", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx,
@@ -461,6 +514,7 @@ func (act *actionEnsurePkgToRelay) sendTransferPkgCompleteToClient(
 			return fmt.Errorf("failed to send transfer pkg complete to client. agent-id(%s): %w",
 				relayInfo.AgentID, err)
 		}
+		act.logger.Infof("successfully sent transfer pkg complete for packages. pkg-names(%v)", pkgNames)
 
 	case <-ctx.Done():
 		return fmt.Errorf("failed to send transfer pkg complete to client. agent-id(%s): %w",

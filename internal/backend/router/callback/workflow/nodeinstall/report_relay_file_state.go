@@ -14,48 +14,44 @@ package nodeinstall
 import (
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
-// GetDataProxyConfig get gse data proxy config.
-func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
-	req := new(protoBackend.GetDataProxyConfReq)
+const relayStateKey = "relay_file_state"
+
+func (h *handler) RelayReportFileState(gCtx *gin.Context) {
+	req := new(proto.ReportFileStateReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse data proxy config failed, err: %s", err)
+		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse data proxy config failed, err: %s", err)
+		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
-	if err != nil {
-		h.logger.Errorf("get gse data proxy setting failed, err: %s", err)
+	h.logger.Infof("report relay file state. instance(%s), action(%s) ",
+		req.GetOperInstId(), req.GetActionName())
+
+	fileStateMap := make(map[string]string)
+	for _, fileState := range req.GetFileState() {
+		fileStateMap[fileState.GetFileName()] = fileState.GetFileStatus()
+	}
+
+	dataMap := make(map[string]any)
+	dataMap[relayStateKey] = fileStateMap
+
+	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
+		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
+		h.logger.Errorf("update action private failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
-
-		return
 	}
 
-	conf, err := RenderConfig(Template{
-		UniqueKey: types.ConfigKeyData,
-		Content:   nodeConf.ConfigTemplate[types.ConfigKeyData],
-	}, nodeConf)
-	if err != nil {
-		h.logger.Errorf("render gse data proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusInternalServerError, err.Error())
-
-		return
-	}
-
-	gCtx.IndentedJSON(http.StatusOK, conf)
-
-	return
+	gCtx.JSON(http.StatusOK, nil)
 }

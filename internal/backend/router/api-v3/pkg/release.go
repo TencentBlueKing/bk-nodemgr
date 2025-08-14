@@ -14,6 +14,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -55,6 +56,29 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 
 	resp := new(protoBackend.PackageReleaseListResp)
 	resp.ConvertReleasesFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
+// DistinctRelease distinct releases.
+func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseDistinctReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to distinct release, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.storage.DistinctRelease(
+		ctx,
+		types.NewReleaseDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleaseDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

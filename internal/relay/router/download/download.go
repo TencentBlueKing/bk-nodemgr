@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package file handles the file request.
-package file
+// Package download is the file download router.
+package download
 
 import (
 	"fmt"

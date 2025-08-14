@@ -144,6 +144,12 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 
 			return versions
 		}(),
+		RelayInfo: types.RelayInfo{
+			HostID:         info.RelayHostID,
+			AgentID:        info.RelayAgentID,
+			NodeOsType:     criteria.OSType(info.NodeOsType),
+			PackageDestDir: info.RelayPkgPath,
+		},
 	}, nil
 }
 
@@ -193,8 +199,9 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 	}
 
 	return &NodeConf{
-		PreSetting:    nodeConf.PreSetting,
-		CustomSetting: nodeConf.CustomSetting,
+		ConfigTemplate: nodeConf.ConfigTemplate,
+		PreSetting:     nodeConf.PreSetting,
+		CustomSetting:  nodeConf.CustomSetting,
 	}, nil
 }
 
@@ -224,8 +231,9 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 	}
 
 	return &types.NodeConf{
-		PreSetting:    nodeConf.PreSetting,
-		CustomSetting: nodeConf.CustomSetting,
+		ConfigTemplate: nodeConf.ConfigTemplate,
+		PreSetting:     nodeConf.PreSetting,
+		CustomSetting:  nodeConf.CustomSetting,
 	}, nil
 }
 
@@ -277,7 +285,6 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 	if err != nil {
 		return err
 	}
-
 	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
@@ -289,7 +296,6 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
 	}
-
 	data := &Info{
 		ActionName:     info.BlockingActionName,
 		HostID:         info.Host.HostID,

@@ -846,6 +846,10 @@ func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 // convHostInfoToTypes convert host info to types.Host.
 func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID int64) *types.Host {
+	if hostInfo == nil {
+		return nil
+	}
+
 	data := &types.Host{
 		HostID:   hostInfo.BKHostID,
 		TenantID: tenantID,
@@ -897,6 +901,10 @@ func (h *Handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *t
 
 // convHostTopoRelationToTypes convert host topo relation to types.HostRel.
 func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.Host {
+	if hostRel == nil {
+		return nil
+	}
+
 	return &types.Host{
 		HostID: hostRel.BKHostID,
 		Static: &types.HostStatic{
@@ -974,14 +982,6 @@ func (h *Handler) WatchHostResourceEvent(ctx context.Context, cursor string) ([]
 			return nil, err
 		}
 
-		if !resp.BKWatched {
-			break
-		}
-
-		if hostData.BKDetail == nil {
-			continue
-		}
-
 		hostEvents = append(hostEvents, &types.HostEvent{
 			Cursor:    hostData.BKCursor,
 			Resource:  types.ResourceTypeHost,
@@ -1016,14 +1016,6 @@ func (h *Handler) WatchHostRelationResourceEvent(ctx context.Context, cursor str
 		relationData := new(HostRelationEventInfo)
 		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
 			return nil, err
-		}
-
-		if !resp.BKWatched {
-			break
-		}
-
-		if relationData.BKDetail == nil {
-			continue
 		}
 
 		hostEvents = append(hostEvents, &types.HostEvent{

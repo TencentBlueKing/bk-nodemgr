@@ -17,6 +17,9 @@ import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
+import Rules from '@/pages/rules/index.vue';
+import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
+import CreateConfig from '@/pages/rules/agent-strategy/create-config.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -144,7 +147,70 @@ const routes = setupLayouts([
       {
         name: 'ruleManager',
         path: 'rule-manager',
-        children: [],
+        component: Rules,
+        redirect: { name: 'agentStrategy' },
+        children: [
+          {
+            name: 'agentStrategy',
+            path: 'agentStrategy',
+            component: AgentStrategy,
+            meta: {
+              title: 'Agent 策略',
+              back: false,
+              mainMenu: 'ruleManager'
+            }
+          },
+          {
+            name: 'createConfig',
+            path: 'createConfig/:node_role',
+            component: CreateConfig,
+            meta: {
+              title: '新建 Agent 配置',
+              back: true,
+              mainMenu: 'ruleManager'
+            }
+          },
+          {
+            name: 'editConfig',
+            path: 'editConfig/:node_role',
+            component: CreateConfig,
+            meta: {
+              title: '编辑 Agent 配置',
+              back: true,
+              mainMenu: 'ruleManager'
+            }
+          },
+          {
+            name: 'proxyStrategy',
+            path: 'proxyStrategy',
+            component: AgentStrategy,
+            meta: {
+              title: 'Proxy 策略',
+              back: false,
+              mainMenu: 'ruleManager'
+            }
+          },
+          {
+            name: 'pluginStrategy',
+            path: 'pluginStrategy',
+            component: Rules,
+            meta: {
+              title: '插件策略',
+              back: false,
+              mainMenu: 'ruleManager'
+            }
+          },
+          {
+            name: 'strategyTaskHistory',
+            path: 'strategy-task-history',
+            component: Rules,
+            meta: {
+              title: '任务历史',
+              back: false,
+              mainMenu: 'ruleManager'
+            }
+          },
+        ],
       },
       // 包管理
       {
