@@ -20,10 +20,6 @@ data:
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    adminServer: {{ .Values.application.config.adminServer | toYaml | nindent 6 }}
-      advertiseIPV4: __ADVERTISE_IPV4__
-      advertiseIPV6: __ADVERTISE_IPV6__
-
     backend: {{ .Values.application.config.backend | toYaml | nindent 6 }}
 
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}

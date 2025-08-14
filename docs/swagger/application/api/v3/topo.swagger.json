@@ -663,29 +663,6 @@
     }
   },
   "definitions": {
-    "AccessPointEndpoints": {
-      "type": "object",
-      "properties": {
-        "cluster": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "file": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "data": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "TopoGraphNodeCountRespNodeInfo": {
       "type": "object",
       "properties": {
@@ -777,7 +754,7 @@
           "format": "int64"
         },
         "endpoints": {
-          "$ref": "#/definitions/AccessPointEndpoints"
+          "$ref": "#/definitions/v3Endpoints"
         }
       },
       "description": "AccessPoint describes the access point informations."
@@ -797,6 +774,30 @@
         }
       },
       "description": "Business describes the business informations."
+    },
+    "v3Endpoints": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Endpoints describes the links real address."
     },
     "v3Host": {
       "type": "object",
@@ -997,6 +998,12 @@
         },
         "links": {
           "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
         }
       },
       "description": "NetworkUnit describes the network unit informations."
@@ -2061,6 +2068,12 @@
         },
         "links": {
           "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
         }
       },
       "description": "TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service."
@@ -2252,6 +2265,12 @@
         },
         "links": {
           "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
         }
       },
       "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service."

@@ -87,7 +87,7 @@ func (h *handler) UpsertManyGlobalSettings(ctx *restserver.Context) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := h.storage.UpsertManyGlobalSettings(ctx, req.ConvertGlobalSettingsToTypes()...); err != nil {
+	if err := h.storage.UpsertGlobalSettings(ctx, req.ConvertGlobalSettingsToTypes()...); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
@@ -105,7 +105,7 @@ func (h *handler) DeleteManyGlobalSettings(ctx *restserver.Context) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := h.storage.DeleteManyGlobalSettings(ctx, req.GetSettingName()...); err != nil {
+	if err := h.storage.DeleteGlobalSettings(ctx, req.GetSettingName()...); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to delete global settings, err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

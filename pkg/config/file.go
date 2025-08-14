@@ -41,9 +41,9 @@ const (
 	defaultFileCacheFileGroupFullPath     = "/bk-nodeman/file/cache/"
 )
 
-var (
-	defaultFileEtcdEndpoints = []string{"127.0.0.1:2379"}
-)
+func defaultFileEtcdEndpoints() []string {
+	return []string{"127.0.0.1:2379"}
+}
 
 // NewFileService generates a new FileService with default values.
 func NewFileService() *FileService {
@@ -51,7 +51,7 @@ func NewFileService() *FileService {
 		RunMode:    defaultFileRunMode,
 		TenantMode: defaultFileTenantMode,
 		Etcd: Etcd{
-			Endpoints: defaultFileEtcdEndpoints,
+			Endpoints: defaultFileEtcdEndpoints(),
 			Username:  defaultFileEtcdUsername,
 			Password:  defaultFileEtcdPassword,
 		},
@@ -129,6 +129,14 @@ func (svc *FileService) Validate() error {
 	}
 
 	if err := svc.CacheFileGroup.Validate(); err != nil {
+		return err
+	}
+
+	if err := svc.HTTPServer.Validate(); err != nil {
+		return err
+	}
+
+	if err := svc.AdminServer.Validate(); err != nil {
 		return err
 	}
 

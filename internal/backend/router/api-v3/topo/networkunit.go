@@ -45,14 +45,19 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	}
 
 	// creates networkunit.
+	networkUnit := &types.NetworkUnit{
+		TenantID:        ctx.TenantID,
+		NetworkAreaID:   networkAreaID,
+		Name:            req.GetBkNetworkunitName(),
+		IsDirect:        req.GetIsDirect(),
+		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+	}
+	if !networkUnit.IsDirect {
+		networkUnit.Links = req.ConvertLinksToTypes()
+	}
 	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(
 		ctx,
-		&types.NetworkUnit{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			Name:          req.GetBkNetworkunitName(),
-			Links:         req.ConvertLinksToTypes(),
-		},
+		networkUnit,
 		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create networkunit. err: %v", err)
@@ -125,15 +130,21 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	networkUnitID := req.GetBkNetworkunitId()
 	networkUnitName := req.GetBkNetworkunitName()
 
+	// updates networkunit.
+	networkUnit := &types.NetworkUnit{
+		TenantID:        ctx.TenantID,
+		NetworkAreaID:   networkAreaID,
+		ID:              networkUnitID,
+		Name:            req.GetBkNetworkunitName(),
+		IsDirect:        req.GetIsDirect(),
+		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+	}
+	if !networkUnit.IsDirect {
+		networkUnit.Links = req.ConvertLinksToTypes()
+	}
 	accessPointResult, err := h.storage.UpdateNetworkUnit(
 		ctx,
-		&types.NetworkUnit{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			ID:            networkUnitID,
-			Name:          networkUnitName,
-			Links:         req.ConvertLinksToTypes(),
-		},
+		networkUnit,
 		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update networkunit. err: %v", err)

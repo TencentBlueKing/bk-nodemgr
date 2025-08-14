@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
@@ -69,7 +68,7 @@ type Capability struct {
 	StorageRelease release.IStorage
 
 	// StorageGlobalSettings global settings storage.
-	StorageGlobalSettings globalsettings.IStorage
+	StorageGlobalSettings globalsettingsStorage.IStorage
 
 	// StorageCredit credit storage.
 	StorageCredit credit.IStorage
@@ -106,9 +105,6 @@ type Capability struct {
 
 	// CreditVault credit vault.
 	CreditVault creditvault.ICreditVault
-
-	// AuthIdentity auth identity.
-	AuthIdentity restserver.AuthIdentity
 }
 
 // Start ...

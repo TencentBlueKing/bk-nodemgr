@@ -65,14 +65,16 @@ func wmiBinaryPath() (string, error) {
 	return wmiBin.binaryPath, nil
 }
 
-func wmiRunCmd(ctx context.Context, args []string) (string, string, error) {
+func wmiRunCmd(ctx context.Context, args []string, envs []string) (string, string, error) {
 	binPath, err := wmiBinaryPath()
 	if err != nil {
 		return "", "", err
 	}
 
-	// nolint:gosec
+	// nolint: gosec
 	cmd := exec.CommandContext(ctx, binPath, args...)
+	cmd.Env = envs
+
 	stdOut := &bytes.Buffer{}
 	stdErr := &bytes.Buffer{}
 	cmd.Stdout = stdOut

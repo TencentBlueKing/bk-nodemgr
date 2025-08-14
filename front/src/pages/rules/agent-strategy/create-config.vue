@@ -7,11 +7,11 @@
       <Form.FormItem :label="'业务'" property="biz_id" required>
         <Select
           v-model="formData.biz_id"
-          :disabled="isEdit"
           auto-focus
           filterable
           multiple
           placeholder="选择业务"
+          @change="handleChangeBiz"
         >
           <Select.Option
             v-for="item in businessList"
@@ -19,7 +19,7 @@
             :name="item.bk_biz_name"
             :id="item.bk_biz_id"
           >
-            [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+            <span v-show="item.bk_biz_id !== -1">[{{ item.bk_biz_id }}]</span> {{ item.bk_biz_name }}
           </Select.Option>
         </Select>
       </Form.FormItem>
@@ -48,14 +48,17 @@
               filterable
               @change="handleChangeArea(item)"
             >
-              <Select.Option
-                v-for="option in networkAreaList"
-                :key="option.bk_networkarea_id"
-                :id="String(option.bk_networkarea_id)"
-                :name="option.bk_networkarea_name"
-              >
-                {{ option.bk_networkarea_name }}
-              </Select.Option>
+              <Select.Option label="不限" value="-1"></Select.Option>
+              <Select.Group>
+                <Select.Option
+                  v-for="option in networkAreaList"
+                  :key="option.bk_networkarea_id"
+                  :id="String(option.bk_networkarea_id)"
+                  :name="option.bk_networkarea_name"
+                >
+                  {{ option.bk_networkarea_name }}
+                </Select.Option>
+              </Select.Group>
             </Select>
             <Select
               v-model="item.bk_networkunit_id"
@@ -64,6 +67,8 @@
               auto-focus
               filterable
             >
+            <Select.Option label="不限" value="-1"></Select.Option>
+            <Select.Group>
               <Select.Option
                 v-for="option in filterNetworkUnitList(item.bk_networkarea_id)"
                 :key="option.bk_networkarea_id"
@@ -72,26 +77,45 @@
               >
                 {{ option.bk_networkunit_name }}
               </Select.Option>
+            </Select.Group>
             </Select>
             <Select
               v-model="item.os_type"
               prefix="操作系统"
-              :list="osTypeList"
               auto-focus
               filterable
             >
+              <Select.Option label="不限" value="-1"></Select.Option>
+              <Select.Group>
+                <Select.Option
+                  v-for="option in osTypeList"
+                  :key="option.value"
+                  :id="option.value"
+                  :name="option.label"
+                >
+                </Select.Option>
+              </Select.Group>
             </Select>
             <Select
               v-model="item.cpu_arch"
               prefix="架构"
-              :list="cpuArchList"
               auto-focus
               filterable
             >
+              <Select.Option label="不限" value="-1"></Select.Option>
+              <Select.Group>
+                <Select.Option
+                  v-for="option in cpuArchList"
+                  :key="option.value"
+                  :id="option.value"
+                  :name="option.label"
+                >
+                </Select.Option>
+              </Select.Group>
             </Select>
           </div>
           <div class="w-[20px] cursor-pointer" @click="handleDelete(index)">
-            <i class="nodeman-icon nc-delete-3"></i>
+            <i class="nodeman-icon nc-delete-3" v-show="index !== 0"></i>
           </div>
         </div>
         <Button theme="primary" text @click="handleAdd">
@@ -149,7 +173,7 @@ const businessList = computed(() => mainStore.businessList);
 const initData = {
   configpolicy_name: '',
   node_role: nodeRole.value,
-  biz_id: [],
+  biz_id: ['不限'] as string[] | number[],
   remark: '',
   scopes: [
     {
@@ -175,10 +199,19 @@ const handleAdd = () => {
   });
 };
 const handleDelete = (index: number) => {
+  if(index === 0) return;
   formData.scopes = formData.scopes.filter(
     (_: any, ind: number) => ind !== index
   );
 };
+const handleChangeBiz = (val: any) => {
+  const filter = val.filter((item: any) => item !== '不限');
+  if (filter.length > 0) {
+    formData.biz_id = filter;
+  } else {
+    formData.biz_id = ['不限']
+  }
+}
 const updateConfig = (configs: ConfigPolicyConfigBlock[]) => {
   formData.configs = configs
 }
@@ -190,18 +223,21 @@ const handleSubmit = async () => {
     os_type: item.os_type === '-1' ? '' : item.os_type,
     cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
   }));
+  const biz_id = formData.biz_id.includes('不限') ? [] : formData.biz_id; 
   if(isEdit.value) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
       configpolicy_id: configpolicyId.value,
       ...formData,
       scopes,
-      operator: userStore.user?.username
+      operator: userStore.user?.username,
+      biz_id
     }).catch(() => false);
   } else {
     res = await ConfigPolicyAPIService.ConfigPolicyCreate({
       ...formData,
       scopes,
-      operator: userStore.user?.username
+      operator: userStore.user?.username,
+      biz_id
     }).catch(() => false);
   }
   if (res && nodeRole.value) {
@@ -218,15 +254,7 @@ const getNetworkAreaList = async () => {
     total: 0,
     items: [],
   }));
-  networkAreaList.value = [
-    {
-      bk_networkarea_id: -1,
-      bk_networkarea_name: "不限",
-      tenant_id: "single",
-      cloud_vendor: "",
-    },
-    ...res.items,
-  ];
+  networkAreaList.value = res.items;
 };
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
@@ -238,28 +266,11 @@ const getNetworkUnitList = async () => {
     total: 0,
     items: [],
   }));
-  networkUnitList.value = [
-    {
-      bk_networkunit_id: -1,
-      bk_networkunit_name: "不限",
-      tenant_id: "single",
-    } as NetworkUnit,
-    ...res.items,
-  ];
+  networkUnitList.value = res.items;
 };
 // 操作系统和架构
-const osTypeList = ref<{ value: string; label: string }[]>([
-  {
-    value: "-1",
-    label: "不限",
-  },
-]);
-const cpuArchList = ref<{ value: string; label: string }[]>([
-  {
-    value: "-1",
-    label: "不限",
-  },
-]);
+const osTypeList = ref<{ value: string; label: string }[]>();
+const cpuArchList = ref<{ value: string; label: string }[]>();
 const getPlatform = async () => {
   const res = await ConfigPolicyAPIService.ConfigPolicyListPlatform({
     node_role: nodeRole.value,
@@ -267,22 +278,14 @@ const getPlatform = async () => {
     os_type: [],
     cpu_arch: [],
   }));
-  osTypeList.value.splice(
-    1,
-    0,
-    ...res.os_type.map((item) => ({
-      value: item,
-      label: item,
-    }))
-  );
-  cpuArchList.value.splice(
-    1,
-    0,
-    ...res.cpu_arch.map((item) => ({
-      value: item,
-      label: item,
-    }))
-  );
+  osTypeList.value = res.os_type.map((item) => ({
+    value: item,
+    label: item,
+  }));
+  cpuArchList.value = res.cpu_arch.map((item) => ({
+    value: item,
+    label: item,
+  }));
 };
 const handleChangeArea = (item: any) => {
   item.bk_networkunit_id = '-1';
@@ -293,10 +296,13 @@ watch(
     if (route.name === "editConfig" && mainStore.configEditData) {
       configpolicyId.value = mainStore.configEditData.configpolicy_id;
       Object.assign(formData, mainStore.configEditData);
-      formData.scopes = mainStore.configEditData.scopes.map((item: any) => ({
+      formData.biz_id = mainStore.configEditData.biz_id.length ? mainStore.configEditData.biz_id : ['不限'];
+      formData.scopes = mainStore.configEditData.scopes.map((item: ConfigPolicyScope) => ({
         ...item,
         bk_networkarea_id: String(item.bk_networkarea_id),
         bk_networkunit_id: String(item.bk_networkunit_id),
+        os_type: item.os_type === '' ? '-1' : item.os_type,
+        cpu_arch: item.cpu_arch === '' ? '-1' : item.cpu_arch,
       }));
     }
   },

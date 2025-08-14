@@ -14,6 +14,7 @@ package release
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -241,6 +242,12 @@ func (s *Storage) ListRelease(ctx context.Context, page types.Page, conditions .
 
 // UpsertManyRelease upserts many release.
 func (s *Storage) UpsertManyRelease(ctx context.Context, releases []*types.Release) error {
+	for _, rls := range releases {
+		if rls != nil {
+			rls.UpdatedAt = time.Now()
+		}
+	}
+
 	return s.daoRelease.UpsertMany(ctx, releases...)
 }
 
@@ -253,6 +260,7 @@ func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert)
 		Version:    "",
 		FileName:   cert.FileName,
 		MD5:        cert.MD5,
+		UpdatedAt:  time.Now(),
 	})
 }
 
@@ -265,6 +273,7 @@ func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.Releas
 		Version:    "",
 		FileName:   bintool.FileName,
 		MD5:        bintool.MD5,
+		UpdatedAt:  time.Now(),
 	})
 }
 

@@ -1,6 +1,12 @@
 FROM ubuntu:20.04
 
 # 安装基本依赖
+RUN apt-get update && apt-get install -y wget && apt-get clean
+
+# 更新apt源
+RUN wget -O /etc/apt/sources.list https://mirrors.tencent.com/repo/ubuntu20_sources.list
+
+# 安装基本依赖
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -18,6 +24,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 WORKDIR /app
+
+RUN pip config set global.index-url https://mirrors.tencent.com/pypi/simple/
 
 # 安装PyInstaller和StaticX
 RUN pip3 install --upgrade pip

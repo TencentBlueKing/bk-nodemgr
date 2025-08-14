@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -43,8 +44,13 @@ type Config struct {
 	Logger     logger.Logger
 }
 
-// getAddr returns the formatted address.
-func (conf *Config) getAddr() string {
+const (
+	// WMIEnvPassword defines the env key for password.
+	WMIEnvPassword = "WMI_PASSWORD"
+)
+
+// getTarget returns the target string.
+func (conf *Config) getTarget() string {
 	str := conf.User
 
 	if conf.Domain != "" {
@@ -53,7 +59,7 @@ func (conf *Config) getAddr() string {
 
 	switch conf.AuthMethod {
 	case AuthMethodPassword:
-		str = str + ":" + conf.Password + "@" + conf.IP
+		str = str + "@" + conf.IP
 	case AuthMethodNone:
 		str = "-no-pass " + str + "@" + conf.IP
 	default:
@@ -61,6 +67,19 @@ func (conf *Config) getAddr() string {
 	}
 
 	return str
+}
+
+// getEnvs return the envs.
+func (conf *Config) getEnvs() []string {
+	envs := os.Environ()
+
+	switch conf.AuthMethod {
+	case AuthMethodPassword:
+		envs = append(envs, fmt.Sprintf("%s=%s", WMIEnvPassword, conf.Password))
+	default:
+	}
+
+	return envs
 }
 
 // AuthMethod defines the auth method type.
@@ -119,6 +138,7 @@ func (conf *Config) Validate() error {
 // Client is the wmiexec executor.
 type Client struct {
 	target  string
+	envs    []string
 	timeout time.Duration
 	logger  logger.Logger
 }
@@ -130,7 +150,8 @@ func NewClient(config *Config) (*Client, error) {
 	}
 
 	client := &Client{
-		target:  config.getAddr(),
+		target:  config.getTarget(),
+		envs:    config.getEnvs(),
 		timeout: 1 * time.Second,
 		logger:  config.Logger,
 	}
@@ -149,7 +170,6 @@ func (client *Client) RunCommand(ctx context.Context, command string) (string, s
 	}
 
 	args := []string{
-		"-ts",
 		client.target,
 		command,
 	}
@@ -157,7 +177,7 @@ func (client *Client) RunCommand(ctx context.Context, command string) (string, s
 	tCtx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
-	return wmiRunCmd(tCtx, args)
+	return wmiRunCmd(tCtx, args, client.envs)
 }
 
 // RunSilentCommand run a command on the target host without outputting.
@@ -175,7 +195,7 @@ func (client *Client) RunSilentCommand(ctx context.Context, command string) (str
 	tCtx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
-	return wmiRunCmd(tCtx, args)
+	return wmiRunCmd(tCtx, args, client.envs)
 }
 
 // UploadFile upload the file to the target host.

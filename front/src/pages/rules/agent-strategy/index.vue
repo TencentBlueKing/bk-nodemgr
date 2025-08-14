@@ -28,7 +28,7 @@
           :data="searchSelectData"
           v-model="searchSelectValue"
           :uniqueSelect="true"
-          :placeholder="'请输入 配置名称、范围、修改人 搜索'"
+          :placeholder="'请输入 配置名称、修改人 搜索'"
           @update:modelValue="handleSearchSelectChange"
         >
         </SearchSelect>
@@ -144,16 +144,32 @@
                 v-if="row.enabled"
                 @click="handleDisabled(row)"
               >停用</Button>
-              <Button
-                theme="primary"
-                text
-                :disabled="row.enabled"
-                @click="handleDelete(row)"
-                v-bk-tooltips="{
-                  content: '启用中的配置不可删除',
-                  disabled: !row.enabled
-                }"
-              >删除</Button>
+              <PopConfirm
+                width="360"
+                theme="light"
+                trigger="click"
+                placement="top-start"
+                title="确认删除该配置策略？"
+                confirmText="删除"
+                @confirm="handleDelete(row)"
+              >
+                <Button
+                  theme="primary"
+                  text
+                  :disabled="row.enabled"
+                  @click="row.isDeletePopShow = true"
+                  v-bk-tooltips="{
+                    content: '启用中的配置不可删除',
+                    disabled: !row.enabled
+                  }"
+                >删除</Button>
+                <template #content>
+                  <div class="px-[4px] pb-[4px]">
+                    <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.configpolicy_name}}</div>
+                    <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
+                  </div>
+                </template>
+              </PopConfirm>
             </div>
           </template>
         </TableColumn>
@@ -162,7 +178,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Tab, SearchSelect, Loading, Tag } from 'bkui-vue';
+import { Button, Tab, SearchSelect, Loading, Tag, PopConfirm } from 'bkui-vue';
 import { Table, TableColumn } from "@blueking/table";
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useMainStore } from "@/stores/main";
@@ -170,6 +186,7 @@ import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import useTableSetting from "@/composables/use-table-setting";
 import { useRoute, useRouter } from "vue-router";
 import { formatTimestamp } from '@/common/util';
+import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 
 const mainStore = useMainStore();
 const route = useRoute();
@@ -202,17 +219,12 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = ref([
   {
-    id: "name",
+    id: "configpolicy_name",
     name: '配置名称',
     children: [],
   },
   {
-    id: "range",
-    name: '范围',
-    children: [],
-  },
-  {
-    id: "operate",
+    id: "operator",
     name: '修改人',
     children: [],
   },
@@ -300,47 +312,47 @@ const handleDelete = async (row: ConfigPolicy) => {
   });
   await getConfigPolicyList();
 };
-const getParam = () => {
-  const params: {
-    page: Page,
-    exact_include_conditions: {
-      node_role: string[];
-    },
-    fuzzy_include_conditions?: {
-      configpolicy_name?: string[]
-    }
-  } = {
+const fuzzyKeys = new Set([
+  "configpolicy_name",
+  "operator",
+]);
+const getParams = () => {
+  const params = {
     page: {
+      limit: pagination.limit,
       offset: pagination.current - 1,
-      limit: pagination.limit
     },
     exact_include_conditions: {
-      node_role: [nodeRole.value]
-    },
-  }
-  let configpolicy_name: string[] = []
+      node_role: [nodeRole.value],
+      biz_id: mainStore.selectedBusinessId
+    } as ConfigPolicyExactConditions,
+    fuzzy_include_conditions: {} as ConfigPolicyFuzzyConditions,
+  };
   searchSelectValue.value.forEach((item: any) => {
-    if(item.id === 'configpolicy_name') {
-      configpolicy_name = item.values.map((val: any) => val.id)
-    }
+    const target = fuzzyKeys.has(item.id)
+      ? params.fuzzy_include_conditions
+      : params.exact_include_conditions;
+    target[item.id] = item.values.map((value: any) => value.id);
   });
-  if(configpolicy_name.length && params.fuzzy_include_conditions) {
-    params.fuzzy_include_conditions.configpolicy_name = configpolicy_name
-  }
   return params;
-}
+};
 const getConfigPolicyList = async () => {
   loading.value = true;
-  const res = await ConfigPolicyAPIService.ConfigPolicyList(getParam()).catch(() => ({
+  const res = await ConfigPolicyAPIService.ConfigPolicyList(getParams()).catch(() => ({
     total: 0,
     items: []
   }));
   loading.value = false;
   tableData.value = res.items;
 }
-watch(() => route.name, async () => {
+watch([
+  route.name,
+  searchSelectValue,
+  () => mainStore.selectedBusinessId
+], async () => {
   await getConfigPolicyList();
-})
+},{immediate: true, deep: true});
+
 onMounted(async () => {
   await getConfigPolicyList();
 });

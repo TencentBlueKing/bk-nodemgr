@@ -42,7 +42,7 @@
           v-show="navToggle"
           class="mx-[12px]"
           v-model="business"
-          @select="changeCurBusiness"
+          @change="changeCurBusiness"
           multiple
           filterable
           placeholder="全部业务"
@@ -57,7 +57,7 @@
           <Menu.Item v-for="subItem in item.children" :key="subItem.routeName" :need-icon="true"
             @click="handleChangeSubMenu(subItem)">
             <template #icon>
-              <i v-if="subItem.icon" :class="subItem.icon" class="text-[#979BA5]" />
+              <i v-if="subItem.icon" :class="[subItem.icon, route.name === subItem.routeName ? 'text-[#3A84FF]' : 'text-[#979BA5]']" />
             </template>
             {{ $t(subItem.title) }}
           </Menu.Item>

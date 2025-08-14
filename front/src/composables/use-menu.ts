@@ -90,17 +90,17 @@ const navList = [
         children: [
           {
             routeName: 'agentStrategy',
-            icon: 'nodeman-icon nc-workarea',
+            icon: 'nodeman-icon nc-state',
             title: i18n.global.t('Agent 策略'),
           },
           {
             routeName: 'proxyStrategy',
-            icon: 'nodeman-icon nc-topo',
+            icon: 'nodeman-icon nc-remote-install',
             title: i18n.global.t('Proxy 策略'),
           },
           {
             routeName: 'pluginStrategy',
-            icon: 'nodeman-icon nc-topo',
+            icon: 'nodeman-icon nc-plug-in',
             title: i18n.global.t('插件策略'),
           },
         ]
@@ -110,7 +110,7 @@ const navList = [
         children: [
           {
             routeName: 'strategyTaskHistory',
-            icon: 'nodeman-icon nc-record',
+            icon: 'nodeman-icon nc-history',
             title: i18n.global.t('历史任务'),
           }
         ]
@@ -126,12 +126,12 @@ const navList = [
         children: [
           {
             routeName: 'agentPackageMng',
-            icon: 'nodeman-icon nc-workarea',
+            icon: 'nodeman-icon nc-package-agent',
             title: i18n.global.t('Agent 包管理'),
           },
           {
             routeName: 'proxyPackageMng',
-            icon: 'nodeman-icon nc-topo',
+            icon: 'nodeman-icon nc-package-2',
             title: i18n.global.t('Proxy 包管理'),
           }
         ]

@@ -70,7 +70,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 	once.Do(func() {
 		h := testClient(t)
-		err := h.UpsertMany(ctx, testDatas...)
+		err := h.Upsert(ctx, testDatas...)
 		if err != nil {
 			t.Errorf("prepareData() error = %v", err)
 		}
@@ -113,7 +113,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			err := h.UpsertMany(tt.args.ctx, tt.args.gs...)
+			err := h.Upsert(tt.args.ctx, tt.args.gs...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -301,6 +301,57 @@ func Test_handler_Count(t *testing.T) {
 	}
 }
 
+// Test_handler_Exist tests the Exist method of the handler.
+func Test_handler_Exist(t *testing.T) {
+	ctx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, ctx)
+
+	type args struct {
+		ctx  context.Context
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "exist",
+			args: args{
+				ctx:  ctx,
+				name: "test1",
+			},
+			want: true,
+		},
+		{
+			name: "nonexist",
+			args: args{
+				ctx:  ctx,
+				name: "test9",
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+
+			got, err := h.Exist(tt.args.ctx, tt.args.name)
+			if err != nil {
+				t.Errorf("Exist() error = %v", err)
+				return
+			}
+
+			if tt.want != got {
+				t.Errorf("Exist() got = %v, want %v", got, tt.want)
+				return
+			}
+			t.Logf("Exist() got = %v", got)
+		})
+	}
+}
+
 func Test_handler_DeleteMany(t *testing.T) {
 	ctx, _ := tenant.SetID(context.Background(), "test")
 	prepareData(t, ctx)
@@ -330,7 +381,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			err := h.DeleteMany(tt.args.ctx, tt.args.names...)
+			err := h.Delete(tt.args.ctx, tt.args.names...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
 				return

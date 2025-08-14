@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -99,6 +100,9 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	}
 
 	findOpt := base.ParsePage(page)
+	if findOpt.Sort == nil {
+		findOpt.SetSort(bson.D{bson.E{Key: FieldKeyNetworkAreaID, Value: -1}})
+	}
 
 	networkAreas, err := h.dao.List(ctx, filter, findOpt)
 	if err != nil {

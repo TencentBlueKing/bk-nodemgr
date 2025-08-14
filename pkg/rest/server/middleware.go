@@ -11,6 +11,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -23,11 +24,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthIdentity verify auth info.
-type AuthIdentity interface {
-	Verify(rCtx *Context) error
-}
-
 // MiddlewareContext verify auth info.
 func MiddlewareContext() gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
@@ -37,8 +33,13 @@ func MiddlewareContext() gin.HandlerFunc {
 	}
 }
 
+// IAuthIdentity verify auth info.
+type IAuthIdentity interface {
+	Verify(rCtx *Context) error
+}
+
 // MiddlewareAuth verify auth info.
-func MiddlewareAuth(identity AuthIdentity) gin.HandlerFunc {
+func MiddlewareAuth(identity IAuthIdentity) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		rCtx := loadRestContext(gCtx)
 
@@ -50,6 +51,51 @@ func MiddlewareAuth(identity AuthIdentity) gin.HandlerFunc {
 
 		gCtx.Next()
 	}
+}
+
+var _ IAuthIdentity = &RestServerAuthIdentity{}
+
+// RestServerAuthIdentity verify auth info.
+type RestServerAuthIdentity struct {
+}
+
+// Verify verify auth info.
+func (identity *RestServerAuthIdentity) Verify(rCtx *Context) error {
+	nodeMgrAuthorization := restheader.BKNodeMgrAuthorizationGetter(rCtx.Request())
+
+	authInfo := make(map[string]string, 0)
+	if err := json.Unmarshal([]byte(nodeMgrAuthorization), &authInfo); err != nil {
+		return fmt.Errorf("failed to verify rest auth indentity, auth info(%s): %w", nodeMgrAuthorization, err)
+	}
+
+	rCtx.LoginName = authInfo["login_name"]
+	rCtx.BKUsername = authInfo["bk_username"]
+
+	return nil
+}
+
+// NewRestServerAuthIdentity ...
+func NewRestServerAuthIdentity() *RestServerAuthIdentity {
+	return &RestServerAuthIdentity{}
+}
+
+var _ IAuthIdentity = &NodeAuthIdentity{}
+
+// NodeAuthIdentity verify auth info.
+type NodeAuthIdentity struct {
+}
+
+// Verify verify auth info.
+func (identity *NodeAuthIdentity) Verify(rCtx *Context) error {
+	rCtx.LoginName = "unknown"
+	rCtx.BKUsername = "unknown"
+
+	return nil
+}
+
+// NewNodeAuthIdentity ...
+func NewNodeAuthIdentity() *NodeAuthIdentity {
+	return &NodeAuthIdentity{}
 }
 
 // IRequestIDSetter set request id.

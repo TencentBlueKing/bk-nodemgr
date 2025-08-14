@@ -30,6 +30,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -118,8 +119,6 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 		return nil, fmt.Errorf("failed to new service: %w", err)
 	}
 
-	svc.Cap.AuthIdentity = bkloginHandler.GetAuthIdentity()
-
 	svc.Cap.FrontSetting, _ = frontsetting.NewFrontSetting(
 		frontsetting.Option{
 			BKLoginURL:           bkloginHandler.GetLoginURL(),
@@ -127,7 +126,11 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 		},
 	)
 
-	if err := svc.registerRestServer(conf); err != nil {
+	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityBKLogin: bkloginHandler.GetAuthIdentity(),
+	}
+
+	if err := svc.registerRestServer(conf, authIdentityMap); err != nil {
 		return nil, fmt.Errorf("failed to new service: %w", err)
 	}
 
@@ -135,9 +138,18 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 }
 
 // nolint: unparam
-func (svc *Service) registerRestServer(conf *config.ApplicationService) error {
+func (svc *Service) registerRestServer(
+	conf *config.ApplicationService,
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
+
 	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	httpServerAuthIdentity := authIdentityMap[conf.HTTPServer.AuthIdentity]
+	if httpServerAuthIdentity == nil {
+		return fmt.Errorf("application no support this auth identity, auth-identity(%s): please use one of %v",
+			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
+	}
 
 	httpServer := restserver.NewServer(
 		svc.ctx,
@@ -159,7 +171,7 @@ func (svc *Service) registerRestServer(conf *config.ApplicationService) error {
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 		withWeb(svc.Cap),
-		withAPIV3(svc.Cap),
+		withAPIV3(svc.Cap, httpServerAuthIdentity),
 	)
 
 	svc.servers = append(svc.servers, httpServer)
@@ -200,9 +212,9 @@ func withWeb(capability *options.Capability) restserver.OptionFunc {
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability) restserver.OptionFunc {
+func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		applicationapiv3.Load(rg, capability)
+		applicationapiv3.Load(rg, capability, authIdentity)
 	}
 }
 
