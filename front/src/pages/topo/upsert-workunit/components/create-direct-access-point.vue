@@ -1,37 +1,29 @@
 <template>
   <div>
-    <!-- 接入点名称 -->
-    <Form.FormItem
-      :label="$t('topoManager.workUnit.form.accessPointName')"
-      :property="`accesspoint_name.${index}`"
-      :rules="accessPointNameRule"
-      label-width="120">
-      <Input v-model="data.accesspoint_name" class="w-[283px]" />
-    </Form.FormItem>
     <!-- cluster -->
     <Form.FormItem
       label="cluster"
-      :property="`cluster.${index}`"
+      property="cluster"
       :rules="clusterRule"
       label-width="120">
-      <InputGroup v-model:values="data.endpoints.cluster" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.cluster" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
     <!-- file -->
     <Form.FormItem
       label="file"
-      :property="`file.${index}`"
+      property="file"
       :rules="fileRule"
       label-width="120">
-      <InputGroup v-model:values="data.endpoints.file" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.file" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
     <!-- data -->
     <Form.FormItem
       label="data"
-      :property="`data.${index}`"
+      property="data"
       :rules="dataRule"
       label-width="120"
       class="mb-0">
-      <InputGroup v-model:values="data.endpoints.data" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.data" :placeholder="inputPlaceholder"></InputGroup>
     </Form.FormItem>
   </div>
 </template>
@@ -39,58 +31,44 @@
 <script lang="ts" setup>
 import { Form, Input } from 'bkui-vue';
 import { useI18n } from 'vue-i18n';
-
 import InputGroup from './input-group.vue';
 
-const data = defineModel<Omit<AccessPoint, 'accesspoint_id' | 'tenant_id'>>('data', { required: true });
-
-defineProps({
-  index: {
-    type: Number,
-    required: true,
-  },
-});
+const data = defineModel<Endpoints>('data', {required: true });
 
 const { t } = useI18n();
 
 const inputPlaceholder = t('topoManager.workUnit.form.input.placeholder');
 
-// 接入点名称校验规则
-const accessPointNameRule = [{
-  trigger: 'blur',
-  validator: () => data.value.accesspoint_name !== '',
-}];
-
 // cluster校验规则
 const clusterRule = [{
   trigger: 'blur',
-  validator: () => data.value.endpoints.cluster.every(item => item !== ''),
+  validator: () => data.value.cluster.every((item: string) => item !== ''),
 },
 {
   trigger: 'blur',
-  validator: () => data.value.endpoints.cluster.every(item => isInputValid(item)),
+  validator: () => data.value.cluster.every((item: string) => isInputValid(item)),
   message: t('topoManager.workUnit.form.input.validate'),
 }];
 
 // file校验规则
 const fileRule = [{
   trigger: 'blur',
-  validator: () => data.value.endpoints.file.every(item => item !== ''),
+  validator: () => data.value.file.every((item: string) => item !== ''),
 },
 {
   trigger: 'blur',
-  validator: () => data.value.endpoints.file.every(item => isInputValid(item)),
+  validator: () => data.value.file.every((item: string) => isInputValid(item)),
   message: t('topoManager.workUnit.form.input.validate'),
 }];
 
 // data校验规则
 const dataRule = [{
   trigger: 'blur',
-  validator: () => data.value.endpoints.data.every(item => item !== ''),
+  validator: () => data.value.data.every((item: string) => item !== ''),
 },
 {
   trigger: 'blur',
-  validator: () => data.value.endpoints.data.every(item => isInputValid(item)),
+  validator: () => data.value.data.every((item: string) => isInputValid(item)),
   message: t('topoManager.workUnit.form.input.validate'),
 }];
 

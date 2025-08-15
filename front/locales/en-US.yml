@@ -154,6 +154,7 @@ topoManager:
     form:
       workUnitName: Name of Work Unit
       upstream: Upstream access point
+      directConfig: Direct access config
       downstream: Downstream access point
       senior: Senior
       accessPointName: Access point name

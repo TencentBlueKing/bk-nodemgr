@@ -41,14 +41,19 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	}
 
 	// creates networkunit.
+	networkUnit := &types.NetworkUnit{
+		TenantID:        ctx.TenantID,
+		NetworkAreaID:   networkAreaID,
+		Name:            req.GetBkNetworkunitName(),
+		IsDirect:        req.GetIsDirect(),
+		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+	}
+	if !networkUnit.IsDirect {
+		networkUnit.Links = req.ConvertLinksToTypes()
+	}
 	networkUnitID, err := h.backendHandler.CreateNetworkUnit(
 		ctx,
-		&types.NetworkUnit{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			Name:          req.GetBkNetworkunitName(),
-			Links:         req.ConvertLinksToTypes(),
-		},
+		networkUnit,
 		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create networkunit. err: %v", err)
@@ -78,15 +83,21 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// updates networkunit.
+	networkUnit := &types.NetworkUnit{
+		TenantID:        ctx.TenantID,
+		NetworkAreaID:   networkAreaID,
+		ID:              req.GetBkNetworkunitId(),
+		Name:            req.GetBkNetworkunitName(),
+		IsDirect:        req.GetIsDirect(),
+		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+	}
+	if !networkUnit.IsDirect {
+		networkUnit.Links = req.ConvertLinksToTypes()
+	}
 	err := h.backendHandler.UpdateNetworkUnit(
 		ctx,
-		&types.NetworkUnit{
-			TenantID:      ctx.TenantID,
-			NetworkAreaID: networkAreaID,
-			ID:            req.GetBkNetworkunitId(),
-			Name:          req.GetBkNetworkunitName(),
-			Links:         req.ConvertLinksToTypes(),
-		},
+		networkUnit,
 		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update networkunit. err: %v", err)

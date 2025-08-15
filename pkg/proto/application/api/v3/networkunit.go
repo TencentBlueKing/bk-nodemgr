@@ -60,6 +60,16 @@ func (x *TopoNetworkUnitCreateReq) ConvertLinksFromTypes(links types.Links) {
 	x.Links = convertLinksFromTypes(links)
 }
 
+// ConvertDirectEndpointsToTypes convert endpoints from proto to types.
+func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsToTypes() *types.Endpoints {
+	return convertEndpointToTypes(x.GetDirectEndpoints())
+}
+
+// ConvertDirectEndpointsFromTypes convert endpoints from types to proto.
+func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsFromTypes(endpoints *types.Endpoints) {
+	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
+}
+
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
 func (x *TopoNetworkUnitCreateResp) ConvertNetworkUnitFromTypes(networkUnitID int64) {
 	data := &TopoNetworkUnitCreateResp_Data{BkNetworkunitId: new(int64)}
@@ -105,6 +115,16 @@ func (x *TopoNetworkUnitUpdateReq) ConvertLinksToTypes() types.Links {
 // ConvertLinksFromTypes convert links from types to proto.
 func (x *TopoNetworkUnitUpdateReq) ConvertLinksFromTypes(links types.Links) {
 	x.Links = convertLinksFromTypes(links)
+}
+
+// ConvertDirectEndpointsToTypes convert endpoints from proto to types.
+func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsToTypes() *types.Endpoints {
+	return convertEndpointToTypes(x.GetDirectEndpoints())
+}
+
+// ConvertDirectEndpointsFromTypes convert endpoints from types to proto.
+func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsFromTypes(endpoints *types.Endpoints) {
+	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.

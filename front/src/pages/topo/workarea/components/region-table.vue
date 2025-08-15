@@ -31,7 +31,7 @@
         :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
-            {{ row.bk_networkarea_id ? `#${row.bk_networkarea_id}` : '--' }}
+            {{ row.bk_networkarea_id || row.bk_networkarea_id === 0 ? `#${row.bk_networkarea_id}` : '--' }}
           </span>
         </template>
       </TableColumn>
@@ -43,9 +43,9 @@
         :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
-            {{ props.vendorList[row.cloud_vendor] ?
+            {{ row.cloud_vendor && vendorMap[row.cloud_vendor] ?
               $t(
-                vendorMap[props.vendorList[row.cloud_vendor]]?.label
+                vendorMap[row.cloud_vendor]?.label
               ) : '--'
             }}
           </span>
@@ -130,9 +130,7 @@ const props = defineProps<IProps>();
 
 const emit = defineEmits(['edit']);
 
-const tableData = ref(props.list.sort((a: INetWorkArea,b: INetWorkArea) => {
-  return a.bk_networkarea_id - b.bk_networkarea_id
-}));
+const tableData = ref(props.list);
 const { t } = useI18n();
 const router = useRouter();
 const workareaStore = useWorkareaStore();

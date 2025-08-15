@@ -70,6 +70,7 @@ const {
 const topoStore = useTopoStore();
 const router = useRouter();
 
+// useMinLengthRef: 至少保留count项，count是保留的项数，传的t是提示消息
 const regionList = useMinLengthRef(['all'] as Array<string | number>, t('topoManager.topo.select.tips', { count: 1 }));
 const netWorkAreaList = ref<Partial<NetworkArea>[]>([]);
 const defaultNetWorkarea = ref<Partial<NetworkArea>>();
@@ -348,6 +349,7 @@ onMounted(async () => {
   }
   // 获取管控单元详细信息并重新渲染
   initTopoCount();
+  regionList.value = [0];
 });
 
 onUnmounted(() => {

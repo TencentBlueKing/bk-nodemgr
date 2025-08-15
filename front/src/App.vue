@@ -33,7 +33,7 @@
       </FlexRow>
     </template>
     <template #menu>
-      <div class="nm-menu-biz mb-[10px]">
+      <div class="nm-menu-biz mb-[10px]" v-if="isNeedBizSelect">
         <div
           v-show="!navToggle"
           class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto border-r-[2px] cursor-pointer flex items-center justify-center"
@@ -102,6 +102,7 @@ const { navData, subMenuData } = useMenu();
 const { platformConfig, getPlatformInfo } = usePlatform();
 const appName = computed(() => platformConfig.i18n.productName);
 const navToggle = ref(false);
+const isNeedBizSelect = computed(() => !route.path.includes('topo-manager') && !route.path.includes('pkg-manager'));
 // 跳转首页
 function handleGotoHome() {
   router.push({

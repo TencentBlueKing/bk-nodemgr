@@ -24,14 +24,16 @@
     </FlexRow>
     <RegionTable
       ref="regionTableRef"
-      :list="tableData"
+      :list="sortTableData"
       :vendor-list="workareaStore.vendorList"
       @edit="handleEditWorkarea"
     />
     <UpsertWorkarea
       v-model:is-show="showUpsertWorkarea"
       :is-create="isCreate"
+      :curWorkareaData="curWorkareaData"
       @install-proxy="handleInstallProxy"
+      @update="handleUpdate"
     />
     <InstallProxy v-bind:is-show="isInstallProxyShow" />
   </div>
@@ -40,7 +42,7 @@
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
@@ -75,6 +77,10 @@ const isInstallProxyShow = ref(false);
 const handleInstallProxy = () => {
   isInstallProxyShow.value = true;
 };
+// 编辑更新
+const handleUpdate = async () => {
+  await getTableData();
+};
 
 // 复制
 const regionTableRef = ref();
@@ -92,6 +98,14 @@ const handleGetSelectData = async (type: string) => {
 
 // 表格数据
 const tableData = ref<INetWorkArea[]>([]);
+const sortTableData = computed(() => tableData.value.sort((a: INetWorkArea,b: INetWorkArea) => {
+  if (a.bk_networkarea_id === 0) {
+    return -1;
+  } else if (b.bk_networkarea_id === 0) {
+    return 1; 
+  }
+  return b.bk_networkarea_id - a.bk_networkarea_id
+}));
 
 // 下拉搜索框value、list
 const searchKey = ref<ISearchValue[]>([]);
@@ -146,14 +160,16 @@ watch(searchKey, (newVal) => {
   }
   tableData.value = data;
 });
-
-onMounted(async () => {
+const getTableData = async () => {
   await Promise.all([
     workareaStore.handleGetAllWorkareaList(),
     workareaStore.handleFetchVendorAndOs(),
   ]);
   tableData.value = workareaStore.workareaList;
   initSearchData();
+}
+onMounted(async () => {
+  await getTableData();
 });
 
 </script>

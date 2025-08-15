@@ -85,9 +85,10 @@ const props = defineProps({
   },
   curWorkareaData: {
     type: Object as PropType<NetworkArea>,
+    default: null
   },
 });
-const emit = defineEmits(['install-proxy']);
+const emit = defineEmits(['install-proxy', 'update']);
 const { t } = useI18n();
 const workareaStore = useWorkareaStore();
 
@@ -95,10 +96,10 @@ const dialogTitle = computed(() => (props.isCreate ? t('topoManager.workArea.for
 const isGuideShow = ref(false);
 
 // 云服务商下拉选项列表
-const SelectOptions = computed(() => workareaStore.vendorList.map((item, id) => {
+const SelectOptions = computed(() => workareaStore.vendorList.map((item: string) => {
   const curItem = vendorMap[item];
   return {
-    id,
+    id: item,
     icon: curItem.icon,
     class: curItem?.class,
     label: t(curItem?.label),
@@ -106,7 +107,7 @@ const SelectOptions = computed(() => workareaStore.vendorList.map((item, id) => 
 }));
 
 // 根据当前cloud_vendor从vendorMap获取对应class, icon
-const curVendor = computed(() => SelectOptions.value.find(item => (item.id).toString() === form.cloud_vendor));
+const curVendor = computed(() => SelectOptions.value.find((item: any) => item.id === form.cloud_vendor));
 
 const form = reactive<TopoNetworkAreaCreateReq>({
   bk_networkarea_name: '',
@@ -142,9 +143,21 @@ const handleConfirm = async () => {
     const result = await formRef.value.validate();
     if (!result) return;
     loading.value = true;
-    const res = await workareaStore.handleCreateWorkarea(form);
-    if (res && props.isCreate) {
-      isGuideShow.value = true;
+    let res;
+    if (props.isCreate) {
+      res = await workareaStore.handleCreateWorkarea(form);
+    } else {
+      res = await workareaStore.handleUpdateWorkarea({
+        bk_networkarea_id: props.curWorkareaData.bk_networkarea_id,
+        ...form,
+      });
+    }
+    if (res) {
+      if(props.isCreate) {
+        isGuideShow.value = true;
+      } else {
+        emit('update');
+      }
     }
     isShow.value = false;
   } catch (err) {
@@ -164,12 +177,13 @@ const initFormData = async () => {
   form.bk_networkarea_name = props.curWorkareaData?.bk_networkarea_name || '';
 };
 
-watch(isShow, (curShow) => {
+watch(isShow, (curShow: boolean) => {
   if (!curShow) {
     resetForm();
-  }
-  if (!props.isCreate) {
-    initFormData();
+  } else {
+    if (!props.isCreate) {
+      initFormData();
+    }
   }
 });
 

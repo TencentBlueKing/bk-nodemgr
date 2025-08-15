@@ -175,6 +175,7 @@ topoManager:
       workUnitName: 管控单元名称
       upstream: 上游接入点
       downstream: 下游接入点
+      directConfig: 直连配置
       senior: 高级
       accessPointName: 接入点名称
       createAccessPoint: 新增接入点
