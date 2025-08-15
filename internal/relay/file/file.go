@@ -223,16 +223,16 @@ func (fm *fileManagerImpl) GetFile(ctx context.Context, filename string) (fileif
 }
 
 // FileExists check file exists.
-func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string) bool {
+func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, md5 string) bool {
 	info, err := fm.GetFile(ctx, filename)
 	if err != nil {
 		fm.logger.Infof("file not exists. filename(%s): %v", filename, err)
 		return false
 	}
 
-	fm.logger.Infof("check file exists. filename(%s) , expected mD5(%s), actual mD5(%s)", filename, mD5, info.Info().MD5)
+	fm.logger.Infof("check file exists. filename(%s) , expected md5(%s), actual md5(%s)", filename, md5, info.Info().MD5)
 
-	return info.Info().MD5 == mD5
+	return info.Info().MD5 == md5
 }
 
 func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {

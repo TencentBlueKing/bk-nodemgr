@@ -69,9 +69,10 @@ message ReportStatusReq {
 message ReportFileStateReq {
   string action_name = 1;
   string oper_inst_id = 2;
+  string storage_tmp_dir = 3;
   message fileState {
     string file_name = 1;
     string file_status = 2;
   }
-  repeated fileState file_state = 3;
+  repeated fileState file_state = 4;
 }

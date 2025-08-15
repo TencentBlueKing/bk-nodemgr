@@ -108,6 +108,9 @@ type CheckPkgStateReq struct {
 	// OperInstID describes the operation instance id.
 	OperInstID string `json:"oper_inst_id"`
 
+	// FileStorageTmpDir describes backend need to transfer file to this dir.
+	FileStorageTmpDir string `json:"file_storage_tmp_dir"`
+
 	// FileList describes the file list.
 	FileList []FileInfo `json:"file_list"`
 }
@@ -120,9 +123,6 @@ type FileInfo struct {
 
 // TransferPkgCompleteReq describes the transfer pkg complete request.
 type TransferPkgCompleteReq struct {
-	// PackageDestDir describes the source path.
-	PackageDestDirPath string `json:"package_dest_dir_path"`
-
 	// PkgName describes the package name.
 	PkgName []string `json:"pkg_name"`
 }
@@ -131,8 +131,8 @@ type TransferPkgCompleteReq struct {
 type ClientReport string
 
 const (
-	// ClientReportPkgUnComplete describes the client report signal when pkg is uncomplete.
-	ClientReportPkgUnComplete ClientReport = "uncomplete"
+	// ClientReportPkgInComplete describes the client report signal when pkg is incomplete.
+	ClientReportPkgInComplete ClientReport = "incomplete"
 
 	// ClientReportPkgComplete describes the client report signal when pkg is complete.
 	ClientReportPkgComplete ClientReport = "complete"

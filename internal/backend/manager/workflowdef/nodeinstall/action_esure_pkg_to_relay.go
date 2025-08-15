@@ -42,6 +42,9 @@ const (
 	// relayFileStateKey defines the relay file state key.
 	relayFileStateKey = "relay_file_state"
 
+	// relayFileStorageKey defines the relay file storage tmp dir key.
+	relayFileStateStorageKey = "relay_file_state_storage_dir"
+
 	// QueryClientTimeout defines the query client timeout.
 	QueryClientTimeout = 3 * time.Second
 
@@ -104,7 +107,8 @@ func (act *actionEnsurePkgToRelay) Version() string {
 
 // Description returns the description of the action.
 func (act *actionEnsurePkgToRelay) Description() string {
-	return "query the relay machine to check whether the package exists. If not, pass the install and release packages to relay."
+	return "query the relay machine to check whether the package exists. " +
+		"if not, pass the install and release packages to relay."
 }
 
 // Timeout returns the timeout of the action.
@@ -160,26 +164,41 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("get release package.package name(%s)", releasePkgInfo.FileName))
+	ctx.Data.LogI(fmt.Sprintf("get release package. package name(%s)", releasePkgInfo.FileName))
 
 	installPkgInfo, err := act.getInstallerFile(ctx.Ctx, info)
 	if err != nil {
 		ctx.Data.LogE(fmt.Sprintf("failed to get installer file: %s", err))
 		err = fmt.Errorf("failed to get installer file: %w", err)
 	}
-	ctx.Data.LogI(fmt.Sprintf("get installer package.package name(%s)", installPkgInfo.Info().Name))
+	ctx.Data.LogI(fmt.Sprintf("get installer package. package name(%s)", installPkgInfo.Info().Name))
 
 	relayInfo := &info.RelayInfo
-	filesToCheck := []protoRelay.FileInfo{
-		{
+
+	filesToCheck := []protoRelay.FileInfo{}
+	pkgNames := []string{}
+
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+		filesToCheck = append(filesToCheck, protoRelay.FileInfo{
 			FileName: releasePkgInfo.FileName,
 			FileMD5:  releasePkgInfo.MD5,
-		},
-		{
+		})
+		pkgNames = append(pkgNames, releasePkgInfo.FileName)
+	}
+
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+		filesToCheck = append(filesToCheck, protoRelay.FileInfo{
 			FileName: installPkgInfo.Info().Name,
 			FileMD5:  installPkgInfo.Info().MD5,
-		},
+		})
+		pkgNames = append(pkgNames, installPkgInfo.Info().Name)
 	}
+
+	if len(filesToCheck) == 0 {
+		ctx.Data.LogI("no packages to process, all transfers disabled by options")
+		return nil
+	}
+
 	if err := act.askClientPkgState(ctx, filesToCheck, relayInfo.AgentID); err != nil {
 		ctx.Data.LogE(fmt.Sprintf("failed to ask client pkg presence. host-id(%d): %s", info.Host.HostID, err))
 		act.logger.ErrorCtxf(ctx.Ctx, "failed to ask client pkg presence. host-id(%d): %s", info.Host.HostID, err)
@@ -187,65 +206,75 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("ask client package state success. wait relay send pkg state.relay-host-id(%d)",
+	ctx.Data.LogI(fmt.Sprintf("ask client package state success. wait relay send pkg state. relay-host-id(%d)",
 		info.RelayInfo.HostID))
 
-	// if pkg ready return directly. or transfer pkg.
-	var releaseTransferred, installerTransferred bool
-	// TODO: need to add pkg dest dir.
+	pkgStates, storageTmpDir, err := act.waitForPkgsState(ctx, pkgNames)
+	if err != nil {
+		ctx.Data.LogE(fmt.Sprintf("failed to wait for package states: %v", err))
+		act.logger.ErrorCtxf(ctx.Ctx, "failed to wait for package states: %v", err)
+
+		return fmt.Errorf("failed to wait for package states: %w", err)
+	}
+	if storageTmpDir != "" {
+		ctx.Data.LogE("failed to wait for package states. get empty storage dir")
+		act.logger.ErrorCtxf(ctx.Ctx, "failed to wait for package states. get empty storage dir")
+
+		return errors.New("failed to wait for package states. get empty storage dir")
+	}
+	info.RelayInfo.PackageDestDir = relayInfo.PackageDestDir
+
+	var transferredPkgs []string
 	gp := gopool.NewPool()
-	gp.Go(func() error {
-		if err := act.waitForPkgState(ctx, releasePkgInfo.FileName); err != nil {
-			act.logger.Infof("wait for release package state. file(%s)", releasePkgInfo.FileName)
+
+	if !pkgStates[releasePkgInfo.FileName] {
+		transferredPkgs = append(transferredPkgs, installPkgInfo.Info().Name)
+		gp.Go(func() error {
+			ctx.Data.LogI(fmt.Sprintf("start transfer release package. file-name(%s)", releasePkgInfo.FileName))
 			if transferErr := act.transferReleasePkg(
 				ctx, types.ReleaseTypeAgent, &info.Host, relayInfo); transferErr != nil {
 				ctx.Data.LogE(fmt.Sprintf("failed to transfer release package: %v", transferErr))
 
 				return fmt.Errorf("failed to transfer release package: %w", transferErr)
 			}
-			releaseTransferred = true
-		}
-		ctx.Data.LogI(fmt.Sprintf("wait for release package state success. file(%s)", releasePkgInfo.FileName))
+			ctx.Data.LogI(fmt.Sprintf("transfer release package success. file-name(%s)", releasePkgInfo.FileName))
 
-		return nil
-	})
+			return nil
+		})
+	}
+	ctx.Data.LogI(fmt.Sprintf("release package already exists. skip transfer. file-name(%s)", releasePkgInfo.FileName))
 
-	gp.Go(func() error {
-		if err := act.waitForPkgState(ctx, installPkgInfo.Info().Name); err != nil {
-			act.logger.Infof("wait for release package state. file(%s)", installPkgInfo.Info().Name)
+	if !pkgStates[installPkgInfo.Info().Name] {
+		transferredPkgs = append(transferredPkgs, installPkgInfo.Info().Name)
+		gp.Go(func() error {
+			ctx.Data.LogI(fmt.Sprintf("start transfer installer package. file-name(%s)", installPkgInfo.Info().Name))
 			if transferErr := act.transferInstaller(ctx, &info.Host, relayInfo); transferErr != nil {
 				ctx.Data.LogE(fmt.Sprintf("failed to transfer installer package: %v", transferErr))
-
 				return fmt.Errorf("failed to transfer installer package: %w", transferErr)
 			}
-			installerTransferred = true
-		}
-		ctx.Data.LogI(fmt.Sprintf("wait for installer package state success. file(%s)", installPkgInfo.Info().Name))
 
-		return nil
-	})
+			ctx.Data.LogI(fmt.Sprintf("transfer installer package success. file-name(%s)", installPkgInfo.Info().Name))
 
-	if err := gp.Wait(); err != nil {
-		return err
+			return nil
+		})
 	}
+	ctx.Data.LogI(fmt.Sprintf("installer package already exists. skip transfer. file-name(%s)",
+		installPkgInfo.Info().Name))
 
-	if releaseTransferred || installerTransferred {
-		var pkgNames []string
-		if releaseTransferred {
-			ctx.Data.LogI("release not transferred. file(%s)", releasePkgInfo.FileName)
-			pkgNames = append(pkgNames, releasePkgInfo.FileName)
+	if len(transferredPkgs) > 0 {
+		if err := gp.Wait(); err != nil {
+			return err
 		}
-		if installerTransferred {
-			ctx.Data.LogI("installer not transferred. file(%s)", installPkgInfo.Info().Name)
-			pkgNames = append(pkgNames, installPkgInfo.Info().Name)
-		}
-		if err := act.sendTransferPkgCompleteToClient(ctx.Ctx, pkgNames, relayInfo); err != nil {
-			ctx.Data.LogE("failed to send transfer pkg completion to client")
 
-			return fmt.Errorf("failed to send transfer pkg completion to client: %w", err)
+		if err := act.sendTransferPkgCompleteToClient(ctx.Ctx, transferredPkgs, relayInfo); err != nil {
+			ctx.Data.LogE(fmt.Sprintf("failed to send transfer pkg completion to relay. relay-id(%d)", info.RelayInfo.HostID))
+
+			return fmt.Errorf("failed to send transfer package completion to relay: %w", err)
 		}
-		ctx.Data.LogI("send transfer pkg completion to client success")
+		ctx.Data.LogI(fmt.Sprintf("send transfer pkg completion to client success to relay. package(%v). relay-id(%d",
+			transferredPkgs, info.RelayInfo.HostID))
 	}
+	ctx.Data.LogI("all packages already complete")
 
 	return nil
 }
@@ -262,7 +291,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	if err != nil {
 		return nil, err
 	}
-	act.logger.Infof("get release package info. file name(%s)", FileName)
+	act.logger.Infof("get release package info. file-name(%s)", FileName)
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
@@ -275,11 +304,11 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	}
 
 	if len(releases) == 0 {
-		return nil, fmt.Errorf("release package not found. file name(%s)", FileName)
+		return nil, fmt.Errorf("release package not found. file-name(%s)", FileName)
 	}
 
 	if len(releases) > 1 {
-		return nil, fmt.Errorf("release package not unique. file name(%s)", FileName)
+		return nil, fmt.Errorf("release package not unique. file-name(%s)", FileName)
 	}
 
 	return releases[0], nil
@@ -295,7 +324,7 @@ func (act *actionEnsurePkgToRelay) getInstallerFile(
 
 	installPkgInfo, err := act.installerFileGroup.GetFile(ctx, toolName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file. installer name(%s): %w", toolName, err)
+		return nil, fmt.Errorf("failed to get file. installer-name(%s): %w", toolName, err)
 	}
 
 	return installPkgInfo, nil
@@ -332,64 +361,107 @@ func (act *actionEnsurePkgToRelay) askClientPkgState(ctx *action.InstanceContext
 	return nil
 }
 
-func (act *actionEnsurePkgToRelay) waitForPkgState(ctx *action.InstanceContext, pkgName string) error {
+// waitForPkgsState waits for relay client to report package states.
+func (act *actionEnsurePkgToRelay) waitForPkgsState(ctx *action.InstanceContext, pkgNames []string) (
+	map[string]bool, string, error) {
+
 	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForClientReportTimeout)
 	defer cancel()
 
-	for {
+	results := make(map[string]bool, len(pkgNames))
+	for _, name := range pkgNames {
+		results[name] = false
+	}
+	completedCount := 0
+	fileStorageDir := ""
+
+	ticker := time.NewTicker(waitForClientReportInterval)
+	defer ticker.Stop()
+
+	for completedCount < len(pkgNames) {
 		select {
 		case <-timeoutCtx.Done():
-			return fmt.Errorf("timeout waiting for pkg state. oper_inst_id(%s), action_name(%s)",
+			return results, fileStorageDir, fmt.Errorf("timeout waiting for pkg states. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
-		default:
+		case <-ticker.C:
+			privateDataMap, err := act.storageActionInstance.GetActionInstancePrivateData(timeoutCtx,
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			if err != nil {
+				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
+					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+
+				continue
+			}
+
+			fileStateRaw, exists := privateDataMap[relayFileStateKey]
+			if !exists {
+				continue
+			}
+
+			fileState, ok := fileStateRaw.(map[string]any)
+			if !ok {
+				return results, fileStorageDir, errors.New("unexpected type for file state")
+			}
+
+			// get relay report storage directory path.
+			storageDir, err := act.extractStorageDir(fileState)
+			if err != nil {
+				return results, fileStorageDir, err
+			}
+			fileStorageDir = storageDir
+
+			// update file state results.
+			count := act.updateResultsWithState(fileState, results, ctx)
+			completedCount += count
 		}
+	}
 
-		privateDataMap, err := act.storageActionInstance.GetActionInstancePrivateData(
-			timeoutCtx,
-			ctx.Data.OperationInstanceID,
-			ctx.Data.Name,
-		)
-		if err != nil {
-			act.logger.Errorf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-				ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+	return results, fileStorageDir, nil
+}
 
-			return fmt.Errorf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %w",
-				ctx.Data.OperationInstanceID, ctx.Data.Name, err)
-		}
+func (act *actionEnsurePkgToRelay) extractStorageDir(fileState map[string]any) (string, error) {
+	storageDirRaw, exists := fileState[relayFileStateStorageKey]
+	if !exists {
+		act.logger.Warnf("Storage dir key '%s' not found in file state", relayFileStateStorageKey)
+		return "", fmt.Errorf("storage dir key '%s' not found in file state", relayFileStateStorageKey)
+	}
 
-		fileStateRaw, exists := privateDataMap[relayFileStateKey]
-		if !exists {
-			time.Sleep(waitForClientReportInterval)
+	storageDir, ok := storageDirRaw.(string)
+	if !ok {
+		act.logger.Errorf("unexpected type for storage dir: %T, expected string", storageDirRaw)
+		return "", errors.New("invalid storage dir type")
+	}
+
+	return storageDir, nil
+}
+
+func (act *actionEnsurePkgToRelay) updateResultsWithState(fileState map[string]any,
+	results map[string]bool, ctx *action.InstanceContext) int {
+
+	completedThisRound := 0
+
+	for pkgName, state := range fileState {
+		// Skip already completed packages
+		if completed, exists := results[pkgName]; exists && completed {
 			continue
 		}
 
-		fileState, ok := fileStateRaw.(map[string]any)
-		if !ok {
-			act.logger.Errorf("unexpected type for file state, expecting map[string]any")
-			return errors.New("unexpected type for file state")
-		}
-
-		state := fileState[pkgName]
 		switch state {
 		case string(protoRelay.ClientReportPkgComplete):
-			act.logger.Infof("wait for pkg state operation succeed. oper_inst_id(%s), action_name(%s), state(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
-
-			return nil
-
-		case string(protoRelay.ClientReportPkgUnComplete):
-			act.logger.Infof("wait for pkg state operation succeed. file state complete.oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
-
-			return fmt.Errorf("wait for pkg state operation succeed.file state not complete. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
-
+			ctx.Data.LogI(fmt.Sprintf("package state complete. pkg-name(%s), oper_inst_id(%s), action_name(%s)",
+				pkgName, ctx.Data.OperationInstanceID, ctx.Data.Name))
+			results[pkgName] = true
+		case string(protoRelay.ClientReportPkgInComplete):
+			ctx.Data.LogI(fmt.Sprintf("package state incomplete. pkg-name(%s), oper_inst_id(%s), action_name(%s)",
+				pkgName, ctx.Data.OperationInstanceID, ctx.Data.Name))
+			results[pkgName] = false
 		default:
-			return fmt.Errorf(
-				"wait for pkg state operation failed. unexpected state. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			continue
 		}
+		completedThisRound++
 	}
+
+	return completedThisRound
 }
 
 func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx *action.InstanceContext,
@@ -496,8 +568,7 @@ func (act *actionEnsurePkgToRelay) sendTransferPkgCompleteToClient(
 	act.logger.Infof("send transfer pkg complete to client. agent-id(%s), pkg-names(%v)", relayInfo.AgentID, pkgNames)
 
 	transferPkgCompleteEvent := protoRelay.TransferPkgCompleteReq{
-		PackageDestDirPath: relayInfo.PackageDestDir,
-		PkgName:            pkgNames,
+		PkgName: pkgNames,
 	}
 	data, err := json.Marshal(transferPkgCompleteEvent)
 	if err != nil {

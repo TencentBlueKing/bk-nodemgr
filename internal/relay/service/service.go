@@ -88,7 +88,10 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		conf.FileManagerDirPath,
 		svc.Cap.Logger)
 
-	clientHandler := handler.NewClientHandler(svc.Cap.FileManager, svc.Cap.Messager, svc.Cap.Logger)
+	clientHandler := handler.NewClientHandler(svc.Cap.FileManager,
+		svc.Cap.Messager,
+		svc.Cap.Logger,
+		conf.StorageTmpDirPath)
 
 	dispatcher := svc.Cap.Messager.EventDispatcher()
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeCheckPkgState, clientHandler.CheckPkgStats)

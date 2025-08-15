@@ -40,6 +40,8 @@ type IHandler interface {
 
 // handler is a relay client handler.
 type handler struct {
+	storageTmpDir string
+
 	fileManager file.IFileManager
 	client      relayhandler.IClientMessager
 
@@ -48,12 +50,13 @@ type handler struct {
 
 // NewClientHandler creates a new file handler.
 func NewClientHandler(fm file.IFileManager, client relayhandler.IClientMessager,
-	logger logger.Logger) IHandler {
+	logger logger.Logger, storageTmpDir string) IHandler {
 
 	return &handler{
-		fileManager: fm,
-		client:      client,
-		logger:      logger,
+		storageTmpDir: storageTmpDir,
+		fileManager:   fm,
+		client:        client,
+		logger:        logger,
 	}
 }
 
@@ -70,7 +73,7 @@ func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
 	fileStates := make([]fileState, 0)
 
 	for _, fileInfo := range event.FileList {
-		statePkg := protoRelay.ClientReportPkgUnComplete
+		statePkg := protoRelay.ClientReportPkgInComplete
 		if exists := h.fileManager.FileExists(ctx, fileInfo.FileName, fileInfo.FileMD5); exists {
 			statePkg = protoRelay.ClientReportPkgComplete
 		}
@@ -85,9 +88,10 @@ func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
 	}
 
 	req := reportRelayFileState{
-		ActionName: event.ActionName,
-		OperInstID: event.OperInstID,
-		FileState:  fileStates,
+		ActionName:    event.ActionName,
+		OperInstID:    event.OperInstID,
+		StorageTmpDir: h.storageTmpDir,
+		FileState:     fileStates,
 	}
 
 	if err := h.reportRelayFileState(ctx, h.client, req); err != nil {
@@ -109,10 +113,10 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 	}
 
 	for _, pkgName := range event.PkgName {
-		fileInfo, err := h.fileManager.StoreFile(ctx, event.PackageDestDirPath, pkgName)
+		fileInfo, err := h.fileManager.StoreFile(ctx, h.storageTmpDir, pkgName)
 		if err != nil {
 			h.logger.Errorf("failed to store file. dest-dir(%s), pkg-name(%s): %v",
-				event.PackageDestDirPath, pkgName, err)
+				h.storageTmpDir, pkgName, err)
 
 			continue
 		}
@@ -125,9 +129,10 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 }
 
 type reportRelayFileState struct {
-	ActionName string      `json:"action_name"`
-	OperInstID string      `json:"oper_inst_id"`
-	FileState  []fileState `json:"file_state"`
+	ActionName    string      `json:"action_name"`
+	OperInstID    string      `json:"oper_inst_id"`
+	StorageTmpDir string      `json:"storage_tmp_dir"`
+	FileState     []fileState `json:"file_state"`
 }
 
 type fileState struct {

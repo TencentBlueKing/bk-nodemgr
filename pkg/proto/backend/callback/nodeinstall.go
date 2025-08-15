@@ -125,6 +125,10 @@ func (x *ReportFileStateReq) Validate() error {
 		return errors.New("file_name is required")
 	}
 
+	if x.GetStorageTmpDir() == "" {
+		return errors.New("storage_tmp_dir is required")
+	}
+
 	if err := x.checkStatus(); err != nil {
 		return fmt.Errorf("check status failed: %w", err)
 	}
@@ -139,9 +143,9 @@ func (x *ReportFileStateReq) checkStatus() error {
 		}
 
 		if state.GetFileStatus() != string(relay.ClientReportPkgComplete) &&
-			state.GetFileStatus() != string(relay.ClientReportPkgUnComplete) {
+			state.GetFileStatus() != string(relay.ClientReportPkgInComplete) {
 
-			return errors.New("fiel_status must be complete or uncomplete")
+			return errors.New("fiel_status must be complete or incomplete")
 		}
 	}
 
