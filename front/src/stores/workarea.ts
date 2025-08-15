@@ -1,13 +1,19 @@
-import { keyBy } from 'lodash';
-import { defineStore } from 'pinia';
-import { reactive, ref } from 'vue';
+import { keyBy } from "lodash";
+import { defineStore } from "pinia";
+import { reactive, ref } from "vue";
 
-import type { TopoEventListReq, TopoNetworkAreaCreateReq, TopoNetworkAreaListReq, TopoNetworkAreaStaticsRespStaticsInfo } from '@/@types/topo';
-import { TopoService } from '@/api/modules/topo';
+import type {
+  TopoEventListReq,
+  TopoNetworkAreaCreateReq,
+  TopoNetworkAreaListReq,
+  TopoNetworkAreaStaticsRespStaticsInfo,
+  TopoNetworkAreaUpdateReq,
+} from "@/@types/topo";
+import { TopoService } from "@/api/modules/topo";
 
 export type INetWorkArea = NetworkArea & TopoNetworkAreaStaticsRespStaticsInfo;
 
-export const useWorkareaStore = defineStore('workarea', () => {
+export const useWorkareaStore = defineStore("workarea", () => {
   const workareaList = ref<INetWorkArea[]>([]);
   const allWorkareaList = ref<Map<number, NetworkArea>>(new Map());
   const allWorkUnitList = ref<Map<number, NetworkUnit[]>>(new Map());
@@ -20,9 +26,9 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const pagination = reactive({ count: 0, limit: 50, current: 1 });
 
   interface IncludeConditions {
-    bk_networkarea_id: number[] // 管控区域ID
-    bk_networkarea_name: string[] // 管控区域
-    bk_cloud_vendor: number[] // 云服务商
+    bk_networkarea_id: number[]; // 管控区域ID
+    bk_networkarea_name: string[]; // 管控区域
+    bk_cloud_vendor: number[]; // 云服务商
   }
 
   // 可搜索字段
@@ -46,7 +52,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
         onlyCount: false,
         includeConditions,
       });
-      workareaList.value = result?.items as INetWorkArea[] || [];
+      workareaList.value = (result?.items as INetWorkArea[]) || [];
       pagination.count = result?.total || 0;
     } catch (err) {
       console.error(err);
@@ -56,14 +62,19 @@ export const useWorkareaStore = defineStore('workarea', () => {
   };
 
   const handleDeleteWorkarea = async (bk_networkarea_id: number) => {
-    const result =  await TopoService.NetworkAreaDelete({
+    const result = await TopoService.NetworkAreaDelete({
       bk_networkarea_id,
     }).catch(() => {});
     return result;
   };
 
   const handleCreateWorkarea = async (params: TopoNetworkAreaCreateReq) => {
-    const result = await TopoService.NetworkAreaCreate(params).catch(() => {});
+    const result = await TopoService.NetworkAreaCreate(params).catch(() => false);
+    return result;
+  };
+
+  const handleUpdateWorkarea = async (params: TopoNetworkAreaUpdateReq) => {
+    const result = await TopoService.NetworkAreaUpdate(params).catch(() => false);
     return result;
   };
 
@@ -76,12 +87,14 @@ export const useWorkareaStore = defineStore('workarea', () => {
       },
     };
     const result = await TopoService.NetworkAreaList(params).catch(() => {});
-    workareaList.value = result?.items as INetWorkArea[] || [];
+    workareaList.value = (result?.items as INetWorkArea[]) || [];
     pagination.count = result?.total || 0;
 
-    const workareaIds = workareaList.value.map(item => item.bk_networkarea_id);
-    const countData =  await handleFetchWorkareaInfoCount(workareaIds);
-    const lookup = keyBy(countData, 'bk_networkarea_id');
+    const workareaIds = workareaList.value.map(
+      (item) => item.bk_networkarea_id
+    );
+    const countData = await handleFetchWorkareaInfoCount(workareaIds);
+    const lookup = keyBy(countData, "bk_networkarea_id");
     for (const item of workareaList.value) {
       const match = lookup[item.bk_networkarea_id];
       if (match) {
@@ -108,11 +121,11 @@ export const useWorkareaStore = defineStore('workarea', () => {
     }
   };
   // 将所有管控单元 接入点存入Map
-  const handleFetchAllWorkUnit = async () => {
+  const handleFetchAllWorkUnit = async (id?: number) => {
     allWorkUnitList.value.clear();
     allAccessPointList.value.clear();
     const result = await TopoService.NetworkUnitList({
-      bk_networkarea_id: null, // null即为获取所有
+      bk_networkarea_id: id || null,
     });
     const list = result?.items || [];
     const accessPointList = [];
@@ -135,7 +148,9 @@ export const useWorkareaStore = defineStore('workarea', () => {
 
   // 获取管控区域列表中 管控单元数量及节点数量
   const handleFetchWorkareaInfoCount = async (bk_networkarea_id: number[]) => {
-    const result = await TopoService.NetworkAreaStatistics({ bk_networkarea_id });
+    const result = await TopoService.NetworkAreaStatistics({
+      bk_networkarea_id,
+    });
     return result?.items || [];
   };
 
@@ -159,6 +174,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
     vendorList,
     osTypeList,
     handleCreateWorkarea,
+    handleUpdateWorkarea,
     handleDeleteWorkarea,
     handleFetchWorkareaList,
     handleGetAllWorkareaList,

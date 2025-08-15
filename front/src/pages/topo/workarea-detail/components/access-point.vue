@@ -7,9 +7,15 @@
         <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
         <div class="flex">
           <span>{{ clusterData.workarea_name }}</span>
-          <span class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]"></span>
+          <span
+            v-show="clusterData.workunit_name"
+            class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+          </span>
           <span>{{ clusterData.workunit_name }}</span>
-          <span class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]"></span>
+          <span
+            v-show="clusterData.accesspoint_name"
+            class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+          </span>
           <span>{{ clusterData.accesspoint_name }}</span>
         </div>
       </div>
@@ -193,14 +199,14 @@ const isShowUpstreamDefaultInfo = computed(() => {
 });
 
 const clusterData = computed(() => ({
-  workarea_name: getWorkareaName(props.upstreamData.cluster.bk_networkarea_id),
+  workarea_name: getWorkareaName(props.upstreamData.cluster?.bk_networkarea_id),
   workunit_name: getWorkUnitName(
-    props.upstreamData.cluster.bk_networkarea_id,
-    props.upstreamData.cluster.bk_networkunit_id,
+    props.upstreamData.cluster?.bk_networkarea_id,
+    props.upstreamData.cluster?.bk_networkunit_id,
   ),
   accesspoint_name: getAccessPointName(
-    props.upstreamData.cluster.bk_networkunit_id,
-    props.upstreamData.cluster.accesspoint_id,
+    props.upstreamData.cluster?.bk_networkunit_id,
+    props.upstreamData.cluster?.accesspoint_id,
   ),
 }));
 

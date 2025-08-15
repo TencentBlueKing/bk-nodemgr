@@ -34,19 +34,20 @@ interface Links {
   data: Link;
 }
 
+// Endpoints describes the links real address.
+interface Endpoints {
+  cluster: string[];
+  file: string[];
+  data: string[];
+}
+
 // AccessPoint describes the access point informations.
 interface AccessPoint {
   tenant_id: string;
   accesspoint_id: number;
   accesspoint_name: string;
   bk_networkarea_id: number;
-  endpoints: AccessPointEndpoints;
-}
-
-interface AccessPointEndpoints {
-  cluster: string[];
-  file: string[];
-  data: string[];
+  endpoints: Endpoints;
 }
 
 // NetworkUnit describes the network unit informations.
@@ -57,6 +58,8 @@ interface NetworkUnit {
   bk_networkarea_id: number;
   accesspoints: AccessPoint[];
   links: Links;
+  is_direct: boolean;
+  direct_endpoints: Endpoints;
 }
 
 // NetworkUnitBrief describes the network unit brief informations.
@@ -68,6 +71,8 @@ interface NetworkUnitBrief {
   bk_networkarea_id: number;
   accesspoints: number[];
   links: Links;
+  is_direct: boolean;
+  direct_endpoints: Endpoints;
 }
 
 // HostState describes the host state informations. Usually contains

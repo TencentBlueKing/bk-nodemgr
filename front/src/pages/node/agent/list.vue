@@ -265,7 +265,11 @@ const handleSearchSelectChange = async (
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 // 筛选
 const getHostDistinct = async () => {
-  const params: Record<string, string[]> = {};
+  const params = {
+    exact_include_conditions: {
+      node_role: ['agent', 'blank']
+    }
+  };
   const res = await TopoService.HostDistinct(params).catch(() => null);
   if (res) {
     hostDistinct.value = res;

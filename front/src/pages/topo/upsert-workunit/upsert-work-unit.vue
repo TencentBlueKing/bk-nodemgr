@@ -3,9 +3,35 @@
     <Sideslider
       v-model:is-show="isShow"
       :title="title"
+      :before-close="handleBeforeClose"
       width="640"
     >
-      <Form :model="form" class="pt-[28px]" ref="formRef" :rules="rules">
+      <div class="flex items-center w-full text-[14px] text-[#63656e] pt-[28px]" v-if="workareaId === 0 && isCreate">
+        <div class="w-[130px] pr-[22px] text-right">管控单元类型</div>
+        <Radio.Group v-model="type">
+          <Radio label="not_direct">非direct</Radio>
+          <Radio label="direct">direct</Radio>
+        </Radio.Group>
+      </div>
+      <Form :model="form" ref="formRef" class="pt-[28px]" :rules="rules" v-if="(!isCreate && isDirect) || (isCreate && type === 'direct')">
+        <Form.FormItem
+          :label="$t('topoManager.workUnit.form.workUnitName')"
+          property="bk_networkunit_name"
+          label-width="130"
+          required>
+          <Input v-model="form.bk_networkunit_name" class="w-[488px]" clearable />
+        </Form.FormItem>
+        <Form.FormItem
+          :label="$t('topoManager.workUnit.form.directConfig')"
+          label-width="130"
+        >
+          <div class="w-[489px] bg-[#F5F7FA] relative py-[24px] mb-[12px]">
+            <CreateDirectAccessPoint v-model:data="form.direct_endpoints">
+            </CreateDirectAccessPoint>
+          </div>
+        </Form.FormItem>
+      </Form>
+      <Form :model="form" class="pt-[28px]" ref="formRef" :rules="rules" v-else>
         <Form.FormItem
           :label="$t('topoManager.workUnit.form.workUnitName')"
           property="bk_networkunit_name"
@@ -61,8 +87,9 @@
           <i class="nodeman-icon nc-angle-double-down text-[24px]" v-if="!isExpand"></i>
           <i class="nodeman-icon nc-double-up text-[24px]" v-else></i>
         </Button>
-
-        <div class="flex mt-[32px] ml-[130px]">
+      </Form>
+      <template #footer>
+        <div class="flex">
           <Button
             theme="primary"
             class="mr-[8px] w-[88px]"
@@ -70,22 +97,23 @@
             @click="handleConfirm">
             {{ $t('action.save') }}
           </Button>
-          <Button class="w-[88px]" @click="handleClose">
+          <Button class="w-[88px]" @click="handleBeforeClose">
             {{ $t('action.cancel') }}
           </Button>
         </div>
-      </Form>
+      </template>
     </Sideslider>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, Input, Message, Sideslider } from 'bkui-vue';
+import { Button, Form, Input, Message, Sideslider, InfoBox, Radio } from 'bkui-vue';
 import { isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
+import CreateDirectAccessPoint from './components/create-direct-access-point.vue';
 import CreateAccessPointList from './components/create-access-point-list.vue';
 import SelectGroup from './components/select-group.vue';
 
@@ -116,6 +144,8 @@ const { t } = useI18n();
 const route = useRoute();
 const workareaId = Number(route.params.workarea);
 
+const type = ref('not_direct');
+const isDirect = ref(false);
 const isExpand = ref(false);
 const toggleExpand = () => {
   const curState = !isExpand.value;
@@ -140,6 +170,11 @@ const form = reactive({
   bk_networkunit_name: '',
   bk_networkarea_id: workareaId,
   accesspoints: [],
+  direct_endpoints: {
+    cluster: [''],
+    file: [''],
+    data: [''],
+  },
   links: {
     cluster: {},
     file: {},
@@ -150,6 +185,11 @@ const form = reactive({
 const initForm = () => {
   form.bk_networkunit_name = '';
   form.accesspoints = [];
+  form.direct_endpoints = {
+    cluster: [''],
+    file: [''],
+    data: [''],
+  },
   form.links = {
     cluster: {},
     file: {},
@@ -238,7 +278,9 @@ const handleConfirm = async () => {
       bk_networkunit_name: form.bk_networkunit_name,
       bk_networkarea_id: form.bk_networkarea_id,
       accesspoints: form.accesspoints,
+      direct_endpoints: form.direct_endpoints,
       links,
+      is_direct: isDirect.value
     };
 
     if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;
@@ -272,7 +314,18 @@ const handleConfirm = async () => {
 const handleClose = () => {
   isShow.value = false;
 };
-
+const handleBeforeClose = () =>
+  new Promise((resolve, reject) => {
+    InfoBox({
+      title: "确认关闭?",
+      infoType: "warning",
+      onConfirm: () => {
+        resolve(true);
+        isShow.value = false;
+      },
+      onCancel: () => reject(),
+    });
+  });
 const workAreaList = ref<{
   label: string
   value: number
@@ -282,7 +335,8 @@ const getWorkUnit = async () => {
   // 从缓存获取当前管控区的所有管控单元
   const workUnitList = workareaStore.allWorkUnitList.get(workareaId);
   // 找到当前管控单元数据
-  const curWorkUnit = workUnitList?.find(unit => unit.bk_networkunit_id === props.workUnitId) as NetworkUnit;
+  const curWorkUnit = workUnitList?.find((unit: NetworkUnit) => unit.bk_networkunit_id === props.workUnitId) as NetworkUnit;
+  isDirect.value = curWorkUnit.is_direct;
   // 数据回填
   form.bk_networkunit_name = curWorkUnit.bk_networkunit_name;
 
@@ -301,10 +355,12 @@ const getWorkUnit = async () => {
   if (curWorkUnit.accesspoints.length === 0 && equal) {
     Object.assign(generalLink.value, cluster);
   }
+  Object.assign(form.direct_endpoints, curWorkUnit.direct_endpoints);
 };
 
-watch(isShow, async (isCurrentShow) => {
+watch(isShow, async (isCurrentShow: boolean) => {
   if (isCurrentShow) {
+    type.value = 'not_direct';
     await Promise.all([
       handleFetchAllWorkarea(),
       handleFetchAllWorkUnit(),

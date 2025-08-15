@@ -58,7 +58,7 @@
               </template>
             </FlexRow>
             <!-- table -->
-            <DetailTable></DetailTable>
+            <DetailTable :searchSelectValue="searchKey"></DetailTable>
           </div>
         </Tab.TabPanel>
         <template #add>
@@ -136,15 +136,15 @@ const contentLoading = ref(false);
 const searchSelectData = ref<ISearchItem[]>([
   {
     name: t('topoManager.workAreaDetail.table.ipv4'),
-    id: '1',
+    id: 'bk_host_innerip',
   },
   {
     name: t('topoManager.workAreaDetail.table.ipv6'),
-    id: '2',
+    id: 'bk_host_innerip_v6',
   },
   {
     name: 'AgentID',
-    id: '3',
+    id: 'bk_agent_id',
   },
 ]);
 

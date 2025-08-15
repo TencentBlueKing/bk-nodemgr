@@ -214,6 +214,8 @@ export interface TopoNetworkUnitCreateReq {
   bk_networkarea_id: number;
   accesspoints: AccessPoint[];
   links: Links;
+  is_direct: boolean;
+  direct_endpoints: Endpoints;
 }
 
 // TopoNetworkUnitCreateResp describes the HTTP response body when create
@@ -237,6 +239,8 @@ export interface TopoNetworkUnitUpdateReq {
   bk_networkarea_id: number;
   accesspoints: AccessPoint[];
   links: Links;
+  is_direct: boolean;
+  direct_endpoints: Endpoints;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
