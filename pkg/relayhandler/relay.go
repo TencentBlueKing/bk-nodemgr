@@ -41,6 +41,7 @@ type ICallbackClient interface {
 	RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error)
 }
 
+// IClientPush defines the client handler.
 type IClientPush interface {
 	// ClientPushReq sends a client push request asynchronously and returns a channel for results.
 	ClientPushReq(ctx context.Context, callbackURL string, body []byte) <-chan error

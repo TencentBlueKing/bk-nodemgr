@@ -176,10 +176,10 @@ func (m *clientMessager) handleServerPush(ctx context.Context, messageID string,
 		return
 	}
 
-	m.dispatcherServerPushEvent(content)
+	m.dispatcherServerPushEvent(ctx, content)
 }
 
-func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
+func (m *clientMessager) dispatcherServerPushEvent(ctx context.Context, content []byte) {
 	var push protoRelay.ServerPushReq
 	if err := json.Unmarshal(content, &push); err != nil {
 		m.config.Logger.Errorf("invalid push format: %v", err)
@@ -194,7 +194,7 @@ func (m *clientMessager) dispatcherServerPushEvent(content []byte) {
 	}
 
 	m.config.Logger.Infof("dispatching event. event-type(%s)", push.EventType)
-	m.eventDispatcher.Dispatch(context.Background(), push.EventType, push.Payload)
+	m.eventDispatcher.Dispatch(ctx, push.EventType, push.Payload)
 }
 
 // RequestCallback sends request to url. only transfer the response body to callback.

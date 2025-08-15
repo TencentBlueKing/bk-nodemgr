@@ -43,7 +43,9 @@ func NewDefaultEventDispatcher() EventDispatcher {
 }
 
 // Dispatch dispatches the event.
-func (d *defaultEventDispatcher) Dispatch(ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte) {
+func (d *defaultEventDispatcher) Dispatch(
+	ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte) {
+
 	d.mux.RLock()
 	handler, exists := d.handlers[eventType]
 	d.mux.RUnlock()

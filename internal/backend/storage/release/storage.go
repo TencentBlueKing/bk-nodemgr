@@ -26,6 +26,7 @@ import (
 )
 
 // IStorage defines the release storage interface.
+// nolint: interfacebloat
 type IStorage interface {
 	basestorage.Interface
 
@@ -179,6 +180,7 @@ func (s *Storage) DistinctRelease(
 		gp.Go(func() error {
 			var err error
 			result.OSType, err = s.daoRelease.DistinctOsType(ctx, opts...)
+
 			return err
 		})
 	}
@@ -186,6 +188,7 @@ func (s *Storage) DistinctRelease(
 		gp.Go(func() error {
 			var err error
 			result.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, opts...)
+
 			return err
 		})
 	}
