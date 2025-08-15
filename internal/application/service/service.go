@@ -127,6 +127,7 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 	)
 
 	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone:    restserver.NewNodeAuthIdentity(),
 		config.AuthIdentityBKLogin: bkloginHandler.GetAuthIdentity(),
 	}
 
