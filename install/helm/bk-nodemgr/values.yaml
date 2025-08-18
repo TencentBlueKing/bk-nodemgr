@@ -360,15 +360,6 @@ redis:
     ## Defaults to a random 10-character alphanumeric string if not set
     ##
     password: "defaultpassword"
-
-  ## @param usePassword Use password authentication
-  ##
-  usePassword: true
-  ## @param password Redis&trade; password (ignored if existingSecret set)
-  ## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
-  ## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
-  ##
-  password: "defaultpassword"
   ## Redis&trade; Service properties for standalone mode.
   ##
   service:
@@ -453,10 +444,15 @@ mongodb:
     rootPassword: "defaultpassword"
     ## MongoDB&reg; custom users and databases
     ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-users-and-databases-on-first-run
+    ## username,password, database has been dropped, now only for checking mongoDB init success.
     username: "nodemgr"
     password: "defaultpassword"
     database: "nodemgr"
     authSource: "admin"
+    ## username,password, database will create the extra user,password,database when mongodb init.
+    usernames: ["nodemgr"]
+    passwords: ["defaultpassword"]
+    databases: ["nodemgr"]
     ## @param auth.replicaSetKey Key used for authentication in the replicaset (only when `architecture=replicaset`)
     ##
     replicaSetKey: ""
@@ -647,7 +643,7 @@ backend:
       # accessToken is the BlueKing access token of costops to request api gateway.
       accessToken: ""
       # plugin SlotID and SlotToken
-      pluginSlotID: ""
+      pluginSlotID: 0
       pluginSlotToken: ""
       # defines tls related options.
       tls:
@@ -690,7 +686,7 @@ backend:
           # accessToken is the BlueKing access token of costops to request api gateway.
           accessToken: ""
           # plugin SlotID and SlotToken
-          pluginSlotID: ""
+          pluginSlotID: 0
           pluginSlotToken: ""
           # defines tls related options.
           tls:
@@ -961,7 +957,7 @@ file:
       # accessToken is the BlueKing access token of costops to request api gateway.
       accessToken: ""
       # plugin SlotID and SlotToken
-      pluginSlotID: ""
+      pluginSlotID: 0
       pluginSlotToken: ""
       # defines tls related options.
       tls:
