@@ -170,6 +170,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3DisableScheduleWorkflowRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3DisableScheduleWorkflowRespData"
         }
@@ -178,6 +181,35 @@
     },
     "v3DisableScheduleWorkflowRespData": {
       "type": "object"
+    },
+    "v3DisableScheduleWorkflowRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DisableScheduleWorkflowRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3DisableScheduleWorkflowRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3EnableScheduleWorkflowReq": {
       "type": "object",
@@ -201,6 +233,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3EnableScheduleWorkflowRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3EnableScheduleWorkflowRespData"
         }
@@ -209,6 +244,35 @@
     },
     "v3EnableScheduleWorkflowRespData": {
       "type": "object"
+    },
+    "v3EnableScheduleWorkflowRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3EnableScheduleWorkflowRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3EnableScheduleWorkflowRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3ListScheduleWorkflowReq": {
       "type": "object",
@@ -244,6 +308,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3ListScheduleWorkflowRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3ListScheduleWorkflowRespData"
         }
@@ -263,6 +330,35 @@
             "type": "object",
             "$ref": "#/definitions/v3ScheduleWorkflow"
           }
+        }
+      }
+    },
+    "v3ListScheduleWorkflowRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ListScheduleWorkflowRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3ListScheduleWorkflowRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },

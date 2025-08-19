@@ -34,12 +34,22 @@ message ListGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated GlobalSetting items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // GetGlobalSettingReq describes the HTTP request body when get a global
@@ -52,9 +62,19 @@ message GetGlobalSettingResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string value = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // UpsertGlobalSettingReq describes the HTTP request body when upsert global
@@ -67,9 +87,19 @@ message UpsertGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // DeleteGlobalSettingReq describes the HTTP request body when delete global
@@ -82,7 +112,17 @@ message DeleteGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }

@@ -316,6 +316,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespData"
         }
@@ -324,6 +327,35 @@
     },
     "v3PackageReleaseCancelAsDefaultRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseCancelAsDefaultRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseCancelAsDefaultRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3PackageReleaseDeleteReq": {
       "type": "object",
@@ -357,6 +389,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseDeleteRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDeleteRespData"
         }
@@ -365,6 +400,35 @@
     },
     "v3PackageReleaseDeleteRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseDeleteRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseDeleteRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseDeleteRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3PackageReleaseDisableReq": {
       "type": "object",
@@ -398,6 +462,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseDisableRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDisableRespData"
         }
@@ -406,6 +473,35 @@
     },
     "v3PackageReleaseDisableRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseDisableRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseDisableRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseDisableRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3PackageReleaseEnableReq": {
       "type": "object",
@@ -439,6 +535,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseEnableRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseEnableRespData"
         }
@@ -447,6 +546,35 @@
     },
     "v3PackageReleaseEnableRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseEnableRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseEnableRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseEnableRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3PackageReleaseExactConditions": {
       "type": "object",
@@ -520,6 +648,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseListRespData"
         }
@@ -539,6 +670,35 @@
             "type": "object",
             "$ref": "#/definitions/v3Release"
           }
+        }
+      }
+    },
+    "v3PackageReleaseListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -574,6 +734,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespData"
         }
@@ -582,6 +745,35 @@
     },
     "v3PackageReleaseSetAsDefaultRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseSetAsDefaultRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseSetAsDefaultRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3PackageReleaseSetLabelsReq": {
       "type": "object",
@@ -621,6 +813,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3PackageReleaseSetLabelsRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetLabelsRespData"
         }
@@ -629,6 +824,35 @@
     },
     "v3PackageReleaseSetLabelsRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseSetLabelsRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageReleaseSetLabelsRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageReleaseSetLabelsRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3Page": {
       "type": "object",

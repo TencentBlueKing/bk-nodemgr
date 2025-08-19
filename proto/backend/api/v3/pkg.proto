@@ -31,12 +31,22 @@ message PackageReleaseListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated Release items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseDistinctReq describes the HTTP request body when distinct
@@ -51,12 +61,22 @@ message PackageReleaseDistinctResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     repeated string os_type = 1;
     repeated string cpu_arch = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
@@ -74,9 +94,19 @@ message PackageReleaseSetLabelsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseEnableReq describes the HTTP request body when enable package
@@ -94,9 +124,19 @@ message PackageReleaseEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseDisableReq describes the HTTP request body when disable package
@@ -114,9 +154,19 @@ message PackageReleaseDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseSetAsDefaultReq describes the HTTP request body when set
@@ -134,9 +184,19 @@ message PackageReleaseSetAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel
@@ -154,9 +214,19 @@ message PackageReleaseCancelAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseDeleteReq describes the HTTP request body when delete release.
@@ -173,9 +243,19 @@ message PackageReleaseDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 service Package {
