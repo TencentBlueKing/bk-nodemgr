@@ -42,7 +42,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 
 	// creates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        ctx.TenantID,
+		TenantID:        ctx.TenantID(),
 		NetworkAreaID:   networkAreaID,
 		Name:            req.GetBkNetworkunitName(),
 		IsDirect:        req.GetIsDirect(),
@@ -54,7 +54,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	networkUnitID, err := h.backendHandler.CreateNetworkUnit(
 		ctx,
 		networkUnit,
-		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
+		req.ConvertAccssPointsToTypes(ctx.TenantID(), networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -85,7 +85,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 
 	// updates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        ctx.TenantID,
+		TenantID:        ctx.TenantID(),
 		NetworkAreaID:   networkAreaID,
 		ID:              req.GetBkNetworkunitId(),
 		Name:            req.GetBkNetworkunitName(),
@@ -98,7 +98,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	err := h.backendHandler.UpdateNetworkUnit(
 		ctx,
 		networkUnit,
-		req.ConvertAccssPointsToTypes(ctx.TenantID, networkAreaID)...)
+		req.ConvertAccssPointsToTypes(ctx.TenantID(), networkAreaID)...)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

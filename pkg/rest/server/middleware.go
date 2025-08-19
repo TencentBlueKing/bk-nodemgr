@@ -68,8 +68,8 @@ func (identity *RestServerAuthIdentity) Verify(rCtx *Context) error {
 		return fmt.Errorf("failed to verify rest auth indentity, auth info(%s): %w", nodeMgrAuthorization, err)
 	}
 
-	rCtx.LoginName = authInfo["login_name"]
-	rCtx.BKUsername = authInfo["bk_username"]
+	rCtx.SetLoginName(authInfo["login_name"])
+	rCtx.SetBKUsername(authInfo["bk_username"])
 
 	return nil
 }
@@ -87,8 +87,8 @@ type NodeAuthIdentity struct {
 
 // Verify verify auth info.
 func (identity *NodeAuthIdentity) Verify(rCtx *Context) error {
-	rCtx.LoginName = "unknown"
-	rCtx.BKUsername = "unknown"
+	rCtx.SetLoginName("unknown")
+	rCtx.SetBKUsername("unknown")
 
 	return nil
 }
@@ -120,7 +120,7 @@ func MiddlewareSetRequestID(requestIDSetter IRequestIDSetter) gin.HandlerFunc {
 			return
 		}
 
-		if rCtx.RequestID == "" {
+		if rCtx.RequestID() == "" {
 			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set request id")})
 		}
 
@@ -135,10 +135,10 @@ type RequestIDSetter struct {
 // SetRequestID ...
 func (setter *RequestIDSetter) SetRequestID(rCtx *Context) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.RequestID = restheader.BKNodemgrRequestIDGetter(rCtx.Request())
+	rCtx.SetRequestID(restheader.BKNodemgrRequestIDGetter(rCtx.Request()))
 
-	if rCtx.RequestID == "" {
-		rCtx.RequestID = identifier.GenRequestID()
+	if rCtx.RequestID() == "" {
+		rCtx.SetRequestID(identifier.GenRequestID())
 	}
 
 	return nil
@@ -171,7 +171,7 @@ func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
 			return
 		}
 
-		if rCtx.TenantID == "" {
+		if rCtx.TenantID() == "" {
 			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
 		}
 
@@ -191,19 +191,19 @@ const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
 // SetTenantID ...
 func (setter *TenantIDSetter) SetTenantID(rCtx *Context) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.TenantID = restheader.BKTenantIDGetter(rCtx.Request())
+	rCtx.SetTenantID(restheader.BKTenantIDGetter(rCtx.Request()))
 
-	if rCtx.TenantID == "" {
+	if rCtx.TenantID() == "" {
 		tenantID, err := tenant.GetID(rCtx)
 		if err != nil {
 			return fmt.Errorf("failed to set tenant id: %w", err)
 		}
 
-		rCtx.TenantID = tenantID
+		rCtx.SetTenantID(tenantID)
 	}
 
 	mustCompile := regexp.MustCompile(TenantIDRegexp)
-	if !mustCompile.MatchString(rCtx.TenantID) {
+	if !mustCompile.MatchString(rCtx.TenantID()) {
 		return errors.New("failed to set tenant id: invalid tenant id")
 	}
 

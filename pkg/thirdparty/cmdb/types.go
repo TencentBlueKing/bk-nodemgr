@@ -79,7 +79,7 @@ type HostInfo struct {
 	// 寻址方式
 	BKAddressing string `json:"bk_addressing"`
 	// ServiceIdArr
-	BKSvcIdArr string `json:"bk_svc_id_arr"`
+	BKSvcIDArr string `json:"bk_svc_id_arr"`
 	// CC逻辑区域ID
 	BKLogicZone string `json:"bk_logic_zone"`
 	// 网络结构版本
@@ -131,13 +131,13 @@ type HostInfo struct {
 	// 云主机实例ID
 	BKCloudInstID string `json:"bk_cloud_inst_id"`
 	// 交换机外网IP
-	BKOuterSwitchIp string `json:"bk_outer_switch_ip"`
+	BKOuterSwitchIP string `json:"bk_outer_switch_ip"`
 	// 管控区域
 	BKCloudID int64 `json:"bk_cloud_id"`
 	// 公司cmdbSvrID
 	SvrID int64 `json:"svr_id"`
 	// 交换机内网IP
-	BKInnerSwitchIp string `json:"bk_inner_switch_ip"`
+	BKInnerSwitchIP string `json:"bk_inner_switch_ip"`
 	// 重要级别
 	SrvImportantLevel string `json:"srv_important_level"`
 	// 入库时间
@@ -277,6 +277,7 @@ type BusinessInfo struct {
 	BKCreatedBy string `json:"bk_created_by"`
 }
 
+// ObjectInfo describe the information of single object.
 type ObjectInfo struct {
 	BKObjectID        string `json:"bk_obj_id"`
 	BKObjectName      string `json:"bk_obj_name"`
@@ -316,9 +317,6 @@ type HostPropertyFilter struct {
 
 // ListBizHostsReq describe the request data of list_biz_hosts.
 type ListBizHostsReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// response page settings.
 	Page Page `json:"page"`
 
@@ -340,9 +338,6 @@ type ListBizHostsResp struct {
 
 // SearchBusinessReq describe the request data of search_business.
 type SearchBusinessReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// Page ...
 	Page Page `json:"page"`
 
@@ -358,9 +353,6 @@ type SearchBusinessResp struct {
 
 // SearchCloudAreaReq describe the request data of search_cloud_area.
 type SearchCloudAreaReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	Page Page `json:"page"`
 }
 
@@ -372,9 +364,6 @@ type SearchCloudAreaResp struct {
 
 // CreateCloudAreaReq describe the request data of create_cloud_area.
 type CreateCloudAreaReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKCloudName   string `json:"bk_cloud_name"`
 	BKCloudVendor string `json:"bk_cloud_vendor"`
 }
@@ -389,9 +378,6 @@ type CreateCloudAreaResp struct {
 
 // UpdateCloudAreaReq describe the request data of update_cloud_area.
 type UpdateCloudAreaReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKCloudID     int64  `json:"bk_cloud_id"`
 	BKCloudName   string `json:"bk_cloud_name"`
 	BKCloudVendor string `json:"bk_cloud_vendor"`
@@ -402,9 +388,6 @@ type UpdateCloudAreaResp string
 
 // DeleteCloudAreaReq describe the request data of delete_cloud_area.
 type DeleteCloudAreaReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKCloudID int64 `json:"bk_cloud_id"`
 }
 
@@ -413,9 +396,6 @@ type DeleteCloudAreaResp string
 
 // UpdateHostCloudAreaFieldReq describe the request data of update_host_cloud_area_field.
 type UpdateHostCloudAreaFieldReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKCloudID int64   `json:"bk_cloud_id"`
 	BKBizID   int64   `json:"bk_biz_id"`
 	BKHostIDs []int64 `json:"bk_host_ids"`
@@ -424,7 +404,7 @@ type UpdateHostCloudAreaFieldReq struct {
 // UpdateHostCloudAreaFieldResp describe the response data of update_host_cloud_area_field.
 type UpdateHostCloudAreaFieldResp string
 
-// CloudArea cloud area info
+// CloudArea cloud area info.
 type CloudArea struct {
 	BKCloudID         int64     `json:"bk_cloud_id"`
 	BKCloudName       string    `json:"bk_cloud_name"`
@@ -436,9 +416,6 @@ type CloudArea struct {
 
 // SearchBizInstTopoReq describe the request data of search_biz_inst_topo.
 type SearchBizInstTopoReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// biz id of this request.
 	BKBizID int64 `json:"bk_biz_id"`
 }
@@ -458,9 +435,6 @@ type BizInstTopo struct {
 
 // GetBizInternalModuleReq describe the request data of get_biz_internal_module.
 type GetBizInternalModuleReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// biz id of this request.
 	BKBizID int64 `json:"bk_biz_id"`
 }
@@ -497,9 +471,6 @@ type ModuleInfo struct {
 
 // FindTopoNodePathsReq describe the request data of find_topo_node_paths.
 type FindTopoNodePathsReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// biz id of this request.
 	BKBizID int64 `json:"bk_biz_id"`
 
@@ -525,9 +496,6 @@ type NodePaths struct {
 
 // FindModuleBatchReq describe the request data of find_module_batch.
 type FindModuleBatchReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	// biz id of this request.
 	BKBizID int64 `json:"bk_biz_id"`
 
@@ -567,9 +535,6 @@ type ObjectAttributeInfo struct {
 
 // SearchObjectAttributeReq describe the request data of search_object_attribute.
 type SearchObjectAttributeReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID int64  `json:"bk_biz_id"`
 	BKObjID string `json:"bk_obj_id"`
 }
@@ -591,9 +556,6 @@ type HostAgentIDInfo struct {
 
 // BindHostAgentReq describe the request data of bind_host_agent.
 type BindHostAgentReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	List []*HostAgentIDInfo `json:"list"`
 }
 
@@ -620,9 +582,6 @@ type CreateHostInfo struct {
 
 // AddHostToBusinessIdleReq describe the request data of add_host_to_business_idle.
 type AddHostToBusinessIdleReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID    int64             `json:"bk_biz_id"`
 	BKHostList []*CreateHostInfo `json:"bk_host_list"`
 }
@@ -634,9 +593,6 @@ type AddHostToBusinessIdleResp struct {
 
 // PushHostIdentifierReq describe the request data of push_host_identifier.
 type PushHostIdentifierReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKHostIDs []int64 `json:"bk_host_ids"`
 }
 
@@ -651,9 +607,6 @@ type PushHostIdentifierResp struct {
 
 // FindHostIdentifierPushResultReq describe the request data of find_host_identifier_push_result.
 type FindHostIdentifierPushResultReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	TaskID string `json:"task_id"`
 }
 
@@ -666,9 +619,6 @@ type FindHostIdentifierPushResultResp struct {
 
 // AddHostToResourcePoolReq describe the request data of add_host_to_resource_pool.
 type AddHostToResourcePoolReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	HostInfo []*CreateHostInfo `json:"host_info"`
 }
 
@@ -686,9 +636,6 @@ type AddHostToResourcePoolResp struct {
 
 // ListResourcePoolHostsReq describe the request data of list_resource_pool_hosts.
 type ListResourcePoolHostsReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	Fields []string `json:"fields"`
 	Page   Page     `json:"page"`
 }
@@ -726,9 +673,6 @@ type DynamicGroupInfo struct {
 
 // CreateDynamicGroupReq describe the request data of create_dynamic_group.
 type CreateDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	DynamicGroupInfo `json:",inline"`
 }
 
@@ -739,9 +683,6 @@ type CreateDynamicGroupResp struct {
 
 // ExecuteDynamicGroupReq describe the request data of execute_dynamic_group.
 type ExecuteDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID        int64    `json:"bk_biz_id"`
 	ID             string   `json:"id"`
 	Fields         []string `json:"fields"`
@@ -778,9 +719,6 @@ type SetInfo struct {
 
 // SearchDynamicGroupReq describe the request data of search_dynamic_group.
 type SearchDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID        int64 `json:"bk_biz_id"`
 	DisableCounter bool  `json:"disable_counter,omitempty"`
 	Condition      struct {
@@ -797,9 +735,6 @@ type SearchDynamicGroupResp struct {
 
 // DeleteDynamicGroupReq describe the request data of delete_dynamic_group.
 type DeleteDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	ID      string `json:"id"`
 	BKBizID int64  `json:"bk_biz_id"`
 }
@@ -809,9 +744,6 @@ type DeleteDynamicGroupResp string
 
 // GetDynamicGroupReq describe the request data of get_dynamic_group.
 type GetDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	ID      string `json:"id"`
 	BKBizID int64  `json:"bk_biz_id"`
 }
@@ -827,9 +759,6 @@ type GetDynamicGroupResp struct {
 
 // UpdateDynamicGroupReq describe the request data of update_dynamic_group.
 type UpdateDynamicGroupReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	DynamicGroupInfo `json:",inline"`
 }
 
@@ -838,9 +767,6 @@ type UpdateDynamicGroupResp string
 
 // ListHostsWithoutBusinessReq describe the request data of list_host_without_business.
 type ListHostsWithoutBusinessReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	Fields []string `json:"fields"`
 	Page   Page     `json:"page"`
 }
@@ -853,9 +779,6 @@ type ListHostsWithoutBusinessResp struct {
 
 // ListServiceTemplateReq describe the request data of list_service_template.
 type ListServiceTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID             int64   `json:"bk_biz_id"`
 	ServiceCategoryID   int64   `json:"service_category_id,omitempty"`
 	ServiceTemplateName string  `json:"search,omitempty"`
@@ -893,9 +816,6 @@ type KeyCondition struct {
 
 // ListServiceInstanceReq describe the request data of list_service_instance.
 type ListServiceInstanceReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID                  int64           `json:"bk_biz_id"`
 	BKModuleID               int64           `json:"bk_module_id"`
 	BKHostIDs                []int64         `json:"bk_host_ids"`
@@ -926,9 +846,6 @@ type ListServiceInstanceResp struct {
 
 // ListProcessInstanceReq describe the request data of list_process_instance.
 type ListProcessInstanceReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID           int64 `json:"bk_biz_id"`
 	ServiceInstanceID int64 `json:"service_instance_id"`
 }
@@ -987,9 +904,6 @@ type ListProcessInstanceResp []*ProcessInstanceInfo
 
 // ListProcTemplateReq describe the request data of list_proc_template.
 type ListProcTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID            int64   `json:"bk_biz_id"`
 	ServiceTemplateID  int64   `json:"service_template_id"`
 	ProcessTemplateIDs []int64 `json:"process_template_ids"`
@@ -1112,9 +1026,6 @@ type ListProcTemplateResp struct {
 
 // FindSetBatchReq describe the request data of find_set_batch.
 type FindSetBatchReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID int64    `json:"bk_biz_id"`
 	BKIDs   []int64  `json:"bk_ids"`
 	Fields  []string `json:"fields"`
@@ -1125,9 +1036,6 @@ type FindSetBatchResp []*SetInfo
 
 // SearchSetReq describe the request data of search_set.
 type SearchSetReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID int64    `json:"bk_biz_id"`
 	Fields  []string `json:"fields"`
 	Page    Page     `json:"page"`
@@ -1157,9 +1065,6 @@ type SearchModuleResp struct {
 
 // FindHostTopoRelationReq describe the request data of find_host_topo_relation.
 type FindHostTopoRelationReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID     int64   `json:"bk_biz_id"`
 	BKSetIDs    []int64 `json:"bk_set_ids,omitempty"`
 	BKModuleIDs []int64 `json:"bk_module_ids,omitempty"`
@@ -1185,9 +1090,6 @@ type FindHostTopoRelationResp struct {
 
 // FindHostBizRelationsReq describe the request data of find_host_biz_relations.
 type FindHostBizRelationsReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID  int64   `json:"bk_biz_id"`
 	BKHostID []int64 `json:"bk_host_id"`
 }
@@ -1197,9 +1099,6 @@ type FindHostBizRelationsResp []*HostTopoRelation
 
 // FindHostByServiceTemplateReq describe the request data of find_host_by_service_template.
 type FindHostByServiceTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID              int64    `json:"bk_biz_id"`
 	BKServiceTemplateIDs []int64  `json:"bk_service_template_ids"`
 	BKModuleIDs          []int64  `json:"bk_module_ids"`
@@ -1215,9 +1114,6 @@ type FindHostByServiceTemplateResp struct {
 
 // FindHostBySetTemplateReq describe the request data of find_host_by_set_template.
 type FindHostBySetTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID          int64    `json:"bk_biz_id"`
 	BKSetTemplateIDs []int64  `json:"bk_set_template_ids,omitempty"`
 	BKSetIDs         []int64  `json:"bk_set_ids,omitempty"`
@@ -1233,9 +1129,6 @@ type FindHostBySetTemplateResp struct {
 
 // FindHostByTopoReq describe the request data of find_host_by_topo.
 type FindHostByTopoReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID  int64    `json:"bk_biz_id"`
 	BKObjID  string   `json:"bk_obj_id"`
 	BKInstID int64    `json:"bk_inst_id"`
@@ -1251,9 +1144,6 @@ type FindHostByTopoResp struct {
 
 // FindHostRelationsWithTopoReq describe the request data of find_host_relations_with_topo.
 type FindHostRelationsWithTopoReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID   int64    `json:"bk_biz_id"`
 	BKObjID   string   `json:"bk_obj_id"`
 	BKInstIDs []int64  `json:"bk_inst_ids"`
@@ -1269,9 +1159,6 @@ type FindHostRelationsWithTopoResp struct {
 
 // ListServiceInstanceDetailReq describe the request data of list_service_instance_detail .
 type ListServiceInstanceDetailReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID int64 `json:"bk_biz_id"`
 	Page    Page  `json:"page"`
 }
@@ -1343,10 +1230,7 @@ type ListServiceInstanceDetailResp struct {
 }
 
 // GetMainlineObjectTopoReq describe the request data of get_mainline_object_topo.
-type GetMainlineObjectTopoReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-}
+type GetMainlineObjectTopoReq struct{}
 
 // MainlineObjectTopo describe the mainline object topo define by cmdb.
 type MainlineObjectTopo struct {
@@ -1393,9 +1277,6 @@ type ListBizHostsTopoResp struct {
 
 // ListServiceInstanceByHostReq describe the request data of list_service_instance_by_host.
 type ListServiceInstanceByHostReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID  int64 `json:"bk_biz_id"`
 	BKHostID int64 `json:"bk_host_id"`
 	Page     Page  `json:"page"`
@@ -1409,9 +1290,6 @@ type ListServiceInstanceByHostResp struct {
 
 // ListServiceInstanceBySetTemplateReq describe the request data of list_service_instance_by_set_template.
 type ListServiceInstanceBySetTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID       int64 `json:"bk_biz_id"`
 	SetTemplateID int64 `json:"set_template_id"`
 	Page          Page  `json:"page"`
@@ -1425,9 +1303,6 @@ type ListServiceInstanceBySetTemplateResp struct {
 
 // ListSetTemplateReq describe the request data of list_set_template.
 type ListSetTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKBizID        int64   `json:"bk_biz_id"`
 	SetTemplateIDs []int64 `json:"set_template_ids,omitempty"`
 	Page           Page    `json:"page"`
@@ -1452,9 +1327,6 @@ type UpdateHostProperties struct {
 
 // BatchUpdateHostReq describe the request data of batch_update_host.
 type BatchUpdateHostReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	Update []*UpdateHostProperties `json:"update"`
 }
 
@@ -1463,9 +1335,6 @@ type BatchUpdateHostResp string
 
 // FindHostServiceTemplateReq describe the request data of find_host_service_template.
 type FindHostServiceTemplateReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKHostID []int64 `json:"bk_host_id"`
 }
 
@@ -1480,9 +1349,6 @@ type FindHostServiceTemplateResp []*HostServiceTemplate
 
 // ResourceWatchReq describe the request data of resource_watch.
 type ResourceWatchReq struct {
-	// tenant id of this request.
-	TenantID string `json:"-"`
-
 	BKResource   string   `json:"bk_resource"`
 	BKEventTypes []string `json:"bk_event_types,omitempty"`
 	BKFields     []string `json:"bk_fields,omitempty"`
@@ -1509,4 +1375,3 @@ type HostEventInfo = EventInfo[*HostInfo]
 
 // HostRelationEventInfo describe the host relation event info define by cmdb.
 type HostRelationEventInfo = EventInfo[*HostTopoRelation]
-

@@ -58,7 +58,7 @@ type tgzReadRule struct {
 }
 
 // generateTgz takes responsibility for all source and target file to close.
-// nolint: funlen,gocognit,gocyclo,cyclop,fnsize
+// nolint: funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func generateTgz(
 	targetFile io.WriteCloser,
@@ -202,7 +202,7 @@ func generateTgz(
 }
 
 // checkTgz takes responsibility for source file to close.
-// nolint: funlen,gocognit,gocyclo,cyclop,fnsize
+// nolint: funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 	// close source file.

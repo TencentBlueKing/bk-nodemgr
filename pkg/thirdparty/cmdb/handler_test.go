@@ -17,33 +17,30 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
 // LoadAuthHeader load auth header from environment variables.
-func LoadAuthHeader() (apigwclient.Config, error) {
+func LoadAuthHeader() (apigwclient.AppConfig, error) {
 	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
 	header := make(map[string]string, 0)
 	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
-		return apigwclient.Config{}, err
+		return apigwclient.AppConfig{}, err
 	}
 
-	apigwClientConfig := apigwclient.Config{
-		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
-		AppCode:   header["bk_app_code"],
-		AppSecret: header["bk_app_secret"],
-		User:      header["bk_username"],
-		AuthMode:  apigwclient.AuthModeUn,
-	}
+	apigwAPPConfig := apigwclient.NewAppConfig(
+		[]string{os.Getenv("BK_APIGW_ENDPOINT")},
+		header["bk_app_code"],
+		header["bk_app_secret"])
 
-	return apigwClientConfig, nil
+	return apigwAPPConfig, nil
 }
 
 // testClient ...
@@ -74,8 +71,8 @@ func testClient(t *testing.T) IHandler {
 	}
 
 	h, err := New(clientCap, &Config{
-		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		APIGWClientConfig: apigwClientConfig,
+		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		APIGWAppConfig:  apigwClientConfig,
 	}, WithLogger(logger.LoggerDefault{}))
 	if err != nil {
 		t.Fatal(err)
@@ -86,10 +83,10 @@ func testClient(t *testing.T) IHandler {
 
 // Test_handler_ListBizHosts ...
 func Test_handler_ListBizHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx  context.Context
+		ctx  contextx.ITenantUserContext
 		biz  types.Business
 		page types.Page
 	}
@@ -147,10 +144,10 @@ func Test_handler_ListBizHosts(t *testing.T) {
 
 // Test_handler_SearchBusiness ...
 func Test_handler_SearchBusiness(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx  context.Context
+		ctx  contextx.ITenantUserContext
 		page types.Page
 	}
 	tests := []struct {
@@ -189,10 +186,10 @@ func Test_handler_SearchBusiness(t *testing.T) {
 
 // Test_handler_SearchNetArea ...
 func Test_handler_SearchNetworkArea(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx  context.Context
+		ctx  contextx.ITenantUserContext
 		page types.Page
 	}
 	tests := []struct {
@@ -231,9 +228,9 @@ func Test_handler_SearchNetworkArea(t *testing.T) {
 
 // Test_handler_NetworkArea... handle network area curd test
 func Test_handler_NetworkArea(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 	type args struct {
-		ctx             context.Context
+		ctx             contextx.ITenantUserContext
 		networkAreaName string
 		cloudVendor     string
 	}
@@ -299,9 +296,9 @@ func Test_handler_NetworkArea(t *testing.T) {
 
 // Test_handler_CreateAndUpdateHost...
 func Test_handler_CreateAndUpdateHost(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 	type args struct {
-		ctx   context.Context
+		ctx   contextx.ITenantUserContext
 		bizID int64
 		hosts []*types.Host
 	}
@@ -412,10 +409,10 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 
 // Test_handler_ListResourcePoolHosts...
 func Test_handler_ListResourcePoolHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx  context.Context
+		ctx  contextx.ITenantUserContext
 		page types.Page
 	}
 	tests := []struct {
@@ -453,10 +450,10 @@ func Test_handler_ListResourcePoolHosts(t *testing.T) {
 }
 
 func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx  context.Context
+		ctx  contextx.ITenantUserContext
 		page types.Page
 	}
 
@@ -495,10 +492,10 @@ func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
 
 // Test_handler_DynamicGroup...
 func Test_handler_DynamicGroup(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx   context.Context
+		ctx   contextx.ITenantUserContext
 		bizID int64
 		group *types.DynamicGroup
 		page  types.Page
@@ -556,10 +553,10 @@ func Test_handler_DynamicGroup(t *testing.T) {
 
 // Test_handler_ListServiceTemplate...
 func Test_handler_ListServiceTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx   context.Context
+		ctx   contextx.ITenantUserContext
 		bizID int64
 		page  types.Page
 	}
@@ -600,9 +597,9 @@ func Test_handler_ListServiceTemplate(t *testing.T) {
 
 // Test_handler_FindHostByServiceTemplate...
 func Test_handler_FindHostByServiceTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 	type args struct {
-		ctx                context.Context
+		ctx                contextx.ITenantUserContext
 		bizID              int64
 		serviceTemplateIDs []int64
 		page               types.Page
@@ -646,9 +643,9 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 
 // Test_handler_WatchResourceEvent...
 func Test_handler_WatchResourceEvent(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 	}
 
 	tests := []struct {

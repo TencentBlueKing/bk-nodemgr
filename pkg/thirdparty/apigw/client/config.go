@@ -16,75 +16,81 @@ import (
 	"fmt"
 )
 
-// Config defines the api gateway related runtime.
-type Config struct {
-	// Endpoints is a seed list of host:port addresses of api gateway nodes.
-	Endpoints []string
-	// AppCode is the BlueKing app code of nodeman to request api gateway.
-	AppCode string
-	// AppSecret is the BlueKing app secret of nodeman to request api gateway.
-	AppSecret string
-	// User is the BlueKing User of nodeman to request api gateway.
-	User string
+// AppConfig defines the api gateway related app info.
+type AppConfig struct {
+	// endpoints is a seed list of host:port addresses of api gateway nodes.
+	endpoints []string
+	// appCode is the BlueKing app code of nodeman to request api gateway.
+	appCode string
+	// appSecret is the BlueKing app secret of nodeman to request api gateway.
+	appSecret string
+}
+
+// NewAppConfig creates a new AppConfig.
+func NewAppConfig(endpoints []string, appCode string, appSecret string) AppConfig {
+	return AppConfig{
+		endpoints: endpoints,
+		appCode:   appCode,
+		appSecret: appSecret,
+	}
+}
+
+// Validate api gateway runtime.
+func (conf *AppConfig) Validate() error {
+	if len(conf.endpoints) == 0 {
+		return errors.New("failed to validated app config: api gateway endpoints is not set")
+	}
+
+	if len(conf.appCode) == 0 {
+		return errors.New("failed to validated app config: api gateway app code is not set")
+	}
+
+	if len(conf.appSecret) == 0 {
+		return errors.New("failed to validated app config: api gateway app secret is not set")
+	}
+
+	return nil
+}
+
+// UserConfig defines the api gateway related runtime.
+type UserConfig struct {
+	// AppConfig is the api gateway related app info.
+	AppConfig
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode AuthMode
-	// BkTicket is the BlueKing access ticket of nodeman to request api gateway.
-	BkTicket string
-	// BkToken is the BlueKing User token of nodeman to request api gateway.
-	BkToken string
+	// User is the BlueKing User of nodeman to request api gateway.
+	User string
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string
 }
 
-// AuthMode is the mode to do api auth verification,
-// which supports 'oa', 'ee' and 'at' mode for now.
-// 1. oa use bk_ticket auth.
-// 2. ee use bk_token auth.
-// 3. at use access_token auth.
+// AuthMode is the mode to do api auth verification.
 type AuthMode string
 
 const (
-	// AuthModeEe ee auth mode, use bkToken for user authentication.
-	AuthModeEe AuthMode = "ee"
-	// AuthModeOa oa auth mode, use bkTicket for user authentication.
-	AuthModeOa AuthMode = "oa"
-	// AuthModeAt at auth mode, use accessToken for user authentication.
+	// AuthModeAt at auth mode, use user accessToken for user authentication.
 	AuthModeAt AuthMode = "at"
 	// AuthModeUn un auth mode, use username for user authentication.
 	AuthModeUn AuthMode = "un"
 )
 
 // Validate api gateway runtime.
-func (c *Config) Validate() error {
-	if len(c.Endpoints) == 0 {
-		return errors.New("api gateway endpoints is not set")
-	}
-	if len(c.AppCode) == 0 {
-		return errors.New("api gateway app code is not set")
-	}
-	if len(c.AppSecret) == 0 {
-		return errors.New("api gateway app secret is not set")
+func (conf *UserConfig) Validate() error {
+	if err := conf.AppConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validated user config: %w", err)
 	}
 
-	switch c.AuthMode {
-	case AuthModeEe:
-		if len(c.BkToken) == 0 {
-			return errors.New("api gateway bk token is not set")
-		}
-	case AuthModeOa:
-		if len(c.BkToken) == 0 {
-			return errors.New("api gateway bk token is not set")
-		}
+	switch conf.AuthMode {
 	case AuthModeAt:
-		if len(c.AccessToken) == 0 {
-			return errors.New("api gateway access token is not set")
+		if len(conf.AccessToken) == 0 {
+			return errors.New("failed to validated user config: api gateway access token is not set")
 		}
 	case AuthModeUn:
-		if len(c.User) == 0 {
-			return errors.New("api gateway user is not set")
+		if len(conf.User) == 0 {
+			return errors.New("failed to validated user config: api gateway user is not set")
 		}
 	default:
-		return fmt.Errorf("api gateway not support, env(%s)", c.AuthMode)
+		return fmt.Errorf("failed to validated user config, env(%s): api gateway not support", conf.AuthMode)
 	}
 
 	return nil
@@ -93,38 +99,31 @@ func (c *Config) Validate() error {
 // GetAuthHeader get api gateway auth header.
 // # 调用目标 API 开启: 应用认证+用户认证
 // # Call the target API to enable: application authentication+user authentication required.
-// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_token": "z"}
+// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_ticket": "z"}
+//
 // # 调用目标 API 开启: 应用认证
 // # Call the target API to enable: application authentication required.
-// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y"}
+// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "username"}
+//
 // # 调用目标 API 开启: 用户认证
 // # Call the target API to enable: user authentication required.
-// X-Bkapi-Authorization: {"bk_token": "z"}
+// X-Bkapi-Authorization: {"bk_ticket": "z"}
+//
 // # 使用 access_token
 // # Use access_token
-// X-Bkapi-Authorization: {"access_token": "z"}
-// # 调用目标 API 开启: 免用户认证
-// # Call the target API to enable: no user authentication required.
-// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "z"}
-// when not set auth mode this func will return empty string and error.
-func (c *Config) GetAuthHeader() string {
+// X-Bkapi-Authorization: {"access_token": "z"}.
+func (conf *UserConfig) GetAuthHeader() string {
 	var auth string
-	switch c.AuthMode {
-	case AuthModeOa:
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_ticket\":\"%s\"}",
-			c.AppCode, c.AppSecret, c.BkTicket)
-	case AuthModeEe:
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_token\":\"%s\"}",
-			c.AppCode, c.AppSecret, c.BkToken)
+	switch conf.AuthMode {
 	case AuthModeAt:
-		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", c.AccessToken)
+		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
 	case AuthModeUn:
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			c.AppCode, c.AppSecret, c.User)
+			conf.appCode, conf.appSecret, conf.User)
 	default:
 		// default use un mode.
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			c.AppCode, c.AppSecret, c.User)
+			conf.appCode, conf.appSecret, conf.User)
 	}
 
 	return auth

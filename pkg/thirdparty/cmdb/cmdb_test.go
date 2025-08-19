@@ -16,11 +16,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/joho/godotenv"
 )
 
@@ -52,8 +52,8 @@ func testCCClient(t *testing.T) *cli {
 	}
 
 	h, err := newClient(clientCap, &Config{
-		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		APIGWClientConfig: apigwClientConfig,
+		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		APIGWAppConfig:  apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -64,10 +64,10 @@ func testCCClient(t *testing.T) *cli {
 
 // Test_cmdb_listBizHosts ...
 func Test_handler_listBizHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListBizHostsReq
 	}
 	tests := []struct {
@@ -109,10 +109,10 @@ func Test_handler_listBizHosts(t *testing.T) {
 
 // Test_cmdb_searchBusiness ...
 func Test_handler_searchBusiness(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *SearchBusinessReq
 	}
 	tests := []struct {
@@ -154,9 +154,10 @@ func Test_handler_searchBusiness(t *testing.T) {
 
 // Test_cmdb_cloudArea...
 func Test_cmdb_cloudArea(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx           context.Context
+		ctx           contextx.ITenantUserContext
 		cloudAreaName string
 		cloudVendor   string
 		page          Page
@@ -187,7 +188,6 @@ func Test_cmdb_cloudArea(t *testing.T) {
 			h := testCCClient(t)
 
 			createCloudAreaReq := &CreateCloudAreaReq{
-				TenantID:      "0",
 				BKCloudName:   tt.args.cloudAreaName,
 				BKCloudVendor: tt.args.cloudVendor,
 			}
@@ -200,8 +200,7 @@ func Test_cmdb_cloudArea(t *testing.T) {
 			t.Logf("createCloudArea got: %#v", created)
 
 			searchCloudReq := &SearchCloudAreaReq{
-				TenantID: "0",
-				Page:     tt.args.page,
+				Page: tt.args.page,
 			}
 			search, err := h.searchCloudArea(tt.args.ctx, searchCloudReq)
 			if (err != nil) != tt.wantErr {
@@ -213,7 +212,6 @@ func Test_cmdb_cloudArea(t *testing.T) {
 			}
 
 			updateCloudReq := &UpdateCloudAreaReq{
-				TenantID:      "0",
 				BKCloudID:     created.Created.ID,
 				BKCloudName:   tt.args.cloudAreaName + "_1",
 				BKCloudVendor: "1",
@@ -235,7 +233,6 @@ func Test_cmdb_cloudArea(t *testing.T) {
 			}
 
 			deleteCloudReq := &DeleteCloudAreaReq{
-				TenantID:  "0",
 				BKCloudID: created.Created.ID,
 			}
 			err = h.deleteCloudArea(tt.args.ctx, deleteCloudReq)
@@ -259,9 +256,10 @@ func Test_cmdb_cloudArea(t *testing.T) {
 
 // Test_cmdb_createAndUpdateHost...
 func Test_cmdb_createAndUpdateHost(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx   context.Context
+		ctx   contextx.ITenantUserContext
 		bizID int64
 		hosts []*CreateHostInfo
 	}
@@ -295,7 +293,6 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 			h := testCCClient(t)
 
 			createReq := &AddHostToBusinessIdleReq{
-				TenantID:   "0",
 				BKBizID:    tt.args.bizID,
 				BKHostList: tt.args.hosts,
 			}
@@ -315,8 +312,7 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 			updateHostInfo.Properties.BKComment = "test"
 			updateHostInfo.Properties.BKHostName = "test"
 			updatePropertys := &BatchUpdateHostReq{
-				TenantID: "0",
-				Update:   []*UpdateHostProperties{updateHostInfo},
+				Update: []*UpdateHostProperties{updateHostInfo},
 			}
 
 			// update host
@@ -328,7 +324,6 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 
 			var changeNetworkAreaID int64 = 3
 			updateHostCloud := &UpdateHostCloudAreaFieldReq{
-				TenantID:  "0",
 				BKHostIDs: created.BKHostIDs,
 				BKCloudID: changeNetworkAreaID,
 				BKBizID:   tt.args.bizID,
@@ -345,8 +340,7 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 			}
 
 			bindHostAgentIDs := &BindHostAgentReq{
-				TenantID: "0",
-				List:     []*HostAgentIDInfo{hostAgentID},
+				List: []*HostAgentIDInfo{hostAgentID},
 			}
 			err = h.bindHostAgent(tt.args.ctx, bindHostAgentIDs)
 			if (err != nil) != tt.wantErr {
@@ -355,8 +349,7 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 			}
 
 			unbindHostAgentIDs := &UnbindHostAgentReq{
-				TenantID: "0",
-				List:     []*HostAgentIDInfo{hostAgentID},
+				List: []*HostAgentIDInfo{hostAgentID},
 			}
 			err = h.unbindHostAgent(tt.args.ctx, unbindHostAgentIDs)
 			if (err != nil) != tt.wantErr {
@@ -369,10 +362,10 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 
 // Test_cmdb_listResourcePoolHosts...
 func Test_cmdb_listResourcePoolHosts(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListResourcePoolHostsReq
 	}
 	tests := []struct {
@@ -414,10 +407,10 @@ func Test_cmdb_listResourcePoolHosts(t *testing.T) {
 
 // Test_cmdb_addHostToResource...
 func Test_cmdb_addHostToResource(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *AddHostToResourcePoolReq
 	}
 
@@ -431,7 +424,6 @@ func Test_cmdb_addHostToResource(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &AddHostToResourcePoolReq{
-					TenantID: "0",
 					HostInfo: []*CreateHostInfo{
 						{
 							BKHostInnerIP:     "1.1.1.2",
@@ -469,10 +461,10 @@ func Test_cmdb_addHostToResource(t *testing.T) {
 
 // Test_cmdb_searchBizInstTopo...
 func Test_cmdb_searchBizInstTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *SearchBizInstTopoReq
 	}
 	tests := []struct {
@@ -485,8 +477,7 @@ func Test_cmdb_searchBizInstTopo(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &SearchBizInstTopoReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 				},
 			},
 			wantErr: false,
@@ -511,10 +502,10 @@ func Test_cmdb_searchBizInstTopo(t *testing.T) {
 
 // Test_cmdb_getBizInternalModule...
 func Test_cmdb_getBizInternalModule(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *GetBizInternalModuleReq
 	}
 	tests := []struct {
@@ -527,8 +518,7 @@ func Test_cmdb_getBizInternalModule(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &GetBizInternalModuleReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 				},
 			},
 			wantErr: false,
@@ -550,10 +540,10 @@ func Test_cmdb_getBizInternalModule(t *testing.T) {
 
 // Test_cmdb_findTopoNodePaths...
 func Test_cmdb_findTopoNodePaths(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindTopoNodePathsReq
 	}
 	tests := []struct {
@@ -566,8 +556,7 @@ func Test_cmdb_findTopoNodePaths(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindTopoNodePathsReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 					BKNodes: []*Node{
 						{
 							BKObjID:  "module",
@@ -597,10 +586,10 @@ func Test_cmdb_findTopoNodePaths(t *testing.T) {
 
 // Test_cmdb_findModuleBatch...
 func Test_cmdb_findModuleBatch(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindModuleBatchReq
 	}
 	tests := []struct {
@@ -613,9 +602,8 @@ func Test_cmdb_findModuleBatch(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindModuleBatchReq{
-					TenantID: "0",
-					BKBizID:  2,
-					BKIDs:    []int64{1},
+					BKBizID: 2,
+					BKIDs:   []int64{1},
 					Fields: []string{
 						"bk_module_id",
 						"bk_module_name",
@@ -643,10 +631,10 @@ func Test_cmdb_findModuleBatch(t *testing.T) {
 
 // Test_cmdb_searchObjectAttribute...
 func Test_cmdb_searchObjectAttribute(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *SearchObjectAttributeReq
 	}
 	tests := []struct {
@@ -659,9 +647,8 @@ func Test_cmdb_searchObjectAttribute(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &SearchObjectAttributeReq{
-					TenantID: "0",
-					BKBizID:  CCNoBusinessID,
-					BKObjID:  "plat",
+					BKBizID: CCNoBusinessID,
+					BKObjID: "plat",
 				},
 			},
 			wantErr: false,
@@ -685,10 +672,10 @@ func Test_cmdb_searchObjectAttribute(t *testing.T) {
 
 // Test_cmdb_listServiceTemplate...
 func Test_cmdb_listServiceTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListServiceTemplateReq
 	}
 	tests := []struct {
@@ -701,7 +688,6 @@ func Test_cmdb_listServiceTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListServiceTemplateReq{
-					TenantID:            "0",
 					BKBizID:             2,
 					ServiceCategoryID:   0,
 					ServiceTemplateName: "",
@@ -735,10 +721,10 @@ func Test_cmdb_listServiceTemplate(t *testing.T) {
 
 // Test_cmdb_listServiceInstance...
 func Test_cmdb_listServiceInstance(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListServiceInstanceReq
 	}
 	tests := []struct {
@@ -751,7 +737,6 @@ func Test_cmdb_listServiceInstance(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListServiceInstanceReq{
-					TenantID:                 "0",
 					BKBizID:                  2,
 					BKModuleID:               0,
 					BKHostIDs:                []int64{1},
@@ -785,9 +770,10 @@ func Test_cmdb_listServiceInstance(t *testing.T) {
 
 // Test_cmdb_listProcessInstance...
 func Test_cmdb_listProcessInstance(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListProcessInstanceReq
 	}
 
@@ -801,7 +787,6 @@ func Test_cmdb_listProcessInstance(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListProcessInstanceReq{
-					TenantID:          "0",
 					BKBizID:           2,
 					ServiceInstanceID: 1,
 				},
@@ -828,9 +813,10 @@ func Test_cmdb_listProcessInstance(t *testing.T) {
 
 // Test_cmdb_listProcTemplate...
 func Test_cmdb_listProcTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListProcTemplateReq
 	}
 	tests := []struct {
@@ -870,9 +856,10 @@ func Test_cmdb_listProcTemplate(t *testing.T) {
 
 // Test_cmdb_findSetBatch...
 func Test_cmdb_findSetBatch(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindSetBatchReq
 	}
 	tests := []struct {
@@ -885,9 +872,8 @@ func Test_cmdb_findSetBatch(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindSetBatchReq{
-					TenantID: "0",
-					BKBizID:  2,
-					BKIDs:    []int64{1, 2, 3},
+					BKBizID: 2,
+					BKIDs:   []int64{1, 2, 3},
 					Fields: []string{
 						"bk_set_id",
 						"bk_set_name",
@@ -916,9 +902,10 @@ func Test_cmdb_findSetBatch(t *testing.T) {
 
 // Test_cmdb_searchSet...
 func Test_cmdb_searchSet(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *SearchSetReq
 	}
 
@@ -932,8 +919,7 @@ func Test_cmdb_searchSet(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &SearchSetReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 					Fields: []string{
 						"bk_set_id",
 						"bk_set_name",
@@ -967,9 +953,10 @@ func Test_cmdb_searchSet(t *testing.T) {
 
 // Test_cmdb_searchModule...
 func Test_cmdb_searchModule(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *SearchModuleReq
 	}
 
@@ -983,9 +970,8 @@ func Test_cmdb_searchModule(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &SearchModuleReq{
-					TenantID: "0",
-					BKBizID:  2,
-					BKSetID:  1,
+					BKBizID: 2,
+					BKSetID: 1,
 					Fields: []string{
 						"bk_module_id",
 						"bk_module_name",
@@ -1018,9 +1004,10 @@ func Test_cmdb_searchModule(t *testing.T) {
 
 // Test_cmdb_findHostTopoRelation...
 func Test_cmdb_findHostTopoRelation(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostTopoRelationReq
 	}
 
@@ -1034,7 +1021,6 @@ func Test_cmdb_findHostTopoRelation(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostTopoRelationReq{
-					TenantID:    "0",
 					BKBizID:     2,
 					BKSetIDs:    []int64{},
 					BKModuleIDs: []int64{},
@@ -1067,9 +1053,10 @@ func Test_cmdb_findHostTopoRelation(t *testing.T) {
 
 // Test_cmdb_findHostBizRelation...
 func Test_cmdb_findHostBizRelations(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostBizRelationsReq
 	}
 
@@ -1083,7 +1070,6 @@ func Test_cmdb_findHostBizRelations(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostBizRelationsReq{
-					TenantID: "0",
 					BKBizID:  2,
 					BKHostID: []int64{1},
 				},
@@ -1109,9 +1095,10 @@ func Test_cmdb_findHostBizRelations(t *testing.T) {
 
 // Test_cmdb_findHostByServiceTemplate...
 func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostByServiceTemplateReq
 	}
 
@@ -1125,7 +1112,6 @@ func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostByServiceTemplateReq{
-					TenantID:             "0",
 					BKBizID:              2,
 					BKServiceTemplateIDs: []int64{1},
 					BKModuleIDs:          []int64{},
@@ -1161,9 +1147,10 @@ func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
 
 // Test_cmdb_findHostBySetTemplate...
 func Test_cmdb_findHostBySetTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostBySetTemplateReq
 	}
 
@@ -1177,7 +1164,6 @@ func Test_cmdb_findHostBySetTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostBySetTemplateReq{
-					TenantID:         "0",
 					BKBizID:          2,
 					BKSetTemplateIDs: []int64{1},
 					BKSetIDs:         []int64{},
@@ -1213,9 +1199,10 @@ func Test_cmdb_findHostBySetTemplate(t *testing.T) {
 
 // Test_cmdb_findHostByTopo...
 func Test_cmdb_findHostByTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostByTopoReq
 	}
 
@@ -1229,7 +1216,6 @@ func Test_cmdb_findHostByTopo(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostByTopoReq{
-					TenantID: "0",
 					BKBizID:  2,
 					BKObjID:  "set",
 					BKInstID: 1,
@@ -1265,10 +1251,10 @@ func Test_cmdb_findHostByTopo(t *testing.T) {
 
 // Test_cmdb_findHostRelationsWithTopo...
 func Test_cmdb_findHostRelationsWithTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostRelationsWithTopoReq
 	}
 
@@ -1283,7 +1269,6 @@ func Test_cmdb_findHostRelationsWithTopo(t *testing.T) {
 
 				ctx: ctx,
 				req: &FindHostRelationsWithTopoReq{
-					TenantID:  "0",
 					BKBizID:   2,
 					BKObjID:   "set",
 					BKInstIDs: []int64{1},
@@ -1319,9 +1304,10 @@ func Test_cmdb_findHostRelationsWithTopo(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceDetail...
 func Test_cmdb_listServiceInstanceDetail(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListServiceInstanceDetailReq
 	}
 
@@ -1335,8 +1321,7 @@ func Test_cmdb_listServiceInstanceDetail(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListServiceInstanceDetailReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 					Page: Page{
 						Start: 0,
 						Limit: 500,
@@ -1365,9 +1350,10 @@ func Test_cmdb_listServiceInstanceDetail(t *testing.T) {
 
 // Test_cmdb_getMainlineObjectTopo...
 func Test_cmdb_getMainlineObjectTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *GetMainlineObjectTopoReq
 	}
 
@@ -1380,9 +1366,7 @@ func Test_cmdb_getMainlineObjectTopo(t *testing.T) {
 			name: "base",
 			args: args{
 				ctx: ctx,
-				req: &GetMainlineObjectTopoReq{
-					TenantID: "0",
-				},
+				req: &GetMainlineObjectTopoReq{},
 			},
 			wantErr: false,
 		},
@@ -1406,9 +1390,10 @@ func Test_cmdb_getMainlineObjectTopo(t *testing.T) {
 
 // Test_cmdb_listBizHostsTopo...
 func Test_cmdb_listBizHostsTopo(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListBizHostsTopoReq
 	}
 
@@ -1422,9 +1407,8 @@ func Test_cmdb_listBizHostsTopo(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListBizHostsTopoReq{
-					TenantID: "0",
-					BKBizID:  2,
-					Fields:   []string{},
+					BKBizID: 2,
+					Fields:  []string{},
 					Page: Page{
 						Start: 0,
 						Limit: 500,
@@ -1453,9 +1437,10 @@ func Test_cmdb_listBizHostsTopo(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceByHost...
 func Test_cmdb_listServiceInstanceByHost(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListServiceInstanceByHostReq
 	}
 
@@ -1469,7 +1454,6 @@ func Test_cmdb_listServiceInstanceByHost(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListServiceInstanceByHostReq{
-					TenantID: "0",
 					BKBizID:  2,
 					BKHostID: 1,
 					Page: Page{
@@ -1500,9 +1484,10 @@ func Test_cmdb_listServiceInstanceByHost(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceBySetTemplate...
 func Test_cmdb_listServiceInstanceBySetTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListServiceInstanceBySetTemplateReq
 	}
 
@@ -1516,7 +1501,6 @@ func Test_cmdb_listServiceInstanceBySetTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListServiceInstanceBySetTemplateReq{
-					TenantID:      "0",
 					BKBizID:       2,
 					SetTemplateID: 1,
 					Page: Page{
@@ -1547,9 +1531,10 @@ func Test_cmdb_listServiceInstanceBySetTemplate(t *testing.T) {
 
 // Test_cmdb_listSetTemplate...
 func Test_cmdb_listSetTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *ListSetTemplateReq
 	}
 
@@ -1563,8 +1548,7 @@ func Test_cmdb_listSetTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &ListSetTemplateReq{
-					TenantID: "0",
-					BKBizID:  2,
+					BKBizID: 2,
 					Page: Page{
 						Start: 0,
 						Limit: 500,
@@ -1593,10 +1577,10 @@ func Test_cmdb_listSetTemplate(t *testing.T) {
 
 // Test_handler_dynamicGroup...
 func Test_cmdb_dynamicGroup(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		bizID     int64
 		objID     string
 		groupName string
@@ -1629,7 +1613,7 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testCCClient(t)
 
-			createReq := &CreateDynamicGroupReq{TenantID: "0"}
+			createReq := &CreateDynamicGroupReq{}
 			createReq.BKBizID = tt.args.bizID
 			createReq.BKObjID = tt.args.objID
 			createReq.Name = tt.args.groupName
@@ -1653,11 +1637,10 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 			t.Logf("groupID: %#v", group)
 
 			executeReq := &ExecuteDynamicGroupReq{
-				TenantID: "0",
-				BKBizID:  tt.args.bizID,
-				ID:       group.ID,
-				Fields:   []string{"bk_host_id", "bk_host_name"},
-				Page:     tt.args.page,
+				BKBizID: tt.args.bizID,
+				ID:      group.ID,
+				Fields:  []string{"bk_host_id", "bk_host_name"},
+				Page:    tt.args.page,
 			}
 			got, err := h.executeDynamicGroup(tt.args.ctx, executeReq)
 			if (err != nil) != tt.wantErr {
@@ -1670,9 +1653,8 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 			}
 
 			getReq := &GetDynamicGroupReq{
-				TenantID: "0",
-				BKBizID:  tt.args.bizID,
-				ID:       group.ID,
+				BKBizID: tt.args.bizID,
+				ID:      group.ID,
 			}
 			dynamicGroup, err := h.getDynamicGroup(tt.args.ctx, getReq)
 			if (err != nil) != tt.wantErr {
@@ -1682,9 +1664,7 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 
 			t.Logf("group: %#v", dynamicGroup)
 
-			updateReq := &UpdateDynamicGroupReq{
-				TenantID: "0",
-			}
+			updateReq := &UpdateDynamicGroupReq{}
 			updateReq.Name = "nodemgr_test_update"
 			updateReq.ID = dynamicGroup.ID
 			updateReq.BKBizID = dynamicGroup.BKBizID
@@ -1703,9 +1683,8 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 			t.Logf("group: %#v", got)
 
 			deleteReq := &DeleteDynamicGroupReq{
-				TenantID: "0",
-				BKBizID:  tt.args.bizID,
-				ID:       group.ID,
+				BKBizID: tt.args.bizID,
+				ID:      group.ID,
 			}
 			err = h.deleteDynamicGroup(tt.args.ctx, deleteReq)
 			if (err != nil) != tt.wantErr {
@@ -1718,10 +1697,10 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 
 // Test_cmdb_findHostServiceTemplate...
 func Test_cmdb_findHostServiceTemplate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "0")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		req *FindHostServiceTemplateReq
 	}
 
@@ -1735,7 +1714,6 @@ func Test_cmdb_findHostServiceTemplate(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				req: &FindHostServiceTemplateReq{
-					TenantID: "0",
 					BKHostID: []int64{},
 				},
 			},

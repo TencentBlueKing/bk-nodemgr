@@ -102,8 +102,6 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	}
 	_ = envx.LoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
 	_ = envx.LoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
-	_ = envx.LoadString("NODEMAN_BACKEND_BK_TICKET", &svc.Backend.BkTicket)
-	_ = envx.LoadString("NODEMAN_BACKEND_BK_TOKEN", &svc.Backend.BkToken)
 	_ = envx.LoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
 	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
 		return err

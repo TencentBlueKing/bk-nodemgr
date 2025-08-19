@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -44,6 +45,7 @@ func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness to
 // SyncBizFromCMDBParam the action's param.
 type SyncBizFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 type actionSyncBusinessFromCMDB struct {
@@ -102,7 +104,8 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 
 	executor := runtime.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
-		bizs, err := act.cmdbHandler.SearchBusiness(ctx, p)
+		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, param.Operator)
+		bizs, err := act.cmdbHandler.SearchBusiness(tenantUserCtx, p)
 		if err != nil {
 			return nil, err
 		}

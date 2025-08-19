@@ -19,17 +19,13 @@ import (
 
 // app blueking apigw application info.
 type app struct {
-	Version  int64  `json:"version"`
-	AppCode  string `json:"app_code"`
-	Verified bool   `json:"verified"`
+	AppCode           string `json:"app_code"`
+	Verified          bool   `json:"verified"`
+	ValidErrorMessage string `json:"valid_error_message"`
 }
 
 // Validate app.
 func (a *app) Validate() error {
-	if !a.Verified {
-		return errors.New("app not verified")
-	}
-
 	if a.AppCode == "" {
 		return errors.New("app code is required")
 	}
@@ -39,16 +35,13 @@ func (a *app) Validate() error {
 
 // user blueking apigw user info.
 type user struct {
-	UserName string `json:"username"`
-	Verified bool   `json:"verified"`
+	UserName          string `json:"username"`
+	Verified          bool   `json:"verified"`
+	ValidErrorMessage string `json:"valid_error_message"`
 }
 
 // Validate user.
 func (u *user) Validate() error {
-	if !u.Verified {
-		return errors.New("user not verified")
-	}
-
 	if u.UserName == "" {
 		return errors.New("username is required")
 	}
@@ -56,57 +49,91 @@ func (u *user) Validate() error {
 	return nil
 }
 
-// bkClaims blueking apigw api gateway jwt struct.
-type bkClaims struct {
+// bkAppStateClaims jwt certification for application states.
+type bkAppStateClaims struct {
 	App  app  `json:"app"`
 	User user `json:"user"`
 	jwt.RegisteredClaims
 }
 
-// Validate bkClaims.
-func (c *bkClaims) Validate() error {
-	if err := c.App.Validate(); err != nil {
+// Validate bkAppStateClaims.
+func (claims *bkAppStateClaims) Validate() error {
+	if err := claims.App.Validate(); err != nil {
 		return err
 	}
 
-	if err := c.User.Validate(); err != nil {
+	if err := claims.User.Validate(); err != nil {
 		return err
+	}
+
+	if !claims.App.Verified {
+		return errors.New(claims.App.ValidErrorMessage)
 	}
 
 	return nil
 }
 
-// parseToken parse token by jwt token and secret.
-func parseToken(token string, pem []byte) (*bkClaims, error) {
-	// parse public key.
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(pem)
-	if err != nil {
-		return nil, err
+// bkUserStateClaims jwt certification for user states.
+type bkUserStateClaims struct {
+	App  app  `json:"app"`
+	User user `json:"user"`
+	jwt.RegisteredClaims
+}
+
+// Validate bkUserStateClaims.
+func (claims *bkUserStateClaims) Validate() error {
+	if err := claims.App.Validate(); err != nil {
+		return err
 	}
 
-	tokenClaims, err := jwt.ParseWithClaims(token, &bkClaims{}, func(token *jwt.Token) (interface{}, error) {
+	if err := claims.User.Validate(); err != nil {
+		return err
+	}
+
+	if !claims.App.Verified {
+		return errors.New(claims.App.ValidErrorMessage)
+	}
+
+	if !claims.User.Verified {
+		return errors.New(claims.User.ValidErrorMessage)
+	}
+
+	return nil
+}
+
+// parseToken parse token by jwt token and secret for application states.
+func parseToken(token string, pem []byte, claims jwt.Claims) error {
+	keyFunc := func(token *jwt.Token) (interface{}, error) {
+		// parse public key.
+		publicKey, err := jwt.ParseRSAPublicKeyFromPEM(pem)
+		if err != nil {
+			return nil, fmt.Errorf("parse public key error: %v", err)
+		}
+
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return publicKey, nil
-	})
+	}
+
+	tokenClaims, err := jwt.ParseWithClaims(token, claims, keyFunc)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if tokenClaims == nil {
-		return nil, errors.New("can not get token from parse with claims")
+		return errors.New("can not get token from parse with claims")
 	}
 
-	claims, ok := tokenClaims.Claims.(*bkClaims)
+	_, ok := tokenClaims.Claims.(jwt.Claims)
 	if !ok {
-		return nil, errors.New("token claims type error")
+		return errors.New("token claims type error")
 	}
 
 	if !tokenClaims.Valid {
-		return nil, errors.New("token claims valid failed")
+		return errors.New("token claims valid failed")
 	}
 
-	return claims, nil
+	return nil
 }

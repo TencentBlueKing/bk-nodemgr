@@ -17,6 +17,7 @@ import (
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -48,7 +49,8 @@ func NewActionBindAgentHostRel(
 
 // ActParamBindAgentHostRel ...
 type ActParamBindAgentHostRel struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 type actionBindAgentHostRel struct {
@@ -120,7 +122,8 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.BindHostAgent(tenantCtx, &info.Host); err != nil {
+		tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator)
+		if err := act.BindHostAgent(tenantUserCtx, &info.Host); err != nil {
 			return err
 		}
 

@@ -92,7 +92,7 @@ func (act *actionVersionCompatCheck) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-// nolint: funlen,fnsize,nonamedreturns
+// nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamVersionCompatCheck)

@@ -17,33 +17,30 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
 // LoadAuthHeader load auth header from environment variables.
-func LoadAuthHeader() (apigwclient.Config, error) {
+func LoadAuthHeader() (apigwclient.AppConfig, error) {
 	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
 	header := make(map[string]string, 0)
 	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
-		return apigwclient.Config{}, err
+		return apigwclient.AppConfig{}, err
 	}
 
-	apigwClientConfig := apigwclient.Config{
-		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
-		AppCode:   header["bk_app_code"],
-		AppSecret: header["bk_app_secret"],
-		User:      header["bk_username"],
-		AuthMode:  apigwclient.AuthModeUn,
-	}
+	apigwAppConfig := apigwclient.NewAppConfig(
+		[]string{os.Getenv("BK_APIGW_ENDPOINT")},
+		header["bk_app_code"],
+		header["bk_app_secret"])
 
-	return apigwClientConfig, nil
+	return apigwAppConfig, nil
 }
 
 // testClient ...
@@ -74,7 +71,7 @@ func testClient(t *testing.T) Handler {
 	}
 
 	h, err := New(clientCap, Config{
-		APIGWClientConfig: apigwClientConfig,
+		APIGWAppConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -85,10 +82,10 @@ func testClient(t *testing.T) Handler {
 
 // Test_handler_ListBusiness list business.
 func Test_handler_ListBusiness(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		page      types.Page
 		condition *types.BusinessCondition
 	}
@@ -158,10 +155,10 @@ func Test_handler_ListBusiness(t *testing.T) {
 
 // Test_hanlder_ListHost list host.
 func Test_hanlder_ListHost(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		page      types.Page
 		condition *types.HostCondition
 	}
@@ -231,10 +228,10 @@ func Test_hanlder_ListHost(t *testing.T) {
 
 // Test_hanlder_ListNetworkArea list networkarea.
 func Test_hanlder_ListNetworkArea(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		page      types.Page
 		condition *types.NetworkAreaCondition
 	}
@@ -304,10 +301,10 @@ func Test_hanlder_ListNetworkArea(t *testing.T) {
 
 // Test_hanlder_ListNetworkUnit list networkunit.
 func Test_hanlder_ListNetworkUnit(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		page      types.Page
 		condition *types.NetworkUnitCondition
 	}
@@ -377,10 +374,10 @@ func Test_hanlder_ListNetworkUnit(t *testing.T) {
 
 // Test_hanlder_ListNetworkArea get network area.
 func Test_hanlder_GetNetworkArea(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		id  int64
 	}
 	tests := []struct {
@@ -421,10 +418,10 @@ func Test_hanlder_GetNetworkArea(t *testing.T) {
 
 // Test_hanlder_GetNetworkUnit get network unit.
 func Test_hanlder_GetNetworkUnit(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		id  int64
 	}
 	tests := []struct {
@@ -473,10 +470,10 @@ func Test_hanlder_GetNetworkUnit(t *testing.T) {
 
 // Test_hanlder_CreateNetworkUnit create network unit.
 func Test_handler_CreateNetworkUnit(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx          context.Context
+		ctx          contextx.ITenantUserContext
 		networkunit  *types.NetworkUnit
 		accesspoints []*types.AccessPoint
 	}
@@ -553,10 +550,10 @@ func Test_handler_CreateNetworkUnit(t *testing.T) {
 
 // Test_handler_UpdateNetworkUnit update network unit.
 func Test_handler_UpdateNetworkUnit(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx          context.Context
+		ctx          contextx.ITenantUserContext
 		networkunit  *types.NetworkUnit
 		accesspoints []*types.AccessPoint
 	}
@@ -636,10 +633,10 @@ func Test_handler_UpdateNetworkUnit(t *testing.T) {
 
 // Test_handler_UpdateNetworkUnit
 func Test_handler_DeleteNetworkUnit(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx context.Context
+		ctx contextx.ITenantUserContext
 		id  int64
 	}
 	tests := []struct {
@@ -686,10 +683,10 @@ func Test_handler_DeleteNetworkUnit(t *testing.T) {
 
 // Test_handler_ListAccessPoint list access point.
 func Test_handler_ListAccessPoint(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx       context.Context
+		ctx       contextx.ITenantUserContext
 		page      types.Page
 		condition *types.AccessPointCondition
 	}
@@ -759,10 +756,10 @@ func Test_handler_ListAccessPoint(t *testing.T) {
 
 // Test_hander_GetConstant get constant
 func Test_hander_GetConstant(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
 
 	type args struct {
-		ctx    context.Context
+		ctx    contextx.ITenantUserContext
 		fields types.TopoConstantFields
 	}
 	tests := []struct {

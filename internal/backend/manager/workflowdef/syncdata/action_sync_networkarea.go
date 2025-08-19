@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -41,6 +42,7 @@ func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler,
 // SyncNetworkAreaFromCMDBParam describes the parameters.
 type SyncNetworkAreaFromCMDBParam struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 type actionSyncNetworkAreaFromCMDB struct {
@@ -93,19 +95,20 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
 	executor := runtime.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := act.cmdbHandler.SearchNetworkArea(ctx, p)
+		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, param.Operator)
+		networkareas, err := act.cmdbHandler.SearchNetworkArea(tenantUserCtx, p)
 		if err != nil {
 			return nil, err
 		}
 
 		return networkareas, nil
+	}
+
+	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
+	if err != nil {
+		return err
 	}
 
 	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)

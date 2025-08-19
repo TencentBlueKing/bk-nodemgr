@@ -234,10 +234,6 @@ type APIGatewayClient struct {
 	User string `yaml:"user"`
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode string `yaml:"authMode"`
-	// BkTicket is the BlueKing access ticket of nodeman to request api gateway.
-	BkTicket string `yaml:"bkTicket"`
-	// BkToken is the BlueKing user token of nodeman to request api gateway.
-	BkToken string `yaml:"bkToken"`
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string `yaml:"accessToken"`
 	// TLS defines the tls config of api-gateway.

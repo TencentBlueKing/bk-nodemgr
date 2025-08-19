@@ -48,7 +48,7 @@ func (h *handler) ProxyInstall(ctx *restserver.Context) (interface{}, error) {
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
 
-		nodeDeploy, err := h.genNodeDeployMent(ctx, ctx.TenantID, reqHost, targetVersions)
+		nodeDeploy, err := h.genNodeDeployMent(ctx, ctx.TenantID(), reqHost, targetVersions)
 		if err != nil {
 			h.logger.Errorf("failed to install proxy, failed to generate node deployment. err: %v", err)
 
@@ -66,7 +66,7 @@ func (h *handler) ProxyInstall(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallProxy,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.LoginName,
+		Operator:        ctx.LoginName(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

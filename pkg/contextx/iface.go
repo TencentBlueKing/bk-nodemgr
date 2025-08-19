@@ -8,27 +8,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package header define the blueking common header.
-package header
+package contextx
 
 import (
-	"net/http"
+	"context"
 )
 
-const (
-	// BKGWRIDKey is request id header key.
-	BKGWRIDKey = "X-Bkapi-Request-Id"
+// IUserContext user context.
+type IUserContext interface {
+	context.Context
+	LoginName() string
+}
 
-	// BKGWJWTTokenKey is blueking api gateway jwt header key.
-	BKGWJWTTokenKey = "X-Bkapi-JWT"
+// ITenantContext tenant context.
+type ITenantContext interface {
+	context.Context
+	TenantID() string
+}
 
-	// BKGWAuthKey is blueking api gateway authorization header key.
-	BKGWAuthKey = "X-Bkapi-Authorization"
-)
-
-// BKRIDGetter request id value.
-func BKRIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKGWRIDKey)
-
-	return id
+// ITenantUserContext tenant user context.
+type ITenantUserContext interface {
+	context.Context
+	ITenantContext
+	IUserContext
 }
