@@ -31,11 +31,11 @@ import (
 
 const (
 	// ActionNamePagentDetectInfoBySSH defines the action name.
-	ActionNamePagentDetectInfoBySSH = "pagent_detect_info_by_ssh"
+	ActionNamePagentDetectInfoByWMI = "pagent_detect_info_by_wmi"
 )
 
 // NewActionDetectInfoBySSH get a new action.
-func NewActionPagentDetectInfoBySSH(
+func NewActionPagentDetectInfoByWMI(
 	logger logger.Logger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
@@ -44,7 +44,7 @@ func NewActionPagentDetectInfoBySSH(
 	proxyMessager relayhandler.IServerMessager,
 ) action.Definition {
 
-	return &actionPagentDetectInfoBySSH{
+	return &actionPagentDetectInfoByWMI{
 		logger: logger,
 
 		storageHostCredit:     storageHostCredit,
@@ -57,13 +57,13 @@ func NewActionPagentDetectInfoBySSH(
 	}
 }
 
-// ActParamPagentDetectInfoBySSH ...
-type ActParamPagentDetectInfoBySSH struct {
+// ActParamPagentDetectInfoByWMI ...
+type ActParamPagentDetectInfoByWMI struct {
 	Token    string `json:"token"`
 	Operator string `json:"operator"`
 }
 
-type actionPagentDetectInfoBySSH struct {
+type actionPagentDetectInfoByWMI struct {
 	logger                logger.Logger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
@@ -73,38 +73,38 @@ type actionPagentDetectInfoBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *actionPagentDetectInfoBySSH) Name() string {
+func (act *actionPagentDetectInfoByWMI) Name() string {
 	return ActionNameDetectInfoBySSH
 }
 
 // Version returns the version of the action.
-func (act *actionPagentDetectInfoBySSH) Version() string {
+func (act *actionPagentDetectInfoByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionPagentDetectInfoBySSH) Description() string {
-	return "Use ssh to connect to the target machine, detect the target machine's OS type and CPU architecture, " +
+func (act *actionPagentDetectInfoByWMI) Description() string {
+	return "Let relay use wmi to connect to the target machine, detect the target machine's OS type and CPU architecture, " +
 		"then use these info detect pkg version."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionPagentDetectInfoBySSH) Timeout() time.Duration {
+func (act *actionPagentDetectInfoByWMI) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionPagentDetectInfoBySSH) Tags() []action.Tag {
+func (act *actionPagentDetectInfoByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
+func (act *actionPagentDetectInfoByWMI) MaxRetryCount() uint {
 	return 5 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
+func (act *actionPagentDetectInfoByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -114,7 +114,7 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -206,7 +206,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
+func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
 	files []protoRelay.FileInfo, agentID string) error {
 
 	checkPkgEvent := protoRelay.CheckPkgStateReq{
@@ -238,7 +238,7 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 }
 
 // waitForPkgsState waits for relay client to report package states.
-func (act *actionPagentDetectInfoBySSH) waitForPkgsState(ctx *action.InstanceContext, pkgNames []string) (
+func (act *actionPagentDetectInfoByWMI) waitForPkgsState(ctx *action.InstanceContext, pkgNames []string) (
 	map[string]bool, string, error) {
 
 	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForClientReportTimeout)
@@ -279,16 +279,6 @@ func (act *actionPagentDetectInfoBySSH) waitForPkgsState(ctx *action.InstanceCon
 				return results, fileStorageDir, errors.New("unexpected type for file state")
 			}
 
-			// get relay report storage directory path.
-			storageDir, err := act.extractStorageDir(fileState)
-			if err != nil {
-				return results, fileStorageDir, err
-			}
-			fileStorageDir = storageDir
-
-			// update file state results.
-			count := act.updateResultsWithState(fileState, results, ctx)
-			completedCount += count
 		}
 	}
 
