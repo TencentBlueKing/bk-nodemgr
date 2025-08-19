@@ -503,74 +503,23 @@ func (mgr *manager) createOper(
 	// TODO: distinguish between pagent and agent based on workunitID
 	var operationDef operation.Definition
 
-	// [debug]
-	if deploy.Info.Host.Static.InnerIP == "192.168.9.100" {
-		relayhost, _, _ := mgr.conf.StorageTopo.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
-				HostID: []int64{52287},
-			},
-		})
-		relay := types.RelayInfo{
-			HostID:     relayhost[0].HostID,
-			AgentID:    relayhost[0].Dynamic.AgentID,
-			NodeOsType: relayhost[0].Dynamic.NodeOsType,
-		}
-		deploy.Info.RelayInfo = relay
-
-		mgr.logger.Infof("createOper: %s", deploy.Info.RelayInfo)
-
-		deploy.Info.Host.Dynamic.NodeOsType = criteria.OSLinux
-		deploy.Info.Host.Dynamic.NodeCPUArch = criteria.CPUArchAmd64
-		deploy.Info.Host.Dynamic.NodeVersion = "v2.1.6-beta.59"
-		deploy.Info.Host.Dynamic.NodeGeneration = 2
-
-		err := mgr.conf.StorageNodeDeployment.UpdateInfo(ctx, deploy.Token, deploy.Info)
-		if err != nil {
-			mgr.logger.Errorf("failed to update node deployment: %v", err)
-			return err
-		}
-		operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+	switch deploy.Info.Host.Static.OSType {
+	case string(criteria.OSLinux), string(criteria.OSDarwin):
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
-		// end [debug]
-	} else {
-		switch deploy.Info.Host.Static.OSType {
-		case string(criteria.OSLinux), string(criteria.OSDarwin):
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		case string(criteria.OSWindows):
-			operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		default:
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
+	case string(criteria.OSWindows):
+		operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	default:
+		operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 	}
-
-	// switch deploy.Info.Host.Static.OSType {
-	// case string(criteria.OSLinux), string(criteria.OSDarwin):
-	// 	operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-	// 		Token:    deploy.Token,
-	// 		Operator: operator,
-	// 	})
-	// case string(criteria.OSWindows):
-	// 	operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
-	// 		Token:    deploy.Token,
-	// 		Operator: operator,
-	// 	})
-	// default:
-	// 	operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-	// 		Token:    deploy.Token,
-	// 		Operator: operator,
-	// 	})
-	// }
 
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)

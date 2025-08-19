@@ -216,19 +216,19 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 
 		return fmt.Errorf("failed to wait for package states: %w", err)
 	}
-	if storageTmpDir != "" {
+	if storageTmpDir == "" {
 		ctx.Data.LogE("failed to wait for package states. get empty storage dir")
 		act.logger.ErrorCtxf(ctx.Ctx, "failed to wait for package states. get empty storage dir")
 
 		return errors.New("failed to wait for package states. get empty storage dir")
 	}
-	info.RelayInfo.PackageDestDir = relayInfo.PackageDestDir
+	info.RelayInfo.PackageDestDir = storageTmpDir
 
 	var transferredPkgs []string
 	gp := gopool.NewPool()
 
 	if !pkgStates[releasePkgInfo.FileName] {
-		transferredPkgs = append(transferredPkgs, installPkgInfo.Info().Name)
+		transferredPkgs = append(transferredPkgs, releasePkgInfo.FileName)
 		gp.Go(func() error {
 			ctx.Data.LogI(fmt.Sprintf("start transfer release package. file-name(%s)", releasePkgInfo.FileName))
 			if transferErr := act.transferReleasePkg(
@@ -237,12 +237,14 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 
 				return fmt.Errorf("failed to transfer release package: %w", transferErr)
 			}
-			ctx.Data.LogI(fmt.Sprintf("transfer release package success. file-name(%s)", releasePkgInfo.FileName))
+			ctx.Data.LogI(fmt.Sprintf("transfer release package success. file-name(%s). dest-dir(%s)", releasePkgInfo.FileName,
+				info.RelayInfo.PackageDestDir))
 
 			return nil
 		})
+	} else {
+		ctx.Data.LogI(fmt.Sprintf("release package already exists. skip transfer. file-name(%s)", releasePkgInfo.FileName))
 	}
-	ctx.Data.LogI(fmt.Sprintf("release package already exists. skip transfer. file-name(%s)", releasePkgInfo.FileName))
 
 	if !pkgStates[installPkgInfo.Info().Name] {
 		transferredPkgs = append(transferredPkgs, installPkgInfo.Info().Name)
@@ -253,13 +255,15 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 				return fmt.Errorf("failed to transfer installer package: %w", transferErr)
 			}
 
-			ctx.Data.LogI(fmt.Sprintf("transfer installer package success. file-name(%s)", installPkgInfo.Info().Name))
+			ctx.Data.LogI(fmt.Sprintf("transfer installer package success. file-name(%s). dest-dir(%s)",
+				installPkgInfo.Info().Name, info.RelayInfo.PackageDestDir))
 
 			return nil
 		})
+	} else {
+		ctx.Data.LogI(fmt.Sprintf("installer package already exists. skip transfer. file-name(%s)",
+			installPkgInfo.Info().Name))
 	}
-	ctx.Data.LogI(fmt.Sprintf("installer package already exists. skip transfer. file-name(%s)",
-		installPkgInfo.Info().Name))
 
 	if len(transferredPkgs) > 0 {
 		if err := gp.Wait(); err != nil {
@@ -487,28 +491,28 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx *action.InstanceContex
 
 	ctx.Data.LogI(fmt.Sprintf("launched transfer release. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "launched transfer release. task-id(%s), host-id(%d)",
+	act.logger.InfoCtxf(ctx.Ctx, "launched transfer release. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID)
 
 	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d): %w",
+		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), relay-host-id(%d): %w",
 			transferHandler.GetTaskID(), relayInfo.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer release not terminated. task-id(%s), host-id(%d)",
+		return fmt.Errorf("transfer release not terminated. task-id(%s), relay-host-id(%d)",
 			transferHandler.GetTaskID(), relayInfo.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer release failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+		return fmt.Errorf("transfer release failed. task-id(%s), relay-host-id(%d), err-code(%d), err-msg(%s)",
 			transferHandler.GetTaskID(), relayInfo.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("transfer release done. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "transfer release done. task-id(%s), host-id(%d)",
+	act.logger.InfoCtxf(ctx.Ctx, "transfer release done. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID)
 
 	return nil
@@ -517,7 +521,7 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx *action.InstanceContex
 func (act *actionEnsurePkgToRelay) transferInstaller(ctx *action.InstanceContext,
 	info *types.Host, relayInfo *types.RelayInfo) error {
 
-	act.logger.Infof("transfer installer. host-id(%d)", info.HostID)
+	act.logger.Infof("transfer installer. relay-host-id(%d)", relayInfo.HostID)
 	ctx.Data.LogI(fmt.Sprintf("transfer installer to relay. relay-host-id(%d)", relayInfo.HostID))
 
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx.Ctx,
@@ -529,35 +533,35 @@ func (act *actionEnsurePkgToRelay) transferInstaller(ctx *action.InstanceContext
 		relayInfo.PackageDestDir,
 		&types.Host{HostID: relayInfo.HostID})
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer installer. host-id(%d): %v", info.HostID, err))
-		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.HostID, err)
+		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer installer. relay-host-id(%d): %v", relayInfo.HostID, err))
+		return fmt.Errorf("failed to launch transfer installer. relay-host-id(%d): %w", relayInfo.HostID, err)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("launched transfer installer. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "launched transfer installer. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.HostID)
+	act.logger.InfoCtxf(ctx.Ctx, "launched transfer installer. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID)
 
 	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d): %w",
-			transferHandler.GetTaskID(), info.HostID, err)
+		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), relay-host-id(%d): %w",
+			transferHandler.GetTaskID(), relayInfo.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer installer not terminated. task-id(%s), host-id(%d)",
-			transferHandler.GetTaskID(), info.HostID)
+		return fmt.Errorf("transfer installer not terminated. task-id(%s), relay-host-id(%d)",
+			transferHandler.GetTaskID(), relayInfo.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer installer failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
-			transferHandler.GetTaskID(), info.HostID, result.ErrorCode, result.ErrorMessage)
+		return fmt.Errorf("transfer installer failed. task-id(%s), relay-host-id(%d), err-code(%d), err-msg(%s)",
+			transferHandler.GetTaskID(), relayInfo.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("transfer installer done. task-id(%s), relay-host-id(%d)",
 		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "transfer installer done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.HostID)
+	act.logger.InfoCtxf(ctx.Ctx, "transfer installer done. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), relayInfo.HostID)
 
 	return nil
 }
