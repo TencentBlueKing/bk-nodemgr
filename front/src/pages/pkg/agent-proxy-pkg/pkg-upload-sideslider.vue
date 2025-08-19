@@ -67,7 +67,7 @@ const submit = async () => {
     upload_id: uploadData.value?.upload_id
   });
   isShow.value = false;
-  emit('comfirm');
+  emit('confirm');
 }
 watch(
   () => isShow.value,

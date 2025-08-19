@@ -1,5 +1,5 @@
 <template>
-    <Cascader v-model="area" :list="copylist" :scroll-height="136" trigger="click" @change="handleChange" @toggle="handleToggle">
+    <Cascader v-model="area" :list="copylist" :scroll-height="76" trigger="click" @change="handleChange" @toggle="handleToggle">
         <template #trigger>
             <Button>
                 <span>复制</span>

@@ -193,7 +193,7 @@ const fetchRecordList = async () => {
     loading.value = true;
     const params = {
       page: {
-        offset: pagination.current - 1,
+        offset: (pagination.current - 1)*pagination.limit,
         limit: pagination.limit,
       },
       exact_include_conditions: exactData.value,
