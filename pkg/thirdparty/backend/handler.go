@@ -928,15 +928,10 @@ func (h *handler) CountRelease(ctx contextx.ITenantUserContext, condition *types
 }
 
 // DistinctRelease distincts release by conditions.
-<<<<<<< HEAD
-func (h *handler) DistinctRelease(ctx context.Context, _ types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (
-	*types.ReleaseDistinctResult, error) {
-=======
 func (h *handler) DistinctRelease(
 	ctx contextx.ITenantUserContext,
 	_ types.ReleaseDistinctRequest,
 	condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
->>>>>>> master
 
 	req := &protoBackend.PackageReleaseDistinctReq{}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
