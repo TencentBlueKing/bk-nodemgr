@@ -210,14 +210,14 @@ func (act *actionEnsurePkgToRelay) getRequiredPackages(
 
 	releasePkg, err := act.getReleasePackageInfo(ctx.Ctx, info)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("get release package failed: %s", err))
+		ctx.Data.LogE(fmt.Sprintf("get release package failed: %v", err))
 		return nil, nil, fmt.Errorf("get release package: %w", err)
 	}
 	ctx.Data.LogI(fmt.Sprintf("get release package info. file-name(%s)", releasePkg.FileName))
 
 	installPkg, err := act.getInstallerFile(ctx.Ctx, info)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("get installer package failed: %s", err))
+		ctx.Data.LogE(fmt.Sprintf("get installer package failed: %v", err))
 		return nil, nil, fmt.Errorf("get installer package: %w", err)
 	}
 	ctx.Data.LogI(fmt.Sprintf("get installer package info. file-name(%s)", installPkg.Info().Name))
