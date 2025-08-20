@@ -1,7 +1,4 @@
 <template>
-  <PageHeader class="w-full sticky top-0 z-1" :title="title" :back="false">
-    <!-- <Tag radius="14px" class="ml-[20px]">当前版本：{{ curAgentVersion }}</Tag> -->
-  </PageHeader>
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
@@ -197,10 +194,6 @@ import { EditLine } from "bkui-vue/lib/icon";
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const title = computed(() =>
-  route.name === "agentPackageMng" ? t("Agent 包管理") : t("Proxy 包管理")
-);
-const curAgentVersion = ref("v2.2.6-beta.30");
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);

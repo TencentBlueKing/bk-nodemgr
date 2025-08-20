@@ -22,6 +22,7 @@
         }"
         class="mr-[8px]"
         @click="submit"
+        :loading="loading"
         >提交</Button
       >
       <Button @click="handleBeforeClose">取消</Button>
@@ -40,7 +41,9 @@ import UploadResultTable from "./upload-result-table.vue";
 import type { PackageUploadOriginAgentRespData } from "@/@types/pkg";
 import { usePackageStore } from '@/stores/package';
 import { PackageService } from "@/api/modules/pkg";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const isShow = defineModel("isShow", { type: Boolean });
 const emit = defineEmits('confirm')
 const hasPkg = computed(() => !!uploadData.value);
@@ -62,10 +65,19 @@ const handleBeforeClose = () =>
 const handleUpload = (data: PackageUploadOriginAgentRespData) => {
   uploadData.value = {...data};
 };
+const loading = ref(false);
 const submit = async () => {
-  await PackageService.PublishReleaseAgent({
-    upload_id: uploadData.value?.upload_id
-  });
+  loading.value = true;
+  if (route.name === "agentPackageMng") {
+    await PackageService.PublishReleaseAgent({
+      upload_id: uploadData.value?.upload_id
+    });
+  } else {
+    await PackageService.PublishReleaseProxy({
+      upload_id: uploadData.value?.upload_id
+    });
+  }
+  loading.value = false;
   isShow.value = false;
   emit('confirm');
 }

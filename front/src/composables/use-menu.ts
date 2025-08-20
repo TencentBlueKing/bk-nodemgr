@@ -133,6 +133,16 @@ const navList = [
             routeName: 'proxyPackageMng',
             icon: 'nodeman-icon nc-package-2',
             title: i18n.global.t('Proxy 包管理'),
+          },
+          {
+            routeName: 'certMng',
+            icon: 'nodeman-icon nc-backstage',
+            title: i18n.global.t('证书管理'),
+          },
+          {
+            routeName: 'bintoolMng',
+            icon: 'nodeman-icon nc-manual',
+            title: i18n.global.t('工具管理'),
           }
         ]
       },

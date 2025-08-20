@@ -1,7 +1,4 @@
 <template>
-  <PageHeader class="w-full sticky top-0 z-1" :title="title" :back="false">
-    <!-- <Tag radius="14px" class="ml-[20px]">当前版本：{{ curAgentVersion }}</Tag> -->
-  </PageHeader>
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
@@ -227,7 +224,7 @@
                   >停用</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认停用该 Agent 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？</div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
@@ -259,7 +256,7 @@
                   >删除</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认删除该 Agent 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">确认删除该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？</div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
@@ -324,10 +321,7 @@ const router = useRouter();
 const mainStore = useMainStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
-const title = computed(() =>
-  route.name === "agentPackageMng" ? t("Agent 包管理") : t("Proxy 包管理")
-);
-const curAgentVersion = ref("v2.2.6-beta.30");
+const currentType = computed(() => route.name === "agentPackageMng" ? "agent" : "proxy");
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
@@ -609,10 +603,9 @@ const handleUpload = () => {
 }
 const getPackages = async () => {
   loading.value = true;
-  const currentType = route.name === "agentPackageMng" ? "agent" : "proxy";
   const res = await PackageService.ListRelease({
     exact_include_conditions: {
-      release_type: [currentType],
+      release_type: [currentType.value],
     },
   });
   const hostList = await PackageService.DeployedHostCount({
@@ -691,6 +684,11 @@ watch(
 watch(
   () => route.name,
   async () => {
+    searchSelectValue.value = [];
+    filterOptionSource.version.checked = [];
+    filterOptionSource.labels.checked = [];
+    filterOptionSource.operator.checked = [];
+    filterOptionSource.enabled.checked = [];
     await getPackages();
   },
   { immediate: true }
