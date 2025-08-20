@@ -424,7 +424,7 @@ type UpdateHostCloudAreaFieldReq struct {
 // UpdateHostCloudAreaFieldResp describe the response data of update_host_cloud_area_field.
 type UpdateHostCloudAreaFieldResp string
 
-// CloudArea cloud area info
+// CloudArea cloud area info.
 type CloudArea struct {
 	BKCloudID         int64     `json:"bk_cloud_id"`
 	BKCloudName       string    `json:"bk_cloud_name"`
@@ -1509,4 +1509,3 @@ type HostEventInfo = EventInfo[*HostInfo]
 
 // HostRelationEventInfo describe the host relation event info define by cmdb.
 type HostRelationEventInfo = EventInfo[*HostTopoRelation]
-

@@ -1074,7 +1074,7 @@ func (h *handler) CountRelease(ctx context.Context, condition *types.ReleaseCond
 }
 
 // DistinctRelease distincts release by conditions.
-func (h *handler) DistinctRelease(ctx context.Context, request types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (
+func (h *handler) DistinctRelease(ctx context.Context, _ types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (
 	*types.ReleaseDistinctResult, error) {
 
 	req := &protoBackend.PackageReleaseDistinctReq{}

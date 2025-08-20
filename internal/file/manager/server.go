@@ -123,7 +123,7 @@ func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser)
 }
 
 // checkGSE2OriginServerPkg check gse2 origin server package.
-// nolint: gocognit,gocyclo,cyclop
+// nolint: gocognit,gocyclo,cyclop,funlen
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
 func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	detail := types.NewOriginPkgDetail()

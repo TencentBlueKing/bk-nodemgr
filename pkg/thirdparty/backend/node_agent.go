@@ -40,26 +40,26 @@ func (h *handler) InstallAgent(ctx context.Context, installParam *types.NodeAgen
 }
 
 // UninstallAgent node agent.
-func (h *handler) UninstallAgent(ctx context.Context) (string, error) {
+func (h *handler) UninstallAgent(_ context.Context) (string, error) {
 	return "", nil
 }
 
 // UpgradeAgent node agent.
-func (h *handler) UpgradeAgent(ctx context.Context) (string, error) {
+func (h *handler) UpgradeAgent(_ context.Context) (string, error) {
 	return "", nil
 }
 
 // RestartAgent node agent.
-func (h *handler) RestartAgent(ctx context.Context) (string, error) {
+func (h *handler) RestartAgent(_ context.Context) (string, error) {
 	return "", nil
 }
 
 // ReconfigAgent node agent.
-func (h *handler) ReconfigAgent(ctx context.Context) (string, error) {
+func (h *handler) ReconfigAgent(_ context.Context) (string, error) {
 	return "", nil
 }
 
 // ReloadAgent node agent.
-func (h *handler) ReloadAgent(ctx context.Context) (string, error) {
+func (h *handler) ReloadAgent(_ context.Context) (string, error) {
 	return "", nil
 }
