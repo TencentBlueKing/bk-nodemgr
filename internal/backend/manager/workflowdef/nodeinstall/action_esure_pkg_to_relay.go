@@ -115,7 +115,7 @@ func (act *actionEnsurePkgToRelay) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionEnsurePkgToRelay) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 5 * time.Minute
 }
 
 // Tags returns the tags of the action.
@@ -159,6 +159,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
+	// TODO: if pkg not required, no need to get the info.
 	releasePkg, installerPkg, err := act.getRequiredPackages(ctx, info)
 	if err != nil {
 		return err
