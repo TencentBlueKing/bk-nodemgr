@@ -14,7 +14,7 @@ package nodeinstall
 import (
 	"net/http"
 
-	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +24,7 @@ const (
 )
 
 func (h *handler) RelayReportFileState(gCtx *gin.Context) {
-	req := new(protoCallback.ReportFileStateReq)
+	req := new(protoBackend.ReportFileStateReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
