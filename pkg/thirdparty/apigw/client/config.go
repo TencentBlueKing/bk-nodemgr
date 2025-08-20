@@ -142,6 +142,7 @@ func maskValue(value string) string {
 	if len(value) > 6 {
 		return value[:3] + "***" + value[len(value)-3:]
 	}
+
 	return strings.Repeat("*", len(value))
 }
 
@@ -159,6 +160,7 @@ func AuthHeaderMasker(value string) string {
 		result = re.ReplaceAllStringFunc(result, func(match string) string {
 			value := re.FindStringSubmatch(match)[1]
 			maskedValue := maskValue(value)
+
 			return `"` + field + `": "` + maskedValue + `"`
 		})
 	}
