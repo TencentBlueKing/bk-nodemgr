@@ -619,6 +619,68 @@ func (x *ReportFileStateReq) GetFileState() []*ReportFileStateReqFileState {
 	return nil
 }
 
+// ReportStorageResultReq describes the HTTP request body when report relay
+// storage result req.
+type ReportStorageResultReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActionName    string                 `protobuf:"bytes,1,opt,name=action_name,json=actionName,proto3" json:"action_name"`
+	OperInstId    string                 `protobuf:"bytes,2,opt,name=oper_inst_id,json=operInstId,proto3" json:"oper_inst_id"`
+	ErrMsg        string                 `protobuf:"bytes,3,opt,name=err_msg,json=errMsg,proto3" json:"err_msg"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportStorageResultReq) Reset() {
+	*x = ReportStorageResultReq{}
+	mi := &file_workflow_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportStorageResultReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportStorageResultReq) ProtoMessage() {}
+
+func (x *ReportStorageResultReq) ProtoReflect() protoreflect.Message {
+	mi := &file_workflow_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportStorageResultReq.ProtoReflect.Descriptor instead.
+func (*ReportStorageResultReq) Descriptor() ([]byte, []int) {
+	return file_workflow_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ReportStorageResultReq) GetActionName() string {
+	if x != nil {
+		return x.ActionName
+	}
+	return ""
+}
+
+func (x *ReportStorageResultReq) GetOperInstId() string {
+	if x != nil {
+		return x.OperInstId
+	}
+	return ""
+}
+
+func (x *ReportStorageResultReq) GetErrMsg() string {
+	if x != nil {
+		return x.ErrMsg
+	}
+	return ""
+}
+
 type ReportFileStateReqFileState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FileName      string                 `protobuf:"bytes,1,opt,name=file_name,json=fileName,proto3" json:"file_name"`
@@ -629,7 +691,7 @@ type ReportFileStateReqFileState struct {
 
 func (x *ReportFileStateReqFileState) Reset() {
 	*x = ReportFileStateReqFileState{}
-	mi := &file_workflow_proto_msgTypes[9]
+	mi := &file_workflow_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -641,7 +703,7 @@ func (x *ReportFileStateReqFileState) String() string {
 func (*ReportFileStateReqFileState) ProtoMessage() {}
 
 func (x *ReportFileStateReqFileState) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[9]
+	mi := &file_workflow_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -751,11 +813,19 @@ var file_workflow_proto_rawDesc = string([]byte{
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65,
 	0x12, 0x1f, 0x0a, 0x0b, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x66, 0x69, 0x6c, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75,
-	0x73, 0x42, 0x45, 0x5a, 0x43, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f,
-	0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
-	0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x22, 0x74, 0x0a, 0x16, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61,
+	0x67, 0x65, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1f, 0x0a, 0x0b, 0x61,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0a, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x0c,
+	0x6f, 0x70, 0x65, 0x72, 0x5f, 0x69, 0x6e, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x6f, 0x70, 0x65, 0x72, 0x49, 0x6e, 0x73, 0x74, 0x49, 0x64, 0x12, 0x17,
+	0x0a, 0x07, 0x65, 0x72, 0x72, 0x5f, 0x6d, 0x73, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x42, 0x45, 0x5a, 0x43, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75,
+	0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61,
+	0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -770,7 +840,7 @@ func file_workflow_proto_rawDescGZIP() []byte {
 	return file_workflow_proto_rawDescData
 }
 
-var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_workflow_proto_goTypes = []any{
 	(*GetAgentConfReq)(nil),             // 0: callback.GetAgentConfReq
 	(*GetFileProxyConfReq)(nil),         // 1: callback.GetFileProxyConfReq
@@ -781,16 +851,17 @@ var file_workflow_proto_goTypes = []any{
 	(*ReportDataReq)(nil),               // 6: callback.ReportDataReq
 	(*ReportStatusReq)(nil),             // 7: callback.ReportStatusReq
 	(*ReportFileStateReq)(nil),          // 8: callback.ReportFileStateReq
-	(*ReportFileStateReqFileState)(nil), // 9: callback.ReportFileStateReq.fileState
+	(*ReportStorageResultReq)(nil),      // 9: callback.ReportStorageResultReq
+	(*ReportFileStateReqFileState)(nil), // 10: callback.ReportFileStateReq.fileState
 }
 var file_workflow_proto_depIdxs = []int32{
-	5, // 0: callback.ReportLogReq.logs:type_name -> callback.ReportLog
-	9, // 1: callback.ReportFileStateReq.file_state:type_name -> callback.ReportFileStateReq.fileState
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5,  // 0: callback.ReportLogReq.logs:type_name -> callback.ReportLog
+	10, // 1: callback.ReportFileStateReq.file_state:type_name -> callback.ReportFileStateReq.fileState
+	2,  // [2:2] is the sub-list for method output_type
+	2,  // [2:2] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_workflow_proto_init() }
@@ -804,7 +875,7 @@ func file_workflow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflow_proto_rawDesc), len(file_workflow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

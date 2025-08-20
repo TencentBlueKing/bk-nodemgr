@@ -123,6 +123,12 @@ type FileInfo struct {
 
 // TransferPkgCompleteReq describes the transfer pkg complete request.
 type TransferPkgCompleteReq struct {
+	// ActionName describes the action name.
+	ActionName string `json:"action_name"`
+
+	// OperInstID describes the operation instance id.
+	OperInstID string `json:"oper_inst_id"`
+
 	// PkgName describes the package name.
 	PkgName []string `json:"pkg_name"`
 }
@@ -131,9 +137,9 @@ type TransferPkgCompleteReq struct {
 type ClientReport string
 
 const (
-	// ClientReportPkgInComplete describes the client report signal when pkg is incomplete.
-	ClientReportPkgInComplete ClientReport = "incomplete"
+	// RelayReportPkgInComplete describes the client report signal when pkg is incomplete.
+	RelayReportPkgInComplete ClientReport = "incomplete"
 
-	// ClientReportPkgComplete describes the client report signal when pkg is complete.
-	ClientReportPkgComplete ClientReport = "complete"
+	// RelayReportPkgComplete describes the client report signal when pkg is complete.
+	RelayReportPkgComplete ClientReport = "complete"
 )

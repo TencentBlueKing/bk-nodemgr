@@ -19,42 +19,38 @@ import (
 )
 
 const (
-	relayFileStateKey        = "relay_file_state"
-	relayFileStateStorageKey = "relay_file_state_storage_dir"
+	relayStorageResultKey    = "relay_storage_result"
+	relayStorageResultMsgKey = "err_msg"
 )
 
-func (h *handler) RelayReportFileState(gCtx *gin.Context) {
-	req := new(protoCallback.ReportFileStateReq)
+func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
+	req := new(protoCallback.ReportStorageResultReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report relay file state failed: %s", err)
+		h.logger.Errorf("report stroage file result failed: %v", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report relay file state failed: %s", err)
+		h.logger.Errorf("report stroage file result failed: %v", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	h.logger.Infof("report relay file state. instance(%s), action(%s) ",
+	h.logger.Infof("report relay stroage file result. instance(%s), action(%s) ",
 		req.GetOperInstId(), req.GetActionName())
 
-	fileStateMap := make(map[string]string)
-	for _, fileState := range req.GetFileState() {
-		fileStateMap[fileState.GetFileName()] = fileState.GetFileStatus()
+	dataMap := map[string]any{
+		relayStorageResultKey: map[string]string{
+			relayStorageResultMsgKey: req.GetErrMsg(),
+		},
 	}
-
-	fileStateMap[relayFileStateStorageKey] = req.GetStorageTmpDir()
-
-	dataMap := make(map[string]any)
-	dataMap[relayFileStateKey] = fileStateMap
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
-		h.logger.Errorf("update action private failed: %s", err)
+		h.logger.Errorf("update action private failed: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
 

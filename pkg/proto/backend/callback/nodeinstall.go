@@ -142,8 +142,8 @@ func (x *ReportFileStateReq) checkStatus() error {
 			return errors.New("file_name is required")
 		}
 
-		if state.GetFileStatus() != string(relay.ClientReportPkgComplete) &&
-			state.GetFileStatus() != string(relay.ClientReportPkgInComplete) {
+		if state.GetFileStatus() != string(relay.RelayReportPkgComplete) &&
+			state.GetFileStatus() != string(relay.RelayReportPkgInComplete) {
 
 			return errors.New("fiel_status must be complete or incomplete")
 		}
@@ -154,4 +154,20 @@ func (x *ReportFileStateReq) checkStatus() error {
 
 // AutoConvert auto convert.
 func (x *ReportFileStateReq) AutoConvert() {
+}
+
+// AutoConvert auto convert.
+func (x *ReportStorageResultReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportStorageResultReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	return nil
 }
