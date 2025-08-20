@@ -50,7 +50,7 @@ type cli struct {
 
 // newClient initialize a new gse client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/", restclient.WithSensitiveHeader(HeaderKeyAuth))
+	restCli, err := restclient.NewClient(c, "/", restclient.WithHeaderMasker(HeaderKeyAuth))
 	if err != nil {
 		return nil, err
 	}

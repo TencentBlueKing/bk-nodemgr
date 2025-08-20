@@ -14,6 +14,8 @@ package client
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 )
 
 // AppConfig defines the api gateway related app info.
@@ -127,4 +129,39 @@ func (conf *UserConfig) GetAuthHeader() string {
 	}
 
 	return auth
+}
+
+func sentinelFields() []string {
+	return []string{
+		"bk_app_secret",
+		"access_token",
+	}
+}
+
+func maskValue(value string) string {
+	if len(value) > 6 {
+		return value[:3] + "***" + value[len(value)-3:]
+	}
+	return strings.Repeat("*", len(value))
+}
+
+// AuthHeaderMasker mask auth header.
+func AuthHeaderMasker(value string) string {
+	result := value
+
+	// handle every field that needs to be desensitized.
+	for _, field := range sentinelFields() {
+		// build a regular expression that matches the field value
+		pattern := `"` + field + `":\s*"([^"]*)"`
+		re := regexp.MustCompile(pattern)
+
+		// if a match is found, replace it
+		result = re.ReplaceAllStringFunc(result, func(match string) string {
+			value := re.FindStringSubmatch(match)[1]
+			maskedValue := maskValue(value)
+			return `"` + field + `": "` + maskedValue + `"`
+		})
+	}
+
+	return result
 }

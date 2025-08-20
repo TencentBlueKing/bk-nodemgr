@@ -62,7 +62,8 @@ type cli struct {
 
 // newClient initialize a new cmdb client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/api/v3", restclient.WithSensitiveHeader(apigwheader.BKGWAuthKey))
+	restCli, err := restclient.NewClient(c, "/api/v3",
+		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
 	if err != nil {
 		return nil, err
 	}

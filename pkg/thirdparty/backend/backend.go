@@ -51,7 +51,8 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
 
-	restCli, err := restclient.NewClient(c, "/api/v3", restclient.WithSensitiveHeader(apigwheader.BKGWAuthKey))
+	restCli, err := restclient.NewClient(c, "/api/v3",
+		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
 	if err != nil {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
@@ -961,9 +962,11 @@ func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.Pac
 ) (*protoBackend.PackageReleaseListResp, error) {
 
 	resp := new(protoBackend.PackageReleaseListResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/list").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -988,9 +991,11 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 	*protoBackend.PackageReleaseDistinctResp, error) {
 
 	resp := new(protoBackend.PackageReleaseDistinctResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/distinct").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1013,9 +1018,12 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 
 func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
-	err := c.client.Post().
+
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/set_labels").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1032,9 +1040,11 @@ func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBacken
 
 func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/enable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1051,9 +1061,11 @@ func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 
 func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDisableReq) error {
 	resp := new(protoBackend.PackageReleaseDisableResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/disable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1070,9 +1082,11 @@ func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.
 
 func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/set_as_default").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1091,9 +1105,11 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 ) error {
 
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/cancel_as_default").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1110,9 +1126,11 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 
 func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/package/release/delete").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1131,9 +1149,11 @@ func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBacken
 	*protoBackend.ConfigPolicyListResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyListResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/list").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1152,9 +1172,11 @@ func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend
 	*protoBackend.ConfigPolicyGetResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyGetResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/get").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1173,9 +1195,11 @@ func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyCreateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/create").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1194,9 +1218,11 @@ func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyUpdateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/update").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1215,9 +1241,11 @@ func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyEnableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/enable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1236,9 +1264,11 @@ func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBac
 	*protoBackend.ConfigPolicyDisableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/disable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -1257,9 +1287,11 @@ func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyDeleteResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
-	err := c.client.Post().
+	header, err := c.getHeader(ctx)
+	err = c.client.Post().
 		SubResourcef("/policy/config/delete").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
