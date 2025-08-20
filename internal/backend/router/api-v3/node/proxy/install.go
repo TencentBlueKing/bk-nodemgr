@@ -11,11 +11,11 @@
 package proxy
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -36,7 +36,7 @@ func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(ctx, ctx.TenantID(), req)
+	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(ctx, req)
 	if err != nil {
 		h.logger.Errorf("failed to install proxy, failed to generate node deployments. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -61,7 +61,7 @@ func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 
 // nolint: funlen
 func (h *handler) generateInstallNodeDeployments(
-	ctx context.Context, tenantID string, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
+	ctx contextx.ITenantContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -112,7 +112,7 @@ func (h *handler) generateInstallNodeDeployments(
 				&types.DeploymentInfo{
 					Host: types.Host{
 						HostID:   host.GetBkHostId(),
-						TenantID: tenantID,
+						TenantID: ctx.TenantID(),
 						Static: &types.HostStatic{
 							BizID:         host.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,

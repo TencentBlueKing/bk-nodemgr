@@ -982,6 +982,72 @@ func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
+func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyRestartReq) (
+	*protoBackend.NodeProxyRestartResp, error) {
+
+	resp := new(protoBackend.NodeProxyRestartResp)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/proxy/restart").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("restart node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("restart node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyReconfigReq) (
+	*protoBackend.NodeProxyReconfigResp, error) {
+
+	resp := new(protoBackend.NodeProxyReconfigResp)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/proxy/reconfig").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("reconfig node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("reconfig node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
 

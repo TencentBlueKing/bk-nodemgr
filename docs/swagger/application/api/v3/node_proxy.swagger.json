@@ -50,6 +50,74 @@
         ]
       }
     },
+    "/api/v3/node/proxy/reconfig": {
+      "post": {
+        "summary": "NodeProxyReconfig reconfigs node proxy.",
+        "operationId": "NodeProxy_NodeProxyReconfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyReconfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyReconfigReq describes the node proxy reconfig request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyReconfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
+    "/api/v3/node/proxy/restart": {
+      "post": {
+        "summary": "NodeProxyRestart restarts node proxy.",
+        "operationId": "NodeProxy_NodeProxyRestart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyRestartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyRestartReq describes the node proxy restart request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyRestartReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/upgrade": {
       "post": {
         "summary": "NodeProxyUpgrade upgrades node proxy.",
@@ -250,6 +318,124 @@
       "description": "NodeProxyInstallResp describes the node proxy install response."
     },
     "v3NodeProxyInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeProxyReconfigReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyReconfigReqHost"
+          }
+        }
+      },
+      "description": "NodeProxyReconfigReq describes the node proxy reconfig request."
+    },
+    "v3NodeProxyReconfigReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeProxyReconfigResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyReconfigRespData"
+        }
+      },
+      "description": "NodeProxyReconfigResp describes the node proxy reconfig response."
+    },
+    "v3NodeProxyReconfigRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeProxyRestartReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyRestartReqHost"
+          }
+        }
+      },
+      "description": "NodeProxyRestartReq describes the node proxy restart request."
+    },
+    "v3NodeProxyRestartReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeProxyRestartResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyRestartRespData"
+        }
+      },
+      "description": "NodeProxyRestartResp describes the node proxy restart response."
+    },
+    "v3NodeProxyRestartRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

@@ -44,22 +44,33 @@ func (h *handler) UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *ty
 	return resp.GetWorkflowID(), nil
 }
 
-// UninstallProxy node proxy.
-func (h *handler) UninstallProxy(ctx context.Context) (string, error) {
-	return "", nil
-}
-
 // RestartProxy node proxy.
-func (h *handler) RestartProxy(ctx context.Context) (string, error) {
-	return "", nil
+func (h *handler) RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error) {
+	req := new(protoBackend.NodeProxyRestartReq)
+	req.ConvertParamFromTypes(restartParam)
+
+	resp, err := h.cli.restartNodeProxy(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetWorkflowID(), nil
 }
 
 // ReconfigProxy node proxy.
-func (h *handler) ReconfigProxy(ctx context.Context) (string, error) {
-	return "", nil
+func (h *handler) ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error) {
+	req := new(protoBackend.NodeProxyReconfigReq)
+	req.ConvertParamFromTypes(reconfigParam)
+
+	resp, err := h.cli.reconfigNodeProxy(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetWorkflowID(), nil
 }
 
-// ReloadProxy node proxy.
-func (h *handler) ReloadProxy(ctx context.Context) (string, error) {
+// UninstallProxy node proxy.
+func (h *handler) UninstallProxy(ctx context.Context) (string, error) {
 	return "", nil
 }

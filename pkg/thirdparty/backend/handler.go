@@ -197,6 +197,18 @@ type IHandlerNodeProxy interface {
 	// @param upgradeParam the upgrade param.
 	// @return the upgrading workflow-ids and error.
 	UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error)
+
+	// RestartProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param restartParam the restart param.
+	// @return the restarting workflow-ids and error.
+	RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error)
+
+	// ReconfigProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param reconfigParam the reconfig param.
+	// @return the reconfig workflow-ids and error.
+	ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error)
 }
 
 // IHandlerNodeWorkflow defines the node workflow handler.

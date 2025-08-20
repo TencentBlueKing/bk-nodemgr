@@ -51,3 +51,27 @@ type NodeProxyUpgradeParam struct {
 	Hosts         []*NodeProxyUpgradeHost
 	TargetVersion []*TargetVersion
 }
+
+// NodeProxyRestartHost describes the node proxy restart host.
+type NodeProxyRestartHost struct {
+	HostID                 int64
+	Force                  bool
+	GracefulRestartTimeout time.Duration
+}
+
+// NodeProxyRestartParam describes the node proxy restart parameter.
+type NodeProxyRestartParam struct {
+	Hosts []*NodeProxyRestartHost
+}
+
+// NodeProxyReconfigHost describes the node proxy reconfig host.
+type NodeProxyReconfigHost struct {
+	HostID                 int64
+	Force                  bool
+	GracefulRestartTimeout time.Duration
+}
+
+// NodeProxyReconfigParam describes the node proxy reconfig parameter.
+type NodeProxyReconfigParam struct {
+	Hosts []*NodeProxyReconfigHost
+}

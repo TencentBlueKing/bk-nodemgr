@@ -65,6 +65,48 @@ message NodeProxyUpgradeResp {
   Data data = 5;
 }
 
+// NodeProxyReconfigReq describes the node proxy reconfig request.
+message NodeProxyReconfigReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeProxyReconfigResp describes the node proxy reconfig response.
+message NodeProxyReconfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// NodeProxyRestartReq describes the node proxy restart request.
+message NodeProxyRestartReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeProxyRestartResp describes the node proxy restart response.
+message NodeProxyRestartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
@@ -78,6 +120,22 @@ service NodeProxy {
   rpc NodeProxyUpgrade(NodeProxyUpgradeReq) returns (NodeProxyUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/upgrade"
+      body : "*"
+    };
+  }
+
+  // NodeProxyRestart restarts node proxy.
+  rpc NodeProxyRestart(NodeProxyRestartReq) returns (NodeProxyRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/restart"
+      body : "*"
+    };
+  }
+
+  // NodeProxyReconfig reconfigs node proxy.
+  rpc NodeProxyReconfig(NodeProxyReconfigReq) returns (NodeProxyReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/reconfig"
       body : "*"
     };
   }
