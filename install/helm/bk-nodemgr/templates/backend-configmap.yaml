@@ -63,7 +63,7 @@ data:
       {{- if .Values.redis.enabled }}
       host: {{ template "bk-nodemgr.fullname" . }}-redis-headless
       port: {{ .Values.redis.service.ports.redis }}
-      password: {{ .Values.redis.password }}
+      password: {{ .Values.redis.auth.password }}
       {{- else }}
       host: {{ .Values.externalRedis.host }}
       port: {{ .Values.externalRedis.port }}

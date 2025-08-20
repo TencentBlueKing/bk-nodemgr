@@ -13,24 +13,26 @@
 package backend
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 // Config the config of backend.
 type Config struct {
-	APIGWClientConfig apigwclient.Config
+	APIGWAppConfig apigwclient.AppConfig
 }
 
 // Validate the config.
 func (conf *Config) Validate() error {
-	if err := conf.APIGWClientConfig.Validate(); err != nil {
+	if err := conf.APIGWAppConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate backend client config: %v", err)
 	}
 
@@ -49,7 +51,7 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
 
-	restCli, err := restclient.NewClient(c, "/api/v3")
+	restCli, err := restclient.NewClient(c, "/api/v3", restclient.WithSensitiveHeader(apigwheader.BKGWAuthKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
@@ -60,20 +62,28 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 	}, nil
 }
 
-// getCommonHeader get backend common header.
+// getHeader get backend common header.
 // nolint: unparam
-func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
+func (c *cli) getHeader(ctx contextx.ITenantUserContext) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKTenantIDKey, tenantID)
+	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
+	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
+
+	// backend apigw open the user auth.
+	userConfig := apigwclient.UserConfig{
+		AppConfig: c.config.APIGWAppConfig,
+		User:      ctx.LoginName(),
+	}
+	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader())
 
 	return header, nil
 }
 
-func (c *cli) listBusiness(ctx context.Context, tenantID string, req *protoBackend.TopoBusinessListReq) (
-	*protoBackend.TopoBusinessListResp_Data, error) {
+func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.TopoBusinessListReq,
+) (*protoBackend.TopoBusinessListResp_Data, error) {
 
 	resp := new(protoBackend.TopoBusinessListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +99,8 @@ func (c *cli) listBusiness(ctx context.Context, tenantID string, req *protoBacke
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list business failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list business failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	data := resp.GetData()
@@ -102,11 +112,11 @@ func (c *cli) listBusiness(ctx context.Context, tenantID string, req *protoBacke
 	return data, nil
 }
 
-func (c *cli) listHost(ctx context.Context, tenantID string, req *protoBackend.TopoHostListReq) (
-	*protoBackend.TopoHostListResp, error) {
+func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHostListReq,
+) (*protoBackend.TopoHostListResp, error) {
 
 	resp := new(protoBackend.TopoHostListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +132,8 @@ func (c *cli) listHost(ctx context.Context, tenantID string, req *protoBackend.T
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list host failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list host failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -134,11 +144,11 @@ func (c *cli) listHost(ctx context.Context, tenantID string, req *protoBackend.T
 	return resp, nil
 }
 
-func (c *cli) distinctHost(ctx context.Context, tenantID string, req *protoBackend.TopoHostDistinctReq) (
-	*protoBackend.TopoHostDistinctResp, error) {
+func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHostDistinctReq,
+) (*protoBackend.TopoHostDistinctResp, error) {
 
 	resp := new(protoBackend.TopoHostDistinctResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -154,8 +164,8 @@ func (c *cli) distinctHost(ctx context.Context, tenantID string, req *protoBacke
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct host failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("distinct host failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -166,11 +176,11 @@ func (c *cli) distinctHost(ctx context.Context, tenantID string, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaCreateReq) (
-	*protoBackend.TopoNetworkAreaCreateResp, error) {
+func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaCreateReq,
+) (*protoBackend.TopoNetworkAreaCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaCreateResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -186,8 +196,8 @@ func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create networkarea failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("create networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -198,11 +208,11 @@ func (c *cli) createNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaUpdateReq) (
-	*protoBackend.TopoNetworkAreaUpdateResp, error) {
+func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaUpdateReq,
+) (*protoBackend.TopoNetworkAreaUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -218,8 +228,8 @@ func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update networkarea failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("update networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -230,11 +240,11 @@ func (c *cli) updateNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaListReq) (
-	*protoBackend.TopoNetworkAreaListResp_Data, error) {
+func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaListReq,
+) (*protoBackend.TopoNetworkAreaListResp_Data, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -250,8 +260,8 @@ func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *protoBa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list networkarea failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	data := resp.GetData()
@@ -263,11 +273,11 @@ func (c *cli) listNetworkArea(ctx context.Context, tenantID string, req *protoBa
 	return data, nil
 }
 
-func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaGetReq) (
-	*protoBackend.TopoNetworkAreaGetResp, error) {
+func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaGetReq,
+) (*protoBackend.TopoNetworkAreaGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaGetResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -283,8 +293,8 @@ func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get networkarea failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -295,11 +305,11 @@ func (c *cli) getNetworkArea(ctx context.Context, tenantID string, req *protoBac
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkAreaDeleteReq) (
-	*protoBackend.TopoNetworkAreaDeleteResp, error) {
+func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaDeleteReq,
+) (*protoBackend.TopoNetworkAreaDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -315,8 +325,8 @@ func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete networkarea failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("delete networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -327,11 +337,11 @@ func (c *cli) deleteNetworkArea(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitCreateReq) (
-	*protoBackend.TopoNetworkUnitCreateResp, error) {
+func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitCreateReq,
+) (*protoBackend.TopoNetworkUnitCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitCreateResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -347,8 +357,8 @@ func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("create networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -359,11 +369,11 @@ func (c *cli) createNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitUpdateReq) (
-	*protoBackend.TopoNetworkUnitUpdateResp, error) {
+func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitUpdateReq,
+) (*protoBackend.TopoNetworkUnitUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -379,8 +389,8 @@ func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("update networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -391,11 +401,11 @@ func (c *cli) updateNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitGetReq) (
-	*protoBackend.TopoNetworkUnitGetResp, error) {
+func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitGetReq,
+) (*protoBackend.TopoNetworkUnitGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitGetResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -411,8 +421,8 @@ func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -423,11 +433,11 @@ func (c *cli) getNetworkUnit(ctx context.Context, tenantID string, req *protoBac
 	return resp, nil
 }
 
-func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitListReq) (
-	*protoBackend.TopoNetworkUnitListResp, error) {
+func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitListReq,
+) (*protoBackend.TopoNetworkUnitListResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -443,8 +453,8 @@ func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *protoBa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -455,11 +465,11 @@ func (c *cli) listNetworkUnit(ctx context.Context, tenantID string, req *protoBa
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *protoBackend.TopoNetworkUnitDeleteReq) (
-	*protoBackend.TopoNetworkUnitDeleteResp, error) {
+func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitDeleteReq,
+) (*protoBackend.TopoNetworkUnitDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -475,8 +485,8 @@ func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete networkunit failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("delete networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -487,11 +497,11 @@ func (c *cli) deleteNetworkUnit(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *protoBackend.TopoEventListReq) (
-	*protoBackend.TopoEventListResp, error) {
+func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.TopoEventListReq,
+) (*protoBackend.TopoEventListResp, error) {
 
 	resp := new(protoBackend.TopoEventListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -507,8 +517,8 @@ func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *protoBack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list topoevent failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list topoevent failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -519,11 +529,11 @@ func (c *cli) listTopoEvent(ctx context.Context, tenantID string, req *protoBack
 	return resp, nil
 }
 
-func (c *cli) distinctTopoEvent(ctx context.Context, tenantID string, req *protoBackend.TopoEventDistinctReq) (
-	*protoBackend.TopoEventDistinctResp, error) {
+func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.TopoEventDistinctReq,
+) (*protoBackend.TopoEventDistinctResp, error) {
 
 	resp := new(protoBackend.TopoEventDistinctResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -539,8 +549,8 @@ func (c *cli) distinctTopoEvent(ctx context.Context, tenantID string, req *proto
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct topoevent failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("distinct topoevent failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -551,11 +561,11 @@ func (c *cli) distinctTopoEvent(ctx context.Context, tenantID string, req *proto
 	return resp, nil
 }
 
-func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *protoBackend.TopoAccessPointListReq) (
-	*protoBackend.TopoAccessPointListResp, error) {
+func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend.TopoAccessPointListReq,
+) (*protoBackend.TopoAccessPointListResp, error) {
 
 	resp := new(protoBackend.TopoAccessPointListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -571,8 +581,8 @@ func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *protoBa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list accesspoint failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list accesspoint failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -583,11 +593,11 @@ func (c *cli) listAccessPoint(ctx context.Context, tenantID string, req *protoBa
 	return resp, nil
 }
 
-func (c *cli) getConstant(ctx context.Context, tenantID string, req *protoBackend.TopoConstantGetReq) (
-	*protoBackend.TopoConstantGetResp, error) {
+func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.TopoConstantGetReq,
+) (*protoBackend.TopoConstantGetResp, error) {
 
 	resp := new(protoBackend.TopoConstantGetResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -603,8 +613,8 @@ func (c *cli) getConstant(ctx context.Context, tenantID string, req *protoBacken
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get constant failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get constant failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -615,11 +625,11 @@ func (c *cli) getConstant(ctx context.Context, tenantID string, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflow(ctx context.Context, tenantID string, req *protoBackend.NodeWorkflowListReq) (
-	*protoBackend.NodeWorkflowListResp, error) {
+func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowListReq,
+) (*protoBackend.NodeWorkflowListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -635,8 +645,8 @@ func (c *cli) listNodeWorkflow(ctx context.Context, tenantID string, req *protoB
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list workflow failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -647,11 +657,11 @@ func (c *cli) listNodeWorkflow(ctx context.Context, tenantID string, req *protoB
 	return resp, nil
 }
 
-func (c *cli) distinctNodeWorkflow(ctx context.Context, tenantID string, req *protoBackend.NodeWorkflowDistinctReq) (
-	*protoBackend.NodeWorkflowDistinctResp, error) {
+func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowDistinctReq,
+) (*protoBackend.NodeWorkflowDistinctResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowDistinctResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -667,8 +677,8 @@ func (c *cli) distinctNodeWorkflow(ctx context.Context, tenantID string, req *pr
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct workflow failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("distinct workflow failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -679,12 +689,11 @@ func (c *cli) distinctNodeWorkflow(ctx context.Context, tenantID string, req *pr
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOperation(ctx context.Context,
-	tenantID string, req *protoBackend.NodeWorkflowOperationListReq) (
-	*protoBackend.NodeWorkflowOperationListResp, error) {
+func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationListReq,
+) (*protoBackend.NodeWorkflowOperationListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -700,8 +709,8 @@ func (c *cli) listNodeWorkflowOperation(ctx context.Context,
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow operation failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -712,12 +721,13 @@ func (c *cli) listNodeWorkflowOperation(ctx context.Context,
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOperationInstance(ctx context.Context,
-	tenantID string, req *protoBackend.NodeWorkflowOperationInstanceListReq) (
-	*protoBackend.NodeWorkflowOperationInstanceListResp, error) {
+func (c *cli) listNodeWorkflowOperationInstance(
+	ctx contextx.ITenantUserContext,
+	req *protoBackend.NodeWorkflowOperationInstanceListReq,
+) (*protoBackend.NodeWorkflowOperationInstanceListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -733,8 +743,8 @@ func (c *cli) listNodeWorkflowOperationInstance(ctx context.Context,
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow operation instance failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list workflow operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -746,12 +756,12 @@ func (c *cli) listNodeWorkflowOperationInstance(ctx context.Context,
 	return resp, nil
 }
 
-func (c *cli) getOperationInstanceLog(ctx context.Context,
-	tenantID string, req *protoBackend.NodeWorkflowOperationInstanceLogGetReq) (
-	*protoBackend.NodeWorkflowOperationInstanceLogGetResp, error) {
+func (c *cli) getOperationInstanceLog(
+	ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationInstanceLogGetReq,
+) (*protoBackend.NodeWorkflowOperationInstanceLogGetResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceLogGetResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -767,8 +777,8 @@ func (c *cli) getOperationInstanceLog(ctx context.Context,
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -780,12 +790,13 @@ func (c *cli) getOperationInstanceLog(ctx context.Context,
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOpInstanceStatus(ctx context.Context, tenantID string,
-	req *protoBackend.NodeWorkflowOperationInstanceListStatusReq) (
-	*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
+func (c *cli) listNodeWorkflowOpInstanceStatus(
+	ctx contextx.ITenantUserContext,
+	req *protoBackend.NodeWorkflowOperationInstanceListStatusReq,
+) (*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListStatusResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -801,8 +812,8 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(ctx context.Context, tenantID str
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -814,11 +825,11 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(ctx context.Context, tenantID str
 	return resp, nil
 }
 
-func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoBackend.NodeAgentInstallReq) (
-	*protoBackend.NodeAgentInstallResp, error) {
+func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBackend.NodeAgentInstallReq,
+) (*protoBackend.NodeAgentInstallResp, error) {
 
 	resp := new(protoBackend.NodeAgentInstallResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -834,8 +845,8 @@ func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoB
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("install node agent failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("install node agent failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -847,11 +858,11 @@ func (c *cli) installNodeAgent(ctx context.Context, tenantID string, req *protoB
 	return resp, nil
 }
 
-func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBackend.NodeWorkflowOperationRetryReq) (
-	*protoBackend.NodeWorkflowOperationRetryResp, error) {
+func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationRetryReq,
+) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getHeader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -867,8 +878,8 @@ func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -880,8 +891,8 @@ func (c *cli) retryOperation(ctx context.Context, tenantID string, req *protoBac
 	return resp, nil
 }
 
-func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseListReq) (
-	*protoBackend.PackageReleaseListResp, error) {
+func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
+) (*protoBackend.PackageReleaseListResp, error) {
 
 	resp := new(protoBackend.PackageReleaseListResp)
 	err := c.client.Post().
@@ -894,8 +905,8 @@ func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseL
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list release failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -907,7 +918,7 @@ func (c *cli) listRelease(ctx context.Context, req *protoBackend.PackageReleaseL
 	return resp, nil
 }
 
-func (c *cli) distinctRelease(ctx context.Context, req *protoBackend.PackageReleaseDistinctReq) (
+func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDistinctReq) (
 	*protoBackend.PackageReleaseDistinctResp, error) {
 
 	resp := new(protoBackend.PackageReleaseDistinctResp)
@@ -921,8 +932,8 @@ func (c *cli) distinctRelease(ctx context.Context, req *protoBackend.PackageRele
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct release failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("distinct release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
@@ -934,7 +945,7 @@ func (c *cli) distinctRelease(ctx context.Context, req *protoBackend.PackageRele
 	return resp, nil
 }
 
-func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageReleaseSetLabelsReq) error {
+func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_labels").
@@ -946,14 +957,14 @@ func (c *cli) setReleaseLabels(ctx context.Context, req *protoBackend.PackageRel
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set release labels failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("set release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) enableRelease(ctx context.Context, req *protoBackend.PackageReleaseEnableReq) error {
+func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/enable").
@@ -965,14 +976,14 @@ func (c *cli) enableRelease(ctx context.Context, req *protoBackend.PackageReleas
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("enable release failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("enable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) disableRelease(ctx context.Context, req *protoBackend.PackageReleaseDisableReq) error {
+func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDisableReq) error {
 	resp := new(protoBackend.PackageReleaseDisableResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/disable").
@@ -984,14 +995,14 @@ func (c *cli) disableRelease(ctx context.Context, req *protoBackend.PackageRelea
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("disable release failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("disable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) setAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
+func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_as_default").
@@ -1003,14 +1014,16 @@ func (c *cli) setAsDefaultRelease(ctx context.Context, req *protoBackend.Package
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set release as default failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("set release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) cancelAsDefaultRelease(ctx context.Context, req *protoBackend.PackageReleaseCancelAsDefaultReq) error {
+func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseCancelAsDefaultReq,
+) error {
+
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/cancel_as_default").
@@ -1022,14 +1035,14 @@ func (c *cli) cancelAsDefaultRelease(ctx context.Context, req *protoBackend.Pack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) deleteRelease(ctx context.Context, req *protoBackend.PackageReleaseDeleteReq) error {
+func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
 	err := c.client.Post().
 		SubResourcef("/package/release/delete").
@@ -1041,14 +1054,14 @@ func (c *cli) deleteRelease(ctx context.Context, req *protoBackend.PackageReleas
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("delete release failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return fmt.Errorf("delete release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) listConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyListReq) (
+func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyListReq) (
 	*protoBackend.ConfigPolicyListResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyListResp)
@@ -1062,14 +1075,14 @@ func (c *cli) listConfigPolicy(ctx context.Context, req *protoBackend.ConfigPoli
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("list config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) getConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyGetReq) (
+func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyGetReq) (
 	*protoBackend.ConfigPolicyGetResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyGetResp)
@@ -1083,14 +1096,14 @@ func (c *cli) getConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolic
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("get config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) createConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyCreateReq) (
+func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyCreateReq) (
 	*protoBackend.ConfigPolicyCreateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
@@ -1104,14 +1117,14 @@ func (c *cli) createConfigPolicy(ctx context.Context, req *protoBackend.ConfigPo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("create config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) updateConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyUpdateReq) (
+func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyUpdateReq) (
 	*protoBackend.ConfigPolicyUpdateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
@@ -1125,14 +1138,14 @@ func (c *cli) updateConfigPolicy(ctx context.Context, req *protoBackend.ConfigPo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("update config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) enableConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyEnableReq) (
+func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyEnableReq) (
 	*protoBackend.ConfigPolicyEnableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
@@ -1146,14 +1159,14 @@ func (c *cli) enableConfigPolicy(ctx context.Context, req *protoBackend.ConfigPo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("enable config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("enable config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) disableConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyDisableReq) (
+func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyDisableReq) (
 	*protoBackend.ConfigPolicyDisableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
@@ -1167,14 +1180,14 @@ func (c *cli) disableConfigPolicy(ctx context.Context, req *protoBackend.ConfigP
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("disable config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("disable config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) deleteConfigPolicy(ctx context.Context, req *protoBackend.ConfigPolicyDeleteReq) (
+func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyDeleteReq) (
 	*protoBackend.ConfigPolicyDeleteResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
@@ -1188,8 +1201,8 @@ func (c *cli) deleteConfigPolicy(ctx context.Context, req *protoBackend.ConfigPo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete config policy failed. code(%d), message(%s), request-id(%s)",
-			code, resp.GetMessage(), resp.GetRequestId())
+		return nil, fmt.Errorf("delete config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return resp, nil

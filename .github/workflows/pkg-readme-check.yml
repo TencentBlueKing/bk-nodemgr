@@ -119,9 +119,7 @@ jobs:
       - name: Generate comment
         id: generate-comment
         run: |
-          # 生成评论内容
-          COMMENT=""
-
+          # 只在存在缺失时生成评论内容
           if [ "${{ env.HAS_MISSING }}" == "true" ]; then
             # 创建缺失目录的评论
             COMMENT="## 📝 包文档缺失提醒\n\n"
@@ -145,37 +143,39 @@ jobs:
             COMMENT="${COMMENT}3. 完成后将README.md添加到相应的包目录中\n\n"
             COMMENT="${COMMENT}> 💡 **为什么需要README？**\n"
             COMMENT="${COMMENT}> 良好的文档能够提高代码可维护性和促进团队协作。"
+
+            # 设置标志表示需要发评论
+            echo "SHOULD_COMMENT=true" >> $GITHUB_ENV
+
+            # 将评论内容保存到环境变量
+            echo "COMMENT<<EOF" >> $GITHUB_ENV
+            echo -e "$COMMENT" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           else
-            # 创建问题已解决的评论
-            COMMENT="## 📝 包文档检查\n\n"
-            COMMENT="${COMMENT}✅ **所有包文档已完善，感谢您的贡献！**"
+            # 如果没有缺失，设置标志表示不需要发评论
+            echo "SHOULD_COMMENT=false" >> $GITHUB_ENV
           fi
 
-          # 将评论内容保存到环境变量
-          echo "COMMENT<<EOF" >> $GITHUB_ENV
-          echo -e "$COMMENT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Delete all existing README check comments
+      - name: Delete existing README check comments
         if: env.HAS_COMMENT == 'true'
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
 
           # 获取所有相关评论
-          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包文档缺失提醒") or startswith("## 📝 包文档检查")) | .id')
+          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包文档缺失提醒")) | .id')
 
           # 删除所有相关评论
           echo "$BOT_COMMENTS" | while read comment_id; do
             if [ -n "$comment_id" ]; then
               COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"
-              curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" "$COMMENT_URL"
+              curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENT_URL"
               echo "删除了评论 ID: $comment_id"
             fi
           done
 
       - name: Comment on PR
-        if: always()
+        if: env.SHOULD_COMMENT == 'true'
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number }}

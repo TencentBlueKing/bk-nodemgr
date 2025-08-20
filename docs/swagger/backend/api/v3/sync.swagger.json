@@ -240,6 +240,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3SyncAgentStateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncAgentStateRespData"
         }
@@ -250,6 +253,35 @@
       "type": "object",
       "properties": {
         "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncAgentStateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SyncAgentStateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3SyncAgentStateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -271,6 +303,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3SyncAllAgentStateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncAllAgentStateRespData"
         }
@@ -281,6 +316,35 @@
       "type": "object",
       "properties": {
         "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncAllAgentStateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SyncAllAgentStateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3SyncAllAgentStateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -302,6 +366,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3SyncCmdbConstantsRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbConstantsRespData"
         }
@@ -312,6 +379,35 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncCmdbConstantsRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SyncCmdbConstantsRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3SyncCmdbConstantsRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -333,6 +429,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3SyncCmdbHostRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbHostRespData"
         }
@@ -343,6 +442,35 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncCmdbHostRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SyncCmdbHostRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3SyncCmdbHostRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -364,6 +492,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3SyncCmdbNetworkAreaRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbNetworkAreaRespData"
         }
@@ -374,6 +505,35 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncCmdbNetworkAreaRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SyncCmdbNetworkAreaRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3SyncCmdbNetworkAreaRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }

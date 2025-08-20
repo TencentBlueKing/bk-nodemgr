@@ -121,6 +121,7 @@
           ></TableColumn>
           <TableColumn
             field="version"
+            :filter="filterOptionSource.version"
             :title="'版本号'"
             :min-width="130"
             sortable
@@ -139,7 +140,7 @@
           >
             <template #default="{ row }">
               <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
-                <create-tag :data="row"></create-tag>
+                <create-tag :data="row" @blur="handleBlur"></create-tag>
               </div>
             </template>
           </TableColumn>
@@ -400,6 +401,12 @@ const handleExpand = (id: string) => {
   }
 }
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
+  version: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: "all",
+  },
   labels: {
     list: [],
     checked: [],
@@ -594,8 +601,8 @@ const handleClickHost = (row: Release) => {
     }
   });
 }
-const handleChangeTag = () => {
-
+const handleBlur = async () => {
+  await getPackages();
 }
 const handleUpload = () => {
   isShow.value = true;
@@ -657,6 +664,7 @@ const handleConfirm = async () => {
   await getPackages();
 }
 watch(originPackageList, () => {
+  filterOptionSource.version.list = getUniqueChildren("version");
   filterOptionSource.labels.list = getUniqueChildren("labels");
   filterOptionSource.operator.list = getUniqueChildren("operator");
 },{ immediate: true, deep: true })
@@ -670,11 +678,10 @@ watch(
     packageList.value = originPackageList.value.filter((row: Release) => {
       return searchSelectValue.value.every((searchItem: any) => {
         const { id: searchField, values } = searchItem;
-        const searchIds = values.map((value: {id: string}) => value.id);
-        if (searchField === 'enabled') {
-          return searchIds.includes(row[searchField]);
+        const searchIds = values?.map((value: {id: string}) => value.id);
+        if (isArray(row[searchField])) {
+          return !!row[searchField].find((el: string) => searchIds.includes(el));
         }
-        
         return searchIds.includes(row[searchField]);
       });
     });

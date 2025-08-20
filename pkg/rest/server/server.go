@@ -220,7 +220,7 @@ func logWithCtxKeys(keys map[string]any) string {
 	if v, ok := keys[restContextKey]; ok {
 		if ctx, ok := v.(*Context); ok {
 			return fmt.Sprintf("[%s][tenant:%s][user:%s]",
-				ctx.RequestID, ctx.TenantID, ctx.LoginName)
+				ctx.RequestID(), ctx.TenantID(), ctx.LoginName())
 		}
 	}
 

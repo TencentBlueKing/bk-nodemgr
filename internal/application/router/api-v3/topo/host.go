@@ -11,8 +11,6 @@
 package topo
 
 import (
-	"context"
-
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -76,7 +74,7 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 }
 
 func (h *handler) completeNetworkAreaName(
-	ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	ctx *restserver.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
 
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {
@@ -115,7 +113,7 @@ func (h *handler) completeNetworkAreaName(
 }
 
 func (h *handler) completeNetworkUnitName(
-	ctx context.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	ctx *restserver.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
 
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {

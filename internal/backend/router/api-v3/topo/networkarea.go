@@ -44,12 +44,12 @@ func (h *handler) CreateNetworkArea(ctx *restserver.Context) (interface{}, error
 	go func() {
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			&types.TopoEvent{
-				TenantID:        ctx.TenantID,
+				TenantID:        ctx.TenantID(),
 				Type:            types.TopoEventNetworkAreaCreate,
 				NetworkAreaID:   networkArea.ID,
 				NetworkAreaName: networkArea.Name,
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName,
+				Operator:        ctx.LoginName(),
 			}); err != nil {
 			h.logger.Warnf("failed to record topo event in networkarea create. networkarea-id(%d), err: %v",
 				networkArea.ID, err)
@@ -57,7 +57,7 @@ func (h *handler) CreateNetworkArea(ctx *restserver.Context) (interface{}, error
 	}()
 
 	if err := h.storage.UpsertManyNetworkArea(ctx,
-		req.ConvertNetworkAreaToTypes(ctx.TenantID, networkArea.ID)); err != nil {
+		req.ConvertNetworkAreaToTypes(ctx.TenantID(), networkArea.ID)); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create networkarea, failed to upsert networkarea. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
@@ -78,7 +78,7 @@ func (h *handler) UpdateNetworkArea(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkArea := req.ConvertNetworkAreaToTypes(ctx.TenantID)
+	networkArea := req.ConvertNetworkAreaToTypes(ctx.TenantID())
 	if err := h.storage.UpdateManyNetworkArea(ctx, networkArea); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update networkarea, failed to upsert networkarea. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -88,12 +88,12 @@ func (h *handler) UpdateNetworkArea(ctx *restserver.Context) (interface{}, error
 	go func() {
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			&types.TopoEvent{
-				TenantID:        ctx.TenantID,
+				TenantID:        ctx.TenantID(),
 				Type:            types.TopoEventNetworkAreaUpdate,
 				NetworkAreaID:   networkArea.ID,
 				NetworkAreaName: networkArea.Name,
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName,
+				Operator:        ctx.LoginName(),
 			}); err != nil {
 			h.logger.Warnf("failed to record topo event in networkarea update. networkarea-id(%d), err: %v",
 				networkArea.ID, err)
@@ -176,12 +176,12 @@ func (h *handler) DeleteNetworkArea(ctx *restserver.Context) (interface{}, error
 	go func() {
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			&types.TopoEvent{
-				TenantID:        ctx.TenantID,
+				TenantID:        ctx.TenantID(),
 				Type:            types.TopoEventNetworkAreaDelete,
 				NetworkAreaID:   networkAreaID,
 				NetworkAreaName: networkArea.Name,
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName,
+				Operator:        ctx.LoginName(),
 			}); err != nil {
 			h.logger.Warnf("failed to record topo event in networkarea delete. networkarea-id(%d), err: %v", networkArea.ID, err)
 		}

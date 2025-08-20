@@ -1,15 +1,16 @@
 <template>
-  <div class="w-full h-full min-h-[20px]" v-if="!isEditing" @click="handleEdit">
+  <div class="w-full h-full flex  items-center gap-[8px]" v-if="!isEditing" @click="handleEdit">
     <Tag
       v-for="tag in data.labels?.slice(0, 2)"
       :key="tag"
-      >{{ tag }}</Tag
+      >{{ tag }}
+    </Tag
     >
     <Tag
       v-if="data.labels?.length > 2"
       v-bk-tooltips="data.labels?.join(', ')"
-      >+{{ data.labels?.length - 2 }}</Tag
-    >
+      >+{{ data.labels?.length - 2 }}
+    </Tag>
   </div>
   <div class="w-full edit-tag" v-else>
     <TagInput
@@ -51,6 +52,7 @@ const props = defineProps({
     default: null,
   },
 });
+const emit = defineEmits(['blur']);
 const tagList = computed(() =>
   packageStore.tagList.map((tag: string) => ({
     id: tag,
@@ -84,6 +86,9 @@ const handleInputchange = (value: string) => {
 // 新建标签
 const handleCreateTag = async () => {
   popShow.value = false;
+  localTags.value.push(createTag.value);
+};
+const handleBlur = async () => {
   // 标签输入框更新标签
   await PackageService.SetReleaseLabels({
     generation: 2,
@@ -93,12 +98,11 @@ const handleCreateTag = async () => {
       cpu_arch: props.data.cpu_arch
     },
     version: props.data.version,
-    labels: [createTag.value],
+    labels: [...localTags.value],
   });
-  localTags.value.push(createTag.value);
+  // 用于更新标签信息
   packageStore.getPackages();
-};
-const handleBlur = () => {
+  emit('blur')
   isEditing.value = false;
 }
 </script>

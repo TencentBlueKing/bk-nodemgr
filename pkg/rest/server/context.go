@@ -65,15 +65,19 @@ func GetRestContext(c *gin.Context) (*Context, error) {
 
 // Context rest context.
 type Context struct {
-	gCtx      *gin.Context
-	RequestID string `json:"request_id"`
+	gCtx *gin.Context
 
-	// LoginName is a readable name for user, and is unique in a tenant.
-	LoginName string `json:"login_name"`
+	// requestID is a unique id for request.
+	requestID string
 
-	// BKUsername is a unique name for user, and is unique in all tenants, but it is not readable
-	BKUsername string `json:"bk_username"`
-	TenantID   string `json:"tenant_id"`
+	// loginName is a readable name for user, and is unique in a tenant.
+	loginName string
+
+	// bkUsername is a unique name for user, and is unique in all tenants, but it is not readable
+	bkUsername string
+
+	// tenantID is a unique id for tenant.
+	tenantID string
 }
 
 // Deadline implement context.Context.
@@ -163,7 +167,7 @@ func (ctx *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
 			Message: resterrf.CodeErrMap(code).Error(),
 			Details: nil,
 		},
-		RequestID: ctx.RequestID,
+		RequestID: ctx.RequestID(),
 	}
 
 	for _, unwrapErr := range errs {
@@ -184,7 +188,7 @@ func (ctx *Context) AbortWithJSONPermDenied(code resterrf.Code, _ []error) {
 			SystemName: runtime.SystemName,
 			Actions:    nil,
 		},
-		RequestID: ctx.RequestID,
+		RequestID: ctx.RequestID(),
 	}
 
 	// TODO: 参考 errf.ErrUnwrap 的写法实现 permission 的解析。
@@ -197,11 +201,51 @@ func (ctx *Context) APIResponse(data interface{}) {
 	result := Response{
 		Code:       0,
 		Message:    "OK",
-		RequestID:  ctx.RequestID,
+		RequestID:  ctx.RequestID(),
 		Data:       data,
 		Error:      nil,
 		Permission: nil,
 	}
 
 	ctx.gCtx.JSON(http.StatusOK, result)
+}
+
+// LoginName get login name.
+func (ctx *Context) LoginName() string {
+	return ctx.loginName
+}
+
+// SetLoginName get login name.
+func (ctx *Context) SetLoginName(loginName string) {
+	ctx.loginName = loginName
+}
+
+// BKUsername get bk username.
+func (ctx *Context) BKUsername() string {
+	return ctx.bkUsername
+}
+
+// SetBKUsername get bk username.
+func (ctx *Context) SetBKUsername(bkUsername string) {
+	ctx.bkUsername = bkUsername
+}
+
+// TenantID get tenant id.
+func (ctx *Context) TenantID() string {
+	return ctx.tenantID
+}
+
+// SetTenantID get tenant id.
+func (ctx *Context) SetTenantID(tenantID string) {
+	ctx.tenantID = tenantID
+}
+
+// RequestID get request id.
+func (ctx *Context) RequestID() string {
+	return ctx.requestID
+}
+
+// SetRequestID set request id.
+func (ctx *Context) SetRequestID(requestID string) {
+	ctx.requestID = requestID
 }

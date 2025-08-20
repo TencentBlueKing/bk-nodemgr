@@ -40,9 +40,19 @@ message NodeAgentInstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeAgentUpgradeReq describes the node agent upgrade request.
@@ -61,9 +71,19 @@ message NodeAgentUpgradeResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeAgentReconfigReq describes the node agent reconfigure request.
@@ -81,9 +101,19 @@ message NodeAgentReconfigResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeAgentRestartReq describes the node agent restart request.
@@ -101,7 +131,17 @@ message NodeAgentRestartResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }

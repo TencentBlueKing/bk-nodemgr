@@ -122,7 +122,7 @@ func (h *handler) CreateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 	}
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
-	configPolicy.TenantID = ctx.TenantID
+	configPolicy.TenantID = ctx.TenantID()
 	configPolicyID, err := h.storage.CreateConfigPolicy(ctx, configPolicy)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create config policy. err: %v", err)
@@ -144,7 +144,7 @@ func (h *handler) UpdateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 	}
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
-	configPolicy.TenantID = ctx.TenantID
+	configPolicy.TenantID = ctx.TenantID()
 	if err := h.storage.UpdateConfigPolicy(ctx, configPolicy); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update config policy. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)

@@ -15,6 +15,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -50,8 +51,8 @@ func testPrivateCli(t *testing.T) *cli {
 	}
 
 	client, err := newClient(clientCap, &Config{
-		SupplierAccount:   os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		APIGWClientConfig: apigwClientConfig,
+		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
+		APIGWAppConfig:  apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -62,7 +63,10 @@ func testPrivateCli(t *testing.T) *cli {
 
 // Test_enumOSTypeKeeper_getValue test get value.
 func Test_enumOSTypeKeeper_getValue(t *testing.T) {
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
+		ctx contextx.ITenantUserContext
 		key string
 	}
 	tests := []struct {
@@ -73,6 +77,7 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
+				ctx: ctx,
 				key: "1",
 			},
 			wantResult: string(criteria.OSLinux),
@@ -80,6 +85,7 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 		{
 			name: "test2",
 			args: args{
+				ctx: ctx,
 				key: "2",
 			},
 			wantResult: string(criteria.OSWindows),
@@ -87,6 +93,7 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 		{
 			name: "test3",
 			args: args{
+				ctx: ctx,
 				key: "3",
 			},
 			wantResult: string(criteria.OSAix),
@@ -96,7 +103,7 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			keeper := newOSTypeKeeper(testPrivateCli(t))
-			if err := keeper.update(context.Background()); err != nil {
+			if err := keeper.update(tt.args.ctx); err != nil {
 				t.Errorf("update() error = %v", err)
 			}
 
@@ -110,7 +117,10 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 
 // Test_enumOSTypeKeeper_getKey test get key.
 func Test_enumOSTypeKeeper_getKey(t *testing.T) {
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
+		ctx   contextx.ITenantUserContext
 		cache map[string]string
 		value string
 	}
@@ -122,6 +132,7 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
+				ctx:   ctx,
 				value: string(criteria.OSLinux),
 			},
 			wantResult: "1",
@@ -129,6 +140,7 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 		{
 			name: "test2",
 			args: args{
+				ctx:   ctx,
 				value: string(criteria.OSWindows),
 			},
 			wantResult: "2",
@@ -136,6 +148,7 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 		{
 			name: "test3",
 			args: args{
+				ctx:   ctx,
 				value: string(criteria.OSAix),
 			},
 			wantResult: "3",
@@ -145,7 +158,7 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			keeper := newOSTypeKeeper(testPrivateCli(t))
-			if err := keeper.update(context.Background()); err != nil {
+			if err := keeper.update(tt.args.ctx); err != nil {
 				t.Errorf("update() error = %v", err)
 			}
 
@@ -159,7 +172,10 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 
 // Test_enumCloudVendorKeeper_getValue test get value.
 func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
+		ctx contextx.ITenantUserContext
 		key string
 	}
 	tests := []struct {
@@ -170,6 +186,7 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
+				ctx: ctx,
 				key: "1",
 			},
 			wantResult: "AWS",
@@ -177,6 +194,7 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 		{
 			name: "test2",
 			args: args{
+				ctx: ctx,
 				key: "2",
 			},
 			wantResult: "Tencent Cloud",
@@ -184,6 +202,7 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 		{
 			name: "test3",
 			args: args{
+				ctx: ctx,
 				key: "3",
 			},
 			wantResult: "Google Cloud",
@@ -193,7 +212,7 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			keeper := newCloudVendorKeeper(testPrivateCli(t))
-			if err := keeper.update(context.Background()); err != nil {
+			if err := keeper.update(tt.args.ctx); err != nil {
 				t.Errorf("update() error = %v", err)
 			}
 
@@ -207,7 +226,10 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 
 // Test_enumCloudVendorKeeper_getKey test get key.
 func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
+	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+
 	type args struct {
+		ctx   contextx.ITenantUserContext
 		cache map[string]string
 		value string
 	}
@@ -219,6 +241,7 @@ func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
 		{
 			name: "test1",
 			args: args{
+				ctx:   ctx,
 				value: "AWS",
 			},
 			wantResult: "1",
@@ -226,6 +249,7 @@ func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
 		{
 			name: "test2",
 			args: args{
+				ctx:   ctx,
 				value: "Tencent Cloud",
 			},
 			wantResult: "2",
@@ -233,6 +257,7 @@ func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
 		{
 			name: "test3",
 			args: args{
+				ctx:   ctx,
 				value: "Google Cloud",
 			},
 			wantResult: "3",
@@ -242,7 +267,7 @@ func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			keeper := newCloudVendorKeeper(testPrivateCli(t))
-			if err := keeper.update(context.Background()); err != nil {
+			if err := keeper.update(tt.args.ctx); err != nil {
 				t.Errorf("update() error = %v", err)
 			}
 

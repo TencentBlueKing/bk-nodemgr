@@ -11,13 +11,13 @@
 package nodeinstall
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -48,7 +48,8 @@ func NewActionUpsertHostToCMDB(
 
 // ActParamUpsertHostToCMDB ...
 type ActParamUpsertHostToCMDB struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 type actionUpsertHostToCMDB struct {
@@ -95,7 +96,7 @@ func (act *actionUpsertHostToCMDB) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-// nolint: funlen,fnsize
+// nolint: funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamUpsertHostToCMDB)
@@ -114,7 +115,8 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err := act.checkHost(tenantCtx, info); err != nil {
+	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, info.Host.TenantID, param.Operator)
+	if err := act.checkHost(tenantUserCtx, info); err != nil {
 		return err
 	}
 
@@ -142,7 +144,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) checkHost(ctx context.Context, info *types.DeploymentInfo) error {
+func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, info *types.DeploymentInfo) error {
 	// nolint: nestif
 	if info.Host.HostID < 0 {
 		hosts, count, err := act.storageHost.ListHost(ctx, types.Page{
@@ -196,7 +198,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx context.Context, info *types.De
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) insertHost(ctx context.Context, info *types.DeploymentInfo) (int64, error) {
+func (act *actionUpsertHostToCMDB) insertHost(ctx contextx.ITenantUserContext, info *types.DeploymentInfo) (int64, error) {
 	host := &info.Host
 
 	// inorder to check the interface of cc, and set the default architecture at the beginning

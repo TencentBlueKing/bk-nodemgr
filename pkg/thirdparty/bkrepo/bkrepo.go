@@ -64,7 +64,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 // getCommonHeader get gse common header.
 func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
-	header.Set(apigwheader.BKRIDKey, identifier.GenRequestID())
+	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
 
 	header.Set(HeaderKeyAuth, auth{username: c.config.Username, password: c.config.Password}.GetHeader())
 

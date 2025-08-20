@@ -221,7 +221,7 @@ func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIden
 
 // newBackendHandler creates a new backend handler.
 func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
-	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGwClientConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
 
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
@@ -230,7 +230,7 @@ func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
 
 	apiGwClientCapability.Name = "backend"
 	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
-		APIGWClientConfig: apiGwClientConfig,
+		APIGWAppConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("faild to new backend handler: %v", err)
@@ -286,20 +286,11 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 	return clientCap, nil
 }
 
-// newAPIGwClientConfig creates a new api-gateway client config.
-func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
-	apigwClientConf := apigwclient.Config{
-		Endpoints:   conf.Endpoints,
-		AppCode:     conf.AppCode,
-		AppSecret:   conf.AppSecret,
-		User:        conf.User,
-		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-		BkTicket:    conf.BkTicket,
-		BkToken:     conf.BkToken,
-		AccessToken: conf.AccessToken,
-	}
+// newAPIGWAppConfig creates a new api-gateway client config.
+func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
+	apigwAppConf := apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret)
 
-	return apigwClientConf
+	return apigwAppConf
 }
 
 // newBKLoginHandler creates a new bklogin handler.
@@ -348,9 +339,9 @@ func (svc *Service) Start() error {
 	for idx := range svc.servers {
 		server := svc.servers[idx]
 
-		// apigwserver start will block until apigwserver stop, so we need to run it in a goroutine.
+		// http server start will block until http server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started apigwserver. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
+			blog.Infof("started http server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
 
 			if err := server.Start(); err != nil {
 				return err

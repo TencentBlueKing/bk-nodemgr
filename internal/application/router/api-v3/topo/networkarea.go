@@ -35,7 +35,7 @@ func (h *handler) CreateNetworkArea(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkAreaID, err := h.backendHandler.CreateNetworkArea(ctx, req.ConvertNetworkAreaToTypes(ctx.TenantID, -1))
+	networkAreaID, err := h.backendHandler.CreateNetworkArea(ctx, req.ConvertNetworkAreaToTypes(ctx.TenantID(), -1))
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create networkarea, failed to create networkarea via cmdb. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -55,7 +55,7 @@ func (h *handler) UpdateNetworkArea(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := h.backendHandler.UpdateNetworkArea(ctx, req.ConvertNetworkAreaToTypes(ctx.TenantID)); err != nil {
+	if err := h.backendHandler.UpdateNetworkArea(ctx, req.ConvertNetworkAreaToTypes(ctx.TenantID())); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update networkarea, failed to upsert networkarea. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

@@ -953,6 +953,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoBusinessListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoBusinessListRespData"
         }
@@ -972,6 +975,35 @@
             "type": "object",
             "$ref": "#/definitions/v3Business"
           }
+        }
+      }
+    },
+    "v3TopoBusinessListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoBusinessListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoBusinessListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1000,6 +1032,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoConstantGetRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoConstantGetRespData"
         }
@@ -1020,6 +1055,35 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v3TopoConstantGetRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoConstantGetRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoConstantGetRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1091,6 +1155,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoEventDistinctRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoEventDistinctRespData"
         }
@@ -1132,6 +1199,35 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v3TopoEventDistinctRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoEventDistinctRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoEventDistinctRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1226,6 +1322,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoEventListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoEventListRespData"
         }
@@ -1245,6 +1344,35 @@
             "type": "object",
             "$ref": "#/definitions/v3TopoEvent"
           }
+        }
+      }
+    },
+    "v3TopoEventListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoEventListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoEventListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1272,6 +1400,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3TopoHostDistinctRespError"
         },
         "data": {
           "$ref": "#/definitions/v3TopoHostDistinctRespData"
@@ -1344,6 +1475,35 @@
             "type": "integer",
             "format": "int64"
           }
+        }
+      }
+    },
+    "v3TopoHostDistinctRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoHostDistinctRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoHostDistinctRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1497,6 +1657,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoHostListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostListRespData"
         }
@@ -1516,6 +1679,35 @@
             "type": "object",
             "$ref": "#/definitions/v3Host"
           }
+        }
+      }
+    },
+    "v3TopoHostListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoHostListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoHostListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1544,6 +1736,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkAreaCreateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaCreateRespData"
         }
@@ -1556,6 +1751,35 @@
         "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkAreaCreateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkAreaCreateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaCreateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1582,6 +1806,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespData"
         }
@@ -1594,6 +1821,35 @@
         "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkAreaDeleteRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaDeleteRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1620,11 +1876,43 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkAreaGetRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NetworkArea"
         }
       },
       "description": "TopoNetworkAreaGetResp describe the HTTP response body when get network-area\nin topo service."
+    },
+    "v3TopoNetworkAreaGetRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkAreaGetRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaGetRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3TopoNetworkAreaListReq": {
       "type": "object",
@@ -1686,6 +1974,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkAreaListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaListRespData"
         }
@@ -1705,6 +1996,35 @@
             "type": "object",
             "$ref": "#/definitions/v3NetworkArea"
           }
+        }
+      }
+    },
+    "v3TopoNetworkAreaListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkAreaListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1737,6 +2057,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespData"
         }
@@ -1749,6 +2072,35 @@
         "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkAreaUpdateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkAreaUpdateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1794,6 +2146,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkUnitCreateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitCreateRespData"
         }
@@ -1806,6 +2161,35 @@
         "bk_networkunit_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkUnitCreateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkUnitCreateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitCreateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1832,6 +2216,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespData"
         }
@@ -1844,6 +2231,35 @@
         "bk_networkunit_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkUnitDeleteRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitDeleteRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1870,11 +2286,43 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkUnitGetRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NetworkUnit"
         }
       },
       "description": "TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitGetRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkUnitGetRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitGetRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v3TopoNetworkUnitListReq": {
       "type": "object",
@@ -1923,6 +2371,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitListRespData"
         }
@@ -1942,6 +2393,35 @@
             "type": "object",
             "$ref": "#/definitions/v3NetworkUnitBrief"
           }
+        }
+      }
+    },
+    "v3TopoNetworkUnitListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkUnitListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1991,6 +2471,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespData"
         }
@@ -2003,6 +2486,35 @@
         "bk_networkunit_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoNetworkUnitUpdateRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitUpdateRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     }

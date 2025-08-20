@@ -44,7 +44,7 @@ func (h *handler) AgentRestart(ctx *restserver.Context) (interface{}, error) {
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesRestartDeploys(ctx.TenantID, reqHost, hosts)
+		nodeDeploy, err := h.generatesRestartDeploys(ctx.TenantID(), reqHost, hosts)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to restart agent, failed to generate node deployment. err: %v", err)
 
@@ -57,7 +57,7 @@ func (h *handler) AgentRestart(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchRestartNode(ctx, manager.RestartNodeParam{
 		Type:            types.NodeWorkflowTypeRestartAgent,
 		BizIDs:          h.getRestartNodeBizIDs(hosts),
-		Operator:        ctx.LoginName,
+		Operator:        ctx.LoginName(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

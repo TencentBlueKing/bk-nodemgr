@@ -23,12 +23,12 @@ import (
 
 // Config the config of gse.
 type Config struct {
-	APIGWClientConfig apigwclient.Config
+	APIGWUserConfig apigwclient.UserConfig
 }
 
 // Validate the config.
 func (conf *Config) Validate() error {
-	if err := conf.APIGWClientConfig.Validate(); err != nil {
+	if err := conf.APIGWUserConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate gse config, err: %v", err)
 	}
 
@@ -47,7 +47,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 		return nil, fmt.Errorf("failed to new gse client: %v", err)
 	}
 
-	restCli, err := apigwclient.NewClient(c, "/api/v2", conf.APIGWClientConfig)
+	restCli, err := apigwclient.NewClient(c, "/api/v2", conf.APIGWUserConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new gse client: %v", err)
 	}

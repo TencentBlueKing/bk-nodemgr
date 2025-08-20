@@ -320,7 +320,7 @@ const getParams = () => {
   const params = {
     page: {
       limit: pagination.limit,
-      offset: pagination.current - 1,
+      offset: (pagination.current - 1)*pagination.limit,
     },
     exact_include_conditions: {
       node_role: [nodeRole.value],
@@ -332,7 +332,7 @@ const getParams = () => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
-    target[item.id] = item.values.map((value: any) => value.id);
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
   return params;
 };
@@ -346,7 +346,7 @@ const getConfigPolicyList = async () => {
   tableData.value = res.items;
 }
 watch([
-  route.name,
+  () => route.name,
   searchSelectValue,
   () => mainStore.selectedBusinessId
 ], async () => {

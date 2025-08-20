@@ -49,7 +49,7 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
 
-		nodeDeploy, err := h.handlerHost(ctx, ctx.TenantID, reqHost, targetVersions)
+		nodeDeploy, err := h.handlerHost(ctx, ctx.TenantID(), reqHost, targetVersions)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to install agent, failed to generate node deployment. err: %v", err)
 
@@ -67,7 +67,7 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.LoginName,
+		Operator:        ctx.LoginName(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

@@ -726,7 +726,7 @@ const getParams = () => {
   const params = {
     page: {
       limit: pagination.limit,
-      offset: pagination.current - 1,
+      offset: (pagination.current - 1)*pagination.limit,
     },
     exact_include_conditions: {} as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,

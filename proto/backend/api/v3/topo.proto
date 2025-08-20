@@ -25,12 +25,22 @@ message TopoBusinessListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated Business items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkAreaListReq describes the HTTP request body when list network-area
@@ -55,12 +65,22 @@ message TopoNetworkAreaListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated NetworkArea items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkAreaGetReq describes the HTTP request body when get network-area
@@ -73,7 +93,17 @@ message TopoNetworkAreaGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  NetworkArea data = 4;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
+  NetworkArea data = 5;
 }
 
 // TopoNetworkAreaCreateReq describes the HTTP request body when create
@@ -89,9 +119,19 @@ message TopoNetworkAreaCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkarea_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkAreaUpdateReq describes the HTTP request body when update
@@ -108,9 +148,19 @@ message TopoNetworkAreaUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkarea_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkAreaDeleteReq describes the HTTP request body when delete
@@ -123,9 +173,19 @@ message TopoNetworkAreaDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkarea_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkUnitListReq describes the HTTP request body when list network-unit
@@ -147,12 +207,22 @@ message TopoNetworkUnitListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated NetworkUnitBrief items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
@@ -165,7 +235,17 @@ message TopoNetworkUnitGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  NetworkUnit data = 4;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
+  NetworkUnit data = 5;
 }
 
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
@@ -185,9 +265,19 @@ message TopoNetworkUnitCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkunit_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
@@ -208,9 +298,19 @@ message TopoNetworkUnitUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkunit_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoNetworkUnitDeleteReq describes the HTTP request body when delete
@@ -223,9 +323,19 @@ message TopoNetworkUnitDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 bk_networkunit_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoHostExactConditions describes host exact conditions.
@@ -269,12 +379,22 @@ message TopoHostListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated Host items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoHostDistinctReq describes the HTTP request body when distinct host in
@@ -290,6 +410,16 @@ message TopoHostDistinctResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     repeated string node_role = 1;
@@ -303,7 +433,7 @@ message TopoHostDistinctResp {
     repeated int64 bk_networkunit_id = 9;
     repeated int64 bk_biz_id = 10;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoEventExactConditions describes the conditions when list event
@@ -338,12 +468,22 @@ message TopoEventListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated TopoEvent items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoEventDistinctReq describes the HTTP request body when distinct topoevent
@@ -360,6 +500,16 @@ message TopoEventDistinctResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     repeated int64 bk_networkarea_id = 1;
@@ -368,7 +518,7 @@ message TopoEventDistinctResp {
     repeated string type = 4;
     repeated string operator = 5;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoAccessPointListReq describes the HTTP request body when list accesspoint
@@ -390,12 +540,22 @@ message TopoAccessPointListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated AccessPoint items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // TopoConstantGetReq describes the HTTP request body when get constant in topo
@@ -411,12 +571,22 @@ message TopoConstantGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     repeated string cloud_vendor = 1;
     repeated string os_type = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // topo service.

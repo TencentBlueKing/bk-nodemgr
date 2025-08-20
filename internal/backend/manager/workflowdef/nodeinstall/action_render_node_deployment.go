@@ -352,7 +352,7 @@ const (
 )
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
-// nolint: nonamedreturns,funlen,fnsize
+// nolint: nonamedreturns,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceContext, nodeConf *types.NodeConf,
 	host *types.Host) (err error) {

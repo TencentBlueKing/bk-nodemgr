@@ -26,7 +26,7 @@ import (
 )
 
 // UploadOriginServer uploads the origin server.
-// nolint:funlen,fnsize
+// nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 	if pkgFile == nil {
