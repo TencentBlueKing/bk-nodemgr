@@ -93,6 +93,7 @@ func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.To
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -126,6 +127,7 @@ func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHo
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -158,6 +160,7 @@ func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.To
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -190,6 +193,7 @@ func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -222,6 +226,7 @@ func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -254,6 +259,7 @@ func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -287,6 +293,7 @@ func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -319,6 +326,7 @@ func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -351,6 +359,7 @@ func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -383,6 +392,7 @@ func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -415,6 +425,7 @@ func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -447,6 +458,7 @@ func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -479,6 +491,7 @@ func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -511,6 +524,7 @@ func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.T
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -543,6 +557,7 @@ func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -575,6 +590,7 @@ func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -607,6 +623,7 @@ func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.Top
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -639,6 +656,7 @@ func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBacken
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -671,6 +689,7 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBa
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -703,6 +722,7 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *pr
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -737,6 +757,7 @@ func (c *cli) listNodeWorkflowOperationInstance(
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -771,6 +792,7 @@ func (c *cli) getOperationInstanceLog(
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -806,6 +828,7 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -839,6 +862,7 @@ func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBacken
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -872,6 +896,7 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -899,6 +924,7 @@ func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.Pac
 		SubResourcef("/package/release/list").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -926,6 +952,7 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 		SubResourcef("/package/release/distinct").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -951,6 +978,7 @@ func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBacken
 		SubResourcef("/package/release/set_labels").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -970,6 +998,7 @@ func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 		SubResourcef("/package/release/enable").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -989,6 +1018,7 @@ func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.
 		SubResourcef("/package/release/disable").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1008,6 +1038,7 @@ func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBac
 		SubResourcef("/package/release/set_as_default").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1029,6 +1060,7 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 		SubResourcef("/package/release/cancel_as_default").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1048,6 +1080,7 @@ func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 		SubResourcef("/package/release/delete").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1069,6 +1102,7 @@ func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBacken
 		SubResourcef("/policy/config/list").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1090,6 +1124,7 @@ func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend
 		SubResourcef("/policy/config/get").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1111,6 +1146,7 @@ func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		SubResourcef("/policy/config/create").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1132,6 +1168,7 @@ func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		SubResourcef("/policy/config/update").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1153,6 +1190,7 @@ func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		SubResourcef("/policy/config/enable").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1174,6 +1212,7 @@ func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBac
 		SubResourcef("/policy/config/disable").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1195,6 +1234,7 @@ func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		SubResourcef("/policy/config/delete").
 		WithContext(ctx).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
