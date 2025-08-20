@@ -21,19 +21,47 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // DefaultNodeGeneration default node generation.
 const DefaultNodeGeneration = 2
 
-// ProxyInstall install proxy.
-func (h *handler) ProxyInstall(ctx *restserver.Context) (interface{}, error) {
+// Install install proxy.
+func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeProxyInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to install proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+
+	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(ctx, ctx.TenantID(), req)
+	if err != nil {
+		h.logger.Errorf("failed to install proxy, failed to generate node deployments. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
+		Type:            types.NodeWorkflowTypeInstallProxy,
+		BizIDs:          bizIDs,
+		Operator:        ctx.LoginName(),
+		NodeDeployments: nodeDeployments,
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to install proxy: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	resp := new(protoBackend.NodeProxyInstallResp)
+	resp.ConvertWorkflowID(workflowID)
+
+	return resp.GetData(), nil
+}
+
+// nolint: funlen
+func (h *handler) generateInstallNodeDeployments(
+	ctx context.Context, tenantID string, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -44,130 +72,131 @@ func (h *handler) ProxyInstall(ctx *restserver.Context) (interface{}, error) {
 		}
 	}
 
-	nodeDeploys := make([]*types.NodeDeployment, len(req.GetHost()))
-	for idx := range req.GetHost() {
-		reqHost := req.GetHost()[idx]
-
-		nodeDeploy, err := h.genNodeDeployMent(ctx, ctx.TenantID(), reqHost, targetVersions)
-		if err != nil {
-			h.logger.Errorf("failed to install proxy, failed to generate node deployment. err: %v", err)
-
-			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-		}
-
-		nodeDeploys[idx] = nodeDeploy
-	}
-
-	bizIDs := make(map[int64]struct{})
+	// build biz-id and networkunit-id.
+	bizIDMap := make(map[int64]struct{})
+	networkUnitIDMap := make(map[int64]struct{})
 	for _, host := range req.GetHost() {
-		bizIDs[host.GetBkBizId()] = struct{}{}
+		bizIDMap[host.GetBkBizId()] = struct{}{}
+		networkUnitIDMap[host.GetBkNetworkunitId()] = struct{}{}
 	}
+	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
-	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
-		Type:            types.NodeWorkflowTypeInstallProxy,
-		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.LoginName(),
-		NodeDeployments: nodeDeploys,
+	// fetch networkunit.
+	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+		ExactInclude: &types.NetworkUnitExactFields{
+			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
+		},
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install proxy: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		return nil, nil, fmt.Errorf("failed to fetch networkunit: %w", err)
 	}
 
-	resp := new(protoBackend.NodeProxyInstallResp)
-	resp.ConvertWorkflowID(workflowID)
-
-	return resp, nil
-}
-
-// nolint: funlen
-func (h *handler) genNodeDeployMent(
-	tenantCtx context.Context,
-	tenantID string,
-	reqHost *protoBackend.NodeProxyInstallReq_Host,
-	targetVersions []types.TargetVersion,
-) (*types.NodeDeployment, error) {
-
-	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
-	if err != nil {
-		return nil, err
+	networkUnitMap := make(map[int64]*types.NetworkUnit)
+	for _, networkUnit := range networkUnitList {
+		networkUnitMap[networkUnit.ID] = networkUnit
 	}
 
-	nodeDeployment := types.NewNodeDeployment(
-		&types.DeploymentInfo{
-			Host: types.Host{
-				HostID:   reqHost.GetBkHostId(),
-				TenantID: tenantID,
-				Static: &types.HostStatic{
-					BizID:         reqHost.GetBkBizId(),
-					NetworkAreaID: networkUnit.NetworkAreaID,
-					InnerIP:       reqHost.GetBkHostInnerip(),
-					InnerIPV6:     reqHost.GetBkHostInneripV6(),
-					OSType:        reqHost.GetOsType(),
-					Addressing:    types.Addressing(reqHost.GetBkAddressing()),
-				},
-				Dynamic: &types.HostDynamic{
-					NodeRole:       types.NodeRoleProxy,
-					NodeGeneration: DefaultNodeGeneration,
-					NetworkUnitID:  networkUnit.ID,
-				},
-			},
-			InstallOptions: types.DeploymentInstallOptions{
-				ReRegister: reqHost.GetReRegister(),
-			},
-			LoginInfo: types.LoginInfo{
-				IP:   reqHost.GetLoginIp(),
-				Port: reqHost.GetLoginPort(),
-				User: reqHost.GetLoginUser(),
-				Mode: types.LoginMode(reqHost.GetLoginMode()),
-			},
-			TargetVersion: targetVersions,
+	gp := gopool.NewPool()
+	nodeDeployments := make([]*types.NodeDeployment, len(req.Host))
+	for i := range req.GetHost() {
+		idx := i
+		host := req.GetHost()[idx]
+
+		gp.Go(func() error {
+			networkUnit, ok := networkUnitMap[host.GetBkNetworkunitId()]
+			if !ok {
+				return fmt.Errorf("failed to find networkunit with id: %d", host.GetBkNetworkunitId())
+			}
+
+			nodeDeployment := types.NewNodeDeployment(
+				&types.DeploymentInfo{
+					Host: types.Host{
+						HostID:   host.GetBkHostId(),
+						TenantID: tenantID,
+						Static: &types.HostStatic{
+							BizID:         host.GetBkBizId(),
+							NetworkAreaID: networkUnit.NetworkAreaID,
+							InnerIP:       host.GetBkHostInnerip(),
+							InnerIPV6:     host.GetBkHostInneripV6(),
+							OSType:        host.GetOsType(),
+							Addressing:    types.Addressing(host.GetBkAddressing()),
+						},
+						Dynamic: &types.HostDynamic{
+							NodeRole:       types.NodeRoleProxy,
+							NodeGeneration: DefaultNodeGeneration,
+							NetworkUnitID:  networkUnit.ID,
+							ProxyTags:      types.StringListToProxyTagList(host.GetProxyTags()),
+							LoginIP:        host.GetLoginIp(),
+							ExportIP:       host.GetExportIp(),
+							AdvertiseIP:    host.GetAdvertiseIp(),
+						},
+					},
+					InstallOptions: types.DeploymentInstallOptions{
+						ReRegister: host.GetReRegister(),
+					},
+					LoginInfo: types.LoginInfo{
+						IP:   host.GetLoginIp(),
+						Port: host.GetLoginPort(),
+						User: host.GetLoginUser(),
+						Mode: types.LoginMode(host.GetLoginMode()),
+					},
+					TargetVersion: targetVersions,
+				})
+
+			switch nodeDeployment.Info.LoginInfo.Mode {
+			case types.LoginModeKeyFile:
+				loginKeyFile, err := base64.StdEncoding.DecodeString(host.GetLoginKeyFile())
+				if err != nil {
+					h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+
+					return fmt.Errorf("failed to decode key file, err: %w", err)
+				}
+
+				err = h.storageHostCredit.StoreHostCredit(
+					ctx,
+					nodeDeployment.Info.Host.Static.NetworkAreaID,
+					nodeDeployment.Info.LoginInfo.IP,
+					nodeDeployment.Info.LoginInfo.User,
+					nodeDeployment.Info.LoginInfo.Mode,
+					loginKeyFile,
+				)
+				if err != nil {
+					return fmt.Errorf("failed to gen node deployment: %w", err)
+				}
+
+			case types.LoginModePassword:
+				loginPassword := host.GetLoginPassword()
+
+				err = h.storageHostCredit.StoreHostCredit(
+					ctx,
+					nodeDeployment.Info.Host.Static.NetworkAreaID,
+					nodeDeployment.Info.LoginInfo.IP,
+					nodeDeployment.Info.LoginInfo.User,
+					nodeDeployment.Info.LoginInfo.Mode,
+					[]byte(loginPassword),
+				)
+				if err != nil {
+					return fmt.Errorf("failed to gen node deployment: %w", err)
+				}
+
+			case types.LoginModePasswordVault:
+				// notice: password vault don't need to store password.
+
+			default:
+				err = fmt.Errorf("unsupported this login mode. login-mode(%s)", host.GetLoginMode())
+				h.logger.Error(err)
+
+				return err
+			}
+
+			nodeDeployments[idx] = nodeDeployment
+
+			return nil
 		})
-
-	switch nodeDeployment.Info.LoginInfo.Mode {
-	case types.LoginModeKeyFile:
-		loginKeyFile, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
-		if err != nil {
-			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
-
-			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
-		}
-
-		err = h.storageHostCredit.StoreHostCredit(
-			tenantCtx,
-			nodeDeployment.Info.Host.Static.NetworkAreaID,
-			nodeDeployment.Info.LoginInfo.IP,
-			nodeDeployment.Info.LoginInfo.User,
-			nodeDeployment.Info.LoginInfo.Mode,
-			loginKeyFile,
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
-		}
-	case types.LoginModePassword:
-		loginPassword := reqHost.GetLoginPassword()
-
-		err = h.storageHostCredit.StoreHostCredit(
-			tenantCtx,
-			nodeDeployment.Info.Host.Static.NetworkAreaID,
-			nodeDeployment.Info.LoginInfo.IP,
-			nodeDeployment.Info.LoginInfo.User,
-			nodeDeployment.Info.LoginInfo.Mode,
-			[]byte(loginPassword),
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to gen node deployment: %w", err)
-		}
-	case types.LoginModePasswordVault:
-		// notice: password vault don't need to store password.
-	default:
-		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", reqHost.GetLoginMode())
-		h.logger.Error(err)
-
-		return nil, err
+	}
+	if err := gp.Wait(); err != nil {
+		return nil, nil, err
 	}
 
-	return nodeDeployment, nil
+	return nodeDeployments, bizIDs, nil
 }

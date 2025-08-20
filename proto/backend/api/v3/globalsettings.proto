@@ -34,15 +34,6 @@ message ListGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {
@@ -62,15 +53,6 @@ message GetGlobalSettingResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data { string value = 1; }
@@ -87,15 +69,6 @@ message UpsertGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -112,15 +85,6 @@ message DeleteGlobalSettingsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}

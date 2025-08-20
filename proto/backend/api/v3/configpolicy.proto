@@ -34,15 +34,6 @@ message ConfigPolicyListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {
@@ -60,15 +51,6 @@ message ConfigPolicyGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   ConfigPolicy data = 5;
@@ -93,15 +75,6 @@ message ConfigPolicyCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
@@ -129,15 +102,6 @@ message ConfigPolicyUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
@@ -153,15 +117,6 @@ message ConfigPolicyEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -178,15 +133,6 @@ message ConfigPolicyDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -202,15 +148,6 @@ message ConfigPolicyDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}

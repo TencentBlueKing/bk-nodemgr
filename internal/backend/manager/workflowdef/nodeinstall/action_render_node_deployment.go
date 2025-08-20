@@ -342,6 +342,9 @@ const (
 	// GseTemplateKeyFileAgentBindPort the config template key of gse file agent bind port.
 	GseTemplateKeyFileAgentBindPort = "__BK_GSE_FILE_AGENT_BIND_PORT__"
 
+	// GseTemplateKeyFileTopologyBindPort the config template key of gse file topology bind port.
+	GseTemplateKeyFileTopologyBindPort = "__BK_GSE_FILE_TOPOLOGY_BIND_PORT__"
+
 	// GseTemplateKeyProxyBindPort the config template key of gse proxy bind port.
 	GseTemplateKeyProxyBindPort = "__BK_GSE_PROXY_BIND_PORT__"
 )
@@ -589,10 +592,10 @@ func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostI
 
 // FileLink file link.
 type FileLink struct {
-	TargetIP   string `json:"target_ip,omitempty"`
-	TargetPort int64  `json:"target_port,omitempty"`
-	ReportIP   string `json:"report_ip,omitempty"`
-	ReportPort int64  `json:"report_port,omitempty"`
+	TargetIP   string `json:"target_ip,omitempty" bson:"target_ip,omitempty"`
+	TargetPort int64  `json:"target_port,omitempty" bson:"target_port,omitempty"`
+	ReportIP   string `json:"report_ip,omitempty" bson:"report_ip,omitempty"`
+	ReportPort int64  `json:"report_port,omitempty" bson:"report_port,omitempty"`
 }
 
 // NewFileLink new file link.
@@ -634,7 +637,7 @@ func (act *actionRenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf,
 			TargetPort: conv.ToInt64Default(strs[1], defaultFileLinkTargetPort),
 			ReportIP:   reportIP,
 			ReportPort: conv.ToInt64Default(
-				nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultFileLinkTargetPort),
+				nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort], defaultFileLinkTargetPort),
 		}
 		links = append(links, link)
 	}

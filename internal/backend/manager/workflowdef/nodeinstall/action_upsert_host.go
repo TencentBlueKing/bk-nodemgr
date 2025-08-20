@@ -162,8 +162,8 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, in
 		}
 
 		if count > 1 {
-			return fmt.Errorf("more than one host found, connect the system administrator to check the host, "+
-				"network_area_id(%d), addressing(%s), inner_ip(%s)",
+			return fmt.Errorf("more than one host found, contact the system administrator to check the host, "+
+				"networkarea_id(%d), addressing(%s), inner_ip(%s)",
 				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
 		}
 
@@ -189,9 +189,9 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, in
 		}
 
 		if count == 0 {
-			return fmt.Errorf("no host found, connect the system administrator to check the host, "+
-				"network_area_id(%d), addressing(%s), inner_ip(%s)",
-				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
+			return fmt.Errorf("no host found, contact the system administrator to check the host, "+
+				"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%s)",
+				info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
 		}
 	}
 

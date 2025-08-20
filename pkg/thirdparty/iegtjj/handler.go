@@ -94,7 +94,7 @@ func (h *Handler) LoadPassword(
 ) (string, error) {
 
 	if networkAreaID != 0 {
-		return "", fmt.Errorf("iegtjj unsupported this network_area_id. network_area_id(%d)", networkAreaID)
+		return "", fmt.Errorf("iegtjj unsupported this networkarea_id. networkarea_id(%d)", networkAreaID)
 	}
 
 	switch loginUser {

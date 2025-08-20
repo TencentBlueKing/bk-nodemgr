@@ -8,47 +8,33 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package proxy defines the agent apis.
+// Package proxy provides the proxy API handler.
 package proxy
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
-	rg                              *gin.RouterGroup
-	manager                         manager.Manager
-	storageNetworkUnit              topo.IStorageNetworkUnit
-	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
-	storageHostCredit               credit.IStorageHostCredit
-	storageHost                     topo.IStorageHost
-
-	logger logger.Logger
+	rg             *gin.RouterGroup
+	backendHandler backend.Handler
+	logger         logger.Logger
 }
 
-// newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                              rg.Group("/proxy"),
-		manager:                         capability.Manager,
-		storageNetworkUnit:              capability.StorageTopo,
-		storageNodeDeploymentDomainInit: capability.StorageNodeDeployment,
-		logger:                          capability.Logger,
-		storageHostCredit:               capability.StorageCredit,
-		storageHost:                     capability.StorageTopo,
+		rg:             rg.Group("/proxy"),
+		backendHandler: capability.BackendHandler,
+		logger:         capability.Logger,
 	}
 }
 
-// Load load agent handler.
+// Load loads workflow handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 

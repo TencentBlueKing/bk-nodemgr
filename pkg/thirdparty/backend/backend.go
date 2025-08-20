@@ -891,6 +891,72 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 	return resp, nil
 }
 
+func (c *cli) installNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyInstallReq) (
+	*protoBackend.NodeProxyInstallResp, error) {
+
+	resp := new(protoBackend.NodeProxyInstallResp)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/proxy/install").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("install node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("install node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyUpgradeReq) (
+	*protoBackend.NodeProxyUpgradeResp, error) {
+
+	resp := new(protoBackend.NodeProxyUpgradeResp)
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/node/proxy/upgrade").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("upgrade node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("upgrade node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
 

@@ -113,6 +113,13 @@ type HostDynamic struct {
 	AgentID        string
 	NetworkUnitID  int64
 
+	// LoginIP represents the ip when SSH login to install.
+	// ExportIP represents the ip that the outgoing IP in NAT.
+	// AdvertiseIP represents the ip that the incoming IP in NAT.
+	LoginIP     string
+	ExportIP    string
+	AdvertiseIP string
+
 	// ProxyAccessDisabled This means that there will be no new proxy access connection establishment for this node.
 	// ! This setting does not affect the established connections.
 	ProxyAccessDisabled bool
@@ -129,18 +136,47 @@ type HostDynamic struct {
 type ProxyTag string
 
 const (
-	// ProxyTagDedicatedInstaller means this node is a dedicated tools.
+	// ProxyTagDedicatedInstaller means this node is a dedicated installer.
 	ProxyTagDedicatedInstaller = "dedicated_installer"
+
+	// ProxyTagClusterTunnel means this node is a cluster tunnel.
+	ProxyTagClusterTunnel = "cluster_tunnel"
+
+	// ProxyTagFileTunnel means this node is a file tunnel.
+	ProxyTagFileTunnel = "file_tunnel"
+
+	// ProxyTagDataTunnel means this node is a data tunnel.
+	ProxyTagDataTunnel = "data_tunnel"
 )
 
 // Validate validates the proxy tag.
 func (tag ProxyTag) Validate() error {
 	switch tag {
-	case ProxyTagDedicatedInstaller:
+	case ProxyTagDedicatedInstaller, ProxyTagClusterTunnel, ProxyTagFileTunnel, ProxyTagDataTunnel:
 		return nil
 	default:
 		return errors.New("invalid proxy tag")
 	}
+}
+
+// ProxyTagListToStringList converts a proxy tag list to a string list.
+func ProxyTagListToStringList(tagList []ProxyTag) []string {
+	stringList := make([]string, 0, len(tagList))
+	for _, tag := range tagList {
+		stringList = append(stringList, string(tag))
+	}
+
+	return stringList
+}
+
+// StringListToProxyTagList converts a string list to a proxy tag list.
+func StringListToProxyTagList(stringList []string) []ProxyTag {
+	tagList := make([]ProxyTag, 0, len(stringList))
+	for _, tag := range stringList {
+		tagList = append(tagList, ProxyTag(tag))
+	}
+
+	return tagList
 }
 
 // NewBlankNodeDynamic returns a blank node dynamic.

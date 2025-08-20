@@ -1,6 +1,6 @@
 syntax = "proto3";
 package v3;
-option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
 
 import "common.proto";
 
@@ -63,4 +63,22 @@ message NodeProxyUpgradeResp {
 
   message Data { string workflow_id = 1; }
   Data data = 5;
+}
+
+service NodeProxy {
+  // NodeProxyInstall installs node proxy.
+  rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/install"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpgrade upgrades node proxy.
+  rpc NodeProxyUpgrade(NodeProxyUpgradeReq) returns (NodeProxyUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/upgrade"
+      body : "*"
+    };
+  }
 }

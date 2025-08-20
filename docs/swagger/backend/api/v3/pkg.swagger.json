@@ -256,6 +256,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -280,6 +291,24 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
           }
         }
       }
@@ -317,7 +346,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespData"
@@ -327,35 +356,6 @@
     },
     "v3PackageReleaseCancelAsDefaultRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseCancelAsDefaultRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseCancelAsDefaultRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3PackageReleaseDeleteReq": {
       "type": "object",
@@ -390,7 +390,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseDeleteRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDeleteRespData"
@@ -400,35 +400,6 @@
     },
     "v3PackageReleaseDeleteRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseDeleteRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseDeleteRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseDeleteRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3PackageReleaseDisableReq": {
       "type": "object",
@@ -463,7 +434,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseDisableRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDisableRespData"
@@ -473,35 +444,6 @@
     },
     "v3PackageReleaseDisableRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseDisableRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseDisableRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseDisableRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3PackageReleaseEnableReq": {
       "type": "object",
@@ -536,7 +478,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseEnableRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseEnableRespData"
@@ -546,35 +488,6 @@
     },
     "v3PackageReleaseEnableRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseEnableRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseEnableRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseEnableRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3PackageReleaseExactConditions": {
       "type": "object",
@@ -649,7 +562,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseListRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseListRespData"
@@ -670,35 +583,6 @@
             "type": "object",
             "$ref": "#/definitions/v3Release"
           }
-        }
-      }
-    },
-    "v3PackageReleaseListRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseListRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseListRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -735,7 +619,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespData"
@@ -745,35 +629,6 @@
     },
     "v3PackageReleaseSetAsDefaultRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseSetAsDefaultRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseSetAsDefaultRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3PackageReleaseSetLabelsReq": {
       "type": "object",
@@ -814,7 +669,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3PackageReleaseSetLabelsRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetLabelsRespData"
@@ -824,35 +679,6 @@
     },
     "v3PackageReleaseSetLabelsRespData": {
       "type": "object"
-    },
-    "v3PackageReleaseSetLabelsRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3PackageReleaseSetLabelsRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3PackageReleaseSetLabelsRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
     },
     "v3Page": {
       "type": "object",

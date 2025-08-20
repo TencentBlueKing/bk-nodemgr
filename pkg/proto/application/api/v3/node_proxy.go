@@ -12,7 +12,9 @@ package v3
 
 import (
 	"errors"
+	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -38,44 +40,6 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 	for idx := range hosts {
 		hosts[idx].AutoConvert()
 	}
-}
-
-// ConvertHostParamFromTypes convert param from types.
-func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProxyInstallParam) {
-	hostsParam := make([]*NodeProxyInstallReq_Host, len(installParam.Hosts))
-	for idx, host := range installParam.Hosts {
-		hostsParam[idx] = &NodeProxyInstallReq_Host{
-			BkBizId:         host.BizID,
-			BkNetworkunitId: host.NetworkUnitID,
-			BkHostId:        &host.HostID,
-			BkAddressing:    string(host.Addressing),
-			BkHostInnerip:   host.InnerIP,
-			BkHostInneripV6: host.InnerIPV6,
-			OsType:          host.OSType,
-			LoginIp:         host.LoginIP,
-			LoginPort:       host.LoginPort,
-			LoginUser:       host.LoginUser,
-			LoginMode:       string(host.LoginMode),
-			LoginPassword:   host.LoginPassword,
-			LoginKeyFile:    host.LoginKeyFile,
-			ExportIp:        host.ExportIP,
-			AdvertiseIp:     host.AdvertiseIP,
-			ReRegister:      host.ReRegister,
-			ProxyTags:       types.ProxyTagListToStringList(host.ProxyTags),
-		}
-	}
-
-	targetVersion := make([]*TargetVersion, len(installParam.TargetVersion))
-	for idx, version := range installParam.TargetVersion {
-		targetVersion[idx] = &TargetVersion{
-			Version: version.Version,
-			CpuArch: string(version.CPUArch),
-			OsType:  string(version.OsType),
-		}
-	}
-
-	x.TargetVersion = targetVersion
-	x.Host = hostsParam
 }
 
 // Validate check body.
@@ -128,18 +92,56 @@ func (x *NodeProxyInstallReq_Host) AutoConvert() {
 	}
 }
 
+// ConvertAgentParamToTypes convert to types.
+func (x *NodeProxyInstallReq) ConvertAgentParamToTypes() *types.NodeProxyInstallParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeProxyInstallHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeProxyInstallHost{
+			BizID:         host.GetBkBizId(),
+			NetworkUnitID: host.GetBkNetworkunitId(),
+			HostID:        host.GetBkHostId(),
+			Addressing:    types.Addressing(host.GetBkAddressing()),
+			InnerIP:       host.GetBkHostInnerip(),
+			InnerIPV6:     host.GetBkHostInneripV6(),
+			OSType:        host.GetOsType(),
+			LoginIP:       host.GetLoginIp(),
+			LoginPort:     int64(host.GetLoginPort()),
+			LoginUser:     host.GetLoginUser(),
+			LoginMode:     types.LoginMode(host.GetLoginMode()),
+			LoginPassword: host.GetLoginPassword(),
+			LoginKeyFile:  host.GetLoginKeyFile(),
+			ExportIP:      host.GetExportIp(),
+			AdvertiseIP:   host.GetAdvertiseIp(),
+			ReRegister:    host.GetReRegister(),
+			ProxyTags:     types.StringListToProxyTagList(host.GetProxyTags()),
+		}
+	}
+
+	versions := x.GetTargetVersion()
+	targetVersion := make([]*types.TargetVersion, len(versions))
+	for idx, version := range versions {
+		targetVersion[idx] = &types.TargetVersion{
+			Version: version.GetVersion(),
+			CPUArch: criteria.CPUArch(version.GetCpuArch()),
+			OsType:  criteria.OSType(version.GetOsType()),
+		}
+	}
+
+	return &types.NodeProxyInstallParam{
+		Hosts:         hostsParam,
+		TargetVersion: targetVersion,
+	}
+}
+
 // ConvertWorkflowID convert workflow id.
 func (x *NodeProxyInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeProxyInstallResp_Data{WorkflowId: workflowID}
-}
-
-// GetWorkflowID get workflow id.
-func (x *NodeProxyInstallResp) GetWorkflowID() string {
-	if x.GetData() != nil {
-		return x.GetData().GetWorkflowId()
-	}
-
-	return ""
 }
 
 // Validate check body.
@@ -158,35 +160,44 @@ func (x *NodeProxyUpgradeReq) Validate() error {
 	return nil
 }
 
-// convert host param from types.
-func (x *NodeProxyUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeProxyUpgradeParam) {
-	hostsParam := make([]*NodeProxyUpgradeReq_Host, len(upgradeParam.Hosts))
-	for idx, host := range upgradeParam.Hosts {
-		hostsParam[idx] = &NodeProxyUpgradeReq_Host{
-			BkHostId:                  host.HostID,
-			Force:                     host.Force,
-			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
-		}
-	}
-
-	targetVersion := make([]*TargetVersion, len(upgradeParam.TargetVersion))
-	for idx, version := range upgradeParam.TargetVersion {
-		targetVersion[idx] = &TargetVersion{
-			Version: version.Version,
-			CpuArch: string(version.CPUArch),
-			OsType:  string(version.OsType),
-		}
-	}
-
-	x.TargetVersion = targetVersion
-	x.Host = hostsParam
-}
-
 // AutoConvert auto convert.
 func (x *NodeProxyUpgradeReq) AutoConvert() {
 	hosts := x.GetHost()
 	for idx := range hosts {
 		hosts[idx].AutoConvert()
+	}
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeProxyUpgradeReq) ConvertParamToTypes() *types.NodeProxyUpgradeParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeProxyUpgradeHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeProxyUpgradeHost{
+			HostID:                 host.GetBkHostId(),
+			Force:                  host.GetForce(),
+			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
+		}
+	}
+
+	versions := x.GetTargetVersion()
+	targetVersion := make([]*types.TargetVersion, len(versions))
+	for idx, version := range versions {
+		targetVersion[idx] = &types.TargetVersion{
+			Version: version.GetVersion(),
+			CPUArch: criteria.CPUArch(version.GetCpuArch()),
+			OsType:  criteria.OSType(version.GetOsType()),
+		}
+	}
+
+	return &types.NodeProxyUpgradeParam{
+		Hosts:         hostsParam,
+		TargetVersion: targetVersion,
 	}
 }
 
@@ -211,13 +222,4 @@ func (x *NodeProxyUpgradeReq_Host) AutoConvert() {
 // ConvertWorkflowID convert workflow id.
 func (x *NodeProxyUpgradeResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeProxyUpgradeResp_Data{WorkflowId: workflowID}
-}
-
-// GetWorkflowID get workflow id.
-func (x *NodeProxyUpgradeResp) GetWorkflowID() string {
-	if x.GetData() != nil {
-		return x.GetData().GetWorkflowId()
-	}
-
-	return ""
 }

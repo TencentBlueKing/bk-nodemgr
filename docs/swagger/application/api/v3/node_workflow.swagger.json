@@ -254,6 +254,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "NodeWorkflowActionMessageMessage": {
       "type": "object",
       "properties": {
@@ -333,6 +344,24 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
           }
         }
       }
@@ -430,6 +459,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowDistinctRespData"
@@ -584,6 +616,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowListRespData"
         }
@@ -702,6 +737,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespData"
         }
@@ -744,6 +782,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
@@ -796,6 +837,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
@@ -872,6 +916,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
         }
@@ -925,6 +972,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowStatisticsRespData"
