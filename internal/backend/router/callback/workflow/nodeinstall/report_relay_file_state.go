@@ -14,17 +14,14 @@ package nodeinstall
 import (
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	relayFileStateKey        = "relay_file_state"
-	relayFileStateStorageKey = "relay_file_state_storage_dir"
-)
+const relayStateKey = "relay_file_state"
 
 func (h *handler) RelayReportFileState(gCtx *gin.Context) {
-	req := new(protoBackend.ReportFileStateReq)
+	req := new(protoCallback.ReportFileStateReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report relay file state failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -47,10 +44,8 @@ func (h *handler) RelayReportFileState(gCtx *gin.Context) {
 		fileStateMap[fileState.GetFileName()] = fileState.GetFileStatus()
 	}
 
-	fileStateMap[relayFileStateStorageKey] = req.GetStorageTmpDir()
-
 	dataMap := make(map[string]any)
-	dataMap[relayFileStateKey] = fileStateMap
+	dataMap[relayStateKey] = fileStateMap
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
