@@ -17,13 +17,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -49,104 +48,104 @@ type IHandler interface {
 // IDynamicGroup this interface is used to edit dynamic group.
 type IDynamicGroup interface {
 	// SearchDynamicGroup search dynamic group.
-	SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
+	SearchDynamicGroup(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
 
 	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-	ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
+	ExecuteHostDynamicGroup(ctx contextx.ITenantUserContext, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
 }
 
 // IBiz this interface is used to edit biz info.
 type IBiz interface {
 	// SearchBusiness search business.
-	SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error)
+	SearchBusiness(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Business, error)
 }
 
 // IEnum this interface is used to get enum resource.
 type IEnum interface {
 	// GetCloudVendors get cloud vendors.
-	GetCloudVendors(ctx context.Context) ([]string, error)
+	GetCloudVendors(ctx contextx.ITenantUserContext) ([]string, error)
 }
 
 // IHostIdentifier host identifier.
 type IHostIdentifier interface {
 	// PushHostIdentifier push host identifier.
-	PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error)
+	PushHostIdentifier(ctx contextx.ITenantUserContext, hostIDs ...int64) (taskID string, err error)
 
 	// FindHostIdentifierPushResult find host identifier push result.
-	FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64, failedList []int64,
+	FindHostIdentifierPushResult(ctx contextx.ITenantUserContext, taskID string) (successList []int64, failedList []int64,
 		pendingList []int64, err error)
 }
 
 // IHost this interface is used to edit host info.
 type IHost interface {
 	// ListBizHosts list biz hosts.
-	ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error)
+	ListBizHosts(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.Host, error)
 
 	// ListHostsWithoutBusiness list hosts without business.
-	ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error)
+	ListHostsWithoutBusiness(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Host, error)
 
 	// FindHostByServiceTemplate find host by service template.
-	FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
+	FindHostByServiceTemplate(ctx contextx.ITenantUserContext, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
 		[]*types.Host, error)
 
 	// CheckBizHostByIP check biz host by ip
-	CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error)
+	CheckBizHostByIP(ctx contextx.ITenantUserContext, bizID int64, cloudID int64, ip string) (bool, error)
 
 	// ListResourcePoolHosts list resource pool hosts.
-	ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error)
+	ListResourcePoolHosts(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Host, error)
 
 	// AddHostToResourcePool add host to resource pool
-	AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+	AddHostToResourcePool(ctx contextx.ITenantUserContext, hosts ...*types.Host) (successHost []*types.Host,
 		failedIndexMsg []string, err error)
 
 	// AddHostToBusinessIdle add host to business idle
-	AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) ([]int64, error)
+	AddHostToBusinessIdle(ctx contextx.ITenantUserContext, bizID int64, hosts ...*types.Host) ([]int64, error)
 }
 
 // INetworkArea this interface is used to edit network area.
 type INetworkArea interface {
 	// SearchNetworkArea search network area.
-	SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error)
+	SearchNetworkArea(ctx contextx.ITenantUserContext, page types.Page) ([]*types.NetworkArea, error)
 
 	// CreateNetworkArea create network area.
-	CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
+	CreateNetworkArea(ctx contextx.ITenantUserContext, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
 
 	// UpdateNetworkArea update network area.
-	UpdateNetworkArea(ctx context.Context, id int64, networkAreaName string, cloudVendor string) error
+	UpdateNetworkArea(ctx contextx.ITenantUserContext, id int64, networkAreaName string, cloudVendor string) error
 
 	// DeleteNetworkArea delete network area.
-	DeleteNetworkArea(ctx context.Context, id int64) error
+	DeleteNetworkArea(ctx contextx.ITenantUserContext, id int64) error
 }
 
 // IBindHostAgent this interface is used to bind host agent.
 type IBindHostAgent interface {
-	BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
+	BindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*types.Host) error
 }
 
 // IUnbindHostAgent this interface is used to unbind host agent.
 type IUnbindHostAgent interface {
-	UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error
+	UnbindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*types.Host) error
 }
 
 // IUpdateHostNetworkAreaField this interface is used to update host network area field.
 type IUpdateHostNetworkAreaField interface {
 	// UpdateHostNetworkAreaField update host network area field.
-	UpdateHostNetworkAreaField(ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error
+	UpdateHostNetworkAreaField(ctx contextx.ITenantUserContext, bizID int64, networkAreaID int64, hostIDs ...int64) error
 }
 
 // IServiceTemplate this interface is used to list service template.
 type IServiceTemplate interface {
 	// ListServiceTemplate list service template.
-	ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
+	ListServiceTemplate(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
 }
 
 // IWatch this interface is used to watch resource event.
 type IWatch interface {
 	// WatchHostResourceEvent watch host resource event.
-	WatchHostResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error)
+	WatchHostResourceEvent(ctx contextx.ITenantUserContext, cursor string) ([]*types.HostEvent, error)
 
 	// WatchHostRelationResourceEvent watch host relation resource event.
-	WatchHostRelationResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error)
+	WatchHostRelationResourceEvent(ctx contextx.ITenantUserContext, cursor string) ([]*types.HostEvent, error)
 }
 
 // Handler the Handler of cmdb.
@@ -205,6 +204,15 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	return h, nil
 }
 
+const (
+	// VirtueLoginUserBKNodemgr a special login user for bk-nodemgr.
+	VirtueLoginUserBKNodemgr = "admin"
+	// VirtueTenantIDDefault a special tenant id for bk-nodemgr.
+	VirtueTenantIDDefault = "system"
+	// VirtueBKUserBKNodemgr a special bk user for bk-nodemgr.
+	VirtueBKUserBKNodemgr = "admin"
+)
+
 func (h *Handler) initEnumKeepers() error {
 	h.logger.Infof("initializing enum keepers from cmdb")
 
@@ -218,7 +226,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				return h.cloudVendorKeeper.update(ctx)
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+
+				return h.cloudVendorKeeper.update(tenantUserCtx)
 			},
 		),
 		scheduler.NewTask(
@@ -226,7 +236,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				return h.osTypeKeeper.update(ctx)
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+
+				return h.osTypeKeeper.update(tenantUserCtx)
 			},
 		),
 		scheduler.NewTask(
@@ -234,7 +246,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				return h.cpuArchKeeper.update(ctx)
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+
+				return h.cpuArchKeeper.update(tenantUserCtx)
 			},
 		),
 	}
@@ -250,13 +264,15 @@ func (h *Handler) initEnumKeepers() error {
 	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
-	if err := h.cloudVendorKeeper.update(ctx); err != nil {
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+
+	if err := h.cloudVendorKeeper.update(tenantUserCtx); err != nil {
 		h.logger.Warnf("failed to sync cloud vendor: %v", err)
 	}
-	if err := h.osTypeKeeper.update(ctx); err != nil {
+	if err := h.osTypeKeeper.update(tenantUserCtx); err != nil {
 		h.logger.Warnf("failed to sync os type: %v", err)
 	}
-	if err := h.cpuArchKeeper.update(ctx); err != nil {
+	if err := h.cpuArchKeeper.update(tenantUserCtx); err != nil {
 		h.logger.Warnf("failed to sync cpu arch: %v", err)
 	}
 
@@ -267,25 +283,22 @@ func (h *Handler) initEnumKeepers() error {
 }
 
 // ListBizHosts list biz hosts.
-func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (h *Handler) ListBizHosts(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.Host, error) {
+	tenantID := ctx.TenantID()
+	loginUsername := ctx.LoginName()
 
 	executor := runtime.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
 		req := &ListBizHostsReq{
-			TenantID: tenantID,
-			BKBizID:  bizID,
+			BKBizID: bizID,
 			Page: Page{
 				Start: p.Offset,
 				Limit: p.Limit,
 				Sort:  p.Sort,
 			},
 		}
-
-		resp, err := h.cli.listBizHosts(ctx, req)
+		tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, loginUsername)
+		resp, err := h.cli.listBizHosts(tenantUserCtx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -307,14 +320,8 @@ func (h *Handler) ListBizHosts(ctx context.Context, bizID int64, page types.Page
 }
 
 // SearchBusiness search business.
-func (h *Handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types.Business, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) SearchBusiness(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Business, error) {
 	req := &SearchBusinessReq{
-		TenantID: tenantID,
 		Page: Page{
 			Start: page.Offset,
 			Limit: page.Limit,
@@ -331,7 +338,7 @@ func (h *Handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types
 	bizs := make([]*types.Business, len(resp.Info))
 	for idx, business := range resp.Info {
 		bizs[idx] = &types.Business{
-			TenantID: tenantID,
+			TenantID: ctx.TenantID(),
 			BizID:    business.BKBizID,
 			BizName:  business.BKBizName,
 		}
@@ -341,14 +348,8 @@ func (h *Handler) SearchBusiness(ctx context.Context, page types.Page) ([]*types
 }
 
 // SearchNetworkArea search network area.
-func (h *Handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*types.NetworkArea, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) SearchNetworkArea(ctx contextx.ITenantUserContext, page types.Page) ([]*types.NetworkArea, error) {
 	req := &SearchCloudAreaReq{
-		TenantID: tenantID,
 		Page: Page{
 			Start: page.Offset,
 			Limit: page.Limit,
@@ -363,23 +364,17 @@ func (h *Handler) SearchNetworkArea(ctx context.Context, page types.Page) ([]*ty
 
 	netAreas := make([]*types.NetworkArea, len(resp.Info))
 	for idx, networkarea := range resp.Info {
-		netAreas[idx] = h.convCloudAreaToTypes(tenantID, networkarea)
+		netAreas[idx] = h.convCloudAreaToTypes(ctx.TenantID(), networkarea)
 	}
 
 	return netAreas, nil
 }
 
 // CreateNetworkArea create network area.
-func (h *Handler) CreateNetworkArea(ctx context.Context, networkAreaName string, cloudVendor string) (
+func (h *Handler) CreateNetworkArea(ctx contextx.ITenantUserContext, networkAreaName string, cloudVendor string) (
 	*types.NetworkArea, error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &CreateCloudAreaReq{
-		TenantID:      tenantID,
 		BKCloudName:   networkAreaName,
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
@@ -390,7 +385,7 @@ func (h *Handler) CreateNetworkArea(ctx context.Context, networkAreaName string,
 	}
 
 	netArea := &types.NetworkArea{
-		TenantID:    tenantID,
+		TenantID:    ctx.TenantID(),
 		ID:          resp.Created.ID,
 		Name:        networkAreaName,
 		CloudVendor: cloudVendor,
@@ -401,21 +396,15 @@ func (h *Handler) CreateNetworkArea(ctx context.Context, networkAreaName string,
 
 // UpdateNetworkArea update network area.
 func (h *Handler) UpdateNetworkArea(
-	ctx context.Context, id int64, networkAreaName string, cloudVendor string) error {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
+	ctx contextx.ITenantUserContext, id int64, networkAreaName string, cloudVendor string) error {
 
 	req := &UpdateCloudAreaReq{
-		TenantID:      tenantID,
 		BKCloudID:     id,
 		BKCloudName:   networkAreaName,
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	err = h.cli.updateCloudArea(ctx, req)
+	err := h.cli.updateCloudArea(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -424,18 +413,12 @@ func (h *Handler) UpdateNetworkArea(
 }
 
 // DeleteNetworkArea delete network area.
-func (h *Handler) DeleteNetworkArea(ctx context.Context, id int64) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
+func (h *Handler) DeleteNetworkArea(ctx contextx.ITenantUserContext, id int64) error {
 	req := &DeleteCloudAreaReq{
-		TenantID:  tenantID,
 		BKCloudID: id,
 	}
 
-	err = h.cli.deleteCloudArea(ctx, req)
+	err := h.cli.deleteCloudArea(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -445,21 +428,15 @@ func (h *Handler) DeleteNetworkArea(ctx context.Context, id int64) error {
 
 // UpdateHostNetworkAreaField update host network area field.
 func (h *Handler) UpdateHostNetworkAreaField(
-	ctx context.Context, bizID int64, networkAreaID int64, hostIDs ...int64) error {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
+	ctx contextx.ITenantUserContext, bizID int64, networkAreaID int64, hostIDs ...int64) error {
 
 	req := &UpdateHostCloudAreaFieldReq{
-		TenantID:  tenantID,
 		BKBizID:   bizID,
 		BKCloudID: networkAreaID,
 		BKHostIDs: hostIDs,
 	}
 
-	err = h.cli.updateHostCloudAreaField(ctx, req)
+	err := h.cli.updateHostCloudAreaField(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -468,29 +445,26 @@ func (h *Handler) UpdateHostNetworkAreaField(
 }
 
 // GetCloudVendors get cloud vendors.
-func (h *Handler) GetCloudVendors(_ context.Context) ([]string, error) {
+func (h *Handler) GetCloudVendors(_ contextx.ITenantUserContext) ([]string, error) {
 	return h.cloudVendorKeeper.values(), nil
 }
 
 // BindHostAgent bind host agent.
-func (h *Handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
+func (h *Handler) BindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*types.Host) error {
 	if len(hostInfo) == 0 {
 		return errors.New("host info list is empty")
 	}
 
-	req := &BindHostAgentReq{TenantID: tenantID}
+	req := &BindHostAgentReq{
+		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
+	}
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
 			BKHostID:  host.HostID,
 			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
-	err = h.cli.bindHostAgent(ctx, req)
+	err := h.cli.bindHostAgent(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -499,24 +473,21 @@ func (h *Handler) BindHostAgent(ctx context.Context, hostInfo ...*types.Host) er
 }
 
 // UnbindHostAgent bind host agent.
-func (h *Handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
+func (h *Handler) UnbindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*types.Host) error {
 	if len(hostInfo) == 0 {
 		return errors.New("host info list is empty")
 	}
 
-	req := &UnbindHostAgentReq{TenantID: tenantID}
+	req := &UnbindHostAgentReq{
+		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
+	}
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
 			BKHostID:  host.HostID,
 			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
-	err = h.cli.unbindHostAgent(ctx, req)
+	err := h.cli.unbindHostAgent(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -525,19 +496,14 @@ func (h *Handler) UnbindHostAgent(ctx context.Context, hostInfo ...*types.Host) 
 }
 
 // AddHostToBusinessIdle add host to business idle.
-func (h *Handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts ...*types.Host) (
+func (h *Handler) AddHostToBusinessIdle(ctx contextx.ITenantUserContext, bizID int64, hosts ...*types.Host) (
 	[]int64, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	if len(hosts) == 0 {
 		return nil, errors.New("host list is empty")
 	}
 
-	req := &AddHostToBusinessIdleReq{TenantID: tenantID, BKBizID: bizID}
+	req := &AddHostToBusinessIdleReq{BKBizID: bizID}
 	for _, host := range hosts {
 		req.BKHostList = append(req.BKHostList, h.convCreateHostInfoFromTypes(host))
 	}
@@ -551,14 +517,8 @@ func (h *Handler) AddHostToBusinessIdle(ctx context.Context, bizID int64, hosts 
 
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
-func (h *Handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (taskID string, err error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
-
+func (h *Handler) PushHostIdentifier(ctx contextx.ITenantUserContext, hostIDs ...int64) (taskID string, err error) {
 	req := &PushHostIdentifierReq{
-		TenantID:  tenantID,
 		BKHostIDs: hostIDs,
 	}
 	resp, err := h.cli.pushHostIdentifier(ctx, req)
@@ -571,17 +531,10 @@ func (h *Handler) PushHostIdentifier(ctx context.Context, hostIDs ...int64) (tas
 
 // FindHostIdentifierPushResult find host identifier push result.
 // nolint: nonamedreturns
-func (h *Handler) FindHostIdentifierPushResult(ctx context.Context, taskID string) (successList []int64,
+func (h *Handler) FindHostIdentifierPushResult(ctx contextx.ITenantUserContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
 	req := &FindHostIdentifierPushResultReq{
-		TenantID: tenantID,
-
 		TaskID: taskID,
 	}
 	resp, err := h.cli.findHostIdentifierPushResult(ctx, req)
@@ -593,15 +546,9 @@ func (h *Handler) FindHostIdentifierPushResult(ctx context.Context, taskID strin
 }
 
 // ListResourcePoolHosts list resource pool hosts.
-func (h *Handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) ListResourcePoolHosts(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Host, error) {
 	req := &ListResourcePoolHostsReq{
-		TenantID: tenantID,
-		Fields:   ccHostFields(),
+		Fields: ccHostFields(),
 		Page: Page{
 			Start: page.Offset,
 			Limit: page.Limit,
@@ -616,22 +563,16 @@ func (h *Handler) ListResourcePoolHosts(ctx context.Context, page types.Page) ([
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host, CCResourcePoolBusinessID)
+		hosts[idx] = h.convHostInfoToTypes(ctx.TenantID(), host, CCResourcePoolBusinessID)
 	}
 
 	return hosts, nil
 }
 
 // ListHostsWithoutBusiness list hosts without business.
-func (h *Handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) ListHostsWithoutBusiness(ctx contextx.ITenantUserContext, page types.Page) ([]*types.Host, error) {
 	req := &ListHostsWithoutBusinessReq{
-		TenantID: tenantID,
-		Fields:   ccHostFields(),
+		Fields: ccHostFields(),
 		Page: Page{
 			Start: page.Offset,
 			Limit: page.Limit,
@@ -646,7 +587,7 @@ func (h *Handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 	hosts := make([]*types.Host, len(resp.Info))
 	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(tenantID, host, CCNoBusinessID)
+		hosts[idx] = h.convHostInfoToTypes(ctx.TenantID(), host, CCNoBusinessID)
 	}
 
 	return hosts, nil
@@ -654,15 +595,12 @@ func (h *Handler) ListHostsWithoutBusiness(ctx context.Context, page types.Page)
 
 // AddHostToResourcePool add host to resource pool.
 // nolint: nonamedreturns
-func (h *Handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Host) (successHost []*types.Host,
+func (h *Handler) AddHostToResourcePool(ctx contextx.ITenantUserContext, hosts ...*types.Host) (successHost []*types.Host,
 	failedIndexMsg []string, err error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, nil, err
+	req := &AddHostToResourcePoolReq{
+		HostInfo: make([]*CreateHostInfo, 0, len(hosts)),
 	}
-
-	req := &AddHostToResourcePoolReq{TenantID: tenantID}
 	for _, host := range hosts {
 		req.HostInfo = append(req.HostInfo, h.convCreateHostInfoFromTypes(host))
 	}
@@ -687,16 +625,10 @@ func (h *Handler) AddHostToResourcePool(ctx context.Context, hosts ...*types.Hos
 }
 
 // ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-func (h *Handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, groupID string, page types.Page) (
+func (h *Handler) ExecuteHostDynamicGroup(ctx contextx.ITenantUserContext, bizID int64, groupID string, page types.Page) (
 	[]*types.Host, error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &ExecuteDynamicGroupReq{
-		TenantID:       tenantID,
 		BKBizID:        bizID,
 		ID:             groupID,
 		Fields:         ccHostFields(),
@@ -708,8 +640,7 @@ func (h *Handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 		},
 	}
 
-	var resp *ExecuteDynamicGroupResp
-	resp, err = h.cli.executeDynamicGroup(ctx, req)
+	resp, err := h.cli.executeDynamicGroup(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -727,24 +658,18 @@ func (h *Handler) ExecuteHostDynamicGroup(ctx context.Context, bizID int64, grou
 			return nil, err
 		}
 
-		result[index] = h.convHostInfoToTypes(tenantID, &hostData, bizID)
+		result[index] = h.convHostInfoToTypes(ctx.TenantID(), &hostData, bizID)
 	}
 
 	return result, nil
 }
 
 // SearchDynamicGroup search dynamic group.
-func (h *Handler) SearchDynamicGroup(ctx context.Context, bizID int64, page types.Page) (
+func (h *Handler) SearchDynamicGroup(ctx contextx.ITenantUserContext, bizID int64, page types.Page) (
 	[]*types.DynamicGroup, error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &SearchDynamicGroupReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
+		BKBizID: bizID,
 		Page: Page{
 			Start: page.Offset,
 			Limit: page.Limit,
@@ -771,17 +696,10 @@ func (h *Handler) SearchDynamicGroup(ctx context.Context, bizID int64, page type
 }
 
 // ListServiceTemplate list service template.
-func (h *Handler) ListServiceTemplate(ctx context.Context, bizID int64, page types.Page) ([]*types.ServiceTemplate,
+func (h *Handler) ListServiceTemplate(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.ServiceTemplate,
 	error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &ListServiceTemplateReq{
-		TenantID: tenantID,
-
 		BKBizID: bizID,
 		Page: Page{
 			Start: page.Offset,
@@ -810,17 +728,10 @@ func (h *Handler) ListServiceTemplate(ctx context.Context, bizID int64, page typ
 }
 
 // FindHostByServiceTemplate find host by service template.
-func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, page types.Page,
+func (h *Handler) FindHostByServiceTemplate(ctx contextx.ITenantUserContext, bizID int64, page types.Page,
 	serviceTemplateIDs ...int64) ([]*types.Host, error) {
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &FindHostByServiceTemplateReq{
-		TenantID: tenantID,
-
 		BKBizID:              bizID,
 		BKServiceTemplateIDs: serviceTemplateIDs,
 		Fields:               ccHostFields(),
@@ -838,7 +749,7 @@ func (h *Handler) FindHostByServiceTemplate(ctx context.Context, bizID int64, pa
 
 	result := make([]*types.Host, len(resp.Info))
 	for index, host := range resp.Info {
-		result[index] = h.convHostInfoToTypes(tenantID, host, bizID)
+		result[index] = h.convHostInfoToTypes(ctx.TenantID(), host, bizID)
 	}
 
 	return result, nil
@@ -914,15 +825,9 @@ func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.Host {
 }
 
 // CheckBizHostByIP check biz host by ip.
-func (h *Handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int64, ip string) (bool, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return false, err
-	}
-
+func (h *Handler) CheckBizHostByIP(ctx contextx.ITenantUserContext, bizID int64, cloudID int64, ip string) (bool, error) {
 	req := &ListBizHostsReq{
-		TenantID: tenantID,
-		BKBizID:  bizID,
+		BKBizID: bizID,
 		Page: Page{
 			Start: 0,
 			Limit: 1,
@@ -957,14 +862,8 @@ func (h *Handler) CheckBizHostByIP(ctx context.Context, bizID int64, cloudID int
 }
 
 // WatchHostResourceEvent watch host resource event.
-func (h *Handler) WatchHostResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) WatchHostResourceEvent(ctx contextx.ITenantUserContext, cursor string) ([]*types.HostEvent, error) {
 	req := &ResourceWatchReq{
-		TenantID:   tenantID,
 		BKCursor:   cursor,
 		BKResource: string(types.ResourceTypeHost),
 		BKFields:   ccHostFields(),
@@ -986,7 +885,7 @@ func (h *Handler) WatchHostResourceEvent(ctx context.Context, cursor string) ([]
 			Cursor:    hostData.BKCursor,
 			Resource:  types.ResourceTypeHost,
 			EventType: types.EventType(hostData.BKEventType),
-			Detail:    h.convHostInfoToTypes(tenantID, hostData.BKDetail, CCNoBusinessID),
+			Detail:    h.convHostInfoToTypes(ctx.TenantID(), hostData.BKDetail, CCNoBusinessID),
 		})
 	}
 
@@ -994,14 +893,8 @@ func (h *Handler) WatchHostResourceEvent(ctx context.Context, cursor string) ([]
 }
 
 // WatchHostRelationResourceEvent get host relation resource by watch.
-func (h *Handler) WatchHostRelationResourceEvent(ctx context.Context, cursor string) ([]*types.HostEvent, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *Handler) WatchHostRelationResourceEvent(ctx contextx.ITenantUserContext, cursor string) ([]*types.HostEvent, error) {
 	req := &ResourceWatchReq{
-		TenantID:   tenantID,
 		BKCursor:   cursor,
 		BKResource: string(types.ResourceTypeHostRelation),
 	}

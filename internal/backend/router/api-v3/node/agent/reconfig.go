@@ -44,7 +44,7 @@ func (h *handler) AgentReconfig(ctx *restserver.Context) (interface{}, error) {
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesReconfigDeploys(ctx.TenantID, reqHost, hosts)
+		nodeDeploy, err := h.generatesReconfigDeploys(ctx.TenantID(), reqHost, hosts)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
 
@@ -57,7 +57,7 @@ func (h *handler) AgentReconfig(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchReconfigNode(ctx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigAgent,
 		BizIDs:          h.getReconfigNodeBizIDs(hosts),
-		Operator:        ctx.LoginName,
+		Operator:        ctx.LoginName(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

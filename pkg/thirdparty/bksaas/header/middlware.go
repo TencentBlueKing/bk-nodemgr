@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package header define the header of bksaas.
 package header
 
 import (
@@ -24,10 +25,10 @@ type RequestIDSetter struct {
 // SetRequestID ...
 func (setter *RequestIDSetter) SetRequestID(rCtx *restserver.Context) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.RequestID = BKRIDGetter(rCtx.Request())
+	rCtx.SetRequestID(BKRIDGetter(rCtx.Request()))
 
-	if rCtx.RequestID == "" {
-		rCtx.RequestID = identifier.GenRequestID()
+	if rCtx.RequestID() == "" {
+		rCtx.SetRequestID(identifier.GenRequestID())
 	}
 
 	return nil

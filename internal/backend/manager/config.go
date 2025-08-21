@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -58,6 +59,7 @@ type Config struct {
 
 	FileHandler file.IHandler
 
+	ProxyMessager relayhandler.IServerMessager
 	WorkflowConfig
 }
 

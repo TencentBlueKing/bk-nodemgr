@@ -283,6 +283,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		StorageConfigPolicy:   svc.Cap.StorageConfigPolicy,
 		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
+		ProxyMessager:         svc.Cap.ProxyMessager,
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{
@@ -530,7 +531,7 @@ func withProxy(capability *options.Capability) restserver.OptionFunc {
 
 // newCMDBHandler.
 func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, error) {
-	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGWAPPConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
@@ -538,8 +539,8 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 
 	apiGwClientCapability.Name = "cmdb"
 	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
-		SupplierAccount:   conf.SupplierAccount,
-		APIGWClientConfig: apiGwClientConfig,
+		SupplierAccount: conf.SupplierAccount,
+		APIGWAppConfig:  apiGWAPPConfig,
 	}, cmdb.WithLogger(logger))
 	if err != nil {
 		return nil, err
@@ -559,7 +560,7 @@ func newCreditVault(conf config.CreditVault, logger logger.Logger) (creditvault.
 	return vault, nil
 }
 
-func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigwserver.BKGWJWTAuthIdentity, error) {
+func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigwserver.BKGWJWTAuthIdentityAppState, error) {
 	publickeyPem, err := base64.StdEncoding.DecodeString(conf.PublickeyPem)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new bk jwt auth identity: %w", err)
@@ -591,7 +592,7 @@ func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (cr
 
 func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
 	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
-	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.Config
+	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.UserConfig
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
@@ -611,7 +612,7 @@ func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler
 
 // newGSEHandler.
 func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
+	apiGWUserConfig := newAPIGWUserConfig(&conf.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
@@ -619,7 +620,7 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		APIGWClientConfig: apiGwClientConfig,
+		APIGWUserConfig: apiGWUserConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -675,16 +676,17 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 	return clientCap, nil
 }
 
-// newAPIGwClientConfig creates a new api-gateway client config.
-func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
-	return apigwclient.Config{
-		Endpoints:   conf.Endpoints,
-		AppCode:     conf.AppCode,
-		AppSecret:   conf.AppSecret,
-		User:        conf.User,
+// newAPIGWAppConfig creates a new api-gateway client config.
+func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
+	return apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret)
+}
+
+// newAPIGWUserConfig creates a new api-gateway client config.
+func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
+	return apigwclient.UserConfig{
+		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-		BkTicket:    conf.BkTicket,
-		BkToken:     conf.BkToken,
+		User:        conf.User,
 		AccessToken: conf.AccessToken,
 	}
 }

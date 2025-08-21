@@ -57,6 +57,10 @@ type Info struct {
 	TransferOptions        TransferOptions `json:"transfer_options" bson:"transfer_options"`
 	CurrentVersionSupports VersionSupports `json:"current_version_supports" bson:"current_version_supports"`
 	TargetVersion          []TargetVersion `json:"target_version" bson:"target_version"`
+	RelayHostID            int64           `json:"relay_host_id" bson:"relay_host_id"`
+	RelayAgentID           string          `json:"relay_agent_id" bson:"relay_agent_id"`
+	RelayOsType            string          `json:"relay_os_type" bson:"relay_os_type"`
+	RelayPkgPath           string          `json:"relay_pkg_path" bson:"relay_pkg_path"`
 }
 
 // TargetVersion this is the target version for node deployment.

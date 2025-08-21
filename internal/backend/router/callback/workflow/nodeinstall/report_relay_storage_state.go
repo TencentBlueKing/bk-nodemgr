@@ -15,43 +15,38 @@ import (
 	"net/http"
 
 	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
-
-
-func (h *handler) RelayReportDetechInfo(gCtx *gin.Context) {
-	req := new(proto.ReportFileStateReq)
+func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
+	req := new(protoCallback.ReportStorageResultReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report detect info failed: %s", err)
+		h.logger.Errorf("report stroage file result failed: %v", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report detect info failed: %s", err)
+		h.logger.Errorf("report stroage file result failed: %v", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	h.logger.Infof("report detect info. instance(%s), action(%s) ",
+	h.logger.Infof("report relay stroage file result. instance(%s), action(%s) ",
 		req.GetOperInstId(), req.GetActionName())
 
-	detechInfo := make(map[string]string)
-	for _, info := range req.GetFileState() {
-		detechInfo[relayReportKey.DetechInfoCPUArchKey] = info.
-		
+	dataMap := map[string]any{
+		relayReportKey.StorageResultKey: map[string]string{
+			relayReportKey.StorageResultMsgKey: req.GetErrMsg(),
+		},
 	}
-
-	dataMap := make(map[string]any)
-	dataMap[relayReportKey.DetechInfoKey] = detechInfo
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
-		h.logger.Errorf("update action private failed: %s", err)
+		h.logger.Errorf("update action private failed: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
 

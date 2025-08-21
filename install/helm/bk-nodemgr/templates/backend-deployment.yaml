@@ -204,7 +204,7 @@ spec:
             redisbin="redis-cli"
 
             {{- if .Values.redis.enabled }}
-            check_args="-h {{ template "bk-nodemgr.fullname" . }}-redis-headless -p {{ .Values.redis.service.ports.redis }} -a {{ .Values.redis.password }} --no-auth-warning -c ping"
+            check_args="-h {{ template "bk-nodemgr.fullname" . }}-redis-headless -p {{ .Values.redis.service.ports.redis }} -a {{ .Values.redis.auth.password }} --no-auth-warning -c ping"
             {{- else }}
             {{- if eq .Values.externalRedis.username "default" }}
             {{- if eq .Values.externalRedis.type "sentinel" }}

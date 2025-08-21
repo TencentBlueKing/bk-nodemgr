@@ -488,6 +488,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeAgentInstallRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeAgentInstallRespData"
         }
@@ -498,6 +501,35 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentInstallRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeAgentInstallRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -604,6 +636,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeProxyInstallRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeProxyInstallRespData"
         }
@@ -614,6 +649,35 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeProxyInstallRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyInstallRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeProxyInstallRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -696,6 +760,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowDistinctRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowDistinctRespData"
         }
@@ -729,6 +796,35 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowDistinctRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowDistinctRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowDistinctRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -859,6 +955,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowListRespData"
         }
@@ -878,6 +977,35 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorkflowInfo"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -990,6 +1118,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespData"
         }
@@ -1009,6 +1140,35 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorflowOperationInstanceData"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1040,6 +1200,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespData"
         }
@@ -1055,6 +1218,35 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorkflowOperationInstanceStatus"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceListStatusRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceListStatusRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1080,6 +1272,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
         }
@@ -1098,6 +1293,35 @@
           "additionalProperties": {
             "$ref": "#/definitions/v3NodeWorkflowActionData"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceLogGetRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceLogGetRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1151,6 +1375,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationListRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
         }
@@ -1170,6 +1397,35 @@
         "total_count": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3NodeWorkflowOperationListRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationListRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationListRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1231,6 +1487,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespError"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
         }
@@ -1245,6 +1504,35 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationRetryRespError": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationRetryRespErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },

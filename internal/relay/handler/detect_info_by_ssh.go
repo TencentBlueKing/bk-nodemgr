@@ -22,42 +22,59 @@ import (
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/pkg/errors"
+)
+
+const (
+	actionNameDetectInfoBySSH  = "pagent_detect_info_by_ssh"
+	reportRelayDetectResultURL = "/relay/report_detect_result"
 )
 
 func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 	h.logger.Infof("handler detect info by ssh event.")
 
-	var event protoRelay.DetechInfoBySSH
+	var (
+		event        protoRelay.DetectInfoBySSHReq
+		osType       criteria.OSType
+		cpuArch      criteria.CPUArch
+		connectedDir string
+		errMsg       string
+	)
+
+	defer func() {
+		if err := h.ReportHostInfo(ctx, event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg); err != nil {
+			h.logger.Errorf("failed to report host info: %v", err)
+		}
+	}()
+
 	if err := json.Unmarshal(payload, &event); err != nil {
-		h.logger.Errorf("failed to unmarshal detch info by ssh event: %v", err)
+		errMsg = fmt.Sprintf("failed to unmarshal detect info by ssh event: %v", err)
+		h.logger.Errorf(errMsg)
+
 		return
 	}
 
-	client, err := generateSSHClient(ctx,
-		event.ip, event.port, event.user,
-		event.loginMode, event.hostCredit, event.passwordVault,
-		h.logger)
+	client, err := generateSSHClient(ctx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode), h.logger)
 	if err != nil {
-		h.ReportHostInfo(ctx, event.actionName, event.operInstID, "", "", "", err.Error())
+		errMsg = fmt.Sprintf("failed to generate SSH client: %v", err)
+		h.logger.Errorf(errMsg)
+
 		return
 	}
 
-	osType, cpuArch, connectedDir, err := detectInfo(client)
+	h.logger.Infof("start to detect info. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+
+	osType, cpuArch, connectedDir, err = detectInfo(client)
 	if err != nil {
-		h.logger.Errorf("failed to detect info: %v", err)
-		h.ReportHostInfo(ctx, event.actionName, event.operInstID, osType, cpuArch, connectedDir, err.Error())
+		errMsg = fmt.Sprintf("failed to detect info: %v", err)
+		h.logger.Errorf(errMsg)
+
 		return
 	}
+	h.logger.Infof("detect info success. os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir)
 
-	err = h.ReportHostInfo(ctx, event.actionName, event.operInstID, osType, cpuArch, connectedDir, "")
-	if err != nil {
-		h.logger.Errorf("failed to report host info: %v", err)
-		return
-	}
-
-	h.logger.Infof("detect info by ssh success. ip(%s), port(%d), user(%s)",
-		event.ip, event.port, event.user)
+	h.logger.Infof("detect info by ssh success. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
 }
 
 // nolint: nonamedreturns,perfsprint
@@ -126,7 +143,7 @@ func (h *handler) ReportHostInfo(ctx context.Context,
 		ActionName:   actionName,
 		OperInstID:   operInstID,
 		OsType:       string(osType),
-		CpuArch:      string(cpuArch),
+		CPUArch:      string(cpuArch),
 		ConnectedDir: connectedDir,
 		ErrMsg:       msg,
 	}
@@ -136,7 +153,7 @@ func (h *handler) ReportHostInfo(ctx context.Context,
 		return fmt.Errorf("failed to marshal status request: %w", err)
 	}
 
-	errCh := h.client.ClientPushReq(ctx, reportRelayFileStateURL, jsonData)
+	errCh := h.client.ClientPushReq(ctx, reportRelayDetectResultURL, jsonData)
 
 	select {
 	case err := <-errCh:
@@ -164,7 +181,7 @@ type reportHostInfo struct {
 	OperInstID string `json:"oper_inst_id"`
 
 	OsType       string `json:"os_type"`
-	CpuArch      string `json:"cpu_arch"`
+	CPUArch      string `json:"cpu_arch"`
 	ConnectedDir string `json:"connected_dir"`
 
 	ErrMsg string `json:"err_msg"`

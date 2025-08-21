@@ -120,7 +120,7 @@ func (act *actionUpgradeNode) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-// nolint: funlen,fnsize,nonamedreturns
+// nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamUpgradeNode)

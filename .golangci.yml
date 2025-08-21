@@ -608,7 +608,7 @@ linters-settings:
     # Max line length, lines longer will be reported.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option.
     # Default: 120.
-    line-length: 120
+    line-length: 150
     # Tab width in spaces.
     # Default: 1
     tab-width: 1
@@ -660,6 +660,8 @@ linters-settings:
         alias: protoApplication
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3
         alias: protoBackend
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback
+        alias: protoCallback
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3
         alias: protoFile
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
@@ -682,6 +684,8 @@ linters-settings:
       # Using `nodeworkflow` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow
         alias: nodeworkflow
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance
+        alias: relayReportKey 
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface
         alias: backendIface
@@ -715,6 +719,8 @@ linters-settings:
         alias: restclient
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server
         alias: restserver
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/contextx
+        alias: contextx
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf
         alias: resterrf
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery

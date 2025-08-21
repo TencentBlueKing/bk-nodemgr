@@ -26,7 +26,7 @@ const (
 )
 
 // UploadOriginBinTool upload generation2 origin bintool package.
-// nolint:funlen,fnsize
+// nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginBinTool(
 	ctx context.Context,

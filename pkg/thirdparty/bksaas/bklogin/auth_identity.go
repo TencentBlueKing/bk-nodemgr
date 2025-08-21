@@ -41,8 +41,8 @@ func (identity *AuthIdentity) Verify(rCtx *restserver.Context) error {
 	}
 
 	// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
-	rCtx.BKUsername = loginUsername
-	rCtx.LoginName = loginUsername
+	rCtx.SetBKUsername(loginUsername)
+	rCtx.SetLoginName(loginUsername)
 
 	return nil
 }

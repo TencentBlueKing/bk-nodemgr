@@ -14,9 +14,19 @@ message SyncCmdbHostResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb
@@ -29,9 +39,19 @@ message SyncCmdbNetworkAreaResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // SyncCmdbConstantsReq describes the HTTP request body when sync cmdb
@@ -44,9 +64,19 @@ message SyncCmdbConstantsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // SyncAgentStateReq describes the HTTP request body when sync agent state.
@@ -57,9 +87,19 @@ message SyncAgentStateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string trigger_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // SyncAllAgentStateReq describes the HTTP request body when sync all agent
@@ -72,9 +112,19 @@ message SyncAllAgentStateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { string trigger_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // sync service.

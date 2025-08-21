@@ -6,14 +6,3581 @@ info:
   title: 蓝鲸节点管理
   description: '蓝鲸节点管理'
 paths:
-  /node/agent/install:
+  /api/v3/sync/cmdb/constants:
     post:
-      operationId: node_install_agent
-      description: ''
-      tags: []
+      operationId: Sync_SyncCmdbConstants
+      description: SyncCmdbConstants provides syncing cmdb constants.
+      tags:
+        - Sync
       responses:
         '200':
-          description: success create operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\nconstants.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\nconstants.
+        required: true
+        description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\nconstants.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/constants
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/cmdb/host:
+    post:
+      operationId: Sync_SyncCmdbHost
+      description: SyncCmdbHost provides syncing cmdb host.
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: SyncCmdbHostResp describes the HTTP response body when sync cmdb host.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: SyncCmdbHostReq describes the HTTP request body when sync cmdb host.
+        required: true
+        description: SyncCmdbHostReq describes the HTTP request body when sync cmdb host.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/host
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/cmdb/networkarea:
+    post:
+      operationId: Sync_SyncCmdbNetworkArea
+      description: SyncCmdbNetworkArea provides syncing cmdb networkarea.
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\nnetworkarea.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\nnetworkarea.
+        required: true
+        description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\nnetworkarea.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/networkarea
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/state:
+    post:
+      operationId: Sync_SyncAgentState
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: SyncAgentStateResp describes the HTTP response body when sync agent state.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: SyncAgentStateReq describes the HTTP request body when sync agent state.
+        required: true
+        description: SyncAgentStateReq describes the HTTP request body when sync agent state.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/state
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/state/all:
+    post:
+      operationId: Sync_SyncAllAgentState
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: SyncAllAgentStateResp describes the HTTP response body when sync all agent\nstate.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\nstate.
+        required: true
+        description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\nstate.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/state/all
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/business/list:
+    post:
+      operationId: Topo_BusinessList
+      description: BusinessList provides business listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            tenant_id:
+                              type: string
+                            bk_biz_name:
+                              type: string
+                          description: Business describes the business informations.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoBusinessListResp describes the HTTP response body when list business in\ntopo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_name:
+                      type: array
+                      items:
+                        type: string
+              description: TopoBusinessListReq describes the HTTP request body when list business in\ntopo service.
+        required: true
+        description: TopoBusinessListReq describes the HTTP request body when list business in\ntopo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/business/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/constant/get:
+    post:
+      operationId: Topo_ConstantGet
+      description: ConstantGet provides getting a constant.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      os_type:
+                        type: array
+                        items:
+                          type: string
+                      cloud_vendor:
+                        type: array
+                        items:
+                          type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoConstantGetResp describes the HTTP response body when get constant in\ntopo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                os_type:
+                  type: boolean
+                cloud_vendor:
+                  type: boolean
+              description: TopoConstantGetReq describes the HTTP request body when get constant in topo\nservice.
+        required: true
+        description: TopoConstantGetReq describes the HTTP request body when get constant in topo\nservice.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/constant/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/event/distinct:
+    post:
+      operationId: Topo_EventDistinct
+      description: EventDistinct provides event distincting.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: array
+                        items:
+                          type: string
+                      operator:
+                        type: array
+                        items:
+                          type: string
+                      accesspoint_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      bk_networkarea_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      bk_networkunit_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoEventDistinctResp describes the HTTP response body when distinct\ntopoevent in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  title: TopoEventExactConditions describes the conditions when list event
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    accesspoint_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  title: TopoEventFuzzyConditions describes the conditions when list event
+                  properties:
+                    bk_networkarea_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkunit_name:
+                      type: array
+                      items:
+                        type: string
+              description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\nin topo service.
+        required: true
+        description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/event/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/event/list:
+    post:
+      operationId: Topo_EventList
+      description: EventList provides event listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            operator:
+                              type: string
+                            tenant_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                            bk_networkarea_name:
+                              type: string
+                            bk_networkunit_name:
+                              type: string
+                          description: TopoEvent describes the topo event.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoEventListResp describes the HTTP response body when list event in topo\nservice.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  title: TopoEventExactConditions describes the conditions when list event
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    accesspoint_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  title: TopoEventFuzzyConditions describes the conditions when list event
+                  properties:
+                    bk_networkarea_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkunit_name:
+                      type: array
+                      items:
+                        type: string
+              description: TopoEventListReq describes the HTTP request body when list event in topo\nservice.
+        required: true
+        description: TopoEventListReq describes the HTTP request body when list event in topo\nservice.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/event/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/host/distinct:
+    post:
+      operationId: Topo_HostDistinct
+      description: HostDistinct provides host distincting.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      arch:
+                        type: array
+                        items:
+                          type: string
+                      os_type:
+                        type: array
+                        items:
+                          type: string
+                      bk_biz_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      dept_name:
+                        type: array
+                        items:
+                          type: string
+                      node_role:
+                        type: array
+                        items:
+                          type: string
+                      addressing:
+                        type: array
+                        items:
+                          type: string
+                      node_status:
+                        type: array
+                        items:
+                          type: string
+                      node_version:
+                        type: array
+                        items:
+                          type: string
+                      bk_networkarea_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      bk_networkunit_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoHostDistinctResp describes the HTTP response body when distinct host in\ntopp service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    arch:
+                      type: array
+                      items:
+                        type: string
+                    os_type:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    node_role:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_agent_id:
+                      type: array
+                      items:
+                        type: string
+                    node_status:
+                      type: array
+                      items:
+                        type: string
+                    node_version:
+                      type: array
+                      items:
+                        type: string
+                    node_generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                  description: TopoHostExactConditions describes host exact conditions.
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    dept_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip_v6:
+                      type: array
+                      items:
+                        type: string
+                  description: TopoHostFuzzyConditions describes host fuzzy conditions.
+              description: TopoHostDistinctReq describes the HTTP request body when distinct host in\ntopp service.
+        required: true
+        description: TopoHostDistinctReq describes the HTTP request body when distinct host in\ntopp service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/host/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/host/list:
+    post:
+      operationId: Topo_HostList
+      description: HostList provides host listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            info:
+                              type: object
+                              properties:
+                                bk_mac:
+                                  type: string
+                                os_type:
+                                  type: string
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                dept_name:
+                                  type: string
+                                bk_host_name:
+                                  type: string
+                                bk_host_innerip:
+                                  type: string
+                                bk_host_outerip:
+                                  type: string
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_v6:
+                                  type: string
+                                bk_host_outerip_v6:
+                                  type: string
+                              description: HostInfo describes the host info informations. Usually contains static\nconfigs.
+                            state:
+                              type: object
+                              properties:
+                                cpu_arch:
+                                  type: string
+                                node_role:
+                                  type: string
+                                bk_agent_id:
+                                  type: string
+                                node_status:
+                                  type: string
+                                node_version:
+                                  type: string
+                                node_generation:
+                                  type: integer
+                                  format: int64
+                              description: HostState describes the host state informations. Usually contains\nagent-related things.
+                            create_at:
+                              type: string
+                              format: uint64
+                            tenant_id:
+                              type: string
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            updated_at:
+                              type: string
+                              format: uint64
+                          description: Host describes the host informations.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoHostListResp describes the HTTP response body when list host in topo\nservice.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    arch:
+                      type: array
+                      items:
+                        type: string
+                    os_type:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    node_role:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_agent_id:
+                      type: array
+                      items:
+                        type: string
+                    node_status:
+                      type: array
+                      items:
+                        type: string
+                    node_version:
+                      type: array
+                      items:
+                        type: string
+                    node_generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                  description: TopoHostExactConditions describes host exact conditions.
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    dept_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_name:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_outerip_v6:
+                      type: array
+                      items:
+                        type: string
+                  description: TopoHostFuzzyConditions describes host fuzzy conditions.
+              description: TopoHostListReq describes the HTTP request body when list host in topo\nservice.
+        required: true
+        description: TopoHostListReq describes the HTTP request body when list host in topo\nservice.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/host/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkarea/create:
+    post:
+      operationId: Topo_NetworkAreaCreate
+      description: NetworkAreaCreate provides creating a new network-area.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkAreaCreateResp describes the HTTP response body when create\nnetwork-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cloud_vendor:
+                  type: string
+                bk_networkarea_name:
+                  type: string
+              description: TopoNetworkAreaCreateReq describes the HTTP request body when create\nnetwork-area in topo service.
+        required: true
+        description: TopoNetworkAreaCreateReq describes the HTTP request body when create\nnetwork-area in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkarea/create
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkarea/delete:
+    post:
+      operationId: Topo_NetworkAreaDelete
+      description: NetworkAreaDelete provides deleting an existing network-area by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkAreaDeleteResp describes the HTTP response body when delete\nnetwork-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+              description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service.
+        required: true
+        description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\nnetwork-area in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkarea/delete
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkarea/get:
+    post:
+      operationId: Topo_NetworkAreaGet
+      description: NetworkAreaGet provides getting an existing network-area by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      tenant_id:
+                        type: string
+                      cloud_vendor:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkarea_name:
+                        type: string
+                    description: NetworkArea describes the network area informations.
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkAreaGetResp describe the HTTP response body when get network-area\nin topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+              description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service.
+        required: true
+        description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkarea/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkarea/list:
+    post:
+      operationId: Topo_NetworkAreaList
+      description: NetworkAreaList provides network-area listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tenant_id:
+                              type: string
+                            cloud_vendor:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkarea_name:
+                              type: string
+                          description: NetworkArea describes the network area informations.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkAreaListResp describes the HTTP response body when list\nnetwork-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    cloud_vendor:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    bk_networkarea_name:
+                      type: array
+                      items:
+                        type: string
+              description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service.
+        required: true
+        description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkarea/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkarea/update:
+    post:
+      operationId: Topo_NetworkAreaUpdate
+      description: NetworkAreaUpdate provides updating an existing network-area by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkAreaUpdateResp describes the HTTP response body when update\nnetwork-area in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cloud_vendor:
+                  type: string
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+                bk_networkarea_name:
+                  type: string
+              description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\nnetwork-area in topo service.
+        required: true
+        description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\nnetwork-area in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkarea/update
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkunit/create:
+    post:
+      operationId: Topo_NetworkUnitCreate
+      description: NetworkUnitCreate provides creating a new network-unit.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkUnitCreateResp describes the HTTP response body when create\nnetwork unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                links:
+                  type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                    file:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                    cluster:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                  description: Links describes the network unit links.
+                is_direct:
+                  type: boolean
+                accesspoints:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      endpoints:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: string
+                          file:
+                            type: array
+                            items:
+                              type: string
+                          cluster:
+                            type: array
+                            items:
+                              type: string
+                        description: Endpoints describes the links real address.
+                      tenant_id:
+                        type: string
+                      accesspoint_id:
+                        type: integer
+                        format: int64
+                      accesspoint_name:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                    description: AccessPoint describes the access point informations.
+                direct_endpoints:
+                  type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: string
+                    file:
+                      type: array
+                      items:
+                        type: string
+                    cluster:
+                      type: array
+                      items:
+                        type: string
+                  description: Endpoints describes the links real address.
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+                bk_networkunit_name:
+                  type: string
+              description: TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service.
+        required: true
+        description: TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkunit/create
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkunit/delete:
+    post:
+      operationId: Topo_NetworkUnitDelete
+      description: NetworkUnitDelete provides deleting an existing network-unit by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkUnitDeleteResp describes the HTTP response body when delete\nnetwork unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+              description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service.
+        required: true
+        description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\nnetwork unit in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkunit/delete
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkunit/get:
+    post:
+      operationId: Topo_NetworkUnitGet
+      description: NetworkUnitGet provides getting an existing network-unit by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      links:
+                        type: object
+                        properties:
+                          data:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          file:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                          cluster:
+                            type: object
+                            properties:
+                              accesspoint_id:
+                                type: integer
+                                format: int64
+                              bk_networkarea_id:
+                                type: integer
+                                format: int64
+                              bk_networkunit_id:
+                                type: integer
+                                format: int64
+                            description: Link describes the network unit link points target.
+                        description: Links describes the network unit links.
+                      is_direct:
+                        type: boolean
+                      tenant_id:
+                        type: string
+                      accesspoints:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            tenant_id:
+                              type: string
+                            accesspoint_id:
+                              type: integer
+                              format: int64
+                            accesspoint_name:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                          description: AccessPoint describes the access point informations.
+                      direct_endpoints:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: string
+                          file:
+                            type: array
+                            items:
+                              type: string
+                          cluster:
+                            type: array
+                            items:
+                              type: string
+                        description: Endpoints describes the links real address.
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_name:
+                        type: string
+                    description: NetworkUnit describes the network unit informations.
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+              description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service.
+        required: true
+        description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkunit/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkunit/list:
+    post:
+      operationId: Topo_NetworkUnitList
+      description: NetworkUnitList provides network-unit listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            links:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                file:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                                cluster:
+                                  type: object
+                                  properties:
+                                    accesspoint_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkarea_id:
+                                      type: integer
+                                      format: int64
+                                    bk_networkunit_id:
+                                      type: integer
+                                      format: int64
+                                  description: Link describes the network unit link points target.
+                              description: Links describes the network unit links.
+                            is_direct:
+                              type: boolean
+                            tenant_id:
+                              type: string
+                            accesspoints:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            direct_endpoints:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: string
+                                file:
+                                  type: array
+                                  items:
+                                    type: string
+                                cluster:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: Endpoints describes the links real address.
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_name:
+                              type: string
+                          description: NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkUnitListResp describes the HTTP response body when list\nnetwork-unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_networkunit_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+              description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service.
+        required: true
+        description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkunit/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/networkunit/update:
+    post:
+      operationId: Topo_NetworkUnitUpdate
+      description: NetworkUnitUpdate provides updating an existing network-unit by id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: TopoNetworkUnitUpdateResp describes the HTTP response body when update\nnetwork unit in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                links:
+                  type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                    file:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                    cluster:
+                      type: object
+                      properties:
+                        accesspoint_id:
+                          type: integer
+                          format: int64
+                        bk_networkarea_id:
+                          type: integer
+                          format: int64
+                        bk_networkunit_id:
+                          type: integer
+                          format: int64
+                      description: Link describes the network unit link points target.
+                  description: Links describes the network unit links.
+                is_direct:
+                  type: boolean
+                accesspoints:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      endpoints:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: string
+                          file:
+                            type: array
+                            items:
+                              type: string
+                          cluster:
+                            type: array
+                            items:
+                              type: string
+                        description: Endpoints describes the links real address.
+                      tenant_id:
+                        type: string
+                      accesspoint_id:
+                        type: integer
+                        format: int64
+                      accesspoint_name:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                    description: AccessPoint describes the access point informations.
+                direct_endpoints:
+                  type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: string
+                    file:
+                      type: array
+                      items:
+                        type: string
+                    cluster:
+                      type: array
+                      items:
+                        type: string
+                  description: Endpoints describes the links real address.
+                bk_networkarea_id:
+                  type: integer
+                  format: int64
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+                bk_networkunit_name:
+                  type: string
+              description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service.
+        required: true
+        description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/networkunit/update
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/schedule/workflow/disable:
+    post:
+      operationId: Schedule_DisableScheduleWorkflow
+      description: DisableScheduleWorkflow provides disable schedule workflow.
+      tags:
+        - Schedule
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: DisableScheduleWorkflowResp describes the HTTP response body when disable\nschedule workflow.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+              description: DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow.
+        required: true
+        description: DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/schedule/workflow/disable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/schedule/workflow/enable:
+    post:
+      operationId: Schedule_EnableScheduleWorkflow
+      description: EnableScheduleWorkflow provides enable schedule workflow.
+      tags:
+        - Schedule
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: EnableScheduleWorkflowResp describes the HTTP response body when enable\nschedule workflow.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+              description: EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow.
+        required: true
+        description: EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/schedule/workflow/enable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/schedule/workflow/list:
+    post:
+      operationId: Schedule_ListScheduleWorkflow
+      description: ListScheduleWorkflow provides list schedule workflow.
+      tags:
+        - Schedule
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          title: ScheduleWorkflow describes the schedule workflow
+                          properties:
+                            operator:
+                              type: string
+                            trigger_id:
+                              type: string
+                            workflow_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            workflow_name:
+                              type: string
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ListScheduleWorkflowResp describes the HTTP response body when list schedule\nworkflow.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                    workflow_name:
+                      type: array
+                      items:
+                        type: string
+                  description: ScheduleWorkflowExactConditions describes the exact conditions of schedule\nworkflow list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\nworkflow list request.
+              description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow.
+        required: true
+        description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/schedule/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/cancel_as_default:
+    post:
+      operationId: Package_CancelAsDefaultRelease
+      description: CancelAsDefaultRelease cancels release as default.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseCancelAsDefaultResp describes the HTTP response body when\ncancel default package release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\ndefault package release.
+        required: true
+        description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\ndefault package release.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/cancel_as_default
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/delete:
+    post:
+      operationId: Package_DeleteRelease
+      description: DeleteRelease deletes release.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseDeleteResp describes the HTTP response body when delete\nrelease.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseDeleteReq describes the HTTP request body when delete release.
+        required: true
+        description: PackageReleaseDeleteReq describes the HTTP request body when delete release.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/delete
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/disable:
+    post:
+      operationId: Package_DisableRelease
+      description: DisableRelease disables release.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseDisableResp describes the HTTP response body when disable\npackage release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseDisableReq describes the HTTP request body when disable package\nrelease.
+        required: true
+        description: PackageReleaseDisableReq describes the HTTP request body when disable package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/disable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/enable:
+    post:
+      operationId: Package_EnableRelease
+      description: EnableRelease enables release.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseEnableResp describes the HTTP response body when enable package\nrelease.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseEnableReq describes the HTTP request body when enable package\nrelease.
+        required: true
+        description: PackageReleaseEnableReq describes the HTTP request body when enable package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/enable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/list:
+    post:
+      operationId: Package_ListRelease
+      description: ListRelease lists releases.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            md5:
+                              type: string
+                            labels:
+                              type: array
+                              items:
+                                type: string
+                            enabled:
+                              type: boolean
+                            os_type:
+                              type: string
+                            version:
+                              type: string
+                            cpu_arch:
+                              type: string
+                            operator:
+                              type: string
+                            file_name:
+                              type: string
+                            as_default:
+                              type: boolean
+                            generation:
+                              type: integer
+                              format: int64
+                            updated_at:
+                              type: string
+                              format: uint64
+                            release_type:
+                              type: string
+                            change_log_en:
+                              type: string
+                            change_log_zh:
+                              type: string
+                          description: Release describes the release.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseListResp describes the HTTP response body when list package\nrelease.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    platform:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          os_type:
+                            type: string
+                          cpu_arch:
+                            type: string
+                        description: Platform describes the platform informations.
+                    as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    release_type:
+                      type: array
+                      items:
+                        type: string
+                  description: PackageReleaseExactConditions describes release exact conditions.
+              description: PackageReleaseListReq describes the HTTP request body when list package\nrelease.
+        required: true
+        description: PackageReleaseListReq describes the HTTP request body when list package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/set_as_default:
+    post:
+      operationId: Package_SetAsDefaultRelease
+      description: SetAsDefaultRelease sets release as default.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseSetAsDefaultResp describes the HTTP response body when set\ndefault package release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\ndefault package release.
+        required: true
+        description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\ndefault package release.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/set_as_default
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/set_labels:
+    post:
+      operationId: Package_SetReleaseLabels
+      description: SetReleaseLabels sets release labels.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseSetLabelsResp describes the HTTP response body when set\nlabels.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                labels:
+                  type: array
+                  items:
+                    type: string
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+              description: PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
+        required: true
+        description: PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/set_labels
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/agent/install:
+    post:
+      operationId: NodeWorkflow_NodeAgentInstall
+      description: NodeAgentInstall provides node agent install.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeAgentInstallResp describes the node agent install response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      login_ip:
+                        type: string
+                      bk_biz_id:
+                        type: integer
+                        format: int64
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      login_mode:
+                        type: string
+                        title: 'support: password_vault, password, keyfile'
+                      login_port:
+                        type: integer
+                        format: int64
+                      login_user:
+                        type: string
+                      re_register:
+                        type: boolean
+                      bk_addressing:
+                        type: string
+                      login_key_file:
+                        type: string
+                      login_password:
+                        type: string
+                      bk_host_innerip:
+                        type: string
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_host_innerip_v6:
+                        type: string
+                target_version:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      version:
+                        type: string
+                      cpu_arch:
+                        type: string
+                disable_default_target_version:
+                  type: boolean
+              description: NodeAgentInstallReq describes the node agent install request.
+        required: true
+        description: NodeAgentInstallReq describes the node agent install request.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -25,9 +3592,972 @@ paths:
           path: /api/v3/node/agent/install
           matchSubpath: false
           timeout: 0
-        pluginConfigs: [ ]
+        pluginConfigs: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/install:
+    post:
+      operationId: NodeWorkflow_NodeProxyInstall
+      description: NodeProxyInstall provides node proxy install.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyInstallResp describes the node proxy install response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      login_ip:
+                        type: string
+                      bk_biz_id:
+                        type: integer
+                        format: int64
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      login_mode:
+                        type: string
+                        title: 'support: password_vault, password, keyfile'
+                      login_port:
+                        type: integer
+                        format: int64
+                      login_user:
+                        type: string
+                      re_register:
+                        type: boolean
+                      bk_addressing:
+                        type: string
+                      login_key_file:
+                        type: string
+                      login_password:
+                        type: string
+                      bk_host_innerip:
+                        type: string
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_host_innerip_v6:
+                        type: string
+                target_version:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      version:
+                        type: string
+                      cpu_arch:
+                        type: string
+                disable_default_target_version:
+                  type: boolean
+              description: NodeProxyInstallReq describes the node proxy install request.
+        required: true
+        description: NodeProxyInstallReq describes the node proxy install request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/install
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/distinct:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowDistinct
+      description: NodeWorkflowDistinct provides node workflow distinct.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: array
+                        items:
+                          type: string
+                      status:
+                        type: array
+                        items:
+                          type: string
+                      operator:
+                        type: array
+                        items:
+                          type: string
+                      bk_biz_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowDistinctResp describes the node workflow distinct response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request.
+              description: NodeWorkflowDistinctReq describes the node workflow distinct request.
+        required: true
+        description: NodeWorkflowDistinctReq describes the node workflow distinct request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/list:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowList
+      description: NodeWorkflowList provides node workflow list.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            status:
+                              type: string
+                            operator:
+                              type: string
+                            bk_biz_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            trigger_id:
+                              type: string
+                            finish_time:
+                              type: integer
+                              format: int64
+                            workflow_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                          description: NodeWorkflowInfo describes the node workflow information.
+                      total:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowListResp describes the node workflow list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request.
+              description: NodeWorkflowListReq describes the node workflow list request.
+        required: true
+        description: NodeWorkflowListReq describes the node workflow list request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/operation/instance/list:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
+      description: NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            oper_inst_id:
+                              type: string
+                            operation_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                          description: NodeWorflowOperationInstanceData ...
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+              description: NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
+        required: true
+        description: NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/instance/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/operation/instance/log/get:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
+      description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_logs:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            message:
+                              type: object
+                              properties:
+                                logs:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      text:
+                                        type: string
+                                      time:
+                                        type: integer
+                                        format: int64
+                                      level:
+                                        type: string
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oper_inst_id:
+                  type: string
+              description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.
+        required: true
+        description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/instance/log/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/operation/instance/status/list:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusList
+      description: NodeWorkflowOperationInstanceStatusList provides node workflow operation\nlist status.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            index:
+                              type: integer
+                              format: int64
+                            status:
+                              type: string
+                            trigger_id:
+                              type: string
+                            operation_id:
+                              type: string
+                          description: NodeWorkflowOperationInstanceStatus ...
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowOperationInstanceListStatusResp ...
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    trigger_id:
+                      type: array
+                      items:
+                        type: string
+                  description: NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\nnode workflow list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nnode workflow list request.
+              description: NodeWorkflowOperationInstanceListStatusReq ...
+        required: true
+        description: NodeWorkflowOperationInstanceListStatusReq ...
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/instance/status/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/operation/list:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationList
+      description: NodeWorkflowOperationList provides node workflow operation list.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      operations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            param:
+                              type: object
+                              properties:
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                node_version:
+                                  type: string
+                                timeout_second:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip:
+                                  type: string
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_v6:
+                                  type: string
+                              description: NodeWorkflowOperationParam ...
+                            definition:
+                              type: object
+                              properties:
+                                action_names:
+                                  type: array
+                                  items:
+                                    type: string
+                                opertion_name:
+                                  type: string
+                              description: NodeWorkflowOperationDefinition ...
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                            operation_id:
+                              type: string
+                          description: NodeWorkflowOperation ...
+                      total_count:
+                        type: integer
+                        format: int64
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowOperationListResp describes the node operation list by\nworkflow-id response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    bk_biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    workflow_id:
+                      type: string
+                    node_version:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
+                    bk_networkarea_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
+                  description: NodeWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request.
+              description: NodeWorkflowOperationListReq describes the node operation list\nrequest.
+        required: true
+        description: NodeWorkflowOperationListReq describes the node operation list\nrequest.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/workflow/operation/retry:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationRetry
+      description: NodeWorkflowOperationRetry provides node agent operation insatnll retry.
+      tags:
+        - NodeWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: NodeWorkflowOperationRetryResp
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      instance_ids:
+                        type: array
+                        items:
+                          type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: NodeWorkflowOperationRetryReq
+              properties:
+                retry_mod:
+                  type: string
+                workflow_id:
+                  type: string
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/retry
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn:

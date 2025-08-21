@@ -18,20 +18,20 @@ import (
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
-// BKGWJWTAuthIdentity verify the jwt from apigateway.
-type BKGWJWTAuthIdentity struct {
+// BKGWJWTAuthIdentityAppState verify the jwt from apigateway.
+type BKGWJWTAuthIdentityAppState struct {
 	pem []byte
 }
 
 // NewBKGWJWTAuthIdentity ...
-func NewBKGWJWTAuthIdentity(pem []byte) *BKGWJWTAuthIdentity {
-	return &BKGWJWTAuthIdentity{
+func NewBKGWJWTAuthIdentity(pem []byte) *BKGWJWTAuthIdentityAppState {
+	return &BKGWJWTAuthIdentityAppState{
 		pem: pem,
 	}
 }
 
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentity) Verify(rCtx *restserver.Context) error {
+func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx *restserver.Context) error {
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
@@ -40,7 +40,8 @@ func (identity *BKGWJWTAuthIdentity) Verify(rCtx *restserver.Context) error {
 		return errors.New("failed to verify user authentication, jwt token is empty")
 	}
 
-	claims, err := parseToken(jwtStr, identity.pem)
+	claims := new(bkAppStateClaims)
+	err := parseToken(jwtStr, identity.pem, claims)
 	if err != nil {
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
@@ -49,9 +50,48 @@ func (identity *BKGWJWTAuthIdentity) Verify(rCtx *restserver.Context) error {
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.LoginName = claims.User.UserName
-	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername 的赋值
-	rCtx.BKUsername = claims.User.UserName
+	rCtx.SetLoginName(claims.User.UserName)
+	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
+	rCtx.SetBKUsername(claims.User.UserName)
+
+	return nil
+}
+
+// BKGWJWTAuthIdentityUserState verify the jwt from apigateway for user state.
+type BKGWJWTAuthIdentityUserState struct {
+	pem []byte
+}
+
+// NewBKGWJWTAuthIdentityUserState ...
+func NewBKGWJWTAuthIdentityUserState(pem []byte) *BKGWJWTAuthIdentityUserState {
+	return &BKGWJWTAuthIdentityUserState{
+		pem: pem,
+	}
+}
+
+// Verify the jwt from apigateway.
+func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx *restserver.Context) error {
+	if rCtx == nil {
+		return errors.New("failed to verify user authentication, rest context is nil")
+	}
+	jwtStr := rCtx.GetRequestHeader(apigwheader.BKGWJWTTokenKey)
+	if jwtStr == "" {
+		return errors.New("failed to verify user authentication, jwt token is empty")
+	}
+
+	claims := new(bkUserStateClaims)
+	err := parseToken(jwtStr, identity.pem, claims)
+	if err != nil {
+		return fmt.Errorf("failed to verify user authentication: %w", err)
+	}
+
+	if claims.Validate() != nil {
+		return fmt.Errorf("failed to verify user authentication: %w", err)
+	}
+
+	rCtx.SetLoginName(claims.User.UserName)
+	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
+	rCtx.SetBKUsername(claims.User.UserName)
 
 	return nil
 }

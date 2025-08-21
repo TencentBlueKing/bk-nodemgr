@@ -15,12 +15,12 @@ import (
 	"net/http"
 
 	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) RelayReportInstallBySSHInfo(gCtx *gin.Context) {
-	req := new(proto.ReportFileStateReq)
+	req := new(protoCallback.ReportInstallBySSHResultReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report install by ssh info failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -38,14 +38,14 @@ func (h *handler) RelayReportInstallBySSHInfo(gCtx *gin.Context) {
 	h.logger.Infof("report detect info. instance(%s), action(%s) ",
 		req.GetOperInstId(), req.GetActionName())
 
-	installInfo := make(map[string]string)
-	for _, info := range req.GetFileState() {
-		// installInfo[relayReportKey.DetechInfoCPUArchKey]
-
+	installResult := map[string]string{
+		relayReportKey.InstallBySSHResultStdOutKey: req.GetStdOut(),
+		relayReportKey.InstallBySSHResultErrMsgKey: req.GetErrMsg(),
 	}
 
-	dataMap := make(map[string]any)
-	dataMap[relayReportKey.DetechInfoKey] = installInfo
+	dataMap := map[string]any{
+		relayReportKey.InstallBySSHResultKey: installResult,
+	}
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {

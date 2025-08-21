@@ -144,6 +144,12 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 
 			return versions
 		}(),
+		RelayInfo: types.RelayInfo{
+			HostID:         info.RelayHostID,
+			AgentID:        info.RelayAgentID,
+			NodeOsType:     criteria.OSType(info.NodeOsType),
+			PackageDestDir: info.RelayPkgPath,
+		},
 	}, nil
 }
 
@@ -279,7 +285,6 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Depl
 	if err != nil {
 		return err
 	}
-
 	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
@@ -291,7 +296,6 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
 	}
-
 	data := &Info{
 		ActionName:     info.BlockingActionName,
 		HostID:         info.Host.HostID,
@@ -354,6 +358,10 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return dbTargetVersion
 		}(),
+		RelayHostID:  info.RelayInfo.HostID,
+		RelayAgentID: info.RelayInfo.AgentID,
+		RelayOsType:  string(info.RelayInfo.NodeOsType),
+		RelayPkgPath: info.RelayInfo.PackageDestDir,
 	}
 
 	return data, nil

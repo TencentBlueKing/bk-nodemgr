@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	// BKRIDKey is request id header key.
-	BKRIDKey = "X-Bkapi-Request-Id"
+	// BKGWRIDKey is request id header key.
+	BKGWRIDKey = "X-Bkapi-Request-Id"
 
 	// BKGWJWTTokenKey is blueking api gateway jwt header key.
 	BKGWJWTTokenKey = "X-Bkapi-JWT"
@@ -28,7 +28,7 @@ const (
 
 // BKRIDGetter request id value.
 func BKRIDGetter(req *http.Request) string {
-	id := req.Header.Get(BKRIDKey)
+	id := req.Header.Get(BKGWRIDKey)
 
 	return id
 }

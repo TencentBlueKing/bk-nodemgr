@@ -24,7 +24,6 @@ import (
 )
 
 // Agent download agent package.
-
 func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadAgentReq)
 	if err := ctx.BindJSON(req); err != nil {

@@ -29,19 +29,20 @@ import (
 )
 
 // LoadAuthHeader load auth header from environment variables.
-func LoadAuthHeader() (apigwclient.Config, error) {
+func LoadAuthHeader() (apigwclient.UserConfig, error) {
 	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
 	header := make(map[string]string, 0)
 	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
-		return apigwclient.Config{}, err
+		return apigwclient.UserConfig{}, err
 	}
 
-	apigwClientConfig := apigwclient.Config{
-		Endpoints: []string{os.Getenv("BK_APIGW_ENDPOINT")},
-		AppCode:   header["bk_app_code"],
-		AppSecret: header["bk_app_secret"],
-		User:      header["bk_username"],
-		AuthMode:  apigwclient.AuthModeUn,
+	apigwClientConfig := apigwclient.UserConfig{
+		AppConfig: apigwclient.NewAppConfig(
+			[]string{os.Getenv("BK_APIGW_ENDPOINT")},
+			header["bk_app_code"],
+			header["bk_app_secret"]),
+		User:     header["bk_username"],
+		AuthMode: apigwclient.AuthModeUn,
 	}
 
 	return apigwClientConfig, nil
@@ -113,7 +114,7 @@ func testClient(t *testing.T) IHandler {
 	}
 
 	h, err := New(clientCap, &Config{
-		APIGWClientConfig: apigwClientConfig,
+		APIGWUserConfig: apigwClientConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

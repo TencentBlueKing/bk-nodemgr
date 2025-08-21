@@ -188,7 +188,7 @@ func (h *handler) CreateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 
 	// create config policy.
 	addCustomConfig(configPolicy, cpTemplate)
-	configPolicy.TenantID = ctx.TenantID
+	configPolicy.TenantID = ctx.TenantID()
 	configPolicyID, err := h.backendHandler.CreateConfigPolicy(ctx, configPolicy)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to create config policy. err: %v", err)
@@ -228,7 +228,7 @@ func (h *handler) UpdateConfigPolicy(ctx *restserver.Context) (interface{}, erro
 
 	// update config policy.
 	addCustomConfig(configPolicy, cpTemplate)
-	configPolicy.TenantID = ctx.TenantID
+	configPolicy.TenantID = ctx.TenantID()
 	if _, err := h.backendHandler.UpdateConfigPolicy(ctx, configPolicy); err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to update config policy. err: %v", err)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -359,7 +359,7 @@ func insertTemplateBlock(
 	return result
 }
 
-// nolint:funlen,fnsize,gocognit,gocyclo,cyclop
+// nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPolicyTemplateBlock) {
 	if configPolicy == nil {

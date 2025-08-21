@@ -45,14 +45,19 @@ func WithOSType(osType ...string) OptFn {
 	return base.WithValues(FieldKeyOSType, osType...)
 }
 
-// WithAsDefault provides filtering by os type.
+// WithAsDefault provides filtering by as default.
 func WithAsDefault(asDefault ...bool) OptFn {
 	return base.WithValues(FieldKeyAsDefault, asDefault...)
 }
 
-// WithEnabled provides filtering by os type.
+// WithEnabled provides filtering by enabled.
 func WithEnabled(enabled ...bool) OptFn {
 	return base.WithValues(FieldKeyEnabled, enabled...)
+}
+
+// WithFileName provides filtering by file name.
+func WithFileName(filename ...string) OptFn {
+	return base.WithValues(FieldKeyFileName, filename...)
 }
 
 // WithPlatform provides filtering by platform.

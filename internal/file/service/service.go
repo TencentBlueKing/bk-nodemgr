@@ -78,7 +78,7 @@ type Service struct {
 }
 
 // NewService creates a new file service.
-// nolint:funlen,fnsize
+// nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.FileService) (*Service, error) {
 	svc := &Service{
@@ -205,7 +205,7 @@ func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
 
 	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		APIGWClientConfig: apiGwClientConfig,
+		APIGWUserConfig: apiGwClientConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -239,15 +239,14 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 }
 
 // newAPIGwClientConfig creates a new api-gateway client config.
-func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.Config {
-	return apigwclient.Config{
-		Endpoints:   conf.Endpoints,
-		AppCode:     conf.AppCode,
-		AppSecret:   conf.AppSecret,
-		User:        conf.User,
+func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
+	return apigwclient.UserConfig{
+		AppConfig: apigwclient.NewAppConfig(
+			conf.Endpoints,
+			conf.AppCode,
+			conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-		BkTicket:    conf.BkTicket,
-		BkToken:     conf.BkToken,
+		User:        conf.User,
 		AccessToken: conf.AccessToken,
 	}
 }

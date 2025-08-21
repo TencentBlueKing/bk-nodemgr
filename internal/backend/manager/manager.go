@@ -20,9 +20,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -304,6 +304,9 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 		nodeinstall.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		nodeinstall.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
+		nodeinstall.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		nodeinstall.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
 	)
 }
 
@@ -499,6 +502,7 @@ func (mgr *manager) createOper(
 		return err
 	}
 
+	// TODO: distinguish between pagent and agent based on workunitID
 	var operationDef operation.Definition
 
 	switch deploy.Info.Host.Static.OSType {

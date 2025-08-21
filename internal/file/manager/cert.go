@@ -24,7 +24,7 @@ const (
 )
 
 // UploadOriginCert uploads origin cert.
-// nolint:funlen,fnsize
+// nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (
 	*types.OriginCertPkgDetail, error) {

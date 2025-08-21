@@ -16,10 +16,10 @@ import (
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -45,7 +45,8 @@ func NewActionPushHostIdentifier(
 
 // ActParamPushHostIdentifier ...
 type ActParamPushHostIdentifier struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // PushHostIdentifier ...
@@ -105,26 +106,22 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
-	if err != nil {
-		return err
-	}
-
+	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator)
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
 		Logger:   act.logger,
 	})
 
-	taskID, err := act.cmdbClient.PushHostIdentifier(tCtx, info.Host.HostID)
+	taskID, err := act.cmdbClient.PushHostIdentifier(tenantUserCtx, info.Host.HostID)
 	if err != nil {
 		return err
 	}
 	ctx.Data.LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
 
 	var success bool
-	err = polling.Do(tCtx, func(_ int) error {
-		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(tCtx, taskID)
+	err = polling.Do(tenantUserCtx, func(_ int) error {
+		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(tenantUserCtx, taskID)
 		if err != nil {
 			act.logger.Errorf("failed to find host identifier push result, err: %s", err.Error())
 

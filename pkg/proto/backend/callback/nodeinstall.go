@@ -14,6 +14,8 @@ package callback
 import (
 	"errors"
 	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 )
 
 // Validate check request body.
@@ -123,18 +125,89 @@ func (x *ReportFileStateReq) Validate() error {
 		return errors.New("file_name is required")
 	}
 
+	if x.GetStorageTmpDir() == "" {
+		return errors.New("storage_tmp_dir is required")
+	}
+
 	if err := x.checkStatus(); err != nil {
-		return fmt.Errorf("check status failed, err: %w", err)
+		return fmt.Errorf("check status failed: %w", err)
 	}
 
 	return nil
 }
 
-// TODO: check with relayProto.
 func (x *ReportFileStateReq) checkStatus() error {
-	return errors.New("implement me")
+	for _, state := range x.GetFileState() {
+		if state.GetFileName() == "" {
+			return errors.New("file_name is required")
+		}
+
+		if state.GetFileStatus() != string(relay.RelayReportPkgComplete) &&
+			state.GetFileStatus() != string(relay.RelayReportPkgInComplete) {
+
+			return errors.New("fiel_status must be complete or incomplete")
+		}
+	}
+
+	return nil
 }
 
 // AutoConvert auto convert.
 func (x *ReportFileStateReq) AutoConvert() {
+}
+
+// AutoConvert auto convert.
+func (x *ReportStorageResultReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportStorageResultReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportDetectResultReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportDetectResultReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	if x.GetCpuArch() == "" {
+		return errors.New("cpu_arch is required")
+	}
+
+	if x.GetOsType() == "" {
+		return errors.New("os_type is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportInstallBySSHResultReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *ReportInstallBySSHResultReq) Validate() error {
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	return nil
 }

@@ -11,20 +11,19 @@
 package cmdb
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 )
 
 type iEnumResourceKeeper interface {
 	getValue(key string) string
 	getKey(value string) string
-	update(ctx context.Context) error
+	update(ctx contextx.ITenantUserContext) error
 	values() []string
 }
 
@@ -84,7 +83,7 @@ func (keeper *enumCPUArchKeeper) getKey(value string) string {
 	return keeper.enumBasicKeeper.getKey(cpuArchName)
 }
 
-func (keeper *enumCPUArchKeeper) update(ctx context.Context) error {
+func (keeper *enumCPUArchKeeper) update(ctx contextx.ITenantUserContext) error {
 	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
 		return err
 	}
@@ -149,7 +148,7 @@ func (keeper *enumOSTypeKeeper) getKey(value string) string {
 	return keeper.enumBasicKeeper.getKey(osTypeName)
 }
 
-func (keeper *enumOSTypeKeeper) update(ctx context.Context) error {
+func (keeper *enumOSTypeKeeper) update(ctx contextx.ITenantUserContext) error {
 	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
 		return err
 	}
@@ -209,7 +208,7 @@ func (keeper *enumBasicKeeper) getKey(value string) string {
 	return keeper.unknownKey
 }
 
-func (keeper *enumBasicKeeper) update(ctx context.Context) error {
+func (keeper *enumBasicKeeper) update(ctx contextx.ITenantUserContext) error {
 	result, err := keeper.searchObjectAttributeEnumOption(
 		ctx, keeper.objectID, CCNoBusinessID, keeper.attributeID)
 	if err != nil {
@@ -236,17 +235,11 @@ func (keeper *enumBasicKeeper) values() []string {
 
 // searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
 func (keeper *enumBasicKeeper) searchObjectAttributeEnumOption(
-	ctx context.Context, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
-
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	ctx contextx.ITenantUserContext, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
 
 	req := &SearchObjectAttributeReq{
-		TenantID: tenantID,
-		BKObjID:  objID,
-		BKBizID:  bizID,
+		BKObjID: objID,
+		BKBizID: bizID,
 	}
 
 	resp, err := keeper.cli.searchObjectAttribute(ctx, req)

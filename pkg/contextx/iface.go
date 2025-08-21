@@ -8,21 +8,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package constance ...
-package constance
+package contextx
 
-const (
-	// defines the field name stored in the database.
-
-	// DetechInfoKey defines the detect info key.
-	DetechInfoKey = "detect_info"
-
-	// DetechInfoOsTypeKey defines the detect info key.
-	DetechInfoOsTypeKey = "os_type"
-	// DetechInfoCPUArchKey defines the detect info key.
-	DetechInfoCPUArchKey = "cpu_arch"
-	// DetechInfoConnectionDirKey defines the detect info key.
-	DetechInfoConnectionDirKey = "connection_dir"
-	// DetechInfoErrMsg defines the detect info key.
-	DetechInfoErrMsg = "err_msg"
+import (
+	"context"
 )
+
+// IUserContext user context.
+type IUserContext interface {
+	context.Context
+	LoginName() string
+}
+
+// ITenantContext tenant context.
+type ITenantContext interface {
+	context.Context
+	TenantID() string
+}
+
+// ITenantUserContext tenant user context.
+type ITenantUserContext interface {
+	context.Context
+	ITenantContext
+	IUserContext
+}

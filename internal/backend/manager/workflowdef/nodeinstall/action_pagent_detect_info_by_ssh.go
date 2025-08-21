@@ -20,10 +20,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -39,24 +43,18 @@ const (
 
 	waitForClientReportTimeout  = 10 * time.Second
 	waitForClientReportInterval = 2 * time.Second
-
-	// detechInfoKey defines the detect info key.
-	detechInfoKey = "detect_info"
-
-	detechInfoOsTypeKey        = "os_type"
-	detechInfoCPUArchKey       = "cpu_arch"
-	detechInfoConnectionDirKey = "connection_dir"
-	detechInfoErrMsg           = "err_msg"
 )
 
-// NewActionDetectInfoBySSH get a new action.
+// NewActionPagentDetectInfoBySSH get a new action.
 func NewActionPagentDetectInfoBySSH(
 	logger logger.Logger,
+
 	storageActionInstance workflow.IStorageActionInstance,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
+
 	proxyMessager relayhandler.IServerMessager,
 ) action.Definition {
 
@@ -95,7 +93,7 @@ type actionPagentDetectInfoBySSH struct {
 
 // Name returns the name of the action.
 func (act *actionPagentDetectInfoBySSH) Name() string {
-	return ActionNameDetectInfoBySSH
+	return ActionNamePagentDetectInfoBySSH
 }
 
 // Version returns the version of the action.
@@ -133,7 +131,7 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen,fnsize
+// nolint: perfsprint,funlen,fnsize,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoBySSH)
@@ -155,10 +153,23 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		}
 	}()
 
-	osType, cpuArch, connectedDir, err := act.detectInfo(ctx, client)
+	password, err := act.QueryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
+
+	relayHost := &info.RelayInfo
+
+	if err := act.detectInfo(ctx, info, password, relayHost); err != nil {
+		return err
+	}
+	ctx.Data.LogI(fmt.Sprintf("detect info by ssh send to relay.relay-host-id(%d)", relayHost.HostID))
+
+	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(ctx)
+	if err != nil {
+		return err
+	}
+	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir))
 
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
@@ -228,7 +239,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, agentID string) error {
+	info *types.DeploymentInfo, password string, relayHost *types.RelayInfo) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
 		ActionName: ctx.Data.Name,
@@ -236,8 +247,8 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 		IP:         info.LoginInfo.IP,
 		Port:       info.LoginInfo.Port,
 		User:       info.LoginInfo.User,
-		LoginMode:  info.LoginInfo.Mode,
-		Password:   info.LoginInfo.Password,
+		LoginMode:  string(info.LoginInfo.Mode),
+		Password:   password,
 	}
 
 	data, err := json.Marshal(detectInfoEvent)
@@ -247,7 +258,7 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, agentID)
+		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, relayHost.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -262,24 +273,74 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 	return nil
 }
 
-// waitForPkgsState waits for relay client to report package states.
-func (act *actionPagentDetectInfoBySSH) waitForDeleteInfoBySSH(ctx *action.InstanceContext) (
-	string, string, string, error) {
+func (act *actionPagentDetectInfoBySSH) QueryPassword(
+	ctx context.Context,
+	operator string,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
+	info *types.DeploymentInfo) (string, error) {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForClientReportTimeout)
+	switch info.LoginInfo.Mode {
+	case types.LoginModePassword:
+		passwd, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModePassword)
+		if err != nil {
+			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
+		}
+
+		return string(passwd), nil
+
+	case types.LoginModeKeyFile:
+		privateKey, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModeKeyFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
+		}
+
+		return string(privateKey), nil
+	case types.LoginModePasswordVault:
+		passwd, err := passwordVault.LoadPassword(
+			ctx,
+			operator,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User)
+		if err != nil {
+			return "", fmt.Errorf("failed to load password from password vault: %w", err)
+		}
+
+		return string(passwd), nil
+	default:
+		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
+	}
+}
+
+func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
+	ctx *action.InstanceContext) (criteria.OSType, criteria.CPUArch, string, error) {
+
+	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
 	defer cancel()
 
-	ticker := time.NewTicker(waitForClientReportInterval)
+	ticker := time.NewTicker(waitForRelayReportInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-timeoutCtx.Done():
-			return "", "", "", fmt.Errorf("timeout waiting for delete info. oper_inst_id(%s), action_name(%s)",
+			return "", "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
+
 		case <-ticker.C:
-			privateDataMap, err := act.storageActionInstance.GetActionInstancePrivateData(timeoutCtx,
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
+				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
 			if err != nil {
 				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
 					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
@@ -287,18 +348,42 @@ func (act *actionPagentDetectInfoBySSH) waitForDeleteInfoBySSH(ctx *action.Insta
 				continue
 			}
 
-			fileStateRaw, exists := privateDataMap[relayFileStateKey]
+			relayDetectResultRaw, exists := privateData[relayReportKey.DetectResultKey]
 			if !exists {
 				continue
 			}
 
-			fileState, ok := fileStateRaw.(map[string]any)
+			relayStorageResult, ok := relayDetectResultRaw.(map[string]any)
+			if !ok {
+				return "", "", "", errors.New("unexpected type for relay ")
+			}
+
+			errMsgRaw := relayStorageResult[relayReportKey.DetectResultErrMsgKey]
+			errMsg, ok := errMsgRaw.(string)
 			if !ok {
 				return "", "", "", errors.New("unexpected type for file state")
 			}
 
+			if errMsg != "" {
+				return "", "", "", errors.New(errMsg)
+			}
+
+			// TODO: must check.
+			osTypeStr := relayStorageResult[relayReportKey.DetectResultOsTypeKey].(string)
+			cpuArchStr := relayStorageResult[relayReportKey.DetectResultCPUArchKey].(string)
+			connerctionDir := relayStorageResult[relayReportKey.DetectResultConnectionDirKey].(string)
+
+			osType, err := platform.NormalizeOS(osTypeStr)
+			if err != nil {
+				return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
+			}
+
+			cpuArch, err := platform.NormalizeArch(cpuArchStr)
+			if err != nil {
+				return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
+			}
+
+			return osType, cpuArch, connerctionDir, nil
 		}
 	}
-
-	return results, fileStorageDir, nil
 }

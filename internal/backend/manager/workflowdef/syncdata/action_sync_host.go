@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -93,21 +93,23 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
+	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, param.TenantID, param.TenantID)
 
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = act.cmdbHandler.ListBizHosts(tenantCtx, param.BizID, types.UnlimitedPage())
+		cmdbData, err = act.cmdbHandler.ListBizHosts(tenantUserCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed, err: %w", err)
 		}
 
 		return nil
 	})
+
+	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
+	if err != nil {
+		return err
+	}
 
 	gp.Go(func() error {
 		dbData, _, err = act.storageHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{

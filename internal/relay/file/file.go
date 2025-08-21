@@ -169,7 +169,8 @@ func (fm *fileManagerImpl) StoreFile(ctx context.Context, srcPath, filename stri
 		}
 	}()
 
-	srcFile, err := os.Open(srcPath) // nolint: gosec
+	filepath := filepath.Join(srcPath, filename)
+	srcFile, err := os.Open(filepath) // nolint: gosec
 	if err != nil {
 		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
@@ -216,19 +217,22 @@ func (fm *fileManagerImpl) GetFile(ctx context.Context, filename string) (fileif
 	}
 
 	info.updateLastAccessed()
+	fm.logger.Infof("update last access time. filename(%s)", filename)
 
 	return info.fileTmpDir.GetFile(ctx, filename)
 }
 
 // FileExists check file exists.
-func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, mD5 string) bool {
+func (fm *fileManagerImpl) FileExists(ctx context.Context, filename, md5 string) bool {
 	info, err := fm.GetFile(ctx, filename)
 	if err != nil {
 		fm.logger.Infof("file not exists. filename(%s): %v", filename, err)
 		return false
 	}
 
-	return info.Info().MD5 == mD5
+	fm.logger.Infof("check file exists. filename(%s) , expected md5(%s), actual md5(%s)", filename, md5, info.Info().MD5)
+
+	return info.Info().MD5 == md5
 }
 
 func (fm *fileManagerImpl) runGC(_ context.Context, maxAge time.Duration) {

@@ -54,4 +54,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/get_data_proxy_config", h.GetDataProxyConfig)
 	h.rg.POST("/get_file_proxy_config", h.GetFileProxyConfig)
 	h.rg.POST("/relay/report_file_state", h.RelayReportFileState)
+	h.rg.POST("/relay/report_storage_result", h.RelayReportStorageResult)
+	h.rg.POST("/relay/report_detect_result", h.RelayReportDetectResult)
+	h.rg.POST("/relay/report_install_result", h.RelayReportInstallBySSHInfo)
 }

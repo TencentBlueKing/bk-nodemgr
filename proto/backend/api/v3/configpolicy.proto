@@ -34,12 +34,22 @@ message ConfigPolicyListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated ConfigPolicy items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyGetReq describes HTTP request body when get config policy.
@@ -50,7 +60,18 @@ message ConfigPolicyGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  ConfigPolicy data = 4;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
+
+  ConfigPolicy data = 5;
 }
 
 // ConfigPolicyCreateReq describes HTTP request body when create config policy.
@@ -72,9 +93,19 @@ message ConfigPolicyCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyUpdateReq describes HTTP request body when update config policy.
@@ -98,9 +129,19 @@ message ConfigPolicyUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyEnableReq describes HTTP request body when enable config policy.
@@ -112,9 +153,19 @@ message ConfigPolicyEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyDisableReq describes HTTP request body when disable config
@@ -127,9 +178,19 @@ message ConfigPolicyDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyDeleteReq describes HTTP request body when delete config policy.
@@ -141,7 +202,17 @@ message ConfigPolicyDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  message Error {
+    string system = 1;
+    string message = 2;
+    message Details {
+      string code = 1;
+      string message = 2;
+    }
+    repeated Details details = 3;
+  }
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
