@@ -323,6 +323,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "NodeWorkflowActionMessageMessage": {
       "type": "object",
       "properties": {
@@ -362,6 +373,24 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
           }
         }
       }
@@ -489,7 +518,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeAgentInstallRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeAgentInstallRespData"
@@ -501,35 +530,6 @@
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
-        }
-      }
-    },
-    "v3NodeAgentInstallRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeAgentInstallRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeAgentInstallRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
           "type": "string"
         }
       }
@@ -548,11 +548,8 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeProxyInstallReqTargetVersion"
+            "$ref": "#/definitions/v3TargetVersion"
           }
-        },
-        "disable_default_target_version": {
-          "type": "boolean"
         }
       },
       "description": "NodeProxyInstallReq describes the node proxy install request."
@@ -560,17 +557,28 @@
     "v3NodeProxyInstallReqHost": {
       "type": "object",
       "properties": {
-        "bk_addressing": {
-          "type": "string"
-        },
         "bk_biz_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_addressing": {
+          "type": "string"
         },
         "bk_host_innerip": {
           "type": "string"
         },
         "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "os_type": {
           "type": "string"
         },
         "login_ip": {
@@ -593,33 +601,20 @@
         "login_key_file": {
           "type": "string"
         },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "os_type": {
+        "export_ip": {
           "type": "string"
         },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
+        "advertise_ip": {
+          "type": "string"
         },
         "re_register": {
           "type": "boolean"
-        }
-      }
-    },
-    "v3NodeProxyInstallReqTargetVersion": {
-      "type": "object",
-      "properties": {
-        "version": {
-          "type": "string"
         },
-        "cpu_arch": {
-          "type": "string"
-        },
-        "os_type": {
-          "type": "string"
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -637,7 +632,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeProxyInstallRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeProxyInstallRespData"
@@ -649,35 +644,6 @@
       "type": "object",
       "properties": {
         "workflow_id": {
-          "type": "string"
-        }
-      }
-    },
-    "v3NodeProxyInstallRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyInstallRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeProxyInstallRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
           "type": "string"
         }
       }
@@ -761,7 +727,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowDistinctRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowDistinctRespData"
@@ -796,35 +762,6 @@
           "items": {
             "type": "string"
           }
-        }
-      }
-    },
-    "v3NodeWorkflowDistinctRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowDistinctRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowDistinctRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -956,7 +893,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowListRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowListRespData"
@@ -977,35 +914,6 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorkflowInfo"
           }
-        }
-      }
-    },
-    "v3NodeWorkflowListRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowListRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowListRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -1119,7 +1027,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespData"
@@ -1140,35 +1048,6 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorflowOperationInstanceData"
           }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceListRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceListRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -1201,7 +1080,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespData"
@@ -1218,35 +1097,6 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeWorkflowOperationInstanceStatus"
           }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceListStatusRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceListStatusRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -1273,7 +1123,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
@@ -1293,35 +1143,6 @@
           "additionalProperties": {
             "$ref": "#/definitions/v3NodeWorkflowActionData"
           }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceLogGetRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceLogGetRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -1376,7 +1197,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationListRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
@@ -1397,35 +1218,6 @@
         "total_count": {
           "type": "integer",
           "format": "int64"
-        }
-      }
-    },
-    "v3NodeWorkflowOperationListRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperationListRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationListRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },
@@ -1488,7 +1280,7 @@
           "type": "string"
         },
         "error": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespError"
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
@@ -1507,35 +1299,6 @@
         }
       }
     },
-    "v3NodeWorkflowOperationRetryRespError": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationRetryRespErrorDetails": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
-    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -1549,6 +1312,20 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3TargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      }
     },
     "v3TimeRange": {
       "type": "object",

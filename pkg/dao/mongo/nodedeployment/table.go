@@ -40,11 +40,13 @@ type Info struct {
 	NodeCPUArch            string          `json:"node_cpu_arch" bson:"node_cpu_arch"`
 	NodeOsType             string          `json:"node_os_type" bson:"node_os_type"`
 	AgentID                string          `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID          int64           `json:"network_unit_id" bson:"network_unit_id"`
-	NetworkAreaID          int64           `json:"network_area_id" bson:"network_area_id"`
+	NetworkUnitID          int64           `json:"networkunit_id" bson:"networkunit_id"`
+	NetworkAreaID          int64           `json:"networkarea_id" bson:"networkarea_id"`
 	BizID                  int64           `json:"biz_id" bson:"biz_id"`
 	InnerIP                string          `json:"inner_ip" bson:"inner_ip"`
 	Addressing             string          `json:"addressing" bson:"addressing"`
+	ExportIP               string          `json:"export_ip" bson:"export_ip"`
+	AdvertiseIP            string          `json:"advertise_ip" bson:"advertise_ip"`
 	ProxyTags              []string        `json:"proxy_tags" bson:"proxy_tags"`
 	ProxyClusterPort       int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort          int64           `json:"proxy_data_port" bson:"proxy_data_port"`

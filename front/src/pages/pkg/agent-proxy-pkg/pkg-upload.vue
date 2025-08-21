@@ -91,12 +91,14 @@ import { computed, reactive, ref } from "vue";
 import { Button, Upload, Message, Progress, PopConfirm } from "bkui-vue";
 import { bytesToMegabytes } from "@/common/util";
 import { RightTurnLine } from "bkui-vue/lib/icon";
-import type { PackageUploadOriginAgentRespData } from "@/@types/pkg";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const emit = defineEmits('upload');
 const uploader = ref(null);
+const currentType = computed(() => route.name === "agentPackageMng" ? "agent" : "proxy");
 const url = computed(
-  () => location.origin + "/api/v3/package/upload/origin/agent"
+  () => `${location.origin}/api/v3/package/upload/origin/${currentType.value}`
 );
 const curFile = reactive({
   file: null as File | null,

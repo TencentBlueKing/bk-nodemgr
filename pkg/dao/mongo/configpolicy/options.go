@@ -56,8 +56,13 @@ func WithEnabledScope(
 
 	opts := bson.D{
 		bson.E{
-			Key:   FieldKeyBizID,
-			Value: bson.M{"$in": []int64{-1, bizID}},
+			Key: "$and",
+			Value: bson.A{bson.M{
+				"$or": []bson.M{
+					{FieldKeyBizID: bson.M{"$size": 0}},
+					{FieldKeyBizID: bson.M{"$in": []int64{bizID}}},
+				},
+			}},
 		},
 		bson.E{
 			Key: FieldKeyScopes,

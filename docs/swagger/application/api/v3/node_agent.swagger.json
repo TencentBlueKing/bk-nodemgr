@@ -52,6 +52,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "NodeAgentInstallRespData": {
       "type": "object",
       "properties": {
@@ -141,6 +152,24 @@
       },
       "description": "AgentInstallInfo ..."
     },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
     "v3NodeAgentInstallReq": {
       "type": "object",
       "properties": {
@@ -176,6 +205,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/NodeAgentInstallRespData"

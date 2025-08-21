@@ -37,9 +37,10 @@ message NodeAgentInstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 service NodeAgent {

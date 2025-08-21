@@ -31,15 +31,6 @@ message PackageReleaseListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {
@@ -61,15 +52,6 @@ message PackageReleaseDistinctResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {
@@ -94,15 +76,6 @@ message PackageReleaseSetLabelsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -124,15 +97,6 @@ message PackageReleaseEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -154,15 +118,6 @@ message PackageReleaseDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -184,15 +139,6 @@ message PackageReleaseSetAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -214,15 +160,6 @@ message PackageReleaseCancelAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -243,15 +180,6 @@ message PackageReleaseDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}

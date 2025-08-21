@@ -17,6 +17,7 @@ message PackageUploadOriginAgentResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     optional string upload_id = 1;
@@ -30,7 +31,7 @@ message PackageUploadOriginAgentResp {
     optional string changelog_zh = 9;
     repeated Platform platforms = 10;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageUploadOriginServerReq is the request for upload origin server pkg.
@@ -44,6 +45,7 @@ message PackageUploadOriginServerResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     optional string upload_id = 1;
@@ -55,7 +57,7 @@ message PackageUploadOriginServerResp {
     optional string version = 7;
     repeated Platform platforms = 8;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageUploadOriginCertResp is the response for upload origin cert pkg.
@@ -66,6 +68,7 @@ message PackageUploadOriginCertResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     optional string upload_id = 1;
@@ -76,7 +79,7 @@ message PackageUploadOriginCertResp {
     optional string md5 = 6;
     repeated string cert_files = 7;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageUploadOriginBinToolReq is the request for upload origin bin tool pkg.
@@ -91,6 +94,7 @@ message PackageUploadOriginBinToolResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     optional string upload_id = 1;
@@ -102,7 +106,7 @@ message PackageUploadOriginBinToolResp {
     repeated Platform agent_platforms = 7;
     repeated Platform proxy_platforms = 8;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.
@@ -113,9 +117,10 @@ message PackagePublishReleaseAgentResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackagePublishReleaseProxyReq is the request for upload release proxy pkg.
@@ -126,9 +131,10 @@ message PackagePublishReleaseProxyResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackagePublishReleaseCertReq is the request for upload release cert pkg.
@@ -139,9 +145,10 @@ message PackagePublishReleaseCertResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackagePublishReleaseBinToolReq is the request for upload release bintool
@@ -154,9 +161,10 @@ message PackagePublishReleaseBinToolResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseExactConditions describes release exact conditions.
@@ -184,12 +192,13 @@ message PackageReleaseListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated Release items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
@@ -207,9 +216,10 @@ message PackageReleaseSetLabelsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseEnableReq describes the HTTP request body when enable package
@@ -227,9 +237,10 @@ message PackageReleaseEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseDisableReq describes the HTTP request body when disable package
@@ -247,9 +258,10 @@ message PackageReleaseDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseSetAsDefaultReq describes the HTTP request body when set
@@ -267,9 +279,10 @@ message PackageReleaseSetAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel
@@ -287,9 +300,10 @@ message PackageReleaseCancelAsDefaultResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // PackageReleaseDeleteReq describes the HTTP request body when delete release.
@@ -306,9 +320,10 @@ message PackageReleaseDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // CountRequestItem describes  the HTTP request body when count release
@@ -332,12 +347,13 @@ message PackageReleaseDeployedHostCountResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated int64 items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 service Package {

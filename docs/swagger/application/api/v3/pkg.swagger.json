@@ -562,6 +562,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -609,6 +620,24 @@
       },
       "description": "CountRequestItem describes  the HTTP request body when count release\ndeployed_host."
     },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
     "v3PackagePublishReleaseAgentReq": {
       "type": "object",
       "properties": {
@@ -630,6 +659,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseAgentRespData"
@@ -662,6 +694,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseBinToolRespData"
         }
@@ -693,6 +728,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseCertRespData"
         }
@@ -723,6 +761,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseProxyRespData"
@@ -765,6 +806,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultRespData"
         }
@@ -806,6 +850,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDeleteRespData"
         }
@@ -840,6 +887,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDeployedHostCountRespData"
@@ -895,6 +945,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDisableRespData"
         }
@@ -935,6 +988,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseEnableRespData"
@@ -1017,6 +1073,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseListRespData"
         }
@@ -1071,6 +1130,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetAsDefaultRespData"
         }
@@ -1118,6 +1180,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseSetLabelsRespData"
         }
@@ -1152,6 +1217,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginAgentRespData"
@@ -1225,6 +1293,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginBinToolRespData"
         }
@@ -1291,6 +1362,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginCertRespData"
         }
@@ -1352,6 +1426,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginServerRespData"

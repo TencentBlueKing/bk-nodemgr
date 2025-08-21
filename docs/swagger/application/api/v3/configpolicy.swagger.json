@@ -324,6 +324,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -537,6 +548,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyCreateRespData"
         }
@@ -578,6 +592,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyDeleteRespData"
         }
@@ -613,6 +630,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyDisableRespData"
         }
@@ -647,6 +667,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyEnableRespData"
@@ -758,6 +781,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyGetTemplateRespData"
         }
@@ -797,6 +823,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyListPlatformRespData"
@@ -851,6 +880,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyListRespData"
@@ -953,6 +985,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3ConfigPolicyUpdateRespData"
         }
@@ -965,6 +1000,24 @@
         "configpolicy_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
         }
       }
     },

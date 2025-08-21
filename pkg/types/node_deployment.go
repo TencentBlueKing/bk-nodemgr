@@ -184,7 +184,7 @@ func (info DeploymentInfo) Validate() error {
 		return errors.New("biz_id should be equal or greater than 0")
 	}
 	if info.Host.Static.NetworkAreaID < 0 {
-		return errors.New("network_area_id should be equal or greater than 0")
+		return errors.New("networkarea_id should be equal or greater than 0")
 	}
 	if info.Host.Static.InnerIP == "" {
 		return errors.New("inner_ip shouldn't not be empty")

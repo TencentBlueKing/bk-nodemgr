@@ -15,6 +15,7 @@ import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
+import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import Rules from '@/pages/rules/index.vue';
@@ -223,6 +224,8 @@ const routes = setupLayouts([
             path: 'agentPackageMng',
             component: AgentPackageMng,
             meta: {
+              title: 'Agent 包管理',
+              back: false,
               mainMenu: 'pkgManager'
             }
           },
@@ -231,6 +234,28 @@ const routes = setupLayouts([
             path: 'proxyPackageMng',
             component: AgentPackageMng,
             meta: {
+              title: 'Proxy 包管理',
+              back: false,
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'certMng',
+            path: 'certMng',
+            component: CertBintoolMng,
+            meta: {
+              title: '证书管理',
+              back: false,
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'bintoolMng',
+            path: 'bintoolMng',
+            component: CertBintoolMng,
+            meta: {
+              title: '工具管理',
+              back: false,
               mainMenu: 'pkgManager'
             }
           },
@@ -239,6 +264,8 @@ const routes = setupLayouts([
             path: 'pluginPackageMng',
             component: PluginPackageMng,
             meta: {
+              title: '插件包管理',
+              back: false,
               mainMenu: 'pkgManager'
             }
           },
@@ -247,6 +274,8 @@ const routes = setupLayouts([
             path: 'operationRecords',
             component: OperationRecords,
             meta: {
+              title: '操作记录',
+              back: false,
               mainMenu: 'pkgManager'
             }
           },

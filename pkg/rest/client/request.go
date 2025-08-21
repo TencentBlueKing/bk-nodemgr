@@ -67,8 +67,8 @@ type Request struct {
 	// enableLogResponse was used to record some important info for debug.
 	enableLogResponse bool
 
-	// sensitive headers.
-	sensitiveHeaders map[string]struct{}
+	// headerMasker will be used to mask header value.
+	headerMasker map[string]func(string) string
 
 	// prefixed url
 	baseURL string
@@ -523,7 +523,7 @@ func cloneHeader(src http.Header) http.Header {
 	return tar
 }
 
-// maskHeader mask the http header key.
+// maskHeader defaultHeaderMasker the http header key.
 // nolint: mnd
 func (r *Request) maskHeader(headers http.Header) string {
 	masked := make(http.Header, len(headers))
@@ -531,12 +531,8 @@ func (r *Request) maskHeader(headers http.Header) string {
 	for key, values := range headers {
 		maskedValues := make([]string, len(values))
 		for i, value := range values {
-			if _, ok := r.sensitiveHeaders[key]; ok {
-				if len(value) > 6 {
-					maskedValues[i] = value[:3] + "***" + value[len(value)-3:]
-				} else {
-					maskedValues[i] = strings.Repeat("*", len(value))
-				}
+			if headerMasker, ok := r.headerMasker[key]; ok {
+				maskedValues[i] = headerMasker(value)
 			} else {
 				maskedValues[i] = value
 			}
@@ -561,7 +557,7 @@ func (r *Request) EnableLogResponse() *Request {
 	return r
 }
 
-// maskRequestBody mask the http body.
+// maskRequestBody defaultHeaderMasker the http body.
 // notice: please make sure the request body is necessary and hasn't security risk.
 func (r *Request) maskRequestBody() string {
 	if !r.enableLogBody {
@@ -571,7 +567,7 @@ func (r *Request) maskRequestBody() string {
 	return string(r.body)
 }
 
-// maskResponseBody mask the http response body.
+// maskResponseBody defaultHeaderMasker the http response body.
 // notice: please make sure the response body is necessary and hasn't security risk.
 func (r *Result) maskResponseBody() string {
 	if !r.enableLogResponse {

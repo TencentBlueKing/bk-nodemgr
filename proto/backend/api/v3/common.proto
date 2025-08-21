@@ -87,6 +87,7 @@ message HostState {
   optional string bk_agent_id = 4;
   optional int64 node_generation = 5;
   optional string cpu_arch = 6;
+  repeated string proxy_tags = 7;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -183,4 +184,20 @@ message ConfigPolicy {
   optional int64 updated_time = 12;
   optional string operator = 13;
   optional int64 version = 14;
+}
+
+message TargetVersion {
+  string version = 1;
+  string cpu_arch = 2;
+  string os_type = 3;
+}
+
+message Error {
+  string system = 1;
+  string message = 2;
+  message Details {
+    string code = 1;
+    string message = 2;
+  }
+  repeated Details details = 3;
 }

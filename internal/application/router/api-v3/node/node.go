@@ -14,6 +14,7 @@ package node
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/agent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -40,5 +41,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	agent.Load(h.rg, capability)
+	proxy.Load(h.rg, capability)
 	workflow.Load(h.rg, capability)
 }

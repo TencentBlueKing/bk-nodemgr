@@ -25,6 +25,7 @@ type Handler interface {
 	IHandlerNetworkArea
 	IHandlerNetworkUnit
 	IHandlerNodeAgent
+	IHandlerNodeProxy
 	IHandlerNodeWorkflow
 	IHandlerRelease
 	IHandlerConfigPolicy
@@ -172,15 +173,42 @@ type IHandlerNetworkUnit interface {
 type IHandlerNodeAgent interface {
 	// InstallAgent node agent.
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
-	// @param hosts the install param.
+	// @param installParam the install param.
 	// @return the installing workflow-ids and error.
 	InstallAgent(ctx contextx.ITenantUserContext, installParam *types.NodeAgentInstallParam) (string, error)
 
 	// UpgradeAgent node agent.
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
-	// @param hosts the upgrade param.
-	// @return the upgrading workflow-ids and error.
+	// @param retryParam the retry param.
+	// @return the retry operation-ids and error.
 	OperationRetry(ctx contextx.ITenantUserContext, retryParam *types.NodeOperationRetryParam) ([]string, error)
+}
+
+// IHandlerNodeProxy defines the node proxy handler.
+type IHandlerNodeProxy interface {
+	// InstallProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param installParam the install param.
+	// @return the installing workflow-ids and error.
+	InstallProxy(ctx contextx.ITenantUserContext, installParam *types.NodeProxyInstallParam) (string, error)
+
+	// UpgradeProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param upgradeParam the upgrade param.
+	// @return the upgrading workflow-ids and error.
+	UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error)
+
+	// RestartProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param restartParam the restart param.
+	// @return the restarting workflow-ids and error.
+	RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error)
+
+	// ReconfigProxy node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param reconfigParam the reconfig param.
+	// @return the reconfig workflow-ids and error.
+	ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error)
 }
 
 // IHandlerNodeWorkflow defines the node workflow handler.
@@ -873,7 +901,7 @@ func (h *handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.ITenantUs
 	return instanceStatus, nil
 }
 
-// OperationRetry retries operation.
+// OperationRetry operation retry.
 func (h *handler) OperationRetry(ctx contextx.ITenantUserContext, retryParam *types.NodeOperationRetryParam) ([]string, error) {
 	req := &protoBackend.NodeWorkflowOperationRetryReq{}
 

@@ -62,7 +62,8 @@ type cli struct {
 
 // newClient initialize a new cmdb client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/api/v3", restclient.WithSensitiveHeader(apigwheader.BKGWAuthKey))
+	restCli, err := restclient.NewClient(c, "/api/v3",
+		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +109,7 @@ func (c *cli) listBizHosts(ctx contextx.ITenantUserContext, req *ListBizHostsReq
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -133,6 +135,7 @@ func (c *cli) searchBusiness(ctx contextx.ITenantUserContext, req *SearchBusines
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -158,6 +161,7 @@ func (c *cli) searchCloudArea(ctx contextx.ITenantUserContext, req *SearchCloudA
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -183,6 +187,7 @@ func (c *cli) createCloudArea(ctx contextx.ITenantUserContext, req *CreateCloudA
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -208,6 +213,7 @@ func (c *cli) updateCloudArea(ctx contextx.ITenantUserContext, req *UpdateCloudA
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -233,6 +239,7 @@ func (c *cli) deleteCloudArea(ctx contextx.ITenantUserContext, req *DeleteCloudA
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -258,6 +265,7 @@ func (c *cli) updateHostCloudAreaField(ctx contextx.ITenantUserContext, req *Upd
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -284,6 +292,7 @@ func (c *cli) searchBizInstTopo(ctx contextx.ITenantUserContext, req *SearchBizI
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -337,6 +346,7 @@ func (c *cli) findTopoNodePaths(ctx contextx.ITenantUserContext, req *FindTopoNo
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -363,6 +373,7 @@ func (c *cli) findModuleBatch(ctx contextx.ITenantUserContext, req *FindModuleBa
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -390,6 +401,7 @@ func (c *cli) searchObjectAttribute(ctx contextx.ITenantUserContext, req *Search
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -415,6 +427,7 @@ func (c *cli) bindHostAgent(ctx contextx.ITenantUserContext, req *BindHostAgentR
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -440,6 +453,7 @@ func (c *cli) unbindHostAgent(ctx contextx.ITenantUserContext, req *UnbindHostAg
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -467,6 +481,7 @@ func (c *cli) addHostToBusinessIdle(ctx contextx.ITenantUserContext, req *AddHos
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -492,6 +507,7 @@ func (c *cli) pushHostIdentifier(ctx contextx.ITenantUserContext, req *PushHostI
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -519,6 +535,7 @@ func (c *cli) findHostIdentifierPushResult(ctx contextx.ITenantUserContext, req 
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -546,6 +563,7 @@ func (c *cli) addHostToResource(ctx contextx.ITenantUserContext, req *AddHostToR
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -572,6 +590,7 @@ func (c *cli) listResourcePoolHosts(ctx contextx.ITenantUserContext, req *ListRe
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -598,6 +617,7 @@ func (c *cli) createDynamicGroup(ctx contextx.ITenantUserContext, req *CreateDyn
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -623,6 +643,7 @@ func (c *cli) executeDynamicGroup(ctx contextx.ITenantUserContext, req *ExecuteD
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -648,6 +669,7 @@ func (c *cli) searchDynamicGroup(ctx contextx.ITenantUserContext, req *SearchDyn
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -674,6 +696,7 @@ func (c *cli) deleteDynamicGroup(ctx contextx.ITenantUserContext, req *DeleteDyn
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -725,6 +748,7 @@ func (c *cli) updateDynamicGroup(ctx contextx.ITenantUserContext, req *UpdateDyn
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -752,6 +776,7 @@ func (c *cli) listHostsWithoutBusiness(ctx contextx.ITenantUserContext, req *Lis
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -780,6 +805,7 @@ func (c *cli) getMainlineObjectTopo(ctx contextx.ITenantUserContext, req *GetMai
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -807,6 +833,7 @@ func (c *cli) listServiceTemplate(ctx contextx.ITenantUserContext, req *ListServ
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -835,6 +862,7 @@ func (c *cli) listServiceInstance(ctx contextx.ITenantUserContext, req *ListServ
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -863,6 +891,7 @@ func (c *cli) listProcessInstance(ctx contextx.ITenantUserContext, req *ListProc
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -891,6 +920,7 @@ func (c *cli) listProcTemplate(ctx contextx.ITenantUserContext, req *ListProcTem
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -917,6 +947,7 @@ func (c *cli) findSetBatch(ctx contextx.ITenantUserContext, req *FindSetBatchReq
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -943,6 +974,7 @@ func (c *cli) searchSet(ctx contextx.ITenantUserContext, req *SearchSetReq) (*Se
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -969,6 +1001,7 @@ func (c *cli) searchModule(ctx contextx.ITenantUserContext, req *SearchModuleReq
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -997,6 +1030,7 @@ func (c *cli) findHostTopoRelation(ctx contextx.ITenantUserContext, req *FindHos
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1025,6 +1059,7 @@ func (c *cli) findHostBizRelations(ctx contextx.ITenantUserContext, req *FindHos
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1052,6 +1087,7 @@ func (c *cli) findHostByServiceTemplate(ctx contextx.ITenantUserContext, req *Fi
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1080,6 +1116,7 @@ func (c *cli) findHostBySetTemplate(ctx contextx.ITenantUserContext, req *FindHo
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1108,6 +1145,7 @@ func (c *cli) findHostByTopo(ctx contextx.ITenantUserContext, req *FindHostByTop
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1136,6 +1174,7 @@ func (c *cli) findHostRelationsWithTopo(ctx contextx.ITenantUserContext, req *Fi
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1164,6 +1203,7 @@ func (c *cli) listServiceInstanceDetail(ctx contextx.ITenantUserContext, req *Li
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1192,6 +1232,7 @@ func (c *cli) listBizHostsTopo(ctx contextx.ITenantUserContext, req *ListBizHost
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1220,6 +1261,7 @@ func (c *cli) listServiceInstanceByHost(ctx contextx.ITenantUserContext, req *Li
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1248,6 +1290,7 @@ func (c *cli) listServiceInstanceBySetTemplate(ctx contextx.ITenantUserContext, 
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1276,6 +1319,7 @@ func (c *cli) listSetTemplate(ctx contextx.ITenantUserContext, req *ListSetTempl
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1302,6 +1346,7 @@ func (c *cli) batchUpdateHost(ctx contextx.ITenantUserContext, req *BatchUpdateH
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1330,6 +1375,7 @@ func (c *cli) findHostServiceTemplate(ctx contextx.ITenantUserContext, req *Find
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1357,6 +1403,7 @@ func (c *cli) resourceWatch(ctx contextx.ITenantUserContext, req *ResourceWatchR
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err

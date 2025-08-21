@@ -460,6 +460,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "OperationInstanceAction": {
       "type": "object",
       "properties": {
@@ -582,6 +593,24 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
           }
         }
       }
@@ -743,6 +772,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3WorkflowAgentInstallRespData"
         }
@@ -789,6 +821,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowAgentReconfigRespData"
@@ -837,6 +872,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3WorkflowAgentRestartRespData"
         }
@@ -880,6 +918,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowAgentUninstallRespData"
@@ -927,6 +968,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowAgentUpgradeRespData"
@@ -1102,6 +1146,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3WorkflowListRespData"
         }
@@ -1185,6 +1232,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3WorkflowProxyInstallRespData"
         }
@@ -1231,6 +1281,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowProxyReconfigRespData"
@@ -1279,6 +1332,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3WorkflowProxyRestartRespData"
         }
@@ -1322,6 +1378,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowProxyUninstallRespData"
@@ -1369,6 +1428,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3WorkflowProxyUpgradeRespData"

@@ -46,9 +46,10 @@ message WorkflowAgentInstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowAgentUpgradeReq describes the HTTP request body when upgrade agent in
@@ -65,9 +66,10 @@ message WorkflowAgentUpgradeResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowAgentReconfigReq describes the HTTP request body when reconfig agent
@@ -84,9 +86,10 @@ message WorkflowAgentReconfigResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowAgentRestartReq describes the HTTP request body when restart agent in
@@ -103,9 +106,10 @@ message WorkflowAgentRestartResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowAgentUninstallReq describes the HTTP request body when uninstall
@@ -121,9 +125,10 @@ message WorkflowAgentUninstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowProxyInstallReq describes the HTTP request body when install proxy in
@@ -139,9 +144,10 @@ message WorkflowProxyInstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowProxyUpgradeReq describes the HTTP request body when upgrade proxy in
@@ -158,9 +164,10 @@ message WorkflowProxyUpgradeResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowProxyReconfigReq describes the HTTP request body when reconfig proxy
@@ -177,9 +184,10 @@ message WorkflowProxyReconfigResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowProxyRestartReq describes the HTTP request body when restart proxy in
@@ -196,9 +204,10 @@ message WorkflowProxyRestartResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowProxyUninstallReq describes the HTTP request body when uninstall
@@ -214,9 +223,10 @@ message WorkflowProxyUninstallResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { string workflow_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // OperationInstance describes the operation instance informations. One
@@ -312,12 +322,13 @@ message WorkflowListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated WorkflowBrief items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // WorkflowGetReq describes the HTTP request body when get workflow in workflow

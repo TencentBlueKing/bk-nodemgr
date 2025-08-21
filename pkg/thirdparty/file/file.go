@@ -284,6 +284,7 @@ func (c *cli) publishReleaseAgent(ctx context.Context, tenantID string, req *pro
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -311,6 +312,7 @@ func (c *cli) publishReleaseProxy(ctx context.Context, tenantID string, req *pro
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -338,6 +340,7 @@ func (c *cli) publishReleaseCert(ctx context.Context, tenantID string, req *prot
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -365,6 +368,7 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *p
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -392,6 +396,7 @@ func (c *cli) launchTransferRelease(ctx context.Context, tenantID string, req *p
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -423,6 +428,7 @@ func (c *cli) launchTransferInstaller(ctx context.Context, tenantID string, req 
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)
@@ -454,6 +460,7 @@ func (c *cli) queryTransfer(ctx context.Context, tenantID string, req *protoFile
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to do post request: %w", err)

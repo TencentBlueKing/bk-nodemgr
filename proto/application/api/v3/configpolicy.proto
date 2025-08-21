@@ -34,12 +34,13 @@ message ConfigPolicyListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated ConfigPolicy items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyGetTemplateReq describes HTTP request body when get config policy
@@ -52,9 +53,10 @@ message ConfigPolicyGetTemplateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { repeated ConfigPolicyConfigBlock templates = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyListPlatformReq describes HTTP request body when list config
@@ -67,12 +69,13 @@ message ConfigPolicyListPlatformResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     repeated string os_type = 1;
     repeated string cpu_arch = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyGetReq describes HTTP request body when get config policy.
@@ -103,9 +106,10 @@ message ConfigPolicyCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyUpdateReq describes HTTP request body when update config policy.
@@ -127,9 +131,10 @@ message ConfigPolicyUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyEnableReq describes HTTP request body when enable config policy.
@@ -141,9 +146,10 @@ message ConfigPolicyEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyDisableReq describes HTTP request body when disable config
@@ -156,9 +162,10 @@ message ConfigPolicyDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 // ConfigPolicyDeleteReq describes HTTP request body when delete config policy.
@@ -170,9 +177,10 @@ message ConfigPolicyDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {}
-  Data data = 4;
+  Data data = 5;
 }
 
 service ConfigPolicyAPI {

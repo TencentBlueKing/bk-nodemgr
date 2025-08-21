@@ -12,28 +12,12 @@ package v3
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check body.
 func (x *NodeProxyInstallReq) Validate() error {
-	switch {
-	case x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) == 0:
-		return errors.New("target_version can not be empty when disable_default_target_version is true")
-	case !x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) > 0:
-		return errors.New("target_version can not be set when disable_default_target_version is false")
-	}
-
-	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeProxyInstallReq_TargetVersion) string {
-		return fmt.Sprintf("%s:%s", v.GetOsType(), v.GetCpuArch())
-	})
-	if err != nil {
-		return err
-	}
-
 	hosts := x.GetHost()
 	if len(hosts) == 0 {
 		return errors.New("host can not be empty")
@@ -56,30 +40,68 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 	}
 }
 
+// ConvertHostParamFromTypes convert param from types.
+func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProxyInstallParam) {
+	hostsParam := make([]*NodeProxyInstallReq_Host, len(installParam.Hosts))
+	for idx, host := range installParam.Hosts {
+		hostsParam[idx] = &NodeProxyInstallReq_Host{
+			BkBizId:         host.BizID,
+			BkNetworkunitId: host.NetworkUnitID,
+			BkHostId:        &host.HostID,
+			BkAddressing:    string(host.Addressing),
+			BkHostInnerip:   host.InnerIP,
+			BkHostInneripV6: host.InnerIPV6,
+			OsType:          host.OSType,
+			LoginIp:         host.LoginIP,
+			LoginPort:       host.LoginPort,
+			LoginUser:       host.LoginUser,
+			LoginMode:       string(host.LoginMode),
+			LoginPassword:   host.LoginPassword,
+			LoginKeyFile:    host.LoginKeyFile,
+			ExportIp:        host.ExportIP,
+			AdvertiseIp:     host.AdvertiseIP,
+			ReRegister:      host.ReRegister,
+			ProxyTags:       types.ProxyTagListToStringList(host.ProxyTags),
+		}
+	}
+
+	targetVersion := make([]*TargetVersion, len(installParam.TargetVersion))
+	for idx, version := range installParam.TargetVersion {
+		targetVersion[idx] = &TargetVersion{
+			Version: version.Version,
+			CpuArch: string(version.CPUArch),
+			OsType:  string(version.OsType),
+		}
+	}
+
+	x.TargetVersion = targetVersion
+	x.Host = hostsParam
+}
+
 // Validate check body.
 // nolint: protogetter
 func (x *NodeProxyInstallReq_Host) Validate() error {
-	if x.BkHostInnerip == "" && x.BkHostInneripV6 == "" {
+	if x.GetBkHostInnerip() == "" && x.GetBkHostInneripV6() == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
-	}
-
-	if x.GetBkBizId() < 0 {
-		return errors.New("biz_id must be equal or greater than 0")
-	}
-
-	if x.OsType == "" {
-		return errors.New("os_type can not be empty")
 	}
 
 	if err := types.Addressing(x.GetBkAddressing()).Validate(); err != nil {
 		return err
 	}
 
-	if x.GetBkNetworkunitId() < 0 {
-		return errors.New("network_unit_id must be greater than or equal to 0")
+	if x.GetBkBizId() < 0 {
+		return errors.New("biz_id must be >= 0")
 	}
 
-	if x.LoginIp == "" {
+	if x.GetOsType() == "" {
+		return errors.New("os_type can not be empty")
+	}
+
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id must be >= 0")
+	}
+
+	if x.GetLoginIp() == "" {
 		return errors.New("login_ip can not be empty")
 	}
 
@@ -100,21 +122,6 @@ func (x *NodeProxyInstallReq_Host) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeProxyInstallReq_Host) AutoConvert() {
-	if x.BkNetworkunitId == nil {
-		x.BkNetworkunitId = new(int64)
-		*x.BkNetworkunitId = -1
-	}
-
-	if x.BkBizId == nil {
-		x.BkBizId = new(int64)
-		*x.BkBizId = -1
-	}
-
-	if x.LoginPort == nil {
-		x.LoginPort = new(int64)
-		*x.LoginPort = -1
-	}
-
 	if x.BkHostId == nil {
 		x.BkHostId = new(int64)
 		*x.BkHostId = -1
@@ -124,4 +131,233 @@ func (x *NodeProxyInstallReq_Host) AutoConvert() {
 // ConvertWorkflowID convert workflow id.
 func (x *NodeProxyInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeProxyInstallResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeProxyInstallResp) GetWorkflowID() string {
+	if x.GetData() != nil {
+		return x.GetData().GetWorkflowId()
+	}
+
+	return ""
+}
+
+// Validate check body.
+func (x *NodeProxyUpgradeReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// convert host param from types.
+func (x *NodeProxyUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeProxyUpgradeParam) {
+	hostsParam := make([]*NodeProxyUpgradeReq_Host, len(upgradeParam.Hosts))
+	for idx, host := range upgradeParam.Hosts {
+		hostsParam[idx] = &NodeProxyUpgradeReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	targetVersion := make([]*TargetVersion, len(upgradeParam.TargetVersion))
+	for idx, version := range upgradeParam.TargetVersion {
+		targetVersion[idx] = &TargetVersion{
+			Version: version.Version,
+			CpuArch: string(version.CPUArch),
+			OsType:  string(version.OsType),
+		}
+	}
+
+	x.TargetVersion = targetVersion
+	x.Host = hostsParam
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpgradeReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyUpgradeReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be >= 0")
+	}
+
+	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpgradeReq_Host) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeProxyUpgradeResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeProxyUpgradeResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeProxyUpgradeResp) GetWorkflowID() string {
+	if x.GetData() != nil {
+		return x.GetData().GetWorkflowId()
+	}
+
+	return ""
+}
+
+// Validate check body.
+func (x *NodeProxyRestartReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyRestartReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// convert host param from types.
+func (x *NodeProxyRestartReq) ConvertParamFromTypes(restartParam *types.NodeProxyRestartParam) {
+	hostsParam := make([]*NodeProxyRestartReq_Host, len(restartParam.Hosts))
+	for idx, host := range restartParam.Hosts {
+		hostsParam[idx] = &NodeProxyRestartReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyRestartReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be >= 0")
+	}
+
+	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyRestartReq_Host) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeProxyRestartResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeProxyRestartResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeProxyRestartResp) GetWorkflowID() string {
+	if x.GetData() != nil {
+		return x.GetData().GetWorkflowId()
+	}
+
+	return ""
+}
+
+// Validate check body.
+func (x *NodeProxyReconfigReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyReconfigReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// convert host param from types.
+func (x *NodeProxyReconfigReq) ConvertParamFromTypes(reconfigParam *types.NodeProxyReconfigParam) {
+	hostsParam := make([]*NodeProxyReconfigReq_Host, len(reconfigParam.Hosts))
+	for idx, host := range reconfigParam.Hosts {
+		hostsParam[idx] = &NodeProxyReconfigReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyReconfigReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be >= 0")
+	}
+
+	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyReconfigReq_Host) AutoConvert() {
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeProxyReconfigResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeProxyReconfigResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeProxyReconfigResp) GetWorkflowID() string {
+	if x.GetData() != nil {
+		return x.GetData().GetWorkflowId()
+	}
+
+	return ""
 }

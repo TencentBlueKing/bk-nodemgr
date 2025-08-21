@@ -126,7 +126,7 @@ func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
 }
 
-// ConvertHostParamFromTypes ...
+// ConvertHostParamFromTypes convert host param from types.
 func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.NodeAgentInstallParam) {
 	hostsParam := make([]*NodeAgentInstallReq_Host, len(installParam.NodeAgentInstallHosts))
 	for idx, host := range installParam.NodeAgentInstallHosts {

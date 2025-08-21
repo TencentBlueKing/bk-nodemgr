@@ -29,6 +29,7 @@ type handler struct {
 	storageNetworkUnit              topo.IStorageNetworkUnit
 	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
 	storageHostCredit               credit.IStorageHostCredit
+	storageHost                     topo.IStorageHost
 
 	logger logger.Logger
 }
@@ -43,6 +44,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageNodeDeploymentDomainInit: capability.StorageNodeDeployment,
 		logger:                          capability.Logger,
 		storageHostCredit:               capability.StorageCredit,
+		storageHost:                     capability.StorageTopo,
 	}
 }
 
@@ -50,5 +52,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", restserver.Handler(h.ProxyInstall))
+	h.rg.POST("/install", restserver.Handler(h.Install))
+	h.rg.POST("/upgrade", restserver.Handler(h.Upgrade))
+	h.rg.POST("/restart", restserver.Handler(h.Restart))
+	h.rg.POST("/reconfig", restserver.Handler(h.Reconfig))
 }

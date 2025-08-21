@@ -51,7 +51,8 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
 
-	restCli, err := restclient.NewClient(c, "/api/v3", restclient.WithSensitiveHeader(apigwheader.BKGWAuthKey))
+	restCli, err := restclient.NewClient(c, "/api/v3",
+		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
 	if err != nil {
 		return nil, fmt.Errorf("failed to new backend client: %v", err)
 	}
@@ -64,7 +65,7 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 
 // getHeader get backend common header.
 // nolint: unparam
-func (c *cli) getHeader(ctx contextx.ITenantUserContext) (http.Header, error) {
+func (c *cli) getHeader(ctx contextx.ITenantUserContext) http.Header {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
@@ -76,23 +77,20 @@ func (c *cli) getHeader(ctx contextx.ITenantUserContext) (http.Header, error) {
 	}
 	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader())
 
-	return header, nil
+	return header
 }
 
 func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.TopoBusinessListReq,
 ) (*protoBackend.TopoBusinessListResp_Data, error) {
 
 	resp := new(protoBackend.TopoBusinessListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/business/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -116,16 +114,13 @@ func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHo
 ) (*protoBackend.TopoHostListResp, error) {
 
 	resp := new(protoBackend.TopoHostListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/host/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -148,16 +143,13 @@ func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.To
 ) (*protoBackend.TopoHostDistinctResp, error) {
 
 	resp := new(protoBackend.TopoHostDistinctResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/host/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -180,16 +172,13 @@ func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkAreaCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaCreateResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkarea/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -212,16 +201,13 @@ func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkAreaUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkarea/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -244,16 +230,13 @@ func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend
 ) (*protoBackend.TopoNetworkAreaListResp_Data, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkarea/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -277,16 +260,13 @@ func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.
 ) (*protoBackend.TopoNetworkAreaGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaGetResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkarea/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -309,16 +289,13 @@ func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkAreaDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkarea/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -341,16 +318,13 @@ func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkUnitCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitCreateResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkunit/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -373,16 +347,13 @@ func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkUnitUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkunit/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -405,16 +376,13 @@ func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.
 ) (*protoBackend.TopoNetworkUnitGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitGetResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkunit/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -437,16 +405,13 @@ func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend
 ) (*protoBackend.TopoNetworkUnitListResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkunit/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -469,16 +434,13 @@ func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoNetworkUnitDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/networkunit/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -501,16 +463,13 @@ func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.T
 ) (*protoBackend.TopoEventListResp, error) {
 
 	resp := new(protoBackend.TopoEventListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/event/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -533,16 +492,13 @@ func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBacke
 ) (*protoBackend.TopoEventDistinctResp, error) {
 
 	resp := new(protoBackend.TopoEventDistinctResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/event/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -565,16 +521,13 @@ func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend
 ) (*protoBackend.TopoAccessPointListResp, error) {
 
 	resp := new(protoBackend.TopoAccessPointListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/accesspoint/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -597,16 +550,13 @@ func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.Top
 ) (*protoBackend.TopoConstantGetResp, error) {
 
 	resp := new(protoBackend.TopoConstantGetResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/topo/constant/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -629,16 +579,13 @@ func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBacken
 ) (*protoBackend.NodeWorkflowListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -661,16 +608,13 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBa
 ) (*protoBackend.NodeWorkflowDistinctResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowDistinctResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -693,16 +637,13 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *pr
 ) (*protoBackend.NodeWorkflowOperationListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/operation/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -727,16 +668,13 @@ func (c *cli) listNodeWorkflowOperationInstance(
 ) (*protoBackend.NodeWorkflowOperationInstanceListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -761,16 +699,13 @@ func (c *cli) getOperationInstanceLog(
 ) (*protoBackend.NodeWorkflowOperationInstanceLogGetResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceLogGetResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/log/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -796,16 +731,13 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 ) (*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListStatusResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/status/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -829,16 +761,13 @@ func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBacken
 ) (*protoBackend.NodeAgentInstallResp, error) {
 
 	resp := new(protoBackend.NodeAgentInstallResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/agent/install").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -862,16 +791,13 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 ) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/workflow/operation/retry").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -891,14 +817,133 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 	return resp, nil
 }
 
+func (c *cli) installNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyInstallReq) (
+	*protoBackend.NodeProxyInstallResp, error) {
+
+	resp := new(protoBackend.NodeProxyInstallResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/install").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("install node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("install node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyUpgradeReq) (
+	*protoBackend.NodeProxyUpgradeResp, error) {
+
+	resp := new(protoBackend.NodeProxyUpgradeResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/upgrade").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("upgrade node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("upgrade node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyRestartReq) (
+	*protoBackend.NodeProxyRestartResp, error) {
+
+	resp := new(protoBackend.NodeProxyRestartResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/restart").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("restart node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("restart node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyReconfigReq) (
+	*protoBackend.NodeProxyReconfigResp, error) {
+
+	resp := new(protoBackend.NodeProxyReconfigResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/reconfig").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("reconfig node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("reconfig node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
 
 	resp := new(protoBackend.PackageReleaseListResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/list").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -922,10 +967,13 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 	*protoBackend.PackageReleaseDistinctResp, error) {
 
 	resp := new(protoBackend.PackageReleaseDistinctResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/distinct").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -947,10 +995,14 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 
 func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
+
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_labels").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -966,10 +1018,13 @@ func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBacken
 
 func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/enable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -985,10 +1040,13 @@ func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 
 func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDisableReq) error {
 	resp := new(protoBackend.PackageReleaseDisableResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/disable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1004,10 +1062,13 @@ func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.
 
 func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/set_as_default").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1025,10 +1086,13 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 ) error {
 
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/cancel_as_default").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1044,10 +1108,13 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 
 func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/package/release/delete").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1065,10 +1132,13 @@ func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBacken
 	*protoBackend.ConfigPolicyListResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyListResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/list").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1086,10 +1156,13 @@ func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend
 	*protoBackend.ConfigPolicyGetResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyGetResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/get").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1107,10 +1180,13 @@ func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyCreateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/create").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1128,10 +1204,13 @@ func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyUpdateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/update").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1149,10 +1228,13 @@ func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyEnableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/enable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1170,10 +1252,13 @@ func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBac
 	*protoBackend.ConfigPolicyDisableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/disable").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1191,10 +1276,13 @@ func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	*protoBackend.ConfigPolicyDeleteResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
+	header := c.getHeader(ctx)
 	err := c.client.Post().
 		SubResourcef("/policy/config/delete").
 		WithContext(ctx).
+		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err

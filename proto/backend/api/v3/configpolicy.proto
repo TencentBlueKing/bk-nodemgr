@@ -34,15 +34,6 @@ message ConfigPolicyListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {
@@ -60,15 +51,6 @@ message ConfigPolicyGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   ConfigPolicy data = 5;
@@ -93,15 +75,6 @@ message ConfigPolicyCreateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
@@ -129,15 +102,6 @@ message ConfigPolicyUpdateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data { optional int64 configpolicy_id = 1; }
@@ -153,15 +117,6 @@ message ConfigPolicyEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -178,15 +133,6 @@ message ConfigPolicyDisableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -202,17 +148,71 @@ message ConfigPolicyDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
   Data data = 5;
+}
+
+service ConfigPolicyAPI {
+  // ListConfigPolicy lists config policy.
+  rpc ConfigPolicyList(ConfigPolicyListReq) returns (ConfigPolicyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/list"
+      body : "*"
+    };
+  }
+
+  // GetConfigPolicy gets config policy.
+  rpc ConfigPolicyGet(ConfigPolicyGetReq) returns (ConfigPolicyGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/get"
+      body : "*"
+    };
+  }
+
+  // CreateConfigPolicy creates config policy.
+  rpc ConfigPolicyCreate(ConfigPolicyCreateReq)
+      returns (ConfigPolicyCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/create"
+      body : "*"
+    };
+  }
+
+  // UpdateConfigPolicy updates config policy.
+  rpc ConfigPolicyUpdate(ConfigPolicyUpdateReq)
+      returns (ConfigPolicyUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/update"
+      body : "*"
+    };
+  }
+
+  // EnableConfigPolicy enables config policy.
+  rpc ConfigPolicyEnable(ConfigPolicyEnableReq)
+      returns (ConfigPolicyEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/enable"
+      body : "*"
+    };
+  }
+
+  // DisableConfigPolicy disables config policy.
+  rpc ConfigPolicyDisable(ConfigPolicyDisableReq)
+      returns (ConfigPolicyDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/disable"
+      body : "*"
+    };
+  }
+
+  // DeleteConfigPolicy deletes config policy.
+  rpc ConfigPolicyDelete(ConfigPolicyDeleteReq)
+      returns (ConfigPolicyDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/delete"
+      body : "*"
+    };
+  }
 }

@@ -16,15 +16,6 @@ message EnableScheduleWorkflowResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -41,15 +32,6 @@ message DisableScheduleWorkflowResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {}
@@ -94,15 +76,6 @@ message ListScheduleWorkflowResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  message Error {
-    string system = 1;
-    string message = 2;
-    message Details {
-      string code = 1;
-      string message = 2;
-    }
-    repeated Details details = 3;
-  }
   Error error = 4;
 
   message Data {

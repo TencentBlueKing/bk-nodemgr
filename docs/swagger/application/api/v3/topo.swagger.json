@@ -663,6 +663,17 @@
     }
   },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "TopoGraphNodeCountRespNodeInfo": {
       "type": "object",
       "properties": {
@@ -798,6 +809,24 @@
         }
       },
       "description": "Endpoints describes the links real address."
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
     },
     "v3Host": {
       "type": "object",
@@ -1117,6 +1146,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoBusinessListRespData"
         }
@@ -1163,6 +1195,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoConstantGetRespData"
@@ -1254,6 +1289,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoEventDistinctRespData"
@@ -1390,6 +1428,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoEventListRespData"
         }
@@ -1437,6 +1478,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoGraphGetRespData"
@@ -1489,6 +1533,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoGraphNodeCountRespData"
         }
@@ -1531,6 +1578,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoHostDistinctRespData"
@@ -1750,6 +1800,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostListRespData"
         }
@@ -1797,6 +1850,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaCreateRespData"
         }
@@ -1834,6 +1890,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespData"
@@ -1939,6 +1998,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaListRespData"
         }
@@ -1987,6 +2049,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaStatisticsRespData"
         }
@@ -2033,6 +2098,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespData"
@@ -2091,6 +2159,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitCreateRespData"
         }
@@ -2128,6 +2199,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespData"
@@ -2220,6 +2294,9 @@
         "request_id": {
           "type": "string"
         },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitListRespData"
         }
@@ -2287,6 +2364,9 @@
         },
         "request_id": {
           "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespData"

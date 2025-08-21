@@ -48,12 +48,13 @@ message NodeWorkflowListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated NodeWorkflowInfo items = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeWorkflowStatisticReq describes the node workflow statistic request.
@@ -64,6 +65,7 @@ message NodeWorkflowStatisticsResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message StatisticsInfo {
     optional string workflow_id = 1;
@@ -77,7 +79,7 @@ message NodeWorkflowStatisticsResp {
     optional int64 terminated_count = 9;
   }
   message Data { repeated StatisticsInfo items = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeWorkflowDistinctReq describes the node workflow distinct request.
@@ -91,6 +93,7 @@ message NodeWorkflowDistinctResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     repeated string type = 1;
@@ -98,7 +101,7 @@ message NodeWorkflowDistinctResp {
     repeated string operator = 3;
     repeated string status = 4;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 message NodeWorkflowOperationParam {
@@ -184,12 +187,13 @@ message NodeWorkflowOperationListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     repeated NodeWorkflowOperation operations = 1;
     int64 total_count = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
@@ -205,12 +209,13 @@ message NodeWorkflowOperationInstanceListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     repeated NodeWorflowOperationInstanceData oper_inst_data = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeWorkflowInstanceStatusExactConditions describes the exact conditions of
@@ -241,9 +246,10 @@ message NodeWorkflowOperationInstanceListStatusResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { repeated NodeWorkflowOperationInstanceStatus items = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 // NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
@@ -256,12 +262,13 @@ message NodeWorkflowOperationInstanceLogGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data {
     int64 total = 1;
     map<string, NodeWorkflowActionData> oper_inst_logs = 2;
   }
-  Data data = 4;
+  Data data = 5;
 }
 
 message LifeCycle {
@@ -297,9 +304,10 @@ message NodeWorkflowOperationRetryResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
+  Error error = 4;
 
   message Data { repeated string instance_ids = 1; }
-  Data data = 4;
+  Data data = 5;
 }
 
 service NodeWorkflow {

@@ -232,3 +232,13 @@ message ConfigPolicy {
   optional string operator = 11;
   optional int64 version = 12;
 }
+
+message Error {
+  string system = 1;
+  string message = 2;
+  message Details {
+    string code = 1;
+    string message = 2;
+  }
+  repeated Details details = 3;
+}

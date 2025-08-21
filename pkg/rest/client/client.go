@@ -38,12 +38,31 @@ type IClient interface {
 // Opt define options.
 type Opt func(client *Client)
 
-// WithSensitiveHeader set sensitive header.
-func WithSensitiveHeader(header ...string) Opt {
+// WithHeaderMasker set header masker.
+func WithHeaderMasker(header ...string) Opt {
 	return func(client *Client) {
 		for _, h := range header {
-			client.sensitiveHeaders[h] = struct{}{}
+			client.headerMasker[h] = defaultHeaderMasker
 		}
+	}
+}
+
+// nolint: mnd
+func defaultHeaderMasker(value string) string {
+	var maskedValues string
+	if len(value) > 6 {
+		maskedValues = value[:3] + "***" + value[len(value)-3:]
+	} else {
+		maskedValues = strings.Repeat("*", len(value))
+	}
+
+	return maskedValues
+}
+
+// WithCustomHeaderMasker set custom header masker.
+func WithCustomHeaderMasker(header string, headerMasker func(string) string) Opt {
+	return func(client *Client) {
+		client.headerMasker[header] = headerMasker
 	}
 }
 
@@ -75,9 +94,9 @@ func NewClient(capability *Capability, baseURL string, opts ...Opt) (IClient, er
 			WithDurationMSBuckets(capability.MetricOpts.DurationMSBuckets).
 			WithSlowTime(capability.ToleranceLatencyTime).
 			Enable(),
-		exclusionURL:     make(map[string]struct{}),
-		maxRetryCycle:    maxRetryCycleDefault,
-		sensitiveHeaders: make(map[string]struct{}),
+		exclusionURL:  make(map[string]struct{}),
+		maxRetryCycle: maxRetryCycleDefault,
+		headerMasker:  make(map[string]func(string) string),
 	}
 
 	for _, opt := range opts {
@@ -104,18 +123,18 @@ type Client struct {
 	// maxRetryCycle define the max retry cycle.
 	maxRetryCycle int
 
-	// sensitive headers.
-	sensitiveHeaders map[string]struct{}
+	// headerMasker will be used to mask header value.
+	headerMasker map[string]func(string) string
 }
 
 // verb get request.
 func (client *Client) verb(verb VerbType) *Request {
 	return &Request{
-		client:           client,
-		verb:             verb,
-		baseURL:          client.baseURL,
-		capability:       client.capability,
-		sensitiveHeaders: client.sensitiveHeaders,
+		client:       client,
+		verb:         verb,
+		baseURL:      client.baseURL,
+		capability:   client.capability,
+		headerMasker: client.headerMasker,
 	}
 }
 

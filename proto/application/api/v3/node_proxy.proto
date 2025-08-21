@@ -1,0 +1,142 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// NodeProxyInstallReq describes the node proxy install request.
+message NodeProxyInstallReq {
+  message Host {
+    int64 bk_biz_id = 1;
+    int64 bk_networkunit_id = 2;
+    optional int64 bk_host_id = 3;
+    string bk_addressing = 4;
+    string bk_host_innerip = 5;
+    string bk_host_innerip_v6 = 6;
+    string os_type = 7;
+    string login_ip = 8;
+    int64 login_port = 9;
+    string login_user = 10;
+    // support: password_vault, password, keyfile
+    string login_mode = 11;
+    string login_password = 12;
+    string login_key_file = 13;
+    string export_ip = 14;
+    string advertise_ip = 15;
+    bool re_register = 16;
+    repeated string proxy_tags = 17;
+  }
+  repeated Host host = 1;
+  repeated TargetVersion target_version = 2;
+}
+
+// NodeProxyInstallResp describes the node proxy install response.
+message NodeProxyInstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// NodeProxyUpgradeReq describes the node proxy upgrade request.
+message NodeProxyUpgradeReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+  repeated TargetVersion target_version = 2;
+}
+
+// NodeProxyUpgradeResp describes the node proxy upgrade response.
+message NodeProxyUpgradeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// NodeProxyReconfigReq describes the node proxy reconfig request.
+message NodeProxyReconfigReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeProxyReconfigResp describes the node proxy reconfig response.
+message NodeProxyReconfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// NodeProxyRestartReq describes the node proxy restart request.
+message NodeProxyRestartReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeProxyRestartResp describes the node proxy restart response.
+message NodeProxyRestartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+service NodeProxy {
+  // NodeProxyInstall installs node proxy.
+  rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/install"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpgrade upgrades node proxy.
+  rpc NodeProxyUpgrade(NodeProxyUpgradeReq) returns (NodeProxyUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/upgrade"
+      body : "*"
+    };
+  }
+
+  // NodeProxyRestart restarts node proxy.
+  rpc NodeProxyRestart(NodeProxyRestartReq) returns (NodeProxyRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/restart"
+      body : "*"
+    };
+  }
+
+  // NodeProxyReconfig reconfigs node proxy.
+  rpc NodeProxyReconfig(NodeProxyReconfigReq) returns (NodeProxyReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/reconfig"
+      body : "*"
+    };
+  }
+}
