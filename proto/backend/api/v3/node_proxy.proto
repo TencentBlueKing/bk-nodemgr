@@ -106,3 +106,37 @@ message NodeProxyRestartResp {
   message Data { string workflow_id = 1; }
   Data data = 5;
 }
+
+service NodeProxy {
+  // NodeProxyInstall installs node proxy.
+  rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/install"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpgrade upgrades node proxy.
+  rpc NodeProxyUpgrade(NodeProxyUpgradeReq) returns (NodeProxyUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/upgrade"
+      body : "*"
+    };
+  }
+
+  // NodeProxyRestart restarts node proxy.
+  rpc NodeProxyRestart(NodeProxyRestartReq) returns (NodeProxyRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/restart"
+      body : "*"
+    };
+  }
+
+  // NodeProxyReconfig reconfigs node proxy.
+  rpc NodeProxyReconfig(NodeProxyReconfigReq) returns (NodeProxyReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/reconfig"
+      body : "*"
+    };
+  }
+}
