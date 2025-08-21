@@ -627,4 +627,13 @@ service Topo {
       body : "*"
     };
   }
+
+  // AccessPointList provides access-point listing.
+  rpc AccessPointList(TopoAccessPointListReq)
+      returns (TopoAccessPointListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/accesspoint/list"
+      body : "*"
+    };
+  }
 }

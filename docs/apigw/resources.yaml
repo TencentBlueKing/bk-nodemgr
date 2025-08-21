@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-- url: /
+  - url: /
 info:
   version: '2.0'
   title: API Gateway Resources
@@ -11,7 +11,7 @@ paths:
       operationId: Sync_SyncCmdbConstants
       description: SyncCmdbConstants provides syncing cmdb constants.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -31,7 +31,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\\nconstants.
+                description: SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\\\\\\\\\\\\\\\\nconstants.
           description: A successful response.
         default:
           content:
@@ -58,9 +58,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\nconstants.
+              description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\\\\\\\\\\\\\nconstants.
         required: true
-        description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\nconstants.
+        description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\\\\\\\\\\\\\nconstants.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -83,7 +83,7 @@ paths:
       operationId: Sync_SyncCmdbHost
       description: SyncCmdbHost provides syncing cmdb host.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -155,7 +155,7 @@ paths:
       operationId: Sync_SyncCmdbNetworkArea
       description: SyncCmdbNetworkArea provides syncing cmdb networkarea.
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -175,7 +175,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\\nnetworkarea.
+                description: SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\\\\\\\\\\\\\\\\nnetworkarea.
           description: A successful response.
         default:
           content:
@@ -202,9 +202,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\nnetworkarea.
+              description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\\\\\\\\\\\\\nnetworkarea.
         required: true
-        description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\nnetworkarea.
+        description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\\\\\\\\\\\\\nnetworkarea.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -227,7 +227,7 @@ paths:
       operationId: Sync_SyncAgentState
       description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -305,7 +305,7 @@ paths:
       operationId: Sync_SyncAllAgentState
       description: ''
       tags:
-      - Sync
+        - Sync
       responses:
         '200':
           content:
@@ -325,7 +325,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncAllAgentStateResp describes the HTTP response body when sync all agent\\nstate.
+                description: SyncAllAgentStateResp describes the HTTP response body when sync all agent\\\\\\\\\\\\\\\\nstate.
           description: A successful response.
         default:
           content:
@@ -352,9 +352,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\nstate.
+              description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\\\\\\\\\\\\\nstate.
         required: true
-        description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\nstate.
+        description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\\\\\\\\\\\\\nstate.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -377,7 +377,7 @@ paths:
       operationId: Topo_BusinessList
       description: BusinessList provides business listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -411,7 +411,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoBusinessListResp describes the HTTP response body when list business in\\ntopo service.
+                description: TopoBusinessListResp describes the HTTP response body when list business in\\\\\\\\\\\\\\\\ntopo service.
           description: A successful response.
         default:
           content:
@@ -466,9 +466,9 @@ paths:
                       type: array
                       items:
                         type: string
-              description: TopoBusinessListReq describes the HTTP request body when list business in\\ntopo service.
+              description: TopoBusinessListReq describes the HTTP request body when list business in\\\\\\\\\\\\\\\\ntopo service.
         required: true
-        description: TopoBusinessListReq describes the HTTP request body when list business in\\ntopo service.
+        description: TopoBusinessListReq describes the HTTP request body when list business in\\\\\\\\\\\\\\\\ntopo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -491,7 +491,7 @@ paths:
       operationId: Topo_ConstantGet
       description: ConstantGet provides getting a constant.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -517,7 +517,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoConstantGetResp describes the HTTP response body when get constant in\\ntopo service.
+                description: TopoConstantGetResp describes the HTTP response body when get constant in\\\\\\\\\\\\\\\\ntopo service.
           description: A successful response.
         default:
           content:
@@ -549,9 +549,9 @@ paths:
                   type: boolean
                 cloud_vendor:
                   type: boolean
-              description: TopoConstantGetReq describes the HTTP request body when get constant in topo\\nservice.
+              description: TopoConstantGetReq describes the HTTP request body when get constant in topo\\\\\\\\\\\\\\\\nservice.
         required: true
-        description: TopoConstantGetReq describes the HTTP request body when get constant in topo\\nservice.
+        description: TopoConstantGetReq describes the HTTP request body when get constant in topo\\\\\\\\\\\\\\\\nservice.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -574,7 +574,7 @@ paths:
       operationId: Topo_EventDistinct
       description: EventDistinct provides event distincting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -615,7 +615,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoEventDistinctResp describes the HTTP response body when distinct\\ntopoevent in topo service.
+                description: TopoEventDistinctResp describes the HTTP response body when distinct\\\\\\\\\\\\\\\\ntopoevent in topo service.
           description: A successful response.
         default:
           content:
@@ -692,9 +692,9 @@ paths:
                       type: array
                       items:
                         type: string
-              description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\\nin topo service.
+              description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\\\\\\\\\\\\\\\\nin topo service.
         required: true
-        description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\\nin topo service.
+        description: TopoEventDistinctReq describes the HTTP request body when distinct topoevent\\\\\\\\\\\\\\\\nin topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -717,7 +717,7 @@ paths:
       operationId: Topo_EventList
       description: EventList provides event listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -768,7 +768,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoEventListResp describes the HTTP response body when list event in topo\\nservice.
+                description: TopoEventListResp describes the HTTP response body when list event in topo\\\\\\\\\\\\\\\\nservice.
           description: A successful response.
         default:
           content:
@@ -857,9 +857,9 @@ paths:
                       type: array
                       items:
                         type: string
-              description: TopoEventListReq describes the HTTP request body when list event in topo\\nservice.
+              description: TopoEventListReq describes the HTTP request body when list event in topo\\\\\\\\\\\\\\\\nservice.
         required: true
-        description: TopoEventListReq describes the HTTP request body when list event in topo\\nservice.
+        description: TopoEventListReq describes the HTTP request body when list event in topo\\\\\\\\\\\\\\\\nservice.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -882,7 +882,7 @@ paths:
       operationId: Topo_HostDistinct
       description: HostDistinct provides host distincting.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -943,7 +943,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoHostDistinctResp describes the HTTP response body when distinct host in\\ntopp service.
+                description: TopoHostDistinctResp describes the HTTP response body when distinct host in\\\\\\\\\\\\\\\\ntopp service.
           description: A successful response.
         default:
           content:
@@ -1052,9 +1052,9 @@ paths:
                       items:
                         type: string
                   description: TopoHostFuzzyConditions describes host fuzzy conditions.
-              description: TopoHostDistinctReq describes the HTTP request body when distinct host in\\ntopp service.
+              description: TopoHostDistinctReq describes the HTTP request body when distinct host in\\\\\\\\\\\\\\\\ntopp service.
         required: true
-        description: TopoHostDistinctReq describes the HTTP request body when distinct host in\\ntopp service.
+        description: TopoHostDistinctReq describes the HTTP request body when distinct host in\\\\\\\\\\\\\\\\ntopp service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1077,7 +1077,7 @@ paths:
       operationId: Topo_HostList
       description: HostList provides host listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1124,7 +1124,7 @@ paths:
                                   type: string
                                 bk_host_outerip_v6:
                                   type: string
-                              description: HostInfo describes the host info informations. Usually contains static\\nconfigs.
+                              description: HostInfo describes the host info informations. Usually contains static\\\\\\\\\\\\\\\\nconfigs.
                             state:
                               type: object
                               properties:
@@ -1141,7 +1141,7 @@ paths:
                                 node_generation:
                                   type: integer
                                   format: int64
-                              description: HostState describes the host state informations. Usually contains\\nagent-related things.
+                              description: HostState describes the host state informations. Usually contains\\\\\\\\\\\\\\\\nagent-related things.
                             create_at:
                               type: string
                               format: uint64
@@ -1161,7 +1161,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoHostListResp describes the HTTP response body when list host in topo\\nservice.
+                description: TopoHostListResp describes the HTTP response body when list host in topo\\\\\\\\\\\\\\\\nservice.
           description: A successful response.
         default:
           content:
@@ -1282,9 +1282,9 @@ paths:
                       items:
                         type: string
                   description: TopoHostFuzzyConditions describes host fuzzy conditions.
-              description: TopoHostListReq describes the HTTP request body when list host in topo\\nservice.
+              description: TopoHostListReq describes the HTTP request body when list host in topo\\\\\\\\\\\\\\\\nservice.
         required: true
-        description: TopoHostListReq describes the HTTP request body when list host in topo\\nservice.
+        description: TopoHostListReq describes the HTTP request body when list host in topo\\\\\\\\\\\\\\\\nservice.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1307,7 +1307,7 @@ paths:
       operationId: Topo_NetworkAreaCreate
       description: NetworkAreaCreate provides creating a new network-area.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1328,7 +1328,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkAreaCreateResp describes the HTTP response body when create\\nnetwork-area in topo service.
+                description: TopoNetworkAreaCreateResp describes the HTTP response body when create\\\\\\\\\\\\\\\\nnetwork-area in topo service.
           description: A successful response.
         default:
           content:
@@ -1360,9 +1360,9 @@ paths:
                   type: string
                 bk_networkarea_name:
                   type: string
-              description: TopoNetworkAreaCreateReq describes the HTTP request body when create\\nnetwork-area in topo service.
+              description: TopoNetworkAreaCreateReq describes the HTTP request body when create\\\\\\\\\\\\\\\\nnetwork-area in topo service.
         required: true
-        description: TopoNetworkAreaCreateReq describes the HTTP request body when create\\nnetwork-area in topo service.
+        description: TopoNetworkAreaCreateReq describes the HTTP request body when create\\\\\\\\\\\\\\\\nnetwork-area in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1385,7 +1385,7 @@ paths:
       operationId: Topo_NetworkAreaDelete
       description: NetworkAreaDelete provides deleting an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1406,7 +1406,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkAreaDeleteResp describes the HTTP response body when delete\\nnetwork-area in topo service.
+                description: TopoNetworkAreaDeleteResp describes the HTTP response body when delete\\\\\\\\\\\\\\\\nnetwork-area in topo service.
           description: A successful response.
         default:
           content:
@@ -1437,9 +1437,9 @@ paths:
                 bk_networkarea_id:
                   type: integer
                   format: int64
-              description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\\nnetwork-area in topo service.
+              description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\\\\\\\\\\\\\\\\nnetwork-area in topo service.
         required: true
-        description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\\nnetwork-area in topo service.
+        description: TopoNetworkAreaDeleteReq describes the HTTP request body when delete\\\\\\\\\\\\\\\\nnetwork-area in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1462,7 +1462,7 @@ paths:
       operationId: Topo_NetworkAreaGet
       description: NetworkAreaGet provides getting an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1490,7 +1490,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkAreaGetResp describe the HTTP response body when get network-area\\nin topo service.
+                description: TopoNetworkAreaGetResp describe the HTTP response body when get network-area\\\\\\\\\\\\\\\\nin topo service.
           description: A successful response.
         default:
           content:
@@ -1521,9 +1521,9 @@ paths:
                 bk_networkarea_id:
                   type: integer
                   format: int64
-              description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\\nin topo service.
+              description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\\\\\\\\\\\\\\\\nin topo service.
         required: true
-        description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\\nin topo service.
+        description: TopoNetworkAreaGetReq describes the HTTP request body when get network-area\\\\\\\\\\\\\\\\nin topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1546,7 +1546,7 @@ paths:
       operationId: Topo_NetworkAreaList
       description: NetworkAreaList provides network-area listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1582,7 +1582,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkAreaListResp describes the HTTP response body when list\\nnetwork-area in topo service.
+                description: TopoNetworkAreaListResp describes the HTTP response body when list\\\\\\\\\\\\\\\\nnetwork-area in topo service.
           description: A successful response.
         default:
           content:
@@ -1641,9 +1641,9 @@ paths:
                       type: array
                       items:
                         type: string
-              description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\\nin topo service.
+              description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\\\\\\\\\\\\\\\\nin topo service.
         required: true
-        description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\\nin topo service.
+        description: TopoNetworkAreaListReq describes the HTTP request body when list network-area\\\\\\\\\\\\\\\\nin topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1666,7 +1666,7 @@ paths:
       operationId: Topo_NetworkAreaUpdate
       description: NetworkAreaUpdate provides updating an existing network-area by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1687,7 +1687,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkAreaUpdateResp describes the HTTP response body when update\\nnetwork-area in topo service.
+                description: TopoNetworkAreaUpdateResp describes the HTTP response body when update\\\\\\\\\\\\\\\\nnetwork-area in topo service.
           description: A successful response.
         default:
           content:
@@ -1722,9 +1722,9 @@ paths:
                   format: int64
                 bk_networkarea_name:
                   type: string
-              description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\\nnetwork-area in topo service.
+              description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\\\\\\\\\\\\\\\\nnetwork-area in topo service.
         required: true
-        description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\\nnetwork-area in topo service.
+        description: TopoNetworkAreaUpdateReq describes the HTTP request body when update\\\\\\\\\\\\\\\\nnetwork-area in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1747,7 +1747,7 @@ paths:
       operationId: Topo_NetworkUnitCreate
       description: NetworkUnitCreate provides creating a new network-unit.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1768,7 +1768,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkUnitCreateResp describes the HTTP response body when create\\nnetwork unit in topo service.
+                description: TopoNetworkUnitCreateResp describes the HTTP response body when create\\\\\\\\\\\\\\\\nnetwork unit in topo service.
           description: A successful response.
         default:
           content:
@@ -1894,9 +1894,9 @@ paths:
                   format: int64
                 bk_networkunit_name:
                   type: string
-              description: TopoNetworkUnitCreateReq describes the HTTP request body when create\\nnetwork-unit in topo service.
+              description: TopoNetworkUnitCreateReq describes the HTTP request body when create\\\\\\\\\\\\\\\\nnetwork-unit in topo service.
         required: true
-        description: TopoNetworkUnitCreateReq describes the HTTP request body when create\\nnetwork-unit in topo service.
+        description: TopoNetworkUnitCreateReq describes the HTTP request body when create\\\\\\\\\\\\\\\\nnetwork-unit in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1919,7 +1919,7 @@ paths:
       operationId: Topo_NetworkUnitDelete
       description: NetworkUnitDelete provides deleting an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -1940,7 +1940,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkUnitDeleteResp describes the HTTP response body when delete\\nnetwork unit in topo service.
+                description: TopoNetworkUnitDeleteResp describes the HTTP response body when delete\\\\\\\\\\\\\\\\nnetwork unit in topo service.
           description: A successful response.
         default:
           content:
@@ -1971,9 +1971,9 @@ paths:
                 bk_networkunit_id:
                   type: integer
                   format: int64
-              description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\\nnetwork unit in topo service.
+              description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\\\\\\\\\\\\\\\\nnetwork unit in topo service.
         required: true
-        description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\\nnetwork unit in topo service.
+        description: TopoNetworkUnitDeleteReq describes the HTTP request body when delete\\\\\\\\\\\\\\\\nnetwork unit in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -1996,7 +1996,7 @@ paths:
       operationId: Topo_NetworkUnitGet
       description: NetworkUnitGet provides getting an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2118,7 +2118,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\\nin topo service.
+                description: TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\\\\\\\\\\\\\\\\nin topo service.
           description: A successful response.
         default:
           content:
@@ -2149,9 +2149,9 @@ paths:
                 bk_networkunit_id:
                   type: integer
                   format: int64
-              description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\\nin topo service.
+              description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\\\\\\\\\\\\\\\\nin topo service.
         required: true
-        description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\\nin topo service.
+        description: TopoNetworkUnitGetReq describes the HTTP request body when get network-unit\\\\\\\\\\\\\\\\nin topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2174,7 +2174,7 @@ paths:
       operationId: Topo_NetworkUnitList
       description: NetworkUnitList provides network-unit listing.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2269,7 +2269,7 @@ paths:
                               format: int64
                             bk_networkunit_name:
                               type: string
-                          description: NetworkUnitBrief describes the network unit brief informations.\\nonly contains the access point ids.
+                          description: NetworkUnitBrief describes the network unit brief informations.\\\\\\\\\\\\\\\\nonly contains the access point ids.
                       total:
                         type: integer
                         format: int64
@@ -2277,7 +2277,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkUnitListResp describes the HTTP response body when list\\nnetwork-unit in topo service.
+                description: TopoNetworkUnitListResp describes the HTTP response body when list\\\\\\\\\\\\\\\\nnetwork-unit in topo service.
           description: A successful response.
         default:
           content:
@@ -2330,9 +2330,9 @@ paths:
                       items:
                         type: integer
                         format: int64
-              description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\\nin topo service.
+              description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\\\\\\\\\\\\\\\\nin topo service.
         required: true
-        description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\\nin topo service.
+        description: TopoNetworkUnitListReq describes the HTTP request body when list network-unit\\\\\\\\\\\\\\\\nin topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2355,7 +2355,7 @@ paths:
       operationId: Topo_NetworkUnitUpdate
       description: NetworkUnitUpdate provides updating an existing network-unit by id.
       tags:
-      - Topo
+        - Topo
       responses:
         '200':
           content:
@@ -2376,7 +2376,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoNetworkUnitUpdateResp describes the HTTP response body when update\\nnetwork unit in topo service.
+                description: TopoNetworkUnitUpdateResp describes the HTTP response body when update\\\\\\\\\\\\\\\\nnetwork unit in topo service.
           description: A successful response.
         default:
           content:
@@ -2505,9 +2505,9 @@ paths:
                   format: int64
                 bk_networkunit_name:
                   type: string
-              description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\\nnetwork-unit in topo service.
+              description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\\\\\\\\\\\\\\\\nnetwork-unit in topo service.
         required: true
-        description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\\nnetwork-unit in topo service.
+        description: TopoNetworkUnitUpdateReq describes the HTTP request body when update\\\\\\\\\\\\\\\\nnetwork-unit in topo service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2530,7 +2530,7 @@ paths:
       operationId: Schedule_DisableScheduleWorkflow
       description: DisableScheduleWorkflow provides disable schedule workflow.
       tags:
-      - Schedule
+        - Schedule
       responses:
         '200':
           content:
@@ -2547,7 +2547,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: DisableScheduleWorkflowResp describes the HTTP response body when disable\\nschedule workflow.
+                description: DisableScheduleWorkflowResp describes the HTTP response body when disable\\\\\\\\\\\\\\\\nschedule workflow.
           description: A successful response.
         default:
           content:
@@ -2577,9 +2577,9 @@ paths:
               properties:
                 workflow_id:
                   type: string
-              description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\nschedule workflow.
+              description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\\\\\\\\\\\\\\\nschedule workflow.
         required: true
-        description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\nschedule workflow.
+        description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\\\\\\\\\\\\\\\nschedule workflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2602,7 +2602,7 @@ paths:
       operationId: Schedule_EnableScheduleWorkflow
       description: EnableScheduleWorkflow provides enable schedule workflow.
       tags:
-      - Schedule
+        - Schedule
       responses:
         '200':
           content:
@@ -2619,7 +2619,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: EnableScheduleWorkflowResp describes the HTTP response body when enable\\nschedule workflow.
+                description: EnableScheduleWorkflowResp describes the HTTP response body when enable\\\\\\\\\\\\\\\\nschedule workflow.
           description: A successful response.
         default:
           content:
@@ -2649,9 +2649,9 @@ paths:
               properties:
                 workflow_id:
                   type: string
-              description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\nschedule workflow.
+              description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\\\\\\\\\\\\\\\nschedule workflow.
         required: true
-        description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\nschedule workflow.
+        description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\\\\\\\\\\\\\\\nschedule workflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2674,7 +2674,7 @@ paths:
       operationId: Schedule_ListScheduleWorkflow
       description: ListScheduleWorkflow provides list schedule workflow.
       tags:
-      - Schedule
+        - Schedule
       responses:
         '200':
           content:
@@ -2712,7 +2712,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ListScheduleWorkflowResp describes the HTTP response body when list schedule\\nworkflow.
+                description: ListScheduleWorkflowResp describes the HTTP response body when list schedule\\\\\\\\\\\\\\\\nworkflow.
           description: A successful response.
         default:
           content:
@@ -2777,13 +2777,13 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: ScheduleWorkflowExactConditions describes the exact conditions of schedule\\nworkflow list request.
+                  description: ScheduleWorkflowExactConditions describes the exact conditions of schedule\\\\\\\\\\\\\\\\nworkflow list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\\nworkflow list request.
-              description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\nworkflow.
+                  description: ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\\\\\\\\\\\\\\\\nworkflow list request.
+              description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\\\\\\\\\\\\\\\nworkflow.
         required: true
-        description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\nworkflow.
+        description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\\\\\\\\\\\\\\\nworkflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2806,7 +2806,7 @@ paths:
       operationId: Package_CancelAsDefaultRelease
       description: CancelAsDefaultRelease cancels release as default.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -2823,7 +2823,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseCancelAsDefaultResp describes the HTTP response body when\\ncancel default package release.
+                description: PackageReleaseCancelAsDefaultResp describes the HTTP response body when\\\\\\\\\\\\\\\\ncancel default package release.
           description: A successful response.
         default:
           content:
@@ -2866,9 +2866,9 @@ paths:
                   format: int64
                 release_type:
                   type: string
-              description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\ndefault package release.
+              description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\\\\\\\\\\\\\\\ndefault package release.
         required: true
-        description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\ndefault package release.
+        description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\\\\\\\\\\\\\\\ndefault package release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2891,7 +2891,7 @@ paths:
       operationId: Package_DeleteRelease
       description: DeleteRelease deletes release.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -2908,7 +2908,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseDeleteResp describes the HTTP response body when delete\\nrelease.
+                description: PackageReleaseDeleteResp describes the HTTP response body when delete\\\\\\\\\\\\\\\\nrelease.
           description: A successful response.
         default:
           content:
@@ -2976,7 +2976,7 @@ paths:
       operationId: Package_DisableRelease
       description: DisableRelease disables release.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -2993,7 +2993,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseDisableResp describes the HTTP response body when disable\\npackage release.
+                description: PackageReleaseDisableResp describes the HTTP response body when disable\\\\\\\\\\\\\\\\npackage release.
           description: A successful response.
         default:
           content:
@@ -3036,9 +3036,9 @@ paths:
                   format: int64
                 release_type:
                   type: string
-              description: PackageReleaseDisableReq describes the HTTP request body when disable package\\nrelease.
+              description: PackageReleaseDisableReq describes the HTTP request body when disable package\\\\\\\\\\\\\\\\nrelease.
         required: true
-        description: PackageReleaseDisableReq describes the HTTP request body when disable package\\nrelease.
+        description: PackageReleaseDisableReq describes the HTTP request body when disable package\\\\\\\\\\\\\\\\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3061,7 +3061,7 @@ paths:
       operationId: Package_EnableRelease
       description: EnableRelease enables release.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -3078,7 +3078,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseEnableResp describes the HTTP response body when enable package\\nrelease.
+                description: PackageReleaseEnableResp describes the HTTP response body when enable package\\\\\\\\\\\\\\\\nrelease.
           description: A successful response.
         default:
           content:
@@ -3121,9 +3121,9 @@ paths:
                   format: int64
                 release_type:
                   type: string
-              description: PackageReleaseEnableReq describes the HTTP request body when enable package\\nrelease.
+              description: PackageReleaseEnableReq describes the HTTP request body when enable package\\\\\\\\\\\\\\\\nrelease.
         required: true
-        description: PackageReleaseEnableReq describes the HTTP request body when enable package\\nrelease.
+        description: PackageReleaseEnableReq describes the HTTP request body when enable package\\\\\\\\\\\\\\\\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3146,7 +3146,7 @@ paths:
       operationId: Package_ListRelease
       description: ListRelease lists releases.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -3205,7 +3205,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseListResp describes the HTTP response body when list package\\nrelease.
+                description: PackageReleaseListResp describes the HTTP response body when list package\\\\\\\\\\\\\\\\nrelease.
           description: A successful response.
         default:
           content:
@@ -3280,9 +3280,9 @@ paths:
                       items:
                         type: string
                   description: PackageReleaseExactConditions describes release exact conditions.
-              description: PackageReleaseListReq describes the HTTP request body when list package\\nrelease.
+              description: PackageReleaseListReq describes the HTTP request body when list package\\\\\\\\\\\\\\\\nrelease.
         required: true
-        description: PackageReleaseListReq describes the HTTP request body when list package\\nrelease.
+        description: PackageReleaseListReq describes the HTTP request body when list package\\\\\\\\\\\\\\\\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3305,7 +3305,7 @@ paths:
       operationId: Package_SetAsDefaultRelease
       description: SetAsDefaultRelease sets release as default.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -3322,7 +3322,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseSetAsDefaultResp describes the HTTP response body when set\\ndefault package release.
+                description: PackageReleaseSetAsDefaultResp describes the HTTP response body when set\\\\\\\\\\\\\\\\ndefault package release.
           description: A successful response.
         default:
           content:
@@ -3365,9 +3365,9 @@ paths:
                   format: int64
                 release_type:
                   type: string
-              description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\ndefault package release.
+              description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\\\\\\\\\\\\\\\ndefault package release.
         required: true
-        description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\ndefault package release.
+        description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\\\\\\\\\\\\\\\ndefault package release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3390,7 +3390,7 @@ paths:
       operationId: Package_SetReleaseLabels
       description: SetReleaseLabels sets release labels.
       tags:
-      - Package
+        - Package
       responses:
         '200':
           content:
@@ -3407,7 +3407,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseSetLabelsResp describes the HTTP response body when set\\nlabels.
+                description: PackageReleaseSetLabelsResp describes the HTTP response body when set\\\\\\\\\\\\\\\\nlabels.
           description: A successful response.
         default:
           content:
@@ -3479,7 +3479,7 @@ paths:
       operationId: NodeWorkflow_NodeAgentInstall
       description: NodeAgentInstall provides node agent install.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -3603,7 +3603,7 @@ paths:
       operationId: NodeProxy_NodeProxyInstall
       description: NodeProxyInstall installs node proxy.
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -3743,13 +3743,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
       description: NodeWorkflowDistinct provides node workflow distinct.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -3836,10 +3836,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\nlist request.
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\\\\\\\\\\\\\\\nlist request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\nlist request.
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\\\\\\\\\\\\\\\nlist request.
               description: NodeWorkflowDistinctReq describes the node workflow distinct request.
         required: true
         description: NodeWorkflowDistinctReq describes the node workflow distinct request.
@@ -3865,7 +3865,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowList
       description: NodeWorkflowList provides node workflow list.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -3987,10 +3987,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\nlist request.
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\\\\\\\\\\\\\\\nlist request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\nlist request.
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\\\\\\\\\\\\\\\nlist request.
               description: NodeWorkflowListReq describes the node workflow list request.
         required: true
         description: NodeWorkflowListReq describes the node workflow list request.
@@ -4014,9 +4014,9 @@ paths:
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
-      description: NodeWorkflowOperationInstanceList provides node workflow operation instance\\nlist.
+      description: NodeWorkflowOperationInstanceList provides node workflow operation instance\\\\\\\\\\\\\\\\nlist.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -4071,7 +4071,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationInstanceListResp describes the node operation instance\\nlist by operation-id response.
+                description: NodeWorkflowOperationInstanceListResp describes the node operation instance\\\\\\\\\\\\\\\\nlist by operation-id response.
           description: A successful response.
         default:
           content:
@@ -4105,9 +4105,9 @@ paths:
                   type: array
                   items:
                     type: string
-              description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\nlist by operation-id request.
+              description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\\\\\\\\\\\\\\\nlist by operation-id request.
         required: true
-        description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\nlist by operation-id request.
+        description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\\\\\\\\\\\\\\\nlist by operation-id request.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -4128,9 +4128,9 @@ paths:
   /api/v3/node/workflow/operation/instance/log/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
-      description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\\nget.
+      description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\\\\\\\\\\\\\\\\nget.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -4185,7 +4185,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationInstanceLogGetResp describes the node operation action\\ninstance log response.
+                description: NodeWorkflowOperationInstanceLogGetResp describes the node operation action\\\\\\\\\\\\\\\\ninstance log response.
           description: A successful response.
         default:
           content:
@@ -4215,9 +4215,9 @@ paths:
               properties:
                 oper_inst_id:
                   type: string
-              description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\nlog request.
+              description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\\\\\\\\\\\\\\\nlog request.
         required: true
-        description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\nlog request.
+        description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\\\\\\\\\\\\\\\nlog request.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -4238,9 +4238,9 @@ paths:
   /api/v3/node/workflow/operation/instance/status/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusList
-      description: NodeWorkflowOperationInstanceStatusList provides node workflow operation\\nlist status.
+      description: NodeWorkflowOperationInstanceStatusList provides node workflow operation\\\\\\\\\\\\\\\\nlist status.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -4318,10 +4318,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\\nnode workflow list request.
+                  description: NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\\\\\\\\\\\\\\\\nnode workflow list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\\nnode workflow list request.
+                  description: NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\\\\\\\\\\\\\\\\nnode workflow list request.
               description: NodeWorkflowOperationInstanceListStatusReq ...
         required: true
         description: NodeWorkflowOperationInstanceListStatusReq ...
@@ -4347,7 +4347,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationList
       description: NodeWorkflowOperationList provides node workflow operation list.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -4409,7 +4409,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationListResp describes the node operation list by\\nworkflow-id response.
+                description: NodeWorkflowOperationListResp describes the node operation list by\\\\\\\\\\\\\\\\nworkflow-id response.
           description: A successful response.
         default:
           content:
@@ -4476,13 +4476,13 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowOperationExactConditions describes the exact conditions of node\\nworkflow operation list request.
+                  description: NodeWorkflowOperationExactConditions describes the exact conditions of node\\\\\\\\\\\\\\\\nworkflow operation list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\\nworkflow list request.
-              description: NodeWorkflowOperationListReq describes the node operation list\\nrequest.
+                  description: NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\\\\\\\\\\\\\\\\nworkflow list request.
+              description: NodeWorkflowOperationListReq describes the node operation list\\\\\\\\\\\\\\\\nrequest.
         required: true
-        description: NodeWorkflowOperationListReq describes the node operation list\\nrequest.
+        description: NodeWorkflowOperationListReq describes the node operation list\\\\\\\\\\\\\\\\nrequest.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -4505,7 +4505,7 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
       description: NodeWorkflowOperationRetry provides node agent operation insatnll retry.
       tags:
-      - NodeWorkflow
+        - NodeWorkflow
       responses:
         '200':
           content:
@@ -4588,7 +4588,7 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate
       description: CreateConfigPolicy creates config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -4625,7 +4625,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyCreateResp describes HTTP response body when create config\npolicy.
+                description: ConfigPolicyCreateResp describes HTTP response body when create config\\\\\\\\npolicy.
           description: A successful response.
         default:
           content:
@@ -4714,13 +4714,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/delete:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
       description: DeleteConfigPolicy deletes config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -4753,7 +4753,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyDeleteResp describes HTTP response body when delete config\npolicy.
+                description: ConfigPolicyDeleteResp describes HTTP response body when delete config\\\\\\\\npolicy.
           description: A successful response.
         default:
           content:
@@ -4805,13 +4805,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/disable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
       description: DisableConfigPolicy disables config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -4844,7 +4844,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyDisableResp describes HTTP response body when disable config\npolicy.
+                description: ConfigPolicyDisableResp describes HTTP response body when disable config\\\\\\\\npolicy.
           description: A successful response.
         default:
           content:
@@ -4877,9 +4877,9 @@ paths:
                   items:
                     type: integer
                     format: int64
-              description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
+              description: ConfigPolicyDisableReq describes HTTP request body when disable config\\\\\\\\npolicy.
         required: true
-        description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
+        description: ConfigPolicyDisableReq describes HTTP request body when disable config\\\\\\\\npolicy.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: true
@@ -4896,13 +4896,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/enable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
       description: EnableConfigPolicy enables config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -4935,7 +4935,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyEnableResp describes HTTP response body when enable config\npolicy.
+                description: ConfigPolicyEnableResp describes HTTP response body when enable config\\\\\\\\npolicy.
           description: A successful response.
         default:
           content:
@@ -4987,13 +4987,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/get:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
       description: GetConfigPolicy gets config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -5133,13 +5133,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyList
       description: ListConfigPolicy lists config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -5330,13 +5330,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/policy/config/update:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
       description: UpdateConfigPolicy updates config policy.
       tags:
-      - ConfigPolicyAPI
+        - ConfigPolicyAPI
       responses:
         '200':
           content:
@@ -5373,7 +5373,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyUpdateResp describes HTTP response body when update config\npolicy.
+                description: ConfigPolicyUpdateResp describes HTTP response body when update config\\\\\\\\npolicy.
           description: A successful response.
         default:
           content:
@@ -5467,13 +5467,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/node/proxy/reconfig:
     post:
       operationId: NodeProxy_NodeProxyReconfig
       description: NodeProxyReconfig reconfigs node proxy.
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -5569,13 +5569,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/node/proxy/restart:
     post:
       operationId: NodeProxy_NodeProxyRestart
       description: NodeProxyRestart restarts node proxy.
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -5671,13 +5671,13 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/node/proxy/upgrade:
     post:
       operationId: NodeProxy_NodeProxyUpgrade
       description: NodeProxyUpgrade upgrades node proxy.
       tags:
-      - NodeProxy
+        - NodeProxy
       responses:
         '200':
           content:
@@ -5784,4 +5784,98 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
+  /api/v3/topo/accesspoint/list:
+    post:
+      operationId: Topo_AccessPointList
+      description: AccessPointList provides access-point listing.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                      total:
+                        type: number
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: A successful response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  details:
+                    type: array
+                  message:
+                    type: string
+                description: An unexpected error response.
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: number
+                    offset:
+                      type: number
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    accesspoint_id:
+                      type: array
+                    bk_networkarea_id:
+                      type: array
+              description: TopoAccessPointListReq describes the HTTP request body when list accesspoint\\nin topo service.
+        required: true
+        description: TopoAccessPointListReq describes the HTTP request body when list accesspoint\\nin topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/accesspoint/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: None
