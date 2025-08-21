@@ -349,24 +349,24 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				continue
 			}
 
-			relayStorageResult, ok := relayDetectResultRaw.(map[string]any)
+			relayDetectResult, ok := relayDetectResultRaw.(map[string]any)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for relay ")
+				return "", "", "", errors.New("unexpected type for relay detect result")
 			}
 
-			errMsgRaw := relayStorageResult[relayReportKey.DetectResultErrMsgKey]
+			errMsgRaw := relayDetectResult[relayReportKey.DetectResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for file state")
+				return "", "", "", errors.New("unexpected type for relay detect result error message")
 			}
 
 			if errMsg != "" {
 				return "", "", "", errors.New(errMsg)
 			}
 
-			osTypeStr, osTypeOk := relayStorageResult[relayReportKey.DetectResultOsTypeKey].(string)
-			cpuArchStr, cpuArchOk := relayStorageResult[relayReportKey.DetectResultCPUArchKey].(string)
-			connectionDir, connerctionDirOk := relayStorageResult[relayReportKey.DetectResultConnectionDirKey].(string)
+			osTypeStr, osTypeOk := relayDetectResult[relayReportKey.DetectResultOsTypeKey].(string)
+			cpuArchStr, cpuArchOk := relayDetectResult[relayReportKey.DetectResultCPUArchKey].(string)
+			connectionDir, connerctionDirOk := relayDetectResult[relayReportKey.DetectResultConnectionDirKey].(string)
 
 			if !osTypeOk || !cpuArchOk || !connerctionDirOk {
 				return "", "", "", errors.New("incomplete relay detect result")
@@ -374,12 +374,12 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 
 			osType, err := platform.NormalizeOS(osTypeStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
+				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
 			cpuArch, err := platform.NormalizeArch(cpuArchStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
+				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
 			return osType, cpuArch, connectionDir, nil

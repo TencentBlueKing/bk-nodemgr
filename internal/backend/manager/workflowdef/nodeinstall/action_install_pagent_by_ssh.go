@@ -280,13 +280,13 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 
 			relayInstallResult, ok := relayInstallResultRaw.(map[string]any)
 			if !ok {
-				return "", errors.New("unexpected type for relay ")
+				return "", errors.New("unexpected type for relay install result")
 			}
 
 			errMsgRaw := relayInstallResult[relayReportKey.InstallBySSHResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for file state")
+				return "", errors.New("unexpected type for error message")
 			}
 
 			if errMsg != "" {
@@ -296,7 +296,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 			stdOutRaw := relayInstallResult[relayReportKey.InstallBySSHResultStdOutKey]
 			stdOut, ok := stdOutRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for file state")
+				return "", errors.New("unexpected type for stdout")
 			}
 
 			return stdOut, nil
