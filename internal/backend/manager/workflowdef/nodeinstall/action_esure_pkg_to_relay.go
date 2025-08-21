@@ -106,7 +106,7 @@ func (act *actionEnsurePkgToRelay) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionEnsurePkgToRelay) Timeout() time.Duration {
-	return 5 * time.Minute
+	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.

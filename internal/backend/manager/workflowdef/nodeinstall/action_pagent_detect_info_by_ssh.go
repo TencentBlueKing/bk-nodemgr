@@ -40,9 +40,6 @@ const (
 
 	// queryClientTimeout defines the query client timeout.
 	queryClientTimeout = 3 * time.Second
-
-	waitForClientReportTimeout  = 10 * time.Second
-	waitForClientReportInterval = 2 * time.Second
 )
 
 // NewActionPagentDetectInfoBySSH get a new action.
@@ -131,7 +128,7 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen,fnsize,gocognit
+// nolint: perfsprint,funlen,fnsize,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoBySSH)
@@ -201,25 +198,24 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				info.Host.Dynamic.NodeVersion = v.Version
 				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+
 				break
 			}
 		}
-	} else {
+	} else if info.Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
-				daoRelease:  act.storageRelease,
-				ReleaseType: releaseType,
-				Generation:  info.Host.Dynamic.NodeGeneration,
-				OSType:      info.Host.Dynamic.NodeOsType,
-				CPUArch:     info.Host.Dynamic.NodeCPUArch,
-			})
-			if err != nil {
-				return err
-			}
-			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+		info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      info.Host.Dynamic.NodeOsType,
+			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+		})
+		if err != nil {
+			return err
 		}
+		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
@@ -368,10 +364,13 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				return "", "", "", errors.New(errMsg)
 			}
 
-			// TODO: must check.
-			osTypeStr := relayStorageResult[relayReportKey.DetectResultOsTypeKey].(string)
-			cpuArchStr := relayStorageResult[relayReportKey.DetectResultCPUArchKey].(string)
-			connerctionDir := relayStorageResult[relayReportKey.DetectResultConnectionDirKey].(string)
+			osTypeStr, osTypeOk := relayStorageResult[relayReportKey.DetectResultOsTypeKey].(string)
+			cpuArchStr, cpuArchOk := relayStorageResult[relayReportKey.DetectResultCPUArchKey].(string)
+			connectionDir, connerctionDirOk := relayStorageResult[relayReportKey.DetectResultConnectionDirKey].(string)
+
+			if !osTypeOk || !cpuArchOk || !connerctionDirOk {
+				return "", "", "", errors.New("incomplete relay detect result")
+			}
 
 			osType, err := platform.NormalizeOS(osTypeStr)
 			if err != nil {
@@ -383,7 +382,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				return "", "", "", fmt.Errorf("failed to detect info, err: %w", err)
 			}
 
-			return osType, cpuArch, connerctionDir, nil
+			return osType, cpuArch, connectionDir, nil
 		}
 	}
 }
