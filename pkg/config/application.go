@@ -46,6 +46,7 @@ type ApplicationService struct {
 	RunMode    RunMode        `yaml:"mode" usage:"run mode of service"`
 	TenantMode tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas     BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	BKPaas     BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Backend    BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd       Etcd           `yaml:"etcd" usage:"etcd config of application service"`
 	MongoDB    MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`

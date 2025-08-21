@@ -32,16 +32,8 @@ func (conf Etcd) Validate() error {
 		return errors.New("endpoints of etcd is empty")
 	}
 
-	if conf.Cert == "" {
-		return errors.New("cert file of etcd is empty")
-	}
-
-	if conf.Key == "" {
-		return errors.New("key file of etcd is empty")
-	}
-
-	if conf.Ca == "" {
-		return errors.New("ca file of etcd is empty")
+	if (len(conf.Cert) == 0) != (len(conf.Key) == 0) {
+		return errors.New("cert file and key file must be both empty or both not empty")
 	}
 
 	return nil
@@ -464,6 +456,16 @@ type GSEPlugin struct {
 	PidFile                 string `yaml:"pidFile" usage:"pid file to save pid"`
 	MessageDomainSocketPath string `yaml:"messageDomainSocketPath" usage:"message domain socket path of gse agent plugin"`
 	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
+}
+
+// BKPaaS the config of bk PaaS.
+type BKPaaS struct {
+	AnalysisScript string `yaml:"analysisScript" usage:"analysis script of bk PaaS"`
+}
+
+// Validate validates the config.
+func (paas *BKPaaS) Validate() error {
+	return nil
 }
 
 // BKSaas the config of bk SaaS.

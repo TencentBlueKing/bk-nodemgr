@@ -12,27 +12,35 @@ package frontsetting
 
 import (
 	"fmt"
+	"html/template"
 )
 
 // notice: this file use interface to avoid this setting changed by other package.
 
 // IFrontSetting front setting.
-type IFrontSetting interface { // BKLoginURL the front setting field.
+type IFrontSetting interface {
+	// BKLoginURL the front setting field.
 	BKLoginURL() string
-	//BKRequestIDHeaderKey the front setting field.
+	// BKRequestIDHeaderKey the front setting field.
 	BKRequestIDHeaderKey() string
+	// BKPassAnalyticsScript the front setting field.
+	BKPassAnalyticsScript() template.HTML
 }
+
+var _ IFrontSetting = &FrontSetting{}
 
 // FrontSetting front setting.
 type FrontSetting struct {
-	bkloginURL           string
-	bkRequestIDHeaderKEy string
+	bkloginURL            string
+	bkRequestIDHeaderKEy  string
+	bkPassAnalyticsScript string
 }
 
 // Option front setting option.
 type Option struct {
-	BKLoginURL           string
-	BKRequestIDHeaderKEy string
+	BKLoginURL            string
+	BKRequestIDHeaderKEy  string
+	BKPassAnalyticsScript string
 }
 
 // Validate validate.
@@ -55,8 +63,9 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 	}
 
 	setting := &FrontSetting{
-		bkloginURL:           opt.BKLoginURL,
-		bkRequestIDHeaderKEy: opt.BKRequestIDHeaderKEy,
+		bkloginURL:            opt.BKLoginURL,
+		bkRequestIDHeaderKEy:  opt.BKRequestIDHeaderKEy,
+		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
 	}
 
 	return setting, nil
@@ -70,4 +79,9 @@ func (setting *FrontSetting) BKLoginURL() string {
 // BKRequestIDHeaderKey get bk request id header key.
 func (setting *FrontSetting) BKRequestIDHeaderKey() string {
 	return setting.bkRequestIDHeaderKEy
+}
+
+// BKPassAnalyticsScript get bk pass analytics script.
+func (setting *FrontSetting) BKPassAnalyticsScript() template.HTML {
+	return template.HTML(setting.bkPassAnalyticsScript)
 }
