@@ -377,27 +377,32 @@ type TLSConfig struct {
 
 // Validate validates the config.
 func (conf TLSConfig) Validate() error {
-	if conf.InsecureSkipVerify {
+	// certificate and key must be paired.
+	if (len(conf.CertFile) == 0) != (len(conf.KeyFile) == 0) {
+		return errors.New("cert file and key file must be both provided or both empty")
+	}
+
+	// the password must be present at the same time as the key file.
+	if len(conf.Password) > 0 && len(conf.KeyFile) == 0 {
+		return errors.New("password provided but no key file specified")
+	}
+
+	switch {
+	// case1: unused tls config.
+	case len(conf.CertFile) == 0 && len(conf.KeyFile) == 0 &&
+		len(conf.CAFile) == 0 && len(conf.Password) == 0:
 		return nil
-	}
 
-	if conf.CertFile == "" {
-		return errors.New("cert file is empty")
-	}
+	// case2: one-way authentication
+	case len(conf.CertFile) == 0 && len(conf.CAFile) > 0:
+		return nil
 
-	if conf.KeyFile == "" {
-		return errors.New("key file is empty")
+	// case2: two-way authentication
+	case len(conf.CertFile) > 0 && len(conf.KeyFile) > 0:
+		return nil
+	default:
+		return fmt.Errorf("failed to validate tls config: invalid combination of tls config")
 	}
-
-	if conf.CAFile == "" {
-		return errors.New("ca file is empty")
-	}
-
-	if conf.Password == "" {
-		return errors.New("password is empty")
-	}
-
-	return nil
 }
 
 // Workflow the config of workflow.
