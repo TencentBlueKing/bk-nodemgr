@@ -106,6 +106,7 @@ script_tools: pre
 docker-build-server: backend application file front tools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
+	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:v${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodemgr-server:v${VERSION}"
 

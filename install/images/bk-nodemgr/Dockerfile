@@ -13,6 +13,7 @@ RUN mkdir -p \
     /bk-nodemgr/etc \
     /bk-nodemgr/cert \
     /bk-nodemgr/log \
+    /bk-nodemgr/script \
     /bk-nodemgr/static \
     /bk-nodemgr/file/tools \
     /bk-nodemgr/file/cache \
@@ -22,6 +23,7 @@ RUN mkdir -p \
 COPY bk-nodemgr-backend /bk-nodemgr/bin/
 COPY bk-nodemgr-application /bk-nodemgr/bin/
 COPY bk-nodemgr-file /bk-nodemgr/bin/
+COPY serviced.sh /bk-nodemgr/bin/
 COPY tools/ /bk-nodemgr/file/tools
 COPY dist/ /bk-nodemgr/static/
 
