@@ -3,8 +3,8 @@ servers:
 - url: /
 info:
   version: '2.0'
-  title: 蓝鲸节点管理
-  description: '蓝鲸节点管理'
+  title: API Gateway Resources
+  description: ''
 paths:
   /api/v3/sync/cmdb/constants:
     post:
@@ -3600,10 +3600,10 @@ paths:
         descriptionEn: None
   /api/v3/node/proxy/install:
     post:
-      operationId: NodeWorkflow_NodeProxyInstall
-      description: NodeProxyInstall provides node proxy install.
+      operationId: NodeProxy_NodeProxyInstall
+      description: NodeProxyInstall installs node proxy.
       tags:
-      - NodeWorkflow
+      - NodeProxy
       responses:
         '200':
           content:
@@ -3618,6 +3618,22 @@ paths:
                     type: object
                     properties:
                       workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
                         type: string
                   message:
                     type: string
@@ -3663,6 +3679,8 @@ paths:
                       bk_biz_id:
                         type: integer
                         format: int64
+                      export_ip:
+                        type: string
                       bk_host_id:
                         type: integer
                         format: int64
@@ -3674,8 +3692,14 @@ paths:
                         format: int64
                       login_user:
                         type: string
+                      proxy_tags:
+                        type: array
+                        items:
+                          type: string
                       re_register:
                         type: boolean
+                      advertise_ip:
+                        type: string
                       bk_addressing:
                         type: string
                       login_key_file:
@@ -3700,14 +3724,12 @@ paths:
                         type: string
                       cpu_arch:
                         type: string
-                disable_default_target_version:
-                  type: boolean
               description: NodeProxyInstallReq describes the node proxy install request.
         required: true
         description: NodeProxyInstallReq describes the node proxy install request.
       x-bk-apigateway-resource:
         isPublic: false
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -3721,7 +3743,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
@@ -4561,3 +4583,1205 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: None
+  /api/v3/policy/config/create:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyCreate
+      description: CreateConfigPolicy creates config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      configpolicy_id:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyCreateResp describes HTTP response body when create config\npolicy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                remark:
+                  type: string
+                scopes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      cpu_arch:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                    description: ConfigPolicyScope describes the config policy scope.
+                operator:
+                  type: string
+                node_role:
+                  type: string
+                configs_int:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                    format: int64
+                configs_bool:
+                  type: object
+                  additionalProperties:
+                    type: boolean
+                configs_string:
+                  type: object
+                  additionalProperties:
+                    type: string
+                configpolicy_name:
+                  type: string
+              description: ConfigPolicyCreateReq describes HTTP request body when create config policy.
+        required: true
+        description: ConfigPolicyCreateReq describes HTTP request body when create config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/create
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/delete:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyDelete
+      description: DeleteConfigPolicy deletes config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyDeleteResp describes HTTP response body when delete config\npolicy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                configpolicy_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: ConfigPolicyDeleteReq describes HTTP request body when delete config policy.
+        required: true
+        description: ConfigPolicyDeleteReq describes HTTP request body when delete config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/delete
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/disable:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyDisable
+      description: DisableConfigPolicy disables config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyDisableResp describes HTTP response body when disable config\npolicy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                configpolicy_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
+        required: true
+        description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/disable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/enable:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyEnable
+      description: EnableConfigPolicy enables config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyEnableResp describes HTTP response body when enable config\npolicy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                configpolicy_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: ConfigPolicyEnableReq describes HTTP request body when enable config policy.
+        required: true
+        description: ConfigPolicyEnableReq describes HTTP request body when enable config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/enable
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/get:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyGet
+      description: GetConfigPolicy gets config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      biz_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      remark:
+                        type: string
+                      scopes:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            os_type:
+                              type: string
+                            cpu_arch:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_networkunit_id:
+                              type: integer
+                              format: int64
+                          description: ConfigPolicyScope describes the config policy scope.
+                      enabled:
+                        type: boolean
+                      version:
+                        type: integer
+                        format: int64
+                      operator:
+                        type: string
+                      node_role:
+                        type: string
+                      tenant_id:
+                        type: string
+                      configs_int:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                          format: int64
+                      configs_bool:
+                        type: object
+                        additionalProperties:
+                          type: boolean
+                      updated_time:
+                        type: integer
+                        format: int64
+                      configs_string:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      configpolicy_id:
+                        type: integer
+                        format: int64
+                      configpolicy_name:
+                        type: string
+                    description: ConfigPolocy decribes the config policy.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyGetResp describes HTTP response body when get config policy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                configpolicy_id:
+                  type: integer
+                  format: int64
+              description: ConfigPolicyGetReq describes HTTP request body when get config policy.
+        required: true
+        description: ConfigPolicyGetReq describes HTTP request body when get config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/list:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyList
+      description: ListConfigPolicy lists config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            biz_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            remark:
+                              type: string
+                            scopes:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  os_type:
+                                    type: string
+                                  cpu_arch:
+                                    type: string
+                                  bk_networkarea_id:
+                                    type: integer
+                                    format: int64
+                                  bk_networkunit_id:
+                                    type: integer
+                                    format: int64
+                                description: ConfigPolicyScope describes the config policy scope.
+                            enabled:
+                              type: boolean
+                            version:
+                              type: integer
+                              format: int64
+                            operator:
+                              type: string
+                            node_role:
+                              type: string
+                            tenant_id:
+                              type: string
+                            configs_int:
+                              type: object
+                              additionalProperties:
+                                type: integer
+                                format: int64
+                            configs_bool:
+                              type: object
+                              additionalProperties:
+                                type: boolean
+                            updated_time:
+                              type: integer
+                              format: int64
+                            configs_string:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            configpolicy_id:
+                              type: integer
+                              format: int64
+                            configpolicy_name:
+                              type: string
+                          description: ConfigPolocy decribes the config policy.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyListResp describes HTTP response body when list config policy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    biz_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    node_role:
+                      type: array
+                      items:
+                        type: string
+                    configpolicy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                  description: ConfigPolicyExactConditions describes config policy exact conditions.
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    configpolicy_name:
+                      type: array
+                      items:
+                        type: string
+                  description: ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
+              description: ConfigPolicyListReq describes HTTP request body when list config policy.
+        required: true
+        description: ConfigPolicyListReq describes HTTP request body when list config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/update:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyUpdate
+      description: UpdateConfigPolicy updates config policy.
+      tags:
+      - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      configpolicy_id:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyUpdateResp describes HTTP response body when update config\npolicy.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                remark:
+                  type: string
+                scopes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      cpu_arch:
+                        type: string
+                      bk_networkarea_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                    description: ConfigPolicyScope describes the config policy scope.
+                enabled:
+                  type: boolean
+                operator:
+                  type: string
+                node_role:
+                  type: string
+                configs_int:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                    format: int64
+                configs_bool:
+                  type: object
+                  additionalProperties:
+                    type: boolean
+                configs_string:
+                  type: object
+                  additionalProperties:
+                    type: string
+                configpolicy_id:
+                  type: integer
+                  format: int64
+                configpolicy_name:
+                  type: string
+              description: ConfigPolicyUpdateReq describes HTTP request body when update config policy.
+        required: true
+        description: ConfigPolicyUpdateReq describes HTTP request body when update config policy.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/update
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/reconfig:
+    post:
+      operationId: NodeProxy_NodeProxyReconfig
+      description: NodeProxyReconfig reconfigs node proxy.
+      tags:
+      - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyReconfigResp describes the node proxy reconfig response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      force:
+                        type: boolean
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      graceful_restart_timeout_sec:
+                        type: integer
+                        format: int64
+              description: NodeProxyReconfigReq describes the node proxy reconfig request.
+        required: true
+        description: NodeProxyReconfigReq describes the node proxy reconfig request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/reconfig
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/restart:
+    post:
+      operationId: NodeProxy_NodeProxyRestart
+      description: NodeProxyRestart restarts node proxy.
+      tags:
+      - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyRestartResp describes the node proxy restart response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      force:
+                        type: boolean
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      graceful_restart_timeout_sec:
+                        type: integer
+                        format: int64
+              description: NodeProxyRestartReq describes the node proxy restart request.
+        required: true
+        description: NodeProxyRestartReq describes the node proxy restart request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/restart
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/upgrade:
+    post:
+      operationId: NodeProxy_NodeProxyUpgrade
+      description: NodeProxyUpgrade upgrades node proxy.
+      tags:
+      - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyUpgradeResp describes the node proxy upgrade response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      force:
+                        type: boolean
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      graceful_restart_timeout_sec:
+                        type: integer
+                        format: int64
+                target_version:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      version:
+                        type: string
+                      cpu_arch:
+                        type: string
+              description: NodeProxyUpgradeReq describes the node proxy upgrade request.
+        required: true
+        description: NodeProxyUpgradeReq describes the node proxy upgrade request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/upgrade
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
