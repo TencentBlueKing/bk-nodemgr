@@ -879,12 +879,8 @@ func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 	*protoBackend.NodeProxyRestartResp, error) {
 
 	resp := new(protoBackend.NodeProxyRestartResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/proxy/restart").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -912,12 +908,8 @@ func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBacke
 	*protoBackend.NodeProxyReconfigResp, error) {
 
 	resp := new(protoBackend.NodeProxyReconfigResp)
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
+	header := c.getHeader(ctx)
+	err := c.client.Post().
 		SubResourcef("/node/proxy/reconfig").
 		WithContext(ctx).
 		WithHeaders(header).
