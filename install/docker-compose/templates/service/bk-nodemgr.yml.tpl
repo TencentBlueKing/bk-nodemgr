@@ -60,7 +60,7 @@ services:
       - ./mongo_keyfile:/mongo_keyfile
     command: "mongod --bind_ip_all --replSet rs0 --keyFile /mongo_keyfile"
     healthcheck:
-      test: test $$(mongosh --username root --password __BK_NODEMGR_MONGODB_PASSWORD__ --quit --eval "try {rs.initiate({_id:'rs0',members:[{_id:0,host:\"__BK_NODEMGR_ADVERTISE_IPV4__:__BK_NODEMGR_MONGODB_PORT__\"}]})} catch(e) {rs.status().ok}") -eq 1
+      test: test $$(mongosh --username root --password __BK_NODEMGR_MONGODB_PASSWORD__ --eval "try {rs.initiate({_id:'rs0',members:[{_id:0,host:\"__BK_NODEMGR_ADVERTISE_IPV4__:__BK_NODEMGR_MONGODB_PORT__\"}]})} catch(e) {rs.status().ok}") -eq 1
       interval: 10s
       start_period: 30s
     networks:
