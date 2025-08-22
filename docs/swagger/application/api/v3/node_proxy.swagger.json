@@ -165,7 +165,53 @@
         }
       }
     },
-    "NodeProxyInstallReqProxyInstallHost": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeProxyInstallHost": {
       "type": "object",
       "properties": {
         "bk_biz_id": {
@@ -227,53 +273,8 @@
             "type": "string"
           }
         }
-      }
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "@type": {
-          "type": "string"
-        }
       },
-      "additionalProperties": {}
-    },
-    "rpcStatus": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "v3Error": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/ErrorDetails"
-          }
-        }
-      }
+      "description": "NodeProxyInstallHost describes the node proxy install host."
     },
     "v3NodeProxyInstallReq": {
       "type": "object",
@@ -282,7 +283,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/NodeProxyInstallReqProxyInstallHost"
+            "$ref": "#/definitions/v3NodeProxyInstallHost"
           }
         },
         "target_version": {

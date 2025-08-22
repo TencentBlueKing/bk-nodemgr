@@ -42,9 +42,9 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 
 // ConvertHostParamFromTypes convert param from types.
 func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProxyInstallParam) {
-	hostsParam := make([]*NodeProxyInstallReq_ProxyInstallHost, len(installParam.Hosts))
+	hostsParam := make([]*NodeProxyInstallHost, len(installParam.Hosts))
 	for idx, host := range installParam.Hosts {
-		hostsParam[idx] = &NodeProxyInstallReq_ProxyInstallHost{
+		hostsParam[idx] = &NodeProxyInstallHost{
 			BkBizId:         host.BizID,
 			BkNetworkunitId: host.NetworkUnitID,
 			BkHostId:        &host.HostID,
@@ -80,7 +80,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeProxyInstallReq_ProxyInstallHost) Validate() error {
+func (x *NodeProxyInstallHost) Validate() error {
 	if x.GetBkHostInnerip() == "" && x.GetBkHostInneripV6() == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
@@ -121,7 +121,7 @@ func (x *NodeProxyInstallReq_ProxyInstallHost) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyInstallReq_ProxyInstallHost) AutoConvert() {
+func (x *NodeProxyInstallHost) AutoConvert() {
 	if x.BkHostId == nil {
 		x.BkHostId = new(int64)
 		*x.BkHostId = -1

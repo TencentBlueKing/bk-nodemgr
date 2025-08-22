@@ -6,29 +6,31 @@ import "common.proto";
 
 import "google/api/annotations.proto";
 
+// NodeProxyInstallHost describes the node proxy install host.
+message NodeProxyInstallHost {
+  int64 bk_biz_id = 1;
+  int64 bk_networkunit_id = 2;
+  optional int64 bk_host_id = 3;
+  string bk_addressing = 4;
+  string bk_host_innerip = 5;
+  string bk_host_innerip_v6 = 6;
+  string os_type = 7;
+  string login_ip = 8;
+  int64 login_port = 9;
+  string login_user = 10;
+  // support: password_vault, password, keyfile
+  string login_mode = 11;
+  string login_password = 12;
+  string login_key_file = 13;
+  string export_ip = 14;
+  string advertise_ip = 15;
+  bool re_register = 16;
+  repeated string proxy_tags = 17;
+}
+
 // NodeProxyInstallReq describes the node proxy install request.
 message NodeProxyInstallReq {
-  message ProxyInstallHost {
-    int64 bk_biz_id = 1;
-    int64 bk_networkunit_id = 2;
-    optional int64 bk_host_id = 3;
-    string bk_addressing = 4;
-    string bk_host_innerip = 5;
-    string bk_host_innerip_v6 = 6;
-    string os_type = 7;
-    string login_ip = 8;
-    int64 login_port = 9;
-    string login_user = 10;
-    // support: password_vault, password, keyfile
-    string login_mode = 11;
-    string login_password = 12;
-    string login_key_file = 13;
-    string export_ip = 14;
-    string advertise_ip = 15;
-    bool re_register = 16;
-    repeated string proxy_tags = 17;
-  }
-  repeated ProxyInstallHost host = 1;
+  repeated NodeProxyInstallHost host = 1;
   repeated TargetVersion target_version = 2;
 }
 
