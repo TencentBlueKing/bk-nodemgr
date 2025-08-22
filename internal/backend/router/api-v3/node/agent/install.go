@@ -141,6 +141,7 @@ func (h *handler) genNodeDeployment(
 		CurrentVersionSupports: types.DeploymentVersionSupports{},
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister: reqHost.GetReRegister(),
+			DirectLink: networkUnit.IsDirect,
 		},
 		UpgradeOptions:  types.DeploymentUpgradeOptions{},
 		RestartOptions:  types.DeploymentRestartOptions{},

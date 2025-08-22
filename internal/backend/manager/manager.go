@@ -15,13 +15,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -306,6 +304,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 		nodeinstall.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		nodeinstall.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
 		nodeinstall.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
 		nodeinstall.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
@@ -429,7 +428,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			return mgr.createOper(ctx, param.Operator, triggerCtl, deploy)
+			return mgr.createInstallNodeOper(ctx, param.Operator, triggerCtl, deploy)
 		})
 	}
 
@@ -484,8 +483,7 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 	return instanceIDs, nil
 }
 
-// nolint: funlen
-func (mgr *manager) createOper(
+func (mgr *manager) createInstallNodeOper(
 	ctx context.Context,
 	operator string,
 	triggerCtl workflow.ITriggerCtl,
@@ -506,62 +504,11 @@ func (mgr *manager) createOper(
 		return err
 	}
 
-	var operationDef operation.Definition
-
-	networkUnitID := deploy.Info.Host.Dynamic.NetworkUnitID
-	isDirect, err := isNetWorkUnitDirectly(ctx, mgr.conf.StorageTopo, networkUnitID)
+	operationDef, err := mgr.getOperationDefinition(deploy, operator)
 	if err != nil {
 		return err
 	}
 
-	if isDirect {
-		switch deploy.Info.Host.Static.OSType {
-		case string(criteria.OSLinux), string(criteria.OSDarwin):
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		case string(criteria.OSWindows):
-			operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		default:
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
-	} else {
-		relayHost, err := selectDedicatedInstallerHost(ctx, mgr.conf.StorageTopo, networkUnitID)
-		if err != nil {
-			return err
-		}
-		deploy.Info.RelayInfo = relayHost
-		mgr.logger.InfoCtxf(ctx,
-			"select dedicated installer host. tenant-id(%s), trigger-id(%s),"+
-				"network-unit-id(%d), relay-host(%d)",
-			tenantID, triggerCtl.GetTriggerID(), networkUnitID, relayHost.HostID)
-
-		if err = mgr.conf.StorageNodeDeployment.UpdateInfo(ctx, deploy.Token, deploy.Info); err != nil {
-			return err
-		}
-
-		switch deploy.Info.Host.Static.OSType {
-		case string(criteria.OSLinux), string(criteria.OSDarwin):
-			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		case string(criteria.OSWindows):
-
-		default:
-			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
-	}
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
@@ -581,6 +528,51 @@ func (mgr *manager) createOper(
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
 
 	return nil
+}
+
+func (mgr *manager) getOperationDefinition(
+	deploy *types.NodeDeployment,
+	operator string,
+) (operation.Definition, error) {
+
+	var operationDef operation.Definition
+
+	if deploy.Info.InstallOptions.DirectLink {
+		switch deploy.Info.Host.Static.OSType {
+		case string(criteria.OSLinux), string(criteria.OSDarwin):
+			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		case string(criteria.OSWindows):
+			operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		default:
+			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		}
+	} else {
+		switch deploy.Info.Host.Static.OSType {
+		case string(criteria.OSLinux), string(criteria.OSDarwin):
+			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		case string(criteria.OSWindows):
+			return nil, errors.New("implete me")
+		default:
+			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		}
+	}
+
+	return operationDef, nil
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
@@ -914,54 +906,4 @@ func (mgr *manager) LaunchSyncAllAgentState(ctx context.Context) (string, error)
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
 	return triggerCtl.GetTriggerID(), nil
-}
-
-// selectDedicatedInstallerHost selects a dedicated installer host based on
-// the network unit ID and returns the relay information.
-func selectDedicatedInstallerHost(ctx context.Context,
-	storageTopo topo.IStorage, networkUnitID int64) (types.RelayInfo, error) {
-
-	hosts, num, err := storageTopo.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
-			NetworkUnitID: []int64{networkUnitID},
-			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
-			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
-		},
-	})
-	if err != nil {
-		return types.RelayInfo{}, err
-	}
-
-	dedicatedHosts := make([]*types.Host, 0, num)
-	for _, host := range hosts {
-		for _, tag := range host.Dynamic.ProxyTags {
-			if tag == types.ProxyTagDedicatedInstaller {
-				dedicatedHosts = append(dedicatedHosts, host)
-				break
-			}
-		}
-	}
-
-	if len(dedicatedHosts) == 0 {
-		return types.RelayInfo{}, errors.New("no dedicated installer host")
-	}
-
-	// this just is a simple random selector.
-	// nolint: gosec
-	relayHost := dedicatedHosts[rand.Intn(len(dedicatedHosts))]
-
-	return types.RelayInfo{
-		HostID:     relayHost.HostID,
-		AgentID:    relayHost.Dynamic.AgentID,
-		NodeOsType: relayHost.Dynamic.NodeOsType,
-	}, nil
-}
-
-func isNetWorkUnitDirectly(ctx context.Context, storageTopo topo.IStorage, networkUnitID int64) (bool, error) {
-	deployNetworkUnit, err := storageTopo.GetNetworkUnit(ctx, networkUnitID)
-	if err != nil {
-		return false, err
-	}
-
-	return deployNetworkUnit.IsDirect, nil
 }

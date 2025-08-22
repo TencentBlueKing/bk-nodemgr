@@ -71,6 +71,7 @@ func (h *Handler) GetInfo(ctx context.Context, token string) (*types.DeploymentI
 	return convertDeploymentInfoToTypes(data.Info)
 }
 
+// nolint: funlen
 func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
@@ -121,6 +122,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
+			DirectLink: info.InstallOptions.DirectLink,
 		},
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,
@@ -337,6 +339,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		},
 		InstallOptions: InstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
+			DirectLink: info.InstallOptions.DirectLink,
 		},
 		RestartOptions: RestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,

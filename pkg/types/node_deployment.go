@@ -83,6 +83,7 @@ type LoginInfo struct {
 // DeploymentInstallOptions this is the options for nodemgr tools.
 type DeploymentInstallOptions struct {
 	ReRegister bool
+	DirectLink bool
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

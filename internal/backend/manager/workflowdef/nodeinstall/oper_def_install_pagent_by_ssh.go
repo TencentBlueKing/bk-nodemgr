@@ -47,6 +47,7 @@ func (oper *operInstallPagentNodeBySSH) ActionDefNames() []string {
 	return []string{
 		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
+		ActionNameSelectRelayHost,
 		ActionNamePagentDetectInfoBySSH,
 		ActionNameRenderNodeDeployment,
 		ActionNameEnsurePkgToRelay,
@@ -68,6 +69,7 @@ func (oper *operInstallPagentNodeBySSH) DefaultParameters() operation.Param {
 		RetryStartPoint: map[string]bool{
 			ActionNameTryReuseAgentID:       true,
 			ActionNameUpsertHostToCMDB:      true,
+			ActionNameSelectRelayHost:       true,
 			ActionNamePagentDetectInfoBySSH: true,
 			ActionNameRenderNodeDeployment:  true,
 			ActionNameEnsurePkgToRelay:      true,
