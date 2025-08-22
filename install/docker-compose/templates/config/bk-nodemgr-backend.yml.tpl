@@ -101,8 +101,6 @@ log:
   level: INFO
   maxNum: 10
   maxSizeMB: 200
-  toStderr: true
-  alsoToStderr: true
 
 # etcd settings.
 etcd:
