@@ -20,7 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -191,7 +191,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	installCmd := act.buildCMD(installParams)
 	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
 
-	password, err := act.QueryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 				continue
 			}
 
-			relayInstallResultRaw, exists := privateData[relayReportKey.InstallBySSHResultKey]
+			relayInstallResultRaw, exists := privateData[relayconstant.InstallBySSHResultKey]
 			if !exists {
 				continue
 			}
@@ -283,7 +283,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 				return "", errors.New("unexpected type for relay install result")
 			}
 
-			errMsgRaw := relayInstallResult[relayReportKey.InstallBySSHResultErrMsgKey]
+			errMsgRaw := relayInstallResult[relayconstant.InstallBySSHResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
 				return "", errors.New("unexpected type for error message")
@@ -293,7 +293,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 				return "", errors.New(errMsg)
 			}
 
-			stdOutRaw := relayInstallResult[relayReportKey.InstallBySSHResultStdOutKey]
+			stdOutRaw := relayInstallResult[relayconstant.InstallBySSHResultStdOutKey]
 			stdOut, ok := stdOutRaw.(string)
 			if !ok {
 				return "", errors.New("unexpected type for stdout")
@@ -324,7 +324,7 @@ func (act *actionInstallPagentBySSH) buildCMD(param *pagentInstallParams) []stri
 	return args
 }
 
-func (act *actionInstallPagentBySSH) QueryPassword(
+func (act *actionInstallPagentBySSH) queryPassword(
 	ctx context.Context,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,

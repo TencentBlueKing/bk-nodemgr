@@ -19,7 +19,8 @@ import (
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -302,7 +303,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 				continue
 			}
 
-			fileStateRaw, exists := privateData[relayReportKey.FileStateKey]
+			fileStateRaw, exists := privateData[relayconstant.FileStateKey]
 			if !exists {
 				continue
 			}
@@ -313,7 +314,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 			}
 
 			if fileStorageDir == "" {
-				if storageDirRaw, exists := fileState[relayReportKey.FileStateStorageKey]; exists {
+				if storageDirRaw, exists := fileState[relayconstant.FileStateStorageKey]; exists {
 					if storageDir, ok := storageDirRaw.(string); ok && storageDir != "" {
 						fileStorageDir = storageDir
 						ctx.Data.LogI(fmt.Sprintf("relay storage dir set. dir(%s)", fileStorageDir))
@@ -591,7 +592,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 				continue
 			}
 
-			relayStorageResultRaw, exists := privateData[relayReportKey.StorageResultKey]
+			relayStorageResultRaw, exists := privateData[relayconstant.StorageResultKey]
 			if !exists {
 				continue
 			}
@@ -601,7 +602,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 				return errors.New("unexpected type for relay storage result")
 			}
 
-			errMsgRaw := relayStorageResult[relayReportKey.StorageResultMsgKey]
+			errMsgRaw := relayStorageResult[relayconstant.StorageResultMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
 				return errors.New("unexpected type for relay storage result message")

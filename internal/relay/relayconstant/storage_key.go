@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package constance ...
-package constance
+// Package relayconstant ...
+package relayconstant
 
 // defines the field name stored in the database.
 const (

@@ -54,6 +54,7 @@ type Service struct {
 }
 
 // NewService creates a new relay service.
+// nolint: funlen
 func NewService(conf *config.RelayService) (*Service, error) {
 	svc := &Service{
 		conf: conf,

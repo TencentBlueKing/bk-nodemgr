@@ -14,7 +14,7 @@ package nodeinstall
 import (
 	"net/http"
 
-	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
@@ -39,12 +39,12 @@ func (h *handler) RelayReportInstallBySSHInfo(gCtx *gin.Context) {
 		req.GetOperInstId(), req.GetActionName())
 
 	installResult := map[string]string{
-		relayReportKey.InstallBySSHResultStdOutKey: req.GetStdOut(),
-		relayReportKey.InstallBySSHResultErrMsgKey: req.GetErrMsg(),
+		relayconstant.InstallBySSHResultStdOutKey: req.GetStdOut(),
+		relayconstant.InstallBySSHResultErrMsgKey: req.GetErrMsg(),
 	}
 
 	dataMap := map[string]any{
-		relayReportKey.InstallBySSHResultKey: installResult,
+		relayconstant.InstallBySSHResultKey: installResult,
 	}
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,

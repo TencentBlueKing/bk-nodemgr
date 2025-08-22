@@ -14,7 +14,7 @@ package nodeinstall
 import (
 	"net/http"
 
-	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
@@ -39,8 +39,8 @@ func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
 		req.GetOperInstId(), req.GetActionName())
 
 	dataMap := map[string]any{
-		relayReportKey.StorageResultKey: map[string]string{
-			relayReportKey.StorageResultMsgKey: req.GetErrMsg(),
+		relayconstant.StorageResultKey: map[string]string{
+			relayconstant.StorageResultMsgKey: req.GetErrMsg(),
 		},
 	}
 

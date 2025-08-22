@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	relayReportKey "github.com/TencentBlueKing/bk-nodemgr/internal/relay/constance"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -150,7 +150,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		}
 	}()
 
-	password, err := act.QueryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) QueryPassword(
+func (act *actionPagentDetectInfoBySSH) queryPassword(
 	ctx context.Context,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,
@@ -344,7 +344,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				continue
 			}
 
-			relayDetectResultRaw, exists := privateData[relayReportKey.DetectResultKey]
+			relayDetectResultRaw, exists := privateData[relayconstant.DetectResultKey]
 			if !exists {
 				continue
 			}
@@ -354,7 +354,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				return "", "", "", errors.New("unexpected type for relay detect result")
 			}
 
-			errMsgRaw := relayDetectResult[relayReportKey.DetectResultErrMsgKey]
+			errMsgRaw := relayDetectResult[relayconstant.DetectResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
 				return "", "", "", errors.New("unexpected type for relay detect result error message")
@@ -364,9 +364,9 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				return "", "", "", errors.New(errMsg)
 			}
 
-			osTypeStr, osTypeOk := relayDetectResult[relayReportKey.DetectResultOsTypeKey].(string)
-			cpuArchStr, cpuArchOk := relayDetectResult[relayReportKey.DetectResultCPUArchKey].(string)
-			connectionDir, connerctionDirOk := relayDetectResult[relayReportKey.DetectResultConnectionDirKey].(string)
+			osTypeStr, osTypeOk := relayDetectResult[relayconstant.DetectResultOsTypeKey].(string)
+			cpuArchStr, cpuArchOk := relayDetectResult[relayconstant.DetectResultCPUArchKey].(string)
+			connectionDir, connerctionDirOk := relayDetectResult[relayconstant.DetectResultConnectionDirKey].(string)
 
 			if !osTypeOk || !cpuArchOk || !connerctionDirOk {
 				return "", "", "", errors.New("incomplete relay detect result")
