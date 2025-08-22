@@ -44,5 +44,6 @@ func (h *handler) Index(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"BK_LOGIN_URL":             h.frontSetting.BKLoginURL(),
 		"BK_REQUEST_ID_HEADER_KEY": h.frontSetting.BKRequestIDHeaderKey(),
+		"BK_PASS_ANALYTICS_SCRIPT": h.frontSetting.BKPassAnalyticsScript(),
 	})
 }

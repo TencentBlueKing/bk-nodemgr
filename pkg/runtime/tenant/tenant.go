@@ -14,6 +14,7 @@ package tenant
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -27,6 +28,16 @@ const (
 	ModeSingle   Mode = "single"
 	ModeMultiple Mode = "multiple"
 )
+
+// Validate validate tenant mode.
+func (mode Mode) Validate() error {
+	switch mode {
+	case ModeSingle, ModeMultiple:
+		return nil
+	default:
+		return fmt.Errorf("failed to validate tenant mode, mode(%s)", mode)
+	}
+}
 
 // instance tenant mode.
 var instance = struct {

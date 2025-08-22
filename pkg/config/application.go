@@ -12,10 +12,10 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/envx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -46,6 +46,7 @@ type ApplicationService struct {
 	RunMode    RunMode        `yaml:"mode" usage:"run mode of service"`
 	TenantMode tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas     BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	BKPaas     BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Backend    BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd       Etcd           `yaml:"etcd" usage:"etcd config of application service"`
 	MongoDB    MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
@@ -89,27 +90,92 @@ func (svc *ApplicationService) Load(filePath string) error {
 func (svc *ApplicationService) LoadFromEnv() error {
 	// run mode.
 	var runMode string
-	if envx.LoadString("NODEMAN_MODE", &runMode) {
-		svc.RunMode = RunMode(runMode)
+	if err := envx.MustLoadString("NODEMAN_MODE", &runMode); err != nil {
+		return err
 	}
+	svc.RunMode = RunMode(runMode)
 
-	// api_gateway.
+	var tenantMode string
+	if err := envx.MustLoadString("NODEMAN_TENANT_MODE", &tenantMode); err != nil {
+		return err
+	}
+	svc.TenantMode = tenant.Mode(tenantMode)
+
+	// bk SaaS.
+	if err := envx.MustLoadString("BK_BKSAAS_BKLOGIN_LOGIN_URL", &svc.BKSaas.BKLogin.LoginURL); err != nil {
+		return err
+	}
+	if _, err := envx.LoadBool("BK_BKSAAS_BKLOGIN_TLS_INSECURE_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
+		return err
+	}
+	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_CERT", &svc.Backend.TLS.CertFile)
+	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_KEY", &svc.Backend.TLS.KeyFile)
+	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_CA", &svc.Backend.TLS.CAFile)
+	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_PASSWORD", &svc.Backend.TLS.Password)
+
+	// bk PaaS
+	_ = envx.LoadString("BK_PAAS_ANALYSIS_SCRIPT", &svc.BKPaas.AnalysisScript)
+
+	// backend.
 	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.Backend.AppCode); err != nil {
 		return err
 	}
 	if err := envx.MustLoadString("BKPAAS_APP_SECRET", &svc.Backend.AppSecret); err != nil {
 		return err
 	}
-	_ = envx.LoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
-	_ = envx.LoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
-	_ = envx.LoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
+	_ = envx.MustLoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
+	_ = envx.MustLoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
+	_ = envx.MustLoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
 	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
+		return err
+	}
+
+	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_INSECURE_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
 		return err
 	}
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CERT", &svc.Backend.TLS.CertFile)
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_KEY", &svc.Backend.TLS.KeyFile)
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CA", &svc.Backend.TLS.CAFile)
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_PASSWORD", &svc.Backend.TLS.Password)
+
+	// etcd
+	var etcdEndpoints string
+	if err := envx.MustLoadString("NODEMAN_ETCD_ENDPOINTS", &etcdEndpoints); err != nil {
+		return err
+	}
+	svc.Etcd.Endpoints = strings.Split(etcdEndpoints, ",")
+	if err := envx.MustLoadString("NODEMAN_ETCD_USERNAME", &svc.Etcd.Username); err != nil {
+		return err
+	}
+	if err := envx.MustLoadString("NODEMAN_ETCD_PASSWORD", &svc.Etcd.Password); err != nil {
+		return err
+	}
+	_ = envx.LoadString("NODEMAN_ETCD_CERT", &svc.Etcd.Cert)
+	_ = envx.LoadString("NODEMAN_ETCD_KEY", &svc.Etcd.Key)
+	_ = envx.LoadString("NODEMAN_ETCD_CA", &svc.Etcd.Ca)
+
+	// mongodb.
+	var mongoDBHosts string
+	if err := envx.MustLoadString("NODEMAN_MONGODB_HOSTS", &mongoDBHosts); err != nil {
+		return err
+	}
+	svc.MongoDB.Hosts = strings.Split(mongoDBHosts, ",")
+
+	if err := envx.MustLoadString("NODEMAN_MONGODB_USERNAME", &svc.MongoDB.Username); err != nil {
+		return err
+	}
+	if err := envx.MustLoadString("NODEMAN_MONGODB_PASSWORD", &svc.MongoDB.Password); err != nil {
+		return err
+	}
+	if err := envx.MustLoadString("NODEMAN_MONGODB_DATABASE", &svc.MongoDB.Database); err != nil {
+		return err
+	}
+	if err := envx.MustLoadString("NODEMAN_MONGODB_AUTH_SOURCE", &svc.MongoDB.AuthSource); err != nil {
+		return err
+	}
+	if err := envx.MustLoadString("NODEMAN_MONGODB_AUTH_MECHANISM", &svc.MongoDB.AuthMechanism); err != nil {
+		return err
+	}
 
 	// http_server.
 	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.HTTPServer.BindIP)
@@ -152,15 +218,42 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *ApplicationService) Validate() error {
+	if err := svc.RunMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.TenantMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
 	if err := svc.BKSaas.Validate(); err != nil {
 		return fmt.Errorf("failed to validate application config: %w", err)
 	}
 
-	if err := svc.HTTPServer.Validate(); err != nil {
-		return err
+	if err := svc.BKPaas.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
 	}
 
-	// TODO: validate the config
+	if err := svc.Backend.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.Etcd.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.MongoDB.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.HTTPServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
+	if err := svc.Log.Validate(); err != nil {
+		return fmt.Errorf("failed to validate application config: %w", err)
+	}
+
 	return nil
 }
 
@@ -171,18 +264,4 @@ func EnvGet(key, fallback string) string {
 	}
 
 	return fallback
-}
-
-// Front front setting of application service.
-type Front struct {
-	BKLoginURL string `yaml:"bkLoginURL" usage:"bk login url of front setting"`
-}
-
-// Validate validates the config.
-func (svc *Front) Validate() error {
-	if svc.BKLoginURL == "" {
-		return errors.New("failed to validate front config: bkLoginURL can not be empty")
-	}
-
-	return nil
 }

@@ -91,6 +91,7 @@ func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.To
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -121,6 +122,7 @@ func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHo
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -150,6 +152,7 @@ func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.To
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -179,6 +182,7 @@ func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -208,6 +212,7 @@ func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -237,6 +242,7 @@ func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -267,6 +273,7 @@ func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -296,6 +303,7 @@ func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -325,6 +333,7 @@ func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -354,6 +363,7 @@ func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -383,6 +393,7 @@ func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -412,6 +423,7 @@ func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -441,6 +453,7 @@ func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -470,6 +483,7 @@ func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.T
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -499,6 +513,7 @@ func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBacke
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -528,6 +543,7 @@ func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -557,6 +573,7 @@ func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.Top
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -586,6 +603,7 @@ func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBacken
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -615,6 +633,7 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBa
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -644,6 +663,7 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *pr
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -675,6 +695,7 @@ func (c *cli) listNodeWorkflowOperationInstance(
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -706,6 +727,7 @@ func (c *cli) getOperationInstanceLog(
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -738,6 +760,7 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -768,6 +791,7 @@ func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBacken
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -798,6 +822,7 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -827,6 +852,8 @@ func (c *cli) installNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -856,6 +883,8 @@ func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -885,6 +914,8 @@ func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -914,6 +945,8 @@ func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBacke
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -944,6 +977,7 @@ func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.Pac
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -974,6 +1008,7 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1003,6 +1038,7 @@ func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBacken
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1025,6 +1061,7 @@ func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1047,6 +1084,7 @@ func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1069,6 +1107,7 @@ func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBac
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1093,6 +1132,7 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1115,6 +1155,7 @@ func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return err
@@ -1139,6 +1180,7 @@ func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBacken
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1163,6 +1205,7 @@ func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1187,6 +1230,7 @@ func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1211,6 +1255,7 @@ func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1235,6 +1280,7 @@ func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1259,6 +1305,7 @@ func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBac
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -1283,6 +1330,7 @@ func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err

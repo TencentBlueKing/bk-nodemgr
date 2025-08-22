@@ -233,11 +233,16 @@ func processBody(body interface{}) ([]byte, error) {
 	}
 }
 
-// FullURL get http complete url from request.
-func (r *Request) FullURL() *url.URL {
-	finalURL := &url.URL{}
+// fullURL get http complete url from request.
+func (r *Request) fullURL(endpoint string) *url.URL {
+	finalURL, err := url.Parse(endpoint)
+	if err != nil {
+		r.err = err
+		return new(url.URL)
+	}
+
 	if len(r.baseURL) != 0 {
-		u, err := url.Parse(r.baseURL)
+		u, err := url.Parse(endpoint + r.baseURL)
 		if err != nil {
 			r.err = err
 			return new(url.URL)
@@ -367,7 +372,7 @@ func (r *Request) Do() *Result {
 		httpClient = http.DefaultClient
 	}
 
-	servers, err := r.capability.Discover.GetServers()
+	endpoints, err := r.capability.Discover.GetEndpoints()
 	if err != nil {
 		return &Result{
 			Err: err,
@@ -375,8 +380,8 @@ func (r *Request) Do() *Result {
 	}
 
 	for try := 0; try < r.client.maxRetryCycle; try++ {
-		for index, host := range servers {
-			result, isComplete := r.doWithHost(httpClient, host, try+index)
+		for index, endpoint := range endpoints {
+			result, isComplete := r.doWithEndpoint(httpClient, endpoint, try+index)
 			if isComplete {
 				return result
 			}
@@ -391,20 +396,20 @@ func (r *Request) Do() *Result {
 // retryDelay retry delay.
 const retryDelay = 20 * time.Millisecond
 
-// doWithHost http request do with specific host.
-func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Result, bool) {
-	url := host + r.FullURL().String()
-	req, err := r.getRequest(url)
+// doWithEndpoint http request do with specific host.
+func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int) (*Result, bool) {
+	fullURL := r.fullURL(endpoint).String()
+	req, err := r.getRequest(fullURL)
 	if err != nil {
 		return &Result{Err: err}, true
 	}
 
 	if retries > 0 {
-		r.tryThrottle(url)
+		r.tryThrottle(fullURL)
 	}
 
 	r.client.capability.Logger.Infof("request, method(%s), url(%s), header(%s), body(%s)",
-		r.verb, url, r.maskHeader(r.headers), r.maskRequestBody())
+		r.verb, fullURL, r.maskHeader(r.headers), r.maskRequestBody())
 
 	start := time.Now()
 	resp, err := client.Do(req)
@@ -412,7 +417,7 @@ func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Resu
 		// "Connection reset by peer" is a special err which in most scenario is a transient error.
 		// Which means that we can retry it. And so does the VerbTypeGET operation.
 		// While the other "write" operation can not simply retry it again, because they are not idempotent.
-		r.checkToleranceLatency(&start, url)
+		r.checkToleranceLatency(&start, fullURL)
 		if !isConnectionReset(err) || r.verb != VerbTypeGET {
 			return &Result{Err: err}, true
 		}
@@ -427,7 +432,7 @@ func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Resu
 	r.client.metrics.HandleClientMetrics(req, resp, r.subPath, start)
 
 	// record latency if needed
-	r.checkToleranceLatency(&start, url)
+	r.checkToleranceLatency(&start, fullURL)
 
 	var body []byte
 	if resp.Body != nil {
@@ -439,7 +444,7 @@ func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Resu
 				return nil, false
 			}
 			r.capability.Logger.Errorf("failed to request, method(%s), url(%s), header(%s), body(%s): %v",
-				r.verb, url, r.maskHeader(r.headers), r.maskRequestBody(), err)
+				r.verb, fullURL, r.maskHeader(r.headers), r.maskRequestBody(), err)
 
 			return &Result{Err: err}, true
 		}
@@ -456,7 +461,7 @@ func (r *Request) doWithHost(client HTTPClient, host string, retries int) (*Resu
 
 	r.client.capability.Logger.Infof(
 		"response, method(%s), url(%s), header(%s), http-code(%d), body(%s)",
-		r.verb, url, r.maskHeader(r.headers), result.StatusCode, result.maskResponseBody())
+		r.verb, fullURL, r.maskHeader(r.headers), result.StatusCode, result.maskResponseBody())
 
 	return result, true
 }

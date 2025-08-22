@@ -22,44 +22,44 @@ import (
 
 // Interface discovery interface.
 type Interface interface {
-	// GetServers get server host.
-	GetServers() ([]string, error)
+	// GetEndpoints get endpoints.
+	GetEndpoints() ([]string, error)
 }
 
 // Discovery used to common discovery.
 type Discovery struct {
-	Name    string
-	servers []string
-	index   int
+	Name      string
+	endpoints []string
+	index     int
 	sync.Mutex
 }
 
 // NewDiscovery create a discovery.
-func NewDiscovery(name string, servers []string) Interface {
+func NewDiscovery(name string, endpoints []string) Interface {
 	return &Discovery{
-		Name:    name,
-		servers: servers,
-		index:   0,
+		Name:      name,
+		endpoints: endpoints,
+		index:     0,
 	}
 }
 
-// GetServers get server host.
-func (d *Discovery) GetServers() ([]string, error) {
+// GetEndpoints get endpoints.
+func (d *Discovery) GetEndpoints() ([]string, error) {
 	d.Lock()
 	defer d.Unlock()
-	num := len(d.servers)
+	num := len(d.endpoints)
 	if num == 0 {
 		return []string{}, fmt.Errorf("there is no server can be used, name:(%s)", d.Name)
 	}
 
 	if d.index < num-1 {
 		d.index++
-		return append(d.servers[d.index-1:], d.servers[:d.index-1]...), nil
+		return append(d.endpoints[d.index-1:], d.endpoints[:d.index-1]...), nil
 	}
 
 	d.index = 0
 
-	return append(d.servers[num-1:], d.servers[:num-1]...), nil
+	return append(d.endpoints[num-1:], d.endpoints[:num-1]...), nil
 }
 
 // ServiceDiscovery discovery with specific service in discover provider.
@@ -80,8 +80,8 @@ func NewServiceDiscovery(
 	}
 }
 
-// GetServers get server host.
-func (sd *ServiceDiscovery) GetServers() ([]string, error) {
+// GetEndpoints get endpoints.
+func (sd *ServiceDiscovery) GetEndpoints() ([]string, error) {
 	endpoints, err := sd.discover.GetAllEndpoint(sd.serviceName, sd.endpointName)
 	if err != nil {
 		return nil, err

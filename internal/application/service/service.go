@@ -121,8 +121,9 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 
 	svc.Cap.FrontSetting, _ = frontsetting.NewFrontSetting(
 		frontsetting.Option{
-			BKLoginURL:           bkloginHandler.GetLoginURL(),
-			BKRequestIDHeaderKEy: bksaasheader.KeyBKRequestID,
+			BKLoginURL:            bkloginHandler.GetLoginURL(),
+			BKRequestIDHeaderKEy:  bksaasheader.KeyBKRequestID,
+			BKPassAnalyticsScript: conf.BKPaas.AnalysisScript,
 		},
 	)
 
