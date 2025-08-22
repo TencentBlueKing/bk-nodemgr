@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 
 // NodeProxyInstallReq describes the node proxy install request.
 message NodeProxyInstallReq {
-  message Host {
+  message ProxyInstallHost {
     int64 bk_biz_id = 1;
     int64 bk_networkunit_id = 2;
     optional int64 bk_host_id = 3;
@@ -28,7 +28,7 @@ message NodeProxyInstallReq {
     bool re_register = 16;
     repeated string proxy_tags = 17;
   }
-  repeated Host host = 1;
+  repeated ProxyInstallHost host = 1;
   repeated TargetVersion target_version = 2;
 }
 

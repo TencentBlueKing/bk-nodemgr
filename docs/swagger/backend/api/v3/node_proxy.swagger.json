@@ -165,73 +165,7 @@
         }
       }
     },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "@type": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": {}
-    },
-    "rpcStatus": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "v3Error": {
-      "type": "object",
-      "properties": {
-        "system": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/ErrorDetails"
-          }
-        }
-      }
-    },
-    "v3NodeProxyInstallReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyInstallReqHost"
-          }
-        },
-        "target_version": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3TargetVersion"
-          }
-        }
-      },
-      "description": "NodeProxyInstallReq describes the node proxy install request."
-    },
-    "v3NodeProxyInstallReqHost": {
+    "NodeProxyInstallReqProxyInstallHost": {
       "type": "object",
       "properties": {
         "bk_biz_id": {
@@ -294,6 +228,72 @@
           }
         }
       }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeProxyInstallReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NodeProxyInstallReqProxyInstallHost"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          }
+        }
+      },
+      "description": "NodeProxyInstallReq describes the node proxy install request."
     },
     "v3NodeProxyInstallResp": {
       "type": "object",

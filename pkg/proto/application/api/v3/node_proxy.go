@@ -44,7 +44,7 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeProxyInstallReq_Host) Validate() error {
+func (x *NodeProxyInstallReq_ProxyInstallHost) Validate() error {
 	if x.GetBkHostInnerip() == "" && x.GetBkHostInneripV6() == "" {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
 	}
@@ -85,7 +85,7 @@ func (x *NodeProxyInstallReq_Host) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyInstallReq_Host) AutoConvert() {
+func (x *NodeProxyInstallReq_ProxyInstallHost) AutoConvert() {
 	if x.BkHostId == nil {
 		x.BkHostId = new(int64)
 		*x.BkHostId = -1
