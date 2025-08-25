@@ -32,8 +32,13 @@ const DefaultNodeGeneration = 2
 func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeAgentInstallReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	networkUnitMap, err := h.fetchNetworkUnits(ctx, req.GetHost())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
@@ -48,10 +53,14 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	nodeDeploys := make([]*types.NodeDeployment, len(req.GetHost()))
 	for idx := range req.GetHost() {
 		reqHost := req.GetHost()[idx]
-
-		nodeDeploy, err := h.handlerHost(ctx, ctx.TenantID(), reqHost, targetVersions)
+		networkUnit, exists := networkUnitMap[reqHost.GetBkNetworkunitId()]
+		if !exists {
+			h.logger.ErrorCtxf(ctx, "network unit not found for host. host-id(%d)", reqHost.GetBkNetworkunitId())
+			return nil, fmt.Errorf("network unit not found for host. host-id(%d)", reqHost.GetBkNetworkunitId())
+		}
+		nodeDeploy, err := h.handlerHost(ctx, ctx.TenantID(), reqHost, targetVersions, networkUnit)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to install agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to install agent, failed to generate node deployment: %v", err)
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -88,9 +97,10 @@ func (h *handler) handlerHost(
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 	targetVersions []types.TargetVersion,
+	networkUnit *types.NetworkUnit,
 ) (*types.NodeDeployment, error) {
 
-	nodeDeployment, err := h.genNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions)
+	nodeDeployment, err := h.genNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions, networkUnit)
 	if err != nil {
 		h.logger.Error("conv agent install reqHost to node deployment failed", err)
 
@@ -106,12 +116,8 @@ func (h *handler) genNodeDeployment(
 	tenantID string,
 	reqHost *protoBackend.NodeAgentInstallReq_Host,
 	targetVersions []types.TargetVersion,
+	networkUnit *types.NetworkUnit,
 ) (*types.NodeDeployment, error) {
-
-	networkUnit, err := h.storageNetworkUnit.GetNetworkUnit(tenantCtx, reqHost.GetBkNetworkunitId())
-	if err != nil {
-		return nil, fmt.Errorf("get network unit failed, err: %w", err)
-	}
 
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 		Host: types.Host{
@@ -153,9 +159,9 @@ func (h *handler) genNodeDeployment(
 	case types.LoginModeKeyFile:
 		loginKeyFile, err := base64.StdEncoding.DecodeString(reqHost.GetLoginKeyFile())
 		if err != nil {
-			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+			h.logger.Errorf("use base64 decode key file failed: %v", err)
 
-			return nil, fmt.Errorf("failed to decode key file, err: %w", err)
+			return nil, fmt.Errorf("failed to decode key file: %w", err)
 		}
 
 		err = h.storageHostCredit.StoreHostCredit(
@@ -173,7 +179,7 @@ func (h *handler) genNodeDeployment(
 	case types.LoginModePassword:
 		loginPassword := reqHost.GetLoginPassword()
 
-		err = h.storageHostCredit.StoreHostCredit(
+		err := h.storageHostCredit.StoreHostCredit(
 			tenantCtx,
 			nodeDeployment.Info.Host.Static.NetworkAreaID,
 			nodeDeployment.Info.LoginInfo.IP,
@@ -188,11 +194,40 @@ func (h *handler) genNodeDeployment(
 	case types.LoginModePasswordVault:
 		// notice: password vault don't need to store password.
 	default:
-		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", reqHost.GetLoginMode())
+		err := fmt.Errorf("unsupported this login mode. login-mode(%s)", reqHost.GetLoginMode())
 		h.logger.Error(err)
 
 		return nil, err
 	}
 
 	return nodeDeployment, nil
+}
+
+func (h *handler) fetchNetworkUnits(
+	ctx context.Context, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.NetworkUnit, error) {
+
+	allNetworkUnitIDs := make(map[int64]struct{})
+	for _, host := range hosts {
+		allNetworkUnitIDs[host.GetBkNetworkunitId()] = struct{}{}
+	}
+
+	unitIDSlice := make([]int64, 0, len(allNetworkUnitIDs))
+	for id := range allNetworkUnitIDs {
+		unitIDSlice = append(unitIDSlice, id)
+	}
+
+	networkUnits, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+		ExactInclude: &types.NetworkUnitExactFields{NetworkUnitID: unitIDSlice},
+	})
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to get network units: %v", err)
+		return nil, err
+	}
+
+	networkUnitMap := make(map[int64]*types.NetworkUnit, len(networkUnits))
+	for _, unit := range networkUnits {
+		networkUnitMap[unit.ID] = unit
+	}
+
+	return networkUnitMap, nil
 }
