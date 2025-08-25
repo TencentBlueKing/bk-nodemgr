@@ -15,6 +15,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
@@ -100,9 +103,15 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 		OperInstID: event.OperInstID,
 		ErrMsg:     errMsg,
 	}
-
 	if err := h.reportStorageResultReq(ctx, h.client, req); err != nil {
 		h.logger.Errorf("failed to report relay file state: %v", err)
+	}
+
+	for _, pkgName := range event.PkgName {
+		if err := h.safeRemove(h.storageTmpDir, pkgName); err != nil {
+			h.logger.Errorf("failed to remove file. dest-dir(%s), pkg-name(%s): %v",
+				h.storageTmpDir, pkgName, err)
+		}
 	}
 
 	h.logger.Infof("storage package success")
@@ -194,4 +203,22 @@ func (h *handler) reportStorageResultReq(ctx context.Context,
 
 		return errors.New("report storage result timed out")
 	}
+}
+
+func (h *handler) safeRemove(baseDir string, filename string) error {
+	absPath := filepath.Join(baseDir, filename)
+	if absPath == "" ||
+		absPath == "/" ||
+		strings.HasPrefix(absPath, "/dev/") ||
+		strings.HasPrefix(absPath, "/sys/") ||
+		strings.HasPrefix(absPath, "/proc/") {
+
+		return fmt.Errorf("failed to remove all, got invalid path. path(%s)", absPath)
+	}
+
+	if err := os.RemoveAll(absPath); err != nil {
+		return fmt.Errorf("failed to remove all. path(%s): %w", absPath, err)
+	}
+
+	return nil
 }
