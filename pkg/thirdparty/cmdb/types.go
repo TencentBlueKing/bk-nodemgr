@@ -286,9 +286,41 @@ type ObjectInfo struct {
 
 // RespCommon describe the common part of response data.
 type RespCommon struct {
-	Result  bool   `json:"result"`
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Result     bool        `json:"result"`
+	Code       int         `json:"code"`
+	Message    string      `json:"message"`
+	Permission *Permission `json:"permission"`
+}
+
+// Permission describe the permission of user.
+type Permission struct {
+	SystemId   string              `json:"system_id"`
+	SystemName string              `json:"system_name"`
+	Actions    []PermissionActions `json:"actions"`
+}
+
+// PermissionActions describe the actions of permission.
+type PermissionActions struct {
+	Id                   string                                  `json:"id"`
+	Name                 string                                  `json:"name"`
+	RelatedResourceTypes []PermissionActionsRelatedResourceTypes `json:"related_resource_types"`
+}
+
+// PermissionActionsRelatedResourceTypes describe the related resource types of permission actions.
+type PermissionActionsRelatedResourceTypes struct {
+	SystemId   string                                            `json:"system_id"`
+	SystemName string                                            `json:"system_name"`
+	Type       string                                            `json:"type"`
+	TypeName   string                                            `json:"type_name"`
+	Instances  [][]PermissionActionsRelatedResourceTypesInstance `json:"instances"`
+}
+
+// PermissionActionsRelatedResourceTypesInstance describe the instance of permission actions.
+type PermissionActionsRelatedResourceTypesInstance struct {
+	Type     string `json:"type"`
+	TypeName string `json:"type_name"`
+	Id       string `json:"id"`
+	Name     string `json:"name"`
 }
 
 // BaseBroker describe the base broker.
@@ -297,16 +329,25 @@ type BaseBroker[T any] struct {
 	Data T `json:"data"`
 }
 
-// CodeOK define the success code.
-const CodeOK = 0
+const (
+	// CodeOK define the success code.
+	CodeOK = 0
+
+	// CodeNoPermission define the no permission code.
+	// notice: !!! not all api will return correct response code.
+	CodeNoPermission = 9900403
+)
 
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
-	if resp.Result != true || resp.Code != CodeOK {
-		return fmt.Errorf("result(%v), code(%d) , msg(%s) ", resp.Result, resp.Code, resp.Message)
+	switch {
+	case resp.Result == true && resp.Code == CodeOK:
+		return nil
+	case (resp.Result == false && resp.Code == CodeNoPermission) || resp.Permission != nil:
+		return fmt.Errorf("no permission, please check your permission, permission(%v)", resp.Permission)
+	default:
+		return fmt.Errorf("result(%v), code(%d) , msg(%s)", resp.Result, resp.Code, resp.Message)
 	}
-
-	return nil
 }
 
 // HostPropertyFilter describe the host property filter.
