@@ -19,7 +19,7 @@ import (
 	"time"
 
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/gin-gonic/gin"
 )
 
@@ -163,7 +163,7 @@ func (ctx *Context) AbortWithJSONError(code resterrf.Code, errs []error) {
 	result := Response{
 		Code: code,
 		Error: &Error{
-			System:  runtime.System,
+			System:  system.Code,
 			Message: resterrf.CodeErrMap(code).Error(),
 			Details: nil,
 		},
@@ -184,8 +184,8 @@ func (ctx *Context) AbortWithJSONPermDenied(code resterrf.Code, _ []error) {
 	result := Response{
 		Code: code,
 		Permission: &Permission{
-			System:     runtime.System,
-			SystemName: runtime.SystemName,
+			System:     system.Code,
+			SystemName: system.Name,
 			Actions:    nil,
 		},
 		RequestID: ctx.RequestID(),

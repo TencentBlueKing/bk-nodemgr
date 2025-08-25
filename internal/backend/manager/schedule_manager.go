@@ -18,10 +18,10 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -131,7 +131,7 @@ func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncCmdbHostWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     runtime.SystemName,
+		Operator:     system.Name,
 		OperateTime:  time.Now(),
 	}
 
@@ -185,7 +185,7 @@ func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncCmdbNetworkAreaWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     runtime.SystemName,
+		Operator:     system.Name,
 		OperateTime:  time.Now(),
 	}
 
@@ -239,7 +239,7 @@ func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error 
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncGseAgentStateWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     runtime.SystemName,
+		Operator:     system.Name,
 		OperateTime:  time.Now(),
 	}
 

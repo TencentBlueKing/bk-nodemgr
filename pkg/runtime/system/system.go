@@ -16,6 +16,12 @@ import (
 	"sync"
 )
 
+// Code is the unique identifier of the system.
+const Code = "bk-nodemgr"
+
+// Name is the system name.
+const Name = "bk-nodemgr"
+
 var deployEnv = struct {
 	sync.Once
 	env string
