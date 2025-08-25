@@ -34,6 +34,7 @@ type operSyncBizAndHostFromCMDB struct {
 // OperParamSyncBizAndHostFromCMDB defines the parameters for operSyncBizAndHostFromCMDB.
 type OperParamSyncBizAndHostFromCMDB struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

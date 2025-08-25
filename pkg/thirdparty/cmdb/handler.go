@@ -17,12 +17,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -204,15 +206,6 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	return h, nil
 }
 
-const (
-	// VirtueLoginUserBKNodemgr a special login user for bk-nodemgr.
-	VirtueLoginUserBKNodemgr = "admin"
-	// VirtueTenantIDDefault a special tenant id for bk-nodemgr.
-	VirtueTenantIDDefault = "system"
-	// VirtueBKUserBKNodemgr a special bk user for bk-nodemgr.
-	VirtueBKUserBKNodemgr = "admin"
-)
-
 func (h *Handler) initEnumKeepers() error {
 	h.logger.Infof("initializing enum keepers from cmdb")
 
@@ -226,9 +219,16 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+				tenantIDs := tenant.GetAllTenantIDs()
+				for _, tenantID := range tenantIDs {
+					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
 
-				return h.cloudVendorKeeper.update(tenantUserCtx)
+					if err := h.cloudVendorKeeper.update(tenantUserCtx); err != nil {
+						return err
+					}
+				}
+
+				return nil
 			},
 		),
 		scheduler.NewTask(
@@ -236,9 +236,15 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+				tenantIDs := tenant.GetAllTenantIDs()
+				for _, tenantID := range tenantIDs {
+					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
+					if err := h.osTypeKeeper.update(tenantUserCtx); err != nil {
+						return err
+					}
+				}
 
-				return h.osTypeKeeper.update(tenantUserCtx)
+				return nil
 			},
 		),
 		scheduler.NewTask(
@@ -246,9 +252,15 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(ctx context.Context) error {
-				tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+				tenantIDs := tenant.GetAllTenantIDs()
+				for _, tenantID := range tenantIDs {
+					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
+					if err := h.cpuArchKeeper.update(tenantUserCtx); err != nil {
+						return err
+					}
+				}
 
-				return h.cpuArchKeeper.update(tenantUserCtx)
+				return nil
 			},
 		),
 	}
@@ -264,16 +276,19 @@ func (h *Handler) initEnumKeepers() error {
 	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx, VirtueTenantIDDefault, VirtueLoginUserBKNodemgr)
+	tenantIDs := tenant.GetAllTenantIDs()
+	for _, tenantID := range tenantIDs {
+		tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
 
-	if err := h.cloudVendorKeeper.update(tenantUserCtx); err != nil {
-		h.logger.Warnf("failed to sync cloud vendor: %v", err)
-	}
-	if err := h.osTypeKeeper.update(tenantUserCtx); err != nil {
-		h.logger.Warnf("failed to sync os type: %v", err)
-	}
-	if err := h.cpuArchKeeper.update(tenantUserCtx); err != nil {
-		h.logger.Warnf("failed to sync cpu arch: %v", err)
+		if err := h.cloudVendorKeeper.update(tenantUserCtx); err != nil {
+			h.logger.Warnf("failed to sync cloud vendor: %v", err)
+		}
+		if err := h.osTypeKeeper.update(tenantUserCtx); err != nil {
+			h.logger.Warnf("failed to sync os type: %v", err)
+		}
+		if err := h.cpuArchKeeper.update(tenantUserCtx); err != nil {
+			h.logger.Warnf("failed to sync cpu arch: %v", err)
+		}
 	}
 
 	h.scheduler.Start()
@@ -458,13 +473,18 @@ func (h *Handler) BindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*ty
 	req := &BindHostAgentReq{
 		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
 	}
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to bind host agent, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
 			BKHostID:  host.HostID,
 			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
-	err := h.cli.bindHostAgent(ctx, req)
+	err := h.cli.bindHostAgent(tenantUserCtx, req)
 	if err != nil {
 		return err
 	}
@@ -481,13 +501,18 @@ func (h *Handler) UnbindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*
 	req := &UnbindHostAgentReq{
 		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
 	}
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to un bind host agent, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
 			BKHostID:  host.HostID,
 			BKAgentID: host.Dynamic.AgentID,
 		})
 	}
-	err := h.cli.unbindHostAgent(ctx, req)
+	err := h.cli.unbindHostAgent(tenantUserCtx, req)
 	if err != nil {
 		return err
 	}
@@ -507,7 +532,12 @@ func (h *Handler) AddHostToBusinessIdle(ctx contextx.ITenantUserContext, bizID i
 	for _, host := range hosts {
 		req.BKHostList = append(req.BKHostList, h.convCreateHostInfoFromTypes(host))
 	}
-	resp, err := h.cli.addHostToBusinessIdle(ctx, req)
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to add host to business idle, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
+	resp, err := h.cli.addHostToBusinessIdle(tenantUserCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -521,7 +551,12 @@ func (h *Handler) PushHostIdentifier(ctx contextx.ITenantUserContext, hostIDs ..
 	req := &PushHostIdentifierReq{
 		BKHostIDs: hostIDs,
 	}
-	resp, err := h.cli.pushHostIdentifier(ctx, req)
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to push host identifier, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
+	resp, err := h.cli.pushHostIdentifier(tenantUserCtx, req)
 	if err != nil {
 		return "", err
 	}
@@ -537,7 +572,12 @@ func (h *Handler) FindHostIdentifierPushResult(ctx contextx.ITenantUserContext, 
 	req := &FindHostIdentifierPushResultReq{
 		TaskID: taskID,
 	}
-	resp, err := h.cli.findHostIdentifierPushResult(ctx, req)
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to find host identifier push result, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
+	resp, err := h.cli.findHostIdentifierPushResult(tenantUserCtx, req)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -601,11 +641,16 @@ func (h *Handler) AddHostToResourcePool(ctx contextx.ITenantUserContext, hosts .
 	req := &AddHostToResourcePoolReq{
 		HostInfo: make([]*CreateHostInfo, 0, len(hosts)),
 	}
+
+	virtualUser := access.GetVirtualUser()
+	h.logger.InfoCtxf(ctx, "use virtual user to add host to resource pool, virutal-user(%s), req(%v)", virtualUser, req)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
+
 	for _, host := range hosts {
 		req.HostInfo = append(req.HostInfo, h.convCreateHostInfoFromTypes(host))
 	}
 
-	resp, err := h.cli.addHostToResource(ctx, req)
+	resp, err := h.cli.addHostToResource(tenantUserCtx, req)
 	if err != nil {
 		return nil, nil, err
 	}

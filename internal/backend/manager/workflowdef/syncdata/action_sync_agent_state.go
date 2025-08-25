@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -42,6 +43,7 @@ func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topo.IStorageHost,
 type SyncAgentStateParam struct {
 	TenantID string           `json:"tenant_id"`
 	Hosts    []*HostIDAgentID `json:"hosts"`
+	Operator string           `json:"operator"`
 }
 
 // HostIDAgentID defines the host ID and agent ID.
@@ -106,12 +108,14 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
+
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentState(tenantCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentState(tenantUserCtx, agentIDs...)
 	if err != nil {
 		act.logger.Errorf("list agent state by agent-id-list(%v) failed: %v", agentIDs, err)
 		return err

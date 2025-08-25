@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -44,6 +45,7 @@ func NewActionGenOperSyncAgentState(topoStg topo.IStorageHost, workflowCtl workf
 // GenOperSyncAgentStateParam ...
 type GenOperSyncAgentStateParam struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 type actionGenOperSyncAgentState struct {
@@ -102,7 +104,9 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			return nil, err
 		}
 
-		if err = act.executeOper(fnCtx, ctx.Data, hosts...); err != nil {
+		tenantUserCtx := contextx.NewTenantUserContext(fnCtx, param.TenantID, param.Operator)
+
+		if err = act.executeOper(tenantUserCtx, ctx.Data, hosts...); err != nil {
 			return nil, err
 		}
 
@@ -126,17 +130,15 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 // executeOper create an operation to sync agent state for the given hosts and then execute it.
 func (act *actionGenOperSyncAgentState) executeOper(
-	ctx context.Context, actionInstData *action.InstanceData, hosts ...*types.Host) error {
+	ctx contextx.ITenantUserContext, actionInstData *action.InstanceData, hosts ...*types.Host) error {
 
 	trigCtl, err := act.workflowCtl.GetTrigger(ctx, actionInstData.TriggerID)
 	if err != nil {
 		return fmt.Errorf("failed to get workflow trigger by trigger-id(%s): %w", actionInstData.TriggerID, err)
 	}
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get tenant id from context: %w", err)
-	}
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	hostAgentID := make([]*HostIDAgentID, 0, len(hosts))
 	for _, host := range hosts {
@@ -148,6 +150,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 	operationDef := NewOperSyncAgentStateFromGSE(OperParamSyncAgentStateFromGSE{
 		TenantID: tenantID,
 		Hosts:    hostAgentID,
+		Operator: operator,
 	})
 
 	operationParam := operationDef.DefaultParameters()

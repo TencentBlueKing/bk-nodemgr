@@ -34,6 +34,7 @@ type operSyncAllAgentStateFromGSE struct {
 // OperParamSyncAllAgentStateFromGSE defines the parameters for operSyncAgentStateFromGSE.
 type OperParamSyncAllAgentStateFromGSE struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

@@ -58,6 +58,8 @@ const (
 	defaultGseDeployConfWindowsOsType        = string(criteria.OSWindows)
 	defaultGseDeployConfWindowsBaseDeployDir = `c:\`
 	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm\`
+
+	defaultAccessVirtualUser = "bk-nodemgr"
 )
 
 // BackendService the config of backend service.
@@ -81,6 +83,7 @@ type BackendService struct {
 	InstallerFileGroup FileGroup        `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
 	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
 	APIGateWayServer   APIGateWayServer `yaml:"apiGateWayServer" usage:"api gateway config of backend service"`
+	Access             Access           `yaml:"access" usage:"access config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -146,6 +149,9 @@ func NewBackendService() *BackendService {
 		InstallerFileGroup: FileGroup{
 			FullPath: defaultInstallerFileGroup,
 		},
+		Access: Access{
+			VirtualUser: defaultAccessVirtualUser,
+		},
 	}
 }
 
@@ -195,6 +201,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate backend service: %w", err)
 	}
 
+	if err := svc.Access.Validate(); err != nil {
+		return fmt.Errorf("failed to validate backend service: %w", err)
+	}
+
 	return nil
 }
 
@@ -214,4 +224,18 @@ type GSEDeployCustom struct {
 	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
 	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 	EnvironDir         string `yaml:"environDir" usage:"environ dir"`
+}
+
+// Access defines the access configuration for nodemgr system to authenticate.
+type Access struct {
+	VirtualUser string `yaml:"virtualUser" usage:"virtual user of system to authenticate"`
+}
+
+// Validate validates the config.
+func (access *Access) Validate() error {
+	if access.VirtualUser == "" {
+		return fmt.Errorf("virtual user is empty")
+	}
+
+	return nil
 }

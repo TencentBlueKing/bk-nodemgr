@@ -39,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -120,6 +121,8 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		},
 		instance: discover.NewInstance("backend", nil),
 	}
+
+	access.SetVirtualUser(conf.Access.VirtualUser)
 
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
 

@@ -39,8 +39,8 @@ func (mode Mode) Validate() error {
 	}
 }
 
-// instance tenant mode.
-var instance = struct {
+// tenantMode tenant mode.
+var tenantMode = struct {
 	mode Mode
 	once sync.Once
 }{
@@ -50,14 +50,14 @@ var instance = struct {
 
 // SetMode tenant mode only can be set once.
 func SetMode(mode Mode) {
-	instance.once.Do(func() {
-		instance.mode = mode
+	tenantMode.once.Do(func() {
+		tenantMode.mode = mode
 	})
 }
 
 // GetMode get tenant mode.
 func GetMode() Mode {
-	return instance.mode
+	return tenantMode.mode
 }
 
 const (
@@ -66,12 +66,13 @@ const (
 )
 
 // GetID get tenant id from context.
+// Deprecated: use GetID instead.
 func GetID(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", errors.New("context is nil")
 	}
 
-	if instance.mode == ModeSingle {
+	if tenantMode.mode == ModeSingle {
 		return SingleModeTenantID, nil
 	}
 
@@ -99,8 +100,9 @@ func validate(tenantID string) error {
 }
 
 // SetID set tenant id to context.
+// Deprecated: use SetID instead.
 func SetID(ctx context.Context, tenantID string) (context.Context, error) {
-	if instance.mode == ModeSingle {
+	if tenantMode.mode == ModeSingle {
 		return contextvalues.Set(ctx, contextvalues.KeyTenantID, SingleModeTenantID)
 	}
 
@@ -109,4 +111,46 @@ func SetID(ctx context.Context, tenantID string) (context.Context, error) {
 	}
 
 	return contextvalues.Set(ctx, contextvalues.KeyTenantID, tenantID)
+}
+
+// ITenantIDStorage tenant id storage
+type ITenantIDStorage interface {
+	GetAllTenantIDs() []string
+}
+
+var _ ITenantIDStorage = &singleModeTenantIDStorage{}
+
+type singleModeTenantIDStorage struct {
+}
+
+// GetAllTenantIDs get all tenant ids.
+func (stg *singleModeTenantIDStorage) GetAllTenantIDs() []string {
+	return []string{
+		SingleModeTenantID,
+	}
+}
+
+var tenantStorage = struct {
+	storage ITenantIDStorage
+	sync.Once
+}{
+	storage: new(singleModeTenantIDStorage),
+}
+
+// SetTenantIDStorage set tenant id storage.
+func SetTenantIDStorage(storage ITenantIDStorage) error {
+	if GetMode() != ModeMultiple {
+		return fmt.Errorf("can't set tenant id storage, mode(%s)", GetMode())
+	}
+
+	tenantStorage.Once.Do(func() {
+		tenantStorage.storage = storage
+	})
+
+	return nil
+}
+
+// GetAllTenantIDs get all tenant ids.
+func GetAllTenantIDs() []string {
+	return tenantStorage.storage.GetAllTenantIDs()
 }

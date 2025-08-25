@@ -34,6 +34,7 @@ type operSyncNetworkAreaFromCMDB struct {
 // OperParamSyncNetworkAreaFromCMDB defines the parameters for operSyncNetworkAreaFromCMDB.
 type OperParamSyncNetworkAreaFromCMDB struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

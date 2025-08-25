@@ -19,12 +19,14 @@ import (
 	"time"
 
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -105,24 +107,28 @@ func (w *Watcher) registerHostEventScheduler() error {
 				return nil
 			}
 
+			tenantIDs := tenant.GetAllTenantIDs()
 			gp := gopool.NewPool()
-			gp.Go(func() error {
-				if err := w.watchHostResource(ctx); err != nil {
-					w.conf.Logger.Errorf("handle host event failed: %v", err)
-					return err
-				}
+			for _, tenantID := range tenantIDs {
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
+				gp.Go(func() error {
+					if err := w.watchHostResource(tenantUserCtx); err != nil {
+						w.conf.Logger.Errorf("handle host event failed: %v", err)
+						return err
+					}
 
-				return nil
-			})
+					return nil
+				})
 
-			gp.Go(func() error {
-				if err := w.watchHostRelationResource(ctx); err != nil {
-					w.conf.Logger.Errorf("handle host relation event failed: %v", err)
-					return err
-				}
+				gp.Go(func() error {
+					if err := w.watchHostRelationResource(tenantUserCtx); err != nil {
+						w.conf.Logger.Errorf("handle host relation event failed: %v", err)
+						return err
+					}
 
-				return nil
-			})
+					return nil
+				})
+			}
 
 			err := gp.Wait()
 			if err != nil {
@@ -142,15 +148,14 @@ func (w *Watcher) registerHostEventScheduler() error {
 }
 
 // watchHostResource watches the host resource events.
-func (w *Watcher) watchHostResource(ctx context.Context) error {
+func (w *Watcher) watchHostResource(ctx contextx.ITenantUserContext) error {
 	cursor, err := w.getCursor(ctx, types.HostEventCursor)
 	if err != nil {
 		w.conf.Logger.Errorf("get host event cursor failed: %v", err)
 		return fmt.Errorf("get host event cursor failed: %w", err)
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx, cmdb.VirtueTenantIDDefault, cmdb.VirtueLoginUserBKNodemgr)
-	events, err := w.conf.CmdbHandler.WatchHostResourceEvent(tenantUserCtx, cursor)
+	events, err := w.conf.CmdbHandler.WatchHostResourceEvent(ctx, cursor)
 	if err != nil {
 		w.conf.Logger.Errorf("watch host resource event failed: %v", err)
 		return fmt.Errorf("watch host resource event failed: %w", err)
@@ -179,15 +184,14 @@ func (w *Watcher) watchHostResource(ctx context.Context) error {
 }
 
 // watchHostRelationResource watches the host relation resource events.
-func (w *Watcher) watchHostRelationResource(ctx context.Context) error {
+func (w *Watcher) watchHostRelationResource(ctx contextx.ITenantUserContext) error {
 	cursor, err := w.getCursor(ctx, types.HostRelationEventCursor)
 	if err != nil {
 		w.conf.Logger.Errorf("get host event cursor failed: %v", err)
 		return fmt.Errorf("get host event cursor failed: %w", err)
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx, cmdb.VirtueTenantIDDefault, cmdb.VirtueLoginUserBKNodemgr)
-	events, err := w.conf.CmdbHandler.WatchHostRelationResourceEvent(tenantUserCtx, cursor)
+	events, err := w.conf.CmdbHandler.WatchHostRelationResourceEvent(ctx, cursor)
 	if err != nil {
 		w.conf.Logger.Errorf("watch host relation resource event failed: %v", err)
 		return fmt.Errorf("watch host relation resource event failed: %w", err)

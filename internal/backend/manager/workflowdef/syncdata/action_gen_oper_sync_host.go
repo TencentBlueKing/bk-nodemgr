@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -38,6 +39,7 @@ func NewActionGenOperSyncHost(storageBusiness topo.IStorageBusiness, workflowCtl
 // GenOperSyncHostParam ...
 type GenOperSyncHostParam struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 type actionGenOperSyncHost struct {
@@ -95,7 +97,8 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	bizs, _, err := act.storageBusiness.ListBusinesses(tenantCtx, types.Page{})
+	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
+	bizs, _, err := act.storageBusiness.ListBusinesses(tenantUserCtx, types.Page{})
 	if err != nil {
 		return err
 	}
@@ -105,7 +108,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	for idx := range bizs {
 		biz := bizs[idx]
 
-		if err = act.executeOper(ctx, biz); err != nil {
+		if err = act.executeOper(ctx, param.Operator, biz); err != nil {
 			return err
 		}
 	}
@@ -116,6 +119,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 // executeOper create an operation to sync all host from cmdb and then execute it.
 func (act *actionGenOperSyncHost) executeOper(
 	ctx *action.InstanceContext,
+	operator string,
 	biz *types.Business) error {
 
 	trigCtl, err := act.workflowCtl.GetTrigger(ctx.Ctx, ctx.Data.TriggerID)
@@ -131,6 +135,7 @@ func (act *actionGenOperSyncHost) executeOper(
 
 	operationDef := NewOperSyncHostFromCMDB(OperParamSyncHostFromCMDB{
 		TenantID: biz.TenantID,
+		Operator: operator,
 		BizID:    biz.BizID,
 	})
 

@@ -41,6 +41,7 @@ func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, storageHost topo.IStor
 type SyncHostFromCMDBParam struct {
 	BizID    int64  `json:"biz_id"`
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 type actionSyncHostFromCMDB struct {
@@ -93,7 +94,7 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, param.TenantID, param.TenantID)
+	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, param.TenantID, param.Operator)
 
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()

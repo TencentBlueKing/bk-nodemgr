@@ -20,8 +20,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
@@ -45,34 +46,34 @@ type IManager interface {
 	GracefulShutdown() error
 
 	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
-	LaunchSyncBizAndHost(ctx context.Context) (string, error)
+	LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (string, error)
 
 	// LaunchSyncHostByBizID launch a task to sync host by biz-id. returns the trigger-id.
-	LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error)
+	LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID int64) (string, error)
 
 	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
-	LaunchSyncNetworkArea(ctx context.Context) (string, error)
+	LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (string, error)
 
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
-	LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error)
+	LaunchInstallNode(ctx contextx.ITenantUserContext, param InstallNodeParam) (string, error)
 
 	// RetryOperationNode launch a task to retry operation instance
-	RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error)
+	RetryOperationNode(ctx contextx.ITenantUserContext, param RetryOperationNodeParam) ([]string, error)
 
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-	LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error)
+	LaunchUpgradeNode(ctx contextx.ITenantUserContext, param UpgradeNodeParam) (string, error)
 
 	// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-	LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error)
+	LaunchReconfigNode(ctx contextx.ITenantUserContext, param ReconfigNodeParam) (string, error)
 
 	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
-	LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error)
+	LaunchRestartNode(ctx contextx.ITenantUserContext, param RestartNodeParam) (string, error)
 
 	// LaunchSyncAgentState launch a task to sync agent state from gse. returns the workflow-id.
-	LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error)
+	LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error)
 
 	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
-	LaunchSyncAllAgentState(ctx context.Context) (string, error)
+	LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error)
 }
 
 // InstallNodeParam install node param.
@@ -143,6 +144,8 @@ func NewManager(conf Config, logger logger.ILogger) (*Manager, error) {
 	return mgr, nil
 }
 
+var _ IManager = &Manager{}
+
 // Manager provides to operate nodeman tasks.
 type Manager struct {
 	logger logger.ILogger
@@ -156,12 +159,12 @@ type Manager struct {
 	conf Config
 }
 
-// Start starts the Manager.
+// Start starts the manager.
 func (mgr *Manager) Start(ctx context.Context) error {
-	mgr.logger.Info("starting Manager")
+	mgr.logger.Info("starting manager")
 
 	if mgr.isRunning {
-		return errors.New("Manager already started")
+		return errors.New("manager already started")
 	}
 
 	if ctx == nil {
@@ -182,15 +185,15 @@ func (mgr *Manager) Start(ctx context.Context) error {
 
 	mgr.isRunning = true
 
-	mgr.logger.Info("started Manager")
+	mgr.logger.Info("started manager")
 
 	return nil
 }
 
-// CheckHealth checks the health of Manager.
+// CheckHealth checks the health of manager.
 func (mgr *Manager) CheckHealth() error {
 	if !mgr.isRunning {
-		return errors.New("Manager is not running")
+		return errors.New("manager is not running")
 	}
 
 	if err := mgr.conf.StorageTopo.CheckHealthz(); err != nil {
@@ -211,7 +214,7 @@ func (mgr *Manager) CheckHealth() error {
 // GracefulShutdown ...
 func (mgr *Manager) GracefulShutdown() error {
 	if !mgr.isRunning {
-		return errors.New("Manager is not running")
+		return errors.New("manager is not running")
 	}
 
 	if err := mgr.workflowMgr.GracefulShutdown(); err != nil {
@@ -314,25 +317,50 @@ func (mgr *Manager) registerActionDefNodeInstall() error {
 // registerActionDefSchedule registers the action definitions for schedule operations.
 // nolint: lll
 func (mgr *Manager) registerActionDefSchedule() error {
-	return mgr.workflowMgr.RegisterActions(
-		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
-		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
-	)
+	tenantIDs := tenant.GetAllTenantIDs()
+	for _, tenantID := range tenantIDs {
+		err := mgr.workflowMgr.RegisterActions(
+			schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
+				tenantUserCtx := contextx.NewTenantUserContext(
+					ctx,
+					tenantID,
+					access.GetVirtualUser(),
+				)
+
+				return mgr.LaunchSyncBizAndHost(tenantUserCtx)
+			}),
+			schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
+				tenantUserCtx := contextx.NewTenantUserContext(
+					ctx,
+					tenantID,
+					access.GetVirtualUser(),
+				)
+
+				return mgr.LaunchSyncAllAgentState(tenantUserCtx)
+			}),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.
-func (mgr *Manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
+func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.OperParamSyncBizAndHostFromCMDB{TenantID: tenantID})
+	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.OperParamSyncBizAndHostFromCMDB{
+		TenantID: tenantID,
+		Operator: operator,
+	})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -348,18 +376,21 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 	return triggerCtl.GetTriggerID(), nil
 }
 
-func (mgr *Manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
+// LaunchSyncHostByBizID launch a task to sync host.
+func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID int64) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.OperParamSyncHostFromCMDB{TenantID: tenantID, BizID: bizID})
+	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.OperParamSyncHostFromCMDB{
+		TenantID: tenantID,
+		BizID:    bizID,
+		Operator: operator,
+	})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -376,18 +407,19 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (str
 }
 
 // LaunchSyncNetworkArea launch a task to sync networkarea.
-func (mgr *Manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
+func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.OperParamSyncNetworkAreaFromCMDB{TenantID: tenantID})
+	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.OperParamSyncNetworkAreaFromCMDB{
+		TenantID: tenantID,
+		Operator: operator,
+	})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
@@ -404,7 +436,7 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 }
 
 // LaunchInstallNode launch a task to install node.
-func (mgr *Manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
+func (mgr *Manager) LaunchInstallNode(ctx contextx.ITenantUserContext, param InstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
@@ -444,7 +476,7 @@ func (mgr *Manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 }
 
 // RetryOperationNode launch a task to retry operation instance.
-func (mgr *Manager) RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error) {
+func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
 	nodeWorkflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
@@ -576,7 +608,7 @@ func (mgr *Manager) getOperationDefinition(
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-func (mgr *Manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error) {
+func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param UpgradeNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -655,7 +687,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodePara
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-func (mgr *Manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error) {
+func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param ReconfigNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -736,7 +768,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodePa
 }
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
-func (mgr *Manager) LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error) {
+func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param RestartNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -827,15 +859,13 @@ func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
 }
 
 // LaunchSyncAgentState launch a task to sync agent state.
-func (mgr *Manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error) {
+func (mgr *Manager) LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
 		return "", errors.New("hostIDs cannot be empty")
 	}
 
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -862,6 +892,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) 
 	operationDef := syncdata.NewOperSyncAgentStateFromGSE(syncdata.OperParamSyncAgentStateFromGSE{
 		TenantID: tenantID,
 		Hosts:    hostAgentID,
+		Operator: operator,
 	})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
@@ -879,11 +910,9 @@ func (mgr *Manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) 
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
-func (mgr *Manager) LaunchSyncAllAgentState(ctx context.Context) (string, error) {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return "", err
-	}
+func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.LoginName()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -892,6 +921,7 @@ func (mgr *Manager) LaunchSyncAllAgentState(ctx context.Context) (string, error)
 
 	operationDef := syncdata.NewOperSyncAllAgentStateFromGSE(syncdata.OperParamSyncAllAgentStateFromGSE{
 		TenantID: tenantID,
+		Operator: operator,
 	})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {

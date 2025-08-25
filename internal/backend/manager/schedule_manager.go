@@ -18,10 +18,10 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -66,11 +66,11 @@ func (mgr *Manager) startScheduleWorkflow(ctx context.Context) error {
 	}
 
 	scheduleWorkflowMaps := mgr.getScheduleWorkflow()
-	unRegiteredWorkflows := make([]string, 0, len(mgr.getScheduleWorkflow()))
+	unRegisteredWorkflows := make([]string, 0, len(scheduleWorkflowMaps))
 	for workflowName := range scheduleWorkflowMaps {
 		dbSchedule, ok := dbScheduleWorkflowsMap[workflowName]
 		if !ok {
-			unRegiteredWorkflows = append(unRegiteredWorkflows, workflowName)
+			unRegisteredWorkflows = append(unRegisteredWorkflows, workflowName)
 			continue
 		}
 
@@ -90,7 +90,7 @@ func (mgr *Manager) startScheduleWorkflow(ctx context.Context) error {
 		}
 	}
 
-	for _, workflowName := range unRegiteredWorkflows {
+	for _, workflowName := range unRegisteredWorkflows {
 		scheduleFn := scheduleWorkflowMaps[workflowName]
 		if scheduleFn == nil {
 			mgr.logger.Warnf("workflow-name(%s)'s function not found, skip", workflowName)
@@ -131,7 +131,7 @@ func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncCmdbHostWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     system.Name,
+		Operator:     access.GetVirtualUser(),
 		OperateTime:  time.Now(),
 	}
 
@@ -185,7 +185,7 @@ func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncCmdbNetworkAreaWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     system.Name,
+		Operator:     access.GetVirtualUser(),
 		OperateTime:  time.Now(),
 	}
 
@@ -196,7 +196,7 @@ func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 	}
 
 	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(
-		syncdata.OperParamSyncNetworkAreaFromCMDB{TenantID: tenantID})
+		syncdata.OperParamSyncNetworkAreaFromCMDB{TenantID: tenantID, Operator: access.GetVirtualUser()})
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		mgr.logger.Errorf("create operation for schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
@@ -239,7 +239,7 @@ func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error 
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: SyncGseAgentStateWorkflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
-		Operator:     system.Name,
+		Operator:     access.GetVirtualUser(),
 		OperateTime:  time.Now(),
 	}
 
