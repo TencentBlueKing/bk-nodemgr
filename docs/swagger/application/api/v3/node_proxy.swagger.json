@@ -211,27 +211,7 @@
         }
       }
     },
-    "v3NodeProxyInstallReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyInstallReqHost"
-          }
-        },
-        "target_version": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3TargetVersion"
-          }
-        }
-      },
-      "description": "NodeProxyInstallReq describes the node proxy install request."
-    },
-    "v3NodeProxyInstallReqHost": {
+    "v3NodeProxyInstallHost": {
       "type": "object",
       "properties": {
         "bk_biz_id": {
@@ -293,7 +273,28 @@
             "type": "string"
           }
         }
-      }
+      },
+      "description": "NodeProxyInstallHost describes the node proxy install host."
+    },
+    "v3NodeProxyInstallReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyInstallHost"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          }
+        }
+      },
+      "description": "NodeProxyInstallReq describes the node proxy install request."
     },
     "v3NodeProxyInstallResp": {
       "type": "object",

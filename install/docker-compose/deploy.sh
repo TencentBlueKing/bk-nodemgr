@@ -71,6 +71,12 @@ function generate() {
     # try to generate docker compose yml.
     bash $GENERATE_TOOL -e $ENV_FILE -t $DOCKER_COMPOSE_TEMPLATE_PATH/$DOCKER_COMPOSE_TEMPLATE_SYNC_FILE > $DOCKER_COMPOSE_SYNC_FILE
     echo "Successfully generated docker-compose file to $DOCKER_COMPOSE_SYNC_FILE"
+
+    # generate mongo keyfile.
+    if [ ! -f "./mongo_keyfile" ]; then
+        openssl rand -base64 756 > mongo_keyfile
+        echo "Successfully generated mongo keyfile to mongo_keyfile"
+    fi
 }
 
 function install() {
