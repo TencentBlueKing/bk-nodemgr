@@ -116,7 +116,7 @@ type RetryOperationNodeParam struct {
 }
 
 // NewManager creates a new manager.
-func NewManager(conf Config, logger logger.Logger) (Manager, error) {
+func NewManager(conf Config, logger logger.ILogger) (Manager, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func NewManager(conf Config, logger logger.Logger) (Manager, error) {
 
 // manager provides to operate nodeman tasks.
 type manager struct {
-	logger logger.Logger
+	logger logger.ILogger
 
 	// state
 	isRunning bool

@@ -28,7 +28,7 @@ type PollingOpts struct {
 	Interval time.Duration
 
 	// Logger ...
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // Polling the polling retryer.

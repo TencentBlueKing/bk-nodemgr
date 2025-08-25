@@ -53,7 +53,7 @@ type ServerMessagerConfig struct {
 	RedisClient *redis.Client
 
 	// Logger is the logger.
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // NewServerMessager creates a new server messager.

@@ -23,7 +23,7 @@ import (
 // handler ...
 type handler struct {
 	rg      *gin.RouterGroup
-	logger  logger.Logger
+	logger  logger.ILogger
 	crypter crypter.Crypter
 	nodedeployment.IStorageNodeDeployment
 	operinstdata.IDomainNodeInstall

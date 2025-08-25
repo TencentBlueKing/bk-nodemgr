@@ -23,7 +23,7 @@ import (
 // handler ...
 type handler struct {
 	rg     *gin.RouterGroup
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // newHandler ...

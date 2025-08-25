@@ -17,10 +17,10 @@ import (
 )
 
 type loggerAdaptor struct {
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
-func newLoggerAdaptor(l logger.Logger) logging.LoggerInterface {
+func newLoggerAdaptor(l logger.ILogger) logging.LoggerInterface {
 	return &loggerAdaptor{
 		Logger: l,
 	}

@@ -96,7 +96,7 @@ type scheduler struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	cron   *cron.Cron
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // scheduledTask ...
@@ -110,7 +110,7 @@ type scheduledTask struct {
 type OptionFn func(*scheduler)
 
 // WithLogger this func will set the logger of the scheduler.
-func WithLogger(logger logger.Logger) OptionFn {
+func WithLogger(logger logger.ILogger) OptionFn {
 	return func(s *scheduler) {
 		s.logger = logger
 	}

@@ -37,7 +37,7 @@ type Capability struct {
 	DiscoverProvider discover.Provider
 
 	// Logger logger
-	Logger logger.Logger
+	Logger logger.ILogger
 
 	// FrontSetting front setting
 	FrontSetting frontsetting.IFrontSetting

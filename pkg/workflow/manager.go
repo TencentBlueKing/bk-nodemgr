@@ -142,7 +142,7 @@ func WithLocker(lock locker.MutexFactory) OptionsFunc {
 }
 
 // WithLogger sets the logger for the manager.
-func WithLogger(logger logger.Logger) OptionsFunc {
+func WithLogger(logger logger.ILogger) OptionsFunc {
 	return func(mgr *manager) {
 		mgr.logger = logger
 	}
@@ -176,7 +176,7 @@ type manager struct {
 	stgOperationInstance IStorageOperationInstance
 	stgActionInstance    IStorageActionInstance
 
-	logger logger.Logger
+	logger logger.ILogger
 
 	globalLocker locker.MutexFactory
 

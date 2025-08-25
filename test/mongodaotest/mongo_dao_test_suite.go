@@ -27,8 +27,8 @@ type TestSuite[P base.Pointer[T], T any] struct {
 	baseOrm   base.IOrm[P, T]
 	TestDatas []P
 	Dao       base.Dao
-	logger    logger.Logger
-	initFn    func(client *mongo.Database, logger logger.Logger)
+	logger    logger.ILogger
+	initFn    func(client *mongo.Database, logger logger.ILogger)
 }
 
 // SetupSuite Initialize resources before all tests begin.
@@ -64,8 +64,8 @@ func (suit *TestSuite[P, T]) SetupTest() {
 
 // NewMongoDaoTestSuite creates a new MongoDaoTestSuite instance.
 func NewMongoDaoTestSuite[P base.Pointer[T], T any](
-	logger logger.Logger,
-	initFn func(client *mongo.Database, logger logger.Logger),
+	logger logger.ILogger,
+	initFn func(client *mongo.Database, logger logger.ILogger),
 ) TestSuite[P, T] {
 
 	return TestSuite[P, T]{

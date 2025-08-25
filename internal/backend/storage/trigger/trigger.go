@@ -27,7 +27,7 @@ import (
 const StorageName = "trigger"
 
 // NewStorage creates a new trigger storage.
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (IStorage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (IStorage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}

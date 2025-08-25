@@ -37,7 +37,7 @@ func NewActionBindAgentHostRel(
 	bindHostAgent cmdb.IBindHostAgent,
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionBindAgentHostRel{
 		IBindHostAgent:        bindHostAgent,
@@ -57,7 +57,7 @@ type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

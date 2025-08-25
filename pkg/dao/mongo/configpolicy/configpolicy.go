@@ -21,7 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		tenantID:  tenantID,
@@ -40,7 +40,7 @@ type dao struct {
 	tenantID  string
 	tableName string
 	client    *mongo.Collection
-	logger    logger.Logger
+	logger    logger.ILogger
 	counter   counter.Handler
 
 	base.IOrm[*ConfigPolicy, ConfigPolicy]
@@ -52,7 +52,7 @@ func (d *dao) GetClient() *mongo.Collection {
 }
 
 // GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.Logger {
+func (d *dao) GetLogger() logger.ILogger {
 	return d.logger
 }
 

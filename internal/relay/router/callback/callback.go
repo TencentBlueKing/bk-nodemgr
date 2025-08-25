@@ -30,7 +30,7 @@ const (
 type handler struct {
 	rg     *gin.RouterGroup
 	client relayhandler.ICallbackClient
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 func (h *handler) request(gCtx *gin.Context) {

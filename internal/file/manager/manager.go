@@ -118,7 +118,7 @@ func New(opts ...OptionFn) *Manager {
 type OptionFn func(manager *Manager)
 
 // WithLogger sets the logger.
-func WithLogger(logger logger.Logger) OptionFn {
+func WithLogger(logger logger.ILogger) OptionFn {
 	return func(manager *Manager) {
 		manager.logger = logger
 	}
@@ -290,7 +290,7 @@ type Manager struct {
 	storageTopo    topo.IStorage
 
 	// logger.
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // Start starts the manager.

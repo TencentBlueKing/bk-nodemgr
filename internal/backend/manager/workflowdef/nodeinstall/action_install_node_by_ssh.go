@@ -39,7 +39,7 @@ const (
 // NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(
 	installerFileGroup fileiface.FileGroup,
-	logger logger.Logger,
+	logger logger.ILogger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	provider discover.Provider,
 	storageHostCredit credit.IStorageHostCredit,
@@ -78,7 +78,7 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	logger logger.Logger
+	logger logger.ILogger
 
 	installerGroup fileiface.FileGroup
 

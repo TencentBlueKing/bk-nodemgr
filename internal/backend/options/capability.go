@@ -86,7 +86,7 @@ type Capability struct {
 	FileHandler file.IHandler
 
 	// Logger logger
-	Logger logger.Logger
+	Logger logger.ILogger
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

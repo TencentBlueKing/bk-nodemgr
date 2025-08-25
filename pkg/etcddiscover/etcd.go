@@ -41,7 +41,7 @@ const (
 // ProviderEtcd implements discover.Provider.
 type ProviderEtcd struct {
 	config *config.Etcd
-	logger logger.Logger
+	logger logger.ILogger
 
 	etcdClient     *clientv3.Client
 	discoverPrefix string
@@ -89,7 +89,7 @@ func WithWatch(services ...discover.ServiceName) OptionFn {
 }
 
 // WithLogger sets the logger.
-func WithLogger(logger logger.Logger) OptionFn {
+func WithLogger(logger logger.ILogger) OptionFn {
 	return func(provider *ProviderEtcd) {
 		provider.logger = logger
 	}

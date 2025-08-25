@@ -22,7 +22,7 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
+func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 	return &dao{client: client.Collection(TableName), logger: logger}
 }
 
@@ -37,7 +37,7 @@ func buildTTLIndexModel() mongo.IndexModel {
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // upsert updates or inserts an operation instance data.

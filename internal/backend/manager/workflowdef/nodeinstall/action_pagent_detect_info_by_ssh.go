@@ -44,7 +44,7 @@ const (
 
 // NewActionPagentDetectInfoBySSH get a new action.
 func NewActionPagentDetectInfoBySSH(
-	logger logger.Logger,
+	logger logger.ILogger,
 
 	storageActionInstance workflow.IStorageActionInstance,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
@@ -76,7 +76,7 @@ type ActParamPagentDetectInfoBySSH struct {
 }
 
 type actionPagentDetectInfoBySSH struct {
-	logger logger.Logger
+	logger logger.ILogger
 
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance

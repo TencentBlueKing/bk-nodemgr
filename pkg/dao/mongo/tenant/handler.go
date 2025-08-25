@@ -30,7 +30,7 @@ type handler struct {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.ILogger) Handler {
 	return &handler{
 		dao: newDao(client, logger),
 	}

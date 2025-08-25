@@ -46,7 +46,7 @@ type fileManagerImpl struct {
 
 	dirSequence atomic.Int64
 
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 type cacheInfo struct {
@@ -72,7 +72,7 @@ func (info *cacheInfo) isExpired(cutoffTime time.Time) bool {
 }
 
 // NewFileManager creates a new file manager.
-func NewFileManager(ctx context.Context, baseDir string, logger logger.Logger) IFileManager {
+func NewFileManager(ctx context.Context, baseDir string, logger logger.ILogger) IFileManager {
 	if err := os.MkdirAll(baseDir, 0750); err != nil { // nolint: mnd
 		logger.Errorf("failed to create base dir.basedir(%s): %v", baseDir, err)
 	}

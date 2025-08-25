@@ -29,7 +29,7 @@ type Dao interface {
 	GetClient() *mongo.Collection
 
 	// GetLogger get the logger.
-	GetLogger() logger.Logger
+	GetLogger() logger.ILogger
 
 	// GetTableName get the table name.
 	GetTableName() string

@@ -22,7 +22,7 @@ import (
 type handler struct {
 	rg      *gin.RouterGroup
 	manager manager.IManager
-	logger  logger.Logger
+	logger  logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {

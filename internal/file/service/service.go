@@ -366,7 +366,7 @@ func initManager(conf *config.FileService,
 	storageRelease storageRelease.IStorage,
 	storageTopo storageTopo.IStorage,
 	gseHandler gse.IHandler,
-	logger logger.Logger) (manager.IManager, error) {
+	logger logger.ILogger) (manager.IManager, error) {
 
 	// init upstream origin file groups from bkrepo.
 	upstreamOriginAgentFG, err := repo.EnsureFileGroup(context.Background(), "origin/agent")
@@ -441,7 +441,7 @@ func initManager(conf *config.FileService,
 	), nil
 }
 
-func initBKRepo(conf *config.FileService, logger logger.Logger) (bkrepo.IHandler, error) {
+func initBKRepo(conf *config.FileService, logger logger.ILogger) (bkrepo.IHandler, error) {
 	// init repo
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: true,

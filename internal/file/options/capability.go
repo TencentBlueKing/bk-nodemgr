@@ -27,7 +27,7 @@ import (
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// Logger logger
-	Logger logger.Logger
+	Logger logger.ILogger
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider

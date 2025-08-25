@@ -47,7 +47,7 @@ type ClientMessagerConfig struct {
 	LocalSocketPort int `json:"local_socket_port"`
 
 	// Logger is the logger.
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // NewClientMessager creates a new client messager.

@@ -43,7 +43,7 @@ type Storage struct {
 
 	Database  *mongo.Database
 	Scheduler scheduler.Scheduler
-	Logger    logger.Logger
+	Logger    logger.ILogger
 
 	startFunc     func() error
 	checkFunc     func() error

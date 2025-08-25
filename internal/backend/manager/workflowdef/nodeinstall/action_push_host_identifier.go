@@ -33,7 +33,7 @@ const (
 func NewActionPushHostIdentifier(
 	cmdbClient cmdb.IHandler,
 	storage nodedeployment.IStorage,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionPushHostIdentifier{
@@ -53,7 +53,7 @@ type ActParamPushHostIdentifier struct {
 type actionPushHostIdentifier struct {
 	cmdbClient cmdb.IHandler
 	storage    nodedeployment.IStorage
-	logger     logger.Logger
+	logger     logger.ILogger
 }
 
 // Name returns the name of the action.

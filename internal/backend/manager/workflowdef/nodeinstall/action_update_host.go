@@ -31,7 +31,7 @@ const (
 func NewActionUpdateHost(
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionUpdateHost{
@@ -50,7 +50,7 @@ type ActParamUpdateHost struct {
 type actionUpdateHost struct {
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

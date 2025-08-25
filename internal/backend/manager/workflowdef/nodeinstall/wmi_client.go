@@ -24,7 +24,7 @@ import (
 func generateWMIClient(
 	ctx context.Context,
 	operator string,
-	logger logger.Logger,
+	logger logger.ILogger,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo,

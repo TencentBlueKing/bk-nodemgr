@@ -44,7 +44,7 @@ type Config struct {
 	CmdbHandler cmdb.IHandler
 	StorageTopo topoStg.IStorage
 	Cache       cache.ICache
-	Logger      logger.Logger
+	Logger      logger.ILogger
 }
 
 // Watcher defines a watcher manager.

@@ -31,7 +31,7 @@ type handler struct {
 	storageHostCredit               credit.IStorageHostCredit
 	storageHost                     topo.IStorageHost
 
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // newHandler ...

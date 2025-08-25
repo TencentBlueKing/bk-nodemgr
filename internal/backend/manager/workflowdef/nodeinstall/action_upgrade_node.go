@@ -42,7 +42,7 @@ const (
 func NewActionUpgradeNode(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger,
+	logger logger.ILogger,
 	provider discover.Provider) action.Definition {
 
 	return &actionUpgradeNode{
@@ -78,7 +78,7 @@ type UpgradeParams struct {
 type actionUpgradeNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.Logger
+	logger                logger.ILogger
 	provider              discover.Provider
 }
 

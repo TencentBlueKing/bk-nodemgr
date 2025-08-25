@@ -32,7 +32,7 @@ const (
 func NewActionSyncNodeInfo(
 	gseClient gse.IHandler,
 	storage nodedeployment.IStorage,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionSyncNodeInfo{
@@ -50,7 +50,7 @@ type ActParamSyncNodeInfo struct {
 type actionSyncNodeInfo struct {
 	gseClient gse.IHandler
 	storage   nodedeployment.IStorage
-	logger    logger.Logger
+	logger    logger.ILogger
 }
 
 // Name returns the name of the action.

@@ -24,12 +24,12 @@ type IHandler interface {
 
 // handler implements the IHandler interface.
 type handler struct {
-	logger logger.Logger
+	logger logger.ILogger
 	dao    *dao
 }
 
 // New create a new handler.
-func New(client *mongo.Database, logger logger.Logger) IHandler {
+func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	return &handler{
 		logger: logger,
 		dao:    newDao(client, logger),

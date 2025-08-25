@@ -87,7 +87,7 @@ type Config struct {
 	Password   string
 	AuthMethod AuthMethod
 	PrivateKey []byte
-	Logger     logger.Logger
+	Logger     logger.ILogger
 }
 
 // Validate validate the config.
@@ -220,7 +220,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 // Client this is a ssh client.
 type Client struct {
 	sshClient *ssh.Client
-	logger    logger.Logger
+	logger    logger.ILogger
 }
 
 // RunCommand run command.

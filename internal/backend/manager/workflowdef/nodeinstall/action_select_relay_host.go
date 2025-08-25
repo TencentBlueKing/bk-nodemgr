@@ -33,7 +33,7 @@ const (
 func NewActionSelectRelayHost(
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionSelectRelayHost{
@@ -52,7 +52,7 @@ type ActParamSelectRelayHost struct {
 type actionSelectRelayHost struct {
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

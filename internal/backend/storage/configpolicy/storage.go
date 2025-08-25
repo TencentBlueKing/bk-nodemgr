@@ -64,7 +64,7 @@ type IStorage interface {
 const StorageName = "configpolicy"
 
 // NewStorage creates a new release storage.
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}

@@ -43,14 +43,14 @@ type IHandler interface {
 // Handler is the handler of bkrepo.
 type Handler struct {
 	cli    *cli
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // OptionFn ...
 type OptionFn func(*Handler)
 
 // WithLogger this func will set the logger of the Handler.
-func WithLogger(logger logger.Logger) OptionFn {
+func WithLogger(logger logger.ILogger) OptionFn {
 	return func(s *Handler) {
 		s.logger = logger
 	}

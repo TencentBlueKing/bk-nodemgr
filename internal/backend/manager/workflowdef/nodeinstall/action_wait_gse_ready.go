@@ -33,7 +33,7 @@ const (
 func NewActionWaitGseReady(
 	gseClient gse.IHandler,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionWaitGseReady{
@@ -51,7 +51,7 @@ type ActParamWaitGseReady struct {
 type actionWaitGseReady struct {
 	gseClient             gse.IHandler
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

@@ -34,7 +34,7 @@ type IHandler interface {
 // Handler credit Handler.
 type Handler struct {
 	client *mongo.Database
-	logger logger.Logger
+	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -59,7 +59,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new credit Handler.
-func New(client *mongo.Database, logger logger.Logger) IHandler {
+func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	return &Handler{
 		client: client,
 		logger: logger,

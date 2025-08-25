@@ -46,7 +46,7 @@ func NewActionRenderNodeDeployment(
 	storageDomainGse topo.IStorageDomainGse,
 	storageRelease release.IStorage,
 	storageConfigPolicy configpolicy.IStorage,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionRenderNodeDeployment{
 		storageNodeDeployment: storageNodeDeployment,
@@ -70,7 +70,7 @@ type actionRenderNodeDeployment struct {
 	storageRelease        release.IStorage
 	storageConfigPolicy   configpolicy.IStorage
 
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // Name returns the name of the action.

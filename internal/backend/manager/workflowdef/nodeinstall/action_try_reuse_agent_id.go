@@ -33,7 +33,7 @@ const (
 func NewActionTryReuseAgentID(
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &TryReuseAgentID{
@@ -50,7 +50,7 @@ type ActParamTryReuseAgentID struct {
 
 // TryReuseAgentID ...
 type TryReuseAgentID struct {
-	logger                logger.Logger
+	logger                logger.ILogger
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 }

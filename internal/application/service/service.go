@@ -295,7 +295,7 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 }
 
 // newBKLoginHandler creates a new bklogin handler.
-func newBKLoginHandler(conf config.BKLogin, logger logger.Logger) (bksaasbklogin.IHandler, error) {
+func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogin.IHandler, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,

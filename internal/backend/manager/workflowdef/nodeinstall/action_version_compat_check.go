@@ -32,7 +32,7 @@ const (
 
 // NewActionVersionCompatCheck get a new action.
 func NewActionVersionCompatCheck(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionVersionCompatCheck{
 		storageNodeDeployment: storageNodeDeployment,
@@ -49,7 +49,7 @@ type ActionParamVersionCompatCheck struct {
 
 type actionVersionCompatCheck struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
-	logger                logger.Logger
+	logger                logger.ILogger
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
 }

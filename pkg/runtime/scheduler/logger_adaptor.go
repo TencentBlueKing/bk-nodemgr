@@ -19,9 +19,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-// LoggerAdapter adapts a logger.Logger to the cron.Logger interface.
+// LoggerAdapter adapts a logger.ILogger to the cron.Logger interface.
 type LoggerAdapter struct {
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // Info logs an informational message with additional context.

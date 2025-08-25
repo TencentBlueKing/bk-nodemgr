@@ -38,7 +38,7 @@ const (
 // NewActionRestartNode get a new action.
 func NewActionRestartNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionRestartNode{
 		storageNodeDeployment: storageNodeDeployment,
@@ -67,7 +67,7 @@ type RestartParams struct {
 type actionRestartNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

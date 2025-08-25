@@ -26,7 +26,7 @@ import (
 const StorageName = "nodedeployment"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.Logger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}

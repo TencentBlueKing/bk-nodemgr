@@ -39,7 +39,7 @@ const (
 // NewActionCleanInstaller get a new action.
 func NewActionCleanInstaller(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionCleanInstaller{
 		storageNodeDeployment: storageNodeDeployment,
@@ -68,7 +68,7 @@ type CleanParams struct {
 type actionCleanInstaller struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

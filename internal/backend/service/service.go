@@ -530,7 +530,7 @@ func withProxy(capability *options.Capability) restserver.OptionFunc {
 }
 
 // newCMDBHandler.
-func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, error) {
+func newCMDBHandler(conf config.CMDB, logger logger.ILogger) (cmdb.IHandler, error) {
 	apiGWAPPConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
 	if err != nil {
@@ -549,7 +549,7 @@ func newCMDBHandler(conf config.CMDB, logger logger.Logger) (cmdb.IHandler, erro
 	return cmdbHandler, nil
 }
 
-func newCreditVault(conf config.CreditVault, logger logger.Logger) (creditvault.ICreditVault, error) {
+func newCreditVault(conf config.CreditVault, logger logger.ILogger) (creditvault.ICreditVault, error) {
 	hostPasswordVault, err := newHostPasswordVault(conf.HostCreditVault, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new credit password vault: %w", err)
@@ -571,7 +571,7 @@ func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigwserver.BKGWJWTAut
 	return authIdentity, nil
 }
 
-func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (creditvault.IHostPasswordVault, error) {
+func newHostPasswordVault(conf config.HostCreditVault, logger logger.ILogger) (creditvault.IHostPasswordVault, error) {
 	if !conf.Enable {
 		return &creditvault.DisabledHostPasswordVault{}, nil
 	}
@@ -590,7 +590,7 @@ func newHostPasswordVault(conf config.HostCreditVault, logger logger.Logger) (cr
 	}
 }
 
-func newIEGTJJHandler(conf config.IEGTJJ, logger logger.Logger) (iegtjj.IHandler, error) {
+func newIEGTJJHandler(conf config.IEGTJJ, logger logger.ILogger) (iegtjj.IHandler, error) {
 	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
 	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.UserConfig
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)

@@ -22,8 +22,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 )
 
-// Logger is the logger interface.
-type Logger interface {
+// ILogger is the logger interface.
+type ILogger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 	Debugw(args ...interface{})

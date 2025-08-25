@@ -30,7 +30,7 @@ import (
 type handler struct {
 	rg          *gin.RouterGroup
 	fileManager file.IFileManager
-	logger      logger.Logger
+	logger      logger.ILogger
 }
 
 // Agent download agent package.

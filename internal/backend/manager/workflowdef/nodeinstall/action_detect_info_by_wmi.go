@@ -38,7 +38,7 @@ const (
 
 // NewActionDetectInfoByWMI get a new action.
 func NewActionDetectInfoByWMI(
-	logger logger.Logger,
+	logger logger.ILogger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
@@ -61,7 +61,7 @@ type ActParamDetectInfoByWMI struct {
 }
 
 type actionDetectInfoByWMI struct {
-	logger                logger.Logger
+	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageRelease        release.IStorage

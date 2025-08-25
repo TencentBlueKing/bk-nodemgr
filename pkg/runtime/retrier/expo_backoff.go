@@ -36,7 +36,7 @@ type ExpoBackoffOpts struct {
 	JitterPercent float64
 
 	// Logger ...
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // ExpoBackoffOptsDefault default retry options.

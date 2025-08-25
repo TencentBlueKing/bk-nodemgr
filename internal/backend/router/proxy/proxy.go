@@ -38,7 +38,7 @@ type handler struct {
 	rg             *gin.RouterGroup
 	provider       discover.Provider
 	proxyMessanger relayhandler.IServerMessager
-	logger         logger.Logger
+	logger         logger.ILogger
 }
 
 // newHandler ...

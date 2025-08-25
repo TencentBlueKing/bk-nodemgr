@@ -32,7 +32,7 @@ func testDirPath(t *testing.T) string {
 func TestNewLocalDir(t *testing.T) {
 	type args struct {
 		fullPath string
-		logger   logger.Logger
+		logger   logger.ILogger
 	}
 	tests := []struct {
 		name    string

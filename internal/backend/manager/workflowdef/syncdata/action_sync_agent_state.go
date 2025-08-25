@@ -29,7 +29,7 @@ const (
 
 // NewActionSyncAgentState creates a new syncAgentState.
 func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topo.IStorageHost,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionSyncAgentState{
 		gseHandler: gseHandler,
@@ -53,7 +53,7 @@ type HostIDAgentID struct {
 type actionSyncAgentState struct {
 	gseHandler gse.IHandler
 	topoStg    topo.IStorageHost
-	logger     logger.Logger
+	logger     logger.ILogger
 }
 
 // Name returns the name of the action.

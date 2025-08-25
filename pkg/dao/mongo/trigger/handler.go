@@ -41,12 +41,12 @@ type IHandler interface {
 }
 
 type handler struct {
-	logger logger.Logger
+	logger logger.ILogger
 	dao    *dao
 }
 
 // New create a new trigger handler.
-func New(client *mongo.Database, logger logger.Logger) IHandler {
+func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	h := &handler{
 		logger: logger,
 		dao:    newDao(client, logger),

@@ -46,12 +46,12 @@ type handler struct {
 	fileSvcIP   string
 	fileSvcPort int
 
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // NewClientHandler creates a new file handler.
 func NewClientHandler(fm file.IFileManager, client relayhandler.IClientMessager,
-	logger logger.Logger, storageTmpDir string,
+	logger logger.ILogger, storageTmpDir string,
 	callbackSvcIP string, callbackSvcPort int, fileSvcIP string, fileSvcPort int) IHandler {
 
 	return &handler{

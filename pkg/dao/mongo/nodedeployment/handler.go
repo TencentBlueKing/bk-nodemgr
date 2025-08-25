@@ -33,11 +33,11 @@ type IHandler interface {
 // Handler this is a Handler to operate node deployment table.
 type Handler struct {
 	dao    *dao
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // New new a Handler.
-func New(client *mongo.Database, logger logger.Logger) *Handler {
+func New(client *mongo.Database, logger logger.ILogger) *Handler {
 	h := &Handler{
 		dao:    newDao(client, logger),
 		logger: logger,

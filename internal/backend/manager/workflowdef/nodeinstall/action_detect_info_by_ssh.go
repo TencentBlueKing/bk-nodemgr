@@ -37,7 +37,7 @@ const (
 
 // NewActionDetectInfoBySSH get a new action.
 func NewActionDetectInfoBySSH(
-	logger logger.Logger,
+	logger logger.ILogger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
@@ -60,7 +60,7 @@ type ActParamDetectInfoBySSH struct {
 }
 
 type actionDetectInfoBySSH struct {
-	logger                logger.Logger
+	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	storageRelease        release.IStorage

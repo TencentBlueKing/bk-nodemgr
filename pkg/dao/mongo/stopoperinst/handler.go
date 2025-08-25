@@ -35,11 +35,11 @@ type Handler interface {
 
 type handler struct {
 	dao    *dao
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.ILogger) Handler {
 	return &handler{
 		dao:    newDao(client, logger),
 		logger: logger,

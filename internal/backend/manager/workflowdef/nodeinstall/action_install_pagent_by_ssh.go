@@ -46,7 +46,7 @@ func NewActionInstallPagentBySSH(
 	storageHostCredit credit.IStorageHostCredit,
 	storageActionInstance workflow.IStorageActionInstance,
 	passwordVault creditvault.IHostPasswordVault,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionInstallPagentBySSH{
@@ -82,7 +82,7 @@ type pagentInstallParams struct {
 }
 
 type actionInstallPagentBySSH struct {
-	logger logger.Logger
+	logger logger.ILogger
 
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment

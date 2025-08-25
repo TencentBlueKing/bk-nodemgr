@@ -103,7 +103,7 @@ type ICallbackServer interface {
 }
 
 type loggerAdaptor struct {
-	Logger logger.Logger
+	Logger logger.ILogger
 }
 
 // Debug logs to DEBUG log.

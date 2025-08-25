@@ -24,7 +24,7 @@ import (
 type handler struct {
 	rg                  *gin.RouterGroup
 	storageNodeWorkflow nodeworkflow.IStorage
-	logger              logger.Logger
+	logger              logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {

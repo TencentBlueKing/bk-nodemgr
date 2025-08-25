@@ -20,7 +20,7 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao {
+func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
@@ -36,7 +36,7 @@ func newDao(tenantID string, client *mongo.Database, logger logger.Logger) *dao 
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.Logger
+	logger    logger.ILogger
 	base.IOrm[*Credit, Credit]
 }
 
@@ -46,7 +46,7 @@ func (d *dao) GetClient() *mongo.Collection {
 }
 
 // GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.Logger {
+func (d *dao) GetLogger() logger.ILogger {
 	return d.logger
 }
 

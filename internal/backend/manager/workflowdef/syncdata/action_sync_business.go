@@ -33,7 +33,7 @@ const (
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
 func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topo.IStorageBusiness,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionSyncBusinessFromCMDB{
 		cmdbHandler:     cmdbHandler,
@@ -51,7 +51,7 @@ type SyncBizFromCMDBParam struct {
 type actionSyncBusinessFromCMDB struct {
 	cmdbHandler     cmdb.IHandler
 	storageBusiness topo.IStorageBusiness
-	logger          logger.Logger
+	logger          logger.ILogger
 }
 
 // Name returns the name of the action.

@@ -41,7 +41,7 @@ type Config struct {
 	Password   string
 	AuthMethod AuthMethod
 	Timeout    time.Duration
-	Logger     logger.Logger
+	Logger     logger.ILogger
 }
 
 const (
@@ -140,7 +140,7 @@ type Client struct {
 	target  string
 	envs    []string
 	timeout time.Duration
-	logger  logger.Logger
+	logger  logger.ILogger
 }
 
 // NewClient creates a Client instance.

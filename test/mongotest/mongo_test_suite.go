@@ -81,7 +81,7 @@ func DefaultConfig() *Config {
 }
 
 type loggerAdapter struct {
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // Printf implements the Logging interface.

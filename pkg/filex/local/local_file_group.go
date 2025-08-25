@@ -28,7 +28,7 @@ import (
 const defaultBufferSize = 32 * 1024 // 32KB usually has better performance.
 
 // NewLocalDir creates a new LocalDir.
-func NewLocalDir(fullPath string, logger logger.Logger) (*LocalDir, error) {
+func NewLocalDir(fullPath string, logger logger.ILogger) (*LocalDir, error) {
 	exists, err := afero.Exists(rFs(), fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if file exists, err: %w", err)
@@ -64,7 +64,7 @@ type LocalDir struct {
 	name     string
 	fullPath string
 	absDirs  []string
-	logger   logger.Logger
+	logger   logger.ILogger
 }
 
 // Name the name of file group.

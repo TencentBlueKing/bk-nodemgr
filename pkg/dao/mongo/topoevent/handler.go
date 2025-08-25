@@ -57,7 +57,7 @@ type IDistinctor interface {
 
 type handler struct {
 	client *mongo.Database
-	logger logger.Logger
+	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -81,7 +81,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new topo event handler.
-func New(client *mongo.Database, logger logger.Logger) IHandler {
+func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	return &handler{
 		client: client,
 		logger: logger,

@@ -28,7 +28,7 @@ const (
 type handler struct {
 	rg      *gin.RouterGroup
 	storage configpolicy.IStorage
-	logger  logger.Logger
+	logger  logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {

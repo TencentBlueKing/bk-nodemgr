@@ -25,7 +25,7 @@ func generateSSHClient(
 	ip string, port int, user string,
 	password string,
 	loginMode types.LoginMode,
-	logger logger.Logger,
+	logger logger.ILogger,
 ) (*sshx.Client, error) {
 
 	sshConf := &sshx.Config{

@@ -20,7 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database, logger logger.Logger) *dao {
+func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 	d := &dao{
 		client: client.Collection(TableName()),
 		logger: logger,
@@ -33,7 +33,7 @@ func newDao(client *mongo.Database, logger logger.Logger) *dao {
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.Logger
+	logger logger.ILogger
 	base.IOrm[*NetworkArea, NetworkArea]
 }
 
@@ -43,7 +43,7 @@ func (d *dao) GetClient() *mongo.Collection {
 }
 
 // GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.Logger {
+func (d *dao) GetLogger() logger.ILogger {
 	return d.logger
 }
 

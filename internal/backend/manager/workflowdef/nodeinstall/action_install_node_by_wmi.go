@@ -42,7 +42,7 @@ const (
 // NewActionInstallNodeByWMI get a new action.
 func NewActionInstallNodeByWMI(
 	installerFileGroup fileiface.FileGroup,
-	logger logger.Logger,
+	logger logger.ILogger,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	provider discover.Provider,
 	storageHostCredit credit.IStorageHostCredit,
@@ -82,7 +82,7 @@ type InstallParamsWin struct {
 
 type actionInstallNodeByWMI struct {
 	installerGroup        fileiface.FileGroup
-	logger                logger.Logger
+	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	provider              discover.Provider

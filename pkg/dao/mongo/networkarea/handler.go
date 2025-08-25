@@ -45,11 +45,11 @@ type IHandler interface {
 
 type handler struct {
 	dao    *dao
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // New create a new networkarea handler.
-func New(client *mongo.Database, logger logger.Logger) IHandler {
+func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	h := &handler{
 		dao:    newDao(client, logger),
 		logger: logger,

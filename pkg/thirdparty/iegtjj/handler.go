@@ -48,7 +48,7 @@ func (conf Config) Validate() error {
 // Handler get vault and cli.
 type Handler struct {
 	cli       *cli
-	logger    logger.Logger
+	logger    logger.ILogger
 	conf      *Config
 	decryptor *DevicePasswdDecryptor
 }
@@ -57,7 +57,7 @@ type Handler struct {
 type OptionFn func(*Handler)
 
 // WithLogger this func will set the logger of the Handler.
-func WithLogger(logger logger.Logger) OptionFn {
+func WithLogger(logger logger.ILogger) OptionFn {
 	return func(s *Handler) {
 		s.logger = logger
 	}

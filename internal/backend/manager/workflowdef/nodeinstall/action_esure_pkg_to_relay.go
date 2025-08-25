@@ -54,7 +54,7 @@ func NewActionEnsurePkgToRelay(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	fileHandler file.IHandler,
 	proxyMessager relayhandler.IServerMessager,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionEnsurePkgToRelay{
 		installerFileGroup: installerFileGroup,
@@ -86,7 +86,7 @@ type actionEnsurePkgToRelay struct {
 	storageActionInstance workflow.IStorageActionInstance
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 
-	logger logger.Logger
+	logger logger.ILogger
 }
 
 // Name returns the name of the action.

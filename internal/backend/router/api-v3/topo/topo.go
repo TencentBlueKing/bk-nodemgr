@@ -26,7 +26,7 @@ type handler struct {
 	manager     manager.Manager
 	storage     topoStg.IStorage
 	cmdbHandler cmdb.IHandler
-	logger      logger.Logger
+	logger      logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {

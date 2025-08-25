@@ -41,7 +41,7 @@ const (
 // NewActionReconfigNode get a new action.
 func NewActionReconfigNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.Logger,
+	logger logger.ILogger,
 	provider discover.Provider) action.Definition {
 
 	return &actionReconfigNode{
@@ -75,7 +75,7 @@ type ReconfigParams struct {
 type actionReconfigNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.Logger
+	logger                logger.ILogger
 	provider              discover.Provider
 }
 

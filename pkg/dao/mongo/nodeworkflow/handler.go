@@ -66,7 +66,7 @@ type IDistinctor interface {
 // handler this is a handler to operate node workflow table.
 type handler struct {
 	client *mongo.Database
-	logger logger.Logger
+	logger logger.ILogger
 
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
@@ -91,7 +91,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New new a handler.
-func New(client *mongo.Database, logger logger.Logger) *handler {
+func New(client *mongo.Database, logger logger.ILogger) *handler {
 	return &handler{
 		client: client,
 		logger: logger,

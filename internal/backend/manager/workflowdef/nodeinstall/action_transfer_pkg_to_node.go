@@ -39,7 +39,7 @@ const (
 func NewActionTransferPkgToNode(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	fileHandler file.IHandler,
-	logger logger.Logger) action.Definition {
+	logger logger.ILogger) action.Definition {
 
 	return &actionTransferPkgToNode{
 		storageNodeDeployment: storageNodeDeployment,
@@ -56,7 +56,7 @@ type ActionParamTransferPkgToNode struct {
 type actionTransferPkgToNode struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	fileHandler           file.IHandler
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

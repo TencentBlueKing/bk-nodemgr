@@ -28,13 +28,13 @@ type Handler interface {
 
 type handler struct {
 	client *mongo.Database
-	logger logger.Logger
+	logger logger.ILogger
 	dao    *dao
 	once   sync.Once
 }
 
 // New create a new counter handler.
-func New(client *mongo.Database, logger logger.Logger) Handler {
+func New(client *mongo.Database, logger logger.ILogger) Handler {
 	return &handler{
 		client: client,
 		logger: logger,

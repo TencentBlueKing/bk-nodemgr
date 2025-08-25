@@ -26,7 +26,7 @@ const (
 
 // NewActionWaitInstallerComplete get a new action.
 func NewActionWaitInstallerComplete(
-	storageActionInstance workflow.IStorageActionInstance, logger logger.Logger) action.Definition {
+	storageActionInstance workflow.IStorageActionInstance, logger logger.ILogger) action.Definition {
 
 	return &actionWaitInstallerComplete{
 		storageActionInstance: storageActionInstance,
@@ -36,7 +36,7 @@ func NewActionWaitInstallerComplete(
 
 type actionWaitInstallerComplete struct {
 	storageActionInstance workflow.IStorageActionInstance
-	logger                logger.Logger
+	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

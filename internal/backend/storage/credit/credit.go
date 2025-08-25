@@ -30,7 +30,7 @@ const (
 func NewStorage(
 	client *mongo.Client,
 	database string,
-	logger logger.Logger,
+	logger logger.ILogger,
 	crypter crypter.Crypter,
 ) (*Storage, error) {
 
