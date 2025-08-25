@@ -42,7 +42,7 @@ const (
 type ScheduleWorkflowFunc func(ctx context.Context) error
 
 // registerScheduleWorkflow registers a schedule workflow function.
-func (mgr *manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
+func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 	return map[string]ScheduleWorkflowFunc{
 		SyncCmdbHostWorkflowName:        mgr.ScheduleSyncHostFromCMDB,
 		SyncCmdbNetworkAreaWorkflowName: mgr.ScheduleSyncNetworkAreaFromCMDB,
@@ -51,7 +51,7 @@ func (mgr *manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 }
 
 // startScheduleWorkflow starts the scheduled workflows.
-func (mgr *manager) startScheduleWorkflow(ctx context.Context) error {
+func (mgr *Manager) startScheduleWorkflow(ctx context.Context) error {
 	dbScheduleWorkflows, _, err := mgr.conf.StorageSchedule.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
 		&types.ScheduleWorkflowCondition{ExactInclude: &types.ScheduleWorkflowExactFields{}})
 	if err != nil {
@@ -108,7 +108,7 @@ func (mgr *manager) startScheduleWorkflow(ctx context.Context) error {
 }
 
 // ScheduleSyncHostFromCMDB creates a new schedule workflow to sync hosts from CMDB.
-func (mgr *manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)
@@ -162,7 +162,7 @@ func (mgr *manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 }
 
 // ScheduleSyncNetworkAreaFromCMDB creates a new schedule workflow to sync network areas from CMDB.
-func (mgr *manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)
@@ -216,7 +216,7 @@ func (mgr *manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 }
 
 // ScheduleSyncAllAgentStateFromGSE creates a new schedule workflow to sync agent state from GSE.
-func (mgr *manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)

@@ -25,7 +25,7 @@ import (
 // handler ...
 type handler struct {
 	rg                              *gin.RouterGroup
-	manager                         manager.Manager
+	manager                         manager.IManager
 	storageNetworkUnit              topo.IStorageNetworkUnit
 	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
 	storageHostCredit               credit.IStorageHostCredit

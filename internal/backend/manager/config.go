@@ -34,7 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 )
 
-// Config defines the config of manager.
+// Config defines the config of Manager.
 type Config struct {
 	CmdbHandler cmdb.IHandler
 	GSEHandler  gse.IHandler

@@ -32,13 +32,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// Manager defines the manager interface.
+// IManager defines the manager interface.
 // nolint: interfacebloat
-type Manager interface {
-	// Start starts the manager.
+type IManager interface {
+	// Start starts the Manager.
 	Start(ctx context.Context) error
 
-	// CheckHealth checks the health of manager.
+	// CheckHealth checks the health of Manager.
 	CheckHealth() error
 
 	// GracefulShutdown ...
@@ -115,13 +115,13 @@ type RetryOperationNodeParam struct {
 	OperationIDs []string
 }
 
-// NewManager creates a new manager.
-func NewManager(conf Config, logger logger.ILogger) (Manager, error) {
+// NewManager creates a new Manager.
+func NewManager(conf Config, logger logger.ILogger) (*Manager, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
 
-	mgr := &manager{
+	mgr := &Manager{
 		logger:    logger,
 		isRunning: false,
 		conf:      conf,
@@ -143,8 +143,8 @@ func NewManager(conf Config, logger logger.ILogger) (Manager, error) {
 	return mgr, nil
 }
 
-// manager provides to operate nodeman tasks.
-type manager struct {
+// Manager provides to operate nodeman tasks.
+type Manager struct {
 	logger logger.ILogger
 
 	// state
@@ -156,12 +156,12 @@ type manager struct {
 	conf Config
 }
 
-// Start starts the manager.
-func (mgr *manager) Start(ctx context.Context) error {
-	mgr.logger.Info("starting manager")
+// Start starts the Manager.
+func (mgr *Manager) Start(ctx context.Context) error {
+	mgr.logger.Info("starting Manager")
 
 	if mgr.isRunning {
-		return errors.New("manager already started")
+		return errors.New("Manager already started")
 	}
 
 	if ctx == nil {
@@ -182,15 +182,15 @@ func (mgr *manager) Start(ctx context.Context) error {
 
 	mgr.isRunning = true
 
-	mgr.logger.Info("started manager")
+	mgr.logger.Info("started Manager")
 
 	return nil
 }
 
-// CheckHealth checks the health of manager.
-func (mgr *manager) CheckHealth() error {
+// CheckHealth checks the health of Manager.
+func (mgr *Manager) CheckHealth() error {
 	if !mgr.isRunning {
-		return errors.New("manager is not running")
+		return errors.New("Manager is not running")
 	}
 
 	if err := mgr.conf.StorageTopo.CheckHealthz(); err != nil {
@@ -209,9 +209,9 @@ func (mgr *manager) CheckHealth() error {
 }
 
 // GracefulShutdown ...
-func (mgr *manager) GracefulShutdown() error {
+func (mgr *Manager) GracefulShutdown() error {
 	if !mgr.isRunning {
-		return errors.New("manager is not running")
+		return errors.New("Manager is not running")
 	}
 
 	if err := mgr.workflowMgr.GracefulShutdown(); err != nil {
@@ -221,7 +221,7 @@ func (mgr *manager) GracefulShutdown() error {
 	return nil
 }
 
-func (mgr *manager) startWorkflowManager(ctx context.Context) error {
+func (mgr *Manager) startWorkflowManager(ctx context.Context) error {
 	// TODO: implement me
 	if err := mgr.registerActionDefs(); err != nil {
 		return err
@@ -235,7 +235,7 @@ func (mgr *manager) startWorkflowManager(ctx context.Context) error {
 }
 
 // registerActionDefs init action defs.
-func (mgr *manager) registerActionDefs() error {
+func (mgr *Manager) registerActionDefs() error {
 	if err := mgr.registerOnceOperationActions(); err != nil {
 		return fmt.Errorf("register once operation actions failed, err: %w", err)
 	}
@@ -248,7 +248,7 @@ func (mgr *manager) registerActionDefs() error {
 }
 
 // registerOnceTriggerActions registers the action definitions for once trigger actions.
-func (mgr *manager) registerOnceOperationActions() error {
+func (mgr *Manager) registerOnceOperationActions() error {
 	if err := mgr.registerActionDefNodeInstall(); err != nil {
 		return fmt.Errorf("register action def node install failed, err: %w", err)
 	}
@@ -261,7 +261,7 @@ func (mgr *manager) registerOnceOperationActions() error {
 }
 
 // registerPeriodicTriggerActions registers the action definitions for periodic trigger actions.
-func (mgr *manager) registerPeriodicOperationActions() error {
+func (mgr *Manager) registerPeriodicOperationActions() error {
 	if err := mgr.registerActionDefSchedule(); err != nil {
 		return fmt.Errorf("register action def schedule failed, err: %w", err)
 	}
@@ -270,7 +270,7 @@ func (mgr *manager) registerPeriodicOperationActions() error {
 }
 
 // registerActionDefSyncData registers the action definitions for sync data operations.
-func (mgr *manager) registerActionDefSyncData() error {
+func (mgr *Manager) registerActionDefSyncData() error {
 	return mgr.workflowMgr.RegisterActions(
 		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
 		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
@@ -283,7 +283,7 @@ func (mgr *manager) registerActionDefSyncData() error {
 
 // registerActionDefNodeInstall registers the action definitions for node installation operations.
 // nolint: lll
-func (mgr *manager) registerActionDefNodeInstall() error {
+func (mgr *Manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
 		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
@@ -313,7 +313,7 @@ func (mgr *manager) registerActionDefNodeInstall() error {
 
 // registerActionDefSchedule registers the action definitions for schedule operations.
 // nolint: lll
-func (mgr *manager) registerActionDefSchedule() error {
+func (mgr *Manager) registerActionDefSchedule() error {
 	return mgr.workflowMgr.RegisterActions(
 		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
 		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
@@ -321,7 +321,7 @@ func (mgr *manager) registerActionDefSchedule() error {
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.
-func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
+func (mgr *Manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -348,7 +348,7 @@ func (mgr *manager) LaunchSyncBizAndHost(ctx context.Context) (string, error) {
 	return triggerCtl.GetTriggerID(), nil
 }
 
-func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error) {
+func (mgr *Manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -376,7 +376,7 @@ func (mgr *manager) LaunchSyncHostByBizID(ctx context.Context, bizID int64) (str
 }
 
 // LaunchSyncNetworkArea launch a task to sync networkarea.
-func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
+func (mgr *Manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -404,7 +404,7 @@ func (mgr *manager) LaunchSyncNetworkArea(ctx context.Context) (string, error) {
 }
 
 // LaunchInstallNode launch a task to install node.
-func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
+func (mgr *Manager) LaunchInstallNode(ctx context.Context, param InstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
@@ -444,7 +444,7 @@ func (mgr *manager) LaunchInstallNode(ctx context.Context, param InstallNodePara
 }
 
 // RetryOperationNode launch a task to retry operation instance.
-func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error) {
+func (mgr *Manager) RetryOperationNode(ctx context.Context, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
 	nodeWorkflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
@@ -483,7 +483,7 @@ func (mgr *manager) RetryOperationNode(ctx context.Context, param RetryOperation
 	return instanceIDs, nil
 }
 
-func (mgr *manager) createInstallNodeOper(
+func (mgr *Manager) createInstallNodeOper(
 	ctx context.Context,
 	operator string,
 	triggerCtl workflow.ITriggerCtl,
@@ -530,7 +530,7 @@ func (mgr *manager) createInstallNodeOper(
 	return nil
 }
 
-func (mgr *manager) getOperationDefinition(
+func (mgr *Manager) getOperationDefinition(
 	deploy *types.NodeDeployment,
 	operator string,
 ) (operation.Definition, error) {
@@ -576,7 +576,7 @@ func (mgr *manager) getOperationDefinition(
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-func (mgr *manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error) {
+func (mgr *Manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -655,7 +655,7 @@ func (mgr *manager) LaunchUpgradeNode(ctx context.Context, param UpgradeNodePara
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-func (mgr *manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error) {
+func (mgr *Manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -736,7 +736,7 @@ func (mgr *manager) LaunchReconfigNode(ctx context.Context, param ReconfigNodePa
 }
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
-func (mgr *manager) LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error) {
+func (mgr *Manager) LaunchRestartNode(ctx context.Context, param RestartNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -827,7 +827,7 @@ func deploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
 }
 
 // LaunchSyncAgentState launch a task to sync agent state.
-func (mgr *manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error) {
+func (mgr *Manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
 		return "", errors.New("hostIDs cannot be empty")
 	}
@@ -879,7 +879,7 @@ func (mgr *manager) LaunchSyncAgentState(ctx context.Context, hostIDs ...int64) 
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
-func (mgr *manager) LaunchSyncAllAgentState(ctx context.Context) (string, error) {
+func (mgr *Manager) LaunchSyncAllAgentState(ctx context.Context) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err

@@ -23,7 +23,7 @@ import (
 
 type handler struct {
 	rg          *gin.RouterGroup
-	manager     manager.Manager
+	manager     manager.IManager
 	storage     topoStg.IStorage
 	cmdbHandler cmdb.IHandler
 	logger      logger.ILogger

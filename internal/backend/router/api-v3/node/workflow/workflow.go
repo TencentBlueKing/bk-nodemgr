@@ -32,7 +32,7 @@ const (
 
 type handler struct {
 	rg                  *gin.RouterGroup
-	manager             manager.Manager
+	manager             manager.IManager
 	storageNodeWorkflow nodeworkflow.IStorage
 	storageOperation    storageOperation.IStorage
 	storageOperInstData operinstdata.IStorage

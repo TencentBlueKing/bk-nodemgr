@@ -23,7 +23,7 @@ import (
 // handler ...
 type handler struct {
 	rg      *gin.RouterGroup
-	manager manager.Manager
+	manager manager.IManager
 }
 
 // newHandler ...

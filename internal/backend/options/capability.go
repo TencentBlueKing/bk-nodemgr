@@ -41,7 +41,7 @@ import (
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// Manager workflow management.
-	Manager manager.Manager
+	Manager manager.IManager
 
 	// StorageTopo topo storage.
 	StorageTopo topo.IStorage
