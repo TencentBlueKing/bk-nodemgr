@@ -121,6 +121,8 @@ topoManager:
     downstream: Downstream access point
     expand: Expand
     retract: Retract
+    tab:
+      direct: Direct
     button:
       installProxy: Install Proxy
       batch: Batch
@@ -171,6 +173,7 @@ topoManager:
     accessPoints:
       upstream: Upstream access point
       downstream: Downstream access point
+      directConfig: Direct config
     toggle:
       expand: expand
       close: retract

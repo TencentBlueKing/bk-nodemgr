@@ -72,7 +72,7 @@
         >
           {{ selectedVersion?.version }} 的详细信息
         </div>
-        <p class="text-[12px] border border-t-none h-full">
+        <p class="text-[12px] border border-t-none h-full p-[16px]">
           {{ selectedVersion?.description }}
         </p>
       </div>
@@ -84,8 +84,6 @@ interface RowVO {
   name: string;
   role: string;
   num: number;
-  num1: string;
-  num2: string;
 }
 
 import { RightShape } from "bkui-vue/lib/icon";
@@ -104,6 +102,10 @@ const props = defineProps({
       os: "",
       version: "",
     },
+  },
+  releaseType: {
+    type: String,
+    default: "agent",
   },
 });
 const isShow = defineModel("isShow", { type: Boolean, default: false });
@@ -136,7 +138,7 @@ function selectOs(os) {
 
 const handleChange = (val: string) => {
   selectedVersion.value = selectedOs.value?.versions.find(
-    (item) => item.version === val
+    (item: any) => item.version === val
   );
 };
 function handleConfirm() {
@@ -169,7 +171,7 @@ const getVersions = async () => {
   const res = await PackageService.ListRelease({
     exact_include_conditions: {
       generation: [2],
-      release_type: ["agent"],
+      release_type: [props.releaseType],
     },
   }).catch(() => ({
     total: 0,
@@ -183,7 +185,13 @@ const getVersions = async () => {
         name: key,
         version: item.as_default ? item.version : "",
         selected: false,
-        versions: [],
+        versions: props.releaseType === 'proxy' ? [{
+          version: '默认',
+          disabled: false,
+          lable: [],
+          packages: [],
+          description: '',
+        }] : [],
         icon: `nodeman-icon nc-${item.os_type}`,
       };
     }
@@ -216,7 +224,7 @@ watch(
       } else {
         selectedVersion.value = selectedOs.value?.versions[0];
       }
-      selectedOs.value.selected = true;
+      selectedOs.value && (selectedOs.value.selected = true);
       selectedRadio.value = selectedVersion.value?.version || "";
     }
   },

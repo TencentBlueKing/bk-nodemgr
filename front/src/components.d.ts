@@ -22,6 +22,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Settings: typeof import('./components/settings.vue')['default']
     SlideDetail: typeof import('./components/slide-detail.vue')['default']
+    Upload: typeof import('./components/upload.vue')['default']
     Validate: typeof import('./components/validate.vue')['default']
     ValidateInput: typeof import('./components/validate-input.vue')['default']
   }

@@ -30,6 +30,7 @@ export interface NodeAgentInstallResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeAgentInstallRespData;
 }
 

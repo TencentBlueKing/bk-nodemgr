@@ -2,63 +2,90 @@
   <div class="text-[12px]">
     <!-- 收起状态 -->
     <div v-show="!isExpand">
-      <!-- 上游接入点简化展示 -->
-      <div class="mb-[14px] flex items-start" v-if="isShowUpstreamDefaultInfo">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
-        <div class="flex">
-          <span>{{ clusterData.workarea_name }}</span>
-          <span
-            v-show="clusterData.workunit_name"
-            class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
-          </span>
-          <span>{{ clusterData.workunit_name }}</span>
-          <span
-            v-show="clusterData.accesspoint_name"
-            class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
-          </span>
-          <span>{{ clusterData.accesspoint_name }}</span>
+      <template v-if="!is_direct">
+        <!-- 上游接入点简化展示 -->
+        <div class="mb-[14px] flex items-start" v-if="isShowUpstreamDefaultInfo">
+          <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
+          <div class="flex">
+            <span>{{ clusterData.workarea_name }}</span>
+            <span
+              v-show="clusterData.workunit_name"
+              class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+            </span>
+            <span>{{ clusterData.workunit_name }}</span>
+            <span
+              v-show="clusterData.accesspoint_name"
+              class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+            </span>
+            <span>{{ clusterData.accesspoint_name }}</span>
+          </div>
         </div>
-      </div>
-      <!-- 上游接入点详细展示 -->
-      <div class="mb-[14px] flex" v-else>
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
-          {{ $t('topoManager.workUnit.accessPoints.upstream') }} :
-        </div>
-        <div>
-          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
-            <div class="flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
-              <div class="flex items-center">
-                <span>{{ clusterData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ clusterData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ clusterData.accesspoint_name }}</span>
+        <!-- 上游接入点详细展示 -->
+        <div class="mb-[14px] flex" v-else>
+          <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+            {{ $t('topoManager.workUnit.accessPoints.upstream') }} :
+          </div>
+          <div>
+            <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
+              <div class="flex items-center h-[20px]">
+                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+                <div class="flex items-center">
+                  <span>{{ clusterData.workarea_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ clusterData.workunit_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ clusterData.accesspoint_name }}</span>
+                </div>
               </div>
-            </div>
-            <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">file :</div>
-              <div class="flex items-center">
-                <span>{{ fileData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ fileData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ fileData.accesspoint_name }}</span>
+              <div class="mt-[12px] flex items-center h-[20px]">
+                <div class="w-[45px] text-right mr-[8px]">file :</div>
+                <div class="flex items-center">
+                  <span>{{ fileData.workarea_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ fileData.workunit_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ fileData.accesspoint_name }}</span>
+                </div>
               </div>
-            </div>
-            <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">data :</div>
-              <div class="flex items-center">
-                <span>{{ dataData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ dataData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ dataData.accesspoint_name }}</span>
+              <div class="mt-[12px] flex items-center h-[20px]">
+                <div class="w-[45px] text-right mr-[8px]">data :</div>
+                <div class="flex items-center">
+                  <span>{{ dataData.workarea_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ dataData.workunit_name }}</span>
+                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
+                  <span>{{ dataData.accesspoint_name }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <!--直连配置-->
+        <div class="mb-[14px] flex">
+          <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+            {{ $t('topoManager.workUnit.accessPoints.directConfig') }}
+          </div>
+          <div v-if="directEndpoints">
+            <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
+              <div class="flex items-center h-[20px]">
+                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+                <span>{{ directEndpoints.cluster.join(' ;') }}</span>
+              </div>
+              <div class="flex items-center h-[20px] mt-[12px]">
+                <div class="w-[45px] text-right mr-[8px]">file :</div>
+                <span>{{ directEndpoints.file.join(' ;') }}</span>
+              </div>
+              <div class="flex items-center h-[20px] mt-[12px]">
+                <div class="w-[45px] text-right mr-[8px]">data :</div>
+                <span>{{ directEndpoints.data.join(' ;') }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else>--</div>
+        </div>
+      </template>
       <!-- 下游接入点简化展示 -->
       <div class="flex items-start">
         <div class="text-[#4D4F56] w-[72px] mr-[3px]">
@@ -83,7 +110,7 @@
     <!-- 展开状态 -->
     <div v-show="isExpand">
       <!-- 上游接入点详细展示 -->
-      <div class="mb-[14px] flex">
+      <div class="mb-[14px] flex" v-if="!is_direct">
         <div class="text-[#4D4F56] w-[72px] mr-[3px]">
           {{ $t('topoManager.workUnit.accessPoints.upstream') }} :
         </div>
@@ -121,6 +148,29 @@
             </div>
           </div>
         </div>
+      </div>
+      <!-- 直连配置 -->
+      <div class="mb-[14px] flex" v-else>
+        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+          {{ $t('topoManager.workUnit.accessPoints.directConfig') }}
+        </div>
+        <div v-if="directEndpoints">
+          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
+            <div class="flex items-center h-[20px]">
+              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+              <span>{{ directEndpoints.cluster.join(' ;') }}</span>
+            </div>
+            <div class="flex items-center h-[20px] mt-[12px]">
+              <div class="w-[45px] text-right mr-[8px]">file :</div>
+              <span>{{ directEndpoints.file.join(' ;') }}</span>
+            </div>
+            <div class="flex items-center h-[20px] mt-[12px]">
+              <div class="w-[45px] text-right mr-[8px]">data :</div>
+              <span>{{ directEndpoints.data.join(' ;') }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else>--</div>
       </div>
       <!-- 下游接入点详细展示 -->
       <div class="flex">
@@ -181,6 +231,14 @@ const props = defineProps({
     type: Array as PropType<Array<AccessPoint>>,
     default: [],
   },
+  is_direct: {
+    type: Boolean,
+    default: false
+  },
+  directEndpoints: {
+    type: Object as PropType<Endpoints>,
+    default: null
+  }
 });
 const workareaStore = useWorkareaStore();
 const isDownStreamDataExist = computed(() => props.downstreamData.length !== 0);

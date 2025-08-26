@@ -59,6 +59,7 @@ export function formatTimestamp(
   return date.format(format);
 }
 
+// 首字母大写
 export function capitalizeFirstLetter(str: string) {
   if (!str) return str; // 处理空字符串的情况
   return str.charAt(0).toUpperCase() + str.slice(1);

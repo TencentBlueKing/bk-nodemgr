@@ -41,6 +41,7 @@ export interface WorkflowAgentInstallResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowAgentInstallRespData;
 }
 
@@ -62,6 +63,7 @@ export interface WorkflowAgentUpgradeResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowAgentUpgradeRespData;
 }
 
@@ -83,6 +85,7 @@ export interface WorkflowAgentReconfigResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowAgentReconfigRespData;
 }
 
@@ -104,6 +107,7 @@ export interface WorkflowAgentRestartResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowAgentRestartRespData;
 }
 
@@ -124,6 +128,7 @@ export interface WorkflowAgentUninstallResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowAgentUninstallRespData;
 }
 
@@ -144,6 +149,7 @@ export interface WorkflowProxyInstallResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowProxyInstallRespData;
 }
 
@@ -165,6 +171,7 @@ export interface WorkflowProxyUpgradeResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowProxyUpgradeRespData;
 }
 
@@ -186,6 +193,7 @@ export interface WorkflowProxyReconfigResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowProxyReconfigRespData;
 }
 
@@ -207,6 +215,7 @@ export interface WorkflowProxyRestartResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowProxyRestartRespData;
 }
 
@@ -227,6 +236,7 @@ export interface WorkflowProxyUninstallResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowProxyUninstallRespData;
 }
 
@@ -328,6 +338,7 @@ export interface WorkflowListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: WorkflowListRespData;
 }
 

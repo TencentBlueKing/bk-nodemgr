@@ -228,10 +228,18 @@ const statusMap = {
   }
 }
 const typeMap = {
-  install_agent: t('Agent 安装'),
-  install_plugin: t('插件安装'),
-  upgrade_agent: t('Agent 升级'),
-  upgrade_plugin: t('插件升级')
+  install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
+  install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
+  upgrade_agent: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
+  upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
+  reconfig_agent: t('platform.nodeMan.taskHistory.taskType.reconfig_agent'),
+  restart_agent: t('platform.nodeMan.taskHistory.taskType.restart_agent'),
+  uninstall_agent: t('platform.nodeMan.taskHistory.taskType.uninstall_agent'),
+  install_proxy: t('platform.nodeMan.taskHistory.taskType.install_proxy'),
+  upgrade_proxy: t('platform.nodeMan.taskHistory.taskType.upgrade_proxy'),
+  reconfig_proxy: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
+  restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
+  uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
 }
 const formatTimeToMS = (duration: number = 0) => {
   const minutes = Math.floor(duration / 60000);
@@ -246,7 +254,7 @@ const sliceWorkflowId = (val: string) => {
     return '#' + val?.slice(-4);
 }
 const taskInfoList = computed(() => ([
-    {prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType]},
+    {prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType]} || nodeManageStore.taskHistoryTableRowData?.type,
     {prop: 'cost_time', name: t('总耗时'), value: formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.cost_time)},
     {prop: 'workflow_id', name: t('任务ID'), value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id)},
     {prop: 'operator', name: t('执行人'), value: nodeManageStore.taskHistoryTableRowData?.operator},

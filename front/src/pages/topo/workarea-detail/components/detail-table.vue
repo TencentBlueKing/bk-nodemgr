@@ -79,7 +79,7 @@
               <Button theme="primary" text class="mr-[12px]">
                 {{ $t('topoManager.workAreaDetail.table.Reassembly') }}
               </Button>
-              <MoreAction :ipv4="row.bk_host_innerip"></MoreAction>
+              <MoreAction :ipv4="row.bk_host_innerip" :row="row"></MoreAction>
             </div>
           </template>
         </TableColumn>
@@ -109,6 +109,10 @@ const props = defineProps({
   searchSelectValue: {
     type: Array,
     default: []
+  },
+  bkNetworkunitId: {
+    type: Number,
+    default: 0
   }
 });
 const route = useRoute();
@@ -170,7 +174,7 @@ const getParams = () => {
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
   params.exact_include_conditions.node_role = ["proxy"];
-  params.exact_include_conditions.bk_networkarea_id = [workAreaId];
+  params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions

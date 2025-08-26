@@ -2,50 +2,49 @@
   <Sideslider
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.title')"
-    width="1290">
+    width="1490"
+    :before-close="handleBeforeClose"
+  >
     <div class="py-[20px] px-[40px]">
-      <!-- 提示 -->
-      <!-- <div
-        class="flex items-center border-1 border-solid border-[#A3C5FD]
-          bg-[#F0F5FF] h-[32px] w-[1200px] p-[8px]">
-        <i class="nodeman-icon nc-tips text-[#3A84FF] mr-[9px]"></i>
-        <span class="mr-[8px] text-[#4D4F56] text-[12px]">
-          {{ $t('topoManager.installProxy.tips') }}
-        </span>
-        <Button text theme="primary" class="!text-[12px]">
-          {{ $t('topoManager.installProxy.guide') }}
-        </Button>
-      </div> -->
       <!-- form -->
-      <Form :model="form" class="mt-[24px]">
+      <Form ref="formRef" :model="form" class="mt-[24px]">
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
           property=""
           label-width="90"
-          required>
-          <SelectItemGroup
-            :list="installMethodList"
-            @change="handleChange">
+          required
+        >
+          <SelectItemGroup :list="installMethodList" @change="handleChange">
           </SelectItemGroup>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
           property=""
           label-width="90"
-          required>
-          <InfoTable v-model:data="form.data" ref="infoTableRef"></InfoTable>
+          required
+        >
+          <install-table
+            ref="installTableRef"
+            v-model:data="form.host"
+            realeaseType="proxy"
+          ></install-table>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.password')"
           property=""
           label-width="90"
-          required>
+          required
+        >
           <Radio.Group v-model="form.saveTime">
             <Radio.Button
-              :label="$t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 })">
+              :label="
+                $t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 })
+              "
+            >
             </Radio.Button>
             <Radio.Button
-              :label="$t('topoManager.installProxy.form.saveTime.longTermSave')">
+              :label="$t('topoManager.installProxy.form.saveTime.longTermSave')"
+            >
             </Radio.Button>
           </Radio.Group>
         </Form.FormItem>
@@ -53,116 +52,325 @@
           :label="$t('topoManager.installProxy.form.os')"
           property=""
           label-width="90"
-          required>
-          <Select class="w-[488px]" v-model="form.os" disabled></Select>
+          required
+        >
+          <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.port')"
           property=""
           label-width="90"
-          required>
-          <Input class="w-[488px]" v-model="form.port" />
+          required
+        >
+          <Input class="w-[488px]" v-model="form.login_port" />
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.account')"
           property=""
           label-width="90"
-          required>
-          <Input class="w-[488px]" v-model="form.account" />
+          required
+        >
+          <Input class="w-[488px]" v-model="form.login_user" />
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.business')"
           property=""
           label-width="90"
-          required>
-          <Select class="w-[488px]" v-model="form.business"></Select>
+          required
+        > 
+          <Select
+            class="w-[488px]"
+            v-model="form.bk_biz_id"
+            auto-focus
+            filterable
+            placeholder="选择业务"
+          >
+            <Select.Option
+              v-for="item in businessList"
+              :key="item.bk_biz_id"
+              :name="item.bk_biz_name"
+              :id="item.bk_biz_id"
+            >
+              [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+            </Select.Option>
+          </Select>
         </Form.FormItem>
-
+        <Form.FormItem
+          label-width="90">
+          <Button
+            text
+            theme="primary"
+            class="text-[14px]"
+            @click="isTargetShow = !isTargetShow"
+          >
+            <span class="mr-[8.5px]">高级选项</span>
+            <angle-double-down-line
+              :class="{ 'transform rotate-180': isTargetShow }"
+            />
+          </Button>
+        </Form.FormItem>
+        <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
+          <div class="w-[488px]">
+            <Table :data="systemData" :border="true">
+              <TableColumn
+                field="displayName"
+                :title="$t('操作系统/架构')"
+                width="200"
+              ></TableColumn>
+              <TableColumn field="version" :title="$t('版本')" width="288">
+                <!-- <template #header>
+                  <span>{{ $t('版本') }}</span>
+                  <Button text @click="handleChooseVersion(row)">
+                    <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+                  </Button>
+                </template> -->
+                <template #default="{ row }">
+                  <Validate
+                    :value="row.version"
+                    required
+                    :ref="`${row.os}_ref`"
+                  >
+                    <Input
+                      :model-value="row.version"
+                      :placeholder="$t('请选择')"
+                      @click="handleChooseVersion(row)"
+                    />
+                  </Validate>
+                </template>
+              </TableColumn>
+            </Table>
+          </div>
+        </Form.FormItem>
         <div class="flex mt-[32px] ml-[90px]">
-          <Button theme="primary" class="mr-[8px] w-[120px]" @click="handleConfirm">
+          <Button
+            theme="primary"
+            class="mr-[8px] w-[120px]"
+            @click="handleConfirm"
+          >
             <span>
-              {{ $t('action.install') }}
+              {{ $t("action.install") }}
             </span>
             <span
-              class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px]
-              text-[#3a84ff] text-[12px] h-[16px] leading-[16px]">
-              {{ form.data.length }}
+              class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+            >
+              {{ form.host.length }}
             </span>
           </Button>
-          <Button @click="handleClose">
-            {{ $t('action.cancel') }}
+          <Button @click="handleBeforeClose">
+            {{ $t("action.cancel") }}
           </Button>
         </div>
       </Form>
     </div>
+    <chooseVersionDialog
+      v-model:is-show="isShowDialog"
+      :data="dialogData"
+      :releaseType="'proxy'"
+      @confirm="handleComfirmVerion"
+    ></chooseVersionDialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, Input, Radio, Select, Sideslider } from 'bkui-vue';
-import { reactive, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { Button, Form, Message, InfoBox, Input, Radio, Select, Sideslider } from "bkui-vue";
+import { reactive, ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
+import { Table, TableColumn } from "@blueking/table";
+import SelectItemGroup from "./components/select-item-group.vue";
+import { useMainStore } from "@/stores/main";
+import { NodeProxyService } from '@/api/modules/node_proxy';
+import { useRouter } from 'vue-router';
 
-import InfoTable from './components/info-table.vue';
-import SelectItemGroup from './components/select-item-group.vue';
 
-const isShow = defineModel<boolean>('isShow', { default: false });
+const props = defineProps({
+  bk_networkunit_id: {
+    type: Number,
+    default: 0
+  }
+});
+const router = useRouter();
+const isShow = defineModel<boolean>("isShow", { default: false });
 const { t } = useI18n();
+const mainStore = useMainStore();
 
 const form = reactive({
-  method: '', // 安装方式
-  data: [{
-    ipv4: '',
-    ipv6: '',
-    os: '',
-    login_ip: '',
-    authentication: '',
-    password: '',
-    directory: '',
-    speed_limit: '',
-    zip: false,
-  }], // 安装信息
-  saveTime: '保存 1 天', // 密钥/密码
-  os: 'Linux(64位)', // 操作系统
-  port: '', // 登录端口
-  account: '', // 登录账号
-  business: '', // 归属业务
+  method: "", // 安装方式
+  host: [
+    {
+      bk_host_id: "",
+      bk_host_innerip: "",
+      bk_host_innerip_v6: "",
+      export_ip: "",
+      advertise_ip: "",
+      login_ip: "",
+      login_mode: "password",
+      login_password: "",
+      login_key_file: "",
+      bk_addressing: "static",
+      dedicated_installer: true,
+      cluster_tunnel: true,
+      file_tunnel: true,
+      data_tunnel: true,
+      proxy_tags: [] as string[],
+    },
+  ], // 安装信息
+  saveTime: "保存 1 天", // 密钥/密码
+  os_type: "Linux", // 操作系统
+  login_port: "36000", // 登录端口
+  login_user: "root", // 登录账号
+  bk_biz_id: "", // 归属业务
+  target_version: [] as TargetVersion[],
 });
-
+const isTargetShow = ref(false);
+const businessList = computed(() => mainStore.businessList);
+const systemData = ref([
+  {
+    displayName: 'linux/amd64',
+    os: "Linux_amd64",
+    cpu_arch: 'amd64',
+    os_type: 'linux',
+    version: "默认",
+  },
+  {
+    displayName: 'linux/arm64',
+    os: "Linux_arm64",
+    cpu_arch: 'arm64',
+    os_type: 'linux',
+    version: "默认",
+  },
+]);
 // 安装方式列表
 const installMethodList = ref([
   {
-    icon: 'nodeman-icon nc-remote-install',
-    title: t('topoManager.installProxy.installMethodList.remote.title'),
-    content: t('topoManager.installProxy.installMethodList.remote.content'),
+    icon: "nodeman-icon nc-remote-install",
+    title: t("topoManager.installProxy.installMethodList.remote.title"),
+    content: t("topoManager.installProxy.installMethodList.remote.content"),
     value: 0,
   },
   {
-    icon: 'nodeman-icon nc-excel-2',
-    title: t('topoManager.installProxy.installMethodList.excel.title'),
-    content: t('topoManager.installProxy.installMethodList.excel.content'),
+    icon: "nodeman-icon nc-excel-2",
+    title: t("topoManager.installProxy.installMethodList.excel.title"),
+    content: t("topoManager.installProxy.installMethodList.excel.content"),
     value: 1,
   },
   {
-    icon: 'nodeman-icon nc-custom-install',
-    title: t('topoManager.installProxy.installMethodList.manual.title'),
-    content: t('topoManager.installProxy.installMethodList.manual.content'),
+    icon: "nodeman-icon nc-custom-install",
+    title: t("topoManager.installProxy.installMethodList.manual.title"),
+    content: t("topoManager.installProxy.installMethodList.manual.content"),
     value: 2,
   },
 ]);
+const isShowDialog = ref(false);
+const dialogData = ref({
+  os: "",
+  version: "",
+});
 
+const handleChooseVersion = (row: { version: string; os: string }) => {
+  isShowDialog.value = true;
+  dialogData.value = row;
+};
+const handleComfirmVerion = (val: string) => {
+  val && (dialogData.value.version = val);
+};
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
 };
 
-const handleClose = () => {
-  isShow.value = false;
+const handleBeforeClose = () =>
+  new Promise((resolve, reject) => {
+    InfoBox({
+      title: "确认关闭?",
+      infoType: "warning",
+      onConfirm: () => {
+        resolve(true);
+        isShow.value = false;
+      },
+      onCancel: () => reject(),
+    });
+  });
+const formRef = ref(null);
+const installTableRef = ref(null);
+const Linux_amd64_ref = ref();
+const Linux_arm64_ref = ref();
+const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
+const handleConfirm = async () => {
+  const result = await Promise.all([
+    formRef.value?.validate().catch(() => false),
+    installTableRef.value?.tableValidate(),
+    isShow.value
+      ? Promise.all([
+          Linux_amd64_ref.value?.validate("blur").catch(() => false),
+          Linux_arm64_ref.value?.validate("blur").catch(() => false),
+        ])
+      : true,
+  ]);
+  // 合并多重Promise
+  if (Array.isArray(result[2])) {
+    result[2] = result[2].every((item) => item);
+  }
+  if (result.every((item) => item)) {
+    const modeMap = {
+      password: "login_password",
+      key: "login_key_file",
+    };
+    form.host.forEach((item: any) => {
+      item[modeMap[item.login_mode]] = item.prove;
+      Object.keys(item).forEach((key: string) => {
+        if(proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
+          item.proxy_tags.push(key);
+        }
+      })
+    });
+    if (isTargetShow.value) {
+      form.target_version = systemData.value
+        .filter((item: any) => item.version !== '默认')
+        .map((item: any) => {
+        return {
+          os_type: item.os_type,
+          cpu_arch: item.cpu_arch,
+          version: item.version,
+        };
+      });
+    }
+    const params = {
+      host: form.host.map((item: any) => {
+        const {
+          bk_host_id,
+          dedicated_installer,
+          cluster_tunnel,
+          file_tunnel,
+          data_tunnel,
+          ...rest
+        } = item;
+        return {
+          ...rest,
+          os_type: 'linux',
+          bk_biz_id: form.bk_biz_id,
+          login_user: form.login_user,
+          login_port: Number(form.login_port),
+          bk_networkunit_id: props.bk_networkunit_id,
+          ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
+        }
+      }),
+      target_version: form.target_version
+    }
+    const res = await NodeProxyService.NodeProxyInstall(params).catch(err => {
+      console.log(err)
+    });
+    if (!res) return;
+    Message({
+      theme: 'success',
+      message: 'proxy安装成功！',
+    });
+    isShow.value = false;
+    if (res.workflow_id) {
+      router.push({
+        name: 'taskDetail', 
+        params: { taskId: res.workflow_id },
+      });
+    }
+  }
 };
-
-const infoTableRef = ref();
-const handleConfirm = () => {
-  console.log(form);
-  infoTableRef.value.tableValidate();
-};
-
 </script>

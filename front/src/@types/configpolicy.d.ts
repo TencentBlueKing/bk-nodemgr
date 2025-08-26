@@ -26,6 +26,7 @@ export interface ConfigPolicyListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyListRespData;
 }
 
@@ -46,6 +47,7 @@ export interface ConfigPolicyGetTemplateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyGetTemplateRespData;
 }
 
@@ -65,6 +67,7 @@ export interface ConfigPolicyListPlatformResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyListPlatformRespData;
 }
 
@@ -103,6 +106,7 @@ export interface ConfigPolicyCreateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyCreateRespData;
 }
 
@@ -129,6 +133,7 @@ export interface ConfigPolicyUpdateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyUpdateRespData;
 }
 
@@ -147,6 +152,7 @@ export interface ConfigPolicyEnableResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyEnableRespData;
 }
 
@@ -165,6 +171,7 @@ export interface ConfigPolicyDisableResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyDisableRespData;
 }
 
@@ -182,6 +189,7 @@ export interface ConfigPolicyDeleteResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: ConfigPolicyDeleteRespData;
 }
 

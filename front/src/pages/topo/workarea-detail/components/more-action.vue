@@ -70,9 +70,11 @@
  *    搭配focusout能轻松关闭上一个open的DropMenu，实在巧妙！
  */
 
-import { Button, Dialog, Dropdown } from 'bkui-vue';
+import { Button, Dialog, Dropdown, Message } from 'bkui-vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { NodeProxyService } from '@/api/modules/node_proxy';
+import { useRouter } from 'vue-router';
 
 interface DialogProps {
   title: string
@@ -84,10 +86,12 @@ interface DialogProps {
 };
 
 interface IProps {
-  ipv4: string
+  ipv4: string,
+  row: Host
 }
 const props = defineProps<IProps>();
 const { t } = useI18n();
+const router = useRouter();
 // dropMenuList
 const dropMenuList = ref<{
   label: string
@@ -167,31 +171,57 @@ const loading = ref(false);
 // dialog width
 const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 400 : 480));
 
-// // 升级
-// const upgradeVersion = async () => {
-
-// };
-// // 卸载
-// const unloadProxy = async () => {
-
-// };
-// // 重载配置
-// const overloadConfig = async () => {
-
-// };
-// // 重启
-// const reloadProxy = async () => {
-
-// };
+// 升级
+const upgradeVersion = async () => {
+  return await NodeProxyService.NodeProxyUpgrade({
+    host: [props.row],
+    target_version: []
+  }).catch(() => false);
+};
+// 卸载
+const unloadProxy = async () => {
+};
+// 重载配置
+const overloadConfig = async () => {
+  return await NodeProxyService.NodeProxyReconfig({ host: [props.row] }).catch(() => false);
+};
+// 重启
+const restartProxy = async () => {
+  return await NodeProxyService.NodeProxyRestart({ host: [props.row] }).catch(() => false);
+};
 
 const handleConfirm = async () => {
   loading.value = true;
-  try {
-  } catch (err) {
-    console.error(err);
-  } finally {
-    loading.value = false;
-    isShow.value = false;
+  let res: any;
+  let message;
+  switch(curAction.value) {
+    case 'upgrade':
+      res = await upgradeVersion();
+      message = '升级成功！';
+      break;
+    case 'overload':
+      res = await overloadConfig();
+      message = '重载配置成功！';
+      break;
+    case 'restart':
+      res = await restartProxy();
+      message = '重启成功！';
+      break;
+    default:
+      break;
+  }
+  if(!res) return;
+  Message({
+    theme: 'success',
+    message,
+  });
+  loading.value = false;
+  isShow.value = false;
+  if(res.workflow_id) {
+    router.push({
+      name: 'taskDetail', 
+      params: { taskId: res.workflow_id },
+    });
   }
 };
 

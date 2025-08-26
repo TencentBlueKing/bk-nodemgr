@@ -141,6 +141,8 @@ topoManager:
     downstream: 下游接入点
     expand: 展开
     retract: 收起
+    tab:
+      direct: 直连
     button:
       installProxy: 安装 Proxy
       batch: 批量
@@ -191,6 +193,7 @@ topoManager:
     accessPoints:
       upstream: 上游接入点
       downstream: 下游接入点
+      directConfig: 直连配置
     toggle:
       expand: 展开
       close: 收起

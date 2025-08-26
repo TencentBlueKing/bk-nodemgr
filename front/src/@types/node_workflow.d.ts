@@ -41,6 +41,7 @@ export interface NodeWorkflowListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowListRespData;
 }
 
@@ -59,6 +60,7 @@ export interface NodeWorkflowStatisticsResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowStatisticsRespData;
 }
 
@@ -89,6 +91,7 @@ export interface NodeWorkflowDistinctResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowDistinctRespData;
 }
 
@@ -183,6 +186,7 @@ export interface NodeWorkflowOperationListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowOperationListRespData;
 }
 
@@ -204,6 +208,7 @@ export interface NodeWorkflowOperationInstanceListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowOperationInstanceListRespData;
 }
 
@@ -241,6 +246,7 @@ export interface NodeWorkflowOperationInstanceListStatusResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowOperationInstanceListStatusRespData;
 }
 
@@ -258,6 +264,7 @@ export interface NodeWorkflowOperationInstanceLogGetResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowOperationInstanceLogGetRespData;
 }
 
@@ -300,6 +307,7 @@ export interface NodeWorkflowOperationRetryResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: NodeWorkflowOperationRetryRespData;
 }
 

@@ -10,6 +10,7 @@ export interface PackageUploadOriginAgentResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageUploadOriginAgentRespData;
 }
 
@@ -37,6 +38,7 @@ export interface PackageUploadOriginServerResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageUploadOriginServerRespData;
 }
 
@@ -61,6 +63,7 @@ export interface PackageUploadOriginCertResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageUploadOriginCertRespData;
 }
 
@@ -86,6 +89,7 @@ export interface PackageUploadOriginBinToolResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageUploadOriginBinToolRespData;
 }
 
@@ -110,6 +114,7 @@ export interface PackagePublishReleaseAgentResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackagePublishReleaseAgentRespData;
 }
 
@@ -126,6 +131,7 @@ export interface PackagePublishReleaseProxyResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackagePublishReleaseProxyRespData;
 }
 
@@ -142,6 +148,7 @@ export interface PackagePublishReleaseCertResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackagePublishReleaseCertRespData;
 }
 
@@ -160,6 +167,7 @@ export interface PackagePublishReleaseBinToolResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackagePublishReleaseBinToolRespData;
 }
 
@@ -190,6 +198,7 @@ export interface PackageReleaseListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseListRespData;
 }
 
@@ -213,6 +222,7 @@ export interface PackageReleaseSetLabelsResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseSetLabelsRespData;
 }
 
@@ -234,6 +244,7 @@ export interface PackageReleaseEnableResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseEnableRespData;
 }
 
@@ -255,6 +266,7 @@ export interface PackageReleaseDisableResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseDisableRespData;
 }
 
@@ -276,6 +288,7 @@ export interface PackageReleaseSetAsDefaultResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseSetAsDefaultRespData;
 }
 
@@ -297,6 +310,7 @@ export interface PackageReleaseCancelAsDefaultResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseCancelAsDefaultRespData;
 }
 
@@ -317,6 +331,7 @@ export interface PackageReleaseDeleteResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseDeleteRespData;
 }
 
@@ -344,6 +359,7 @@ export interface PackageReleaseDeployedHostCountResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: PackageReleaseDeployedHostCountRespData;
 }
 

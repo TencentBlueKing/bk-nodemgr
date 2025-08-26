@@ -9,8 +9,8 @@
       <div class="flex items-center w-full text-[14px] text-[#63656e] pt-[28px]" v-if="workareaId === 0 && isCreate">
         <div class="w-[130px] pr-[22px] text-right">管控单元类型</div>
         <Radio.Group v-model="type">
-          <Radio label="not_direct">非direct</Radio>
-          <Radio label="direct">direct</Radio>
+          <Radio label="not_direct">非直连</Radio>
+          <Radio label="direct">直连</Radio>
         </Radio.Group>
       </div>
       <Form :model="form" ref="formRef" class="pt-[28px]" :rules="rules" v-if="(!isCreate && isDirect) || (isCreate && type === 'direct')">
@@ -30,6 +30,21 @@
             </CreateDirectAccessPoint>
           </div>
         </Form.FormItem>
+        <template v-if="isExpand">
+          <Form.FormItem
+            :label="$t('topoManager.workUnit.form.downstream')"
+            label-width="130">
+            <CreateAccessPointList
+              v-model:access-points="form.accesspoints"
+              ref="accessPointRef">
+            </CreateAccessPointList>
+          </Form.FormItem>
+        </template>
+        <Button text theme="primary" class="ml-[130px]" @click="toggleExpand">
+          <span>{{ $t('topoManager.workUnit.form.senior') }}</span>
+          <i class="nodeman-icon nc-angle-double-down text-[24px]" v-if="!isExpand"></i>
+          <i class="nodeman-icon nc-double-up text-[24px]" v-else></i>
+        </Button>
       </Form>
       <Form :model="form" class="pt-[28px]" ref="formRef" :rules="rules" v-else>
         <Form.FormItem

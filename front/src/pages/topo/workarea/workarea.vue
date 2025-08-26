@@ -35,7 +35,7 @@
       @install-proxy="handleInstallProxy"
       @update="handleUpdate"
     />
-    <InstallProxy v-bind:is-show="isInstallProxyShow" />
+    <InstallProxy v-bind:is-show="isInstallProxyShow"/>
   </div>
 </template>
 

@@ -22,6 +22,7 @@ export interface TopoBusinessListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoBusinessListRespData;
 }
 
@@ -54,6 +55,7 @@ export interface TopoNetworkAreaListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkAreaListRespData;
 }
 
@@ -74,6 +76,7 @@ export interface TopoNetworkAreaStatisticsResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkAreaStatisticsRespData;
 }
 
@@ -118,6 +121,7 @@ export interface TopoNetworkAreaCreateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkAreaCreateRespData;
 }
 
@@ -139,6 +143,7 @@ export interface TopoNetworkAreaUpdateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkAreaUpdateRespData;
 }
 
@@ -158,6 +163,7 @@ export interface TopoNetworkAreaDeleteResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkAreaDeleteRespData;
 }
 
@@ -184,6 +190,7 @@ export interface TopoNetworkUnitListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkUnitListRespData;
 }
 
@@ -224,6 +231,7 @@ export interface TopoNetworkUnitCreateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkUnitCreateRespData;
 }
 
@@ -249,6 +257,7 @@ export interface TopoNetworkUnitUpdateResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkUnitUpdateRespData;
 }
 
@@ -268,6 +277,7 @@ export interface TopoNetworkUnitDeleteResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoNetworkUnitDeleteRespData;
 }
 
@@ -314,6 +324,7 @@ export interface TopoHostListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoHostListRespData;
 }
 
@@ -335,6 +346,7 @@ export interface TopoHostDistinctResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoHostDistinctRespData;
 }
 
@@ -363,6 +375,7 @@ export interface TopoGraphGetResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoGraphGetRespData;
 }
 
@@ -381,6 +394,7 @@ export interface TopoGraphNodeCountResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoGraphNodeCountRespData;
 }
 
@@ -425,6 +439,7 @@ export interface TopoEventListResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoEventListRespData;
 }
 
@@ -447,6 +462,7 @@ export interface TopoEventDistinctResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoEventDistinctRespData;
 }
 
@@ -471,6 +487,7 @@ export interface TopoConstantGetResp {
   code: number;
   message: string;
   request_id: string;
+  error: Error;
   data: TopoConstantGetRespData;
 }
 

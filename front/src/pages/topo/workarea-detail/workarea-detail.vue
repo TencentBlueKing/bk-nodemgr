@@ -12,14 +12,22 @@
           :label="item.bk_networkunit_name"
           :name="item.bk_networkunit_id"
           render-directive="if"
-        >
+        > 
+          <template #label>
+            <div class="w-full">
+              <span>{{ item.bk_networkunit_name }}</span>
+              <span v-if="item.is_direct" class="text-[10px] ml-[5px]">{{ $t('topoManager.workAreaDetail.tab.direct') }}</span>
+            </div>
+          </template>
           <div>
             <!-- 上下游接入点信息 -->
             <FlexRow class="mb-[30px] !items-start">
               <template #left>
                 <AccessPoint
                   :upstream-data="curWorkUnit.links"
-                  :downstream-data="curWorkUnit.accesspoints">
+                  :downstream-data="curWorkUnit.accesspoints"
+                  :is_direct="curWorkUnit.is_direct"
+                  :direct-endpoints="curWorkUnit.direct_endpoints">
                 </AccessPoint>
               </template>
               <template #right>
@@ -58,7 +66,7 @@
               </template>
             </FlexRow>
             <!-- table -->
-            <DetailTable :searchSelectValue="searchKey"></DetailTable>
+            <DetailTable :searchSelectValue="searchKey" :bkNetworkunitId="active"></DetailTable>
           </div>
         </Tab.TabPanel>
         <template #add>
@@ -90,7 +98,7 @@
         @delete="handleAfterDelete"
       />
     </div>
-    <InstallProxy v-model:is-show="isShowInstallProxy" />
+    <InstallProxy v-model:is-show="isShowInstallProxy" :bk_networkunit_id="active"/>
   </Loading>
 </template>
 

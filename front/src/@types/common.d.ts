@@ -229,3 +229,14 @@ interface ConfigPolicy {
   version: number;
 }
 
+interface Error {
+  system: string;
+  message: string;
+  details: Details[];
+}
+
+interface ErrorDetails {
+  code: string;
+  message: string;
+}
+
