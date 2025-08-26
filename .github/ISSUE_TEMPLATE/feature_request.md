@@ -2,7 +2,7 @@
 name: 功能开发
 about: Suggest an idea for this project
 title: '[FEATURE]'
-labels: 'kind/features,product/todo,product/doing'
+labels: 'kind/features,product/todo'
 assignees: ''
 
 ---

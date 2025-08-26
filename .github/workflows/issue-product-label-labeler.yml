@@ -2,6 +2,8 @@ name: "Issue Product Label Management"
 on:
   issues:
     types: [opened, reopened, closed]
+  issue_comment:
+    types: [created] # 添加 issue_comment 事件监听
 
 jobs:
   manage-issue:
@@ -9,6 +11,28 @@ jobs:
     permissions:
       issues: write
     steps:
+      # 当 issue 被 mention 移除 todo 标签
+      - uses: actions-ecosystem/action-remove-labels@v1
+        if: |
+          github.event_name == 'issue_comment' &&
+          contains(github.event.comment.body, '@') &&
+          contains(github.event.issue.labels.*.name, 'product/todo') &&
+          contains(github.event.comment.html_url, '/pull/') &&
+          contains(github.event.issue.title, '[FEATURE]')
+        with:
+          labels: product/todo
+
+      # 当 issue 被 mention 添加 doing 标签
+      - uses: actions-ecosystem/action-add-labels@v1
+        if: |
+          github.event_name == 'issue_comment' &&
+          contains(github.event.comment.body, '@') &&
+          contains(github.event.issue.labels.*.name, 'product/todo') &&
+          contains(github.event.comment.html_url, '/pull/') &&
+          contains(github.event.issue.title, '[FEATURE]')
+        with:
+          labels: product/doing
+
       # 新建或重开 issue 时添加 todo 标签
       - uses: actions-ecosystem/action-add-labels@v1
         if: |
@@ -21,7 +45,8 @@ jobs:
       - uses: actions-ecosystem/action-add-assignees@v1
         if: |
           (github.event.action == 'opened' || github.event.action == 'reopened') &&
-          (github.event.issue.assignees == null || github.event.issue.assignees[0] == null)
+          (github.event.issue.assignees == null || github.event.issue.assignees[0] == null) &&
+          contains(github.event.issue.title, '[FEATURE]')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ github.event.issue.user.login }}
@@ -30,7 +55,8 @@ jobs:
       - uses: actions-ecosystem/action-remove-labels@v1
         if: |
           github.event.action == 'closed' &&
-          (contains(github.event.issue.labels.*.name, 'product/todo') || contains(github.event.issue.labels.*.name, 'product/doing'))
+          (contains(github.event.issue.labels.*.name, 'product/todo') || contains(github.event.issue.labels.*.name, 'product/doing')) &&
+          contains(github.event.issue.title, '[FEATURE]')
         with:
           labels: |
             product/todo
@@ -40,7 +66,8 @@ jobs:
       - uses: actions-ecosystem/action-add-labels@v1
         if: |
           github.event.action == 'closed' &&
-          contains(github.event.issue.labels.*.name, 'product/doing')
+          contains(github.event.issue.labels.*.name, 'product/doing') &&
+          contains(github.event.issue.title, '[FEATURE]')
         with:
           labels: |
             product/for test
