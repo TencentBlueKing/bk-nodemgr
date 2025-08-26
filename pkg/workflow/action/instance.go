@@ -37,7 +37,7 @@ type InstanceData struct {
 	Name        string
 	Index       int
 	TotalIndex  int
-	Messages    []Message
+	Messages    []common.Message
 	Content     map[string]any
 	PrivateData map[string]any
 	Lifecycle   *Lifecycle
@@ -52,7 +52,7 @@ func (data *InstanceData) Info() string {
 // LogI logs messages.
 func (data *InstanceData) LogI(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "INFO",
@@ -63,7 +63,7 @@ func (data *InstanceData) LogI(messages ...string) {
 // LogW logs error messages.
 func (data *InstanceData) LogW(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "WARN",
@@ -74,7 +74,7 @@ func (data *InstanceData) LogW(messages ...string) {
 // LogE logs error messages.
 func (data *InstanceData) LogE(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "ERROR",
@@ -116,13 +116,6 @@ func (data *InstanceData) NeedExecuted() error {
 		return fmt.Errorf("unexpected action state. oper-inst-id(%s), action-name(%s), state(%s)",
 			data.OperationID, data.Name, data.Lifecycle.State)
 	}
-}
-
-// Message describes the single message in action instance.
-type Message struct {
-	Time  time.Time
-	Text  string
-	Level string
 }
 
 // Lifecycle describes the lifecycle of an action instance.

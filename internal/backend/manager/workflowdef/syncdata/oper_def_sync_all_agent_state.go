@@ -56,3 +56,8 @@ func (oper *operSyncAllAgentStateFromGSE) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operSyncAllAgentStateFromGSE) ExtraExecutionName() string {
+	return ""
+}

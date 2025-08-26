@@ -77,3 +77,8 @@ func (oper *operReconfigNode) DefaultParameters() operation.Param {
 		},
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operReconfigNode) ExtraExecutionName() string {
+	return OperExtraExecutionName
+}

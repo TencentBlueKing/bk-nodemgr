@@ -44,17 +44,19 @@ type Message struct {
 
 // OperInstData represents a operation instance data.
 type OperInstData struct {
-	TriggerID         string                     `json:"trigger_id" bson:"trigger_id"`
-	OperInstID        string                     `json:"oper_inst_id" bson:"oper_inst_id"`
-	ActionNames       []string                   `json:"actions" bson:"actions"`
-	ActionInstDataMap map[string]*ActionInstData `json:"action_data" bson:"action_data"`
-	OperDefName       string                     `json:"oper_def_name" bson:"oper_def_name"`
-	OperationID       string                     `json:"operation_id" bson:"operation_id"`
-	Index             int                        `json:"index" bson:"index"`
-	ParentOperationID string                     `json:"parent_operation_id" bson:"parent_operation_id"`
-	Timeout           time.Duration              `json:"timeout" bson:"timeout"`
-	InitContent       string                     `json:"init_content" bson:"init_content"`
-	Lifecycle         *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
+	TriggerID              string                     `json:"trigger_id" bson:"trigger_id"`
+	OperInstID             string                     `json:"oper_inst_id" bson:"oper_inst_id"`
+	ActionNames            []string                   `json:"actions" bson:"actions"`
+	ActionInstDataMap      map[string]*ActionInstData `json:"action_data" bson:"action_data"`
+	OperDefName            string                     `json:"oper_def_name" bson:"oper_def_name"`
+	OperationID            string                     `json:"operation_id" bson:"operation_id"`
+	Index                  int                        `json:"index" bson:"index"`
+	ParentOperationID      string                     `json:"parent_operation_id" bson:"parent_operation_id"`
+	Timeout                time.Duration              `json:"timeout" bson:"timeout"`
+	InitContent            string                     `json:"init_content" bson:"init_content"`
+	Lifecycle              *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
+	ExtraExecutionName     string                     `json:"extra_execution_name" bson:"extra_execution_name"`
+	ExtraExecutionMessages []Message                  `json:"extra_execution_messages" bson:"extra_execution_messages"`
 }
 
 // LifeCycle is the lifecycle of an operation instance.

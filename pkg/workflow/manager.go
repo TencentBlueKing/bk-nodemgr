@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // IManager defines the manager interface.
@@ -43,6 +44,9 @@ type IManager interface {
 
 	// RegisterActions registers a list of actions.
 	RegisterActions(actionDefs ...action.Definition) error
+
+	// RegisterOperExtraExecutions registers a list of extra execution definitions.
+	RegisterOperExtraExecutions(extraDefs ...operation.ExtraExecution) error
 }
 
 const (
@@ -58,11 +62,12 @@ func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 			ResultsExpireIn: resultsExpireInDefault,
 			NoUnixSignals:   true,
 		},
-		isRunning:            false,
-		registeredActionDefs: make(map[string]action.Definition),
-		logger:               logger.LoggerDefault{},
-		WorkerNum:            workerNum,
-		launchWorkerErr:      make(chan error, 1),
+		isRunning:                        false,
+		registeredActionDefs:             make(map[string]action.Definition),
+		registeredOperExtraExecutionDefs: make(map[string]operation.ExtraExecution),
+		logger:                           logger.LoggerDefault{},
+		WorkerNum:                        workerNum,
+		launchWorkerErr:                  make(chan error, 1),
 	}
 
 	for _, opt := range opts {
@@ -180,7 +185,8 @@ type manager struct {
 
 	globalLocker locker.MutexFactory
 
-	registeredActionDefs map[string]action.Definition
+	registeredActionDefs             map[string]action.Definition
+	registeredOperExtraExecutionDefs map[string]operation.ExtraExecution
 
 	launchWorkerErr chan error
 
@@ -274,6 +280,23 @@ func (mgr *manager) RegisterAction(actionDef action.Definition) error {
 	}
 
 	mgr.registeredActionDefs[actionDef.Name()] = actionDef
+
+	return nil
+}
+
+// RegisterOperExtraExecutions registers a list of extra execution definitions.
+func (mgr *manager) RegisterOperExtraExecutions(execDefs ...operation.ExtraExecution) error {
+	if mgr.isRunning {
+		return errors.New("operation instance manager already started, can not register operation execution")
+	}
+
+	for _, execDef := range execDefs {
+		if _, ok := mgr.registeredOperExtraExecutionDefs[execDef.Name()]; ok {
+			return errors.New("operation execution already registered")
+		}
+
+		mgr.registeredOperExtraExecutionDefs[execDef.Name()] = execDef
+	}
 
 	return nil
 }

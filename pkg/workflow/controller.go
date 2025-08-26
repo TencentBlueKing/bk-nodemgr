@@ -36,6 +36,7 @@ type IController interface {
 }
 
 // ITriggerCtl describes the workflow trigger handler.
+// nolint: interfacebloat
 type ITriggerCtl interface {
 	// GetTriggerID returns the trigger ID.
 	GetTriggerID() string
@@ -372,8 +373,8 @@ func (ctl *controller) LaunchOperationInstance(ctx context.Context) error {
 	}
 
 	// update state.
-	ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
-	ctl.operInstanceBriefData.Lifecycle.State = operation.StateRunning
+	// ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
+	ctl.operInstanceBriefData.Lifecycle.State = operation.StateLaunched
 	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
 		ctx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
 		ctl.mgr.logger.ErrorCtxf(ctx, "failed to update operation instance lifecycle. oper-inst-id(%s), err(%v)",
@@ -498,6 +499,7 @@ func (ctl *controller) findRetryStartInfo(
 		if inst.Lifecycle.State != action.StateSuccess {
 			failedAction = name
 			failedIndex = actionIndexMap[name]
+
 			break
 		}
 	}
@@ -535,6 +537,7 @@ func (ctl *controller) createPartialRetryInstance(
 		if !exists || currentIndex < startIndex {
 			return action.StateSkipped
 		}
+
 		return action.StatePending
 	}
 
@@ -607,7 +610,7 @@ func (ctl *controller) createOperationInstanceBase(ctx context.Context,
 			Name:                actionName,
 			Index:               index,
 			TotalIndex:          len(actionNames),
-			Messages:            make([]action.Message, 0),
+			Messages:            make([]common.Message, 0),
 			Content:             make(map[string]any),
 			PrivateData:         make(map[string]any),
 			Lifecycle: &action.Lifecycle{
@@ -620,15 +623,17 @@ func (ctl *controller) createOperationInstanceBase(ctx context.Context,
 	instanceData := &operation.InstanceData{
 		InstanceBriefData: operation.InstanceBriefData{
 			Metadata: &operation.InstanceMetadata{
-				TriggerID:           ctl.trig.TriggerID,
-				OperationInstanceID: operationInstanceID,
-				OperationDefName:    ctl.oper.Definition.Name(),
-				OperationID:         ctl.oper.OperationID,
-				ActionNames:         actionNames,
-				Index:               len(ctl.oper.InstanceIDs),
-				ParentOperationID:   ctl.oper.Param.ParentOperationID,
-				Timeout:             ctl.oper.Param.Timeout,
-				InitContent:         ctl.oper.Param.InitContent,
+				TriggerID:              ctl.trig.TriggerID,
+				OperationInstanceID:    operationInstanceID,
+				OperationDefName:       ctl.oper.Definition.Name(),
+				OperationID:            ctl.oper.OperationID,
+				ActionNames:            actionNames,
+				Index:                  len(ctl.oper.InstanceIDs),
+				ParentOperationID:      ctl.oper.Param.ParentOperationID,
+				Timeout:                ctl.oper.Param.Timeout,
+				InitContent:            ctl.oper.Param.InitContent,
+				ExtraExecutionName:     ctl.oper.Definition.ExtraExecutionName(),
+				ExtraExecutionMessages: make([]common.Message, 0),
 			},
 			Lifecycle: &operation.Lifecycle{
 				CreatedAt: time.Now().Local(),

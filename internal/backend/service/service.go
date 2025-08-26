@@ -287,6 +287,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
 		ProxyMessager:         svc.Cap.ProxyMessager,
+		Cache:                 rediscache.NewRedisCache(redisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{

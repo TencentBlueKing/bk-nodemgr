@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
 // IDomainNodeInstall defines the Storage interface for domain node install.
@@ -27,7 +28,7 @@ type IDomainNodeInstall interface {
 
 	// PushActInstMsgs will append the oper inst action log.
 	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string,
-		msgs ...action.Message) error
+		msgs ...common.Message) error
 
 	// UpsertActionInstancePrivateData upserts action instance private data.
 	UpsertActionInstancePrivateData(

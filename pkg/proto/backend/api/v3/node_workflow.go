@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -540,12 +541,12 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		}
 
 		if actionData.GetMessage() != nil {
-			instance.Messages = make([]action.Message, 0, len(actionData.GetMessage().GetLogs()))
+			instance.Messages = make([]common.Message, 0, len(actionData.GetMessage().GetLogs()))
 			for _, msg := range actionData.GetMessage().GetLogs() {
 				if msg == nil {
 					continue
 				}
-				instance.Messages = append(instance.Messages, action.Message{
+				instance.Messages = append(instance.Messages, common.Message{
 					Time:  time.Unix(msg.GetTime(), 0),
 					Text:  msg.GetText(),
 					Level: msg.GetLevel(),

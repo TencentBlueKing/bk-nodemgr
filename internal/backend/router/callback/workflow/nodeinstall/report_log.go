@@ -17,7 +17,7 @@ import (
 	"time"
 
 	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,9 +46,9 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		return
 	}
 
-	logs := make([]action.Message, len(req.Logs))
+	logs := make([]common.Message, len(req.Logs))
 	for idx, log := range req.Logs {
-		logs[idx] = action.Message{
+		logs[idx] = common.Message{
 			Time: time.Now(),
 			Text: fmt.Sprintf("%s\t:%s\t:%s\t",
 				time.Unix(log.GetTimestamp(), 0).Format("2006-01-02 15:04:05"),

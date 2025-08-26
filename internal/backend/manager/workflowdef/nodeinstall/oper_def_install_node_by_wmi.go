@@ -79,3 +79,8 @@ func (oper *operInstallNodeByWMI) DefaultParameters() operation.Param {
 		},
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operInstallNodeByWMI) ExtraExecutionName() string {
+	return OperExtraExecutionName
+}

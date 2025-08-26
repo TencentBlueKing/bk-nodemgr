@@ -79,3 +79,8 @@ func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
 		},
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operInstallNodeBySSH) ExtraExecutionName() string {
+	return OperExtraExecutionName
+}

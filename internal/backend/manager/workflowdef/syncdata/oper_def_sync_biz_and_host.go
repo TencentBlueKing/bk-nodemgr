@@ -57,3 +57,8 @@ func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operSyncBizAndHostFromCMDB) ExtraExecutionName() string {
+	return ""
+}

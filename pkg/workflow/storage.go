@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -41,7 +42,7 @@ type IStorageActionInstance interface {
 
 	// PushActionInstanceMessage pushes action instance message.
 	PushActionInstanceMessage(
-		ctx context.Context, operationInstanceID, actionName string, messages ...action.Message) error
+		ctx context.Context, operationInstanceID, actionName string, messages ...common.Message) error
 
 	// GetActionInstancePrivateData gets action instance private data.
 	GetActionInstancePrivateData(ctx context.Context, operationInstanceID, actionName string) (map[string]any, error)
@@ -95,6 +96,10 @@ type IStorageOperationInstance interface {
 
 	// UpdateOperationInstanceLifecycle updates operation instance lifecycle.
 	UpdateOperationInstanceLifecycle(ctx context.Context, operationInstanceID string, lifecycle *operation.Lifecycle) error
+
+	// UpdateOperationInstanceExtraExecutionMessages updates operation instance extra execution messages.
+	UpdateOperationInstanceExtraExecutionMessages(
+		ctx context.Context, operationInstanceID string, messages ...common.Message) error
 
 	// WatchOperInstStopping watches operation instance stopping.
 	WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{}

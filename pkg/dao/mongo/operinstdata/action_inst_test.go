@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
 // testActionInstData ...
@@ -311,7 +312,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			err := h.AddActInstPrivateData(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.data)
+			err := h.PushActInstPrivateData(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.data)
 			if err != nil {
 				t.Logf("AddActInstPrivateData() error = %v", err)
 			}
@@ -329,7 +330,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 		ctx        context.Context
 		operInstID string
 		actionName string
-		msgs       []action.Message
+		msgs       []common.Message
 	}
 	tests := []struct {
 		name    string
@@ -342,7 +343,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 				ctx:        context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "sync_action_from_cmdb",
-				msgs: []action.Message{
+				msgs: []common.Message{
 					{
 						Time:  time.Now(),
 						Text:  "test1 ",

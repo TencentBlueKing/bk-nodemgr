@@ -153,17 +153,19 @@ func convertParamToDB(param operation.Param) Parameters {
 
 func convertDefFromDB(defoper DefSnapshot) operation.Definition {
 	return &operation.DefinitionSnapshot{
-		SnapshotName:              defoper.OperDefName,
-		SnapshotActionDefNames:    defoper.ActionNames,
-		SnapshotDefaultParameters: convertParamFromDB(defoper.DefaultParameters),
-		RetryStartPoint:           defoper.DefaultParameters.RetryStartPoint,
+		SnapshotName:               defoper.OperDefName,
+		SnapshotActionDefNames:     defoper.ActionNames,
+		SnapshotDefaultParameters:  convertParamFromDB(defoper.DefaultParameters),
+		RetryStartPoint:            defoper.DefaultParameters.RetryStartPoint,
+		SnapshotExtraExecutionName: defoper.ExtraExecutionName,
 	}
 }
 
 func convertDefToDB(defoper operation.Definition) DefSnapshot {
 	return DefSnapshot{
-		OperDefName:       defoper.Name(),
-		ActionNames:       defoper.ActionDefNames(),
-		DefaultParameters: convertParamToDB(defoper.DefaultParameters()),
+		OperDefName:        defoper.Name(),
+		ActionNames:        defoper.ActionDefNames(),
+		DefaultParameters:  convertParamToDB(defoper.DefaultParameters()),
+		ExtraExecutionName: defoper.ExtraExecutionName(),
 	}
 }

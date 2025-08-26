@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -75,14 +76,16 @@ func Test_handler_Upsert(t *testing.T) {
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
-							TriggerID:           "trigger-1",
-							OperationInstanceID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
-							OperationDefName:    "operation-def-1",
-							OperationID:         "",
-							ActionNames:         []string{"action-1"},
-							ParentOperationID:   "",
-							Timeout:             0,
-							InitContent:         map[string]any{},
+							TriggerID:              "trigger-1",
+							OperationInstanceID:    "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+							OperationDefName:       "operation-def-1",
+							OperationID:            "",
+							ActionNames:            []string{"action-1"},
+							ParentOperationID:      "",
+							Timeout:                0,
+							InitContent:            map[string]any{},
+							ExtraExecutionName:     "extra-execution",
+							ExtraExecutionMessages: make([]common.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -130,6 +133,8 @@ func Test_handler_Upsert(t *testing.T) {
 							InitContent: map[string]any{
 								"order_id": "ORD-1001",
 							},
+							ExtraExecutionName:     "extra-execution",
+							ExtraExecutionMessages: make([]common.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -165,13 +170,15 @@ func Test_handler_Upsert(t *testing.T) {
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
-							TriggerID:           "trigger-002",
-							OperationInstanceID: "op-instance-002",
-							OperationDefName:    "def-inventory-check",
-							ActionNames:         []string{"check-stock", "update-inventory"},
-							ParentOperationID:   "parent-op-001",
-							Timeout:             1 * time.Hour,
-							InitContent:         map[string]any{},
+							TriggerID:              "trigger-002",
+							OperationInstanceID:    "op-instance-002",
+							OperationDefName:       "def-inventory-check",
+							ActionNames:            []string{"check-stock", "update-inventory"},
+							ParentOperationID:      "parent-op-001",
+							Timeout:                1 * time.Hour,
+							InitContent:            map[string]any{},
+							ExtraExecutionName:     "extra-execution",
+							ExtraExecutionMessages: make([]common.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "running",
@@ -217,14 +224,16 @@ func Test_handler_Upsert(t *testing.T) {
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
-							TriggerID:           "trigger-003",
-							OperationInstanceID: "op-instance-003",
-							OperationDefName:    "operation-def-1",
-							OperationID:         "",
-							ActionNames:         []string{},
-							ParentOperationID:   "",
-							Timeout:             0,
-							InitContent:         map[string]any{},
+							TriggerID:              "trigger-003",
+							OperationInstanceID:    "op-instance-003",
+							OperationDefName:       "operation-def-1",
+							OperationID:            "",
+							ActionNames:            []string{},
+							ParentOperationID:      "",
+							Timeout:                0,
+							InitContent:            map[string]any{},
+							ExtraExecutionName:     "extra-execution",
+							ExtraExecutionMessages: make([]common.Message, 0),
 						},
 						Lifecycle: &operation.Lifecycle{
 							State:     "success",
@@ -545,6 +554,68 @@ func Test_UpdateLifeCycle(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Test_ListFullData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}
+
+// Test_UpdateExecMessages tests the UpdateExecMessages method.
+func Test_UpdateExecMessages(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		OperInstID string
+		ExecName   string
+		Messages   []common.Message
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal_1",
+			args: args{
+				ctx:        context.Background(),
+				OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
+				Messages: []common.Message{
+					{
+						Time:  time.Now(),
+						Text:  "This is a test message",
+						Level: "INFO",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "normal_2",
+			args: args{
+				ctx:        context.Background(),
+				OperInstID: "op-instance-002",
+				Messages: []common.Message{
+					{
+						Time:  time.Now(),
+						Text:  "This is a test message",
+						Level: "INFO",
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testHandler(t)
+			err := h.UpdateExtraExecutionMessages(tt.args.ctx, tt.args.OperInstID, tt.args.Messages...)
+			if err != nil {
+				t.Logf("Test_UpdateExecMessages() error = %v", err)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Test_UpdateExecMessages() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

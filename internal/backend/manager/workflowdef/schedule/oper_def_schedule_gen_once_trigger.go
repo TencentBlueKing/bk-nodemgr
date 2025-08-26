@@ -62,3 +62,8 @@ func (oper *operScheduleOnceTriggerOperation) DefaultParameters() operation.Para
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operScheduleOnceTriggerOperation) ExtraExecutionName() string {
+	return ""
+}

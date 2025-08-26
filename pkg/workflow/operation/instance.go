@@ -15,19 +15,22 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
 // InstanceMetadata defines the metadata of operation instance.
 type InstanceMetadata struct {
-	TriggerID           string
-	OperationInstanceID string
-	OperationDefName    string
-	OperationID         string
-	ActionNames         []string
-	ParentOperationID   string
-	Index               int
-	Timeout             time.Duration
-	InitContent         map[string]any
+	TriggerID              string
+	OperationInstanceID    string
+	OperationDefName       string
+	OperationID            string
+	ActionNames            []string
+	ParentOperationID      string
+	Index                  int
+	Timeout                time.Duration
+	InitContent            map[string]any
+	ExtraExecutionName     string
+	ExtraExecutionMessages []common.Message
 }
 
 // InstanceBriefData defines the brief data of operation instance.
@@ -37,6 +40,39 @@ type InstanceBriefData struct {
 
 	// the below fields can be changed.
 	Lifecycle *Lifecycle
+}
+
+// LogI logs messages.
+func (data *InstanceBriefData) LogI(messages ...string) {
+	for _, message := range messages {
+		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
+			Time:  time.Now(),
+			Text:  message,
+			Level: "INFO",
+		})
+	}
+}
+
+// LogW logs error messages.
+func (data *InstanceBriefData) LogW(messages ...string) {
+	for _, message := range messages {
+		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
+			Time:  time.Now(),
+			Text:  message,
+			Level: "WARN",
+		})
+	}
+}
+
+// LogE logs error messages.
+func (data *InstanceBriefData) LogE(messages ...string) {
+	for _, message := range messages {
+		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
+			Time:  time.Now(),
+			Text:  message,
+			Level: "ERROR",
+		})
+	}
 }
 
 // InstanceData defines the data of operation instance.

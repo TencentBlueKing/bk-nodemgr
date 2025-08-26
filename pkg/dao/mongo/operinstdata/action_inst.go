@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
 // IActionInstData defines the interface for action instance data operations.
@@ -29,7 +30,7 @@ type IActionInstData interface {
 	UpdateActionInstData(ctx context.Context, data *action.InstanceData) error
 
 	// UpdateActInstMsg updates action inst data messages.
-	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []action.Message) error
+	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []common.Message) error
 
 	// GetActInstLifecycle get action inst data lifecycle.
 	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error)
@@ -39,7 +40,7 @@ type IActionInstData interface {
 		lifecycle *action.Lifecycle) error
 
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
-	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...action.Message) error
+	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...common.Message) error
 
 	// GetActInstPrivateData get action inst data private data.
 	GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error)
@@ -57,7 +58,7 @@ type IActionInstData interface {
 
 // UpdateActInstMsg update action inst msg.
 func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
-	msgs []action.Message) error {
+	msgs []common.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -175,7 +176,7 @@ func (h *handler) PushActInstPrivateData(ctx context.Context, operInstID string,
 
 // PushActionInstanceMessage push act inst msg.
 func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstanceID, actionName string,
-	messages ...action.Message) error {
+	messages ...common.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -362,7 +363,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 	}
 
 	for _, msg := range actionInstData.Messages {
-		data.Messages = append(data.Messages, action.Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  msg.Time,
 			Text:  msg.Text,
 			Level: msg.Level,

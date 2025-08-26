@@ -61,8 +61,8 @@ func (mgr *manager) launchWorker() error {
 	return nil
 }
 
-// do executes the action defined by actionName for the operation instance with operationInstanceID.
-// nolint: funlen,gocognit
+// doAction executes the action defined by actionName for the operation instance with operationInstanceID.
+// nolint: funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
 	actionDef, ok := mgr.registeredActionDefs[actionName]
@@ -95,6 +95,17 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	// handle operation instance lifecycle.
 	if actionInstData.IsFirst() {
+		if execErr := mgr.doOperExtraExecution(operInstBriefData); execErr != nil {
+			operInstBriefData.Lifecycle.End(action.StateFailed)
+			err = mgr.updateOperationInstanceLifecycle(ctx, operationInstanceID, operInstBriefData.Lifecycle)
+			if err != nil {
+				return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
+					err, execErr)
+			}
+
+			return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w", operationInstanceID, execErr)
+		}
+
 		// first action be executed, means operation instance is started.
 		operInstBriefData.Lifecycle.Start()
 		if err = mgr.updateOperationInstanceLifecycle(ctx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
@@ -154,6 +165,10 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		mgr.logger.InfoCtxf(ctx,
 			"updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
 			operationInstanceID, operInstBriefData.Lifecycle)
+
+		if err = mgr.doOperExtraExecution(operInstBriefData); err != nil {
+			return fmt.Errorf("do oper-inst-id(%s) ending extra execution failed: %w", operationInstanceID, err)
+		}
 	}
 
 	return executeErr
@@ -404,4 +419,33 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	}
 
 	return doErr
+}
+
+// doOperExtraExecution executes the extra action for the operation instance.
+func (mgr *manager) doOperExtraExecution(oper *operation.InstanceBriefData) error {
+	if oper.Metadata.ExtraExecutionName == "" {
+		return nil
+	}
+
+	if oper.Lifecycle.State == operation.StateInit || oper.Lifecycle.State == operation.StateRunning {
+		return nil
+	}
+
+	actionDef, ok := mgr.registeredOperExtraExecutionDefs[oper.Metadata.ExtraExecutionName]
+	if !ok {
+		return fmt.Errorf("extra action not registered, name(%s)", oper.Metadata.ExtraExecutionName)
+	}
+
+	msgIdx := len(oper.Metadata.ExtraExecutionMessages)
+	err := actionDef.Do(mgr.ctx, oper)
+	updateErr := mgr.stgOperationInstance.UpdateOperationInstanceExtraExecutionMessages(
+		mgr.ctx,
+		oper.Metadata.OperationInstanceID,
+		oper.Metadata.ExtraExecutionMessages[msgIdx:]...)
+	if updateErr != nil {
+		mgr.logger.Errorf("refresh operation-extra-execution(%s) message failed: %v",
+			oper.Metadata.ExtraExecutionName, err)
+	}
+
+	return err
 }

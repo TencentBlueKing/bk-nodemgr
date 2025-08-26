@@ -64,9 +64,10 @@ func Test_handler_List(t *testing.T) {
 		OperationID: "operation_base1",
 		InstanceIDs: []string{},
 		Definition: &operation.DefinitionSnapshot{
-			SnapshotName:              "order_processing1",
-			SnapshotActionDefNames:    []string{"validate1", "charge1"},
-			SnapshotDefaultParameters: operation.Param{Timeout: 10 * time.Second},
+			SnapshotName:               "order_processing1",
+			SnapshotActionDefNames:     []string{"validate1", "charge1"},
+			SnapshotDefaultParameters:  operation.Param{Timeout: 10 * time.Second},
+			SnapshotExtraExecutionName: "extra_execution1",
 		},
 		Param: operation.Param{
 			ParentOperationID: "parent_operation1",
@@ -80,9 +81,10 @@ func Test_handler_List(t *testing.T) {
 		OperationID: "operation_base2",
 		InstanceIDs: []string{"instance_3", "instance_4"},
 		Definition: &operation.DefinitionSnapshot{
-			SnapshotName:              "order_processing2",
-			SnapshotActionDefNames:    []string{"validate2", "charge2"},
-			SnapshotDefaultParameters: operation.Param{Timeout: 20 * time.Second},
+			SnapshotName:               "order_processing2",
+			SnapshotActionDefNames:     []string{"validate2", "charge2"},
+			SnapshotDefaultParameters:  operation.Param{Timeout: 20 * time.Second},
+			SnapshotExtraExecutionName: "extra_execution2",
 		},
 		Param: operation.Param{
 			ParentOperationID: "parent_operation2",

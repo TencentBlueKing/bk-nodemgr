@@ -11,6 +11,8 @@
 // Package operation describes the operation of workflow.
 package operation
 
+import "context"
+
 // Definition represents an operation.
 type Definition interface {
 	// Name returns the name of the operation definition.
@@ -21,14 +23,18 @@ type Definition interface {
 
 	// DefaultParameters returns the default parameters of the operation.
 	DefaultParameters() Param
+
+	// ExtraExecutionName returns the extra execution name for the operation.
+	ExtraExecutionName() string
 }
 
 // DefinitionSnapshot represents a snapshot of an operation definition.
 type DefinitionSnapshot struct {
-	SnapshotName              string
-	SnapshotActionDefNames    []string
-	SnapshotDefaultParameters Param
-	RetryStartPoint           map[string]bool
+	SnapshotName               string
+	SnapshotActionDefNames     []string
+	SnapshotDefaultParameters  Param
+	RetryStartPoint            map[string]bool
+	SnapshotExtraExecutionName string
 }
 
 // Name returns the name of the operation definition.
@@ -44,4 +50,17 @@ func (ds *DefinitionSnapshot) ActionDefNames() []string {
 // DefaultParameters returns the default parameters of the operation.
 func (ds *DefinitionSnapshot) DefaultParameters() Param {
 	return ds.SnapshotDefaultParameters
+}
+
+// ExtraExecutionName returns the extra execution name for the operation.
+func (ds *DefinitionSnapshot) ExtraExecutionName() string {
+	return ds.SnapshotExtraExecutionName
+}
+
+// ExtraExecution represents an extra execution for an operation.
+type ExtraExecution interface {
+	// Name returns the name of the extra execution.
+	Name() string
+
+	Do(ctx context.Context, instance *InstanceBriefData) error
 }

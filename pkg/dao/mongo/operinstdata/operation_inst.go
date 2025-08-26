@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -44,6 +45,9 @@ type IOperationInstData interface {
 
 	// UpdateLifeCycle updates or inserts an InstanceData's LifeCycle.
 	UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error
+
+	// UpdateExtraExecutionMessages updates operation instance extra execution messages.
+	UpdateExtraExecutionMessages(ctx context.Context, operInstID string, messages ...common.Message) error
 
 	// ListAllLastOperInst find all last OperInstData in their operation.
 	ListAllLastOperInst(ctx context.Context, opts ...OptFn) ([]*operation.InstanceBriefData, error)
@@ -108,14 +112,14 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 			Name:                v.Name,
 			Index:               v.Index,
 			TotalIndex:          v.TotalIndex,
-			Messages:            make([]action.Message, len(v.Messages)),
+			Messages:            make([]common.Message, len(v.Messages)),
 			Content:             make(map[string]any, len(v.Content)),
 			PrivateData:         v.PrivateData,
 			Lifecycle:           ConvActInstLifeCycleFromDB(v.Lifecycle),
 		}
 
 		for idx, msg := range v.Messages {
-			actionInstData.Messages[idx] = action.Message{
+			actionInstData.Messages[idx] = common.Message{
 				Time:  msg.Time,
 				Text:  msg.Text,
 				Level: msg.Level,
@@ -177,14 +181,14 @@ func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 				Name:                v.Name,
 				Index:               v.Index,
 				TotalIndex:          v.TotalIndex,
-				Messages:            make([]action.Message, len(v.Messages)),
+				Messages:            make([]common.Message, len(v.Messages)),
 				Content:             make(map[string]any, len(v.Content)),
 				PrivateData:         v.PrivateData,
 				Lifecycle:           ConvActInstLifeCycleFromDB(v.Lifecycle),
 			}
 
 			for idx, msg := range v.Messages {
-				actionInstData.Messages[idx] = action.Message{
+				actionInstData.Messages[idx] = common.Message{
 					Time:  msg.Time,
 					Text:  msg.Text,
 					Level: msg.Level,
@@ -309,6 +313,40 @@ func (h *handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 	err := h.dao.updateField(ctx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// UpdateExtraExecutionMessages updates operation instance extra execution messages.
+func (h *handler) UpdateExtraExecutionMessages(
+	ctx context.Context, operInstID string, messages ...common.Message) error {
+
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if len(messages) == 0 {
+		return errors.New("messages is empty")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	for _, msg := range convMessageToDB(messages) {
+		err := h.dao.pushField(ctx, filter, "extra_execution_messages", msg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

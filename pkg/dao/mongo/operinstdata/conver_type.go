@@ -15,6 +15,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -92,20 +93,12 @@ func ConvActionInstDataToDB(actionInstData *action.InstanceData) (*ActionInstDat
 
 		PrivateData: make(map[string]any, len(actionInstData.PrivateData)),
 
-		Messages:  make([]Message, 0, len(actionInstData.Messages)),
+		Messages:  convMessageToDB(actionInstData.Messages),
 		Lifecycle: ConvActInstLifeCycleToDB(actionInstData.Lifecycle),
 	}
 
 	for k, v := range actionInstData.PrivateData {
 		data.PrivateData[k] = v
-	}
-
-	for _, message := range actionInstData.Messages {
-		data.Messages = append(data.Messages, Message{
-			Time:  message.Time,
-			Text:  message.Text,
-			Level: message.Level,
-		})
 	}
 
 	bytes, err := json.Marshal(actionInstData.Content)
@@ -121,15 +114,17 @@ func ConvActionInstDataToDB(actionInstData *action.InstanceData) (*ActionInstDat
 // ConvOpInstanceDataToDB convert oper inst data to db.
 func ConvOpInstanceDataToDB(data *operation.InstanceData) (*OperInstData, error) {
 	dbData := &OperInstData{
-		TriggerID:         data.Metadata.TriggerID,
-		OperInstID:        data.Metadata.OperationInstanceID,
-		ActionNames:       data.Metadata.ActionNames,
-		OperationID:       data.Metadata.OperationID,
-		OperDefName:       data.Metadata.OperationDefName,
-		Index:             data.Metadata.Index,
-		ParentOperationID: data.Metadata.ParentOperationID,
-		Timeout:           data.Metadata.Timeout,
-		Lifecycle:         ConvOperaLifeCycleToDB(data.Lifecycle),
+		TriggerID:              data.Metadata.TriggerID,
+		OperInstID:             data.Metadata.OperationInstanceID,
+		ActionNames:            data.Metadata.ActionNames,
+		OperationID:            data.Metadata.OperationID,
+		OperDefName:            data.Metadata.OperationDefName,
+		Index:                  data.Metadata.Index,
+		ParentOperationID:      data.Metadata.ParentOperationID,
+		Timeout:                data.Metadata.Timeout,
+		Lifecycle:              ConvOperaLifeCycleToDB(data.Lifecycle),
+		ExtraExecutionName:     data.Metadata.ExtraExecutionName,
+		ExtraExecutionMessages: convMessageToDB(data.Metadata.ExtraExecutionMessages),
 	}
 
 	if data.Metadata.InitContent == nil {
@@ -167,7 +162,7 @@ func ConvActionInstDataMapToDB(commData map[string]*action.InstanceData) (map[st
 }
 
 // convMessageToDB convert message to db.
-func convMessageToDB(msgs []action.Message) []Message {
+func convMessageToDB(msgs []common.Message) []Message {
 	dbData := make([]Message, len(msgs))
 	for idx, msg := range msgs {
 		dbData[idx] = Message{
@@ -180,6 +175,20 @@ func convMessageToDB(msgs []action.Message) []Message {
 	return dbData
 }
 
+// convMessageFromDB convert message from db.
+func convMessageFromDB(msgs []Message) []common.Message {
+	data := make([]common.Message, len(msgs))
+	for idx, msg := range msgs {
+		data[idx] = common.Message{
+			Time:  msg.Time,
+			Text:  msg.Text,
+			Level: msg.Level,
+		}
+	}
+
+	return data
+}
+
 // ConvAOperaInstDataWithoutActionFromDB convert oper inst data without action data to common.
 func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.InstanceData, error) {
 	if opear == nil {
@@ -189,14 +198,16 @@ func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.Inst
 	data := &operation.InstanceData{
 		InstanceBriefData: operation.InstanceBriefData{
 			Metadata: &operation.InstanceMetadata{
-				TriggerID:           opear.TriggerID,
-				OperationInstanceID: opear.OperInstID,
-				OperationID:         opear.OperationID,
-				OperationDefName:    opear.OperDefName,
-				ActionNames:         opear.ActionNames,
-				Index:               opear.Index,
-				ParentOperationID:   opear.ParentOperationID,
-				Timeout:             opear.Timeout,
+				TriggerID:              opear.TriggerID,
+				OperationInstanceID:    opear.OperInstID,
+				OperationID:            opear.OperationID,
+				OperationDefName:       opear.OperDefName,
+				ActionNames:            opear.ActionNames,
+				Index:                  opear.Index,
+				ParentOperationID:      opear.ParentOperationID,
+				Timeout:                opear.Timeout,
+				ExtraExecutionName:     opear.ExtraExecutionName,
+				ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
 			},
 			Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 		},
@@ -220,14 +231,16 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 
 	data := &operation.InstanceBriefData{
 		Metadata: &operation.InstanceMetadata{
-			TriggerID:           opear.TriggerID,
-			OperationInstanceID: opear.OperInstID,
-			OperationID:         opear.OperationID,
-			OperationDefName:    opear.OperDefName,
-			ActionNames:         opear.ActionNames,
-			Index:               opear.Index,
-			ParentOperationID:   opear.ParentOperationID,
-			Timeout:             opear.Timeout,
+			TriggerID:              opear.TriggerID,
+			OperationInstanceID:    opear.OperInstID,
+			OperationID:            opear.OperationID,
+			OperationDefName:       opear.OperDefName,
+			ActionNames:            opear.ActionNames,
+			Index:                  opear.Index,
+			ParentOperationID:      opear.ParentOperationID,
+			Timeout:                opear.Timeout,
+			ExtraExecutionName:     opear.ExtraExecutionName,
+			ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
 		},
 		Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 	}
@@ -240,5 +253,6 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }

@@ -230,6 +230,10 @@ func (mgr *Manager) startWorkflowManager(ctx context.Context) error {
 		return err
 	}
 
+	if err := mgr.registerOperExecDefs(); err != nil {
+		return err
+	}
+
 	if err := mgr.workflowMgr.Start(ctx); err != nil {
 		return err
 	}
@@ -345,6 +349,22 @@ func (mgr *Manager) registerActionDefSchedule() error {
 	}
 
 	return nil
+}
+
+// registerOperExecDefs init operation execution definitions.
+func (mgr *Manager) registerOperExecDefs() error {
+	if err := mgr.registerOperExecDefNodeInstall(); err != nil {
+		return fmt.Errorf("register oper extra action def node install failed, err: %w", err)
+	}
+
+	return nil
+}
+
+// registerOperExecDefNodeInstall registers the operation execution definitions for node installation operations.
+func (mgr *Manager) registerOperExecDefNodeInstall() error {
+	return mgr.workflowMgr.RegisterOperExtraExecutions(
+		nodeinstall.NewOperationExtraExecution(mgr.conf.Cache, mgr.conf.StorageNodeDeployment),
+	)
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.

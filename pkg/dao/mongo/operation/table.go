@@ -36,9 +36,10 @@ type Operation struct {
 
 // DefSnapshot represents the snapshot of the operation definition.
 type DefSnapshot struct {
-	OperDefName       string     `json:"oper_def_name" bson:"oper_def_name"`
-	ActionNames       []string   `json:"action_names" bson:"action_names"`
-	DefaultParameters Parameters `json:"default_parameters" bson:"default_parameters"`
+	OperDefName        string     `json:"oper_def_name" bson:"oper_def_name"`
+	ActionNames        []string   `json:"action_names" bson:"action_names"`
+	DefaultParameters  Parameters `json:"default_parameters" bson:"default_parameters"`
+	ExtraExecutionName string     `json:"extra_execution_name" bson:"extra_execution_name"`
 }
 
 // Parameters represents the snapshot of the operation definition.

@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"github.com/google/uuid"
@@ -227,7 +228,7 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 
 // PushActionInstanceMessage pushes action instance message.
 func (s *Storage) PushActionInstanceMessage(
-	ctx context.Context, operationInstanceID, actionName string, messages ...action.Message) error {
+	ctx context.Context, operationInstanceID, actionName string, messages ...common.Message) error {
 
 	if ctx == nil {
 		return basestorage.ErrNilContent()
@@ -399,6 +400,30 @@ func (s *Storage) UpdateOperationInstanceLifecycle(ctx context.Context,
 
 	if err := s.daoOperinstdata.UpdateLifeCycle(ctx, operationInstanceID, lifecycle); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// UpdateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
+func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
+	ctx context.Context, operationInstanceID string, messages ...common.Message) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operationInstanceID == "" {
+		return basestorage.ErrEmptyOperaInstID()
+	}
+
+	if len(messages) == 0 {
+		return nil
+	}
+
+	if err := s.daoOperinstdata.UpdateExtraExecutionMessages(ctx, operationInstanceID, messages...); err != nil {
+		return fmt.Errorf("update operation-inst-id(%s) extra-execution messages failed: %w",
+			operationInstanceID, err)
 	}
 
 	return nil

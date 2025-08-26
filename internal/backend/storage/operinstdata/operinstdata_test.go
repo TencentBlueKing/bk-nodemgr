@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"github.com/joho/godotenv"
@@ -413,13 +414,13 @@ func Test_storage_PushActionInstanceMessage(t *testing.T) {
 		wantErr         bool
 		operaInstanceId string
 		actionName      string
-		messgae         *action.Message
+		messgae         *common.Message
 	}{
 		{
 			name:            "normal",
 			operaInstanceId: "op-instance-002",
 			actionName:      "check-stock",
-			messgae: &action.Message{
+			messgae: &common.Message{
 				Time: time.Now(),
 				Text: "test1",
 			},
@@ -429,7 +430,7 @@ func Test_storage_PushActionInstanceMessage(t *testing.T) {
 			name:            "error-1",
 			operaInstanceId: "op-instance-003",
 			actionName:      "check-stock-003",
-			messgae: &action.Message{
+			messgae: &common.Message{
 				Time: time.Now(),
 				Text: "test2",
 			},
@@ -439,7 +440,7 @@ func Test_storage_PushActionInstanceMessage(t *testing.T) {
 			name:            "error-2",
 			operaInstanceId: "op-instance-005",
 			actionName:      "check-stock-004",
-			messgae: &action.Message{
+			messgae: &common.Message{
 				Time: time.Now(),
 				Text: "test3",
 			},
@@ -578,12 +579,12 @@ func Test_storage_ListOperationInstanceBriefData(t *testing.T) {
 				TriggerIDs: []string{tt.triggerID},
 				States:     []operation.State{operation.StateRunning, operation.StateSuccess},
 			}
-			got, err := s.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(), condition)
+			got, cnt, err := s.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(), condition)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListOperationInstanceBriefData() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if len(got) != int(tt.wantCount) {
+			if cnt != tt.wantCount {
 				t.Errorf("ListOperationInstanceBriefData() count = %v, wantCount %v", len(got), int(tt.wantCount))
 				return
 			}
