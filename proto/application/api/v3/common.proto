@@ -87,6 +87,7 @@ message HostState {
   optional string node_version = 3;
   optional string bk_agent_id = 4;
   optional int64 node_generation = 5;
+  repeated string proxy_tags = 6;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -103,8 +104,9 @@ message HostInfo {
   optional string bk_host_outerip_v6 = 9;
   optional string bk_mac = 10;
   optional string os_type = 11;
-  optional string bk_networkarea_name = 12;
-  optional string bk_networkunit_name = 13;
+  optional string cpu_arch = 12;
+  optional string bk_networkarea_name = 13;
+  optional string bk_networkunit_name = 14;
 }
 
 // Host describes the host informations.

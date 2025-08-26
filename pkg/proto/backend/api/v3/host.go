@@ -68,13 +68,16 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.BkHostOuteripV6 = host.Static.OuterIPV6
 		*item.Info.BkMac = host.Static.Mac
 		*item.Info.OsType = host.Static.OSType
+		if host.Dynamic.NodeOsType.Validate() != nil && host.Dynamic.NodeOsType != criteria.OSUnknown {
+			*item.Info.OsType = string(host.Dynamic.NodeOsType)
+		}
+		*item.Info.CpuArch = string(host.Dynamic.NodeCPUArch)
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
 		*item.State.NodeVersion = host.Dynamic.NodeVersion
 		*item.State.NodeGeneration = int64(host.Dynamic.NodeGeneration)
 		*item.State.BkAgentId = host.Dynamic.AgentID
-		*item.State.CpuArch = string(host.Dynamic.NodeCPUArch)
 		item.State.ProxyTags = types.ProxyTagListToStringList(host.Dynamic.ProxyTags)
 
 		items[idx] = item
@@ -128,7 +131,7 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NodeGeneration: types.Generation(state.GetNodeGeneration()),
 			NetworkUnitID:  info.GetBkNetworkunitId(),
 			NodeOsType:     criteria.OSType(info.GetOsType()),
-			NodeCPUArch:    criteria.CPUArch(state.GetCpuArch()),
+			NodeCPUArch:    criteria.CPUArch(info.GetCpuArch()),
 			ProxyTags:      types.StringListToProxyTagList(state.GetProxyTags()),
 		}
 
@@ -223,6 +226,7 @@ func newEmptyHost() *Host {
 			BkHostOuteripV6: new(string),
 			BkMac:           new(string),
 			OsType:          new(string),
+			CpuArch:         new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),
@@ -230,7 +234,7 @@ func newEmptyHost() *Host {
 			NodeVersion:    new(string),
 			NodeGeneration: new(int64),
 			BkAgentId:      new(string),
-			CpuArch:        new(string),
+			ProxyTags:      make([]string, 0),
 		},
 	}
 }
