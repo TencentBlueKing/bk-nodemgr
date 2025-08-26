@@ -75,6 +75,10 @@ installerFileGroup:
 apiGateWayServer:
   publickeyPem: "__BK_NODEMGR_BACKEND_APIGW_PUBLIC_PEM__"
 
+# defines the access settings.
+access:
+  virtualUser: "__BK_NODEMGR_VIRTUAL_USER__"
+
 # defines the CMDB (bk-apigw) related settings.
 cmdb:
   supplierAccount: "0"

@@ -730,8 +730,9 @@ backend:
       # publickeyPem is the public key pem saved as base64 string
       publickeyPem:
 
+    # defines the access settings.
     access:
-      virtualUser: "bk-nodemgr"
+      virtualUser: "admin"
 
     ## defines the log related settings.
     log:
