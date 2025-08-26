@@ -682,7 +682,7 @@ func (x *ReportStorageResultReq) GetErrMsg() string {
 }
 
 // ReportDetectResultReq describes the HTTP request body when report relay
-// detech result.
+// detect result.
 type ReportDetectResultReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ActionName    string                 `protobuf:"bytes,1,opt,name=action_name,json=actionName,proto3" json:"action_name"`

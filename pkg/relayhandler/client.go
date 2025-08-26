@@ -50,6 +50,11 @@ type ClientMessagerConfig struct {
 	Logger logger.ILogger
 }
 
+const (
+	clientCheckAckInterval = 10 * time.Millisecond
+	clientCheckAckTimeout  = 3 * time.Second
+)
+
 // NewClientMessager creates a new client messager.
 func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
 	return &clientMessager{
@@ -216,6 +221,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed: %w", err)
 	}
 
+	m.config.Logger.InfoCtxf(ctx, "sending request to callback. message-id(%s), content(%s)", messageID, string(reqData))
 	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -267,53 +273,57 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 		return resultChan
 	}
 
-	messageID := identifier.GenMessageID()
 	req := &protoRelay.CallbackReq{
 		Base: protoRelay.Base{
-			MessageID:   messageID,
 			MessageType: protoRelay.MessageTypeClientPushReq,
 		},
 		URL:  callbackURL,
 		Body: body,
 	}
-	reqData, err := json.Marshal(req)
-	if err != nil {
-		resultChan <- fmt.Errorf("marshal request failed: %w", err)
-		return resultChan
-	}
 
 	go func() {
 		defer close(resultChan)
 
-		retryCtx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		retryErr := m.retrier.Do(retryCtx, func(attempt int) error {
-			select {
-			case <-retryCtx.Done():
-				return retryCtx.Err()
-			default:
+		retryErr := m.retrier.Do(ctx, func(attempt int) error {
+			if ctx.Err() != nil {
+				return nil
 			}
 
-			m.config.Logger.Infof("sending client push request.(callbackURL %s) (attempt %d). message-id(%s)",
+			messageID := identifier.GenMessageID()
+			m.config.Logger.Infof("sending client push request. callback-url(%s), attempt(%d), message-id(%s)",
 				callbackURL, attempt, messageID)
 
-			if err := m.client.SendMessage(retryCtx, messageID, reqData); err != nil {
-				return fmt.Errorf("send message failed: %w", err)
+			req.Base.MessageID = messageID
+			reqData, _ := json.Marshal(req)
+			if err := m.client.SendMessage(ctx, messageID, reqData); err != nil {
+				return fmt.Errorf("sending client push request failed: %w", err)
 			}
 
-			acked, err := m.fileMsgTracker.IsAcked(retryCtx, messageID)
-			if err != nil {
-				return fmt.Errorf("check ack failed: %w", err)
-			}
-			if !acked {
-				return errors.New("ack not received")
-			}
+			checkAckTicker := time.NewTicker(clientCheckAckInterval)
+			defer checkAckTicker.Stop()
 
-			m.config.Logger.Infof("client push request acked successfully. message-id(%s)", messageID)
+			select {
+			case <-ctx.Done():
+				return nil
+
+			case <-time.After(clientCheckAckTimeout):
+				return fmt.Errorf("wait client push request ack timeout. message-id(%s)", messageID)
+
+			case <-checkAckTicker.C:
+				if acked, _ := m.fileMsgTracker.IsAcked(ctx, messageID); acked {
+					m.config.Logger.Infof("client push request acked successfully. message-id(%s)", messageID)
+
+					return nil
+				}
+			}
 
 			return nil
 		})
+
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			resultChan <- ctxErr
+			return
+		}
 
 		resultChan <- retryErr
 	}()
@@ -325,7 +335,7 @@ func (m *clientMessager) newSyncronousData(messageID string) <-chan []byte {
 	m.messagesMutex.Lock()
 	defer m.messagesMutex.Unlock()
 
-	ch := make(chan []byte)
+	ch := make(chan []byte, 1)
 	m.messages[messageID] = &synchronousData{
 		content:  ch,
 		createAt: time.Now(),

@@ -562,49 +562,55 @@ func (mgr *Manager) createInstallNodeOper(
 	return nil
 }
 
-func (mgr *Manager) getOperationDefinition(
-	deploy *types.NodeDeployment,
-	operator string,
-) (operation.Definition, error) {
+func (mgr *Manager) getOperationDefinition(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
+	// proxy.
+	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		}), nil
+	}
 
-	var operationDef operation.Definition
-
+	// direct agent.
 	if deploy.Info.InstallOptions.DirectLink {
-		switch deploy.Info.Host.Static.OSType {
-		case string(criteria.OSLinux), string(criteria.OSDarwin):
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+		case criteria.OSLinux, criteria.OSDarwin:
+			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
-			})
-		case string(criteria.OSWindows):
-			operationDef = nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
+			}), nil
+
+		case criteria.OSWindows:
+			return nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
 				Token:    deploy.Token,
 				Operator: operator,
-			})
+			}), nil
+
 		default:
-			operationDef = nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
-			})
-		}
-	} else {
-		switch deploy.Info.Host.Static.OSType {
-		case string(criteria.OSLinux), string(criteria.OSDarwin):
-			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		case string(criteria.OSWindows):
-			return nil, errors.New("implete me")
-		default:
-			operationDef = nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
+			}), nil
 		}
 	}
 
-	return operationDef, nil
+	// pagent under proxy.
+	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+	case criteria.OSLinux, criteria.OSDarwin:
+		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		}), nil
+
+	case criteria.OSWindows:
+		return nil, errors.New("implete me")
+
+	default:
+		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		}), nil
+	}
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.

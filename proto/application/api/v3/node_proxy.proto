@@ -30,7 +30,6 @@ message NodeProxyInstallHost {
 
 // NodeProxyInstallReq describes the node proxy install request.
 message NodeProxyInstallReq {
-
   repeated NodeProxyInstallHost host = 1;
   repeated TargetVersion target_version = 2;
 }

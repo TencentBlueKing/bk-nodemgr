@@ -14,9 +14,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
@@ -55,6 +55,11 @@ type ServerMessagerConfig struct {
 	// Logger is the logger.
 	Logger logger.ILogger
 }
+
+const (
+	serverCheckAckInterval = 10 * time.Millisecond
+	serverCheckAckTimeout  = 3 * time.Second
+)
 
 // NewServerMessager creates a new server messager.
 func NewServerMessager(conf ServerMessagerConfig) IServerMessager {
@@ -197,67 +202,71 @@ func (m *serverMessager) RespondCallback(ctx context.Context,
 }
 
 // PushToClient sends the server push to client asynchronously and returns a channel for results.
-func (m *serverMessager) PushToClient(ctx context.Context,
-	eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
+func (m *serverMessager) PushToClient(
+	ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
 
 	resultChan := make(chan error, 1)
 
-	messageID := identifier.GenMessageID()
-	push := &protoRelay.ServerPushReq{
+	req := &protoRelay.ServerPushReq{
 		Base: protoRelay.Base{
-			MessageID:   messageID,
 			MessageType: protoRelay.MessageTypeServerPushReq,
 		},
 		EventType: eventType,
 		Payload:   payload,
 	}
-	pushData, err := json.Marshal(push)
-	if err != nil {
-		resultChan <- fmt.Errorf("marshal push data failed: %w", err)
-		return resultChan
-	}
 
 	go func() {
 		defer close(resultChan)
 
-		retryCtx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		retryErr := m.retrier.Do(retryCtx, func(attempt int) error {
-			select {
-			case <-retryCtx.Done():
-				return retryCtx.Err()
-			default:
+		retryErr := m.retrier.Do(ctx, func(attempt int) error {
+			if ctx.Err() != nil {
+				return nil
 			}
 
-			m.config.Logger.Infof("sending message (attempt %d). message-id(%s)", attempt, messageID)
+			messageID := identifier.GenMessageID()
+			m.config.Logger.Infof("sending message to client. attempt(%d), message-id(%s)", attempt, messageID)
 
+			req.Base.MessageID = messageID
+			reqData, _ := json.Marshal(req)
 			result, err := m.client.Cluster().PluginDispatchMessage(
-				retryCtx, push.MessageID, pushData, agentIDs...)
+				ctx, messageID, reqData, agentIDs...)
 			if err != nil {
-				return fmt.Errorf("dispatch message failed: %w", err)
+				return fmt.Errorf("sending message to client failed: %w", err)
 			}
 
 			if result.Code != 0 || len(result.AgentResults) > 0 {
-				errMsg := fmt.Sprintf("failed to send to agents. code(%d), agent-results(%v)",
+				err := fmt.Errorf("failed to dispatch message to agents. code(%d), agent-results(%v)",
 					result.Code, conv.MapKeyToSlice(result.AgentResults))
-				m.config.Logger.WarnCtxf(retryCtx, "%s", errMsg)
+				m.config.Logger.WarnCtxf(ctx, "sending message to client failed, %v", err)
 
-				return errors.New(errMsg)
+				return err
 			}
 
-			acked, err := m.isMessageAcked(retryCtx, messageID)
-			if err != nil {
-				return fmt.Errorf("check ack failed: %w", err)
-			}
-			if !acked {
-				return errors.New("ack not received")
-			}
+			checkAckTicker := time.NewTicker(serverCheckAckInterval)
+			defer checkAckTicker.Stop()
 
-			m.config.Logger.Infof("message acknowledged. message-id(%s)", messageID)
+			select {
+			case <-ctx.Done():
+				return nil
+
+			case <-time.After(serverCheckAckTimeout):
+				return fmt.Errorf("wait message to client ack timeout. message-id(%s)", messageID)
+
+			case <-checkAckTicker.C:
+				if acked, _ := m.isMessageAcked(ctx, messageID); acked {
+					m.config.Logger.Infof("message to client acked successfully. message-id(%s)", messageID)
+
+					return nil
+				}
+			}
 
 			return nil
 		})
+
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			resultChan <- ctxErr
+			return
+		}
 
 		resultChan <- retryErr
 	}()

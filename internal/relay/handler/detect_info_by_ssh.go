@@ -136,9 +136,6 @@ func (h *handler) ReportHostInfo(ctx context.Context,
 	osType criteria.OSType, cpuArch criteria.CPUArch,
 	connectedDir, msg string) error {
 
-	h.logger.Infof("report host info. action-name(%s), instance-id(%s)",
-		actionName, operInstID)
-
 	req := &reportHostInfo{
 		ActionName:   actionName,
 		OperInstID:   operInstID,
@@ -153,6 +150,8 @@ func (h *handler) ReportHostInfo(ctx context.Context,
 		return fmt.Errorf("failed to marshal status request: %w", err)
 	}
 
+	h.logger.Infof("report host info. action-name(%s), instance-id(%s), data(%s)",
+		actionName, operInstID, string(jsonData))
 	errCh := h.client.ClientPushReq(ctx, reportRelayDetectResultURL, jsonData)
 
 	select {

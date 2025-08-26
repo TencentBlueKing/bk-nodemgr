@@ -137,10 +137,11 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 		return
 	}
 
-	h.logger.InfoCtxf(ctx, "try to redirect request to callback endpoint(%s), agent-id(%s)",
-		callbackEndpoint.GetIPV4Address(), data.AgentID)
+	url := fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), strings.TrimLeft(msg.URL, "/"))
+	h.logger.InfoCtxf(ctx, "try to redirect request to callback(%s), agent-id(%s)",
+		url, data.AgentID)
 	resp, err := http.Post(
-		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), strings.TrimLeft(msg.URL, "/")),
+		url,
 		"application/json",
 		bytes.NewReader(msg.Body))
 	if err != nil {
