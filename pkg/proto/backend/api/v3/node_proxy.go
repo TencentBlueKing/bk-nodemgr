@@ -361,3 +361,91 @@ func (x *NodeProxyReconfigResp) GetWorkflowID() string {
 
 	return ""
 }
+
+// Validate check body.
+func (x *NodeProxyUpdateReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpdateReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// convert host to types.
+func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHost()))
+	for _, host := range x.GetHost() {
+		hosts = append(hosts, &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				LoginIP:     host.GetLoginIp(),
+				LoginPort:   host.GetLoginPort(),
+				LoginUser:   host.GetLoginUser(),
+				ExportIP:    host.GetExportIp(),
+				AdvertiseIP: host.GetAdvertiseIp(),
+				ProxyTags:   types.StringListToProxyTagList(host.GetProxyTags()),
+			},
+		})
+	}
+
+	return hosts
+}
+
+// convert host param from types.
+func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyUpdateParam) {
+	hostsParam := make([]*NodeProxyUpdateHost, len(updateParam.Hosts))
+	for idx, host := range updateParam.Hosts {
+		hostsParam[idx] = &NodeProxyUpdateHost{
+			BkHostId:    host.HostID,
+			LoginIp:     host.LoginIP,
+			LoginPort:   host.LoginPort,
+			LoginUser:   host.LoginUser,
+			ExportIp:    host.ExportIP,
+			AdvertiseIp: host.AdvertiseIP,
+			ProxyTags:   types.ProxyTagListToStringList(host.ProxyTags),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// convert host dynamic fields to types.
+func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
+	return types.HostDynamicFields{
+		LoginIP:     true,
+		LoginPort:   true,
+		LoginUser:   true,
+		ExportIP:    true,
+		AdvertiseIP: true,
+		ProxyTags:   true,
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyUpdateHost) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be >= 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpdateHost) AutoConvert() {
+}

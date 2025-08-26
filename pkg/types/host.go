@@ -117,6 +117,8 @@ type HostDynamic struct {
 	// ExportIP represents the ip that the outgoing IP in NAT.
 	// AdvertiseIP represents the ip that the incoming IP in NAT.
 	LoginIP     string
+	LoginPort   int64
+	LoginUser   string
 	ExportIP    string
 	AdvertiseIP string
 
@@ -130,6 +132,29 @@ type HostDynamic struct {
 	ProxyClusterPort int64
 	ProxyDataPort    int64
 	ProxyFilePort    int64
+}
+
+// HostDynamicFields represents the fields of HostDynamic fields.
+type HostDynamicFields struct {
+	NodeRole       bool
+	NodeStatus     bool
+	NodeVersion    bool
+	NodeGeneration bool
+	NodeCPUArch    bool
+	NodeOsType     bool
+	AgentID        bool
+	NetworkUnitID  bool
+
+	LoginIP     bool
+	LoginPort   bool
+	LoginUser   bool
+	ExportIP    bool
+	AdvertiseIP bool
+
+	ProxyTags        bool
+	ProxyClusterPort bool
+	ProxyDataPort    bool
+	ProxyFilePort    bool
 }
 
 // ProxyTag represents a proxy tag.

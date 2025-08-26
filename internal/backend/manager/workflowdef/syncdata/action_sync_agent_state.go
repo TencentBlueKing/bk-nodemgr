@@ -147,7 +147,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicVersionAndStatus(tenantCtx, upsertHosts...)
+	err = act.topoStg.UpdateHostDynamicFields(tenantCtx, types.HostDynamicFields{NodeVersion: true, NodeStatus: true}, upsertHosts...)
 	if err != nil {
 		act.logger.Errorf("failed to update host dynamic: %v", err)
 		return err

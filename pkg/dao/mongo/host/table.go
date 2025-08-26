@@ -59,6 +59,7 @@ type HostDynamic struct {
 	ProxyDataPort       int64    `json:"proxy_data_port" bson:"proxy_data_port"`
 	ProxyFilePort       int64    `json:"proxy_file_port" bson:"proxy_file_port"`
 	LoginIP             string   `json:"login_ip" bson:"login_ip"`
+	LoginPort           int64    `json:"login_port" bson:"login_port"`
 	ExportIP            string   `json:"export_ip" bson:"export_ip"`
 	AdvertiseIP         string   `json:"advertise_ip" bson:"advertise_ip"`
 }

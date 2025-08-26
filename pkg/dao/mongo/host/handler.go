@@ -51,8 +51,8 @@ type IHandler interface {
 	// FindWithDynamic finds hosts with dynamic fields.
 	FindWithDynamic(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, error)
 
-	// UpdateDynamicVersionAndStatus updates the dynamic version and status of a host.
-	UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*types.Host) error
+	// UpdateDynamicFields updates host dynamic fields.
+	UpdateDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error
 
 	IDistinctor
 }
@@ -545,8 +545,8 @@ func (h *handler) FindWithDynamic(ctx context.Context, page types.Page, opts ...
 	return data, nil
 }
 
-// UpdateDynamicVersionAndStatus updates the dynamic version and status of a host.
-func (h *handler) UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*types.Host) error {
+// UpdateDynamicFields updates host dynamic fields.
+func (h *handler) UpdateDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -559,11 +559,8 @@ func (h *handler) UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*t
 		}
 
 		docs = append(docs, &base.DocumentFieldUpdate{
-			Filter: bson.D{{Key: FieldKeyHostID, Value: host.HostID}},
-			Fields: map[string]any{
-				FieldKeyDynamicNodeVersion: host.Dynamic.NodeVersion,
-				FieldKeyDynamicNodeStatus:  host.Dynamic.NodeStatus,
-			},
+			Filter: bson.D{bson.E{Key: FieldKeyHostID, Value: host.HostID}},
+			Fields: generateHostDynamicUpdates(fields, host),
 		})
 	}
 
@@ -573,4 +570,64 @@ func (h *handler) UpdateDynamicVersionAndStatus(ctx context.Context, hosts ...*t
 	}
 
 	return nil
+}
+
+func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host) map[string]any {
+	updates := make(map[string]any)
+
+	if fields.NodeRole {
+		updates[FieldKeyDynamicNodeRole] = host.Dynamic.NodeRole
+	}
+	if fields.NodeStatus {
+		updates[FieldKeyDynamicNodeStatus] = host.Dynamic.NodeStatus
+	}
+	if fields.NodeVersion {
+		updates[FieldKeyDynamicNodeVersion] = host.Dynamic.NodeVersion
+	}
+	if fields.NodeGeneration {
+		updates[FieldKeyDynamicNodeGeneration] = host.Dynamic.NodeGeneration
+	}
+	if fields.NodeCPUArch {
+		updates[FieldKeyDynamicNodeCPUArch] = host.Dynamic.NodeCPUArch
+	}
+	if fields.NodeOsType {
+		updates[FieldKeyDynamicNodeOsType] = host.Dynamic.NodeOsType
+	}
+	if fields.AgentID {
+		updates[FieldKeyDynamicAgentID] = host.Dynamic.AgentID
+	}
+	if fields.NetworkUnitID {
+		updates[FieldKeyDynamicNetworkUnitID] = host.Dynamic.NetworkUnitID
+	}
+
+	if fields.LoginIP {
+		updates[FieldKeyDynamicLoginIP] = host.Dynamic.LoginIP
+	}
+	if fields.LoginPort {
+		updates[FieldKeyDynamicLoginPort] = host.Dynamic.LoginPort
+	}
+	if fields.LoginUser {
+		updates[FieldKeyDynamicLoginUser] = host.Dynamic.LoginUser
+	}
+	if fields.ExportIP {
+		updates[FieldKeyDynamicExportIP] = host.Dynamic.ExportIP
+	}
+	if fields.AdvertiseIP {
+		updates[FieldKeyDynamicAdvertiseIP] = host.Dynamic.AdvertiseIP
+	}
+
+	if fields.ProxyTags {
+		updates[FieldKeyDynamicProxyTags] = host.Dynamic.ProxyTags
+	}
+	if fields.ProxyClusterPort {
+		updates[FieldKeyDynamicProxyClusterPort] = host.Dynamic.ProxyClusterPort
+	}
+	if fields.ProxyFilePort {
+		updates[FieldKeyDynamicProxyFilePort] = host.Dynamic.ProxyFilePort
+	}
+	if fields.ProxyDataPort {
+		updates[FieldKeyDynamicProxyDataPort] = host.Dynamic.ProxyDataPort
+	}
+
+	return updates
 }

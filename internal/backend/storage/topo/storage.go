@@ -140,8 +140,8 @@ type IStorageHost interface {
 	// FindHostWithDynamic finds hosts with dynamic fields.
 	FindHostWithDynamic(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error)
 
-	// UpdateHostDynamicVersionAndStatus updates the dynamic version and status of a host.
-	UpdateHostDynamicVersionAndStatus(ctx context.Context, host ...*types.Host) error
+	// UpdateHostDynamicFields updates the dynamic fields of a host.
+	UpdateHostDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error
 
 	// DistinctHost distincts host fields.
 	DistinctHost(ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (

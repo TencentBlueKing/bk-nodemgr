@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/node/proxy/update": {
+      "post": {
+        "summary": "NodeProxyUpdate updates node proxy.",
+        "operationId": "NodeProxy_NodeProxyUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyUpdateReq describes the node proxy update request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/upgrade": {
       "post": {
         "summary": "NodeProxyUpgrade upgrades node proxy.",
@@ -443,6 +477,86 @@
           "type": "string"
         }
       }
+    },
+    "v3NodeProxyUpdateHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string",
+          "title": "support: password_vault, password, keyfile"
+        },
+        "login_password": {
+          "type": "string"
+        },
+        "login_key_file": {
+          "type": "string"
+        },
+        "export_ip": {
+          "type": "string"
+        },
+        "advertise_ip": {
+          "type": "string"
+        },
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeProxyUpdateHost describes the node proxy update host."
+    },
+    "v3NodeProxyUpdateReq": {
+      "type": "object",
+      "properties": {
+        "Host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyUpdateHost"
+          }
+        }
+      },
+      "description": "NodeProxyUpdateReq describes the node proxy update request."
+    },
+    "v3NodeProxyUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyUpdateRespData"
+        }
+      },
+      "description": "NodeProxyUpdateResp describes the node proxy update response."
+    },
+    "v3NodeProxyUpdateRespData": {
+      "type": "object"
     },
     "v3NodeProxyUpgradeReq": {
       "type": "object",

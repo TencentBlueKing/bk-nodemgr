@@ -109,6 +109,35 @@ message NodeProxyRestartResp {
   Data data = 5;
 }
 
+// NodeProxyUpdateHost describes the node proxy update host.
+message NodeProxyUpdateHost {
+  int64 bk_host_id = 1;
+  string login_ip = 2;
+  int64 login_port = 3;
+  string login_user = 4;
+  // support: password_vault, password, keyfile
+  string login_mode = 5;
+  string login_password = 6;
+  string login_key_file = 7;
+  string export_ip = 8;
+  string advertise_ip = 9;
+  repeated string proxy_tags = 10;
+}
+
+// NodeProxyUpdateReq describes the node proxy update request.
+message NodeProxyUpdateReq { repeated NodeProxyUpdateHost Host = 1; }
+
+// NodeProxyUpdateResp describes the node proxy update response.
+message NodeProxyUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
@@ -138,6 +167,14 @@ service NodeProxy {
   rpc NodeProxyReconfig(NodeProxyReconfigReq) returns (NodeProxyReconfigResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/reconfig"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpdate updates node proxy.
+  rpc NodeProxyUpdate(NodeProxyUpdateReq) returns (NodeProxyUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/update"
       body : "*"
     };
   }

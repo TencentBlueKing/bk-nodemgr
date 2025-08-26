@@ -69,14 +69,41 @@ const (
 	// FieldKeyDynamicNodeCPUArch the dynamic node cpu arch field key.
 	FieldKeyDynamicNodeCPUArch = "data.dynamic.node_cpu_arch"
 
+	// FieldKeyDynamicNodeOsType the dynamic node os type field key.
+	FieldKeyDynamicNodeOsType = "data.dynamic.node_os_type"
+
 	// FieldKeyDynamicAgentID the dynamic agent id field key.
 	FieldKeyDynamicAgentID = "data.dynamic.agent_id"
 
 	// FieldKeyDynamicNetworkUnitID the dynamic networkunit id field key.
 	FieldKeyDynamicNetworkUnitID = "data.dynamic.networkunit_id"
 
+	// FieldKeyDynamicLoginIP the dynamic login ip field key.
+	FieldKeyDynamicLoginIP = "data.dynamic.login_ip"
+
+	// FieldKeyDynamicLoginPort the dynamic login port field key.
+	FieldKeyDynamicLoginPort = "data.dynamic.login_port"
+
+	// FieldKeyDynamicLoginUser the dynamic login user field key.
+	FieldKeyDynamicLoginUser = "data.dynamic.login_user"
+
+	// FieldKeyDynamicExportIP the dynamic export ip field key.
+	FieldKeyDynamicExportIP = "data.dynamic.export_ip"
+
+	// FieldKeyDynamicAdvertiseIP the dynamic advertise ip field key.
+	FieldKeyDynamicAdvertiseIP = "data.dynamic.advertise_ip"
+
 	// FieldKeyDynamicProxyTags the dynamic proxy tag field key.
 	FieldKeyDynamicProxyTags = "data.dynamic.proxy_tags"
+
+	// FieldKeyDynamicProxyClusterPort the dynamic proxy cluster port field key.
+	FieldKeyDynamicProxyClusterPort = "data.dynamic.proxy_cluster_port"
+
+	// FieldKeyDynamicProxyFilePort the dynamic proxy file port field key.
+	FieldKeyDynamicProxyFilePort = "data.dynamic.proxy_file_port"
+
+	// FieldKeyDynamicProxyDataPort the dynamic proxy data port field key.
+	FieldKeyDynamicProxyDataPort = "data.dynamic.proxy_data_port"
 
 	// FieldKeyDynamicProxyAccessDisabled the dynamic proxy access disabled field key.
 	FieldKeyDynamicProxyAccessDisabled = "data.dynamic.proxy_access_disabled"

@@ -375,3 +375,67 @@ func (x *NodeProxyReconfigReq_Host) AutoConvert() {
 func (x *NodeProxyReconfigResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeProxyReconfigResp_Data{WorkflowId: workflowID}
 }
+
+// Validate check body.
+func (x *NodeProxyUpdateReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpdateReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// convert host param from types.
+func (x *NodeProxyUpdateReq) ConvertParamToTypes() *types.NodeProxyUpdateParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeProxyUpdateHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeProxyUpdateHost{
+			HostID:      host.GetBkHostId(),
+			LoginIP:     host.GetLoginIp(),
+			LoginPort:   host.GetLoginPort(),
+			LoginUser:   host.GetLoginUser(),
+			ExportIP:    host.GetExportIp(),
+			AdvertiseIP: host.GetAdvertiseIp(),
+			ProxyTags:   types.StringListToProxyTagList(host.GetProxyTags()),
+		}
+	}
+
+	return &types.NodeProxyUpdateParam{
+		Hosts: hostsParam,
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyUpdateHost) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be >= 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpdateHost) AutoConvert() {
+}

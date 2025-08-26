@@ -966,6 +966,31 @@ func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
+func (c *cli) updateNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyUpdateReq) (
+	*protoBackend.NodeProxyUpdateResp, error) {
+
+	resp := new(protoBackend.NodeProxyUpdateResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/update").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
 

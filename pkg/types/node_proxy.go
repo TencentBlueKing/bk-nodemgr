@@ -75,3 +75,19 @@ type NodeProxyReconfigHost struct {
 type NodeProxyReconfigParam struct {
 	Hosts []*NodeProxyReconfigHost
 }
+
+// NodeProxyUpdateHost describes the node proxy update host.
+type NodeProxyUpdateHost struct {
+	HostID      int64
+	LoginIP     string
+	LoginPort   int64
+	LoginUser   string
+	ExportIP    string
+	AdvertiseIP string
+	ProxyTags   []ProxyTag
+}
+
+// NodeProxyUpdateParam describes the node proxy update parameter.
+type NodeProxyUpdateParam struct {
+	Hosts []*NodeProxyUpdateHost
+}

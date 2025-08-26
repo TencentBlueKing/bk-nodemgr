@@ -320,14 +320,14 @@ func (s *Storage) FindHostWithDynamic(ctx context.Context, page types.Page, cond
 	return s.daoHost.FindWithDynamic(ctx, page, opts...)
 }
 
-// UpdateHostDynamicVersionAndStatus updates the dynamic version and status of a host.
-func (s *Storage) UpdateHostDynamicVersionAndStatus(ctx context.Context, host ...*types.Host) error {
+// UpdateHostDynamicFields updates the dynamic fields of a host.
+func (s *Storage) UpdateHostDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
 
-	if err := s.daoHost.UpdateDynamicVersionAndStatus(ctx, host...); err != nil {
-		return fmt.Errorf("failed to update host dynamic version and status, err: %w", err)
+	if err := s.daoHost.UpdateDynamicFields(ctx, fields, hosts...); err != nil {
+		return fmt.Errorf("failed to update host dynamic fields, err: %w", err)
 	}
 
 	return nil

@@ -22,6 +22,7 @@ import (
 // Handler is interface for nodeman backend handler.
 // nolint: interfacebloat
 type Handler interface {
+	IHandlerHost
 	IHandlerNetworkArea
 	IHandlerNetworkUnit
 	IHandlerNodeAgent
@@ -37,27 +38,6 @@ type Handler interface {
 	// @return business list with page and the total count with filter.
 	ListBusiness(ctx contextx.ITenantUserContext, page types.Page, condition *types.BusinessCondition) (
 		[]*types.Business, int64, error)
-
-	// ListHost list host within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
-	// @param page describes the page info when listing.
-	// @param condition the filter conditions.
-	// @return host list with page and the total count with filter.
-	ListHost(ctx contextx.ITenantUserContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
-
-	// DistinctHost distinct host by condition.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
-	// @param condition the filter conditions.
-	// @return the host distinct result.
-	DistinctHost(
-		ctx contextx.ITenantUserContext, condition *types.HostCondition) (
-		*types.HostDistinctResult, error)
-
-	// CountHost count host within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
-	// @param condition the filter conditions.
-	// @return the host count with filter.
-	CountHost(ctx contextx.ITenantUserContext, condition *types.HostCondition) (int64, error)
 
 	// ListTopoEvent list topo events by page and conditions.
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
@@ -94,6 +74,30 @@ type Handler interface {
 	// @param fields describes the fields to get.
 	// @return the constant result.
 	GetConstant(ctx contextx.ITenantUserContext, fields types.TopoConstantFields) (*types.TopoConstant, error)
+}
+
+// IHandlerHost defines the host handler.
+type IHandlerHost interface {
+	// ListHost list host within specified tenant in contextx.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return host list with page and the total count with filter.
+	ListHost(ctx contextx.ITenantUserContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
+
+	// DistinctHost distinct host by condition.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host distinct result.
+	DistinctHost(
+		ctx contextx.ITenantUserContext, condition *types.HostCondition) (
+		*types.HostDistinctResult, error)
+
+	// CountHost count host within specified tenant in contextx.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host count with filter.
+	CountHost(ctx contextx.ITenantUserContext, condition *types.HostCondition) (int64, error)
 }
 
 // IHandlerNetworkArea defines the network area handler.
@@ -209,6 +213,12 @@ type IHandlerNodeProxy interface {
 	// @param reconfigParam the reconfig param.
 	// @return the reconfig workflow-ids and error.
 	ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error)
+
+	// UpdateProxy update node proxy.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param updateParam the update param.
+	// @return the error.
+	UpdateProxy(ctx contextx.ITenantUserContext, updateParam *types.NodeProxyUpdateParam) error
 }
 
 // IHandlerNodeWorkflow defines the node workflow handler.

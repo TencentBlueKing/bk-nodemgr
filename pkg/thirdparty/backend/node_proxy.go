@@ -74,3 +74,16 @@ func (h *handler) ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *
 func (h *handler) UninstallProxy(ctx context.Context) (string, error) {
 	return "", nil
 }
+
+// UpdateProxy update node proxy.
+func (h *handler) UpdateProxy(ctx contextx.ITenantUserContext, updateParam *types.NodeProxyUpdateParam) error {
+	req := new(protoBackend.NodeProxyUpdateReq)
+	req.ConvertParamFromTypes(updateParam)
+
+	_, err := h.cli.updateNodeProxy(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
