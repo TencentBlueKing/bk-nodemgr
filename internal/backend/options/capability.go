@@ -12,8 +12,6 @@
 package options
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -26,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -108,7 +107,7 @@ type Capability struct {
 }
 
 // Start ...
-func (capability *Capability) Start(ctx context.Context) error {
+func (capability *Capability) Start(ctx contextx.IContext) error {
 	if err := capability.DiscoverProvider.Start(ctx); err != nil {
 		return err
 	}

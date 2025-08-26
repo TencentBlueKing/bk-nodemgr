@@ -13,7 +13,6 @@ package proxy
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -62,7 +62,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 func (h *handler) generalHandler(gCtx *gin.Context) {
 	gCtx.Status(http.StatusOK)
-	ctx := gCtx.Request.Context()
+	ctx := contextx.NewContext(gCtx.Request.Context(), make(map[string]any))
 
 	body, err := io.ReadAll(gCtx.Request.Body)
 	if err != nil {
@@ -97,7 +97,7 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 	}
 }
 
-func (h *handler) handleAck(ctx context.Context, data *relayhandler.ServerReceivedData) {
+func (h *handler) handleAck(ctx contextx.IContext, data *relayhandler.ServerReceivedData) {
 	h.logger.InfoCtxf(ctx, "received ack request. agent-id(%s)", data.AgentID)
 	msg, err := h.proxyMessanger.DecodeAckRequest(data)
 	if err != nil {
@@ -117,7 +117,7 @@ func (h *handler) handleAck(ctx context.Context, data *relayhandler.ServerReceiv
 		data.AgentID, msg.OriginalMessageID)
 }
 
-func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerReceivedData) {
+func (h *handler) handleCallback(ctx contextx.IContext, data *relayhandler.ServerReceivedData) {
 	msg, err := h.proxyMessanger.DecodeCallbackRequest(data)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to decode plugin respond message. agent-id(%s): %v",
@@ -175,7 +175,7 @@ func (h *handler) handleCallback(ctx context.Context, data *relayhandler.ServerR
 	h.logger.InfoCtxf(ctx, "responded proxy callback. agent-id(%s)", data.AgentID)
 }
 
-func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.ServerReceivedData) {
+func (h *handler) handleClientPush(ctx contextx.IContext, data *relayhandler.ServerReceivedData) {
 	go h.proxyMessanger.SendAck(ctx, data.MessageID, data.AgentID)
 
 	marked, err := h.proxyMessanger.TryMarkProcessed(ctx, data.MessageID)
@@ -200,7 +200,7 @@ func (h *handler) handleClientPush(ctx context.Context, data *relayhandler.Serve
 	go h.callbackBackend(ctx, msg, data.AgentID)
 }
 
-func (h *handler) callbackBackend(ctx context.Context, msg *protoRelay.ClientPushReq, agentID string) {
+func (h *handler) callbackBackend(ctx contextx.IContext, msg *protoRelay.ClientPushReq, agentID string) {
 	callbackEndpoint, err := h.provider.GetEndpoint(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,

@@ -221,7 +221,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed: %w", err)
 	}
 
-	m.config.Logger.InfoCtxf(ctx, "sending request to callback. message-id(%s), content(%s)", messageID, string(reqData))
+	m.config.Logger.Infof("sending request to callback. message-id(%s), content(%s)", messageID, string(reqData))
 	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

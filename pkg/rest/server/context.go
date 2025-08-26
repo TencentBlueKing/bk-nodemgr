@@ -80,18 +80,18 @@ type Context struct {
 	tenantID string
 }
 
-// Deadline implement context.Context.
+// Deadline implement contextx.IContext.
 // nolint: nonamedreturns
 func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
 	return ctx.gCtx.Deadline()
 }
 
-// Done implement context.Context.
+// Done implement contextx.IContext.
 func (ctx *Context) Done() <-chan struct{} {
 	return ctx.gCtx.Done()
 }
 
-// Err implement context.Context.
+// Err implement contextx.IContext.
 func (ctx *Context) Err() error {
 	return ctx.gCtx.Err()
 }
@@ -99,6 +99,16 @@ func (ctx *Context) Err() error {
 // Value implement context.Context.
 func (ctx *Context) Value(key any) any {
 	return ctx.gCtx.Value(key)
+}
+
+// Values implement contextx.IContext.
+func (ctx *Context) Values() map[string]any {
+	return map[string]any{
+		"request_id":  ctx.requestID,
+		"login_name":  ctx.loginName,
+		"bk_username": ctx.bkUsername,
+		"tenant_id":   ctx.tenantID,
+	}
 }
 
 // BindJSON bind json.

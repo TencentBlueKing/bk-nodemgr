@@ -11,7 +11,6 @@
 package identifier
 
 import (
-	"context"
 	"testing"
 )
 
@@ -39,58 +38,5 @@ func Test_GenID(t *testing.T) {
 
 	for i := 0; i < 10000; i++ {
 		GenServiceID()
-	}
-}
-
-// Test_HandleRequestID test request-id get and set.
-func Test_HandleRequestID(t *testing.T) {
-	type args struct {
-		ctx          context.Context
-		setValue     string
-		wantSetErr   bool
-		wantGetValue string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "nil ctx",
-			args: args{
-				ctx:        nil,
-				wantSetErr: true,
-			},
-		},
-		{
-			name: "tenant",
-			args: args{
-				ctx:          context.Background(),
-				setValue:     "123",
-				wantSetErr:   false,
-				wantGetValue: "123",
-			},
-		},
-		{
-			name: "request-id",
-			args: args{
-				ctx:          context.Background(),
-				setValue:     "xxx",
-				wantSetErr:   false,
-				wantGetValue: "xxx",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx, err := SetRequestID(tt.args.ctx, tt.args.setValue)
-			if (err != nil) != tt.args.wantSetErr {
-				t.Errorf("Set() error = %v, wantErr %v", err, tt.args.wantSetErr)
-			}
-
-			if gotValue := GetRequestID(ctx); gotValue != tt.args.wantGetValue {
-				t.Errorf("Get() gotValue = %v, want %v", gotValue, tt.args.wantGetValue)
-			}
-		})
 	}
 }

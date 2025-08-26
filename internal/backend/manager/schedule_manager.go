@@ -12,13 +12,13 @@
 package manager
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
@@ -39,7 +39,7 @@ const (
 )
 
 // ScheduleWorkflowFunc defines the function type for scheduling workflows.
-type ScheduleWorkflowFunc func(ctx context.Context) error
+type ScheduleWorkflowFunc func(ctx contextx.IContext) error
 
 // registerScheduleWorkflow registers a schedule workflow function.
 func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
@@ -51,7 +51,7 @@ func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 }
 
 // startScheduleWorkflow starts the scheduled workflows.
-func (mgr *Manager) startScheduleWorkflow(ctx context.Context) error {
+func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
 	dbScheduleWorkflows, _, err := mgr.conf.StorageSchedule.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
 		&types.ScheduleWorkflowCondition{ExactInclude: &types.ScheduleWorkflowExactFields{}})
 	if err != nil {
@@ -108,7 +108,7 @@ func (mgr *Manager) startScheduleWorkflow(ctx context.Context) error {
 }
 
 // ScheduleSyncHostFromCMDB creates a new schedule workflow to sync hosts from CMDB.
-func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx contextx.IContext) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)
@@ -162,7 +162,7 @@ func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx context.Context) error {
 }
 
 // ScheduleSyncNetworkAreaFromCMDB creates a new schedule workflow to sync network areas from CMDB.
-func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx contextx.IContext) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)
@@ -216,7 +216,7 @@ func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx context.Context) error {
 }
 
 // ScheduleSyncAllAgentStateFromGSE creates a new schedule workflow to sync agent state from GSE.
-func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx context.Context) error {
+func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx contextx.IContext) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		mgr.logger.Errorf("get tenant id failed: %v", err)

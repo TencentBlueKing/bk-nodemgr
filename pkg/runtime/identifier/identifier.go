@@ -12,10 +12,8 @@
 package identifier
 
 import (
-	"context"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/contextvalues"
 	"github.com/google/uuid"
 )
 
@@ -78,23 +76,4 @@ func GenServiceID() string {
 // GenUploadID generates a upload id.
 func GenUploadID() string {
 	return generateID(tagUploadID)
-}
-
-// GetRequestID gets the request id from context.
-func GetRequestID(ctx context.Context) string {
-	if ctx == nil {
-		return ""
-	}
-
-	rid, err := contextvalues.Get(ctx, contextvalues.KeyRequestID)
-	if err != nil {
-		return ""
-	}
-
-	return rid
-}
-
-// SetRequestID sets the request id to context.
-func SetRequestID(ctx context.Context, rid string) (context.Context, error) {
-	return contextvalues.Set(ctx, contextvalues.KeyRequestID, rid)
 }

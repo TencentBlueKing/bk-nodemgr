@@ -33,11 +33,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// IManager defines the manager interface.
+// IManager defines the Manager interface.
 // nolint: interfacebloat
 type IManager interface {
 	// Start starts the Manager.
-	Start(ctx context.Context) error
+	Start(ctx contextx.IContext) error
 
 	// CheckHealth checks the health of Manager.
 	CheckHealth() error
@@ -160,7 +160,7 @@ type Manager struct {
 }
 
 // Start starts the manager.
-func (mgr *Manager) Start(ctx context.Context) error {
+func (mgr *Manager) Start(ctx contextx.IContext) error {
 	mgr.logger.Info("starting manager")
 
 	if mgr.isRunning {
@@ -536,7 +536,7 @@ func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param Re
 }
 
 func (mgr *Manager) createInstallNodeOper(
-	ctx context.Context,
+	ctx contextx.IContext,
 	operator string,
 	triggerCtl workflow.ITriggerCtl,
 	deploy *types.NodeDeployment,

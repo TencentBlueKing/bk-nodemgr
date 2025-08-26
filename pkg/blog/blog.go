@@ -14,12 +14,13 @@
 package blog
 
 import (
-	"context"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog/glog"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // LogConfig is the configuration for initializing logs.
@@ -104,8 +105,6 @@ var (
 	Debugf = glog.Debugf
 	// Debugw prints logs with key(values) in debug level.
 	Debugw = glog.Debugw
-	// DebugCtxf prints logs with context in debug level.
-	DebugCtxf = glog.DebugCtxf
 
 	// Info prints logs like fmt.Print in info level.
 	Info = glog.Info
@@ -113,8 +112,6 @@ var (
 	Infof = glog.Infof
 	// Infow prints logs with key(values) in info level.
 	Infow = glog.Infow
-	// InfoCtxf prints logs with context in info level.
-	InfoCtxf = glog.InfoCtxf
 
 	// Warn prints logs like fmt.Print in warn level.
 	Warn = glog.Warning
@@ -122,8 +119,6 @@ var (
 	Warnf = glog.Warningf
 	// Warnw prints logs with key(values) in warn level.
 	Warnw = glog.Warningw
-	// WarnRidf prints logs with context in warn level.
-	WarnRidf = glog.WarningCtxf
 
 	// Error prints	logs like fmt.Print in error level.
 	Error = glog.Error
@@ -131,14 +126,14 @@ var (
 	Errorf = glog.Errorf
 	// Errorw prints logs with key(values) in error level.
 	Errorw = glog.Errorw
-	// ErrorCtxf prints logs with context in error level.
-	ErrorCtxf = glog.ErrorCtxf
 )
 
 // SetLevel set the logging level.
 func SetLevel(level string) {
 	glog.SetLevel(level)
 }
+
+var _ logger.ILogger = &GlobalLogger{}
 
 // GlobalLogger serves as a bridge between the standard log package and the glog package.
 type GlobalLogger struct{}
@@ -161,8 +156,8 @@ func (l GlobalLogger) Debugw(args ...interface{}) {
 }
 
 // DebugCtxf prints logs with context in debug level.
-func (l GlobalLogger) DebugCtxf(ctx context.Context, format string, args ...interface{}) {
-	glog.DebugDepthf(globalLoggerDepth, glog.FormatWithCtx(ctx, format), args...)
+func (l GlobalLogger) DebugCtxf(ctx contextx.IContext, format string, args ...interface{}) {
+	glog.DebugDepthf(globalLoggerDepth, logger.FormatWithCtx(ctx, format), args...)
 }
 
 // Info ...
@@ -181,8 +176,8 @@ func (l GlobalLogger) Infow(args ...interface{}) {
 }
 
 // InfoCtxf prints logs with context in info level.
-func (l GlobalLogger) InfoCtxf(ctx context.Context, format string, args ...interface{}) {
-	glog.InfoDepthf(globalLoggerDepth, glog.FormatWithCtx(ctx, format), args...)
+func (l GlobalLogger) InfoCtxf(ctx contextx.IContext, format string, args ...interface{}) {
+	glog.InfoDepthf(globalLoggerDepth, logger.FormatWithCtx(ctx, format), args...)
 }
 
 // Warn ...
@@ -201,8 +196,8 @@ func (l GlobalLogger) Warnw(args ...interface{}) {
 }
 
 // WarnCtxf prints logs with context in warn level.
-func (l GlobalLogger) WarnCtxf(ctx context.Context, format string, args ...interface{}) {
-	glog.WarningDepthf(globalLoggerDepth, glog.FormatWithCtx(ctx, format), args...)
+func (l GlobalLogger) WarnCtxf(ctx contextx.IContext, format string, args ...interface{}) {
+	glog.WarningDepthf(globalLoggerDepth, logger.FormatWithCtx(ctx, format), args...)
 }
 
 // Error ...
@@ -221,6 +216,6 @@ func (l GlobalLogger) Errorw(args ...interface{}) {
 }
 
 // ErrorCtxf prints logs with context in error level.
-func (l GlobalLogger) ErrorCtxf(ctx context.Context, format string, args ...interface{}) {
-	glog.ErrorDepthf(globalLoggerDepth, glog.FormatWithCtx(ctx, format), args...)
+func (l GlobalLogger) ErrorCtxf(ctx contextx.IContext, format string, args ...interface{}) {
+	glog.ErrorDepthf(globalLoggerDepth, logger.FormatWithCtx(ctx, format), args...)
 }

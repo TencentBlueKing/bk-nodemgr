@@ -11,13 +11,13 @@
 package nodeinstall
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -151,7 +151,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *types.DeploymentInfo) error {
+func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info *types.DeploymentInfo) error {
 	var rt types.ReleaseType
 	switch info.Host.Dynamic.NodeRole {
 	case types.NodeRoleProxy:
@@ -210,7 +210,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx context.Context, info *t
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferInstaller(ctx context.Context, info *types.DeploymentInfo) error {
+func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
 
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,

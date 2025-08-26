@@ -11,17 +11,17 @@
 package action
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
 // InstanceContext represents the context of an action instance.
 type InstanceContext struct {
 	// Context is the context of the action
-	Ctx context.Context
+	Ctx contextx.IContext
 
 	// Data is the action being executed
 	Data *InstanceData

@@ -15,6 +15,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -29,7 +30,7 @@ const (
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginBinTool(
-	ctx context.Context,
+	ctx contextx.IContext,
 	binToolFile io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
 
 	// validation.
@@ -193,7 +194,7 @@ func checkGen2OriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetai
 }
 
 // PublishReleaseBinTool generates release bintool by upload-id.
-func (m *Manager) PublishReleaseBinTool(ctx context.Context, uploadID string) error {
+func (m *Manager) PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)

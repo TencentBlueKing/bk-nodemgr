@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -41,33 +42,33 @@ type IManager interface {
 	Start(ctx context.Context) error
 
 	// UploadOriginAgent uploads the origin agent.
-	UploadOriginAgent(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+	UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// UploadOriginServer uploads the origin server.
-	UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+	UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// UploadOriginCert uploads the origin cert.
-	UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+	UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// UploadOriginBinTool upload origin bintool package.
-	UploadOriginBinTool(ctx context.Context, binToolFile io.ReadCloser) (
+	UploadOriginBinTool(ctx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginBinToolPkgDetail, error)
 
 	// PublishReleaseAgent generates release agent by upload-id.
-	PublishReleaseAgent(ctx context.Context, uploadID string) error
+	PublishReleaseAgent(ctx contextx.IContext, uploadID string) error
 
 	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(ctx context.Context, uploadID string) error
+	PublishReleaseProxy(ctx contextx.IContext, uploadID string) error
 
 	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(ctx context.Context, uploadID string) error
+	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
 
 	// PublishReleaseBinTool generate release bintool package.
-	PublishReleaseBinTool(ctx context.Context, uploadID string) error
+	PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error
 
 	// EnsureFileToLocal ensure the file to local.
 	// returns file, local-file-dir, error.
-	EnsureFileToLocal(ctx context.Context,
+	EnsureFileToLocal(ctx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
@@ -75,10 +76,10 @@ type IManager interface {
 
 	// EnsureReleaseToLocal ensure the release to local.
 	// returns file, local-file-dir, error.
-	EnsureReleaseToLocal(ctx context.Context, release *types.Release) (fileiface.File, string, error)
+	EnsureReleaseToLocal(ctx contextx.IContext, release *types.Release) (fileiface.File, string, error)
 
 	// LaunchTransferRelease launch transfer release.
-	LaunchTransferRelease(ctx context.Context,
+	LaunchTransferRelease(ctx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
@@ -87,14 +88,14 @@ type IManager interface {
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferInstaller launch transfer installer.
-	LaunchTransferInstaller(ctx context.Context,
+	LaunchTransferInstaller(ctx contextx.IContext,
 		plat platform.Platform,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// QueryTransfer query transfer.
 	// return upload result, download result and error.
-	QueryTransfer(ctx context.Context, taskID string) (
+	QueryTransfer(ctx contextx.IContext, taskID string) (
 		*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
@@ -249,6 +250,8 @@ func WithGSEHandler(gseHander gse.IHandler) OptionFn {
 		manager.gseHandler = gseHander
 	}
 }
+
+var _ IManager = &Manager{}
 
 // Manager provides the file manager.
 type Manager struct {

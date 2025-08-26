@@ -12,14 +12,12 @@
 package logger
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"runtime"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 // ILogger is the logger interface.
@@ -27,19 +25,19 @@ type ILogger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 	Debugw(args ...interface{})
-	DebugCtxf(ctx context.Context, format string, args ...interface{})
+	DebugCtxf(ctx contextx.IContext, format string, args ...interface{})
 	Info(args ...interface{})
 	Infof(format string, args ...interface{})
 	Infow(args ...interface{})
-	InfoCtxf(ctx context.Context, format string, args ...interface{})
+	InfoCtxf(ctx contextx.IContext, format string, args ...interface{})
 	Warn(args ...interface{})
 	Warnf(format string, args ...interface{})
 	Warnw(args ...interface{})
-	WarnCtxf(ctx context.Context, format string, args ...interface{})
+	WarnCtxf(ctx contextx.IContext, format string, args ...interface{})
 	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
 	Errorw(args ...interface{})
-	ErrorCtxf(ctx context.Context, format string, args ...interface{})
+	ErrorCtxf(ctx contextx.IContext, format string, args ...interface{})
 }
 
 // ANSI color codes.
@@ -51,6 +49,8 @@ const (
 	blue    = "\033[34m"
 	magenta = "\033[35m"
 )
+
+var _ ILogger = LoggerDefault{}
 
 // LoggerDefault is the default logger.
 type LoggerDefault struct{}
@@ -73,11 +73,23 @@ func getCallerInfo() string {
 	return fmt.Sprintf("%s:%d", shortFile, line)
 }
 
-func ctxMessage(ctx context.Context) string {
-	rid := identifier.GetRequestID(ctx)
-	tenantID, _ := tenant.GetID(ctx)
+// FormatWithCtx format with context.
+func FormatWithCtx(ctx contextx.IContext, format string) string {
+	if ctx == nil {
+		return format
+	}
 
-	return fmt.Sprintf("[ %s ][ %s ] ", rid, tenantID)
+	values := ctx.Values()
+	valueSlice := make([]string, 0, len(values))
+	for k, v := range values {
+		valueSlice = append(valueSlice, fmt.Sprintf("[%s:%s]", k, v))
+	}
+
+	if len(valueSlice) > 0 {
+		format = strings.Join(valueSlice, "") + " " + format
+	}
+
+	return format
 }
 
 func debugPrefix(caller string) string {
@@ -103,9 +115,9 @@ func (logger LoggerDefault) Debugw(args ...interface{}) {
 }
 
 // DebugCtxf log with context.
-func (logger LoggerDefault) DebugCtxf(ctx context.Context, format string, args ...interface{}) {
+func (logger LoggerDefault) DebugCtxf(ctx contextx.IContext, format string, args ...interface{}) {
 	caller := getCallerInfo()
-	log.Print(debugPrefix(caller)+ctxMessage(ctx)+format, fmt.Sprint(args...))
+	log.Print(debugPrefix(caller)+FormatWithCtx(ctx, format), fmt.Sprint(args...))
 }
 
 func infoPrefix(caller string) string {
@@ -131,9 +143,9 @@ func (logger LoggerDefault) Infow(args ...interface{}) {
 }
 
 // InfoCtxf log with context.
-func (logger LoggerDefault) InfoCtxf(ctx context.Context, format string, args ...interface{}) {
+func (logger LoggerDefault) InfoCtxf(ctx contextx.IContext, format string, args ...interface{}) {
 	caller := getCallerInfo()
-	log.Print(infoPrefix(caller)+ctxMessage(ctx)+format, fmt.Sprint(args...))
+	log.Print(infoPrefix(caller)+FormatWithCtx(ctx, format), fmt.Sprint(args...))
 }
 
 func warnPrefix(caller string) string {
@@ -159,9 +171,9 @@ func (logger LoggerDefault) Warnw(args ...interface{}) {
 }
 
 // WarnCtxf log with context.
-func (logger LoggerDefault) WarnCtxf(ctx context.Context, format string, args ...interface{}) {
+func (logger LoggerDefault) WarnCtxf(ctx contextx.IContext, format string, args ...interface{}) {
 	caller := getCallerInfo()
-	log.Print(warnPrefix(caller)+ctxMessage(ctx)+format, fmt.Sprint(args...))
+	log.Print(warnPrefix(caller)+FormatWithCtx(ctx, format), fmt.Sprint(args...))
 }
 
 func errorPrefix(caller string) string {
@@ -187,7 +199,7 @@ func (logger LoggerDefault) Errorw(args ...interface{}) {
 }
 
 // ErrorCtxf log with context.
-func (logger LoggerDefault) ErrorCtxf(ctx context.Context, format string, args ...interface{}) {
+func (logger LoggerDefault) ErrorCtxf(ctx contextx.IContext, format string, args ...interface{}) {
 	caller := getCallerInfo()
-	log.Print(errorPrefix(caller)+ctxMessage(ctx)+format, fmt.Sprint(args...))
+	log.Print(errorPrefix(caller)+FormatWithCtx(ctx, format), fmt.Sprint(args...))
 }

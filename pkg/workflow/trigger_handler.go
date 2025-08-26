@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
@@ -160,7 +161,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			onceTriggersCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.checkTriggerList(ctx, handler.onceTriggers.get())
+				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.onceTriggers.get())
 			},
 		),
 		scheduler.NewTask(
@@ -168,7 +169,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			orderedTriggersCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.checkTriggerList(ctx, handler.orderedTriggers.get())
+				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.orderedTriggers.get())
 			},
 		),
 		scheduler.NewTask(
@@ -176,7 +177,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			periodicTriggersCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.checkTriggerList(ctx, handler.periodicTriggers.get())
+				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.periodicTriggers.get())
 			},
 		),
 	}
@@ -199,7 +200,7 @@ func (handler *triggerHandler) syncOnceTrigger(ctx context.Context) error {
 		return err
 	}
 
-	handler.mgr.logger.DebugCtxf(ctx, "synced once triggers. count: %d", len(list))
+	handler.mgr.logger.Debugf("synced once triggers. count: %d", len(list))
 
 	handler.onceTriggers.set(list)
 
@@ -216,7 +217,7 @@ func (handler *triggerHandler) syncOrderedTrigger(ctx context.Context) error {
 		return err
 	}
 
-	handler.mgr.logger.DebugCtxf(ctx, "synced ordered triggers. count: %d", len(list))
+	handler.mgr.logger.Debugf("synced ordered triggers. count: %d", len(list))
 
 	handler.orderedTriggers.set(list)
 
@@ -233,7 +234,7 @@ func (handler *triggerHandler) syncPeriodicTrigger(ctx context.Context) error {
 		return err
 	}
 
-	handler.mgr.logger.DebugCtxf(ctx, "synced periodic triggers. count: %d", len(list))
+	handler.mgr.logger.Debugf("synced periodic triggers. count: %d", len(list))
 
 	handler.periodicTriggers.set(list)
 
@@ -244,7 +245,7 @@ func (handler *triggerHandler) syncPeriodicTrigger(ctx context.Context) error {
 const defaultCheckConcurrency = 100
 
 // checkTriggerList checks trigger list and executes triggers.
-func (handler *triggerHandler) checkTriggerList(ctx context.Context, list []*trigger.Trigger) error {
+func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*trigger.Trigger) error {
 	handler.mgr.logger.DebugCtxf(ctx, "check trigger list. count: %d", len(list))
 
 	gp := gopool.NewPool()
@@ -294,7 +295,7 @@ func (handler *triggerHandler) checkTriggerList(ctx context.Context, list []*tri
 	return nil
 }
 
-func (handler *triggerHandler) tryLockTrigger(ctx context.Context, trig *trigger.Trigger) locker.Mutex {
+func (handler *triggerHandler) tryLockTrigger(ctx contextx.IContext, trig *trigger.Trigger) locker.Mutex {
 	mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 
 	handler.mgr.logger.DebugCtxf(ctx, "try lock trigger. trigger-id:(%s)", trig.TriggerID)
@@ -318,7 +319,7 @@ func (handler *triggerHandler) tryLockTrigger(ctx context.Context, trig *trigger
 	return mutex
 }
 
-func (handler *triggerHandler) checkFeasibility(_ context.Context, trig *trigger.Trigger) error {
+func (handler *triggerHandler) checkFeasibility(_ contextx.IContext, trig *trigger.Trigger) error {
 	if trig.State != trigger.StateRunning {
 		return common.ErrTriggerNotRunning()
 	}
@@ -353,7 +354,7 @@ func (handler *triggerHandler) checkFeasibility(_ context.Context, trig *trigger
 	}
 }
 
-func (handler *triggerHandler) doTrigger(ctx context.Context, trigCtl ITriggerCtl) error {
+func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITriggerCtl) error {
 	var instanceCtls []IOperationInstanceCtl
 	var err error
 
@@ -409,7 +410,7 @@ func (handler *triggerHandler) doTrigger(ctx context.Context, trigCtl ITriggerCt
 	return gp.Wait()
 }
 
-func (handler *triggerHandler) initEmptyOperation(ctx context.Context, trigCtl ITriggerCtl, limit int) error {
+func (handler *triggerHandler) initEmptyOperation(ctx contextx.IContext, trigCtl ITriggerCtl, limit int) error {
 	operList, err := trigCtl.ListEmptyOperation(ctx, types.Page{Limit: limit})
 	if err != nil {
 		return err
@@ -438,7 +439,7 @@ func (handler *triggerHandler) initEmptyOperation(ctx context.Context, trigCtl I
 }
 
 func (handler *triggerHandler) doOnceTrigger(
-	ctx context.Context, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 
 	if err := handler.initEmptyOperation(ctx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
 		handler.mgr.logger.WarnCtxf(ctx, "failed to init empty operation. trigger-id(%s), err(%v)",
@@ -455,7 +456,7 @@ func (handler *triggerHandler) doOnceTrigger(
 }
 
 func (handler *triggerHandler) doOrderedTrigger(
-	ctx context.Context, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 
 	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataOrdered)
 	if !ok {
@@ -495,7 +496,7 @@ func (handler *triggerHandler) doOrderedTrigger(
 }
 
 func (handler *triggerHandler) doPeriodicTrigger(
-	ctx context.Context, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 
 	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
 	if !ok {

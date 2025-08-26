@@ -15,6 +15,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -26,7 +27,7 @@ const (
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(ctx context.Context, certFileName string, certFile io.ReadCloser) (
+func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (
 	*types.OriginCertPkgDetail, error) {
 
 	if certFile == nil {
@@ -196,7 +197,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 }
 
 // PublishReleaseCert generates release cert by upload-id.
-func (m *Manager) PublishReleaseCert(ctx context.Context, uploadID string) error {
+func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get upload(%s). err: %v", uploadID, err)

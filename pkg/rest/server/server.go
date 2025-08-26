@@ -219,7 +219,7 @@ func customLogDoneFormatter(param gin.LogFormatterParams) string {
 func logWithCtxKeys(keys map[string]any) string {
 	if v, ok := keys[restContextKey]; ok {
 		if ctx, ok := v.(*Context); ok {
-			return fmt.Sprintf("[%s][tenant:%s][user:%s]",
+			return fmt.Sprintf("[request_id:%s][tenant_id:%s][login_name:%s]",
 				ctx.RequestID(), ctx.TenantID(), ctx.LoginName())
 		}
 	}

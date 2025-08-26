@@ -123,23 +123,23 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Ctx, err = tenant.SetID(ctx.Ctx, info.Host.TenantID)
+	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
 	if err != nil {
 		return err
 	}
 
-	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.storageNodeDeployment.GetNodeConf(ctx.Ctx, param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeConf(tenantCtx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
 
 	// get release of this node.
-	releasePkg, err := act.getRelease(ctx.Ctx, info)
+	releasePkg, err := act.getRelease(tenantCtx, info)
 	if err != nil {
 		return fmt.Errorf("get release failed, err: %w", err)
 	}
@@ -171,13 +171,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := act.storageNodeDeployment.SetNodeConf(ctx.Ctx, param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
-	act.renderNodeDeploymentInfo(ctx.Ctx, info, nodeConf)
+	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
 
-	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 

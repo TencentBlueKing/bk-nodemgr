@@ -54,6 +54,14 @@ func (ctx *TenantUserContext) Value(key any) any {
 	return ctx.ctx.Value(key)
 }
 
+// Values ... implement ITenantUserContext.
+func (ctx *TenantUserContext) Values() map[string]any {
+	return map[string]any{
+		"login_name": ctx.loginName,
+		"tenant_id":  ctx.tenantID,
+	}
+}
+
 // LoginName implement ITenantUserContext.
 func (ctx *TenantUserContext) LoginName() string {
 	return ctx.loginName

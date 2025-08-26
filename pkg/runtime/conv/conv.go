@@ -179,7 +179,13 @@ func ToInt64Default(value interface{}, defaultVal int64) int64 {
 // MapToStruct map to struct.
 // Note: dst must be a pointer.
 // Note: this function is based on json.Marshal and json.Unmarshal, so it will allow json tags.
-func MapToStruct(m map[string]any, dst any) error {
+func MapToStruct(m map[string]any, dst any) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("failed to convert map to struct: %v", r)
+		}
+	}()
+
 	typeof := reflect.TypeOf(dst)
 	if typeof.Kind() != reflect.Ptr {
 		return fmt.Errorf("dst must be a pointer, pointer-kind(%v)", typeof.Kind())

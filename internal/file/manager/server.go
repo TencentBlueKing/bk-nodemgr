@@ -11,13 +11,13 @@
 package manager
 
 import (
-	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -28,7 +28,7 @@ import (
 // UploadOriginServer uploads the origin server.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginServer(ctx context.Context, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+func (m *Manager) UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
 	if pkgFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin server package. file is nil")
 

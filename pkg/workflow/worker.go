@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/RichardKnop/machinery/v2/tasks"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -64,14 +65,21 @@ func (mgr *manager) launchWorker() error {
 // doAction executes the action defined by actionName for the operation instance with operationInstanceID.
 // nolint: funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
+// notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
+	var nCtx contextx.IContext
+	nCtx = contextx.NewContext(ctx, map[string]any{
+		"action_name":           actionName,
+		"operation_instance_id": operationInstanceID,
+	})
+
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
 		return fmt.Errorf("action not registered, name(%s)", actionName)
 	}
 
 	// get action instance.
-	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(ctx, operationInstanceID, actionName)
+	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionName)
 	if err != nil {
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
@@ -79,7 +87,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	// check if this action should be executed.
 	if err := actionInstData.NeedExecuted(); err != nil {
-		if err == common.ErrActionAlreadySucceeded() || err == common.ErrActionSkipped() {
+		if errors.Is(err, common.ErrActionAlreadySucceeded()) || errors.Is(err, common.ErrActionSkipped()) {
 			return nil
 		}
 
@@ -87,7 +95,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// get operation instance.
-	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(ctx, operationInstanceID)
+	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
 	if err != nil {
 		return fmt.Errorf("failed to get operation instance brief data. "+
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
@@ -108,14 +116,14 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 		// first action be executed, means operation instance is started.
 		operInstBriefData.Lifecycle.Start()
-		if err = mgr.updateOperationInstanceLifecycle(ctx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
+		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
 			return err
 		}
 	}
 
 	// handle action instance lifecycle.
 	actionInstData.Lifecycle.Start()
-	if err = mgr.updateActionLifecycle(ctx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
 		return err
 	}
 
@@ -126,7 +134,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	} else {
 		// not-first action should get content from previous action.
 		preActionName := operInstBriefData.Metadata.ActionNames[actionInstData.Index-1]
-		preActionInstData, err := mgr.stgActionInstance.GetActionInstanceData(ctx, operationInstanceID, preActionName)
+		preActionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, preActionName)
 		if err != nil {
 			return fmt.Errorf("failed to get pre action instance data from operation instance. "+
 				"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, preActionName, err)
@@ -136,34 +144,33 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// execute and wait for action done.
-	executeErr := mgr.executeAndWatchAction(ctx, actionDef, operInstBriefData, actionInstData)
+	executeErr := mgr.executeAndWatchAction(nCtx, actionDef, operInstBriefData, actionInstData)
 
 	// updates action instance lifecycle.
-	if err = mgr.updateActionLifecycle(ctx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
 		return err
 	}
 
 	// updates action content.
-	if err = mgr.updateActionContent(ctx, operationInstanceID, actionName, actionInstData.Content); err != nil {
+	if err = mgr.updateActionContent(nCtx, operationInstanceID, actionName, actionInstData.Content); err != nil {
 		return err
 	}
 
 	// updates action instance private data.
 	if err = mgr.updateOperationInstancePrivateData(
-		ctx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
+		nCtx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
 		return err
 	}
 
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
-		if err = mgr.updateOperationInstanceLifecycle(ctx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
+		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
 			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",
 				err, executeErr)
 		}
 
-		mgr.logger.InfoCtxf(ctx,
-			"updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
+		mgr.logger.InfoCtxf(nCtx, "updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
 			operationInstanceID, operInstBriefData.Lifecycle)
 
 		if err = mgr.doOperExtraExecution(operInstBriefData); err != nil {
@@ -190,7 +197,7 @@ func (mgr *manager) updateActionLifecycle(
 }
 
 func (mgr *manager) updateActionContent(
-	ctx context.Context,
+	ctx contextx.IContext,
 	operationInstanceID,
 	actionName string,
 	content map[string]any) error {
@@ -219,14 +226,14 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 }
 
 func (mgr *manager) updateOperationInstancePrivateData(
-	ctx context.Context,
+	ctx contextx.IContext,
 	operationInstanceID string,
 	actionName string,
 	privateData map[string]any) error {
 
 	if len(privateData) == 0 {
 		// no private data to update, skip.
-		mgr.logger.Debugf("no private data to update, oper-inst-id(%s), action-name(%s), private-data(%v)",
+		mgr.logger.DebugCtxf(ctx, "no private data to update, oper-inst-id(%s), action-name(%s), private-data(%v)",
 			operationInstanceID, actionName, privateData)
 
 		return nil
@@ -242,12 +249,12 @@ func (mgr *manager) updateOperationInstancePrivateData(
 	return nil
 }
 
-func (mgr *manager) executeAndWatchAction(ctx context.Context,
+func (mgr *manager) executeAndWatchAction(ctx contextx.IContext,
 	actionDef action.Definition,
 	operInstBriefData *operation.InstanceBriefData,
 	actionInstData *action.InstanceData) error {
 
-	actionTimeoutCtx, actionTimeoutCancel := context.WithTimeout(ctx, actionDef.Timeout())
+	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(ctx, actionDef.Timeout())
 	defer actionTimeoutCancel()
 
 	operationTimeoutCtx, operationTimeoutCancel := context.WithDeadline(
@@ -316,7 +323,7 @@ func (mgr *manager) executeAction(
 
 	defer func() {
 		if r := recover(); r != nil {
-			mgr.logger.Errorf("action panic, info(%v), revoer(%v), stack(%s)",
+			mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "action panic, info(%v), revoer(%v), stack(%s)",
 				actionInstCtx.Data.Info(), r, debug.Stack())
 			err = fmt.Errorf("action panic, info(%v), revoer(%v), stack(%s)",
 				actionInstCtx.Data.Info(), r, debug.Stack())
@@ -325,7 +332,7 @@ func (mgr *manager) executeAction(
 		doResult <- err
 	}()
 
-	ctx, cancel := context.WithCancel(actionInstCtx.Ctx)
+	ctx, cancel := contextx.WithCancel(actionInstCtx.Ctx)
 	defer cancel()
 
 	go mgr.autoRefreshActionDataMsg(ctx, actionInstCtx.Data)
@@ -333,7 +340,7 @@ func (mgr *manager) executeAction(
 	err = mgr.callActionDefWithRetry(actionInstCtx, actionDef)
 }
 
-func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.InstanceData) {
+func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action.InstanceData) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -353,7 +360,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 				data.Name,
 				msgs...)
 			if err != nil {
-				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
+				mgr.logger.ErrorCtxf(ctx, "failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)
 			}
 
@@ -371,7 +378,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx context.Context, data *action.I
 				data.Name,
 				msgs...)
 			if err != nil {
-				mgr.logger.Errorf("failed to refresh action inst data messages, action-name(%s), err: %v",
+				mgr.logger.ErrorCtxf(ctx, "failed to refresh action inst data messages, action-name(%s), err: %v",
 					data.Name, err)
 			}
 
@@ -385,7 +392,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	var doErr error
 
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < engineMaxRetryLimit; retryNum++ {
-		mgr.logger.Infof("started action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+		mgr.logger.InfoCtxf(actionInstCtx.Ctx, "started action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
 		actionInstCtx.Data.LogI(fmt.Sprintf("started action, action-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, retryNum))
@@ -393,7 +400,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 		doErr = actionDef.Do(actionInstCtx)
 
 		if doErr != nil {
-			mgr.logger.Errorf("failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
+			mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "failed to do action, operinst-id(%s), action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.OperationInstanceID, actionInstCtx.Data.Name, retryNum, doErr)
 			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d), err: %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
@@ -403,7 +410,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			continue
 		}
 
-		mgr.logger.Infof("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
+		mgr.logger.InfoCtxf(actionInstCtx.Ctx, "done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
 		actionInstCtx.Data.LogI(fmt.Sprintf("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum))
@@ -412,7 +419,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	}
 
 	if doErr != nil {
-		mgr.logger.Errorf("action failed, action-name(%s), oper-def-name(%s), err(%v)",
+		mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "action failed, action-name(%s), oper-def-name(%s), err(%v)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr)
 		actionInstCtx.Data.LogE(fmt.Sprintf("action failed, action-name(%s), oper-def-name(%s), err(%v)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr))

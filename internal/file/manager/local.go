@@ -11,12 +11,12 @@
 package manager
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -44,7 +44,7 @@ func (lfp *localFilePool) get(filename string) (*localFile, bool) {
 }
 
 // EnsureFileToLocal ensure the file to local.
-func (m *Manager) EnsureFileToLocal(ctx context.Context,
+func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -67,7 +67,7 @@ func (m *Manager) EnsureFileToLocal(ctx context.Context,
 }
 
 // EnsureReleaseToLocal ensure the release to local.
-func (m *Manager) EnsureReleaseToLocal(ctx context.Context, release *types.Release) (fileiface.File, string, error) {
+func (m *Manager) EnsureReleaseToLocal(ctx contextx.IContext, release *types.Release) (fileiface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
 		info := cache.file.Info()

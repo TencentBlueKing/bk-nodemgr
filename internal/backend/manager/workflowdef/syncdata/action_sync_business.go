@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -104,7 +105,7 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 
 	executor := runtime.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
-		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, param.Operator)
+		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, access.GetVirtualUser())
 		bizs, err := act.cmdbHandler.SearchBusiness(tenantUserCtx, p)
 		if err != nil {
 			return nil, err

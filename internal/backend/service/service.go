@@ -42,6 +42,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
@@ -87,7 +88,7 @@ type Service struct {
 	conf *config.BackendService
 
 	// ctx is used to control the service lifecycle (cancellation and timeouts).
-	ctx context.Context
+	ctx contextx.IContext
 
 	// cancelFunc is used to cancel the service and all associated operations.
 	cancelFunc context.CancelFunc
@@ -124,7 +125,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 
 	access.SetVirtualUser(conf.Access.VirtualUser)
 
-	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
 	var err error
 

@@ -52,6 +52,13 @@ func (ctx *UserContext) Value(key any) any {
 	return ctx.ctx.Value(key)
 }
 
+// Values implement IContext.
+func (ctx *UserContext) Values() map[string]any {
+	return map[string]any{
+		"login_name": ctx.loginName,
+	}
+}
+
 // LoginName implement IContext.
 func (ctx *UserContext) LoginName() string {
 	return ctx.loginName

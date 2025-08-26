@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -129,7 +130,7 @@ func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *t
 
 // QueryTransfer query transfer.
 func (m *Manager) QueryTransfer(
-	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
+	ctx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
 	results, err := m.gseHandler.QueryFileTransmissionResult(ctx, taskID)
 	if err != nil {
@@ -155,7 +156,7 @@ func (m *Manager) QueryTransfer(
 }
 
 // LaunchTransferRelease launch transfer release.
-func (m *Manager) LaunchTransferRelease(ctx context.Context,
+func (m *Manager) LaunchTransferRelease(ctx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -182,7 +183,7 @@ func (m *Manager) LaunchTransferRelease(ctx context.Context,
 }
 
 // LaunchTransferInstaller launch transfer installer.
-func (m *Manager) LaunchTransferInstaller(ctx context.Context,
+func (m *Manager) LaunchTransferInstaller(ctx contextx.IContext,
 	plat platform.Platform,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -209,7 +210,7 @@ func (m *Manager) LaunchTransferInstaller(ctx context.Context,
 }
 
 // TransferPkg transfer package.
-func (m *Manager) transferPkg(ctx context.Context, srcFilePath, dstDir string, dstHost *types.Host) (*Transfer, error) {
+func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string, dstHost *types.Host) (*Transfer, error) {
 	if dstHost == nil {
 		return nil, errors.New("destination host is nil")
 	}
@@ -267,7 +268,7 @@ func (m *Manager) transferPkg(ctx context.Context, srcFilePath, dstDir string, d
 	}, nil
 }
 
-func (m *Manager) getCurrentGSEEndpoint(ctx context.Context) (*types.Endpoint, error) {
+func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (*types.Endpoint, error) {
 	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(ctx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host from storage: %w", err)

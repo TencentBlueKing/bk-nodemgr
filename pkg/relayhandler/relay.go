@@ -15,6 +15,7 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
@@ -74,17 +75,17 @@ type ServerReceivedData struct {
 // IPushServer defines the server handler.
 type IPushServer interface {
 	// PushToClient sends the server push to client.
-	PushToClient(ctx context.Context,
+	PushToClient(ctx contextx.IContext,
 		eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error
 
 	// SendAck sends the ack to client.
-	SendAck(ctx context.Context, OriginalMessageID string, agentIDs ...string)
+	SendAck(ctx contextx.IContext, OriginalMessageID string, agentIDs ...string)
 
 	// TryMarkProcessed tries to mark the message as processed. if it has been processed, return false.
-	TryMarkProcessed(ctx context.Context, mid string) (bool, error)
+	TryMarkProcessed(ctx contextx.IContext, mid string) (bool, error)
 
-	// MarkedAckedAck handles the ack.
-	MarkAcked(ctx context.Context, OriginalMessageID string) error
+	// MarkAcked handles the ack.
+	MarkAcked(ctx contextx.IContext, OriginalMessageID string) error
 
 	// DecodeAckRequest decodes the ack request.
 	DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error)
@@ -99,7 +100,7 @@ type ICallbackServer interface {
 	DecodeCallbackRequest(data *ServerReceivedData) (*protoRelay.CallbackReq, error)
 
 	// RespondCallback sends the callback response.
-	RespondCallback(ctx context.Context, messageID string, httpCode int, content []byte, agentIDs ...string) error
+	RespondCallback(ctx contextx.IContext, messageID string, httpCode int, content []byte, agentIDs ...string) error
 }
 
 type loggerAdaptor struct {

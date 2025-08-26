@@ -20,6 +20,7 @@ import (
 
 	serverapi "github.com/TencentBlueKing/bk-gse-sdk/go/service/server-api"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -67,6 +68,8 @@ func NewServerMessager(conf ServerMessagerConfig) IServerMessager {
 		config: conf,
 	}
 }
+
+var _ IServerMessager = &serverMessager{}
 
 // serverMessager provides the managements for receiving and sending messages via gse cluster.
 type serverMessager struct {
@@ -169,7 +172,7 @@ func (m *serverMessager) DecodeClientPushRequest(data *ServerReceivedData) (
 }
 
 // RespondCallback sends the callback resp.
-func (m *serverMessager) RespondCallback(ctx context.Context,
+func (m *serverMessager) RespondCallback(ctx contextx.IContext,
 	messageID string, httpCode int, content []byte, agentIDs ...string) error {
 
 	resp := &protoRelay.CallbackResp{
@@ -203,7 +206,7 @@ func (m *serverMessager) RespondCallback(ctx context.Context,
 
 // PushToClient sends the server push to client asynchronously and returns a channel for results.
 func (m *serverMessager) PushToClient(
-	ctx context.Context, eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
+	ctx contextx.IContext, eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
 
 	resultChan := make(chan error, 1)
 
@@ -275,7 +278,7 @@ func (m *serverMessager) PushToClient(
 }
 
 // SendAck sends the ack to client.
-func (m *serverMessager) SendAck(ctx context.Context, originalMessageID string, agentIDs ...string) {
+func (m *serverMessager) SendAck(ctx contextx.IContext, originalMessageID string, agentIDs ...string) {
 	messageID := identifier.GenMessageID()
 	resp := &protoRelay.AckReq{
 		Base: protoRelay.Base{
@@ -316,7 +319,7 @@ func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, 
 }
 
 // MarkProcessed marks a message ID as processed if it has been processed, return false.
-func (m *serverMessager) TryMarkProcessed(ctx context.Context, mid string) (bool, error) {
+func (m *serverMessager) TryMarkProcessed(ctx contextx.IContext, mid string) (bool, error) {
 	marked, err := m.redisMsgTracker.TryMarkProcessed(ctx, mid)
 	if err != nil {
 		m.config.Logger.Errorf("mark processed failed: %v", mid, err)
@@ -327,7 +330,7 @@ func (m *serverMessager) TryMarkProcessed(ctx context.Context, mid string) (bool
 }
 
 // MarkAcked marks a message ID as acked.
-func (m *serverMessager) MarkAcked(ctx context.Context, mid string) error {
+func (m *serverMessager) MarkAcked(ctx contextx.IContext, mid string) error {
 	if err := m.redisMsgTracker.MarkAcked(ctx, mid); err != nil {
 		m.config.Logger.Errorf("mark ack failed. mid(%s): %v", mid, err)
 		return fmt.Errorf("failed to mark acked: %w", err)

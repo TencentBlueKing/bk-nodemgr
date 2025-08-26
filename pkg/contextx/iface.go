@@ -10,25 +10,21 @@
 
 package contextx
 
-import (
-	"context"
-)
-
 // IUserContext user context.
 type IUserContext interface {
-	context.Context
+	IContext
 	LoginName() string
 }
 
 // ITenantContext tenant context.
 type ITenantContext interface {
-	context.Context
+	IContext
 	TenantID() string
 }
 
 // ITenantUserContext tenant user context.
 type ITenantUserContext interface {
-	context.Context
+	IContext
 	ITenantContext
 	IUserContext
 }

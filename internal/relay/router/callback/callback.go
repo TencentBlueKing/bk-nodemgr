@@ -45,16 +45,16 @@ func (h *handler) request(gCtx *gin.Context) {
 	rctx, rcancel := context.WithTimeout(gCtx.Request.Context(), defaultRequestTimeout)
 	defer rcancel()
 
-	h.logger.InfoCtxf(rctx, "request to callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(content))
+	h.logger.Infof("request to callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(content))
 	resp, statusCode, err := h.client.RequestCallback(rctx, gCtx.Request.URL.Path, content)
 	if err != nil {
-		h.logger.ErrorCtxf(rctx, "failed to request to callback, err: %v", err)
+		h.logger.Errorf("failed to request to callback, err: %v", err)
 		gCtx.JSON(statusCode, err)
 
 		return
 	}
 
-	h.logger.InfoCtxf(rctx, "response from callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(resp))
+	h.logger.Infof("response from callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(resp))
 	gCtx.Data(statusCode, "application/json; charset=utf-8", resp)
 }
 
