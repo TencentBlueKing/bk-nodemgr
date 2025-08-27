@@ -21,6 +21,10 @@ import (
 
 // Validate check body.
 func (x *PackageReleaseListReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -62,7 +66,6 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 	if exactCond != nil {
 		condition.ExactInclude = &types.ReleaseExactFields{
 			Generation: types.Int64ListToGenerationList(exactCond.GetGeneration()),
-			Type:       types.StringListToReleaseTypeList(exactCond.GetReleaseType()),
 			Platform:   plats,
 			Version:    exactCond.GetVersion(),
 			AsDefault:  exactCond.GetAsDefault(),
@@ -83,7 +86,6 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 	if conditions.ExactInclude != nil {
 		exactCond = new(PackageReleaseExactConditions)
 		exactCond.Generation = types.GenerationListToInt64List(conditions.ExactInclude.Generation)
-		exactCond.ReleaseType = types.ReleaseTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Platform = make([]*Platform, 0)
 		for _, plat := range conditions.ExactInclude.Platform {
 			exactCond.Platform = append(exactCond.Platform, ConvertPlatformFromTypes(plat))
@@ -164,6 +166,10 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 
 // Validate validates the request.
 func (x *PackageReleaseDistinctReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -216,6 +222,10 @@ func (x *PackageReleaseDistinctResp) ConvertResultToTypes() *types.ReleaseDistin
 
 // Validate check body.
 func (x *PackageReleaseSetLabelsReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -243,6 +253,10 @@ func (x *PackageReleaseSetLabelsReq) SetIdentifer(
 
 // Validate check body.
 func (x *PackageReleaseEnableReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -270,6 +284,10 @@ func (x *PackageReleaseEnableReq) SetIdentifer(
 
 // Validate check body.
 func (x *PackageReleaseDisableReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -297,6 +315,10 @@ func (x *PackageReleaseDisableReq) SetIdentifer(
 
 // Validate check body.
 func (x *PackageReleaseSetAsDefaultReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -326,6 +348,10 @@ func (x *PackageReleaseSetAsDefaultReq) SetIdentifer(
 
 // Validate check body.
 func (x *PackageReleaseCancelAsDefaultReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -355,6 +381,10 @@ func (x *PackageReleaseCancelAsDefaultReq) SetIdentifer(
 
 // Validate check body.
 func (x *PackageReleaseDeleteReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -21,11 +21,12 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(releaseType string, client *mongo.Database, logger logger.ILogger) *dao {
+	tableName := TableName(releaseType)
 	d := &dao{
-		client:    client.Collection(TableName),
+		client:    client.Collection(tableName),
 		logger:    logger,
-		tableName: TableName,
+		tableName: tableName,
 	}
 
 	d.IOrm = base.NewOrm[*Release, Release](d)

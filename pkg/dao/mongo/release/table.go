@@ -18,7 +18,9 @@ import (
 )
 
 // TableName release table name.
-const TableName = "release"
+func TableName(releaseType string) string {
+	return fmt.Sprintf("release_%s", releaseType)
+}
 
 // Release presents a release.
 type Release struct {

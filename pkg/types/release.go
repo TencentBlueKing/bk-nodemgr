@@ -11,7 +11,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -48,7 +47,7 @@ func (rt ReleaseType) Validate() error {
 	case ReleaseTypeOriginAgent, ReleaseTypeOriginServer, ReleaseTypeAgent, ReleaseTypeProxy:
 		return nil
 	default:
-		return errors.New("invalid release type")
+		return fmt.Errorf("invalid release type, type(%s)", rt)
 	}
 }
 

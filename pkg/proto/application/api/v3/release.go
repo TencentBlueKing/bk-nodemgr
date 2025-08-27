@@ -21,6 +21,10 @@ import (
 
 // Validate check body.
 func (x *PackageReleaseListReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -62,7 +66,6 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 	if exactCond != nil {
 		condition.ExactInclude = &types.ReleaseExactFields{
 			Generation: types.Int64ListToGenerationList(exactCond.GetGeneration()),
-			Type:       types.StringListToReleaseTypeList(exactCond.GetReleaseType()),
 			Platform:   plats,
 			Version:    exactCond.GetVersion(),
 			AsDefault:  exactCond.GetAsDefault(),
@@ -83,7 +86,6 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 	if conditions.ExactInclude != nil {
 		exactCond = new(PackageReleaseExactConditions)
 		exactCond.Generation = types.GenerationListToInt64List(conditions.ExactInclude.Generation)
-		exactCond.ReleaseType = types.ReleaseTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Platform = make([]*Platform, 0)
 		for _, plat := range conditions.ExactInclude.Platform {
 			exactCond.Platform = append(exactCond.Platform, ConvertPlatformFromTypes(plat))

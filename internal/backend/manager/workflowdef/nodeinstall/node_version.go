@@ -33,17 +33,19 @@ type CheckAndSelectVersionParam struct {
 func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionParam) (string, error) {
 	plat := platform.NewPlatform(versionParam.OSType, versionParam.CPUArch)
 
+	releaseType := versionParam.ReleaseType
+	gen := versionParam.Generation
+
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Type:       []types.ReleaseType{versionParam.ReleaseType},
 			Platform:   []platform.Platform{plat},
-			Generation: []types.Generation{versionParam.Generation},
+			Generation: []types.Generation{gen},
 			AsDefault:  []bool{true},
 			Enabled:    []bool{true},
 		},
 	}
 
-	releases, num, err := versionParam.daoRelease.ListRelease(ctx, types.UnlimitedPage(), cond)
+	releases, num, err := versionParam.daoRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
 		return "", fmt.Errorf("failed to list default releases, err: %w", err)
 	}
@@ -67,14 +69,13 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Type:       []types.ReleaseType{versionParam.ReleaseType},
 			Platform:   []platform.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
 			Version:    []string{versionParam.Version},
 			Enabled:    []bool{true},
 		},
 	}
-	num, err := versionParam.daoRelease.CountRelease(ctx, cond)
+	num, err := versionParam.daoRelease.CountRelease(ctx, versionParam.ReleaseType, cond)
 	if err != nil {
 		return fmt.Errorf("failed to check release version,err: %w", err)
 	}

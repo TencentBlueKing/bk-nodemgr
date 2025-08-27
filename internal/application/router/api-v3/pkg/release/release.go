@@ -66,11 +66,11 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	releaseType := types.ReleaseType(req.ReleaseType)
+
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountRelease(
-			ctx,
-			req.ConvertConditionsToTypes())
+		num, err := h.backendHandler.CountRelease(ctx, releaseType, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -82,10 +82,7 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.backendHandler.ListRelease(
-		ctx,
-		req.ConvertPageToTypes(maxReleaseLimit),
-		req.ConvertConditionsToTypes())
+	hosts, num, err := h.backendHandler.ListRelease(ctx, releaseType, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list release. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -248,25 +245,25 @@ func (h *handler) DeleteRelease(ctx *restserver.Context) (interface{}, error) {
 func (h *handler) CountDeployedHost(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseDeployedHostCountReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to decode request body. err: %w", err)
+		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	condition, err := req.ConvertConditionsToHostTypes()
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to convert conditions to host types. err: %w", err)
+		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to convert conditions to host types. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, _, err := h.backendHandler.ListHost(ctx, types.UnlimitedPage(), condition)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to list host. err: %w", err)
+		h.logger.ErrorCtxf(ctx, "failed to count deployed host, failed to list host. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	result, pair, err := req.CountHostsByOsTypeAndArch(hosts)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count hosts. err: %w", err)
+		h.logger.ErrorCtxf(ctx, "failed to count hosts. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

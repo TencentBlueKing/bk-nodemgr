@@ -54,13 +54,23 @@ func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
 		return nil, "", fmt.Errorf("not support generation: %d", gen)
 	}
 
-	if rt != types.ReleaseTypeAgent && rt != types.ReleaseTypeProxy {
+	var (
+		release *types.Release
+		err     error
+	)
+	switch rt {
+	case types.ReleaseTypeAgent:
+		release, err = m.storageRelease.GetReleaseAgent(ctx, gen, plat, version)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get release: %w", err)
+		}
+	case types.ReleaseTypeProxy:
+		release, err = m.storageRelease.GetReleaseProxy(ctx, gen, plat, version)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get release: %w", err)
+		}
+	default:
 		return nil, "", fmt.Errorf("not support release type: %s", rt)
-	}
-
-	release, err := m.storageRelease.GetRelease(ctx, gen, rt, plat, version)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get release: %w", err)
 	}
 
 	return m.EnsureReleaseToLocal(ctx, release)

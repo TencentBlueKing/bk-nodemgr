@@ -121,7 +121,7 @@ func Test_UpsertMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := client.UpsertMany(context.Background(), tt.args.releases...); (err != nil) != tt.wantErr {
+			if err := client.UpsertMany(context.Background(), "", tt.args.releases...); (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -160,7 +160,7 @@ func Test_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			release, err := client.Get(context.Background(), tt.args.generation, tt.args.releaseType, tt.args.platform, tt.args.version)
+			release, err := client.Get(context.Background(), tt.args.releaseType, tt.args.generation, tt.args.platform, tt.args.version)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -202,7 +202,7 @@ func Test_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			releases, total, err := client.List(context.Background(), tt.args.page, tt.args.opts...)
+			releases, total, err := client.List(context.Background(), "", tt.args.page, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -257,8 +257,7 @@ func Test_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := client.Delete(context.Background(), tt.args.generation, tt.args.releaseType,
-				tt.args.platform, tt.args.version); (err != nil) != tt.wantErr {
+			if err := client.Delete(context.Background(), tt.args.releaseType, tt.args.generation, tt.args.platform, tt.args.version); (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

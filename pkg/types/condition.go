@@ -281,7 +281,6 @@ type ReleaseExactFields struct {
 	FileName   []string
 	Generation []Generation
 	Platform   []platform.Platform
-	Type       []ReleaseType
 	Version    []string
 	AsDefault  []bool
 	Enabled    []bool

@@ -346,9 +346,16 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	ctx context.Context, info *types.DeploymentInfo) (*types.Release, error) {
 
+	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return nil, fmt.Errorf("convert node role to release type failed, err: %w", err)
+	}
+
+	gen := info.Host.Dynamic.NodeGeneration
+
 	FileName, err := nodepkg.FormatPkgName(
-		types.Generation2,
-		types.ReleaseTypeAgent,
+		gen,
+		releaseType,
 		platform.Platform{OS: info.Host.Dynamic.NodeOsType, Arch: info.Host.Dynamic.NodeCPUArch},
 		info.Host.Dynamic.NodeVersion,
 	)
@@ -362,7 +369,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 			FileName: []string{FileName},
 		},
 	}
-	releases, _, err := act.storageRelease.ListRelease(ctx, types.UnlimitedPage(), cond)
+	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +413,7 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 
 	if state, exists := pkgStates[releasePkg.FileName]; exists && !state {
 		gp.Go(func() error {
-			if err := act.transferReleasePkg(ctx, types.ReleaseTypeAgent, &info.Host, &info.RelayInfo); err != nil {
+			if err := act.transferReleasePkg(ctx, releasePkg.Type, &info.Host, &info.RelayInfo); err != nil {
 				ctx.Data.LogE(fmt.Sprintf("failed to transfer release package: %v", err))
 				return fmt.Errorf("failed to transfer release package: %w", err)
 			}
@@ -497,7 +504,7 @@ func (act *actionEnsurePkgToRelay) transferInstaller(ctx *action.InstanceContext
 	ctx.Data.LogI(fmt.Sprintf("transferring installer package. relay-host-id(%d)", relayInfo.HostID))
 
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx.Ctx,
-		types.Generation2,
+		info.Dynamic.NodeGeneration,
 		platform.Platform{
 			OS:   info.Dynamic.NodeOsType,
 			Arch: info.Dynamic.NodeCPUArch,

@@ -148,9 +148,12 @@ func (h *handler) ListConfigPolicyPlatform(ctx *restserver.Context) (interface{}
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.DistinctRelease(ctx,
-		types.NewReleaseDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(req.GetNodeRole()))
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to list config policy platform, failed to convert release type. err: %v", err)
+	}
+
+	result, err := h.backendHandler.DistinctRelease(ctx, releaseType, types.NewReleaseDistinctRequestAllSet(), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list config policy platform, failed to distinct release. err: %v", err)
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)

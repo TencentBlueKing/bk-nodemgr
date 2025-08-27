@@ -176,15 +176,8 @@ func (x *ConfigPolicyListPlatformReq) AutoConvert() {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *ConfigPolicyListPlatformReq) ConvertConditionsToTypes() *types.ReleaseCondition {
-	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(x.GetNodeRole()))
-	if err != nil {
-		return &types.ReleaseCondition{}
-	}
-
 	return &types.ReleaseCondition{
-		ExactInclude: &types.ReleaseExactFields{
-			Type: []types.ReleaseType{releaseType},
-		},
+		ExactInclude: &types.ReleaseExactFields{},
 	}
 }
 

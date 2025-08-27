@@ -482,6 +482,9 @@
     "v3PackageReleaseDistinctReq": {
       "type": "object",
       "properties": {
+        "release_type": {
+          "type": "string"
+        },
         "exact_include_conditions": {
           "$ref": "#/definitions/v3PackageReleaseExactConditions"
         }
@@ -620,6 +623,9 @@
       "properties": {
         "page": {
           "$ref": "#/definitions/v3Page"
+        },
+        "release_type": {
+          "type": "string"
         },
         "only_count": {
           "type": "boolean"

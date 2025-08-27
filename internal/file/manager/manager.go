@@ -440,8 +440,7 @@ func (m *Manager) fetchReleaseAgentLocal(
 	ctx context.Context, plat platform.Platform, version string) (fileiface.File, error) {
 
 	// get agent.
-	agent, err := m.storageRelease.GetRelease(ctx,
-		types.Generation2, types.ReleaseTypeAgent, plat, version)
+	agent, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, plat, version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get agent release. platform(%s), version(%s): %w", plat.String(),
 			version, err)
@@ -520,5 +519,6 @@ func parseEnvFile(r io.Reader) (map[string]any, error) {
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("failed to scan env file: %w", err)
 	}
+
 	return result, nil
 }

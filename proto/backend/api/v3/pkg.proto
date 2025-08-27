@@ -20,9 +20,10 @@ message PackageReleaseExactConditions {
 // release.
 message PackageReleaseListReq {
   Page page = 1;
-  bool only_count = 2;
+  string release_type = 2;
+  bool only_count = 3;
 
-  PackageReleaseExactConditions exact_include_conditions = 3;
+  PackageReleaseExactConditions exact_include_conditions = 4;
 }
 
 // PackageReleaseListResp describes the HTTP response body when list package
@@ -43,7 +44,8 @@ message PackageReleaseListResp {
 // PackageReleaseDistinctReq describes the HTTP request body when distinct
 // release.
 message PackageReleaseDistinctReq {
-  PackageReleaseExactConditions exact_include_conditions = 1;
+  string release_type = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
 }
 
 // PackageReleaseDistinctResp describes the HTTP response body when distinct

@@ -1051,6 +1051,9 @@
         "page": {
           "$ref": "#/definitions/v3Page"
         },
+        "release_type": {
+          "type": "string"
+        },
         "only_count": {
           "type": "boolean"
         },
