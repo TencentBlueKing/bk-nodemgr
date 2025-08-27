@@ -781,6 +781,9 @@
         },
         "os_type": {
           "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."
@@ -803,9 +806,6 @@
         "node_generation": {
           "type": "integer",
           "format": "int64"
-        },
-        "cpu_arch": {
-          "type": "string"
         },
         "proxy_tags": {
           "type": "array",

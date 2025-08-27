@@ -894,6 +894,9 @@
         "os_type": {
           "type": "string"
         },
+        "cpu_arch": {
+          "type": "string"
+        },
         "bk_networkarea_name": {
           "type": "string"
         },
@@ -921,6 +924,12 @@
         "node_generation": {
           "type": "integer",
           "format": "int64"
+        },
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
