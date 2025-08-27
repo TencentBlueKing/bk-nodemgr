@@ -16,8 +16,6 @@ data:
 
     tenantMode: {{ .Values.file.config.tenantMode }}
 
-    inContainer: true
-
     httpServer: {{ .Values.file.config.httpServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
@@ -26,11 +24,9 @@ data:
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    tempFileGroup: {{ .Values.file.config.tempFileGroup | toYaml | nindent 6 }}
+    workspaceFileGroup: {{ .Values.file.config.workspaceFileGroup | toYaml | nindent 6 }}
 
-    cacheFileGroup: {{ .Values.file.config.cacheFileGroup | toYaml | nindent 6 }}
-
-    installerFileGroup: {{ .Values.file.config.installerFileGroup | toYaml | nindent 6 }}
+    mountHostDir: {{ .Values.file.config.mountHostDir | toYaml | nindent 6 }}
 
     gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
 

@@ -927,14 +927,10 @@ file:
       accessKey: ""
       secretKey: ""
 
-    tempFileGroup:
-      fullPath: "/bk-nodemgr/file/temp"
+    workspaceFileGroup:
+      fullPath: "/bk-nodemgr/workspace/"
 
-    cacheFileGroup:
-      fullPath: "/bk-nodemgr/file/cache"
-
-    installerFileGroup:
-      fullPath: "/bk-nodemgr/file/tools"
+    mountHostDir: "/data/bk-nodemgr-file-mount/"
 
     # defines the gse related settings.
     gse:

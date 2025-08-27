@@ -137,6 +137,8 @@ spec:
               mountPath: {{ .Values.common.certPath }}
             - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
+            - name: nodemgr-workspace
+              mountPath: {{ .Values.file.config.workspaceFileGroup.fullPath }}
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- else }}
@@ -213,17 +215,22 @@ spec:
               fi
             done
 
-            if [ -n "{{ .Values.backend.config.advertiseIPV4 }}" ]; then
-              ADVERTISE_IPV4={{ .Values.backend.config.advertiseIPV4 }}
+            if [ -n "{{ .Values.file.config.advertiseIPV4 }}" ]; then
+              ADVERTISE_IPV4={{ .Values.file.config.advertiseIPV4 }}
             fi
-            if [ -n "{{ .Values.backend.config.advertiseIPV6 }}" ]; then
-              ADVERTISE_IPV6={{ .Values.backend.config.advertiseIPV6 }}
+            if [ -n "{{ .Values.file.config.advertiseIPV6 }}" ]; then
+              ADVERTISE_IPV6={{ .Values.file.config.advertiseIPV6 }}
             fi
 
             # sed local config file.
             cp /tmp/file_conf.yaml {{ .Values.common.etcPath }}/file_conf.yaml
             sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/file_conf.yaml
             sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/file_conf.yaml
+
+            # init workspace.
+            cd {{ .Values.file.config.workspaceFileGroup.fullPath }}
+            mkdir -p temp cache local installer
+            cp /bk-nodemgr/file/tools/installer_* installer/
 
             echo "local module init done"
             EOF
@@ -241,6 +248,8 @@ spec:
               mountPath: /tmp
             - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
+            - name: nodemgr-workspace
+              mountPath: {{ .Values.file.config.workspaceFileGroup.fullPath }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       hostNetwork: {{ .Values.file.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
@@ -253,4 +262,8 @@ spec:
           name: {{ template "bk-nodemgr.fullname" . }}-file-config
       - name: nodemgr-etc
         emptyDir: {}
+      - name: nodemgr-workspace
+        hostPath: 
+          path: {{ .Values.file.config.mountHostDir }}
+          type: DirectoryOrCreate
 {{- end }}

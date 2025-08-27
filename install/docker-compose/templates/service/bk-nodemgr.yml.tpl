@@ -83,6 +83,7 @@ services:
     volumes:
       - ./etc/:/bk-nodemgr/etc/
       - ./cert/:/bk-nodemgr/cert/
+      - __BK_NODEMGR_FILE_MOUNT_HOST_DIR__:/bk-nodemgr/workspace
     command: "/bk-nodemgr/bin/serviced.sh"
     networks:
       - bk-nodemgr-network

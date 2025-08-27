@@ -237,10 +237,11 @@ func WithAdvertiseIPV6(ipv6 string) OptionFn {
 	}
 }
 
-// WithInContainer sets the in container.
-func WithInContainer(inContainer bool) OptionFn {
+// WithMountHostDir sets the mount host dir.
+func WithMount(mountHostDir, mountContainerDir string) OptionFn {
 	return func(manager *Manager) {
-		manager.inContainer = inContainer
+		manager.mountHostDir = mountHostDir
+		manager.mountContainerDir = mountContainerDir
 	}
 }
 
@@ -281,8 +282,9 @@ type Manager struct {
 	hostAdvertiseIPV4 string
 	hostAdvertiseIPV6 string
 
-	// in container.
-	inContainer bool
+	// in container mount settings.
+	mountHostDir      string
+	mountContainerDir string
 
 	// gse handler.
 	gseHandler gse.IHandler

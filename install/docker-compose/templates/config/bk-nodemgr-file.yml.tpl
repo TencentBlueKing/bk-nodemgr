@@ -30,17 +30,12 @@ repo:
   accessKey: "__BK_NODEMGR_REPO_ACCESS_KEY__"
   secretKey: "__BK_NODEMGR_REPO_SECRET_KEY__"
 
-# tempFileGroup defines the temporary file group settings.
-tempFileGroup:
-  fullPath: /bk-nodemgr/file/temp/
+# workspaceFileGroup defines the workspace file group settings.
+workspaceFileGroup:
+  fullPath: /bk-nodemgr/workspace/
 
-# cacheFileGroup defines the cache file group settings.
-cacheFileGroup:
-  fullPath: /bk-nodemgr/file/local/
-
-# installerFileGroup defines the installer file group settings.
-installerFileGroup:
-  fullPath: /bk-nodemgr/file/tools/
+# mountHostDir defines the mount host directory settings.
+mountHostDir: "__BK_NODEMGR_FILE_MOUNT_HOST_DIR__"
 
 # defines the GSE (bk-apigw) related settings.
 gse:

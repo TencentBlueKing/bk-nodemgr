@@ -28,6 +28,7 @@ backend:
   # if backend is behind bk-apigw, set appCode and appSecret.
   appCode: __BK_NODEMGR_APPCODE__
   appSecret: __BK_NODEMGR_APPSECRET__
+  authMode: "un"
 
 # log settings.
 log:

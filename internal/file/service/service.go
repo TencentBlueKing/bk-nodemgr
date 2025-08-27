@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
@@ -405,15 +406,15 @@ func initManager(conf *config.FileService,
 	}
 
 	// init local temp file group.
-	tempFG, err := local.NewLocalDir(conf.TempFileGroup.FullPath, logger)
+	tempFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "temp"), logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init temp file group: %w", err)
 	}
-	installerFG, err := local.NewLocalDir(conf.InstallerFileGroup.FullPath, logger)
+	installerFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "installer"), logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init installer file group: %w", err)
 	}
-	cacheFG, err := local.NewLocalDir(conf.CacheFileGroup.FullPath, logger)
+	cacheFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "cache"), logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init cache file group: %w", err)
 	}
@@ -436,7 +437,7 @@ func initManager(conf *config.FileService,
 		manager.WithStorageTopo(storageTopo),
 		manager.WithAdvertiseIPV4(conf.HTTPServer.AdvertiseIPV4),
 		manager.WithAdvertiseIPV6(conf.HTTPServer.AdvertiseIPV6),
-		manager.WithInContainer(conf.InContainer),
+		manager.WithMount(conf.MountHostDir, conf.WorkspaceFileGroup.FullPath),
 		manager.WithGSEHandler(gseHandler),
 	), nil
 }

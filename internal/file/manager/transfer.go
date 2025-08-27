@@ -11,13 +11,11 @@
 package manager
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -218,13 +216,20 @@ func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string,
 	m.logger.InfoCtxf(ctx, "try to transfer package. src(%s), dst(%s), dst-host(%s)",
 		srcFilePath, dstDir, dstHost.Static.InnerIP)
 
-	sourceEndpoint, err := m.getCurrentGSEEndpoint(ctx)
+	sourceAgentID, err := m.getCurrentGSEEndpoint(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current endpoint: %w", err)
 	}
 
 	if _, err := os.Stat(srcFilePath); err != nil {
 		return nil, fmt.Errorf("failed to stat source file(%s): %w", srcFilePath, err)
+	}
+
+	// if current environment is mounted inside container, then should convert the source dir.
+	if m.mountHostDir != "" && m.mountContainerDir != "" {
+		if strings.HasPrefix(srcFilePath, m.mountContainerDir) {
+			srcFilePath = strings.Replace(srcFilePath, m.mountContainerDir, m.mountHostDir, 1)
+		}
 	}
 
 	// unix user use 'root', windows use 'system'.
@@ -244,7 +249,7 @@ func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string,
 				FileName:  filepath.Base(srcFilePath),
 				StoredDir: filepath.Dir(srcFilePath),
 				Endpoint: types.EndpointWithAuth{
-					Endpoint: *sourceEndpoint,
+					Endpoint: types.Endpoint{AgentID: sourceAgentID},
 					User:     srcUser,
 				},
 			},
@@ -268,10 +273,10 @@ func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string,
 	}, nil
 }
 
-func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (*types.Endpoint, error) {
+func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (string, error) {
 	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(ctx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get host from storage: %w", err)
+		return "", fmt.Errorf("failed to get host from storage: %w", err)
 	}
 
 	agentID := host.Dynamic.AgentID
@@ -280,88 +285,11 @@ func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (*types.Endpoint,
 	}
 
 	if agentID == "" {
-		return nil, errors.New("agent-id is empty")
+		return "", errors.New("agent-id is empty")
 	}
 
-	containerID, err := m.getCurrentContainerID()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get current container-id: %w", err)
-	}
+	m.logger.InfoCtxf(ctx, "got current service agent-id. ipv4(%s), ipv6(%s): %+v",
+		m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, agentID)
 
-	ep := &types.Endpoint{
-		AgentID:     agentID,
-		ContainerID: containerID,
-	}
-	m.logger.InfoCtxf(ctx, "got current service endpoint. ipv4(%s), ipv6(%s): %+v",
-		m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, ep)
-
-	return ep, nil
-}
-
-// nolint:mnd,gocognit
-func (m *Manager) getCurrentContainerID() (string, error) {
-	if !m.inContainer {
-		return "", nil
-	}
-
-	file, err := os.Open("/proc/self/cgroup")
-	if err != nil {
-		return "", err
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.Split(line, ":")
-		if len(parts) < 3 {
-			continue
-		}
-
-		cgroupPath := parts[2]
-		if cgroupPath == "" {
-			continue
-		}
-
-		lastID := ""
-		for _, item := range strings.Split(cgroupPath, "/") {
-			// docker format (docker-<id>.scope)
-			if strings.HasPrefix(item, "docker-") && strings.HasSuffix(item, ".scope") {
-				id := strings.TrimSuffix(strings.TrimPrefix(item, "docker-"), ".scope")
-				if isValidContainerID(id) {
-					lastID = id
-
-					continue
-				}
-			}
-
-			// containerd format (cri-containerd-<id>.scope)
-			if strings.HasPrefix(item, "cri-containerd-") && strings.HasSuffix(item, ".scope") {
-				id := strings.TrimSuffix(strings.TrimPrefix(item, "cri-containerd-"), ".scope")
-				if isValidContainerID(id) {
-					lastID = id
-
-					continue
-				}
-			}
-
-			// pure container-id.
-			if isValidContainerID(item) {
-				lastID = item
-			}
-		}
-
-		if lastID != "" {
-			return lastID, nil
-		}
-	}
-
-	return "", errors.New("container-id not found")
-}
-
-func isValidContainerID(id string) bool {
-	matched, _ := regexp.MatchString(`^[0-9a-f]{64}$`, id)
-	return matched
+	return agentID, nil
 }

@@ -7,6 +7,11 @@ trap "exit" SIGTERM
 # Using a list of modules with their subcommands
 MODULES="application:webserver backend: file:"
 
+# init installer tools.
+cd /bk-nodemgr/workspace
+mkdir -p temp cache local installer
+cp /bk-nodemgr/file/tools/installer_* installer/
+
 while true
 do
     for module_setting in $MODULES

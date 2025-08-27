@@ -36,9 +36,7 @@ const (
 	defaultFileEtcdUsername = "root"
 	defaultFileEtcdPassword = ""
 
-	defaultFileTempFileGroupFullPath      = "/bk-nodeman/file/temp/"
-	defaultFileInstallerFileGroupFullPath = "/bk-nodeman/file/tools/"
-	defaultFileCacheFileGroupFullPath     = "/bk-nodeman/file/cache/"
+	defaultFileWorkspaceGroupFullPath = "/bk-nodeman/file/"
 )
 
 func defaultFileEtcdEndpoints() []string {
@@ -63,14 +61,8 @@ func NewFileService() *FileService {
 			BindIP: defaultFileAdminBindIP,
 			Port:   defaultFileAdminPort,
 		},
-		TempFileGroup: FileGroup{
-			FullPath: defaultFileTempFileGroupFullPath,
-		},
-		InstallerFileGroup: FileGroup{
-			FullPath: defaultFileInstallerFileGroupFullPath,
-		},
-		CacheFileGroup: FileGroup{
-			FullPath: defaultFileCacheFileGroupFullPath,
+		WorkspaceFileGroup: FileGroup{
+			FullPath: defaultFileWorkspaceGroupFullPath,
 		},
 		Log: Log{
 			Dir:       defaultFileLogDir,
@@ -85,14 +77,12 @@ func NewFileService() *FileService {
 type FileService struct {
 	RunMode            RunMode     `yaml:"runMode" usage:"run mode of service"`
 	TenantMode         tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	InContainer        bool        `yaml:"inContainer" usage:"whether in container"`
 	Etcd               Etcd        `yaml:"etcd" usage:"etcd config of file service"`
 	GSE                GSE         `yaml:"gse" usage:"gse config of file service"`
 	HTTPServer         HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
 	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
-	TempFileGroup      FileGroup   `yaml:"tempFileGroup" usage:"temp file group config of file service"`
-	InstallerFileGroup FileGroup   `yaml:"installerFileGroup" usage:"tools file group config of file service"`
-	CacheFileGroup     FileGroup   `yaml:"cacheFileGroup" usage:"cache file group config of file service"`
+	WorkspaceFileGroup FileGroup   `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
+	MountHostDir       string      `yaml:"mountHostDir" usage:"mount host dir of file service"`
 	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
 	MongoDB            MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
 	Log                Log         `yaml:"log" usage:"log config of file service"`
@@ -120,15 +110,7 @@ func (svc *FileService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *FileService) Validate() error {
-	if err := svc.TempFileGroup.Validate(); err != nil {
-		return err
-	}
-
-	if err := svc.InstallerFileGroup.Validate(); err != nil {
-		return err
-	}
-
-	if err := svc.CacheFileGroup.Validate(); err != nil {
+	if err := svc.WorkspaceFileGroup.Validate(); err != nil {
 		return err
 	}
 

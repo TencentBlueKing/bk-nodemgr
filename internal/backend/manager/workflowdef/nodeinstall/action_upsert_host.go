@@ -129,14 +129,6 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 
-	gp.Go(func() error {
-		if err := act.storageHost.UpsertManyHost(tenantCtx, &info.Host); err != nil {
-			return fmt.Errorf("upsert host to db failed, err: %w", err)
-		}
-
-		return nil
-	})
-
 	if err := gp.Wait(); err != nil {
 		return fmt.Errorf("wait group failed, err: %w", err)
 	}
@@ -146,6 +138,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, info *types.DeploymentInfo) error {
 	// nolint: nestif
+	// host-id not specified.
 	if info.Host.HostID < 0 {
 		hosts, count, err := act.storageHost.ListHost(ctx, types.Page{
 			Offset: 0,
@@ -172,27 +165,33 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, in
 			if err != nil {
 				return err
 			}
+			if err := act.storageHost.UpsertManyHost(ctx, &info.Host); err != nil {
+				return fmt.Errorf("upsert host to db failed, err: %w", err)
+			}
 		} else {
 			info.Host.HostID = hosts[0].HostID
 		}
-	} else {
-		count, err := act.storageHost.CountHost(ctx, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
-				HostID:        []int64{info.Host.HostID},
-				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
-				Addressing:    []types.Addressing{info.Host.Static.Addressing},
-				InnerIP:       []string{info.Host.Static.InnerIP},
-			},
-		})
-		if err != nil {
-			return err
-		}
 
-		if count == 0 {
-			return fmt.Errorf("no host found, contact the system administrator to check the host, "+
-				"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%s)",
-				info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
-		}
+		return nil
+	}
+
+	// host-id specified.
+	count, err := act.storageHost.CountHost(ctx, &types.HostCondition{
+		ExactInclude: &types.HostExactFields{
+			HostID:        []int64{info.Host.HostID},
+			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
+			Addressing:    []types.Addressing{info.Host.Static.Addressing},
+			InnerIP:       []string{info.Host.Static.InnerIP},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return fmt.Errorf("no host found, contact the system administrator to check the host, "+
+			"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%s)",
+			info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
 	}
 
 	return nil
