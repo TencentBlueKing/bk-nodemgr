@@ -43,7 +43,7 @@ func (h *handler) Upgrade(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchUpgradeNode(ctx, manager.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {

@@ -60,8 +60,8 @@ type UserConfig struct {
 	AppConfig
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode AuthMode
-	// User is the BlueKing User of nodeman to request api gateway.
-	User string
+	// BKUsername is the BlueKing BKUsername of nodeman to request api gateway.
+	BKUsername string
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string
 }
@@ -88,7 +88,7 @@ func (conf *UserConfig) Validate() error {
 			return errors.New("failed to validated user config: api gateway access token is not set")
 		}
 	case AuthModeUn:
-		if len(conf.User) == 0 {
+		if len(conf.BKUsername) == 0 {
 			return errors.New("failed to validated user config: api gateway user is not set")
 		}
 	default:
@@ -121,11 +121,11 @@ func (conf *UserConfig) GetAuthHeader() string {
 		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
 	case AuthModeUn:
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, conf.User)
+			conf.appCode, conf.appSecret, conf.BKUsername)
 	default:
 		// default use un mode.
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, conf.User)
+			conf.appCode, conf.appSecret, conf.BKUsername)
 	}
 
 	return auth

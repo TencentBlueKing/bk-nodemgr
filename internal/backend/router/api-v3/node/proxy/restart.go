@@ -41,7 +41,7 @@ func (h *handler) Restart(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchRestartNode(ctx, manager.RestartNodeParam{
 		Type:            types.NodeWorkflowTypeRestartProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {

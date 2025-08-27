@@ -77,7 +77,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.LoginName(),
+			Operator:        ctx.BKUsername(),
 		}
 	}
 
@@ -92,7 +92,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: req.GetBkNetworkunitName(),
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName(),
+				Operator:        ctx.BKUsername(),
 			})...); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit create. networkunit-id(%d), err: %v", networkUnitID, err)
 		}
@@ -164,7 +164,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.LoginName(),
+			Operator:        ctx.BKUsername(),
 		}
 	}
 	uEvents := make([]*types.TopoEvent, len(accessPointResult.Updated))
@@ -179,7 +179,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.LoginName(),
+			Operator:        ctx.BKUsername(),
 		}
 	}
 	events := append(cEvents, uEvents...) // nolint:gocritic
@@ -195,7 +195,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: networkUnitName,
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName(),
+				Operator:        ctx.BKUsername(),
 			})...); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit update. networkunit-id(%d), err: %v",
 				networkUnitID, err)
@@ -313,7 +313,7 @@ func (h *handler) DeleteNetworkUnit(ctx *restserver.Context) (interface{}, error
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: networkUnit.Name,
 				OperateTime:     time.Now(),
-				Operator:        ctx.LoginName(),
+				Operator:        ctx.BKUsername(),
 			}); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit delete. networkunit-id(%d), err: %v",
 				req.GetBkNetworkunitId(), err)

@@ -325,20 +325,12 @@ func (mgr *Manager) registerActionDefSchedule() error {
 	for _, tenantID := range tenantIDs {
 		err := mgr.workflowMgr.RegisterActions(
 			schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
-				tenantUserCtx := contextx.NewTenantUserContext(
-					ctx,
-					tenantID,
-					access.GetVirtualUser(),
-				)
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
 
 				return mgr.LaunchSyncBizAndHost(tenantUserCtx)
 			}),
 			schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
-				tenantUserCtx := contextx.NewTenantUserContext(
-					ctx,
-					tenantID,
-					access.GetVirtualUser(),
-				)
+				tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
 
 				return mgr.LaunchSyncAllAgentState(tenantUserCtx)
 			}),
@@ -370,7 +362,7 @@ func (mgr *Manager) registerOperExecDefNodeInstall() error {
 // LaunchSyncBizAndHost launch a task to sync biz and host.
 func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (string, error) {
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -399,7 +391,7 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (strin
 // LaunchSyncHostByBizID launch a task to sync host.
 func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID int64) (string, error) {
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -429,7 +421,7 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID
 // LaunchSyncNetworkArea launch a task to sync networkarea.
 func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (string, error) {
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -891,7 +883,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostID
 	}
 
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
@@ -938,7 +930,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostID
 // LaunchSyncAllAgentState launch a task to sync all agent state.
 func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error) {
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {

@@ -300,7 +300,7 @@ func (h *Handler) initEnumKeepers() error {
 // ListBizHosts list biz hosts.
 func (h *Handler) ListBizHosts(ctx contextx.ITenantUserContext, bizID int64, page types.Page) ([]*types.Host, error) {
 	tenantID := ctx.TenantID()
-	loginUsername := ctx.LoginName()
+	loginUsername := ctx.BKUsername()
 
 	executor := runtime.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {

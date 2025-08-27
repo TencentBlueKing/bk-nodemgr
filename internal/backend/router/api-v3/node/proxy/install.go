@@ -45,7 +45,7 @@ func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {

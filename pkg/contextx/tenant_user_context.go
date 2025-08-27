@@ -19,17 +19,17 @@ var _ ITenantUserContext = &TenantUserContext{}
 
 // TenantUserContext rest context.
 type TenantUserContext struct {
-	ctx       context.Context
-	loginName string
-	tenantID  string
+	ctx        context.Context
+	bkUsername string
+	tenantID   string
 }
 
 // NewTenantUserContext new context.
-func NewTenantUserContext(ctx context.Context, tenantID, loginName string) *TenantUserContext {
+func NewTenantUserContext(ctx context.Context, tenantID, bkUsername string) *TenantUserContext {
 	return &TenantUserContext{
-		ctx:       ctx,
-		loginName: loginName,
-		tenantID:  tenantID,
+		ctx:        ctx,
+		bkUsername: bkUsername,
+		tenantID:   tenantID,
 	}
 }
 
@@ -57,14 +57,14 @@ func (ctx *TenantUserContext) Value(key any) any {
 // Values ... implement ITenantUserContext.
 func (ctx *TenantUserContext) Values() map[string]any {
 	return map[string]any{
-		"login_name": ctx.loginName,
-		"tenant_id":  ctx.tenantID,
+		"bk_username": ctx.bkUsername,
+		"tenant_id":   ctx.tenantID,
 	}
 }
 
-// LoginName implement ITenantUserContext.
-func (ctx *TenantUserContext) LoginName() string {
-	return ctx.loginName
+// BKUsername implement ITenantUserContext.
+func (ctx *TenantUserContext) BKUsername() string {
+	return ctx.bkUsername
 }
 
 // TenantID implement ITenantUserContext.

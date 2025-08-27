@@ -77,7 +77,7 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          conv.MapKeyToSlice[int64, struct{}](bizIDs),
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

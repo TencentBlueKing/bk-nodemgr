@@ -13,7 +13,7 @@ package contextx
 // IUserContext user context.
 type IUserContext interface {
 	IContext
-	LoginName() string
+	BKUsername() string
 }
 
 // ITenantContext tenant context.

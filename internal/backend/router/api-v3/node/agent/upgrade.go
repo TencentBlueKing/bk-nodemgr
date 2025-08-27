@@ -57,7 +57,7 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchUpgradeNode(ctx, manager.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {

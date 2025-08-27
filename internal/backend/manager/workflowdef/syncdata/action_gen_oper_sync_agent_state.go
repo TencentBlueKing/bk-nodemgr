@@ -138,7 +138,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 	}
 
 	tenantID := ctx.TenantID()
-	operator := ctx.LoginName()
+	operator := ctx.BKUsername()
 
 	hostAgentID := make([]*HostIDAgentID, 0, len(hosts))
 	for _, host := range hosts {

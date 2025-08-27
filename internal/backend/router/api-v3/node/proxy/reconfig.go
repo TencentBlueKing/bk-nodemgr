@@ -41,7 +41,7 @@ func (h *handler) Reconfig(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.manager.LaunchReconfigNode(ctx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.LoginName(),
+		Operator:        ctx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {

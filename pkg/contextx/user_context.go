@@ -19,15 +19,15 @@ var _ IUserContext = &UserContext{}
 
 // UserContext rest context.
 type UserContext struct {
-	ctx       context.Context
-	loginName string
+	ctx        context.Context
+	bkUsername string
 }
 
 // NewUserContext new context.
-func NewUserContext(ctx context.Context, loginName string) *UserContext {
+func NewUserContext(ctx context.Context, bkUsername string) *UserContext {
 	return &UserContext{
-		ctx:       ctx,
-		loginName: loginName,
+		ctx:        ctx,
+		bkUsername: bkUsername,
 	}
 }
 
@@ -55,11 +55,11 @@ func (ctx *UserContext) Value(key any) any {
 // Values implement IContext.
 func (ctx *UserContext) Values() map[string]any {
 	return map[string]any{
-		"login_name": ctx.loginName,
+		"bk_username": ctx.bkUsername,
 	}
 }
 
-// LoginName implement IContext.
-func (ctx *UserContext) LoginName() string {
-	return ctx.loginName
+// BKUsername implement IContext.
+func (ctx *UserContext) BKUsername() string {
+	return ctx.bkUsername
 }
