@@ -96,7 +96,7 @@ func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFileName string, c
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateCertUpload(ctx, &types.Upload{
 		Category:  types.UploadCategoryOriginCert,
 		SavedName: pkgName,
 	})
@@ -198,7 +198,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 
 // PublishReleaseCert generates release cert by upload-id.
 func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetUpload(ctx, uploadID)
+	up, err := m.storageUpload.GetCertUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get upload(%s). err: %v", uploadID, err)
 

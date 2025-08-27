@@ -108,7 +108,7 @@ func (m *Manager) UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateAgentUpload(ctx, &types.Upload{
 		Category:  types.UploadCategoryOriginAgent,
 		SavedName: pkgName,
 	})
@@ -246,7 +246,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetUpload(ctx, uploadID)
+	up, err := m.storageUpload.GetAgentUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get upload(%s). err: %v", uploadID, err)
 

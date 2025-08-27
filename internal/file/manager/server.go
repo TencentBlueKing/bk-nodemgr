@@ -104,7 +104,7 @@ func (m *Manager) UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadClose
 	detail.FileInfo = file.Info()
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateServerUpload(ctx, &types.Upload{
 		Category:  types.UploadCategoryOriginServer,
 		SavedName: pkgName,
 	})

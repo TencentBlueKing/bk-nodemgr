@@ -100,7 +100,7 @@ func (m *Manager) UploadOriginBinTool(
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateBinToolUpload(ctx, &types.Upload{
 		Category:  types.UploadCategoryOriginBinTool,
 		SavedName: pkgName,
 	})
@@ -195,7 +195,7 @@ func checkGen2OriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetai
 
 // PublishReleaseBinTool generates release bintool by upload-id.
 func (m *Manager) PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetUpload(ctx, uploadID)
+	up, err := m.storageUpload.GetBinToolUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)
 

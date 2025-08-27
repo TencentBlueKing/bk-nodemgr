@@ -12,14 +12,11 @@
 package upload
 
 import (
-	"context"
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,14 +24,10 @@ import (
 type IStorage interface {
 	basestorage.Interface
 
-	// GetUpload gets a upload by upload-id.
-	GetUpload(ctx context.Context, uploadID string) (*types.Upload, error)
-
-	// CreateUpload creates a upload.
-	CreateUpload(ctx context.Context, up *types.Upload) (string, error)
-
-	// DeleteUpload deletes a upload by upload-id.
-	DeleteUpload(ctx context.Context, uploadID string) error
+	IAgent
+	IServer
+	IBinTool
+	ICert
 }
 
 // StorageName defines the storage name.
@@ -64,6 +57,8 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 	return s, nil
 }
 
+var _ IStorage = &Storage{}
+
 // Storage implements IStorage.
 type Storage struct {
 	basestorage.Storage
@@ -83,21 +78,4 @@ func (s *Storage) check() error {
 	}
 
 	return nil
-}
-
-// GetUpload gets a upload by upload-id.
-func (s *Storage) GetUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
-	return s.daoUpload.Get(ctx, uploadID)
-}
-
-// CreateUpload creates a upload.
-func (s *Storage) CreateUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
-
-	return up.UploadID, s.daoUpload.Create(ctx, up)
-}
-
-// DeleteUpload deletes a upload by upload-id.
-func (s *Storage) DeleteUpload(ctx context.Context, uploadID string) error {
-	return s.daoUpload.DeleteMany(ctx, uploadID)
 }

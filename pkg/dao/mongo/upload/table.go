@@ -11,14 +11,15 @@
 package upload
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
 // TableName upload table name.
-func TableName() string {
-	return "upload"
+func TableName(category string) string {
+	return fmt.Sprintf("upload_%s", category)
 }
 
 // Upload presents a upload table.
