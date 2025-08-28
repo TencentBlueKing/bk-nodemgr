@@ -27,6 +27,12 @@ const (
 
 	// UploadCategoryOriginBinTool represents the origin bin tool.
 	UploadCategoryOriginBinTool = "origin_bin_tool"
+
+	// UploadCategoryOriginOfficialPlugin represents the origin official plugin.
+	UploadCategoryOriginOfficialPlugin = "origin_official_plugin"
+
+	// UploadCategoryOriginExternalPlugin represents the origin external plugin.
+	UploadCategoryOriginExternalPlugin = "origin_external_plugin"
 )
 
 // Upload defines the upload struct.

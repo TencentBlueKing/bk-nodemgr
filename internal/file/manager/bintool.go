@@ -22,7 +22,18 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IBinTool defines the interface for bin tool.
+type IBinTool interface {
+	// UploadOriginBinTool upload origin bintool package.
+	UploadOriginBinTool(ctx contextx.IContext, binToolFile io.ReadCloser) (
+		*types.OriginBinToolPkgDetail, error)
+
+	// PublishReleaseBinTool generate release bintool package.
+	PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error
+}
+
 const (
+	originBinToolFileName  = "bintool.tgz"
 	releaseBinToolFileName = "bintool.tgz"
 )
 
@@ -70,7 +81,7 @@ func (m *Manager) UploadOriginBinTool(
 		return nil, err
 	}
 
-	pkgName := m.wrapOriginPackageName(releaseBinToolFileName)
+	pkgName := m.wrapOriginPackageName(originBinToolFileName)
 
 	// upload to upstream.
 	if err := m.upstreamOriginBinTool.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {

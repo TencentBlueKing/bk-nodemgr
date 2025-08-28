@@ -155,3 +155,73 @@ func (h *handler) UploadOriginBinTool(ctx *restserver.Context) (interface{}, err
 
 	return resp.GetData(), nil
 }
+
+// UploadOriginOfficialPlugin upload origin official plugin.
+func (h *handler) UploadOriginOfficialPlugin(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.UploadOriginOfficialPluginReq)
+	fileHeader, err := ctx.ParseFileForm(req)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload official plugin, failed to parse file form: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload official plugin, failed to open file. err: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.manager.UploadOriginOfficialPlugin(ctx, file)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload official plugin: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded origin official plugin, detail: %v", detail)
+
+	resp := new(protoFile.UploadOriginOfficialPluginResp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
+// UploadOriginExternalPlugin upload origin external plugin.
+func (h *handler) UploadOriginExternalPlugin(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.UploadOriginExternalPluginReq)
+	fileHeader, err := ctx.ParseFileForm(req)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload external plugin, failed to parse file form: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload external plugin, failed to open file. err: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.manager.UploadOriginExternalPlugin(ctx, file)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload external plugin: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded origin external plugin, detail: %v", detail)
+
+	resp := new(protoFile.UploadOriginExternalPluginResp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}

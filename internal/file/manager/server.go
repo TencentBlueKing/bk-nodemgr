@@ -25,6 +25,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IServer defines the interface for server.
+type IServer interface {
+	// UploadOriginServer uploads the origin server.
+	UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+}
+
 // UploadOriginServer uploads the origin server.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).

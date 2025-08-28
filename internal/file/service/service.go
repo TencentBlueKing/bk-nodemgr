@@ -252,6 +252,8 @@ func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.UserConfig 
 	}
 }
 
+var _ restserver.ILogWriter = &loggerWriterAdaptor{}
+
 // loggerWriterAdaptor implements rest.LoggerWriter.
 type loggerWriterAdaptor struct{}
 
@@ -361,6 +363,7 @@ func (svc *Service) GracefulShutdown() error {
 	return nil
 }
 
+// nolint: funlen
 func initManager(conf *config.FileService,
 	repo bkrepo.IHandler,
 	storageUpload storageUpload.IStorage,
@@ -386,6 +389,14 @@ func initManager(conf *config.FileService,
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
+	upstreamOriginOfficialPlugin, err := repo.EnsureFileGroup(context.Background(), "origin/official_plugin")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
+	}
+	upstreamOriginExternalPlugin, err := repo.EnsureFileGroup(context.Background(), "origin/external_plugin")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
+	}
 
 	// init upstream release file groups from bkrepo.
 	upstreamReleaseAgentFG, err := repo.EnsureFileGroup(context.Background(), "release/agent")
@@ -403,6 +414,14 @@ func initManager(conf *config.FileService,
 	upstreamReleaseBintoolFG, err := repo.EnsureFileGroup(context.Background(), "release/bintool")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
+	}
+	upstreamReleaseOfficialPlugin, err := repo.EnsureFileGroup(context.Background(), "release/official_plugin")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release official plugin file group: %w", err)
+	}
+	upstreamReleaseExternalPlugin, err := repo.EnsureFileGroup(context.Background(), "release/external_plugin")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release external plugin file group: %w", err)
 	}
 
 	// init local temp file group.
@@ -439,6 +458,10 @@ func initManager(conf *config.FileService,
 		manager.WithAdvertiseIPV6(conf.HTTPServer.AdvertiseIPV6),
 		manager.WithMount(conf.MountHostDir, conf.WorkspaceFileGroup.FullPath),
 		manager.WithGSEHandler(gseHandler),
+		manager.WithUpstreamOriginOfficialPluginFileGroup(upstreamOriginOfficialPlugin),
+		manager.WithUpstreamReleaseOfficialPluginFileGroup(upstreamReleaseOfficialPlugin),
+		manager.WithUpstreamOriginExternalPluginFileGroup(upstreamOriginExternalPlugin),
+		manager.WithUpstreamReleaseExternalPluginFileGroup(upstreamReleaseExternalPlugin),
 	), nil
 }
 

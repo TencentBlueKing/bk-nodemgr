@@ -1,9 +1,7 @@
 name: "Issue Product Label Management"
 on:
   issues:
-    types: [opened, reopened, closed]
-  issue_comment:
-    types: [created] # 添加 issue_comment 事件监听
+    types: [opened, closed]
 
 jobs:
   manage-issue:
@@ -11,32 +9,10 @@ jobs:
     permissions:
       issues: write
     steps:
-      # 当 issue 被 mention 移除 todo 标签
+      # 移除 todo 标签
       - uses: actions-ecosystem/action-remove-labels@v1
         if: |
-          github.event_name == 'issue_comment' &&
-          contains(github.event.comment.body, '@') &&
-          contains(github.event.issue.labels.*.name, 'product/todo') &&
-          contains(github.event.comment.html_url, '/pull/') &&
-          contains(github.event.issue.title, '[FEATURE]')
-        with:
-          labels: product/todo
-
-      # 当 issue 被 mention 添加 doing 标签
-      - uses: actions-ecosystem/action-add-labels@v1
-        if: |
-          github.event_name == 'issue_comment' &&
-          contains(github.event.comment.body, '@') &&
-          contains(github.event.issue.labels.*.name, 'product/todo') &&
-          contains(github.event.comment.html_url, '/pull/') &&
-          contains(github.event.issue.title, '[FEATURE]')
-        with:
-          labels: product/doing
-
-      # 新建或重开 issue 时添加 todo 标签
-      - uses: actions-ecosystem/action-add-labels@v1
-        if: |
-          (github.event.action == 'opened' || github.event.action == 'reopened') &&
+          (github.event.action == 'opened') &&
           contains(github.event.issue.title, '[FEATURE]')
         with:
           labels: product/todo
@@ -45,30 +21,48 @@ jobs:
       - uses: actions-ecosystem/action-add-assignees@v1
         if: |
           (github.event.action == 'opened' || github.event.action == 'reopened') &&
-          (github.event.issue.assignees == null || github.event.issue.assignees[0] == null) &&
-          contains(github.event.issue.title, '[FEATURE]')
+          (github.event.issue.assignees == null || github.event.issue.assignees[0] == null)
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ github.event.issue.user.login }}
 
-      # 关闭 issue 时移除 todo/doing 标签
+      # 关闭 issue 时移除活跃标签
       - uses: actions-ecosystem/action-remove-labels@v1
         if: |
           github.event.action == 'closed' &&
-          (contains(github.event.issue.labels.*.name, 'product/todo') || contains(github.event.issue.labels.*.name, 'product/doing')) &&
           contains(github.event.issue.title, '[FEATURE]')
         with:
           labels: |
             product/todo
             product/doing
 
-      # 关闭 issue 时添加 for test/done 标签
+      # 关闭 issue 时添加 for test 标签
       - uses: actions-ecosystem/action-add-labels@v1
         if: |
           github.event.action == 'closed' &&
-          contains(github.event.issue.labels.*.name, 'product/doing') &&
           contains(github.event.issue.title, '[FEATURE]')
         with:
-          labels: |
-            product/for test
-            product/done
+          labels: product/for test
+
+      # 等待 1 分钟（在移除 for test 标签前）
+      - name: "Wait 1 minute before removing for test label"
+        if: |
+          github.event.action == 'closed' &&
+          contains(github.event.issue.title, '[FEATURE]')
+        run: sleep 10
+
+      # 关闭 issue 时移除 for test 标签
+      - uses: actions-ecosystem/action-remove-labels@v1
+        if: |
+          github.event.action == 'closed' &&
+          contains(github.event.issue.title, '[FEATURE]')
+        with:
+          labels: product/for test
+
+      # 关闭 issue 时添加 done 标签
+      - uses: actions-ecosystem/action-add-labels@v1
+        if: |
+          github.event.action == 'closed' &&
+          contains(github.event.issue.title, '[FEATURE]')
+        with:
+          labels: product/done

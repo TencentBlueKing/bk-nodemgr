@@ -28,6 +28,12 @@ const (
 	// ReleaseTypeOriginServer defines the release of origin gse server package.
 	ReleaseTypeOriginServer ReleaseType = "origin_server"
 
+	// ReleaseTypeOriginOfficialPlugin defines the release of nodemgr origin official plugin package.
+	ReleaseTypeOriginOfficialPlugin ReleaseType = "origin_official_plugin"
+
+	// ReleaseTypeOriginExternalPlugin defines the release of nodemgr origin external plugin package.
+	ReleaseTypeOriginExternalPlugin ReleaseType = "origin_external_plugin"
+
 	// ReleaseTypeAgent defines the release of nodemgr agent package transformed from origin gse agent package.
 	ReleaseTypeAgent ReleaseType = "agent"
 
@@ -39,12 +45,25 @@ const (
 
 	// ReleaseTypeBinTool defines the release of nodemgr bin tool package.
 	ReleaseTypeBinTool ReleaseType = "bintool"
+
+	// ReleaseTypeOfficialPlugin defines the release of nodemgr official plugin package.
+	ReleaseTypeOfficialPlugin ReleaseType = "official_plugin"
+
+	// ReleaseTypeExternalPlugin defines the release of nodemgr external plugin package.
+	ReleaseTypeExternalPlugin ReleaseType = "external_plugin"
 )
 
 // Validate validates the release type.
 func (rt ReleaseType) Validate() error {
 	switch rt {
-	case ReleaseTypeOriginAgent, ReleaseTypeOriginServer, ReleaseTypeAgent, ReleaseTypeProxy, ReleaseTypeCert, ReleaseTypeBinTool:
+	case ReleaseTypeOriginAgent,
+		ReleaseTypeOriginServer,
+		ReleaseTypeAgent,
+		ReleaseTypeProxy,
+		ReleaseTypeCert,
+		ReleaseTypeBinTool,
+		ReleaseTypeOriginOfficialPlugin,
+		ReleaseTypeOriginExternalPlugin:
 		return nil
 	default:
 		return fmt.Errorf("invalid release type, type(%s)", rt)
@@ -79,7 +98,7 @@ func ConvertReleaseTypeToNodeRole(releaseType ReleaseType) (NodeRole, error) {
 	case ReleaseTypeProxy:
 		return NodeRoleProxy, nil
 	default:
-		return "", fmt.Errorf("invalid release type. type(%s)", releaseType)
+		return "", fmt.Errorf("failed to convert release type to node role, releaseType(%s)", releaseType)
 	}
 }
 
@@ -149,10 +168,6 @@ func NewOriginPkgDetail() *OriginPkgDetail {
 	}
 }
 
-// TargetPkgDetail defines the detail of target package.
-type TargetPkgDetail struct {
-}
-
 // OriginCertPkgDetail defines the detail of cert package.
 type OriginCertPkgDetail struct {
 	fileiface.FileInfo
@@ -170,4 +185,40 @@ type OriginBinToolPkgDetail struct {
 	Existed        bool
 	AgentPlatforms []platform.Platform
 	ProxyPlatforms []platform.Platform
+}
+
+// OriginOfficialPluginPkgDetail defines the detail of official plugin package.
+type OriginOfficialPluginPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID string
+	Existed  bool
+
+	Name         string
+	Version      string
+	Description  string
+	Scenario     string
+	ConfigFile   string
+	ConfigFormat string
+	LaunchMode   string
+
+	Platforms []platform.Platform
+}
+
+// OriginExternalPluginPkgDetail defines the detail of external plugin package.
+type OriginExternalPluginPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID string
+	Existed  bool
+
+	Name         string
+	Version      string
+	Description  string
+	Scenario     string
+	ConfigFile   string
+	ConfigFormat string
+	LaunchMode   string
+
+	Platforms []platform.Platform
 }

@@ -8,12 +8,22 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package server
+package release
 
-import "io"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+)
 
-// ILogWriter defines the log writer.
-type ILogWriter interface {
-	InfoWriter() io.Writer
-	ErrorWriter() io.Writer
+// IOfficialPlugin defines the interface of official plugin.
+type IOfficialPlugin interface {
+	// ExistReleaseOfficialPlugin checks if release official plugin exists.
+	ExistReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+}
+
+// ExistReleaseOfficialPlugin checks if release plugin exists.
+func (s *Storage) ExistReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+	// TODO: implement me
+
+	return false, nil
 }

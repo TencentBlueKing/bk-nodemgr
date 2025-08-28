@@ -243,3 +243,121 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 
 	x.Data = data
 }
+
+// Validate check request body.
+func (x *UploadOriginOfficialPluginReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginOfficialPluginReq) AutoConvert() {}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginOfficialPluginResp) ConvertResultFromTypes(generated bool, detail *types.OriginOfficialPluginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginOfficialPluginResp_Data{
+		UploadId:     new(string),
+		Existed:      new(bool),
+		Generated:    new(bool),
+		Name:         new(string),
+		Size:         new(int64),
+		Md5:          new(string),
+		Version:      new(string),
+		Description:  new(string),
+		Scenario:     new(string),
+		ConfigFile:   new(string),
+		ConfigFormat: new(string),
+		LaunchMode:   new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.Description = detail.Description
+	*data.Scenario = detail.Scenario
+	*data.ConfigFile = detail.ConfigFile
+	*data.ConfigFormat = detail.ConfigFormat
+	*data.LaunchMode = detail.LaunchMode
+
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// Validate check request body.
+func (x *UploadOriginExternalPluginReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginExternalPluginReq) AutoConvert() {}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, detail *types.OriginExternalPluginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginExternalPluginResp_Data{
+		UploadId:     new(string),
+		Existed:      new(bool),
+		Generated:    new(bool),
+		Name:         new(string),
+		Size:         new(int64),
+		Md5:          new(string),
+		Version:      new(string),
+		Description:  new(string),
+		Scenario:     new(string),
+		ConfigFile:   new(string),
+		ConfigFormat: new(string),
+		LaunchMode:   new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.Description = detail.Description
+	*data.Scenario = detail.Scenario
+	*data.ConfigFile = detail.ConfigFile
+	*data.ConfigFormat = detail.ConfigFormat
+	*data.LaunchMode = detail.LaunchMode
+
+	data.Platforms = plats
+
+	x.Data = data
+}
