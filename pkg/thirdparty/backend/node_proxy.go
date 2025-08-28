@@ -19,7 +19,7 @@ import (
 )
 
 // InstallProxy install node proxy.
-func (h *handler) InstallProxy(ctx contextx.ITenantUserContext, installParam *types.NodeProxyInstallParam) (string, error) {
+func (h *Handler) InstallProxy(ctx contextx.ITenantUserContext, installParam *types.NodeProxyInstallParam) (string, error) {
 	req := new(protoBackend.NodeProxyInstallReq)
 	req.ConvertParamFromTypes(installParam)
 
@@ -32,7 +32,7 @@ func (h *handler) InstallProxy(ctx contextx.ITenantUserContext, installParam *ty
 }
 
 // UpgradeProxy node proxy.
-func (h *handler) UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error) {
+func (h *Handler) UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error) {
 	req := new(protoBackend.NodeProxyUpgradeReq)
 	req.ConvertParamFromTypes(upgradeParam)
 
@@ -45,7 +45,7 @@ func (h *handler) UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *ty
 }
 
 // RestartProxy node proxy.
-func (h *handler) RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error) {
+func (h *Handler) RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error) {
 	req := new(protoBackend.NodeProxyRestartReq)
 	req.ConvertParamFromTypes(restartParam)
 
@@ -58,7 +58,7 @@ func (h *handler) RestartProxy(ctx contextx.ITenantUserContext, restartParam *ty
 }
 
 // ReconfigProxy node proxy.
-func (h *handler) ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error) {
+func (h *Handler) ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error) {
 	req := new(protoBackend.NodeProxyReconfigReq)
 	req.ConvertParamFromTypes(reconfigParam)
 
@@ -71,12 +71,12 @@ func (h *handler) ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *
 }
 
 // UninstallProxy node proxy.
-func (h *handler) UninstallProxy(ctx context.Context) (string, error) {
+func (h *Handler) UninstallProxy(ctx context.Context) (string, error) {
 	return "", nil
 }
 
 // UpdateProxy update node proxy.
-func (h *handler) UpdateProxy(ctx contextx.ITenantUserContext, updateParam *types.NodeProxyUpdateParam) error {
+func (h *Handler) UpdateProxy(ctx contextx.ITenantUserContext, updateParam *types.NodeProxyUpdateParam) error {
 	req := new(protoBackend.NodeProxyUpdateReq)
 	req.ConvertParamFromTypes(updateParam)
 

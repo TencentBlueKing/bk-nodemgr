@@ -25,7 +25,7 @@ import (
 
 type handler struct {
 	rg             *gin.RouterGroup
-	backendHandler backend.Handler
+	backendHandler backend.IHandler
 	fileHandler    file.IHandler
 	logger         logger.ILogger
 }

@@ -31,7 +31,7 @@ const (
 
 type handler struct {
 	rg                          *gin.RouterGroup
-	backendHandler              backend.Handler
+	backendHandler              backend.IHandler
 	storageConfigPolicyTemplate cptemplate.IStorage
 	logger                      logger.ILogger
 }

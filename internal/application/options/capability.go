@@ -25,7 +25,7 @@ import (
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// BackendHandler the backend api hanler.
-	BackendHandler backend.Handler
+	BackendHandler backend.IHandler
 
 	// FileHandler the file handler.
 	FileHandler file.IHandler

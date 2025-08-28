@@ -33,7 +33,7 @@ const (
 
 type handler struct {
 	rg             *gin.RouterGroup
-	backendHandler backend.Handler
+	backendHandler backend.IHandler
 	logger         logger.ILogger
 }
 

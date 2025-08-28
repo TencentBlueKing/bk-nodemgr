@@ -221,7 +221,7 @@ func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIden
 }
 
 // newBackendHandler creates a new backend handler.
-func newBackendHandler(conf config.BackendGateway) (backend.Handler, error) {
+func newBackendHandler(conf config.BackendGateway) (backend.IHandler, error) {
 	apiGwClientConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
 
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
