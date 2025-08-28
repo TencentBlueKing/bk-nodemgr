@@ -44,7 +44,7 @@ const (
 // Validate validates the release type.
 func (rt ReleaseType) Validate() error {
 	switch rt {
-	case ReleaseTypeOriginAgent, ReleaseTypeOriginServer, ReleaseTypeAgent, ReleaseTypeProxy:
+	case ReleaseTypeOriginAgent, ReleaseTypeOriginServer, ReleaseTypeAgent, ReleaseTypeProxy, ReleaseTypeCert, ReleaseTypeBinTool:
 		return nil
 	default:
 		return fmt.Errorf("invalid release type, type(%s)", rt)
