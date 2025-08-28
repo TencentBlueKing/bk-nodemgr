@@ -82,7 +82,8 @@ func FormatBinaryName(pluginName string, osType criteria.OSType, cpuArch criteri
 	return toolName
 }
 
-// FormatConfTpl format conf tpl
+// FormatConfTpl format conf tpl.
+// nolint: perfsprint
 func FormatConfTpl(pluginName string) string {
 	return fmt.Sprintf("%s.conf.tpl", pluginName)
 }

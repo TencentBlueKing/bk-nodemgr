@@ -157,7 +157,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 	if err := checkTgz(file, []tgzReadRule{
 		{
 			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, "project.yaml"},
-			callback: func(path []string, projectFile io.Reader) error {
+			callback: func(_ []string, projectFile io.Reader) error {
 				pluginProject := new(OfficialPluginProject)
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
 					return fmt.Errorf("failed to decode project.yaml: %v", err)

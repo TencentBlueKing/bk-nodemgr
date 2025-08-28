@@ -361,6 +361,7 @@ func (svc *Service) GracefulShutdown() error {
 	return nil
 }
 
+// nolint: funlen
 func initManager(conf *config.FileService,
 	repo bkrepo.IHandler,
 	storageUpload storageUpload.IStorage,
