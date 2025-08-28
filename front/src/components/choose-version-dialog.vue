@@ -171,8 +171,8 @@ const getVersions = async () => {
   const res = await PackageService.ListRelease({
     exact_include_conditions: {
       generation: [2],
-      release_type: [props.releaseType],
     },
+    release_type: props.releaseType,
   }).catch(() => ({
     total: 0,
     items: [],

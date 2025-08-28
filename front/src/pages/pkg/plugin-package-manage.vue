@@ -327,11 +327,8 @@ const handleUpload = () => {
 }
 const getPackages = async () => {
   loading.value = true;
-  const currentType = "agent";
   const res = await PackageService.ListRelease({
-    exact_include_conditions: {
-      release_type: [currentType],
-    },
+    release_type: "agent",
   });
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items
