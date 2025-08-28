@@ -460,6 +460,16 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
 			}
 
+			if len(clusters) == 0 {
+				return fmt.Errorf("agent cluster access endpoints is empty")
+			}
+			if len(files) == 0 {
+				return fmt.Errorf("agent file access endpoints is empty")
+			}
+			if len(datas) == 0 {
+				return fmt.Errorf("agent data access endpoints is empty")
+			}
+
 			nodeConf.PreSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
 			nodeConf.PreSetting[GseTemplateKeyAccessDataEndpoints] = strings.Join(datas, ",")
 			nodeConf.PreSetting[GseTemplateKeyAccessFileEndpoints] = strings.Join(files, ",")

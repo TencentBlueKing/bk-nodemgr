@@ -85,15 +85,23 @@ func (s *Storage) getAgentAccessEndpoints(
 			fmt.Errorf("failed to get host by networkunit id, result count is 0, networkunit-id(%d)", networkUnitID)
 	}
 
-	clusterMap := make(map[string]bool)
-	fileMap := make(map[string]bool)
-	dataMap := make(map[string]bool)
-	for idx := range hosts {
-		ips := strings.Split(ipSelector(hosts[idx].Static), ",")
+	clusterMap := make(map[string]struct{})
+	fileMap := make(map[string]struct{})
+	dataMap := make(map[string]struct{})
+	for _, host := range hosts {
+		ips := strings.Split(ipSelector(host.Static), ",")
 		for _, ip := range ips {
-			clusterMap[fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyClusterPort)] = true
-			fileMap[fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyFilePort)] = true
-			dataMap[fmt.Sprintf("%s:%d", ip, hosts[idx].Dynamic.ProxyDataPort)] = true
+			if host.Dynamic.ProxySupportCluster() {
+				clusterMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyClusterPort)] = struct{}{}
+			}
+
+			if host.Dynamic.ProxySupportFile() {
+				fileMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyFilePort)] = struct{}{}
+			}
+
+			if host.Dynamic.ProxySupportData() {
+				dataMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyDataPort)] = struct{}{}
+			}
 		}
 	}
 

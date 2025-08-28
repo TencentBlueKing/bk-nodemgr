@@ -134,6 +134,50 @@ type HostDynamic struct {
 	ProxyFilePort    int64
 }
 
+// ProxySupportInstaller returns whether this node support installer.
+func (dynamic *HostDynamic) ProxySupportInstaller() bool {
+	for _, tag := range dynamic.ProxyTags {
+		if tag == ProxyTagDedicatedInstaller {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ProxySupportCluster returns whether this node support cluster.
+func (dynamic *HostDynamic) ProxySupportCluster() bool {
+	for _, tag := range dynamic.ProxyTags {
+		if tag == ProxyTagClusterTunnel {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ProxySupportFile returns whether this node support file.
+func (dynamic *HostDynamic) ProxySupportFile() bool {
+	for _, tag := range dynamic.ProxyTags {
+		if tag == ProxyTagFileTunnel {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ProxySupportData returns whether this node support data.
+func (dynamic *HostDynamic) ProxySupportData() bool {
+	for _, tag := range dynamic.ProxyTags {
+		if tag == ProxyTagDataTunnel {
+			return true
+		}
+	}
+
+	return false
+}
+
 // HostDynamicFields represents the fields of HostDynamic fields.
 type HostDynamicFields struct {
 	NodeRole       bool
