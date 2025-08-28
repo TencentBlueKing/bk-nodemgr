@@ -195,6 +195,15 @@ service Package {
     };
   }
 
+  // PackageReleaseDistinct distincts releases.
+  rpc DistinctRelease(PackageReleaseDistinctReq)
+      returns (PackageReleaseDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/distinct"
+      body : "*"
+    };
+  }
+
   // SetReleaseLabels sets release labels.
   rpc SetReleaseLabels(PackageReleaseSetLabelsReq)
       returns (PackageReleaseSetLabelsResp) {

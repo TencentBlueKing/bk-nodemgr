@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/package/release/distinct": {
+      "post": {
+        "summary": "PackageReleaseDistinct distincts releases.",
+        "operationId": "Package_DistinctRelease",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseDistinctReq describes the HTTP request body when distinct\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/enable": {
       "post": {
         "summary": "EnableRelease enables release.",
@@ -444,6 +478,54 @@
     },
     "v3PackageReleaseDisableRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseDistinctReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleaseDistinctReq describes the HTTP request body when distinct\nrelease."
+    },
+    "v3PackageReleaseDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseDistinctRespData"
+        }
+      },
+      "description": "PackageReleaseDistinctResp describes the HTTP response body when distinct\nrelease."
+    },
+    "v3PackageReleaseDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3PackageReleaseEnableReq": {
       "type": "object",
