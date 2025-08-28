@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -29,18 +28,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNameInstallPagentBySSH defines the action name.
-	ActionNameInstallPagentBySSH = "install_pagent_by_ssh"
+	// ActionNameInstallPagentByWMI defines the action name.
+	ActionNameInstallPagentByWMI = "install_pagent_by_wmi"
 )
 
-// NewActionInstallPagentBySSH get a new action.
-func NewActionInstallPagentBySSH(
+// NewActionInstallPagentByWMI get a new action.
+func NewActionInstallPagentByWMI(
 	proxyMessager relayhandler.IServerMessager,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageHostCredit credit.IStorageHostCredit,
@@ -49,7 +49,7 @@ func NewActionInstallPagentBySSH(
 	logger logger.ILogger,
 ) action.Definition {
 
-	return &actionInstallPagentBySSH{
+	return &actionInstallPagentByWMI{
 		storageHostCredit:     storageHostCredit,
 		storageNodeDeployment: storageNodeDeployment,
 		storageActionInstance: storageActionInstance,
@@ -62,14 +62,14 @@ func NewActionInstallPagentBySSH(
 	}
 }
 
-// ActParamInstallPagentBySSH ...
-type ActParamInstallPagentBySSH struct {
+// ActParamInstallPagentBywmi ...
+type ActParamInstallPagentBywmi struct {
 	Token    string `json:"token"`
 	Operator string `json:"operator"`
 }
 
-// pagentInstallParams this struct defines the parameters for installing agent.
-type pagentInstallParams struct {
+// pagentInstallParamsWMI this struct defines the parameters for installing agent.
+type pagentInstallParamsWin struct {
 	InstallerPath string
 	Generation    types.Generation
 	NodeRole      types.NodeRole
@@ -81,7 +81,7 @@ type pagentInstallParams struct {
 	AdditionArgs  []string
 }
 
-type actionInstallPagentBySSH struct {
+type actionInstallPagentByWMI struct {
 	logger logger.ILogger
 
 	storageHostCredit     credit.IStorageHostCredit
@@ -94,37 +94,37 @@ type actionInstallPagentBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *actionInstallPagentBySSH) Name() string {
-	return ActionNameInstallPagentBySSH
+func (act *actionInstallPagentByWMI) Name() string {
+	return ActionNameInstallPagentByWMI
 }
 
 // Version returns the version of the action.
-func (act *actionInstallPagentBySSH) Version() string {
+func (act *actionInstallPagentByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionInstallPagentBySSH) Description() string {
+func (act *actionInstallPagentByWMI) Description() string {
 	return "let relay to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionInstallPagentBySSH) Timeout() time.Duration {
+func (act *actionInstallPagentByWMI) Timeout() time.Duration {
 	return 3 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (act *actionInstallPagentBySSH) Tags() []action.Tag {
+func (act *actionInstallPagentByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionInstallPagentBySSH) MaxRetryCount() uint {
+func (act *actionInstallPagentByWMI) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallPagentBySSH) DelayFn() func() {
+func (act *actionInstallPagentByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -134,11 +134,11 @@ func (act *actionInstallPagentBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamInstallAgentBySSH)
+func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamInstallAgentByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
+		err = fmt.Errorf("failed to convert param, err: %w", err)
 
 		return err
 	}
@@ -147,7 +147,6 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	if err != nil {
 		return err
 	}
-
 	// let the callback server known which action to mark and log.
 	info.BlockingActionName = ActionNameWaitInstallerComplete
 
@@ -160,18 +159,19 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	// select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name: %w", err)
+		err = fmt.Errorf("failed to format tools name, err: %w", err)
 
 		return err
 	}
 
-	installerPath := path.Clean(path.Join(info.InstallerWorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkDir, toolName))
+
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
-	installParams := &pagentInstallParams{
+	installParams := &pagentInstallParamsWin{
 		NodeVersion:   info.Host.Dynamic.NodeVersion,
 		Generation:    info.Host.Dynamic.NodeGeneration,
 		InstallerPath: installerPath,
@@ -188,33 +188,34 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// exec install command
-	installCmd := act.buildCMD(installParams)
-	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
+	installBat := act.buildBat(installParams)
+	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installBat))
 
 	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
 
-	if err := act.notifyRelayToInstall(ctx, info, password, toolName, installCmd, &info.RelayInfo); err != nil {
+	targetWorkDir := winpath.Join(installParams.BaseWorkDir, system.GetEnv())
+	if err := act.notifyRelayToInstall(ctx, info, password, toolName, targetWorkDir, installBat, &info.RelayInfo); err != nil {
 		return err
 	}
-	ctx.Data.LogI("notify relay to install pagent by ssh successfully")
+	ctx.Data.LogI("notify relay to install pagent by wmi successfully")
 
-	var stdOut string
-	stdOut, err = act.waitForRelayReportInstall(ctx)
+	var outStr string
+	outStr, err = act.waitForRelayReportInstall(ctx)
 	if err != nil {
 		return err
 	}
-	ctx.Data.LogI("relay run install pagent by ssh successfully. result stdout: " + stdOut)
+	ctx.Data.LogI("relay run install pagent by wmi successfully. result out str: " + outStr)
 
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, password string, toolsName string, args []string, relayInfo *types.RelayInfo) error {
+func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceContext,
+	info *types.DeploymentInfo, password, toolsName, targetWorkDir string, args []string, relayInfo *types.RelayInfo) error {
 
-	event := protoRelay.InstallPagentBySSHReq{
+	event := protoRelay.InstallPagentByWMIReq{
 		ActionName:       ctx.Data.Name,
 		OperInstID:       ctx.Data.OperationInstanceID,
 		IP:               info.LoginInfo.IP,
@@ -225,6 +226,8 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 		InstallerWorkDir: info.InstallerWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     args,
+		TargetWorkDir:    targetWorkDir,
+		InstallerBatName: installBatName,
 	}
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -232,7 +235,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeInstallBySSH, data, relayInfo.AgentID)
+		protoRelay.ServerPushEventTypeInstallByWMI, data, relayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
@@ -248,7 +251,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
+func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 	ctx *action.InstanceContext) (string, error) {
 
 	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
@@ -306,7 +309,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
-func (act *actionInstallPagentBySSH) buildCMD(param *pagentInstallParams) []string {
+func (act *actionInstallPagentByWMI) buildBat(param *pagentInstallParamsWin) []string {
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 		fmt.Sprintf("--generation %d", param.Generation),
@@ -324,7 +327,7 @@ func (act *actionInstallPagentBySSH) buildCMD(param *pagentInstallParams) []stri
 	return args
 }
 
-func (act *actionInstallPagentBySSH) queryPassword(
+func (act *actionInstallPagentByWMI) queryPassword(
 	ctx context.Context,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,
@@ -340,23 +343,13 @@ func (act *actionInstallPagentBySSH) queryPassword(
 			info.LoginInfo.User,
 			types.LoginModePassword)
 		if err != nil {
-			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
+			return "", fmt.Errorf("failed to decrypt password: %w", err)
 		}
 
 		return string(passwd), nil
 
 	case types.LoginModeKeyFile:
-		privateKey, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
-		if err != nil {
-			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
-		}
-
-		return string(privateKey), nil
+		return "", errors.New("implete me")
 	case types.LoginModePasswordVault:
 		passwd, err := passwordVault.LoadPassword(
 			ctx,
@@ -368,7 +361,7 @@ func (act *actionInstallPagentBySSH) queryPassword(
 			return "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
 
-		return string(passwd), nil
+		return passwd, nil
 	default:
 		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
 	}

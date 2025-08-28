@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 )
 
 // Validate check request body.
@@ -142,8 +142,8 @@ func (x *ReportFileStateReq) checkStatus() error {
 			return errors.New("file_name is required")
 		}
 
-		if state.GetFileStatus() != string(relay.RelayReportPkgComplete) &&
-			state.GetFileStatus() != string(relay.RelayReportPkgInComplete) {
+		if state.GetFileStatus() != string(relayconstant.RelayReportPkgComplete) &&
+			state.GetFileStatus() != string(relayconstant.RelayReportPkgInComplete) {
 
 			return errors.New("fiel_status must be complete or incomplete")
 		}
@@ -197,11 +197,11 @@ func (x *ReportDetectResultReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *ReportInstallBySSHResultReq) AutoConvert() {
+func (x *ReportInstallResultReq) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *ReportInstallBySSHResultReq) Validate() error {
+func (x *ReportInstallResultReq) Validate() error {
 	if x.GetActionName() == "" {
 		return errors.New("action_name is required")
 	}

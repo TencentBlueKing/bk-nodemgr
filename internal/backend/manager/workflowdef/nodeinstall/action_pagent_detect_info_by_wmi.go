@@ -1,0 +1,383 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package nodeinstall
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+)
+
+const (
+	// ActionNamePagentDetectInfoByWMI defines the action name.
+	ActionNamePagentDetectInfoByWMI = "pagent_detect_info_by_wmi"
+)
+
+// NewActionPagentDetectInfoByWMI get a new action.
+func NewActionPagentDetectInfoByWMI(
+	logger logger.ILogger,
+
+	storageActionInstance workflow.IStorageActionInstance,
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageRelease release.IStorage,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
+
+	proxyMessager relayhandler.IServerMessager,
+) action.Definition {
+
+	return &actionPagentDetectInfoByWMI{
+		logger: logger,
+
+		storageHostCredit:     storageHostCredit,
+		storageActionInstance: storageActionInstance,
+		storageNodeDeployment: storageNodeDeployment,
+		storageRelease:        storageRelease,
+
+		passwordVault: passwordVault,
+
+		proxyMessager: proxyMessager,
+	}
+}
+
+// ActParamPagentDetectInfoByWMI ...
+type ActParamPagentDetectInfoByWMI struct {
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
+}
+
+type actionPagentDetectInfoByWMI struct {
+	logger logger.ILogger
+
+	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageActionInstance workflow.IStorageActionInstance
+	storageRelease        release.IStorage
+	storageHostCredit     credit.IStorageHostCredit
+
+	passwordVault creditvault.IHostPasswordVault
+
+	proxyMessager relayhandler.IServerMessager
+}
+
+// Name returns the name of the action.
+func (act *actionPagentDetectInfoByWMI) Name() string {
+	return ActionNamePagentDetectInfoByWMI
+}
+
+// Version returns the version of the action.
+func (act *actionPagentDetectInfoByWMI) Version() string {
+	return "v1.0.0" // nolint: goconst
+}
+
+// Description returns the description of the action.
+func (act *actionPagentDetectInfoByWMI) Description() string {
+	return "Let relay use WMI to connect to the target machine, detect the target machine's OS type and CPU architecture, " +
+		"then use these info detect pkg version."
+}
+
+// Timeout returns the timeout of the action.
+func (act *actionPagentDetectInfoByWMI) Timeout() time.Duration {
+	return 1 * time.Minute
+}
+
+// Tags returns the tags of the action.
+func (act *actionPagentDetectInfoByWMI) Tags() []action.Tag {
+	return []action.Tag{}
+}
+
+// MaxRetryCount returns the max retry count of the action.
+func (act *actionPagentDetectInfoByWMI) MaxRetryCount() uint {
+	return 5 // nolint: mnd
+}
+
+// DelayFn this func define when this action fails, how long to wait before retrying.
+func (act *actionPagentDetectInfoByWMI) DelayFn() func() {
+	return func() {
+		time.Sleep(5 * time.Second) // nolint: mnd
+	}
+}
+
+// Do this func define what the action will do.
+// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
+// nolint: perfsprint,funlen,fnsize,gocognit,nestif
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamDetectInfoByWMI)
+	err = conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
+		err = fmt.Errorf("failed to convert param, err: %w", err)
+
+		return err
+	}
+
+	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
+
+	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	if err != nil {
+		return err
+	}
+
+	relayHost := &info.RelayInfo
+
+	if err := act.detectInfo(ctx, info, password, relayHost); err != nil {
+		return err
+	}
+	ctx.Data.LogI(fmt.Sprintf("detect info by wmi send to relay.relay-host-id(%d)", relayHost.HostID))
+
+	osType, cpuArch, err := act.waitForRelayReportDetect(ctx)
+	if err != nil {
+		return err
+	}
+	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s)", osType, cpuArch))
+
+	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
+	// installer workdir priority: user specified in info > deploy constant default > connected dir.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = deployConstant.WorkDir
+	}
+
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = windowsDefaultInstallerWorkDir
+	}
+
+	info.Host.Dynamic.NodeOsType = osType
+	info.Host.Dynamic.NodeCPUArch = cpuArch
+
+	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return err
+	}
+	if len(info.TargetVersion) > 0 {
+		for _, v := range info.TargetVersion {
+			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+				// you can guarantee that there are no duplicates in the TargetVersion.
+				info.Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+
+				break
+			}
+		}
+	} else if info.Host.Dynamic.NodeVersion == "" {
+		// we'll automatically use the system information to select the default version,
+		// when NodeVersion is empty.
+		info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      info.Host.Dynamic.NodeOsType,
+			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+		})
+		if err != nil {
+			return err
+		}
+		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+	}
+
+	err = checkVersionAvailability(
+		ctx.Ctx, CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  info.Host.Dynamic.NodeGeneration,
+			OSType:      info.Host.Dynamic.NodeOsType,
+			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+			Version:     info.Host.Dynamic.NodeVersion,
+		})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
+	info *types.DeploymentInfo, password string, relayHost *types.RelayInfo) error {
+
+	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
+		ActionName: ctx.Data.Name,
+		OperInstID: ctx.Data.OperationInstanceID,
+		IP:         info.LoginInfo.IP,
+		Port:       info.LoginInfo.Port,
+		User:       info.LoginInfo.User,
+		LoginMode:  string(info.LoginInfo.Mode),
+		Password:   password,
+	}
+
+	data, err := json.Marshal(detectInfoEvent)
+	if err != nil {
+		act.logger.Errorf("failed to marshal data: %v", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
+	}
+
+	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
+		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, relayHost.AgentID)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			act.logger.Errorf("detect info by WMI failed: %v", err)
+			return fmt.Errorf("detect info by WMI failed: %w", err)
+		}
+	case <-time.After(queryClientTimeout):
+		act.logger.Errorf("wait client timed out after (%s)", queryClientTimeout)
+		return errors.New("wait client timed out")
+	}
+
+	return nil
+}
+
+func (act *actionPagentDetectInfoByWMI) queryPassword(
+	ctx context.Context,
+	operator string,
+	storageHostCredit credit.IStorageHostCredit,
+	passwordVault creditvault.IHostPasswordVault,
+	info *types.DeploymentInfo) (string, error) {
+
+	switch info.LoginInfo.Mode {
+	case types.LoginModePassword:
+		passwd, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModePassword)
+		if err != nil {
+			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
+		}
+
+		return string(passwd), nil
+
+	case types.LoginModeKeyFile:
+		privateKey, err := storageHostCredit.LoadHostCredit(
+			ctx,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User,
+			types.LoginModeKeyFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
+		}
+
+		return string(privateKey), nil
+	case types.LoginModePasswordVault:
+		passwd, err := passwordVault.LoadPassword(
+			ctx,
+			operator,
+			info.Host.Static.NetworkAreaID,
+			info.LoginInfo.IP,
+			info.LoginInfo.User)
+		if err != nil {
+			return "", fmt.Errorf("failed to load password from password vault: %w", err)
+		}
+
+		return string(passwd), nil
+	default:
+		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
+	}
+}
+
+// waitForRelayReportDetect wait for relay to report the detect result.
+// nolint: gocognit
+func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
+	ctx *action.InstanceContext) (criteria.OSType, criteria.CPUArch, error) {
+
+	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	defer cancel()
+
+	ticker := time.NewTicker(waitForRelayReportInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
+				ctx.Data.OperationInstanceID, ctx.Data.Name)
+
+		case <-ticker.C:
+			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
+				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+			if err != nil {
+				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
+					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+
+				continue
+			}
+
+			relayDetectResultRaw, exists := privateData[relayconstant.DetectResultKey]
+			if !exists {
+				continue
+			}
+
+			relayDetectResult, ok := relayDetectResultRaw.(map[string]any)
+			if !ok {
+				return "", "", errors.New("unexpected type for relay detect result")
+			}
+
+			errMsgRaw := relayDetectResult[relayconstant.DetectResultErrMsgKey]
+			errMsg, ok := errMsgRaw.(string)
+			if !ok {
+				return "", "", errors.New("unexpected type for relay detect result error message")
+			}
+
+			if errMsg != "" {
+				return "", "", errors.New(errMsg)
+			}
+
+			osTypeStr, osTypeOk := relayDetectResult[relayconstant.DetectResultOsTypeKey].(string)
+			cpuArchStr, cpuArchOk := relayDetectResult[relayconstant.DetectResultCPUArchKey].(string)
+
+			if !osTypeOk || !cpuArchOk {
+				return "", "", errors.New("incomplete relay detect result")
+			}
+
+			osType, err := platform.NormalizeOS(osTypeStr)
+			if err != nil {
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
+			}
+
+			cpuArch, err := platform.NormalizeArch(cpuArchStr)
+			if err != nil {
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
+			}
+
+			return osType, cpuArch, nil
+		}
+	}
+}

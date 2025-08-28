@@ -328,10 +328,10 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 					return results, fileStorageDir, errors.New("unexpected type for file state")
 				}
 
-				if stateStr == string(protoRelay.RelayReportPkgComplete) {
+				if stateStr == string(relayconstant.RelayReportPkgComplete) {
 					results[fileName] = true
 					ctx.Data.LogI(fmt.Sprintf("package state complete. file-name(%s)", fileName))
-				} else if stateStr == string(protoRelay.RelayReportPkgInComplete) {
+				} else if stateStr == string(relayconstant.RelayReportPkgInComplete) {
 					results[fileName] = false
 					ctx.Data.LogI(fmt.Sprintf("package state incomplete. file-name(%s)", fileName))
 				}

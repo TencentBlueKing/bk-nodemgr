@@ -100,8 +100,14 @@ const (
 	// ServerPushEventTypeDetectInfoBySSH describes the detect info by ssh event type.
 	ServerPushEventTypeDetectInfoBySSH ServerPushEventType = "detect_info_by_ssh"
 
+	// ServerPushEventTypeDetectInfoByWMI describes the detect info by wmi event type.
+	ServerPushEventTypeDetectInfoByWMI ServerPushEventType = "detect_info_by_wmi"
+
 	// ServerPushEventTypeInstallBySSH describes the install by ssh event type.
 	ServerPushEventTypeInstallBySSH ServerPushEventType = "install_by_ssh"
+
+	// ServerPushEventTypeInstallByWMI describes the install by wmi event type.
+	ServerPushEventTypeInstallByWMI ServerPushEventType = "install_by_wmi"
 )
 
 // define server_push relay event struct.
@@ -151,6 +157,18 @@ type DetectInfoBySSHReq struct {
 	LoginMode string `json:"login_mode"`
 }
 
+// DetectInfoByWMIReq defines the detect info by wmi request.
+type DetectInfoByWMIReq struct {
+	ActionName string `json:"action_name"`
+	OperInstID string `json:"oper_inst_id"`
+
+	IP        string `json:"ip"`
+	Port      int64  `json:"port"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	LoginMode string `json:"login_mode"`
+}
+
 // InstallPagentBySSHReq defines the install pagent by ssh request.
 type InstallPagentBySSHReq struct {
 	ActionName string `json:"action_name"`
@@ -167,13 +185,20 @@ type InstallPagentBySSHReq struct {
 	InstallerCmd     []string `json:"installer_cmd"`
 }
 
-// ClientReport defines the client report signal.
-type ClientReport string
+// InstallPagentByWMIReq defines the install pagent by wmi request.
+type InstallPagentByWMIReq struct {
+	ActionName string `json:"action_name"`
+	OperInstID string `json:"oper_inst_id"`
 
-const (
-	// RelayReportPkgInComplete describes the client report signal when pkg is incomplete.
-	RelayReportPkgInComplete ClientReport = "incomplete"
+	IP        string `json:"ip"`
+	Port      int64  `json:"port"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	LoginMode string `json:"login_mode"`
 
-	// RelayReportPkgComplete describes the client report signal when pkg is complete.
-	RelayReportPkgComplete ClientReport = "complete"
-)
+	InstallerWorkDir string   `json:"installer_work_dir"`
+	TargetWorkDir    string   `json:"target_work_dir"`
+	ToolsName        string   `json:"tools_name"`
+	InstallerBatName string   `json:"installer_bat_name"`
+	InstallerCmd     []string `json:"installer_cmd"`
+}

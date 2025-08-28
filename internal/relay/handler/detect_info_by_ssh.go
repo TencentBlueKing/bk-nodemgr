@@ -16,18 +16,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/pkg/errors"
 )
 
 const (
-	actionNameDetectInfoBySSH  = "pagent_detect_info_by_ssh"
 	reportRelayDetectResultURL = "/relay/report_detect_result"
 )
 
@@ -43,9 +40,12 @@ func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		if err := h.ReportHostInfo(ctx, event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg); err != nil {
+		if err := h.reportHostInfo(ctx, event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg); err != nil {
 			h.logger.Errorf("failed to report host info: %v", err)
+			return
 		}
+		h.logger.Infof("report host info success. action-name(%s), instance-id(%s),os-type(%s), cpu-arch(%s), connected-dir(%s)",
+			event.ActionName, event.OperInstID, osType, cpuArch, connectedDir)
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
@@ -65,7 +65,7 @@ func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 
 	h.logger.Infof("start to detect info. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
 
-	osType, cpuArch, connectedDir, err = detectInfo(client)
+	osType, cpuArch, connectedDir, err = detectInfoBySSH(client)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to detect info: %v", err)
 		h.logger.Errorf(errMsg)
@@ -78,7 +78,7 @@ func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 }
 
 // nolint: nonamedreturns,perfsprint
-func detectInfo(client *sshx.Client) (
+func detectInfoBySSH(client *sshx.Client) (
 	osType criteria.OSType, cpuArch criteria.CPUArch, connectedDir string, err error) {
 
 	// 1. detect target system
@@ -129,59 +129,4 @@ func detectInfo(client *sshx.Client) (
 	})
 
 	return osType, cpuArch, connectedDir, nil
-}
-
-func (h *handler) ReportHostInfo(ctx context.Context,
-	actionName, operInstID string,
-	osType criteria.OSType, cpuArch criteria.CPUArch,
-	connectedDir, msg string) error {
-
-	req := &reportHostInfo{
-		ActionName:   actionName,
-		OperInstID:   operInstID,
-		OsType:       string(osType),
-		CPUArch:      string(cpuArch),
-		ConnectedDir: connectedDir,
-		ErrMsg:       msg,
-	}
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
-	}
-
-	h.logger.Infof("report host info. action-name(%s), instance-id(%s), data(%s)",
-		actionName, operInstID, string(jsonData))
-	errCh := h.client.ClientPushReq(ctx, reportRelayDetectResultURL, jsonData)
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			h.logger.Errorf("report host info failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
-
-			return fmt.Errorf("report host info failed. action-name(%s), instance-id(%s): %w",
-				req.ActionName, req.OperInstID, err)
-		}
-		h.logger.Infof("report host info success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return nil
-	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report host info timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return errors.New("report host info timed out")
-	}
-}
-
-type reportHostInfo struct {
-	ActionName string `json:"action_name"`
-	OperInstID string `json:"oper_inst_id"`
-
-	OsType       string `json:"os_type"`
-	CPUArch      string `json:"cpu_arch"`
-	ConnectedDir string `json:"connected_dir"`
-
-	ErrMsg string `json:"err_msg"`
 }

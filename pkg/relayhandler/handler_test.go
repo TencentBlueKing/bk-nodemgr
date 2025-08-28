@@ -17,6 +17,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/redis/go-redis/v9"
@@ -49,7 +51,7 @@ func testClient(t *testing.T) IServerMessager {
 
 func TestServerPushMessage(t *testing.T) {
 	type args struct {
-		ctx context.Context
+		ctx contextx.IContext
 	}
 	tests := []struct {
 		name    string
@@ -60,7 +62,7 @@ func TestServerPushMessage(t *testing.T) {
 		{
 			name: "echo message",
 			args: args{
-				ctx: context.Background(),
+				ctx: contextx.NewContext(context.Background(), map[string]any{}),
 			},
 			wantErr: false,
 			agentID: "",

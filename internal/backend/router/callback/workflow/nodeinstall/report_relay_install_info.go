@@ -19,8 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *handler) RelayReportInstallBySSHInfo(gCtx *gin.Context) {
-	req := new(protoCallback.ReportInstallBySSHResultReq)
+func (h *handler) RelayReportInstallResult(gCtx *gin.Context) {
+	req := new(protoCallback.ReportInstallResultReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report install by ssh info failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -38,13 +38,11 @@ func (h *handler) RelayReportInstallBySSHInfo(gCtx *gin.Context) {
 	h.logger.Infof("report detect info. instance(%s), action(%s) ",
 		req.GetOperInstId(), req.GetActionName())
 
-	installResult := map[string]string{
-		relayconstant.InstallBySSHResultStdOutKey: req.GetStdOut(),
-		relayconstant.InstallBySSHResultErrMsgKey: req.GetErrMsg(),
-	}
-
 	dataMap := map[string]any{
-		relayconstant.InstallBySSHResultKey: installResult,
+		relayconstant.InstallResultKey: map[string]string{
+			relayconstant.InstallResultOutStrKey: req.GetOutStr(),
+			relayconstant.InstallResultErrMsgKey: req.GetErrMsg(),
+		},
 	}
 
 	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
