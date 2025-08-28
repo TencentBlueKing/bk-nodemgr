@@ -41,30 +41,11 @@ type IManager interface {
 	// Start starts the manager
 	Start(ctx context.Context) error
 
-	// UploadOriginAgent uploads the origin agent.
-	UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
-
-	// UploadOriginServer uploads the origin server.
-	UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
-
-	// UploadOriginCert uploads the origin cert.
-	UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
-
-	// UploadOriginBinTool upload origin bintool package.
-	UploadOriginBinTool(ctx contextx.IContext, binToolFile io.ReadCloser) (
-		*types.OriginBinToolPkgDetail, error)
-
-	// PublishReleaseAgent generates release agent by upload-id.
-	PublishReleaseAgent(ctx contextx.IContext, uploadID string) error
-
-	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(ctx contextx.IContext, uploadID string) error
-
-	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
-
-	// PublishReleaseBinTool generate release bintool package.
-	PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error
+	IAgent
+	IProxy
+	IServer
+	ICert
+	IBinTool
 
 	// EnsureFileToLocal ensure the file to local.
 	// returns file, local-file-dir, error.
@@ -237,7 +218,7 @@ func WithAdvertiseIPV6(ipv6 string) OptionFn {
 	}
 }
 
-// WithMountHostDir sets the mount host dir.
+// WithMount sets the mount host dir.
 func WithMount(mountHostDir, mountContainerDir string) OptionFn {
 	return func(manager *Manager) {
 		manager.mountHostDir = mountHostDir

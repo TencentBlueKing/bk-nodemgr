@@ -24,6 +24,15 @@ const (
 	releaseCertFileName = "cert.tgz"
 )
 
+// ICert defines the interface for cert.
+type ICert interface {
+	// UploadOriginCert uploads the origin cert.
+	UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+
+	// PublishReleaseCert generates release cert by upload-id.
+	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
+}
+
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).

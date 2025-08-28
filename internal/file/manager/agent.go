@@ -27,6 +27,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IAgent defines the interface for agent.
+type IAgent interface {
+	// UploadOriginAgent uploads the origin agent.
+	UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+
+	// PublishReleaseAgent generates release agent by upload-id.
+	PublishReleaseAgent(ctx contextx.IContext, uploadID string) error
+}
+
 // UploadOriginAgent uploads the origin agent.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
