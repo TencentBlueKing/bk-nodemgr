@@ -132,6 +132,7 @@ func (c *cli) QueryNodeInfo(ctx context.Context, req *QueryNodeInfoReq) (*QueryN
 		SubResourcef(subPath).
 		WithContext(ctx).
 		WithHeaders(header).
+		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, fmt.Errorf("query node info failed, err: %w", err)
