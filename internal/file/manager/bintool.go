@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -29,7 +30,7 @@ type IBinTool interface {
 		*types.OriginBinToolPkgDetail, error)
 
 	// PublishReleaseBinTool generate release bintool package.
-	PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error
+	PublishReleaseBinTool(ctx contextx.IUserContext, uploadID string) error
 }
 
 const (
@@ -205,7 +206,7 @@ func checkGen2OriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetai
 }
 
 // PublishReleaseBinTool generates release bintool by upload-id.
-func (m *Manager) PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseBinTool(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetBinToolUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)
@@ -268,9 +269,20 @@ func (m *Manager) PublishReleaseBinTool(ctx contextx.IContext, uploadID string) 
 
 	// upsert release bintool.
 	if err = m.storageRelease.UpsertReleaseBinTool(ctx, types.ReleaseBinTool{
-		Generation: types.Generation2,
-		FileName:   releaseInfo.Name,
-		MD5:        releaseInfo.MD5,
+		Release: types.Release{
+			Generation:   types.Generation2,
+			Type:         types.ReleaseTypeBinTool,
+			Version:      "",
+			Platform:     platform.Platform{},
+			Labels:       nil,
+			FileName:     releaseInfo.Name,
+			MD5:          releaseInfo.MD5,
+			Enabled:      true,
+			AsDefault:    true,
+			UpdatedAt:    time.Now(),
+			Operator:     ctx.BKUsername(),
+			AdditionInfo: nil,
+		},
 	}); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to upsert release bintool: %v", err)
 

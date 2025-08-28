@@ -1255,12 +1255,6 @@
         "version": {
           "type": "string"
         },
-        "changelog_en": {
-          "type": "string"
-        },
-        "changelog_zh": {
-          "type": "string"
-        },
         "platforms": {
           "type": "array",
           "items": {
@@ -1541,12 +1535,6 @@
           "format": "uint64"
         },
         "operator": {
-          "type": "string"
-        },
-        "change_log_en": {
-          "type": "string"
-        },
-        "change_log_zh": {
           "type": "string"
         }
       },

@@ -41,8 +41,7 @@ func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error
 	}
 
 	return &types.ReleaseCert{
-		FileName: r.FileName,
-		MD5:      r.MD5,
+		Release: *r,
 	}, nil
 }
 

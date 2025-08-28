@@ -12,30 +12,41 @@ package release
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IAgent defines the agent interface.
 type IAgent interface {
 	// GetReleaseAgent gets release agent by generation, type, platform and version.
-	GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.Release, error)
+	GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
-	// UpsertManyReleaseAgent upserts many release agent.
-	UpsertManyReleaseAgent(ctx context.Context, gen types.Generation, releases []*types.Release) error
+	// UpsertManyReleaseAgent upsert many release agent.
+	UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
 
 	// ExistReleaseAgent checks if release agent exists.
 	ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
-// UpsertManyReleaseAgent upserts many release.
-func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, gen types.Generation, releases []*types.Release) error {
-	for _, rls := range releases {
-		if rls != nil {
-			rls.UpdatedAt = time.Now()
+// UpsertManyReleaseAgent upsert many release.
+func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
+	var err error
+	releases := make([]*types.Release, 0, len(releaseAgents))
+
+	for _, rls := range releaseAgents {
+		if rls == nil {
+			continue
+		}
+
+		rls.UpdatedAt = time.Now()
+		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoAgent)
+		if err != nil {
+			return fmt.Errorf("failed to upsert many release agent: %v", err)
 		}
 	}
 
@@ -53,6 +64,22 @@ func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, v
 }
 
 // GetReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.Release, error) {
-	return s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version)
+func (s *Storage) GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release agent: %w", err)
+	}
+
+	additionInfo := new(types.ReleaseAdditionInfoAgent)
+	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release agent: %v", err)
+	}
+
+	releaseAgent := &types.ReleaseAgent{
+		Release:                  *rls,
+		ReleaseAdditionInfoAgent: *additionInfo,
+	}
+
+	return releaseAgent, nil
 }

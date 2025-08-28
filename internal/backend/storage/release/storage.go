@@ -38,7 +38,8 @@ type IStorage interface {
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
+	ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
 	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
@@ -89,6 +90,9 @@ type IStorage interface {
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
+
+	IAgent
+	IProxy
 }
 
 // StorageName defines the storage name.
@@ -117,6 +121,8 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 
 	return s, nil
 }
+
+var _ IStorage = &Storage{}
 
 // Storage implements IStorage.
 type Storage struct {
@@ -150,7 +156,11 @@ func (s *Storage) GetRelease(ctx context.Context,
 }
 
 // ListRelease lists release by page and conditions.
-func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error) {
+func (s *Storage) ListRelease(ctx context.Context,
+	releaseType types.ReleaseType,
+	page types.Page,
+	conditions ...*types.ReleaseCondition) (
+	[]*types.Release, int64, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
@@ -161,7 +171,11 @@ func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType
 }
 
 // DistinctRelease distincts release by conditions.
-func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
+func (s *Storage) DistinctRelease(ctx context.Context,
+	releaseType types.ReleaseType,
+	request types.ReleaseDistinctRequest,
+	conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {

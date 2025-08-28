@@ -61,9 +61,7 @@ func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (
 	}
 
 	return &types.ReleaseBinTool{
-		Generation: r.Generation,
-		FileName:   r.FileName,
-		MD5:        r.MD5,
+		Release: *r,
 	}, nil
 }
 

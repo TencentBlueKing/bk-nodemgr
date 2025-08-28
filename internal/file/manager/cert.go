@@ -14,9 +14,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -30,7 +32,7 @@ type ICert interface {
 	UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
+	PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error
 }
 
 // UploadOriginCert uploads origin cert.
@@ -206,7 +208,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 }
 
 // PublishReleaseCert generates release cert by upload-id.
-func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetCertUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get upload(%s). err: %v", uploadID, err)
@@ -269,8 +271,20 @@ func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) err
 
 	// upsert release cert.
 	if err = m.storageRelease.UpsertReleaseCert(ctx, types.ReleaseCert{
-		FileName: releaseInfo.Name,
-		MD5:      releaseInfo.MD5,
+		Release: types.Release{
+			Generation:   types.Generation2,
+			Type:         types.ReleaseTypeCert,
+			Version:      "",
+			Platform:     platform.Platform{},
+			Labels:       nil,
+			FileName:     releaseInfo.Name,
+			MD5:          releaseInfo.MD5,
+			Enabled:      true,
+			AsDefault:    true,
+			UpdatedAt:    time.Time{},
+			Operator:     ctx.BKUsername(),
+			AdditionInfo: nil,
+		},
 	}); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to upsert release cert: %v", err)
 

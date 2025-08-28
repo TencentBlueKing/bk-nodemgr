@@ -59,7 +59,7 @@ type IManager interface {
 
 	// EnsureReleaseToLocal ensure the release to local.
 	// returns file, local-file-dir, error.
-	EnsureReleaseToLocal(ctx contextx.IContext, release *types.Release) (fileiface.File, string, error)
+	EnsureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error)
 
 	// LaunchTransferRelease launch transfer release.
 	LaunchTransferRelease(ctx contextx.IContext,

@@ -41,15 +41,13 @@ func (x *PackageUploadOriginAgentResp) ConvertResultFromTypes(generated bool, de
 	}
 
 	data := &PackageUploadOriginAgentResp_Data{
-		UploadId:    new(string),
-		Existed:     new(bool),
-		Generated:   new(bool),
-		Name:        new(string),
-		Size:        new(int64),
-		Md5:         new(string),
-		Version:     new(string),
-		ChangelogEn: new(string),
-		ChangelogZh: new(string),
+		UploadId:  new(string),
+		Existed:   new(bool),
+		Generated: new(bool),
+		Name:      new(string),
+		Size:      new(int64),
+		Md5:       new(string),
+		Version:   new(string),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -59,8 +57,6 @@ func (x *PackageUploadOriginAgentResp) ConvertResultFromTypes(generated bool, de
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
-	*data.ChangelogEn = detail.ChangeLogEN
-	*data.ChangelogZh = detail.ChangeLogZH
 	data.Platforms = plats
 
 	x.Data = data

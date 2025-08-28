@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -33,7 +34,7 @@ type IAgent interface {
 	UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// PublishReleaseAgent generates release agent by upload-id.
-	PublishReleaseAgent(ctx contextx.IContext, uploadID string) error
+	PublishReleaseAgent(ctx contextx.IUserContext, uploadID string) error
 }
 
 // UploadOriginAgent uploads the origin agent.
@@ -255,7 +256,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 // PublishReleaseAgent generates release agent packages by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseAgent(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetAgentUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get upload(%s). err: %v", uploadID, err)
@@ -319,7 +320,7 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) er
 	gp := gopool.NewPool()
 	gen := types.Generation2
 
-	releasesMap := make(map[string]*types.Release)
+	releasesMap := make(map[string]*types.ReleaseAgent)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
@@ -356,17 +357,27 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) er
 				return err
 			}
 
-			releasesMap[pkg.platform.String()] = &types.Release{
-				Generation:     gen,
-				Type:           types.ReleaseTypeAgent,
-				Platform:       pkg.platform,
-				Version:        detail.Version,
-				FileName:       file.Info().Name,
-				MD5:            file.Info().MD5,
-				ChangeLogEN:    detail.ChangeLogEN,
-				ChangeLogZH:    detail.ChangeLogZH,
-				ConfigTemplate: detail.ConfigTemplate,
-				ConfigEnviron:  detail.ConfigEnviron,
+			releasesMap[pkg.platform.String()] = &types.ReleaseAgent{
+				Release: types.Release{
+					Generation:   gen,
+					Type:         types.ReleaseTypeAgent,
+					Version:      detail.Version,
+					Platform:     pkg.platform,
+					Labels:       []string{},
+					FileName:     file.Info().Name,
+					MD5:          file.Info().MD5,
+					Enabled:      true,
+					AsDefault:    false,
+					UpdatedAt:    time.Now(),
+					Operator:     ctx.BKUsername(),
+					AdditionInfo: nil,
+				},
+				ReleaseAdditionInfoAgent: types.ReleaseAdditionInfoAgent{
+					ConfigTemplate: detail.ConfigTemplate,
+					ConfigEnviron:  detail.ConfigEnviron,
+					ChangeLogEN:    detail.ChangeLogEN,
+					ChangeLogZH:    detail.ChangeLogZH,
+				},
 			}
 
 			return nil
@@ -379,7 +390,7 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) er
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseAgent(ctx, gen, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseAgent(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upsert release agent: %v", err)
 
 		return err

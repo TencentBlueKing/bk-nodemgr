@@ -837,12 +837,6 @@
         },
         "operator": {
           "type": "string"
-        },
-        "change_log_en": {
-          "type": "string"
-        },
-        "change_log_zh": {
-          "type": "string"
         }
       },
       "description": "Release describes the release."
