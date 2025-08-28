@@ -12,8 +12,8 @@ package server
 
 import "io"
 
-// LogWriter defines the log writer.
-type LogWriter interface {
+// ILogWriter defines the log writer.
+type ILogWriter interface {
 	InfoWriter() io.Writer
 	ErrorWriter() io.Writer
 }

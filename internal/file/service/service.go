@@ -252,6 +252,8 @@ func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.UserConfig 
 	}
 }
 
+var _ restserver.ILogWriter = &loggerWriterAdaptor{}
+
 // loggerWriterAdaptor implements rest.LoggerWriter.
 type loggerWriterAdaptor struct{}
 

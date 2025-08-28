@@ -113,7 +113,7 @@ type Options struct {
 	Name            string
 	IP              string
 	Port            int
-	LogWriter       LogWriter
+	LogWriter       ILogWriter
 	RequestIDSetter IRequestIDSetter
 	TenantIDSetter  ITenantIDSetter
 	StaticOptions   *StaticOptions
