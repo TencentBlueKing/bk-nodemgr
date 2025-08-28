@@ -28,6 +28,8 @@ type IStorage interface {
 	IServer
 	IBinTool
 	ICert
+	IOfficialPlugin
+	IExternalPlugin
 }
 
 // StorageName defines the storage name.

@@ -118,6 +118,74 @@
         ]
       }
     },
+    "/upload/origin/external_plugin": {
+      "post": {
+        "summary": "UploadOriginExternalPlugin provides origin external plugin upload.",
+        "operationId": "Upload_UploadOriginExternalPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginExternalPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginExternalPluginReq is the request for upload external official\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginExternalPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/official_plugin": {
+      "post": {
+        "summary": "UploadOriginOfficialPlugin provides origin official plugin upload.",
+        "operationId": "Upload_UploadOriginOfficialPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginOfficialPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginOfficialPluginReq is the request for upload origin official\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginOfficialPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
     "/upload/origin/server": {
       "post": {
         "summary": "UploadOriginServer provides origin server upload.",
@@ -390,6 +458,160 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v3UploadOriginExternalPluginReq": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginExternalPluginReq is the request for upload external official\nplugin pkg."
+    },
+    "v3UploadOriginExternalPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginExternalPluginRespData"
+        }
+      },
+      "description": "UploadOriginExternalPluginResp is the response for upload external official\nplugin pkg."
+    },
+    "v3UploadOriginExternalPluginRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "config_file": {
+          "type": "string"
+        },
+        "config_format": {
+          "type": "string"
+        },
+        "launch_mode": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginOfficialPluginReq": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginOfficialPluginReq is the request for upload origin official\nplugin pkg."
+    },
+    "v3UploadOriginOfficialPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginOfficialPluginRespData"
+        }
+      },
+      "description": "UploadOriginOfficialPluginResp is the response for upload origin official\nplugin pkg."
+    },
+    "v3UploadOriginOfficialPluginRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "config_file": {
+          "type": "string"
+        },
+        "config_format": {
+          "type": "string"
+        },
+        "launch_mode": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
           }
         }
       }

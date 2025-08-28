@@ -29,6 +29,8 @@ type IStorage interface {
 	IProxy
 	IBinTool
 	ICert
+	IOfficialPlugin
+	IExternalPlugin
 }
 
 // StorageName defines the storage name.
