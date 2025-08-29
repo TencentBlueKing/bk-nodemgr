@@ -22,6 +22,8 @@ func TableName(releaseType string) string {
 	return fmt.Sprintf("release_%s", releaseType)
 }
 
+var _ base.IData = &Release{}
+
 // Release presents a release.
 type Release struct {
 	Generation   int64          `json:"generation" bson:"generation"`
@@ -39,6 +41,17 @@ type Release struct {
 	UpdatedAt    time.Time      `json:"updated_at" bson:"updated_at"`
 	Operator     string         `json:"operator" bson:"operator"`
 	AdditionInfo map[string]any `json:"addition_info" bson:"addition_info"`
+}
+
+// UniqueFields unique fields of the table.
+func (r *Release) UniqueFields() []string {
+	return []string{
+		FieldKeyGeneration,
+		FieldKeyType,
+		FieldKeyCPUArch,
+		FieldKeyOSType,
+		FieldKeyVersion,
+	}
 }
 
 // UniqueKey unique key of the table.

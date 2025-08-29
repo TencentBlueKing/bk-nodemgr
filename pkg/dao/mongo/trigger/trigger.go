@@ -16,7 +16,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -57,12 +56,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys:    bson.D{{Key: FieldKeyTriggerID, Value: 1}},
-			Options: mongoOptions.Index(),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }

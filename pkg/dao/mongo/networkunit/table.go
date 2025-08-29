@@ -21,6 +21,8 @@ func TableName() string {
 	return "networkunit"
 }
 
+var _ base.IData = &NetworkUnit{}
+
 // NetworkUnit represents network unit table.
 // NetworkUnitID should be the unique key.
 type NetworkUnit struct {
@@ -33,6 +35,19 @@ type NetworkUnit struct {
 	Links           *Links     `json:"links" bson:"links"`
 	IsDirect        bool       `json:"is_direct" bson:"is_direct"`
 	DirectEndpoints *Endpoints `json:"direct_endpoints" bson:"direct_endpoints"`
+}
+
+// UniqueFields unique fields of the table.
+func (networkunit *NetworkUnit) UniqueFields() []string {
+	return []string{
+		FieldKeyNetworkUnitID,
+		FieldKeyNetworkAreaID,
+	}
+}
+
+// UniqueKey unique key of the table.
+func (networkunit *NetworkUnit) UniqueKey() string {
+	return fmt.Sprintf("%d_%d", networkunit.NetworkAreaID, networkunit.NetworkUnitID)
 }
 
 // Link represents link target.
@@ -54,11 +69,6 @@ type Endpoints struct {
 	Cluster []string `json:"cluster" bson:"cluster"`
 	File    []string `json:"file" bson:"file"`
 	Data    []string `json:"data" bson:"data"`
-}
-
-// UniqueKey unique key of the table.
-func (networkunit *NetworkUnit) UniqueKey() string {
-	return fmt.Sprintf("%d_%d", networkunit.NetworkAreaID, networkunit.NetworkUnitID)
 }
 
 // TableNetworkUnit represent the complete db structures of a networkunit.

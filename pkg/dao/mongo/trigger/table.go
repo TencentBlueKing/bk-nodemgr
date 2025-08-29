@@ -34,6 +34,11 @@ type Trigger struct {
 	LastTriggeredAt  time.Time        `json:"last_triggered_at" bson:"last_triggered_at"`
 }
 
+// UniqueFields unique fields of the table.
+func (t *Trigger) UniqueFields() []string {
+	return []string{FieldKeyTriggerID}
+}
+
 // UniqueKey unique key of the table.
 func (t *Trigger) UniqueKey() string {
 	return t.TriggerID

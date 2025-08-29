@@ -20,10 +20,17 @@ func TableName() string {
 	return "global_settings"
 }
 
+var _ base.IData = &GlobalSettings{}
+
 // GlobalSettings represents the table of global settings.
 type GlobalSettings struct {
 	SettingName string `bson:"setting_name" json:"setting_name"`
 	Value       string `bson:"value" json:"value"`
+}
+
+// UniqueFields unique fields of the table.
+func (event *GlobalSettings) UniqueFields() []string {
+	return []string{FieldKeySettingName}
 }
 
 // UniqueKey unique key of the table.

@@ -11,6 +11,9 @@
 package credit
 
 const (
+	// FieldKeyTenantID the tenant id field key.
+	FieldKeyTenantID = "data.tenant_id"
+
 	// FieldKeyCreditID the credit id field key.
 	FieldKeyCreditID = "data.credit_id"
 )

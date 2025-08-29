@@ -65,6 +65,8 @@ type HostDynamic struct {
 	AdvertiseIP         string   `json:"advertise_ip" bson:"advertise_ip"`
 }
 
+var _ base.IData = &Host{}
+
 // Host represents a host.
 type Host struct {
 	HostID   int64  `json:"host_id" bson:"host_id"`
@@ -72,6 +74,11 @@ type Host struct {
 
 	Static  *HostStatic  `json:"static" bson:"static"`
 	Dynamic *HostDynamic `json:"dynamic" bson:"dynamic"`
+}
+
+// UniqueFields unique fields of the table.
+func (h *Host) UniqueFields() []string {
+	return []string{FieldKeyHostID}
 }
 
 // UniqueKey unique key of the table.

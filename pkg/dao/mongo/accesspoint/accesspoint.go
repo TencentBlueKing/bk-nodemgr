@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database, logger logger.ILogger) *dao {
@@ -59,13 +58,7 @@ func (d *dao) GetTableName() string {
 // nolint:contextcheck
 // ensureIndexes ensures the required indexes for the collection.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	opts := new(options.IndexOptions)
-	indexes := []mongo.IndexModel{
-		{
-			Keys:    bson.D{{Key: FieldKeyAccessPointID, Value: 1}},
-			Options: opts.SetUnique(true),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }

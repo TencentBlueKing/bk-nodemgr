@@ -22,11 +22,11 @@ import (
 
 // TestSuite provides a basic suite of mongodb dao based testing.
 // can be embedded and extended by other test suites.
-type TestSuite[P base.Pointer[T], T any] struct {
+type TestSuite[P base.DataPoint[T], T any] struct {
 	mongotest.TestSuite
 	baseOrm   base.IOrm[P, T]
 	TestDatas []P
-	Dao       base.Dao
+	Dao       base.IDao
 	logger    logger.ILogger
 	initFn    func(client *mongo.Database, logger logger.ILogger)
 }
@@ -63,7 +63,7 @@ func (suit *TestSuite[P, T]) SetupTest() {
 }
 
 // NewMongoDaoTestSuite creates a new MongoDaoTestSuite instance.
-func NewMongoDaoTestSuite[P base.Pointer[T], T any](
+func NewMongoDaoTestSuite[P base.DataPoint[T], T any](
 	logger logger.ILogger,
 	initFn func(client *mongo.Database, logger logger.ILogger),
 ) TestSuite[P, T] {

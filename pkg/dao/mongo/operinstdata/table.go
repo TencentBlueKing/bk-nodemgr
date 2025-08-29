@@ -20,6 +20,8 @@ import (
 // TableName operation instance data table name.
 const TableName = "oper_inst_data"
 
+var _ base.IData = &OperInstData{}
+
 // ActionInstData represents a action data.
 type ActionInstData struct {
 	TriggerID   string         `json:"trigger_id" bson:"trigger_id"`
@@ -57,6 +59,13 @@ type OperInstData struct {
 	Lifecycle              *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
 	ExtraExecutionName     string                     `json:"extra_execution_name" bson:"extra_execution_name"`
 	ExtraExecutionMessages []Message                  `json:"extra_execution_messages" bson:"extra_execution_messages"`
+}
+
+// UniqueFields unique fields of the table.
+func (data *OperInstData) UniqueFields() []string {
+	return []string{
+		FieldKeyOperInstID,
+	}
 }
 
 // LifeCycle is the lifecycle of an operation instance.

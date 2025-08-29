@@ -22,6 +22,8 @@ func TableName(category string) string {
 	return fmt.Sprintf("upload_%s", category)
 }
 
+var _ base.IData = &Upload{}
+
 // Upload presents a upload table.
 type Upload struct {
 	UploadID  string    `json:"upload_id" bson:"upload_id"`
@@ -29,6 +31,11 @@ type Upload struct {
 	SavedName string    `json:"saved_name" bson:"saved_name"`
 	Operator  string    `json:"operator" bson:"operator"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+}
+
+// UniqueFields unique fields of the table.
+func (u *Upload) UniqueFields() []string {
+	return []string{FieldKeyUploadID}
 }
 
 // UniqueKey unique key of the table.

@@ -11,6 +11,9 @@
 package topoevent
 
 const (
+	// FieldKeyTenantID the tenant id field key.
+	FieldKeyTenantID = "data.tenant_id"
+
 	// FieldKeyNetworkAreaID the networkarea id field key.
 	FieldKeyNetworkAreaID = "data.networkarea_id"
 

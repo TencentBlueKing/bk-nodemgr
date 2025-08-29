@@ -50,7 +50,7 @@ func (h *Handler) categoryDao(category types.UploadCategory) *dao {
 
 	newDaoClient := newDao(string(category), h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure host indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure upload indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	d, _ := h.daoMap.LoadOrStore(category, newDaoClient)

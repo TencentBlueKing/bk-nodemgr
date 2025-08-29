@@ -19,6 +19,8 @@ import (
 // TableName node deployment table name.
 const TableName = "node_deployment"
 
+var _ base.IData = &Data{}
+
 // Data represents the table of node deployment.
 // Token should be the unique key.
 type Data struct {
@@ -115,6 +117,11 @@ type NodeConf struct {
 	ConfigTemplate map[string]string `json:"config_template" bson:"config_template"`
 	PreSetting     map[string]any    `json:"pre_setting" bson:"pre_setting"`
 	CustomSetting  map[string]any    `json:"custom_setting" bson:"custom_setting"`
+}
+
+// UniqueFields unique fields of the table.
+func (deploy *Data) UniqueFields() []string {
+	return []string{FieldKeyToken}
 }
 
 // UniqueKey unique key of the table.

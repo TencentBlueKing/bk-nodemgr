@@ -22,6 +22,8 @@ func TableName(tenantID string) string {
 	return "configpolicy_" + tenantID
 }
 
+var _ base.IData = &ConfigPolicy{}
+
 // RawData presents a config policy without version.
 type RawData struct {
 	TenantID         string         `json:"tenant_id" bson:"tenant_id"`
@@ -42,6 +44,11 @@ type ConfigPolicy struct {
 	Raw RawData `json:"raw" bson:"raw"`
 
 	Version int `json:"version" bson:"version"`
+}
+
+// UniqueFields unique fields of the table.
+func (r *ConfigPolicy) UniqueFields() []string {
+	return []string{FieldKeyConfigPolicyID}
 }
 
 // Scope presents a single scope for config policy.

@@ -8,37 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package counter
+package stopoperinst
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+const (
+	// FieldKeyOperInstID the oper_inst_id field key.
+	FieldKeyOperInstID = "data.oper_inst_id"
 )
-
-// TableName counter table name.
-func TableName() string {
-	return "counter"
-}
-
-var _ base.IData = &Counter{}
-
-// Counter represents the counter table.
-// Key should be the unique key.
-type Counter struct {
-	Key      string `json:"key" bson:"key"`
-	Seqeunce int64  `json:"sequence" bson:"sequence"`
-}
-
-// UniqueFields unique key of the table.
-func (c *Counter) UniqueFields() []string {
-	return []string{
-		FieldKeyKey,
-	}
-}
-
-// UniqueKey unique key of the table.
-func (c *Counter) UniqueKey() string {
-	return c.Key
-}
-
-// TableCounter represents the complete db structures of a counter.
-type TableCounter base.TableBroker[*Counter]
