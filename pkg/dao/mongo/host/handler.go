@@ -424,6 +424,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 			ProxyDataPort:    host.Dynamic.ProxyDataPort,
 			ProxyFilePort:    host.Dynamic.ProxyFilePort,
 			LoginIP:          host.Dynamic.LoginIP,
+			LoginPort:        host.Dynamic.LoginPort,
+			LoginUser:        host.Dynamic.LoginUser,
 			ExportIP:         host.Dynamic.ExportIP,
 			AdvertiseIP:      host.Dynamic.AdvertiseIP,
 		}
@@ -484,6 +486,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			ProxyDataPort:       host.Dynamic.ProxyDataPort,
 			ProxyFilePort:       host.Dynamic.ProxyFilePort,
 			LoginIP:             host.Dynamic.LoginIP,
+			LoginPort:           host.Dynamic.LoginPort,
+			LoginUser:           host.Dynamic.LoginUser,
 			ExportIP:            host.Dynamic.ExportIP,
 			AdvertiseIP:         host.Dynamic.AdvertiseIP,
 		}

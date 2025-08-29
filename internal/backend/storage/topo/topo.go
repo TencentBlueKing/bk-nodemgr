@@ -271,7 +271,7 @@ func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.
 		types.UnlimitedPage(),
 		networkunit.WithNetworkUnitID(upstreamNetworkUnitIDs...))
 	if err != nil {
-		s.Logger.Errorf("failed to check networkunit links, failed to list upstream networkunit: %v", err.Error())
+		s.Logger.Errorf("failed to check networkunit links, failed to list upstream networkunit: %v", err)
 		return err
 	}
 
@@ -327,8 +327,10 @@ func (s *Storage) CreateNetworkUnit(
 	networkUnit *types.NetworkUnit,
 	accessPoints ...*types.AccessPoint) (int64, *AccessPointResult, error) {
 
-	if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
-		return -1, nil, err
+	if !networkUnit.IsDirect {
+		if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+			return -1, nil, err
+		}
 	}
 
 	if len(accessPoints) == 0 {
@@ -376,8 +378,10 @@ func (s *Storage) UpdateNetworkUnit(
 	networkUnit *types.NetworkUnit,
 	accessPoints ...*types.AccessPoint) (*AccessPointResult, error) {
 
-	if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
-		return nil, err
+	if !networkUnit.IsDirect {
+		if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(accessPoints) == 0 {

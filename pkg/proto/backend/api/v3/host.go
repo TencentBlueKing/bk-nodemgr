@@ -72,6 +72,11 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 			*item.Info.OsType = string(host.Dynamic.NodeOsType)
 		}
 		*item.Info.CpuArch = string(host.Dynamic.NodeCPUArch)
+		*item.Info.LoginIp = host.Dynamic.LoginIP
+		*item.Info.LoginPort = host.Dynamic.LoginPort
+		*item.Info.LoginUser = host.Dynamic.LoginUser
+		*item.Info.ExportIp = host.Dynamic.ExportIP
+		*item.Info.AdvertiseIp = host.Dynamic.AdvertiseIP
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
@@ -133,6 +138,11 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NodeOsType:     criteria.OSType(info.GetOsType()),
 			NodeCPUArch:    criteria.CPUArch(info.GetCpuArch()),
 			ProxyTags:      types.StringListToProxyTagList(state.GetProxyTags()),
+			LoginIP:        info.GetLoginIp(),
+			LoginPort:      info.GetLoginPort(),
+			LoginUser:      info.GetLoginUser(),
+			ExportIP:       info.GetExportIp(),
+			AdvertiseIP:    info.GetAdvertiseIp(),
 		}
 
 		result[idx] = host
@@ -227,6 +237,11 @@ func newEmptyHost() *Host {
 			BkMac:           new(string),
 			OsType:          new(string),
 			CpuArch:         new(string),
+			LoginIp:         new(string),
+			LoginPort:       new(int64),
+			LoginUser:       new(string),
+			ExportIp:        new(string),
+			AdvertiseIp:     new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

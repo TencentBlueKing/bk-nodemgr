@@ -104,6 +104,11 @@ message HostInfo {
   optional string bk_mac = 10;
   optional string os_type = 11;
   optional string cpu_arch = 12;
+  optional string login_ip = 13;
+  optional int64 login_port = 14;
+  optional string login_user = 15;
+  optional string export_ip = 16;
+  optional string advertise_ip = 17;
 }
 
 // Host describes the host informations.

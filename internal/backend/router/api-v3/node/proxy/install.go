@@ -127,6 +127,8 @@ func (h *handler) generateInstallNodeDeployments(
 							NetworkUnitID:  networkUnit.ID,
 							ProxyTags:      types.StringListToProxyTagList(host.GetProxyTags()),
 							LoginIP:        host.GetLoginIp(),
+							LoginPort:      host.GetLoginPort(),
+							LoginUser:      host.GetLoginUser(),
 							ExportIP:       host.GetExportIp(),
 							AdvertiseIP:    host.GetAdvertiseIp(),
 						},
