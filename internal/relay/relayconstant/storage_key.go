@@ -32,8 +32,8 @@ const (
 
 	// StorageResultKey defines the storage result key.
 	StorageResultKey = "storage_result"
-	// StorageResultMsgKey defines the storage result key.
-	StorageResultMsgKey = "err_msg"
+	// StorageResultErrMsgKey defines the storage result key.
+	StorageResultErrMsgKey = "err_msg"
 
 	// InstallResultKey defines the install result key.
 	InstallResultKey = "install_result"

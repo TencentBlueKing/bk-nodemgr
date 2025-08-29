@@ -103,7 +103,7 @@ func (h *handler) handlerHost(
 
 	nodeDeployment, err := h.genNodeDeployment(tenantCtx, tenantID, reqHost, targetVersions, networkUnit)
 	if err != nil {
-		h.logger.Error("conv agent install reqHost to node deployment failed", err)
+		h.logger.Error("conv agent install reqHost to node deployment failed:", err)
 
 		return nil, err
 	}

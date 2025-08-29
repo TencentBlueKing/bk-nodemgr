@@ -134,6 +134,11 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(ctx *action.Insta
 		return types.RelayInfo{}, err
 	}
 
+	if num == 0 {
+		ctx.Data.LogE("no proxy host in network unit")
+		return types.RelayInfo{}, errors.New("no proxy host in network unit")
+	}
+
 	dedicatedHosts := make([]*types.Host, 0, num)
 	for _, host := range hosts {
 		for _, tag := range host.Dynamic.ProxyTags {

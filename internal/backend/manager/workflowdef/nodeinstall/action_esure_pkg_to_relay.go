@@ -609,7 +609,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 				return errors.New("unexpected type for relay storage result")
 			}
 
-			errMsgRaw := relayStorageResult[relayconstant.StorageResultMsgKey]
+			errMsgRaw := relayStorageResult[relayconstant.StorageResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
 				return errors.New("unexpected type for relay storage result message")

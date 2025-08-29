@@ -40,7 +40,7 @@ func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
 
 	dataMap := map[string]any{
 		relayconstant.StorageResultKey: map[string]string{
-			relayconstant.StorageResultMsgKey: req.GetErrMsg(),
+			relayconstant.StorageResultErrMsgKey: req.GetErrMsg(),
 		},
 	}
 
