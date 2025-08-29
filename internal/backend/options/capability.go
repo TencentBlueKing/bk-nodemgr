@@ -13,6 +13,7 @@ package options
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
@@ -104,6 +105,9 @@ type Capability struct {
 
 	// CreditVault credit vault.
 	CreditVault creditvault.ICreditVault
+
+	// PeriodicTask periodic task manager.
+	PeriodicTask periodictask.PeriodicTask
 }
 
 // Start ...
@@ -161,6 +165,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.Manager.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.PeriodicTask.Start(); err != nil {
 		return err
 	}
 

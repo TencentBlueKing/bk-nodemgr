@@ -180,3 +180,16 @@ func (s *Storage) ListEmptyOperation(
 
 	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation())
 }
+
+// DeleteOperations deletes operations by operation ids.
+func (s *Storage) DeleteOperations(ctx context.Context, operationID ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.Delete(ctx, operationID...)
+}

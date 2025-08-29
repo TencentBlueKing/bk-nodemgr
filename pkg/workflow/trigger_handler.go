@@ -101,87 +101,75 @@ func (handler *triggerHandler) Stop() {
 const (
 	defaultTimeout = 1 * time.Minute
 
-	onceTriggersSyncIntervalDefault      = 1 * time.Second
-	onceTriggersCheckIntervalDefault     = 1 * time.Second
-	orderedTriggersSyncIntervalDefault   = 1 * time.Second
-	orderedTriggersCheckIntervalDefault  = 1 * time.Second
-	periodicTriggersSyncIntervalDefault  = 1 * time.Second
-	periodicTriggersCheckIntervalDefault = 1 * time.Second
+	onceTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
+	orderedTriggersSyncAndCheckIntervalDefault  = 1 * time.Second
+	periodicTriggersSyncAndCheckIntervalDefault = 1 * time.Second
 
 	maxOnceTriggerProcessLimit = 500
 
-	taskIDSyncOnceTrigger      = "sync_once_trigger"
-	taskIDSyncPeriodicTrigger  = "sync_periodic_trigger"
-	taskIDSyncOrderedTrigger   = "sync_ordered_trigger"
-	taskIDCheckOnceTrigger     = "check_once_trigger"
-	taskIDCheckPeriodicTrigger = "check_periodic_trigger"
-	taskIDCheckOrderedTrigger  = "check_ordered_trigger"
+	taskIDSyncAndCheckOnceTrigger     = "sync_and_check_once_trigger"
+	taskIDSyncAndCheckOrderedTrigger  = "sync_and_check_ordered_trigger"
+	taskIDSyncAndCheckPeriodicTrigger = "sync_and_check_periodic_trigger"
 )
 
 func (handler *triggerHandler) initSchedulerTasks() {
-	// init syncing.
-	syncingTasks := []*scheduler.Task{
+	// init schedule tasks.
+	// sync first and then check to avoid the situation where deleted triggers are still being checked
+	// nolint: contextcheck
+	scheduleTasks := []*scheduler.Task{
 		scheduler.NewTask(
-			taskIDSyncOnceTrigger,
-			onceTriggersSyncIntervalDefault,
+			taskIDSyncAndCheckOnceTrigger,
+			onceTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.syncOnceTrigger(ctx)
-			},
-		),
-		scheduler.NewTask(
-			taskIDSyncOrderedTrigger,
-			orderedTriggersSyncIntervalDefault,
-			defaultTimeout,
-			func(ctx context.Context) error {
-				return handler.syncOrderedTrigger(ctx)
-			},
-		),
-		scheduler.NewTask(
-			taskIDSyncPeriodicTrigger,
-			periodicTriggersSyncIntervalDefault,
-			defaultTimeout,
-			func(ctx context.Context) error {
-				return handler.syncPeriodicTrigger(ctx)
-			},
-		),
-	}
-	for _, task := range syncingTasks {
-		err := handler.scheduler.RegisterTask(task)
-		if err != nil {
-			handler.mgr.logger.Errorf("failed to register task, task-id(%s), err: %v", task.ID, err)
-			continue
-		}
-	}
+				if err := handler.syncOnceTrigger(ctx); err != nil {
+					return err
+				}
 
-	// init checking.
-	checkingTasks := []*scheduler.Task{
-		scheduler.NewTask(
-			taskIDCheckOnceTrigger,
-			onceTriggersCheckIntervalDefault,
-			defaultTimeout,
-			func(ctx context.Context) error {
-				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.onceTriggers.get())
+				if err := handler.checkTriggerList(
+					contextx.NewContext(ctx, make(map[string]any)), handler.onceTriggers.get()); err != nil {
+					return err
+				}
+
+				return nil
 			},
 		),
 		scheduler.NewTask(
-			taskIDCheckOrderedTrigger,
-			orderedTriggersCheckIntervalDefault,
+			taskIDSyncAndCheckOrderedTrigger,
+			orderedTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.orderedTriggers.get())
+				if err := handler.syncOrderedTrigger(ctx); err != nil {
+					return err
+				}
+
+				if err := handler.checkTriggerList(
+					contextx.NewContext(ctx, make(map[string]any)), handler.orderedTriggers.get()); err != nil {
+					return err
+				}
+
+				return nil
 			},
 		),
 		scheduler.NewTask(
-			taskIDCheckPeriodicTrigger,
-			periodicTriggersCheckIntervalDefault,
+			taskIDSyncAndCheckPeriodicTrigger,
+			periodicTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
 			func(ctx context.Context) error {
-				return handler.checkTriggerList(contextx.NewContext(ctx, make(map[string]any)), handler.periodicTriggers.get())
+				if err := handler.syncPeriodicTrigger(ctx); err != nil {
+					return err
+				}
+
+				if err := handler.checkTriggerList(
+					contextx.NewContext(ctx, make(map[string]any)), handler.periodicTriggers.get()); err != nil {
+					return err
+				}
+
+				return nil
 			},
 		),
 	}
-	for _, task := range checkingTasks {
+	for _, task := range scheduleTasks {
 		err := handler.scheduler.RegisterTask(task)
 		if err != nil {
 			handler.mgr.logger.Errorf("failed to register task, task-id(%s), err: %v", task.ID, err)

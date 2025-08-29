@@ -86,3 +86,18 @@ func (d *dao) update(ctx context.Context, trig *Trigger) error {
 
 	return nil
 }
+
+// delete deletes triggers.
+func (d *dao) delete(ctx context.Context, triggerIDs ...string) error {
+	filter := base.AliveFilter()
+	filter = append(filter, bson.E{Key: FieldKeyTriggerID, Value: bson.D{{Key: "$in", Value: triggerIDs}}})
+
+	result, err := d.client.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, triggerIDs)
+
+	return nil
+}

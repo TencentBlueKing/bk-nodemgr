@@ -41,6 +41,7 @@ type operScheduleOnceTriggerOperation struct {
 // OperParamScheduleOnceTriggerOperation defines the parameters for operScheduleOnceTriggerOperation.
 type OperParamScheduleOnceTriggerOperation struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.

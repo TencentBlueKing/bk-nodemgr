@@ -108,3 +108,18 @@ func buildUpsertParams(operation *Operation) (bson.D, bson.D, *mongoOptions.Upda
 
 	return filter, update, opts
 }
+
+// delete deletes operations.
+func (d *dao) delete(ctx context.Context, operIDs ...string) error {
+	filter := base.AliveFilter()
+	filter = append(filter, bson.E{Key: FieldKeyOperationID, Value: bson.D{{Key: "$in", Value: operIDs}}})
+
+	result, err := d.client.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, operIDs)
+
+	return nil
+}
