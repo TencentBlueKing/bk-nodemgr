@@ -290,11 +290,10 @@ type IHandlerNodeWorkflow interface {
 // IHandlerRelease defines the backend Handler for release.
 type IHandlerRelease interface {
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, page types.Page, condition *types.ReleaseCondition) (
-		[]*types.Release, int64, error)
+	ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page, condition *types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition) (int64, error)
+	CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition, gen types.Generation) (int64, error)
 
 	// DistinctRelease distincts release by conditions.
 	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, request types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
@@ -930,11 +929,12 @@ func (h *Handler) OperationRetry(ctx contextx.ITenantUserContext, retryParam *ty
 }
 
 // ListRelease lists release by page and conditions.
-func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, page types.Page, condition *types.ReleaseCondition) ([]*types.Release, int64, error) {
+func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page, condition *types.ReleaseCondition) ([]*types.Release, int64, error) {
 
 	req := &protoBackend.PackageReleaseListReq{
 		Page:        convertPage(page),
 		ReleaseType: string(releaseType),
+		Generation:  int64(gen),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
@@ -951,9 +951,10 @@ func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types
 }
 
 // CountRelease counts release by conditions.
-func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition) (int64, error) {
+func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition, gen types.Generation) (int64, error) {
 	req := &protoBackend.PackageReleaseListReq{
 		ReleaseType: string(releaseType),
+		Generation:  int64(gen),
 		OnlyCount:   true,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {

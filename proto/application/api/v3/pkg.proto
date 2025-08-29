@@ -180,9 +180,10 @@ message PackageReleaseExactConditions {
 message PackageReleaseListReq {
   Page page = 1;
   string release_type = 2;
-  bool only_count = 3;
+  int64 generation = 3;
+  bool only_count = 4;
 
-  PackageReleaseExactConditions exact_include_conditions = 4;
+  PackageReleaseExactConditions exact_include_conditions = 5;
 }
 
 // PackageReleaseListResp describes the HTTP response body when list package

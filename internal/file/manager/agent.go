@@ -390,7 +390,7 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IUserContext, uploadID string
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseAgent(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseAgentGen2(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upsert release agent: %v", err)
 
 		return err

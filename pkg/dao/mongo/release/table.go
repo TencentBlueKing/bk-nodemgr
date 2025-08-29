@@ -18,8 +18,8 @@ import (
 )
 
 // TableName release table name.
-func TableName(releaseType string) string {
-	return fmt.Sprintf("release_%s", releaseType)
+func TableName(releaseType string, gen int64) string {
+	return fmt.Sprintf("release_%s_%d", releaseType, gen)
 }
 
 // Release presents a release.

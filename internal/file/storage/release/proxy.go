@@ -67,5 +67,5 @@ func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generati
 		}
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, releases...)
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, gen, releases...)
 }

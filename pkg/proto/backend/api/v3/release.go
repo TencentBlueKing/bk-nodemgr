@@ -25,6 +25,10 @@ func (x *PackageReleaseListReq) Validate() error {
 		return err
 	}
 
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -163,6 +167,10 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 // Validate validates the request.
 func (x *PackageReleaseDistinctReq) Validate() error {
 	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
 		return err
 	}
 

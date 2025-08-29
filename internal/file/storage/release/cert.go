@@ -20,21 +20,21 @@ import (
 
 // ICert defines the cert interface.
 type ICert interface {
-	// GetReleaseCert gets release cert.
-	GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error)
+	// GetReleaseCertGen2 gets release cert gen2.
+	GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error)
 
-	// ExistReleaseCert checks if release cert exists.
-	ExistReleaseCert(ctx context.Context) (bool, error)
+	// ExistReleaseCertGen2 checks if release cert gen2 exists.
+	ExistReleaseCertGen2(ctx context.Context) (bool, error)
 
-	// UpsertReleaseCert upserts release cert.
-	UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error
+	// UpsertReleaseCertGen2 upserts release cert gen2.
+	UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error
 
-	// DeleteReleaseCert deletes release cert.
-	DeleteReleaseCert(ctx context.Context, fileName string) error
+	// DeleteReleaseCertGen2 deletes release cert gen2.
+	DeleteReleaseCertGen2(ctx context.Context, fileName string) error
 }
 
-// GetReleaseCert gets release cert.
-func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error) {
+// GetReleaseCertGen2 gets release cert gen2.
+func (s *Storage) GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error) {
 	r, err := s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), "")
 	if err != nil {
 		return nil, err
@@ -45,14 +45,14 @@ func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error
 	}, nil
 }
 
-// ExistReleaseCert checks if release cert exists.
-func (s *Storage) ExistReleaseCert(ctx context.Context) (bool, error) {
+// ExistReleaseCertGen2 checks if release cert gen2 exists.
+func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (bool, error) {
 	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), "")
 }
 
-// UpsertReleaseCert upserts release cert.
-func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error {
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, &types.Release{
+// UpsertReleaseCertGen2 upserts release cert gen2.
+func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error {
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
 		Generation: types.GenerationAll,
 		Type:       types.ReleaseTypeCert,
 		Platform:   platform.EmptyPlatform(),
@@ -63,7 +63,7 @@ func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert)
 	})
 }
 
-// DeleteReleaseCert deletes release cert.
-func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) error {
+// DeleteReleaseCertGen2 deletes release cert gen2.
+func (s *Storage) DeleteReleaseCertGen2(ctx context.Context, fileName string) error {
 	return s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), fileName)
 }

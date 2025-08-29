@@ -23,18 +23,18 @@ import (
 
 // IAgent defines the agent interface.
 type IAgent interface {
-	// GetReleaseAgent gets release agent by generation, type, platform and version.
+	// GetReleaseAgent gets release agent gen2 by generation, type, platform and version.
 	GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
-	// UpsertManyReleaseAgent upsert many release agent.
-	UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
+	// UpsertManyReleaseAgentGen2 upsert many release agent gen2.
+	UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
 
-	// ExistReleaseAgent checks if release agent exists.
+	// ExistReleaseAgent checks if release agent gen2 exists.
 	ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
-// UpsertManyReleaseAgent upsert many release.
-func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
+// UpsertManyReleaseAgentGen2 upsert many release.
+func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
 	var err error
 	releases := make([]*types.Release, 0, len(releaseAgents))
 
@@ -50,12 +50,12 @@ func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*t
 		}
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, releases...)
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
 }
 
-// ExistReleaseAgent checks if release agent exists.
+// ExistReleaseAgent checks if release agent gen2 exists.
 func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
-	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, release.WithGeneration(gen), release.WithType(types.ReleaseTypeAgent), release.WithVersion(version), release.WithPlatform(plats...))
+	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen, release.WithGeneration(gen), release.WithType(types.ReleaseTypeAgent), release.WithVersion(version), release.WithPlatform(plats...))
 	if err != nil {
 		return false, err
 	}

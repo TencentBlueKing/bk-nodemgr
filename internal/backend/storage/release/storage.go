@@ -38,15 +38,13 @@ type IStorage interface {
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page,
-		conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
+	ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
-		*types.ReleaseDistinctResult, error)
+	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (int64, error)
+	CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (int64, error)
 
 	// SetReleaseLabels sets release labels.
 	SetReleaseLabels(ctx context.Context,
@@ -156,26 +154,18 @@ func (s *Storage) GetRelease(ctx context.Context,
 }
 
 // ListRelease lists release by page and conditions.
-func (s *Storage) ListRelease(ctx context.Context,
-	releaseType types.ReleaseType,
-	page types.Page,
-	conditions ...*types.ReleaseCondition) (
-	[]*types.Release, int64, error) {
+func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return s.daoRelease.List(ctx, releaseType, page, opts...)
+	return s.daoRelease.List(ctx, releaseType, gen, page, opts...)
 }
 
 // DistinctRelease distincts release by conditions.
-func (s *Storage) DistinctRelease(ctx context.Context,
-	releaseType types.ReleaseType,
-	request types.ReleaseDistinctRequest,
-	conditions ...*types.ReleaseCondition) (
-	*types.ReleaseDistinctResult, error) {
+func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
@@ -188,7 +178,7 @@ func (s *Storage) DistinctRelease(ctx context.Context,
 	if request.OSType {
 		gp.Go(func() error {
 			var err error
-			result.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, opts...)
+			result.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, gen, opts...)
 
 			return err
 		})
@@ -196,7 +186,7 @@ func (s *Storage) DistinctRelease(ctx context.Context,
 	if request.CPUArch {
 		gp.Go(func() error {
 			var err error
-			result.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, opts...)
+			result.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, gen, opts...)
 
 			return err
 		})
@@ -209,13 +199,13 @@ func (s *Storage) DistinctRelease(ctx context.Context,
 }
 
 // CountRelease counts release by conditions.
-func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (int64, error) {
+func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (int64, error) {
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err
 	}
 
-	return s.daoRelease.Count(ctx, releaseType, opts...)
+	return s.daoRelease.Count(ctx, releaseType, gen, opts...)
 }
 
 // SetReleaseLabels sets release labels.

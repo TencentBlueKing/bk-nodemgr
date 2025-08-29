@@ -66,11 +66,12 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	releaseType := types.ReleaseType(req.ReleaseType)
+	releaseType := types.ReleaseType(req.GetReleaseType())
+	gen := types.Generation(req.GetGeneration())
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountRelease(ctx, releaseType, req.ConvertConditionsToTypes())
+		num, err := h.backendHandler.CountRelease(ctx, releaseType, req.ConvertConditionsToTypes(), gen)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -82,7 +83,7 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.backendHandler.ListRelease(ctx, releaseType, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	hosts, num, err := h.backendHandler.ListRelease(ctx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list release. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

@@ -121,7 +121,7 @@ func Test_UpsertMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := client.UpsertMany(context.Background(), "", tt.args.releases...); (err != nil) != tt.wantErr {
+			if err := client.UpsertMany(context.Background(), "", gen, tt.args.releases...); (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -202,7 +202,7 @@ func Test_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			releases, total, err := client.List(context.Background(), "", tt.args.page, tt.args.opts...)
+			releases, total, err := client.List(context.Background(), "", gen, tt.args.page, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return

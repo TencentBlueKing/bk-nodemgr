@@ -30,10 +30,11 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 	}
 
 	releaseType := types.ReleaseType(req.GetReleaseType())
+	gen := types.Generation(req.GetGeneration())
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountRelease(ctx, releaseType, req.ConvertConditionsToTypes())
+		num, err := h.storage.CountRelease(ctx, releaseType, gen, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -45,7 +46,7 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListRelease(ctx, releaseType, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	hosts, num, err := h.storage.ListRelease(ctx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list release. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -66,8 +67,9 @@ func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) 
 	}
 
 	releaseType := types.ReleaseType(req.GetReleaseType())
+	gen := types.Generation(req.GetGeneration())
 
-	result, err := h.storage.DistinctRelease(ctx, releaseType, types.NewReleaseDistinctRequestAllSet(), req.ConvertConditionsToTypes())
+	result, err := h.storage.DistinctRelease(ctx, releaseType, gen, types.NewReleaseDistinctRequestAllSet(), req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
