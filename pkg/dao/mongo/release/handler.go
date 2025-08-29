@@ -160,7 +160,9 @@ func (h *Handler) Exist(ctx context.Context, releaseType types.ReleaseType, gen 
 }
 
 // List lists releases.
-func (h *Handler) List(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, opts ...OptFn) ([]*types.Release, int64, error) {
+func (h *Handler) List(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, opts ...OptFn) (
+	[]*types.Release, int64, error) {
+
 	if ctx == nil {
 		return nil, 0, errors.New("ctx is nil")
 	}

@@ -290,13 +290,16 @@ type IHandlerNodeWorkflow interface {
 // IHandlerRelease defines the backend Handler for release.
 type IHandlerRelease interface {
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page, condition *types.ReleaseCondition) ([]*types.Release, int64, error)
+	ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+		condition *types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition, gen types.Generation) (int64, error)
+	CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+		condition *types.ReleaseCondition) (int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, request types.ReleaseDistinctRequest, condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, request types.ReleaseDistinctRequest,
+		condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// SetReleaseLabels sets release labels.
 	SetReleaseLabels(ctx contextx.ITenantUserContext,
@@ -797,7 +800,7 @@ func (h *Handler) DistinctNodeWorkflow(ctx contextx.ITenantUserContext, _ types.
 	return resp.ConvertWorkflowDistinctToTypes(), nil
 }
 
-// ListOperation list workflow  operation.
+// ListNodeWorkflowOperation list workflow  operation.
 func (h *Handler) ListNodeWorkflowOperation(ctx contextx.ITenantUserContext,
 	page types.Page, condition *types.NodeWorkflowOperationCondition) (
 	[]*operation.Operation, int64, error) {
@@ -820,7 +823,7 @@ func (h *Handler) ListNodeWorkflowOperation(ctx contextx.ITenantUserContext,
 	return operations, total, nil
 }
 
-// CountOperation count workflow  operation.
+// CountNodeWorkflowOperation count workflow  operation.
 func (h *Handler) CountNodeWorkflowOperation(ctx contextx.ITenantUserContext,
 	condition *types.NodeWorkflowOperationCondition) (int64, error) {
 
@@ -872,7 +875,7 @@ func (h *Handler) CountNodeWorkflowOperationInstance(ctx contextx.ITenantUserCon
 	return resp.GetData().GetTotal(), nil
 }
 
-// GetOperationInstanceLog get workflow operation instance log.
+// GetNodeWorkflowOperationInstanceLog get workflow operation instance log.
 func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.ITenantUserContext, instanceID string) (
 	*operation.InstanceData, error) {
 
@@ -929,7 +932,8 @@ func (h *Handler) OperationRetry(ctx contextx.ITenantUserContext, retryParam *ty
 }
 
 // ListRelease lists release by page and conditions.
-func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page, condition *types.ReleaseCondition) ([]*types.Release, int64, error) {
+func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+	condition *types.ReleaseCondition) ([]*types.Release, int64, error) {
 
 	req := &protoBackend.PackageReleaseListReq{
 		Page:        convertPage(page),
@@ -951,7 +955,9 @@ func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types
 }
 
 // CountRelease counts release by conditions.
-func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, condition *types.ReleaseCondition, gen types.Generation) (int64, error) {
+func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+	condition *types.ReleaseCondition) (int64, error) {
+
 	req := &protoBackend.PackageReleaseListReq{
 		ReleaseType: string(releaseType),
 		Generation:  int64(gen),

@@ -55,7 +55,11 @@ func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents 
 
 // ExistReleaseAgent checks if release agent gen2 exists.
 func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
-	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen, release.WithGeneration(gen), release.WithType(types.ReleaseTypeAgent), release.WithVersion(version), release.WithPlatform(plats...))
+	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen,
+		release.WithGeneration(gen),
+		release.WithType(types.ReleaseTypeAgent),
+		release.WithVersion(version),
+		release.WithPlatform(plats...))
 	if err != nil {
 		return false, err
 	}

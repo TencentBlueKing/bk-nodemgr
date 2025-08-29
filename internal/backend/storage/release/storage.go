@@ -38,10 +38,12 @@ type IStorage interface {
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
+	ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+		conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
+	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest,
+		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
 	CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (int64, error)
@@ -154,7 +156,8 @@ func (s *Storage) GetRelease(ctx context.Context,
 }
 
 // ListRelease lists release by page and conditions.
-func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error) {
+func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
@@ -165,7 +168,8 @@ func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType
 }
 
 // DistinctRelease distincts release by conditions.
-func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
+func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest,
+	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
 
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
@@ -199,7 +203,9 @@ func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.Release
 }
 
 // CountRelease counts release by conditions.
-func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (int64, error) {
+func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation,
+	conditions ...*types.ReleaseCondition) (int64, error) {
+
 	opts, err := convertReleaseconditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err

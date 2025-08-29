@@ -71,7 +71,7 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountRelease(ctx, releaseType, req.ConvertConditionsToTypes(), gen)
+		num, err := h.backendHandler.CountRelease(ctx, releaseType, gen, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
