@@ -35,4 +35,31 @@ const (
 
 	// Every can be followed by any valid Go time.Duration string.
 	Every = "@every "
+
+	// Every1s defines the schedule interval of every 1 second.
+	Every1s = Every + "1s"
+
+	// Every5s defines the schedule interval of every 5 seconds.
+	Every5s = Every + "5s"
+
+	// Every10s defines the schedule interval of every 10 seconds.
+	Every10s = Every + "10s"
+
+	// Every30s defines the schedule interval of every 30 seconds.
+	Every30s = Every + "30s"
+
+	// Every1m defines the schedule interval of every 1 minute.
+	Every1m = Every + "1m"
+
+	// Every5m defines the schedule interval of every 5 minutes.
+	Every5m = Every + "5m"
+
+	// Every10m defines the schedule interval of every 10 minutes.
+	Every10m = Every + "10m"
+
+	// Every30m defines the schedule interval of every 30 minutes.
+	Every30m = Every + "30m"
+
+	// Every1h defines the schedule interval of every 1 hour.
+	Every1h = Every + "1h"
 )

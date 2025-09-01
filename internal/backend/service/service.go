@@ -299,9 +299,10 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.Cap.PeriodicTask = *periodictask.NewPeriodicTask(periodictask.Config{
+	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
 		Locker:              svc.Cap.LockerFactory,
 		Logger:              svc.Cap.Logger,
+		StgGlobalSetting:    svc.Cap.StorageGlobalSettings,
 		StgTrigger:          svc.Cap.StorageTrigger,
 		StgOperation:        svc.Cap.StorageOperation,
 		StgOperInst:         svc.Cap.StorageOperInst,

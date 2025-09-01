@@ -107,7 +107,7 @@ type Capability struct {
 	CreditVault creditvault.ICreditVault
 
 	// PeriodicTask periodic task manager.
-	PeriodicTask periodictask.PeriodicTask
+	PeriodicTask periodictask.IPeriodicTask
 }
 
 // Start ...
@@ -168,7 +168,7 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := capability.PeriodicTask.Start(); err != nil {
+	if err := capability.PeriodicTask.Start(ctx); err != nil {
 		return err
 	}
 

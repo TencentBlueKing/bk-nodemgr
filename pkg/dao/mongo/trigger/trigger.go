@@ -84,7 +84,7 @@ func (d *dao) update(ctx context.Context, trig *Trigger) error {
 // delete deletes triggers.
 func (d *dao) delete(ctx context.Context, triggerIDs ...string) error {
 	filter := base.AliveFilter()
-	filter = append(filter, bson.E{Key: FieldKeyTriggerID, Value: bson.D{{Key: "$in", Value: triggerIDs}}})
+	filter = WithTriggerID(triggerIDs...)(filter)
 
 	result, err := d.client.DeleteMany(ctx, filter)
 	if err != nil {

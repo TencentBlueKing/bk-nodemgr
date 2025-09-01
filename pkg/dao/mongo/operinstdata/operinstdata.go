@@ -223,7 +223,7 @@ func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperIn
 // delete deletes operinstdata by given operInstIDs.
 func (d *dao) delete(ctx context.Context, operInstIDs ...string) error {
 	filter := base.AliveFilter()
-	filter = append(filter, bson.E{Key: FieldKeyOperInstID, Value: bson.D{{Key: "$in", Value: operInstIDs}}})
+	filter = WithOperInstID(operInstIDs...)(filter)
 
 	result, err := d.client.DeleteMany(ctx, filter)
 	if err != nil {
