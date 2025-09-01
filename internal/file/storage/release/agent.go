@@ -48,6 +48,8 @@ func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents 
 		if err != nil {
 			return fmt.Errorf("failed to upsert many release agent: %v", err)
 		}
+
+		releases = append(releases, &rls.Release)
 	}
 
 	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
