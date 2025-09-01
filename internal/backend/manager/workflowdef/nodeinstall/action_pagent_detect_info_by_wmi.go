@@ -131,7 +131,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	param := new(ActParamDetectInfoByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
@@ -167,7 +167,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.

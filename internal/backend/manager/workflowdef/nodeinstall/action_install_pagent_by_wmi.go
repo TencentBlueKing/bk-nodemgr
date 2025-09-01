@@ -240,7 +240,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceCo
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("notify completion failed: %w", err)
+			return fmt.Errorf("notify relay to install failed: %w", err)
 		}
 	case <-ctx.Ctx.Done():
 		return ctx.Ctx.Err()
@@ -296,13 +296,13 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 				return "", errors.New(errMsg)
 			}
 
-			stdOutRaw := relayInstallResult[relayconstant.InstallResultOutStrKey]
-			stdOut, ok := stdOutRaw.(string)
+			outStrRaw := relayInstallResult[relayconstant.InstallResultOutStrKey]
+			outStr, ok := outStrRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for stdout")
+				return "", errors.New("unexpected type for output string")
 			}
 
-			return stdOut, nil
+			return outStr, nil
 		}
 	}
 }

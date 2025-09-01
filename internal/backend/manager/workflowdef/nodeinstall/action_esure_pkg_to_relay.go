@@ -563,7 +563,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("notify completion failed: %w", err)
+			return fmt.Errorf("notify relay to receive failed: %w", err)
 		}
 	case <-ctx.Ctx.Done():
 		return ctx.Ctx.Err()
