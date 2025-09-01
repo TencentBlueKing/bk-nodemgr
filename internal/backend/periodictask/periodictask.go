@@ -18,17 +18,26 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 )
 
+// IPeriodicTask defines the interface for periodic task manager.
+type IPeriodicTask interface {
+	Start(ctx contextx.IContext) error
+	Terminate()
+}
+
 // Config defines the configuration of watcher.
 type Config struct {
 	Locker locker.MutexFactory
 	Logger logger.ILogger
 
+	StgGlobalSetting    globalsettings.IStorage
 	StgTrigger          trigger.IStorage
 	StgOperation        operation.IStorage
 	StgOperInst         operinstdata.IStorage
@@ -41,6 +50,7 @@ type PeriodicTask struct {
 	mu        sync.Mutex
 	conf      Config
 	scheduler scheduler.Scheduler
+	gs        globalsettings.IGlobalSettings
 }
 
 // NewPeriodicTask creates a new watcher manager.
@@ -54,11 +64,16 @@ func NewPeriodicTask(conf Config) *PeriodicTask {
 }
 
 // Start starts the watcher manager.
-func (pt *PeriodicTask) Start() error {
+func (pt *PeriodicTask) Start(ctx contextx.IContext) error {
 	pt.conf.Logger.Info("started backend periodic task manager")
 
-	if err := pt.registerTasks(); err != nil {
-		pt.conf.Logger.Errorf("register periodic-tasks failed: %v", err)
+	var err error
+	pt.gs, err = globalsettings.NewGlobalSettings(ctx, pt.conf.StgGlobalSetting)
+	if err != nil {
+		return err
+	}
+
+	if err := pt.registerTasks(ctx); err != nil {
 		return err
 	}
 
@@ -75,11 +90,11 @@ func (pt *PeriodicTask) Terminate() {
 }
 
 // registerTasks register periodic tasks.
-func (pt *PeriodicTask) registerTasks() error {
+func (pt *PeriodicTask) registerTasks(ctx contextx.IContext) error {
 	periodicTasks := []*scheduler.Task{
 		scheduler.NewTask(
 			deleteNonLatestScheduleWorkflowOperInstRecordsTaskName,
-			deleteNonLatestScheduleWorkflowOperInstRecordsInterval,
+			pt.gs.Get(ctx, globalsettings.DeleteScheduleWorkflowNonLatestRecordsIntervalSecond, scheduler.Every1m),
 			deleteNonLatestScheduleWorkflowOperInstRecordsTimeout,
 			pt.DeleteNonLatestWorkflowScheduleOperInstRecords,
 		),

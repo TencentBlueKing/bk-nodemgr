@@ -107,7 +107,7 @@ func buildUpsertParams(operation *Operation) (bson.D, bson.D, *mongoOptions.Upda
 // delete deletes operations.
 func (d *dao) delete(ctx context.Context, operIDs ...string) error {
 	filter := base.AliveFilter()
-	filter = append(filter, bson.E{Key: FieldKeyOperationID, Value: bson.D{{Key: "$in", Value: operIDs}}})
+	filter = WithOperationID(operIDs...)(filter)
 
 	result, err := d.client.DeleteMany(ctx, filter)
 	if err != nil {

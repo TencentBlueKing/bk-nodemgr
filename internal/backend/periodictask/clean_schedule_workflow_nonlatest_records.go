@@ -16,13 +16,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 const (
-	deleteNonLatestScheduleWorkflowOperInstRecordsInterval = 1 * time.Hour
 	deleteNonLatestScheduleWorkflowOperInstRecordsTimeout  = 5 * time.Minute
 	deleteNonLatestScheduleWorkflowOperInstRecordsTaskName = "delete_nonlatest_schedule_workflow_operinst_records"
 )
@@ -51,7 +51,7 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 			continue
 		}
 
-		triggerIDs, err := pt.getOperationInstanceRelatedTriggerID(ctx, opers[0])
+		triggerIDs, err := pt.getOperationInstanceRelatedTriggerID(ctx, opers[0], s.WorkflowName)
 		if err != nil {
 			pt.conf.Logger.Errorf("get operation-id(%s) related trigger id failed: %v", opers[0].OperationID, err)
 			return fmt.Errorf("get operation-id(%s) related trigger id failed: %w", opers[0].OperationID, err)
@@ -85,17 +85,29 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 }
 
 // getOperationInstanceRelatedTriggerID get operation instance related trigger ids.
+// schedule workflow action name is `gen_once_trigger_` + workflow name.
 func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
-	ctx context.Context, oper *operation.Operation) ([]string, error) {
+	ctx context.Context, oper *operation.Operation, scheduleWorkflowName string) ([]string, error) {
 
+	actionName := fmt.Sprintf(schedule.ActionNameGenScheduleOnceTrigger, scheduleWorkflowName)
 	triggerIDs := make([]string, 0)
 	for _, operInstID := range oper.GetNonLastInstanceIDs() {
-		operInst, err := pt.conf.StgOperInst.GetOperationInstanceBriefData(ctx, operInstID)
+		privateData, err := pt.conf.StgOperInst.GetActionInstancePrivateData(ctx, operInstID, actionName)
 		if err != nil {
 			return nil, err
 		}
 
-		triggerIDs = append(triggerIDs, operInst.Metadata.RelatedTriggerIDs...)
+		triggerID, ok := privateData["child_trigger_id"]
+		if !ok {
+			continue
+		}
+
+		triggerIDStr, ok := triggerID.(string)
+		if !ok || triggerIDStr == "" {
+			continue
+		}
+
+		triggerIDs = append(triggerIDs, triggerIDStr)
 	}
 
 	return triggerIDs, nil

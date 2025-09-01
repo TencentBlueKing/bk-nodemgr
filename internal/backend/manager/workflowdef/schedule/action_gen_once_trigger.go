@@ -112,17 +112,7 @@ func (act *actionGenScheduleOnceTrigger) Do(ctx *action.InstanceContext) error {
 			act.Name(), param.TenantID, err)
 	}
 
-	operInst, err := act.operInstCtl.GetOperationInstanceFullData(ctx.Ctx, ctx.Data.OperationInstanceID)
-	if err != nil {
-		return fmt.Errorf("get oper-inst-id(%s) full data failed: %w", ctx.Data.OperationInstanceID, err)
-	}
-
-	operInst.Metadata.RelatedTriggerIDs = append(operInst.Metadata.RelatedTriggerIDs, triggerID)
-	err = act.operInstCtl.UpsertOperationInstanceData(ctx.Ctx, operInst)
-	if err != nil {
-		return fmt.Errorf("update oper-inst-id(%s) related action-name(%s)'s trigger-id(%s) failed: %w",
-			ctx.Data.OperationInstanceID, act.Name(), triggerID, err)
-	}
+	ctx.Data.PrivateData["child_trigger_id"] = triggerID
 
 	return nil
 }

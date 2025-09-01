@@ -59,7 +59,6 @@ type OperInstData struct {
 	Lifecycle              *LifeCycle                 `json:"life_cycle" bson:"life_cycle"`
 	ExtraExecutionName     string                     `json:"extra_execution_name" bson:"extra_execution_name"`
 	ExtraExecutionMessages []Message                  `json:"extra_execution_messages" bson:"extra_execution_messages"`
-	RelatedTriggerIDs      []string                   `json:"related_trigger_ids" bson:"related_trigger_ids"`
 }
 
 // UniqueFields unique fields of the table.
