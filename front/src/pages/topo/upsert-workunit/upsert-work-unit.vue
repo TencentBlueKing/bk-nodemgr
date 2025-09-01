@@ -295,7 +295,7 @@ const handleConfirm = async () => {
       accesspoints: form.accesspoints,
       direct_endpoints: form.direct_endpoints,
       links,
-      is_direct: isDirect.value
+      is_direct: type.value === 'direct'
     };
 
     if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;

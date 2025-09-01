@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     ConfigTemplate: typeof import('./components/config-template.vue')['default']
+    copy: typeof import('./components/install-table copy.vue')['default']
     CopyIp: typeof import('./components/copy-ip.vue')['default']
     CopyIpDropdown: typeof import('./components/copy-ip-dropdown.vue')['default']
     CreateTag: typeof import('./components/create-tag.vue')['default']

@@ -242,7 +242,7 @@ const props = defineProps({
 });
 const workareaStore = useWorkareaStore();
 const isDownStreamDataExist = computed(() => props.downstreamData.length !== 0);
-const isExpand = ref(false);
+const isExpand = ref(props.is_direct);
 const toggleExpand = () => {
   isExpand.value = !isExpand.value;
 };

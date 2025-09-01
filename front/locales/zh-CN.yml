@@ -155,8 +155,10 @@ topoManager:
       proxyStatus: Proxy 状态
       action: 操作
       Reassembly: 重装
+      edit: 编辑
     dropdown:
-      upgrade: 升级
+      reinstall: 重装
+      upgrade: 升级/回退
       unload: 卸载
       overload: 重载配置
       restart: 重启
@@ -173,6 +175,7 @@ topoManager:
     title:
       create: 新建管控单元
       edit: 编辑管控单元
+      updateProxyInfo: 修改Proxy信息
     form:
       workUnitName: 管控单元名称
       upstream: 上游接入点
@@ -199,6 +202,7 @@ topoManager:
       close: 收起
   installProxy:
     title: 安装 Proxy
+    reinstall: 重装 Proxy
     tips: 安装Proxy需要开通一定的网络访问策略，完成Proxy信息填写后，可查看相应的安装指引
     guide: 安装要求
     form:
@@ -226,16 +230,23 @@ topoManager:
       hostIp: 主机 IP
       ipv4: 内网 IPv4
       ipv6: 内网 IPv6
+      export_ip: 出口IP
+      advertise_ip: 服务IP
+      dedicated_installer: 安装跳板
+      cluster_tunnel: Agent控制
+      file_tunnel: 文件传输
+      data_tunnel: 数据上报
       hostProperties: 主机属性
       os: 操作系统
       loginInfo: 登录信息
-      loginIp: 登录 IP
+      loginIp: 登录IP
       authenticationMethod: 认证方式
       password: 密码 / 密钥
       transmittedInfo: 传输信息
       tempFileDirectory: 临时文件目录
       speedLimit: 传输限速 M/s
       dataCompression: 数据压缩
+
     batchEdit:
       loginIp: 批量编辑登录 IP
       password: 批量编辑密码 / 密钥
@@ -279,6 +290,7 @@ action:
   cancel: 取消
   save: 保存
   installProxy: 安装 Proxy
+  reinstallProxy: 重装 Proxy
   installLater: 稍后安装
   install: 安装
   unload: 卸载

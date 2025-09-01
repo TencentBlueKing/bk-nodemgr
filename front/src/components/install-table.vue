@@ -1,6 +1,40 @@
 <template>
   <div ref="contentRef">
     <VxeTable :data="tableData" :size="settings.size" :border="true" round>
+      <!-- 业务属性 -->
+      <VxeColgroup title="业务属性" align="center" v-if="isReinstall">
+        <VxeColumn
+          field="bk_biz_id"
+          title="归属业务"
+          :visible="settings.checked.includes('bk_biz_id')"
+          :width="150"
+        >
+          <template #default="{ row, $rowIndex, $columnIndex }">
+            <Validate
+              :value="row.bk_biz_id"
+              :rules="rules.bk_biz_id"
+              required
+              :ref="(el) => setInputRef($rowIndex, $columnIndex, el)"
+            >
+              <Select
+                v-model="row.bk_biz_id"
+                auto-focus
+                filterable
+                placeholder="选择业务"
+              >
+                <Select.Option
+                  v-for="item in businessList"
+                  :key="item.bk_biz_id"
+                  :name="item.bk_biz_name"
+                  :id="item.bk_biz_id"
+                >
+                  [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+                </Select.Option>
+              </Select>
+            </Validate>
+          </template>
+        </VxeColumn>
+      </VxeColgroup>
       <!-- 主机 IP -->
       <VxeColgroup align="center">
         <template #header>
@@ -49,7 +83,7 @@
           field="os_type"
           title="操作系统"
           :visible="settings.checked.includes('os_type')"
-          v-if="realeaseType !== 'proxy'"
+          v-if="realeaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">操作系统</span>
@@ -139,7 +173,7 @@
           field="login_port"
           title="登录端口"
           :visible="settings.checked.includes('login_port')"
-          v-if="realeaseType !== 'proxy'"
+          v-if="realeaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">登录端口</span>
@@ -161,7 +195,7 @@
           field="login_user"
           title="登录账号"
           :visible="settings.checked.includes('login_user')"
-          v-if="realeaseType !== 'proxy'"
+          v-if="realeaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">登录账号</span>
@@ -214,7 +248,7 @@
         </VxeColumn>
         <VxeColumn
           field="prove"
-          width="130"
+          min-width="130"
           :visible="settings.checked.includes('prove')"
         >
           <template #header>
@@ -333,7 +367,7 @@ interface IValidate {
 }
 type ValidationRules = Record<string, IValidate[]>;
 import { VxeTable, VxeColumn, VxeColgroup } from "@blueking/vxe-table";
-import { Input, Button, Message, Select, Switcher } from "bkui-vue";
+import { Input, Button, Message, Select, Switcher, } from "bkui-vue";
 import { computed, ref, reactive, onMounted } from "vue";
 import { useMainStore } from "@/stores/main";
 import { VALIDATE_REGEX } from "@/common/const";
@@ -346,12 +380,43 @@ import type { TopoHostDistinctRespData } from "@/@types/topo.d";
 const props = defineProps({
   data: {
     type: Array,
-    default: () => [],
+    default: () => [] as any[],
   },
   realeaseType: {
     type: String,
     default: "agent",
   },
+  isReinstall: {
+    type: Boolean,
+    default: false
+  },
+  currentSettings: {
+    type: Object,
+    default: {
+      fields: [
+        { field: "bk_host_innerip", title: "内网 IPv4" },
+        { field: "bk_host_innerip_v6", title: "内网 IPv6" },
+        { field: "os_type", title: "操作系统" },
+        { field: "login_port", title: "登录端口" },
+        { field: "login_user", title: "登录账号" },
+        { field: "login_ip", title: "登录 IP" },
+        { field: "login_mode", title: "认证方式" },
+        { field: "prove", title: "密码 / 密钥" },
+      ],
+      checked: [
+        "bk_host_innerip",
+        "bk_host_innerip_v6",
+        "os_type",
+        "login_port",
+        "login_ip",
+        "login_user",
+        "login_mode",
+        "prove",
+      ],
+      disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
+      size: "medium" as VxeComponentSizeType,
+    }
+  }
 });
 const initData = {
   bk_host_innerip: "",
@@ -396,9 +461,12 @@ const rules: ValidationRules = {
 };
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
+
 const mainStore = useMainStore();
+const businessList = computed(() => mainStore.businessList);
 const type = computed(() => mainStore.agentSetupType);
 const tableData = defineModel<Array<ReturnType<typeof getInitData>>>("data");
+
 function getInitData() {
   return cloneDeep(initData);
 }
@@ -407,37 +475,7 @@ const handleAddRow = (index: number) => {
   if (!(tableData.value instanceof Array)) return;
   tableData.value.splice(index + 1, 0, cloneDeep(initData));
 };
-const settings = reactive({
-  fields: [
-    { field: "bk_host_innerip", title: "内网 IPv4" },
-    { field: "bk_host_innerip_v6", title: "内网 IPv6" },
-    { field: "export_ip", title: "出口IP" },
-    { field: "advertise_ip", title: "服务IP" },
-    { field: "login_ip", title: "登录 IP" },
-    { field: "login_mode", title: "认证方式" },
-    { field: "prove", title: "密码 / 密钥" },
-    { field: "dedicated_installer", title: "安装跳板" },
-    { field: "cluster_tunnel", title: "Agent控制" },
-    { field: "file_tunnel", title: "文件传输" },
-    { field: "data_tunnel", title: "数据上报" },
-  ],
-  checked: [
-    "bk_host_innerip",
-    "bk_host_innerip_v6",
-    "export_ip",
-    "login_ip",
-    "advertise_ip",
-    "login_user",
-    "login_mode",
-    "prove",
-    "dedicated_installer",
-    "cluster_tunnel",
-    "file_tunnel",
-    "data_tunnel",
-  ],
-  disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
-  size: "medium" as VxeComponentSizeType,
-});
+const settings = reactive(cloneDeep(props.currentSettings));
 const settingChange = (data: {
   checked: string[];
   size: VxeComponentSizeType;

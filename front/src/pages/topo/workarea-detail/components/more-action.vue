@@ -1,11 +1,11 @@
 <template>
   <div>
-    <Dropdown trigger="manual" placement="right-start" :is-show="isShowDropdown">
+    <Dropdown trigger="manual" :placement="placement" :is-show="isShowDropdown">
       <Button
         text
         @click="isShowDropdown = true"
         @blur="isShowDropdown = false">
-        <i class="nodeman-icon nc-more cursor"></i>
+        <slot></slot>
       </Button>
       <template #content>
         <Dropdown.DropdownMenu>
@@ -71,7 +71,7 @@
  */
 
 import { Button, Dialog, Dropdown, Message } from 'bkui-vue';
-import { computed, ref } from 'vue';
+import { computed, ref, PropType} from 'vue';
 import { useI18n } from 'vue-i18n';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { useRouter } from 'vue-router';
@@ -85,13 +85,26 @@ interface DialogProps {
   confirmText?: string
 };
 
-interface IProps {
-  ipv4: string,
-  row: Host
-}
-const props = defineProps<IProps>();
+const props = defineProps({
+  placement: {
+    type: String,
+    default: 'right-start'
+  },
+  ipv4: {
+    type: String,
+    default: ''
+  },
+  row: {
+    type: Array as PropType<Host[]>,
+    default: []
+  },
+  batch: {
+    type: Boolean,
+    default: false
+  }
+});
 const { t } = useI18n();
-const router = useRouter();
+const router = useRouter(); 
 // dropMenuList
 const dropMenuList = ref<{
   label: string
@@ -154,7 +167,7 @@ const isShow = ref(false);
 const curAction = ref<keyof typeof confirmConfigMap>('upgrade');
 const actionConfirmProps = computed((): DialogProps => ({
   ...confirmConfigMap[curAction.value],
-  value: props.ipv4,
+  value: props.batch ? props.row.map((item: any) => item.bk_host_innerip).join(';') : props.ipv4,
 }));
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown

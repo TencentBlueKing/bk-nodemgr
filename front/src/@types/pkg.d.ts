@@ -22,8 +22,6 @@ export interface PackageUploadOriginAgentRespData {
   size: number;
   md5: string;
   version: string;
-  changelog_en: string;
-  changelog_zh: string;
   platforms: Platform[];
 }
 
@@ -188,6 +186,8 @@ export interface PackageReleaseExactConditions {
 // release.
 export interface PackageReleaseListReq {
   page: Page;
+  release_type: string;
+  generation: number;
   only_count: boolean;
   exact_include_conditions: PackageReleaseExactConditions;
 }

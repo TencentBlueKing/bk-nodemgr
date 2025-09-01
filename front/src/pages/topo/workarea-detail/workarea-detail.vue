@@ -40,33 +40,37 @@
                 </Button>
               </template>
             </FlexRow>
-            <Divider type="solid"></Divider>
-            <FlexRow class="mt-[24px]">
-              <template #left>
-                <div class="flex items-center">
-                  <!-- 新建 -->
-                  <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
-                    <span>{{ $t('topoManager.workAreaDetail.button.installProxy') }}</span>
-                  </Button>
-                  <Button disabled class="mr-[8px]">
-                    <span>{{ $t('topoManager.workAreaDetail.button.batch') }}</span>
-                    <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
-                  </Button>
-                  <!-- 复制 -->
-                  <CopyIp @change="handleCopyChange" :get-select-data="() => {}"></CopyIp>
-                </div>
-              </template>
-              <template #right>
-                <SearchSelect
-                  class="w-[480px]"
-                  :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
-                  v-model.trim="searchKey"
-                  :data="searchSelectData">
-                </SearchSelect>
-              </template>
-            </FlexRow>
-            <!-- table -->
-            <DetailTable :searchSelectValue="searchKey" :bkNetworkunitId="active"></DetailTable>
+            <template v-if="!curWorkUnit.is_direct">
+              <Divider type="solid"></Divider>
+              <FlexRow class="mt-[24px]">
+                <template #left>
+                  <div class="flex items-center">
+                    <!-- 新建 -->
+                    <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
+                      <span>{{ $t('topoManager.workAreaDetail.button.installProxy') }}</span>
+                    </Button>
+                    <MoreAction :row="selectTableData" placement="bottom-start" :batch="true">
+                      <Button :disabled="!selectTableData.length" class="mr-[8px]">
+                        <span>{{ $t('topoManager.workAreaDetail.button.batch') }}</span>
+                        <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
+                      </Button>
+                    </MoreAction>
+                    <!-- 复制 -->
+                    <CopyIp @change="handleCopyChange" :get-select-data="() => {}"></CopyIp>
+                  </div>
+                </template>
+                <template #right>
+                  <SearchSelect
+                    class="w-[480px]"
+                    :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
+                    v-model.trim="searchKey"
+                    :data="searchSelectData">
+                  </SearchSelect>
+                </template>
+              </FlexRow>
+              <!-- table -->
+              <DetailTable :searchSelectValue="searchKey" :bkNetworkunitId="active" @selectChange="handleSelectChange"></DetailTable>
+            </template>
           </div>
         </Tab.TabPanel>
         <template #add>
@@ -120,6 +124,7 @@ import WorkUnitInfo from './components/work-unit-info.vue';
 import CopyIp from '@/components/copy-ip.vue';
 import { useRouteSubTitle } from '@/stores/route-sub-title';
 import { useWorkareaStore } from '@/stores/workarea';
+import MoreAction from './components/more-action.vue';
 
 const {
   handleFetchAllWorkarea,
@@ -159,7 +164,10 @@ const searchSelectData = ref<ISearchItem[]>([
 const handleCopyChange = () => {
 
 };
-
+const selectTableData = ref<Host[]>([]);
+const handleSelectChange = (tableList: Host[]) => {
+  selectTableData.value = tableList;
+}
 const isShowInstallProxy = ref(false);
 const handleInstallProxy = () => {
   isShowInstallProxy.value = true;

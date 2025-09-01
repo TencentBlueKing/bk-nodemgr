@@ -83,6 +83,7 @@ interface HostState {
   node_version: string;
   bk_agent_id: string;
   node_generation: number;
+  proxy_tags: string[];
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -99,8 +100,14 @@ interface HostInfo {
   bk_host_outerip_v6: string;
   bk_mac: string;
   os_type: string;
+  cpu_arch: string;
   bk_networkarea_name: string;
   bk_networkunit_name: string;
+  login_ip: string;
+  login_port: number;
+  login_user: string;
+  export_ip: string;
+  advertise_ip: string;
 }
 
 // Host describes the host informations.
@@ -164,8 +171,6 @@ interface Release {
   md5: string;
   updated_at: number;
   operator: string;
-  change_log_en: string;
-  change_log_zh: string;
 }
 
 // Platform describes the platform informations.

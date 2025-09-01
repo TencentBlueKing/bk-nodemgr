@@ -113,3 +113,35 @@ export interface NodeProxyRestartRespData {
   workflow_id: string;
 }
 
+// NodeProxyUpdateHost describes the node proxy update host.
+export interface NodeProxyUpdateHost {
+  bk_host_id: number;
+  login_ip: string;
+  login_port: number;
+  login_user: string;
+  // support: password_vault, password, keyfile
+  login_mode: string;
+  login_password: string;
+  login_key_file: string;
+  export_ip: string;
+  advertise_ip: string;
+  proxy_tags: string[];
+}
+
+// NodeProxyUpdateReq describes the node proxy update request.
+export interface NodeProxyUpdateReq {
+  Host: NodeProxyUpdateHost[];
+}
+
+// NodeProxyUpdateResp describes the node proxy update response.
+export interface NodeProxyUpdateResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeProxyUpdateRespData;
+}
+
+export interface NodeProxyUpdateRespData {
+}
+

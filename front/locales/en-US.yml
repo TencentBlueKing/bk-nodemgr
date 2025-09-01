@@ -135,8 +135,10 @@ topoManager:
       proxyStatus: Proxy Status
       action: Action
       Reassembly: Reassembly
+      edit: Edit
     dropdown:
-      upgrade: Upgrade
+      reinstall: Reinstall
+      upgrade: Upgrade/Rollback
       unload: Unload
       overload: Overload Configuration
       restart: Restart
@@ -153,6 +155,7 @@ topoManager:
     title:
       create: Create Work Unit
       edit: Edit Work Unit
+      updateProxyInfo: update proxy info
     form:
       workUnitName: Name of Work Unit
       upstream: Upstream access point
@@ -179,6 +182,7 @@ topoManager:
       close: retract
   installProxy:
     title: Install Proxy
+    reinstall: Reinstall Proxy
     tips: Installing a proxy requires opening a certain network access policy. After filling in the proxy information, you can view the corresponding installation instructions
     guide: Install Requirements
     form:
@@ -206,6 +210,12 @@ topoManager:
       hostIp: Host IP
       ipv4: Internal IPv4 Network
       ipv6: Internal IPv6 Network
+      export_ip: Export ip
+      advertise_ip: Advertise ip
+      dedicated_installer: Dedicated installer
+      cluster_tunnel: Cluster tunnel
+      file_tunnel: File tunnel
+      data_tunnel: Data tunnel
       hostProperties: Host Properties
       os: Operating System
       loginInfo: Login Information
@@ -259,6 +269,7 @@ action:
   cancel: Cancel
   save: Save
   installProxy: Install Proxy
+  reinstallProxy: Reinstall Proxy
   installLater: Install Later
   install: Install
   unload: Unload
