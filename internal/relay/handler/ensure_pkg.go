@@ -101,7 +101,7 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 		OperInstID: event.OperInstID,
 		ErrMsg:     errMsg,
 	}
-	if err := h.reportStorageResultReq(ctx, h.client, req); err != nil {
+	if err := h.reportStorageResult(ctx, h.client, req); err != nil {
 		h.logger.Errorf("failed to report relay file state: %v", err)
 	}
 

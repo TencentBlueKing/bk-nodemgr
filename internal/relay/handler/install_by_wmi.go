@@ -37,11 +37,10 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		outStr = strings.TrimSpace(outStr)
 		if err := h.reportInstallResult(ctx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
 			h.logger.Errorf("failed to report install result: %v", err)
 		}
-		h.logger.Infof("install pagent by wmi finished. stdout(%s). ip(%s), port(%d), user(%s),",
+		h.logger.Infof("done report install result by wmi. stdout(%s). ip(%s), port(%d), user(%s),",
 			outStr, event.IP, event.Port, event.User)
 	}()
 
@@ -70,7 +69,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 		return
 	}
 	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, stdOut, stdErr)
-	h.logger.Infof("make sure the installer workspace exists, stdOut: %s, stdErr: %s", stdOut, stdErr)
+	h.logger.Infof("make sure the installer workspace exists, stdout: %s, stderr: %s", stdOut, stdErr)
 
 	// transfer tools
 	toolFile, err := h.fileManager.GetFile(ctx, event.ToolsName)
@@ -84,13 +83,12 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	InstallFilePath := local.GetLocalFileAbsFilePath(toolFile)
 	stdOut, stdErr, err = client.UploadFile(ctx, InstallFilePath, event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to transfer file, stdOut: %s, stdErr: %s err: %v",
-			stdOut, stdErr, err)
+		errMsg = fmt.Sprintf("failed to transfer file: %v", err)
 
 		return
 	}
 	outStr += buildLogOutput("upload", event.ToolsName, stdOut, stdErr)
-	h.logger.Infof("transfer file success, stdOut: %s, stdErr: %s", stdOut, stdErr)
+	h.logger.Infof("transfer file success, stdout: %s, stderr: %s", stdOut, stdErr)
 
 	// build install bat with filesvr and backend address
 	installerPath := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.ToolsName))
@@ -111,7 +109,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 		return
 	}
 	outStr += buildLogOutput("upload", event.InstallerBatName, stdOut, stdErr)
-	h.logger.Infof("transfer install bat file success, stdOut: %s, stdErr: %s", stdOut, stdErr)
+	h.logger.Infof("transfer install bat file success,stdout: %s, stderr: %s", stdOut, stdErr)
 
 	// execute install bat
 	installCMD := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.InstallerBatName))
@@ -122,7 +120,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 		return
 	}
 	stdOut += buildLogOutput("install", installCMD, stdOut, stdErr)
-	h.logger.Infof("run install command success, stdOut: %s, stdErr: %s", stdOut, stdErr)
+	h.logger.Infof("run install command success, stdout: %s, stderr: %s", stdOut, stdErr)
 
 	h.logger.Infof("install pagent by wmi success. stdout(%s). ip(%s), port(%d), user(%s),",
 		stdOut, event.IP, event.Port, event.User)

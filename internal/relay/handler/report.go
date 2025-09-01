@@ -127,7 +127,7 @@ type fileState struct {
 }
 
 // reportStorageResultReq report storage result to callback.
-func (h *handler) reportStorageResultReq(ctx context.Context,
+func (h *handler) reportStorageResult(ctx context.Context,
 	client relayhandler.IClientMessager, req reportRelayStorageResult) error {
 
 	h.logger.Infof("report storage result. action-name(%s), instance-id(%s)",
@@ -214,6 +214,7 @@ type reportInstallResult struct {
 	ActionName string `json:"action_name"`
 	OperInstID string `json:"oper_inst_id"`
 
+	// outstr contains the stdout and stderr of the install process.
 	StdOut string `json:"std_out"`
 
 	ErrMsg string `json:"err_msg"`

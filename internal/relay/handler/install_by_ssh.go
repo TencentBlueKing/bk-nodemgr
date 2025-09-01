@@ -38,11 +38,10 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		outStr = strings.TrimSpace(outStr)
 		if err := h.reportInstallResult(ctx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
 			h.logger.Errorf("failed to report install result: %v", err)
 		}
-		h.logger.Infof("install pagent by ssh finished. stdout(%s). ip(%s), port(%d), user(%s),",
+		h.logger.Infof("done report install result by ssh. stdout(%s). ip(%s), port(%d), user(%s),",
 			outStr, event.IP, event.Port, event.User)
 	}()
 
@@ -66,7 +65,7 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	// ensure the workspace dir
 	result, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to mkdir -p %s, error: %v", event.InstallerWorkDir, err)
+		errMsg = fmt.Sprintf("failed to mkdir -p %s: %v", event.InstallerWorkDir, err)
 		h.logger.Errorf(errMsg)
 
 		return
@@ -104,7 +103,7 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	// ensure tool is executable
 	result, err = client.RunCommand("chmod +x " + installerPath)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to chmod +x %s, error: %v", installerPath, err)
+		errMsg = fmt.Sprintf("failed to chmod +x %s: %v", installerPath, err)
 		h.logger.Errorf(errMsg)
 
 		return
@@ -143,7 +142,6 @@ func (h *handler) buildCMD(installerPath string, args []string) string {
 
 	return fmt.Sprintf("%s >%s 2>&1 &", cmd, installLogPath)
 }
-
 func getIPV4Address(ip string, port int) string {
 	return "http://" + net.JoinHostPort(ip, strconv.Itoa(port))
 }

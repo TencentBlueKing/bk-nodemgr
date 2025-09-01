@@ -42,7 +42,7 @@ const (
 	ActionNameEnsurePkgToRelay = "ensure_pkg_to_relay"
 
 	queryRelayTimeout          = 3 * time.Second
-	waitForRelayReportInterval = 2 * time.Second
+	waitForRelayReportInterval = 3 * time.Second
 	waitForRelayReportTimeout  = 10 * time.Second
 )
 
