@@ -65,6 +65,8 @@ func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generati
 		if err != nil {
 			return fmt.Errorf("failed to upsert many release proxy: %v", err)
 		}
+
+		releases = append(releases, &rls.Release)
 	}
 
 	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, gen, releases...)

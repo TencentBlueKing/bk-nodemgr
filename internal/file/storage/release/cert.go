@@ -35,7 +35,7 @@ type ICert interface {
 
 // GetReleaseCertGen2 gets release cert gen2.
 func (s *Storage) GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error) {
-	r, err := s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), "")
+	r, err := s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
 	if err != nil {
 		return nil, err
 	}
@@ -47,13 +47,13 @@ func (s *Storage) GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, e
 
 // ExistReleaseCertGen2 checks if release cert gen2 exists.
 func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (bool, error) {
-	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), "")
+	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
 }
 
 // UpsertReleaseCertGen2 upserts release cert gen2.
 func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error {
 	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
-		Generation: types.GenerationAll,
+		Generation: types.Generation2,
 		Type:       types.ReleaseTypeCert,
 		Platform:   platform.EmptyPlatform(),
 		Version:    "",
@@ -65,5 +65,5 @@ func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseC
 
 // DeleteReleaseCertGen2 deletes release cert gen2.
 func (s *Storage) DeleteReleaseCertGen2(ctx context.Context, fileName string) error {
-	return s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.GenerationAll, platform.EmptyPlatform(), fileName)
+	return s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), fileName)
 }
