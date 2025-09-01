@@ -655,3 +655,16 @@ func (s *Storage) UpsertActionInstancePrivateData(
 
 	return nil
 }
+
+// DeleteOperationInstances deletes operation instances by given operation instance IDs.
+func (s *Storage) DeleteOperationInstances(ctx context.Context, operationInstanceID ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operationInstanceID) == 0 {
+		return nil
+	}
+
+	return s.daoOperinstdata.Delete(ctx, operationInstanceID...)
+}

@@ -21,6 +21,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
 	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
@@ -38,7 +39,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/watcher"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -99,9 +99,6 @@ type Service struct {
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
 	Cap *options.Capability
-
-	// watcher maintains all watcher in the service.
-	watcher *watcher.Watcher
 
 	// instance is the discover instance of the service.
 	instance discover.Instance
@@ -302,17 +299,14 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		return nil, err
 	}
 
-	svc.watcher, err = watcher.NewWatcher(
-		watcher.Config{
-			CmdbHandler: svc.Cap.CmdbHandler,
-			StorageTopo: svc.Cap.StorageTopo,
-			Logger:      svc.Cap.Logger,
-			Cache:       rediscache.NewRedisCache(redisClient, rediscache.DefaultTimeout),
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
+	svc.Cap.PeriodicTask = *periodictask.NewPeriodicTask(periodictask.Config{
+		Locker:              svc.Cap.LockerFactory,
+		Logger:              svc.Cap.Logger,
+		StgTrigger:          svc.Cap.StorageTrigger,
+		StgOperation:        svc.Cap.StorageOperation,
+		StgOperInst:         svc.Cap.StorageOperInst,
+		StgScheduleWorkflow: svc.Cap.StorageScheduleWorkflow,
+	})
 
 	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
 		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
@@ -701,11 +695,6 @@ func (svc *Service) Start() error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	if err := svc.Cap.Start(svc.ctx); err != nil {
-		return err
-	}
-
-	// start watcher right after all capabilities started.
-	if err := svc.watcher.Start(svc.ctx); err != nil {
 		return err
 	}
 

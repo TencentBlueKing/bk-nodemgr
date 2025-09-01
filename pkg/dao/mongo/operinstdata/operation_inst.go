@@ -51,6 +51,9 @@ type IOperationInstData interface {
 
 	// ListAllLastOperInst find all last OperInstData in their operation.
 	ListAllLastOperInst(ctx context.Context, opts ...OptFn) ([]*operation.InstanceBriefData, error)
+
+	// Delete deletes operation instance data by given operation instance IDs.
+	Delete(ctx context.Context, operInstIDs ...string) error
 }
 
 // Upsert updates or inserts an OperInstData.
@@ -378,4 +381,17 @@ func (h *handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
 	}
 
 	return data, nil
+}
+
+// Delete deletes operation instance data by given operation instance IDs.
+func (h *handler) Delete(ctx context.Context, operInstIDs ...string) error {
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if len(operInstIDs) == 0 {
+		return errors.New("operation instance ids is empty")
+	}
+
+	return h.dao.delete(ctx, operInstIDs...)
 }

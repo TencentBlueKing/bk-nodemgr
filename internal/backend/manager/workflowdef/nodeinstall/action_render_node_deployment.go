@@ -139,12 +139,43 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	// get release of this node.
-	releasePkg, err := act.getRelease(tenantCtx, info)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
 	if err != nil {
-		return fmt.Errorf("get release failed, err: %w", err)
+		return fmt.Errorf("convert node role to release type failed, err: %w", err)
 	}
-	nodeConf.PreSetting = releasePkg.ConfigEnviron
-	nodeConf.ConfigTemplate = releasePkg.ConfigTemplate
+
+	switch releaseType {
+	case types.ReleaseTypeAgent:
+		rlsAgent, err := act.storageRelease.GetReleaseAgent(ctx.Ctx,
+			info.Host.Dynamic.NodeGeneration,
+			platform.Platform{
+				OS:   info.Host.Dynamic.NodeOsType,
+				Arch: info.Host.Dynamic.NodeCPUArch,
+			},
+			info.Host.Dynamic.NodeVersion,
+		)
+		if err != nil {
+			return fmt.Errorf("get release failed, err: %w", err)
+		}
+
+		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
+		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
+	case types.ReleaseTypeProxy:
+		rlsProxy, err := act.storageRelease.GetReleaseProxy(ctx.Ctx,
+			info.Host.Dynamic.NodeGeneration,
+			platform.Platform{
+				OS:   info.Host.Dynamic.NodeOsType,
+				Arch: info.Host.Dynamic.NodeCPUArch,
+			},
+			info.Host.Dynamic.NodeVersion,
+		)
+		if err != nil {
+			return fmt.Errorf("get release failed, err: %w", err)
+		}
+
+		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
+		nodeConf.ConfigTemplate = rlsProxy.ReleaseAdditionInfoProxy.ConfigTemplate
+	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
@@ -182,28 +213,6 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	return nil
-}
-
-func (act *actionRenderNodeDeployment) getRelease(ctx context.Context, info *types.DeploymentInfo) (*types.Release, error) {
-	// get default environs from release.
-	releastType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
-	if err != nil {
-		return nil, fmt.Errorf("convert node role to release type failed, err: %w", err)
-	}
-	rls, err := act.storageRelease.GetRelease(ctx,
-		info.Host.Dynamic.NodeGeneration,
-		releastType,
-		platform.Platform{
-			OS:   info.Host.Dynamic.NodeOsType,
-			Arch: info.Host.Dynamic.NodeCPUArch,
-		},
-		info.Host.Dynamic.NodeVersion,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("get release failed, err: %w", err)
-	}
-
-	return rls, nil
 }
 
 const (

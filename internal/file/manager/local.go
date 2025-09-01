@@ -54,21 +54,22 @@ func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
 		return nil, "", fmt.Errorf("not support generation: %d", gen)
 	}
 
-	var (
-		release *types.Release
-		err     error
-	)
+	var release types.Release
 	switch rt {
 	case types.ReleaseTypeAgent:
-		release, err = m.storageRelease.GetReleaseAgent(ctx, gen, plat, version)
+		releaseAgent, err := m.storageRelease.GetReleaseAgent(ctx, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
+
+		release = releaseAgent.Release
 	case types.ReleaseTypeProxy:
-		release, err = m.storageRelease.GetReleaseProxy(ctx, gen, plat, version)
+		releaseProxy, err := m.storageRelease.GetReleaseProxy(ctx, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
+
+		release = releaseProxy.Release
 	default:
 		return nil, "", fmt.Errorf("not support release type: %s", rt)
 	}
@@ -77,7 +78,7 @@ func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
 }
 
 // EnsureReleaseToLocal ensure the release to local.
-func (m *Manager) EnsureReleaseToLocal(ctx contextx.IContext, release *types.Release) (fileiface.File, string, error) {
+func (m *Manager) EnsureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
 		info := cache.file.Info()

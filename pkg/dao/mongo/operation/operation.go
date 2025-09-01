@@ -58,12 +58,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys:    bson.D{{Key: FieldKeyOperationID, Value: 1}},
-			Options: mongoOptions.Index().SetUnique(true),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }
@@ -107,4 +102,19 @@ func buildUpsertParams(operation *Operation) (bson.D, bson.D, *mongoOptions.Upda
 	opts := mongoOptions.Update().SetUpsert(true)
 
 	return filter, update, opts
+}
+
+// delete deletes operations.
+func (d *dao) delete(ctx context.Context, operIDs ...string) error {
+	filter := base.AliveFilter()
+	filter = append(filter, bson.E{Key: FieldKeyOperationID, Value: bson.D{{Key: "$in", Value: operIDs}}})
+
+	result, err := d.client.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, operIDs)
+
+	return nil
 }

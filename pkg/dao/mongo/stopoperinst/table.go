@@ -20,10 +20,17 @@ import (
 // TableName host table name.
 const TableName = "stopping_operation_inst"
 
+var _ base.IData = &StopOperInst{}
+
 // StopOperInst represents a task engine stopping task.
 type StopOperInst struct {
 	OperInstID string    `json:"oper_inst_id" bson:"oper_inst_id"`
 	ExpireAt   time.Time `json:"expire_at" bson:"expire_at"`
+}
+
+// UniqueFields unique fields of the table.
+func (inst *StopOperInst) UniqueFields() []string {
+	return []string{FieldKeyOperInstID}
 }
 
 // UniqueKey unique key of the table.

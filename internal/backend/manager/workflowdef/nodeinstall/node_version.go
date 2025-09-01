@@ -45,7 +45,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 		},
 	}
 
-	releases, num, err := versionParam.daoRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
+	releases, num, err := versionParam.daoRelease.ListRelease(ctx, releaseType, gen, types.UnlimitedPage(), cond)
 	if err != nil {
 		return "", fmt.Errorf("failed to list default releases, err: %w", err)
 	}
@@ -75,7 +75,7 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 			Enabled:    []bool{true},
 		},
 	}
-	num, err := versionParam.daoRelease.CountRelease(ctx, versionParam.ReleaseType, cond)
+	num, err := versionParam.daoRelease.CountRelease(ctx, versionParam.ReleaseType, versionParam.Generation, cond)
 	if err != nil {
 		return fmt.Errorf("failed to check release version,err: %w", err)
 	}

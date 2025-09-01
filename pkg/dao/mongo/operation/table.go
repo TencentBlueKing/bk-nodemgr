@@ -20,6 +20,8 @@ import (
 // TableName table name.
 const TableName = "operation"
 
+var _ base.IData = &Operation{}
+
 // Operation represents an operation.
 // OperationID should be the unique key.
 type Operation struct {
@@ -48,6 +50,11 @@ type Parameters struct {
 	Timeout           time.Duration   `json:"timeout" bson:"timeout"`
 	InitContent       map[string]any  `json:"init_content" bson:"init_content"`
 	RetryStartPoint   map[string]bool `json:"retry_start_point" bson:"retry_start_point" `
+}
+
+// UniqueFields unique fields of the table.
+func (oper *Operation) UniqueFields() []string {
+	return []string{FieldKeyOperationID}
 }
 
 // UniqueKey unique key of the table.

@@ -22,6 +22,8 @@ func TableName(tenantID string) string {
 	return fmt.Sprintf("topoevent_%s", tenantID)
 }
 
+var _ base.IData = &TopoEvent{}
+
 // TopoEvent represents topo event table.
 type TopoEvent struct {
 	TenantID        string    `json:"tenant_id" bson:"tenant_id"`
@@ -34,6 +36,11 @@ type TopoEvent struct {
 	AccessPointName string    `json:"accesspoint_name" bson:"accesspoint_name"`
 	OperateTime     time.Time `json:"operate_time" bson:"operate_time"`
 	Operator        string    `json:"operator" bson:"operator"`
+}
+
+// UniqueFields unique fields of the table.
+func (event *TopoEvent) UniqueFields() []string {
+	return []string{FieldKeyTenantID, FieldKeyNetworkAreaID, FieldKeyNetworkUnitID, FieldKeyAccessPointID}
 }
 
 // UniqueKey unique key of the table.

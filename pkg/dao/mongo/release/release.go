@@ -18,11 +18,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(releaseType string, client *mongo.Database, logger logger.ILogger) *dao {
-	tableName := TableName(releaseType)
+func newDao(tableName string, client *mongo.Database, logger logger.ILogger) *dao {
 	d := &dao{
 		client:    client.Collection(tableName),
 		logger:    logger,
@@ -59,17 +57,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys: bson.D{
-				bson.E{Key: FieldKeyGeneration, Value: 1},
-				bson.E{Key: FieldKeyType, Value: 1},
-				bson.E{Key: FieldKeyCPUArch, Value: 1},
-				bson.E{Key: FieldKeyOSType, Value: 1},
-				bson.E{Key: FieldKeyVersion, Value: 1}},
-			Options: mongoOptions.Index().SetUnique(true),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }

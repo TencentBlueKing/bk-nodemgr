@@ -21,6 +21,8 @@ func TableName() string {
 	return "accesspoint"
 }
 
+var _ base.IData = &AccessPoint{}
+
 // AccessPoint represents access point table.
 // AccessPointID should be the unique key.
 type AccessPoint struct {
@@ -37,6 +39,11 @@ type Endpoints struct {
 	Cluster []string `json:"cluster" bson:"cluster"`
 	File    []string `json:"file" bson:"file"`
 	Data    []string `json:"data" bson:"data"`
+}
+
+// UniqueFields unique fields of the table.
+func (a *AccessPoint) UniqueFields() []string {
+	return []string{FieldKeyAccessPointID}
 }
 
 // UniqueKey unique key of the table.

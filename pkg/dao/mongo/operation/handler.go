@@ -29,6 +29,9 @@ type IHandler interface {
 
 	// List list operation by page and opts.
 	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
+
+	// Delete deletes operations.
+	Delete(ctx context.Context, operationID ...string) error
 }
 
 type handler struct {
@@ -88,6 +91,15 @@ func (h *handler) Upsert(ctx context.Context, operation *operation.Operation) er
 	}
 
 	return nil
+}
+
+// Delete deletes operations.
+func (h *handler) Delete(ctx context.Context, operationID ...string) error {
+	if len(operationID) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	return h.dao.delete(ctx, operationID...)
 }
 
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {

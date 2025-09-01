@@ -116,34 +116,56 @@ func ConvertNodeRoleToReleaseType(role NodeRole) (ReleaseType, error) {
 
 // Release defines the release package information.
 type Release struct {
-	Generation     Generation
-	Type           ReleaseType
-	Version        string
-	Platform       platform.Platform
-	Labels         []string
-	ChangeLogEN    string
-	ChangeLogZH    string
-	FileName       string
-	MD5            string
-	Enabled        bool
-	AsDefault      bool
+	Generation   Generation
+	Type         ReleaseType
+	Version      string
+	Platform     platform.Platform
+	Labels       []string
+	FileName     string
+	MD5          string
+	Enabled      bool
+	AsDefault    bool
+	UpdatedAt    time.Time
+	Operator     string
+	AdditionInfo map[string]any
+}
+
+// ReleaseAgent defines the agent, it is kind of Release.
+type ReleaseAgent struct {
+	Release
+	ReleaseAdditionInfoAgent
+}
+
+// ReleaseAdditionInfoAgent defines the addition info of release agent.
+type ReleaseAdditionInfoAgent struct {
 	ConfigTemplate map[string]string
 	ConfigEnviron  map[string]any
-	UpdatedAt      time.Time
-	Operator       string
+	ChangeLogEN    string
+	ChangeLogZH    string
+}
+
+// ReleaseProxy defines the proxy, it is kind of Release.
+type ReleaseProxy struct {
+	Release
+	ReleaseAdditionInfoProxy
+}
+
+// ReleaseAdditionInfoProxy defines the addition info of release proxy.
+type ReleaseAdditionInfoProxy struct {
+	ConfigTemplate map[string]string
+	ConfigEnviron  map[string]any
+	ChangeLogEN    string
+	ChangeLogZH    string
 }
 
 // ReleaseCert defines the cert, it is kind of Release.
 type ReleaseCert struct {
-	FileName string
-	MD5      string
+	Release
 }
 
 // ReleaseBinTool defines the bin tool, it is kind of Release.
 type ReleaseBinTool struct {
-	Generation Generation
-	FileName   string
-	MD5        string
+	Release
 }
 
 // OriginPkgDetail defines the detail of origin package.

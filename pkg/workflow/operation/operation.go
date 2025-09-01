@@ -47,6 +47,15 @@ func (o *Operation) GetLastInstanceID() string {
 	return o.InstanceIDs[len(o.InstanceIDs)-1]
 }
 
+// GetNonLastInstanceIDs gets the non-last instance ids.
+func (o *Operation) GetNonLastInstanceIDs() []string {
+	if len(o.InstanceIDs) <= 1 {
+		return []string{}
+	}
+
+	return o.InstanceIDs[:len(o.InstanceIDs)-1]
+}
+
 // Param defines the operation param.
 type Param struct {
 	ParentOperationID string

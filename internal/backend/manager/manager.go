@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -74,6 +73,9 @@ type IManager interface {
 
 	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
 	LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error)
+
+	// LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
+	LaunchWatchAndApplyCMDBResource(ctx contextx.ITenantUserContext) (string, error)
 }
 
 // InstallNodeParam install node param.
@@ -285,6 +287,7 @@ func (mgr *Manager) registerActionDefSyncData() error {
 		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
 		syncdata.NewActionSyncAgentState(mgr.conf.GSEHandler, mgr.conf.StorageTopo, mgr.logger),
 		syncdata.NewActionGenOperSyncAgentState(mgr.conf.StorageTopo, mgr.workflowMgr),
+		syncdata.NewActionWatchCMDBResource(mgr.conf.Cache, mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
 	)
 }
 
@@ -323,26 +326,12 @@ func (mgr *Manager) registerActionDefNodeInstall() error {
 // registerActionDefSchedule registers the action definitions for schedule operations.
 // nolint: lll
 func (mgr *Manager) registerActionDefSchedule() error {
-	tenantIDs := tenant.GetAllTenantIDs()
-	for _, tenantID := range tenantIDs {
-		err := mgr.workflowMgr.RegisterActions(
-			schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
-				tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
-
-				return mgr.LaunchSyncBizAndHost(tenantUserCtx)
-			}),
-			schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, func(ctx context.Context) (string, error) {
-				tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
-
-				return mgr.LaunchSyncAllAgentState(tenantUserCtx)
-			}),
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return mgr.workflowMgr.RegisterActions(
+		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
+		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
+		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbNetworkAreaWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncNetworkArea),
+		schedule.NewActionGenScheduleOnceTrigger(WatchAndApplyCMDBResourceWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchWatchAndApplyCMDBResource),
+	)
 }
 
 // registerOperExecDefs init operation execution definitions.
@@ -956,6 +945,35 @@ func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (st
 	}
 
 	mgr.logger.InfoCtxf(ctx, "launched sync all agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
+func (mgr *Manager) LaunchWatchAndApplyCMDBResource(ctx contextx.ITenantUserContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperWatchAndApplyCMDBResource(syncdata.OperParamWatchCMDBResource{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched watch and apply cmdb resource. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
 	return triggerCtl.GetTriggerID(), nil

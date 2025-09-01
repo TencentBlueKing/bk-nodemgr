@@ -369,7 +369,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 			FileName: []string{FileName},
 		},
 	}
-	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
+	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, gen, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, err
 	}

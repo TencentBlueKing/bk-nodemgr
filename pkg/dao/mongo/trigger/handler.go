@@ -38,6 +38,9 @@ type IHandler interface {
 
 	// UpdateState updates trigger state.
 	UpdateState(ctx context.Context, triggerID string, state trigger.State) error
+
+	// Delete deletes triggers.
+	Delete(ctx context.Context, triggerIDs ...string) error
 }
 
 type handler struct {
@@ -161,6 +164,19 @@ func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigg
 	filter = WithTriggerID(triggerID)(filter)
 
 	return h.dao.UpdateField(ctx, filter, FieldKeyState, string(state))
+}
+
+// Delete deletes triggers.
+func (h *handler) Delete(ctx context.Context, triggerIDs ...string) error {
+	if ctx == nil {
+		return errors.New("ctx is nil")
+	}
+
+	if len(triggerIDs) == 0 {
+		return errors.New("trigger-ids is empty")
+	}
+
+	return h.dao.delete(ctx, triggerIDs...)
 }
 
 func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {

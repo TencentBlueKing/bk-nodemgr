@@ -22,6 +22,8 @@ func TableName() string {
 	return "schedule_workflow"
 }
 
+var _ base.IData = &ScheduleWorkflow{}
+
 // ScheduleWorkflow represents the table of schedule workflow.
 // Token should be the unique key.
 type ScheduleWorkflow struct {
@@ -30,6 +32,11 @@ type ScheduleWorkflow struct {
 	TriggerID    string    `json:"trigger_id" bson:"trigger_id"`
 	Operator     string    `json:"operator" bson:"operator"`
 	OperateTime  time.Time `json:"operate_time" bson:"operate_time"`
+}
+
+// UniqueFields unique fields of the table.
+func (workflow *ScheduleWorkflow) UniqueFields() []string {
+	return []string{FieldKeyWorkflowID}
 }
 
 // UniqueKey unique key of the table.

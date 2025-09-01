@@ -59,12 +59,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys:    bson.D{{Key: FieldKeyOperInstID, Value: 1}},
-			Options: new(mongoOptions.IndexOptions).SetUnique(true),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }
@@ -223,4 +218,20 @@ func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperIn
 	}
 
 	return datas, nil
+}
+
+// delete deletes operinstdata by given operInstIDs.
+func (d *dao) delete(ctx context.Context, operInstIDs ...string) error {
+	filter := base.AliveFilter()
+	filter = append(filter, bson.E{Key: FieldKeyOperInstID, Value: bson.D{{Key: "$in", Value: operInstIDs}}})
+
+	result, err := d.client.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("deleted oper-inst-data, table(%s), oper-inst-ids(%v), deleted-count(%d)",
+		d.tableName, operInstIDs, result.DeletedCount)
+
+	return nil
 }

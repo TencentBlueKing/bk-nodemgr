@@ -739,3 +739,7 @@ linters-settings:
         alias: bksaasheader
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin
         alias: bksaasbklogin
+      - pkg: "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+        alias: workoper
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger
+        alias: daoTrigger

@@ -132,3 +132,12 @@ func (s *storage) ListAliveTrigger(ctx context.Context, category trigger.Categor
 
 	return trigs, nil
 }
+
+// DeleteTriggers deletes triggers by given trigger IDs.
+func (s *storage) DeleteTriggers(ctx context.Context, triggerIDs ...string) error {
+	if len(triggerIDs) == 0 {
+		return nil
+	}
+
+	return s.triggerDao.Delete(ctx, triggerIDs...)
+}

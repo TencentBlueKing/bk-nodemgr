@@ -21,11 +21,18 @@ func TableName(tenantID string) string {
 	return "cptemplate_" + tenantID
 }
 
+var _ base.IData = &ConfigPolicyTemplate{}
+
 // ConfigPolicyTemplate presents a config policy template.
 type ConfigPolicyTemplate struct {
 	TenantID       string `json:"tenant_id" bson:"tenant_id"`
 	ConfigPolicyID int64  `json:"configpolicy_id" bson:"configpolicy_id"`
 	Template       string `json:"template" bson:"template"`
+}
+
+// UniqueFields unique fields of the table.
+func (r *ConfigPolicyTemplate) UniqueFields() []string {
+	return []string{FieldKeyConfigPolicyID}
 }
 
 // UniqueKey unique key of the table.

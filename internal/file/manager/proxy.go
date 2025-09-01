@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -28,13 +29,13 @@ import (
 // IProxy defines the interface for proxy.
 type IProxy interface {
 	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(ctx contextx.IContext, uploadID string) error
+	PublishReleaseProxy(ctx contextx.IUserContext, uploadID string) error
 }
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleaseProxy(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetServerUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get upload(%s). err: %v", uploadID, err)
@@ -97,7 +98,7 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) er
 
 	gp := gopool.NewPool()
 
-	releasesMap := make(map[string]*types.Release)
+	releasesMap := make(map[string]*types.ReleaseProxy)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
@@ -141,15 +142,27 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) er
 				return err
 			}
 
-			proxyRelease := &types.Release{
-				Generation:     types.Generation2,
-				Type:           types.ReleaseTypeProxy,
-				Platform:       pkg.platform,
-				Version:        detail.Version,
-				FileName:       file.Info().Name,
-				MD5:            file.Info().MD5,
-				ConfigTemplate: detail.ConfigTemplate,
-				ConfigEnviron:  detail.ConfigEnviron,
+			proxyRelease := &types.ReleaseProxy{
+				Release: types.Release{
+					Generation:   types.Generation2,
+					Type:         types.ReleaseTypeProxy,
+					Version:      detail.Version,
+					Platform:     pkg.platform,
+					Labels:       nil,
+					FileName:     file.Info().Name,
+					MD5:          file.Info().MD5,
+					Enabled:      true,
+					AsDefault:    true,
+					UpdatedAt:    time.Now(),
+					Operator:     ctx.BKUsername(),
+					AdditionInfo: nil,
+				},
+				ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
+					ConfigTemplate: detail.ConfigTemplate,
+					ConfigEnviron:  detail.ConfigEnviron,
+					ChangeLogEN:    detail.ChangeLogEN,
+					ChangeLogZH:    detail.ChangeLogZH,
+				},
 			}
 			proxyRelease.ConfigTemplate[types.ConfigKeyAgent] = agentRelease.ConfigTemplate[types.ConfigKeyAgent]
 			for k, v := range agentRelease.ConfigEnviron {

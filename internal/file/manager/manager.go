@@ -59,7 +59,7 @@ type IManager interface {
 
 	// EnsureReleaseToLocal ensure the release to local.
 	// returns file, local-file-dir, error.
-	EnsureReleaseToLocal(ctx contextx.IContext, release *types.Release) (fileiface.File, string, error)
+	EnsureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error)
 
 	// LaunchTransferRelease launch transfer release.
 	LaunchTransferRelease(ctx contextx.IContext,
@@ -403,7 +403,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 
 func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (fileiface.File, error) {
 	// get cert.
-	cert, err := m.storageRelease.GetReleaseCert(ctx)
+	cert, err := m.storageRelease.GetReleaseCertGen2(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release cert: %w", err)
 	}

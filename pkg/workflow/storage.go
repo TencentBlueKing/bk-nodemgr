@@ -69,6 +69,9 @@ type IStorageOperation interface {
 
 	// ListEmptyOperation lists empty operation.
 	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
+
+	// DeleteOperations deletes operations.
+	DeleteOperations(ctx context.Context, operationID ...string) error
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.
@@ -103,6 +106,9 @@ type IStorageOperationInstance interface {
 
 	// WatchOperInstStopping watches operation instance stopping.
 	WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{}
+
+	// DeleteOperationInstances deletes operation instances.
+	DeleteOperationInstances(ctx context.Context, operationInstanceID ...string) error
 }
 
 // IStorageTrigger defines the storage handler for trigger.
@@ -121,4 +127,7 @@ type IStorageTrigger interface {
 
 	// ListAliveTrigger lists alive triggers by given category.
 	ListAliveTrigger(ctx context.Context, category trigger.Category) ([]*trigger.Trigger, error)
+
+	// DeleteTriggers deletes triggers by given trigger IDs.
+	DeleteTriggers(ctx context.Context, triggerIDs ...string) error
 }

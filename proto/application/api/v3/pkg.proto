@@ -27,8 +27,6 @@ message PackageUploadOriginAgentResp {
     optional int64 size = 5;
     optional string md5 = 6;
     optional string version = 7;
-    optional string changelog_en = 8;
-    optional string changelog_zh = 9;
     repeated Platform platforms = 10;
   }
   Data data = 5;
@@ -182,9 +180,10 @@ message PackageReleaseExactConditions {
 message PackageReleaseListReq {
   Page page = 1;
   string release_type = 2;
-  bool only_count = 3;
+  int64 generation = 3;
+  bool only_count = 4;
 
-  PackageReleaseExactConditions exact_include_conditions = 4;
+  PackageReleaseExactConditions exact_include_conditions = 5;
 }
 
 // PackageReleaseListResp describes the HTTP response body when list package

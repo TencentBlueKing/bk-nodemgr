@@ -54,10 +54,6 @@ const ExpireTimeSec = 7 * 24 * 60
 func (d *dao) GetIndexes() []mongo.IndexModel {
 	indexes := []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: FieldKeyToken, Value: 1}},
-			Options: new(mongoOptions.IndexOptions).SetUnique(true),
-		},
-		{
 			Keys: bson.D{{Key: "data.expire_at", Value: 1}},
 			Options: mongoOptions.Index().
 				SetExpireAfterSeconds(ExpireTimeSec),

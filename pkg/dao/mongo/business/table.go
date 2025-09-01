@@ -23,12 +23,19 @@ func TableName(tenantID string) string {
 	return fmt.Sprintf("business_%s", tenantID)
 }
 
+var _ base.IData = &Business{}
+
 // Business represents a business under a tenant.
 // BizID should be the unique key.
 type Business struct {
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
 	BizID    int64  `json:"biz_id" bson:"biz_id"`
 	BizName  string `json:"biz_name" bson:"biz_name"`
+}
+
+// UniqueFields unique fields of the table.
+func (biz *Business) UniqueFields() []string {
+	return []string{FieldKeyBizID}
 }
 
 // UniqueKey unique key of the table.

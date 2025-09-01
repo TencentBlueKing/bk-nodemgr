@@ -31,6 +31,7 @@ type InstanceMetadata struct {
 	InitContent            map[string]any
 	ExtraExecutionName     string
 	ExtraExecutionMessages []common.Message
+	RelatedTriggerIDs      []string
 }
 
 // InstanceBriefData defines the brief data of operation instance.

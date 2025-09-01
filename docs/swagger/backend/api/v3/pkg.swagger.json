@@ -485,6 +485,10 @@
         "release_type": {
           "type": "string"
         },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
         "exact_include_conditions": {
           "$ref": "#/definitions/v3PackageReleaseExactConditions"
         }
@@ -626,6 +630,10 @@
         },
         "release_type": {
           "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
         },
         "only_count": {
           "type": "boolean"
@@ -836,12 +844,6 @@
           "format": "uint64"
         },
         "operator": {
-          "type": "string"
-        },
-        "change_log_en": {
-          "type": "string"
-        },
-        "change_log_zh": {
           "type": "string"
         }
       },

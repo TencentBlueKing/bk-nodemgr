@@ -21,14 +21,15 @@ type BasicInfo struct {
 }
 
 // TableBroker is a broker for every table.
-type TableBroker[T Data] struct {
+type TableBroker[T IData] struct {
 	BasicInfo `json:"basic" bson:"basic"`
 	Data      T `json:"data" bson:"data"`
 }
 
-// Data this ia the table data.
-type Data interface {
+// IData this ia the table data.
+type IData interface {
 	UniqueKey() string
+	UniqueFields() []string
 }
 
 // NewBasicInfo creates a new BasicInfo.
@@ -41,6 +42,6 @@ func NewBasicInfo() BasicInfo {
 }
 
 // TableChangeEventBroker table change event broker
-type TableChangeEventBroker[T Data] struct {
+type TableChangeEventBroker[T IData] struct {
 	FullDocument *TableBroker[T] `json:"fullDocument" bson:"fullDocument"`
 }

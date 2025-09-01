@@ -117,8 +117,6 @@ func (x *PackageReleaseListResp) ConvertReleasesFromTypes(total int64, releases 
 		*item.Md5 = release.MD5
 		*item.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
 		*item.Operator = release.Operator
-		*item.ChangeLogEn = release.ChangeLogEN
-		*item.ChangeLogZh = release.ChangeLogZH
 
 		items[idx] = item
 	}
@@ -146,16 +144,14 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 				OS:   criteria.OSType(item.GetOsType()),
 				Arch: criteria.CPUArch(item.GetCpuArch()),
 			},
-			Labels:      item.GetLabels(),
-			ChangeLogEN: item.GetChangeLogEn(),
-			ChangeLogZH: item.GetChangeLogZh(),
-			Version:     item.GetVersion(),
-			FileName:    item.GetFileName(),
-			MD5:         item.GetMd5(),
-			Enabled:     item.GetEnabled(),
-			AsDefault:   item.GetAsDefault(),
-			Operator:    item.GetOperator(),
-			UpdatedAt:   time.UnixMilli(int64(item.GetUpdatedAt())).Local(),
+			Labels:    item.GetLabels(),
+			Version:   item.GetVersion(),
+			FileName:  item.GetFileName(),
+			MD5:       item.GetMd5(),
+			Enabled:   item.GetEnabled(),
+			AsDefault: item.GetAsDefault(),
+			Operator:  item.GetOperator(),
+			UpdatedAt: time.UnixMilli(int64(item.GetUpdatedAt())).Local(),
 		}
 
 		result[idx] = release
@@ -462,7 +458,5 @@ func newEmptyRelease() *Release {
 		Md5:         new(string),
 		UpdatedAt:   new(uint64),
 		Operator:    new(string),
-		ChangeLogEn: new(string),
-		ChangeLogZh: new(string),
 	}
 }

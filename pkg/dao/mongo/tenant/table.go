@@ -18,6 +18,8 @@ import (
 // TableName tenant table name.
 const TableName = "tenant"
 
+var _ base.IData = &Tenant{}
+
 // Tenant represents a tenant.
 // ID should be the unique key.
 type Tenant struct {

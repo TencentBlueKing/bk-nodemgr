@@ -24,12 +24,19 @@ func TableName(tenantID string) string {
 	return fmt.Sprintf("credit_%s", tenantID)
 }
 
+var _ base.IData = &Credit{}
+
 // Credit represents a credit.
 type Credit struct {
 	TenantID   string    `json:"tenant_id" bson:"tenant_id"`
 	CreditID   string    `json:"credit_id" bson:"credit_id"`
 	CreditData []byte    `json:"credit_data" bson:"credit_data"`
 	ExpireAt   time.Time `json:"expire_at" bson:"expire_at"`
+}
+
+// UniqueFields unique fields of the table.
+func (c *Credit) UniqueFields() []string {
+	return []string{FieldKeyTenantID, FieldKeyCreditID}
 }
 
 // UniqueKey unique key of the table.

@@ -21,6 +21,8 @@ func TableName() string {
 	return "node_workflow"
 }
 
+var _ base.IData = &Data{}
+
 // Data represents the table of node workflow.
 // Token should be the unique key.
 type Data struct {
@@ -32,6 +34,11 @@ type Data struct {
 	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
 	FinishTime  time.Time `json:"finish_time" bson:"finish_time"`
 	Status      string    `json:"status" bson:"status"`
+}
+
+// UniqueFields unique fields of the table.
+func (workflow *Data) UniqueFields() []string {
+	return []string{FieldKeyWorkflowID}
 }
 
 // UniqueKey unique key of the table.

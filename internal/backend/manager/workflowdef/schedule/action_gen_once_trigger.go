@@ -12,10 +12,10 @@
 package schedule
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -28,7 +28,7 @@ const (
 )
 
 // OnceTriggerFunc defines the function type for generating a schedule once trigger.
-type OnceTriggerFunc func(ctx context.Context) (string, error)
+type OnceTriggerFunc func(ctx contextx.ITenantUserContext) (string, error)
 
 // NewActionGenScheduleOnceTrigger creates a new action to generate a schedule once trigger.
 func NewActionGenScheduleOnceTrigger(
@@ -46,6 +46,7 @@ func NewActionGenScheduleOnceTrigger(
 // GenScheduleOnceTriggerParam ...
 type GenScheduleOnceTriggerParam struct {
 	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
 }
 
 // actionGenScheduleOnceTrigger implements the action.Definition interface.
@@ -104,13 +105,24 @@ func (act *actionGenScheduleOnceTrigger) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	triggerID, err := act.operFunc(tenantCtx)
+	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
+	triggerID, err := act.operFunc(tenantUserCtx)
 	if err != nil {
-		return fmt.Errorf("failed to generate schedule once trigger, action name(%s), tenant-id(%s), err: %w",
+		return fmt.Errorf("generate schedule once trigger action-name(%s) by tenant-id(%s) failed: %w",
 			act.Name(), param.TenantID, err)
 	}
 
-	ctx.Data.PrivateData["child_trigger_id"] = triggerID
+	operInst, err := act.operInstCtl.GetOperationInstanceFullData(ctx.Ctx, ctx.Data.OperationInstanceID)
+	if err != nil {
+		return fmt.Errorf("get oper-inst-id(%s) full data failed: %w", ctx.Data.OperationInstanceID, err)
+	}
+
+	operInst.Metadata.RelatedTriggerIDs = append(operInst.Metadata.RelatedTriggerIDs, triggerID)
+	err = act.operInstCtl.UpsertOperationInstanceData(ctx.Ctx, operInst)
+	if err != nil {
+		return fmt.Errorf("update oper-inst-id(%s) related action-name(%s)'s trigger-id(%s) failed: %w",
+			ctx.Data.OperationInstanceID, act.Name(), triggerID, err)
+	}
 
 	return nil
 }

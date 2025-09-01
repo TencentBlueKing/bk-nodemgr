@@ -21,6 +21,8 @@ func TableName() string {
 	return "networkarea"
 }
 
+var _ base.IData = &NetworkArea{}
+
 // NetworkArea represent network area table.
 // NetworkAreaID should be the unique key.
 // NetworkAreaID is global unique among all tenants.
@@ -29,6 +31,11 @@ type NetworkArea struct {
 	NetworkAreaID   int64  `json:"networkarea_id" bson:"networkarea_id"`
 	NetworkAreaName string `json:"networkarea_name" bson:"networkarea_name"`
 	CloudVendor     string `json:"cloud_vendor" bson:"cloud_vendor"`
+}
+
+// UniqueFields unique fields of the table.
+func (area *NetworkArea) UniqueFields() []string {
+	return []string{FieldKeyNetworkAreaID}
 }
 
 // UniqueKey unique key of the table.

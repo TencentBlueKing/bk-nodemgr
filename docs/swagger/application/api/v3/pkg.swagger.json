@@ -1054,6 +1054,10 @@
         "release_type": {
           "type": "string"
         },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
         "only_count": {
           "type": "boolean"
         },
@@ -1253,12 +1257,6 @@
           "type": "string"
         },
         "version": {
-          "type": "string"
-        },
-        "changelog_en": {
-          "type": "string"
-        },
-        "changelog_zh": {
           "type": "string"
         },
         "platforms": {
@@ -1541,12 +1539,6 @@
           "format": "uint64"
         },
         "operator": {
-          "type": "string"
-        },
-        "change_log_en": {
-          "type": "string"
-        },
-        "change_log_zh": {
           "type": "string"
         }
       },

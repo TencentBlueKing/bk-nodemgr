@@ -58,11 +58,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys: bson.D{{Key: FieldKeyBizID, Value: 1}},
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }

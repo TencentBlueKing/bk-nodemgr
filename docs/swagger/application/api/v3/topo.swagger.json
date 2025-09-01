@@ -902,6 +902,22 @@
         },
         "bk_networkunit_name": {
           "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "export_ip": {
+          "type": "string"
+        },
+        "advertise_ip": {
+          "type": "string"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."

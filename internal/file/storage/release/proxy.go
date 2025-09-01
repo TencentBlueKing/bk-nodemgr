@@ -12,33 +12,60 @@ package release
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IProxy defines the agent interface.
+// IProxy defines the proxy interface.
 type IProxy interface {
 	// GetReleaseProxy gets release proxy by generation, type, platform and version.
-	GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.Release, error)
+	GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 
-	// UpsertManyReleaseProxy upserts many agent release.
-	UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releases []*types.Release) error
+	// UpsertManyReleaseProxy upserts many proxy release.
+	UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error
 }
 
 // GetReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.Release, error) {
-	return s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version)
+func (s *Storage) GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
+	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release proxy: %w", err)
+	}
+
+	additionInfo := new(types.ReleaseAdditionInfoProxy)
+	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release proxy: %v", err)
+	}
+
+	releaseProxy := &types.ReleaseProxy{
+		Release:                  *rls,
+		ReleaseAdditionInfoProxy: *additionInfo,
+	}
+
+	return releaseProxy, nil
 }
 
-// UpsertManyReleaseProxy upserts many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releases []*types.Release) error {
-	for _, rls := range releases {
-		if rls != nil {
-			rls.UpdatedAt = time.Now()
+// UpsertManyReleaseProxy upsert many release.
+func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error {
+	releases := make([]*types.Release, 0, len(releaseProxys))
+
+	var err error
+	for _, rls := range releaseProxys {
+		if rls == nil {
+			continue
+		}
+
+		rls.UpdatedAt = time.Now()
+		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoProxy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert many release proxy: %v", err)
 		}
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, releases...)
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, gen, releases...)
 }

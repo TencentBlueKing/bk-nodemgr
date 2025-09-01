@@ -125,6 +125,7 @@ func ConvOpInstanceDataToDB(data *operation.InstanceData) (*OperInstData, error)
 		Lifecycle:              ConvOperaLifeCycleToDB(data.Lifecycle),
 		ExtraExecutionName:     data.Metadata.ExtraExecutionName,
 		ExtraExecutionMessages: convMessageToDB(data.Metadata.ExtraExecutionMessages),
+		RelatedTriggerIDs:      data.Metadata.RelatedTriggerIDs,
 	}
 
 	if data.Metadata.InitContent == nil {
@@ -208,6 +209,7 @@ func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.Inst
 				Timeout:                opear.Timeout,
 				ExtraExecutionName:     opear.ExtraExecutionName,
 				ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
+				RelatedTriggerIDs:      opear.RelatedTriggerIDs,
 			},
 			Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 		},
@@ -241,6 +243,7 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 			Timeout:                opear.Timeout,
 			ExtraExecutionName:     opear.ExtraExecutionName,
 			ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
+			RelatedTriggerIDs:      opear.RelatedTriggerIDs,
 		},
 		Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
 	}

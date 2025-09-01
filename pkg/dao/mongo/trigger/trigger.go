@@ -16,7 +16,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -57,12 +56,7 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	indexes := []mongo.IndexModel{
-		{
-			Keys:    bson.D{{Key: FieldKeyTriggerID, Value: 1}},
-			Options: mongoOptions.Index(),
-		},
-	}
+	var indexes []mongo.IndexModel
 
 	return indexes
 }
@@ -83,6 +77,21 @@ func (d *dao) update(ctx context.Context, trig *Trigger) error {
 	default:
 		d.logger.Warnf("try to update trigger but no changes made, unique-key(%s", trig.UniqueKey())
 	}
+
+	return nil
+}
+
+// delete deletes triggers.
+func (d *dao) delete(ctx context.Context, triggerIDs ...string) error {
+	filter := base.AliveFilter()
+	filter = append(filter, bson.E{Key: FieldKeyTriggerID, Value: bson.D{{Key: "$in", Value: triggerIDs}}})
+
+	result, err := d.client.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, triggerIDs)
 
 	return nil
 }

@@ -23,8 +23,8 @@ import (
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Dao this is a common dao to dao some common crud.
-type Dao interface {
+// IDao this is a common dao to dao some common crud.
+type IDao interface {
 	// GetClient get the mongo client.
 	GetClient() *mongo.Collection
 
@@ -39,7 +39,7 @@ type Dao interface {
 }
 
 // NewOrm this is a common orm to operate mongo db.
-func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
+func NewOrm[P DataPoint[T], T any](dao IDao) *Orm[P, T] {
 	return &Orm[P, T]{
 		dao: dao,
 	}
@@ -47,7 +47,7 @@ func NewOrm[P Pointer[T], T any](dao Dao) *Orm[P, T] {
 
 // IOrm this defines the orm interface.
 // nolint: interfacebloat
-type IOrm[P Pointer[T], T any] interface {
+type IOrm[P DataPoint[T], T any] interface {
 	// EnsureIndexes ensure the indexes of given table.
 	EnsureIndexes() error
 
@@ -88,14 +88,14 @@ type IOrm[P Pointer[T], T any] interface {
 }
 
 // Orm this is a common orm to operate mongo db.
-type Orm[P Pointer[T], T any] struct {
-	dao Dao
+type Orm[P DataPoint[T], T any] struct {
+	dao IDao
 }
 
-// Pointer is a pointer.
-type Pointer[T any] interface {
+// DataPoint is a pointer.
+type DataPoint[T any] interface {
 	*T
-	Data
+	IData
 }
 
 // Get this is a common operation for mongo db.
@@ -181,6 +181,14 @@ func (orm *Orm[P, T]) Create(ctx context.Context, data P) error {
 // EnsureIndexes this is a common operation for mongo db.
 func (orm *Orm[P, T]) EnsureIndexes() error {
 	indexes := orm.dao.GetIndexes()
+
+	uniqueFields := TableBroker[P]{}.Data.UniqueFields()
+	for _, fieldKey := range uniqueFields {
+		indexes = append(indexes, mongo.IndexModel{
+			Keys:    bson.D{{Key: fieldKey, Value: 1}},
+			Options: mongoOptions.Index().SetUnique(true),
+		})
+	}
 
 	if len(indexes) == 0 {
 		return nil
