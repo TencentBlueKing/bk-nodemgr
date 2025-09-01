@@ -182,13 +182,16 @@ func (orm *Orm[P, T]) Create(ctx context.Context, data P) error {
 func (orm *Orm[P, T]) EnsureIndexes() error {
 	indexes := orm.dao.GetIndexes()
 
+	uniqueFieldKey := bson.D{}
 	uniqueFields := TableBroker[P]{}.Data.UniqueFields()
 	for _, fieldKey := range uniqueFields {
-		indexes = append(indexes, mongo.IndexModel{
-			Keys:    bson.D{{Key: fieldKey, Value: 1}},
-			Options: mongoOptions.Index().SetUnique(true),
-		})
+		uniqueFieldKey = append(uniqueFieldKey, bson.E{Key: fieldKey, Value: 1})
 	}
+
+	indexes = append(indexes, mongo.IndexModel{
+		Keys:    uniqueFieldKey,
+		Options: mongoOptions.Index().SetUnique(true),
+	})
 
 	if len(indexes) == 0 {
 		return nil
