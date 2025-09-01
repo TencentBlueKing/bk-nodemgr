@@ -46,10 +46,6 @@ type Release struct {
 // UniqueFields unique fields of the table.
 func (r *Release) UniqueFields() []string {
 	return []string{
-		FieldKeyGeneration,
-		FieldKeyType,
-		FieldKeyCPUArch,
-		FieldKeyOSType,
 		FieldKeyVersion,
 	}
 }
