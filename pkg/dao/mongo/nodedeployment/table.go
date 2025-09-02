@@ -61,10 +61,7 @@ type Info struct {
 	TransferOptions        TransferOptions `json:"transfer_options" bson:"transfer_options"`
 	CurrentVersionSupports VersionSupports `json:"current_version_supports" bson:"current_version_supports"`
 	TargetVersion          []TargetVersion `json:"target_version" bson:"target_version"`
-	RelayHostID            int64           `json:"relay_host_id" bson:"relay_host_id"`
-	RelayAgentID           string          `json:"relay_agent_id" bson:"relay_agent_id"`
-	RelayOsType            string          `json:"relay_os_type" bson:"relay_os_type"`
-	RelayPkgPath           string          `json:"relay_pkg_path" bson:"relay_pkg_path"`
+	RelayInfo              RelayInfo       `json:"relay_info" bson:"relay_info"`
 }
 
 // TargetVersion this is the target version for node deployment.
@@ -90,6 +87,7 @@ type InstallOptions struct {
 
 // UpgradeOptions this is the options for node upgrade.
 type UpgradeOptions struct {
+	DirectLink bool `json:"direct_link" bson:"direct_link"`
 }
 
 // RestartOptions this is the options for node restart.
@@ -117,6 +115,16 @@ type NodeConf struct {
 	ConfigTemplate map[string]string `json:"config_template" bson:"config_template"`
 	PreSetting     map[string]any    `json:"pre_setting" bson:"pre_setting"`
 	CustomSetting  map[string]any    `json:"custom_setting" bson:"custom_setting"`
+}
+
+// RelayInfo this is the relay info for node deployment.
+type RelayInfo struct {
+	HostID          int64  `json:"host_id" bson:"host_id"`
+	AgentID         string `json:"agent_id" bson:"agent_id"`
+	InnerIP         string `json:"inner_ip" bson:"inner_ip"`
+	PackageDestDir  string `json:"package_dest_dir" bson:"package_dest_dir"`
+	FileSvcPort     int64  `json:"file_svc_port" bson:"file_svc_port"`
+	CallbackSvcPort int64  `json:"callback_svc_port" bson:"callback_svc_port"`
 }
 
 // UniqueFields unique fields of the table.

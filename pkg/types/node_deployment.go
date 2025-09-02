@@ -88,6 +88,7 @@ type DeploymentInstallOptions struct {
 
 // DeploymentUpgradeOptions this is the options for node upgrade.
 type DeploymentUpgradeOptions struct {
+	DirectLink bool
 }
 
 // DeploymentRestartOptions this is the options for node restart.

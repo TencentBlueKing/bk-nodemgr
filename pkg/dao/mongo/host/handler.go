@@ -420,14 +420,16 @@ func convertHostFromTypes(host *types.Host) *Host {
 
 				return tags
 			}(),
-			ProxyClusterPort: host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:    host.Dynamic.ProxyDataPort,
-			ProxyFilePort:    host.Dynamic.ProxyFilePort,
-			LoginIP:          host.Dynamic.LoginIP,
-			LoginPort:        host.Dynamic.LoginPort,
-			LoginUser:        host.Dynamic.LoginUser,
-			ExportIP:         host.Dynamic.ExportIP,
-			AdvertiseIP:      host.Dynamic.AdvertiseIP,
+			ProxyClusterPort:  host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:     host.Dynamic.ProxyDataPort,
+			ProxyFilePort:     host.Dynamic.ProxyFilePort,
+			LoginIP:           host.Dynamic.LoginIP,
+			LoginPort:         host.Dynamic.LoginPort,
+			LoginUser:         host.Dynamic.LoginUser,
+			ExportIP:          host.Dynamic.ExportIP,
+			AdvertiseIP:       host.Dynamic.AdvertiseIP,
+			RelayFilePort:     host.Dynamic.RelayFilePort,
+			RelayCallbackPort: host.Dynamic.RelayCallbackPort,
 		}
 	}
 
@@ -490,6 +492,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			LoginUser:           host.Dynamic.LoginUser,
 			ExportIP:            host.Dynamic.ExportIP,
 			AdvertiseIP:         host.Dynamic.AdvertiseIP,
+			RelayFilePort:       host.Dynamic.RelayFilePort,
+			RelayCallbackPort:   host.Dynamic.RelayCallbackPort,
 		}
 	}
 
@@ -631,6 +635,13 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 	if fields.ProxyDataPort {
 		updates[FieldKeyDynamicProxyDataPort] = host.Dynamic.ProxyDataPort
+	}
+
+	if fields.RelayFilePort {
+		updates[FieldKeyDynamicRelayFilePort] = host.Dynamic.RelayFilePort
+	}
+	if fields.RelayCallbackPort {
+		updates[FieldKeyDynamicRelayCallbackPort] = host.Dynamic.RelayCallbackPort
 	}
 
 	return updates

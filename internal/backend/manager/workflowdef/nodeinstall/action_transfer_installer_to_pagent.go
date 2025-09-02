@@ -13,7 +13,6 @@ package nodeinstall
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
@@ -21,76 +20,73 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNameTransferPkgToNode defines the action name.
-	ActionNameTransferPkgToNode = "transfer_pkg_to_node"
+	// ActionNameTransferInstallerToPagent defines the action name.
+	ActionNameTransferInstallerToPagent = "transfer_installer_to_pagent"
 )
 
-// NewActionTransferPkgToNode get a new action.
-func NewActionTransferPkgToNode(
+// NewActionTransferInstallerToRelay get a new action.
+func NewActionTransferInstallerToRelay(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	fileHandler file.IHandler,
 	logger logger.ILogger) action.Definition {
 
-	return &actionTransferPkgToNode{
+	return &actionTransferInstallerToPagent{
 		storageNodeDeployment: storageNodeDeployment,
 		fileHandler:           fileHandler,
 		logger:                logger,
 	}
 }
 
-// ActionParamTransferPkgToNode defines the action param.
-type ActionParamTransferPkgToNode struct {
+// ActionParamTransferInstallerToRelay defines the action param.
+type ActionParamTransferInstallerToRelay struct {
 	Token string `json:"token"`
 }
 
-type actionTransferPkgToNode struct {
+type actionTransferInstallerToPagent struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	fileHandler           file.IHandler
 	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
-func (act *actionTransferPkgToNode) Name() string {
-	return ActionNameTransferPkgToNode
+func (act *actionTransferInstallerToPagent) Name() string {
+	return ActionNameTransferInstallerToPagent
 }
 
 // Version returns the version of the action.
-func (act *actionTransferPkgToNode) Version() string {
+func (act *actionTransferInstallerToPagent) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionTransferPkgToNode) Description() string {
-	return "transfer pkg to node"
+func (act *actionTransferInstallerToPagent) Description() string {
+	return "transfer installer to relay"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionTransferPkgToNode) Timeout() time.Duration {
+func (act *actionTransferInstallerToPagent) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionTransferPkgToNode) Tags() []action.Tag {
+func (act *actionTransferInstallerToPagent) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionTransferPkgToNode) MaxRetryCount() uint {
+func (act *actionTransferInstallerToPagent) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionTransferPkgToNode) DelayFn() func() {
+func (act *actionTransferInstallerToPagent) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -99,7 +95,7 @@ func (act *actionTransferPkgToNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionTransferInstallerToPagent) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamTransferPkgToNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
@@ -129,23 +125,14 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		info.InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	gp := gopool.NewPool()
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
-		ctx.Data.LogI("start to transfer release package")
-		gp.Go(func() error {
-			return act.transferRelease(ctx.Ctx, info)
-		})
-	}
 	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
 		ctx.Data.LogI("start to transfer installer package")
-		gp.Go(func() error {
-			return act.transferInstaller(ctx.Ctx, info)
-		})
+		if err = act.transferInstaller(ctx.Ctx, info); err != nil {
+			return fmt.Errorf("failed to transfer installer, err: %w", err)
+		}
 	}
-	if err := gp.Wait(); err != nil {
-		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d), err: %s", info.Host.HostID, err.Error())
-		return err
-	}
+
+	//TODO: close installer after transfer.
 
 	act.logger.InfoCtxf(ctx.Ctx, "transfer pkg to node all done. host-id(%d)", info.Host.HostID)
 	ctx.Data.LogI("transfer pkg to node all done")
@@ -153,67 +140,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info *types.DeploymentInfo) error {
-	var rt types.ReleaseType
-	switch info.Host.Dynamic.NodeRole {
-	case types.NodeRoleProxy:
-		rt = types.ReleaseTypeProxy
-
-	case types.NodeRoleAgent:
-		rt = types.ReleaseTypeAgent
-
-	default:
-		return fmt.Errorf("unsupported node role: %s", info.Host.Dynamic.NodeRole)
-	}
-
-	var dataDir string
-	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data")
-	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data")
-	}
-
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx,
-		info.Host.Dynamic.NodeGeneration,
-		rt,
-		platform.Platform{
-			OS:   info.Host.Dynamic.NodeOsType,
-			Arch: info.Host.Dynamic.NodeCPUArch,
-		},
-		info.Host.Dynamic.NodeVersion,
-		dataDir,
-		&info.Host)
-	if err != nil {
-		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", info.Host.HostID, err)
-	}
-
-	act.logger.InfoCtxf(ctx, "launched transfer release. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
-
-	result, err := transferHandler.WaitUntilDone(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d), err: %w",
-			transferHandler.GetTaskID(), info.Host.HostID, err)
-	}
-
-	if !result.Terminated {
-		return fmt.Errorf("transfer release not terminated. task-id(%s), host-id(%d)",
-			transferHandler.GetTaskID(), info.Host.HostID)
-	}
-
-	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer release failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
-			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
-	}
-
-	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
-
-	return nil
-}
-
-func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
-
+func (act *actionTransferInstallerToPagent) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,
 		platform.Platform{

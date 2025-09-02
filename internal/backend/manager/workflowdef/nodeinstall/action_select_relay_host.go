@@ -154,8 +154,10 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(ctx *action.Insta
 	relayHost := dedicatedHosts[rand.Intn(len(dedicatedHosts))]
 
 	return types.RelayInfo{
-		HostID:     relayHost.HostID,
-		AgentID:    relayHost.Dynamic.AgentID,
-		NodeOsType: relayHost.Dynamic.NodeOsType,
+		HostID:          relayHost.HostID,
+		AgentID:         relayHost.Dynamic.AgentID,
+		InnerIP:         relayHost.Static.InnerIP,
+		FileSvcPort:     relayHost.Dynamic.RelayFilePort,
+		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil
 }

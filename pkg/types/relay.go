@@ -10,8 +10,6 @@
 
 package types
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-
 // RelayInfo defines the relay info.
 type RelayInfo struct {
 	// HostID is the proxy host id.
@@ -19,7 +17,12 @@ type RelayInfo struct {
 	// AgentID is the proxy host id.
 	AgentID string
 	// PackageBasePath is the package base path.
-	NodeOsType criteria.OSType
-	// PackageBasePath is the package base path.
 	PackageDestDir string
+
+	// InnerIP is the inner ip.
+	InnerIP string
+	// FileSvcPort is the file service port.
+	FileSvcPort int64
+	// CallbackSvcPort is the callback service port.
+	CallbackSvcPort int64
 }

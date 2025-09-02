@@ -537,7 +537,7 @@ func (mgr *Manager) createInstallNodeOper(
 		return err
 	}
 
-	operationDef, err := mgr.getOperationDefinition(deploy, operator)
+	operationDef, err := mgr.getInstallOperationDef(deploy, operator)
 	if err != nil {
 		return err
 	}
@@ -563,7 +563,7 @@ func (mgr *Manager) createInstallNodeOper(
 	return nil
 }
 
-func (mgr *Manager) getOperationDefinition(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
+func (mgr *Manager) getInstallOperationDef(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
 	// proxy.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
@@ -656,10 +656,19 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
-				Token:    deploy.Token,
-				Operator: param.Operator,
-			})
+			var operationDef operation.Definition
+			if deploy.Info.UpgradeOptions.DirectLink {
+				operationDef = nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
+					Token:    deploy.Token,
+					Operator: param.Operator,
+				})
+			} else {
+				operationDef = nodeinstall.NewoperUpgradePagent(nodeinstall.OperParamUpgradePagent{
+					Token:    deploy.Token,
+					Operator: param.Operator,
+				})
+			}
+
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 

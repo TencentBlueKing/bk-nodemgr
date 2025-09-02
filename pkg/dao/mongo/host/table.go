@@ -63,6 +63,8 @@ type HostDynamic struct {
 	LoginUser           string   `json:"login_user" bson:"login_user"`
 	ExportIP            string   `json:"export_ip" bson:"export_ip"`
 	AdvertiseIP         string   `json:"advertise_ip" bson:"advertise_ip"`
+	RelayFilePort       int64    `json:"relay_file_port" bson:"relay_file_port"`
+	RelayCallbackPort   int64    `json:"relay_callback_port" bson:"relay_callback_port"`
 }
 
 var _ base.IData = &Host{}

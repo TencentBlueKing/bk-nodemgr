@@ -13,7 +13,9 @@ package nodeinstall
 import (
 	"errors"
 	"fmt"
+	"net"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -126,7 +128,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamUpgradeNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
@@ -147,31 +149,20 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
+		err = fmt.Errorf("failed to format tools name: %w", err)
 
 		return err
 	}
 
-	randSelector := discover.NewRandomSelector()
-	fileSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileBasic,
-		randSelector)
+	// get service addresses. depends on whether it is a direct or indirect connection.
+	fileSvcAddr, callbackSvcAddr, err := act.getServiceAddresses(info)
 	if err != nil {
-		return fmt.Errorf("failed to get file endpoint, err: %w", err)
-	}
-
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		randSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+		return fmt.Errorf("failed to get service addresses: %w", err)
 	}
 
 	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant %w", err)
 	}
 
 	upgradeParams := &UpgradeParams{
@@ -181,8 +172,8 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		NodeVersion:      info.Host.Dynamic.NodeVersion,
 		Generation:       info.Host.Dynamic.NodeGeneration,
 		NodeRole:         info.Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		FileSvrAddr:      "http://" + fileSvrEndpoint.GetIPV4Address(),
+		CallbackSvrAddr:  callbackSvcAddr,
+		FileSvrAddr:      fileSvcAddr,
 		DeployToken:      param.Token,
 		OperInstID:       ctx.Data.OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
@@ -288,4 +279,44 @@ func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, para
 	ctx.Data.LogI("upgrade node task-id: " + taskID)
 
 	return nil
+}
+
+func (act *actionUpgradeNode) getServiceAddresses(info *types.DeploymentInfo) (
+	string, string, error) {
+
+	if !info.UpgradeOptions.DirectLink {
+		fileSvrAddr := getHTTPAddress(info.RelayInfo.InnerIP, info.RelayInfo.FileSvcPort)
+		callbackSvrAddr := getHTTPAddress(info.RelayInfo.InnerIP, info.RelayInfo.CallbackSvcPort)
+		act.logger.Infof("file server address(%s), callback server address(%s)", fileSvrAddr, callbackSvrAddr)
+
+		return fileSvrAddr, callbackSvrAddr, nil
+	}
+
+	randSelector := discover.NewRandomSelector()
+
+	fileSvrEndpoint, err := act.provider.GetEndpoint(
+		discover.ServiceNameFile,
+		discover.EndpointNameFileBasic,
+		randSelector)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get file endpoint: %w", err)
+	}
+
+	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		randSelector)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get backend callback endpoint: %w", err)
+	}
+
+	fileSvrAddr := "http://" + fileSvrEndpoint.GetIPV4Address()
+	callbackSvrAddr := "http://" + callbackSvrEndpoint.GetIPV4Address()
+	act.logger.Infof("file server address(%s), callback server address(%s)", fileSvrAddr, callbackSvrAddr)
+
+	return fileSvrAddr, callbackSvrAddr, nil
+}
+
+func getHTTPAddress(ip string, port int64) string {
+	return "http://" + net.JoinHostPort(ip, strconv.Itoa(int(port)))
 }
