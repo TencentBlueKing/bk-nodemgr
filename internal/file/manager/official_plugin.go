@@ -514,17 +514,14 @@ func convOfficialPluginDirNameToPlat(dirName string) platform.Platform {
 	case "plugins_linux_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-
 		}
 	case "plugins_linux_aarch64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-
 		}
 	case "plugins_windows_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-
 		}
 	case "plugins_darwin_x86_64":
 		{

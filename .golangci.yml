@@ -95,8 +95,6 @@ linters:
     - nonamedreturns
     # Checks for misuse of Sprintf to construct a host with port in a URL.
     - nosprintfhostport
-    # Checks that fmt.Sprintf can be replaced with a faster alternative.
-    - perfsprint
     # Finds slice declarations that could potentially be pre-allocated.
     - prealloc
     # Find code that shadows one of Go's predeclared identifiers.
@@ -460,7 +458,7 @@ linters-settings:
     # To select a subset of rules to run.
     # Available rules: https://github.com/securego/gosec#available-rules
     # Default: [] - means include all rules
-    includes: []
+    includes: [ ]
     # To specify a set of rules to explicitly exclude.
     # Available rules: https://github.com/securego/gosec#available-rules
     # Default: []

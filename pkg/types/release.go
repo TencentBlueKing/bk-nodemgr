@@ -166,6 +166,7 @@ type ReleaseOfficialPlugin struct {
 	ReleaseAdditionInfoOfficialPlugin
 }
 
+// ReleaseAdditionInfoOfficialPlugin defines the addition info of release official plugin.
 type ReleaseAdditionInfoOfficialPlugin struct {
 	ConfigTemplates []PluginPkgConfigTemplate
 }
@@ -176,6 +177,7 @@ type ReleaseExternalPlugin struct {
 	ReleaseAdditionInfoExternalPlugin
 }
 
+// ReleaseAdditionInfoExternalPlugin defines the addition info of release external plugin.
 type ReleaseAdditionInfoExternalPlugin struct {
 	ConfigTemplates []PluginPkgConfigTemplate
 }

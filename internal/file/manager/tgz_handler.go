@@ -101,7 +101,7 @@ func generateTgz(
 			ModTime:  time.Now(),
 			Typeflag: tar.TypeDir,
 		}); err != nil {
-			return fmt.Errorf("failed to write tar header for directory(%v). err: %w", rule.targetFilePath, err)
+			return fmt.Errorf("failed to write tar header for directory(%v): %w", rule.targetFilePath, err)
 		}
 	}
 
@@ -140,7 +140,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to read tar header. err: %w", err)
+			return fmt.Errorf("failed to read tar header: %w", err)
 		}
 
 		if header.Typeflag != tar.TypeReg {
@@ -181,7 +181,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 					target[idx], ok = mapping[rule.targetFilePath[idx]]
 
 					if !ok {
-						return fmt.Errorf("failed to map target path. rule: %v, header: %+v", rule, header)
+						return fmt.Errorf("failed to map target path. rule(%v), header(%+v)", rule, header)
 					}
 
 					continue
@@ -197,7 +197,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 				Typeflag: tar.TypeReg,
 				Size:     header.Size,
 			}); err != nil {
-				return fmt.Errorf("failed to write tar header for file(%v). err: %w", target, err)
+				return fmt.Errorf("failed to write tar header for file(%v): %w", target, err)
 			}
 
 			// this copy is only for admin usage, so it's ok to ignore the security check.
@@ -242,7 +242,7 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to read tar header. err: %w", err)
+			return fmt.Errorf("failed to read tar header: %w", err)
 		}
 
 		// trim the heading '.' and '/'

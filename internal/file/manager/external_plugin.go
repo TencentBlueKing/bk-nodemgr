@@ -221,9 +221,9 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, upload
 	}
 
 	if up.Category != types.UploadCategoryOriginExternalPlugin {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, invalid category. err: %s", up.Category)
+		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, invalid category, category(%s)", up.Category)
 
-		return errors.New("invalid category")
+		return fmt.Errorf("failed to publish release external plugin, invalid category, category(%s)", up.Category)
 	}
 
 	// get origin file.
@@ -477,17 +477,14 @@ func convDirNameToPlat(dirName string) platform.Platform {
 	case "external_plugins_linux_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-
 		}
 	case "external_plugins_linux_aarch64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-
 		}
 	case "external_plugins_windows_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-
 		}
 	case "external_plugins_darwin_x86_64":
 		{
