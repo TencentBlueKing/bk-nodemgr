@@ -8,35 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package tenant ...
 package tenant
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+const (
+	// FieldKeyID is the key for the id field.
+	FieldKeyID = "data.id"
 )
-
-// TableName tenant table name.
-const TableName = "tenant"
-
-var _ base.IData = &Tenant{}
-
-// Tenant represents a tenant.
-// ID should be the unique key.
-type Tenant struct {
-	ID     string `json:"id" bson:"id"`
-	Name   string `json:"name" bson:"name"`
-	Status bool   `json:"status" bson:"status"`
-}
-
-// UniqueFields returns the unique fields of the table.
-func (t *Tenant) UniqueFields() []string {
-	return []string{FieldKeyID}
-}
-
-// UniqueKey unique key of the table.
-func (t *Tenant) UniqueKey() string {
-	return t.ID
-}
-
-// TableTenant represents the complete db structures of a tenant.
-type TableTenant base.TableBroker[*Tenant]
