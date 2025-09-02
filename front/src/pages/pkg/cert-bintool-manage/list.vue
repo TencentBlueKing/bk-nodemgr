@@ -311,7 +311,7 @@ const getPackages = async () => {
   const currentType = route.name === "certMng" ? "cert" : "bintool";
   const res = await PackageService.ListRelease({
     release_type: currentType,
-    generation: [2]
+    generation: 2
   });
   const items = res.items.map((item, index) => ({
     ...item,
