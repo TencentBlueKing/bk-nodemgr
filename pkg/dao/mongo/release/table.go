@@ -26,6 +26,7 @@ var _ base.IData = &Release{}
 
 // Release presents a release.
 type Release struct {
+	Name         string         `json:"name" bson:"name"`
 	Generation   int64          `json:"generation" bson:"generation"`
 	Type         string         `json:"type" bson:"type"`
 	Version      string         `json:"version" bson:"version"`
@@ -46,6 +47,7 @@ type Release struct {
 // UniqueFields unique fields of the table.
 func (r *Release) UniqueFields() []string {
 	return []string{
+		FieldKeyName,
 		FieldKeyGeneration,
 		FieldKeyType,
 		FieldKeyCPUArch,
@@ -56,7 +58,7 @@ func (r *Release) UniqueFields() []string {
 
 // UniqueKey unique key of the table.
 func (r *Release) UniqueKey() string {
-	return fmt.Sprintf("%d_%s_%s_%s_%s", r.Generation, r.Type, r.CPUArch, r.OSType, r.Version)
+	return fmt.Sprintf("%s_%d_%s_%s_%s_%s", r.Name, r.Generation, r.Type, r.CPUArch, r.OSType, r.Version)
 }
 
 // TableRelease represents the complete db structures.

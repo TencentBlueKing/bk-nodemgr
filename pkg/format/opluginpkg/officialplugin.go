@@ -16,7 +16,6 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -24,19 +23,14 @@ import (
 const PkgExtension = "tgz"
 
 // FormatPkgName formats the package name based on the node role, generation, and version.
-func FormatPkgName(
-	pluginName string,
-	releaseType types.ReleaseType,
-	plat platform.Platform,
-	version string,
-) (string, error) {
+func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (string, error) {
 
 	if err := releaseType.Validate(); err != nil {
-		return "", fmt.Errorf("format pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format official plugin pkg name failed, err: %w", err)
 	}
 
 	if version == "" {
-		return "", errors.New("format pkg name failed, version is empty")
+		return "", errors.New("format official plugin pkg name failed, version is empty")
 	}
 
 	// origin agent pkg contains all platforms in one pkg.
@@ -44,8 +38,9 @@ func FormatPkgName(
 	switch releaseType {
 	case types.ReleaseTypeOriginOfficialPlugin:
 		pkgName := fmt.Sprintf(
-			"plugin_%s_%s-%s-all.%s",
+			"bk-nodemgr_%s_%d_%s-%s-all.%s",
 			releaseType,
+			gen,
 			pluginName,
 			version,
 			PkgExtension)
@@ -53,12 +48,13 @@ func FormatPkgName(
 		return pkgName, nil
 	case types.ReleaseTypeOfficialPlugin:
 		if !plat.Validate() {
-			return "", fmt.Errorf("format pkg name failed, platform is invalid: %s", plat.String())
+			return "", fmt.Errorf("format official plugin pkg name failed, platform is invalid: %s", plat.String())
 		}
 
 		pkgName := fmt.Sprintf(
-			"plugin_%s_%s-%s-%s_%s.%s",
+			"bk-nodemgr_%s_%d_%s-%s-%s_%s.%s",
 			releaseType,
+			gen,
 			pluginName,
 			version,
 			plat.OS,
@@ -67,23 +63,6 @@ func FormatPkgName(
 
 		return pkgName, nil
 	default:
-		return "", fmt.Errorf("format pkg name failed, release type is invalid: %s", releaseType)
+		return "", fmt.Errorf("format official plugin pkg name failed, release type is invalid: %s", releaseType)
 	}
-}
-
-// FormatBinaryName formats the tools name based on the OS type and CPU architecture.
-func FormatBinaryName(pluginName string, osType criteria.OSType, cpuArch criteria.CPUArch) string {
-	toolName := fmt.Sprintf("%s_%s_%s", pluginName, osType, cpuArch)
-
-	if osType == criteria.OSWindows {
-		toolName += ".exe"
-	}
-
-	return toolName
-}
-
-// FormatConfTpl format conf tpl.
-// nolint: perfsprint
-func FormatConfTpl(pluginName string) string {
-	return fmt.Sprintf("%s.conf.tpl", pluginName)
 }

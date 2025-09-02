@@ -103,3 +103,47 @@ func (h *handler) PublishReleaseBinTool(ctx *restserver.Context) (interface{}, e
 
 	return resp.GetData(), nil
 }
+
+// PublishReleaseOfficialPlugin publish release official plugin.
+func (h *handler) PublishReleaseOfficialPlugin(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.PublishReleaseOfficialPluginReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release official plugin, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.manager.PublishReleaseOfficialPlugin(ctx, uploadID); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release official plugin. upload-id(%s), err: %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded and generated release official plugin. upload-id(%s)", uploadID)
+
+	resp := new(protoFile.PublishReleaseOfficialPluginResp)
+
+	return resp.GetData(), nil
+}
+
+// PublishReleaseExternalPlugin publish release external plugin.
+func (h *handler) PublishReleaseExternalPlugin(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.PublishReleaseExternalPluginReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.manager.PublishReleaseExternalPlugin(ctx, uploadID); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release external plugin. upload-id(%s), err: %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded and generated release external plugin. upload-id(%s)", uploadID)
+
+	resp := new(protoFile.PublishReleaseExternalPluginResp)
+
+	return resp.GetData(), nil
+}

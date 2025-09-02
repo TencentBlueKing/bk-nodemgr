@@ -11,19 +11,66 @@
 package release
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IExternalPlugin defines the interface for external plugin.
+// IExternalPlugin defines the interface of external plugin.
 type IExternalPlugin interface {
-	// ExistReleaseExternalPlugin checks if release external plugin exists.
-	ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+	// ExistReleaseExternalPluginGen2 checks if release external plugin exists.
+	ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+
+	// UpsertManyReleaseExternalPluginGen2 upserts many release external plugin gen2.
+	UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error
 }
 
-// ExistReleaseExternalPlugin checks if release plugin exists.
-func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
-	// TODO: implement me
+// ExistReleaseExternalPluginGen2 checks if release plugin exists.
+func (s *Storage) ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+	fileNames := make([]string, 0, len(plats))
+	for _, plat := range plats {
+		pluginFileName, err := epluginpkg.FormatPkgName(pluginName, types.ReleaseTypeExternalPlugin, types.Generation2, plat, version)
+		if err != nil {
+			return false, err
+		}
 
-	return false, nil
+		fileNames = append(fileNames, pluginFileName)
+	}
+
+	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, types.Generation2,
+		release.WithFileName(fileNames...))
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+// UpsertManyReleaseExternalPluginGen2 upsert many release.
+func (s *Storage) UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+	var err error
+	releases := make([]*types.Release, 0, len(releaseExternalPlugins))
+
+	for _, rls := range releaseExternalPlugins {
+		if rls == nil {
+			continue
+		}
+
+		rls.UpdatedAt = time.Now()
+		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoExternalPlugin)
+		if err != nil {
+			return fmt.Errorf("failed to upsert many release agent: %v", err)
+		}
+
+		releases = append(releases, &rls.Release)
+	}
+
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, releases...)
 }

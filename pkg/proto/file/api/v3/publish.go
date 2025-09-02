@@ -45,3 +45,21 @@ func (x *PublishReleaseBinToolReq) Validate() error {
 // AutoConvert auto convert.
 func (x *PublishReleaseBinToolReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *PublishReleaseOfficialPluginReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PublishReleaseOfficialPluginReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PublishReleaseExternalPluginReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PublishReleaseExternalPluginReq) AutoConvert() {
+}

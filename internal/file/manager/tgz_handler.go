@@ -110,90 +110,100 @@ func generateTgz(
 		sourceFile := stream.sourceFile
 		fileRules := stream.fileRules
 
-		gzipReader, err := gzip.NewReader(sourceFile)
+		err = copyFileToTgz(sourceFile, fileRules, tarWriter)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to generate tgz: %w", err)
 		}
-		defer func() {
-			if errClose := gzipReader.Close(); errClose != nil {
-				err = errors.Join(err, errClose)
-			}
-		}()
+	}
 
-		// source tar reader.
-		tarReader := tar.NewReader(gzipReader)
-		for {
-			header, err := tarReader.Next()
-			if err == io.EOF {
-				break
-			}
+	return nil
+}
 
-			if err != nil {
-				return fmt.Errorf("failed to read tar header. err: %w", err)
-			}
+func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) error {
+	gzipReader, err := gzip.NewReader(sourceFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy file to tgz: %w", err)
+	}
 
-			if header.Typeflag != tar.TypeReg {
+	defer func() {
+		if errClose := gzipReader.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
+
+	// source tar reader.
+	tarReader := tar.NewReader(gzipReader)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return fmt.Errorf("failed to read tar header. err: %w", err)
+		}
+
+		if header.Typeflag != tar.TypeReg {
+			continue
+		}
+
+		// trim the heading '.' and '/'
+		paths := strings.Split(strings.TrimLeft(header.Name, "./"), "/")
+
+		// validates if the paths match the rules.
+		for _, rule := range fileRules {
+			if len(paths) != len(rule.sourceFilePath) {
 				continue
 			}
 
-			// trim the heading '.' and '/'
-			paths := strings.Split(strings.TrimLeft(header.Name, "./"), "/")
-
-			// validates if the paths match the rules.
-			for _, rule := range fileRules {
-				if len(paths) != len(rule.sourceFilePath) {
+			matched := true
+			mapping := make(map[string]string)
+			for idx := range paths {
+				if isTgzPathNameAny(rule.sourceFilePath[idx]) {
+					mapping[rule.sourceFilePath[idx]] = paths[idx]
 					continue
 				}
 
-				matched := true
-				mapping := make(map[string]string)
-				for idx := range paths {
-					if isTgzPathNameAny(rule.sourceFilePath[idx]) {
-						mapping[rule.sourceFilePath[idx]] = paths[idx]
-						continue
-					}
-
-					if rule.sourceFilePath[idx] != paths[idx] {
-						matched = false
-						break
-					}
+				if rule.sourceFilePath[idx] != paths[idx] {
+					matched = false
+					break
 				}
+			}
 
-				if !matched {
+			if !matched {
+				continue
+			}
+
+			target := make([]string, len(rule.targetFilePath))
+			for idx := range rule.targetFilePath {
+				if isTgzPathNameAny(rule.targetFilePath[idx]) {
+					var ok bool
+					target[idx], ok = mapping[rule.targetFilePath[idx]]
+
+					if !ok {
+						return fmt.Errorf("failed to map target path. rule: %v, header: %+v", rule, header)
+					}
+
 					continue
 				}
 
-				target := make([]string, len(rule.targetFilePath))
-				for idx := range rule.targetFilePath {
-					if isTgzPathNameAny(rule.targetFilePath[idx]) {
-						var ok bool
-						target[idx], ok = mapping[rule.targetFilePath[idx]]
+				target[idx] = rule.targetFilePath[idx]
+			}
 
-						if !ok {
-							return fmt.Errorf("failed to map target path. rule: %v, header: %+v", rule, header)
-						}
+			if err = tarWriter.WriteHeader(&tar.Header{
+				Name:     strings.Join(target, "/"),
+				Mode:     rule.targetFileMode,
+				ModTime:  time.Now(),
+				Typeflag: tar.TypeReg,
+				Size:     header.Size,
+			}); err != nil {
+				return fmt.Errorf("failed to write tar header for file(%v). err: %w", target, err)
+			}
 
-						continue
-					}
-
-					target[idx] = rule.targetFilePath[idx]
-				}
-
-				if err = tarWriter.WriteHeader(&tar.Header{
-					Name:     strings.Join(target, "/"),
-					Mode:     rule.targetFileMode,
-					ModTime:  time.Now(),
-					Typeflag: tar.TypeReg,
-					Size:     header.Size,
-				}); err != nil {
-					return fmt.Errorf("failed to write tar header for file(%v). err: %w", target, err)
-				}
-
-				// this copy is only for admin usage, so it's ok to ignore the security check.
-				// nolint: gosec
-				if _, err = io.Copy(tarWriter, tarReader); err != nil {
-					return fmt.Errorf("failed to copy file. origin(%v), target(%v), err: %w", paths, target, err)
-				}
+			// this copy is only for admin usage, so it's ok to ignore the security check.
+			// nolint: gosec
+			if _, err = io.Copy(tarWriter, tarReader); err != nil {
+				return fmt.Errorf("failed to copy file. origin(%v), target(%v), err: %w", paths, target, err)
 			}
 		}
 	}
