@@ -256,6 +256,7 @@ type OriginExternalPluginPkgDetail struct {
 	ConfigFile      string
 	ConfigFormat    string
 	LaunchMode      string
+	SubDirPaths     map[string]map[string]struct{}
 	ConfigTemplates []PluginPkgConfigTemplate
 
 	Platforms []platform.Platform

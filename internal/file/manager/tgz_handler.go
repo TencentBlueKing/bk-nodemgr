@@ -250,12 +250,12 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 
 		// validates if the paths match the rules.
 		for _, rule := range rules {
-			if len(paths) != len(rule.filePath) {
+			if len(paths) < len(rule.filePath) {
 				continue
 			}
 
 			matched := true
-			for idx := range paths {
+			for idx := range rule.filePath {
 				if isTgzPathNameAny(rule.filePath[idx]) {
 					continue
 				}

@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -168,6 +169,7 @@ type ExternalPluginConfigTemplate struct {
  */
 func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error) {
 	detail := new(types.OriginExternalPluginPkgDetail)
+	detail.SubDirPaths = make(map[string]map[string]struct{})
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -200,6 +202,27 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 						Variables:     convPropertyToTypes(configTemplate.Variables),
 					})
 				}
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, tgzPathNameAny3},
+			callback: func(path []string, _ io.Reader) error {
+				plat := convDirNameToPlat(path[0])
+				if plat.Arch == criteria.CPUArchUnknown || plat.OS == criteria.OSUnknown {
+					// this not a platform directory.
+					return nil
+				}
+
+				subDirPath := filepath.Join(path[2 : len(path)-1]...)
+
+				platStr := plat.String()
+				if _, ok := detail.SubDirPaths[platStr]; !ok {
+					detail.SubDirPaths[platStr] = make(map[string]struct{})
+				}
+
+				detail.SubDirPaths[platStr][subDirPath] = struct{}{}
 
 				return nil
 			},
@@ -392,44 +415,40 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 				return fmt.Errorf("failed to open origin external plugin file: %w", err)
 			}
 
+			subDirPaths := conv.MapKeyToSlice(originDetail.SubDirPaths[plat.String()])
+			dirs := make([]tgzWriteRuleDir, 0, len(subDirPaths))
+			files := make([]tgzWriteRuleFile, 0, len(dirs))
+
+			for _, subDirPath := range subDirPaths {
+				dirPaths := filepath.SplitList(subDirPath)
+
+				if len(dirPaths) > 0 {
+					dirs = append(dirs, tgzWriteRuleDir{
+						targetFilePath: dirPaths,
+						targetFileMode: tgzModeDir,
+					})
+				}
+
+				subFilePaths := append(dirPaths, tgzPathNameAny1)
+				subFileMode := int64(tgzModeFile)
+				if len(dirPaths) > 0 && dirPaths[0] == "bin" {
+					subFileMode = tgzModeExe
+				}
+
+				files = append(files, tgzWriteRuleFile{
+					sourceFilePath: append([]string{convPlatToDirName(plat), pluginName}, subFilePaths...),
+					targetFilePath: subFilePaths,
+					targetFileMode: subFileMode,
+				})
+			}
+
 			if err = generateTgz(targetFile,
-				[]tgzWriteRuleDir{
-					{
-						targetFilePath: []string{"bin"},
-						targetFileMode: tgzModeDir,
-					},
-					{
-						targetFilePath: []string{"etc"},
-						targetFileMode: tgzModeDir,
-					},
-				},
+				dirs,
 				[]*tgzWriteRuleStream{
 					// get things from origin external plugin.
 					{
 						sourceFile: origiExternalPluginFile,
-						fileRules: []tgzWriteRuleFile{
-							{
-								sourceFilePath: []string{convPlatToDirName(plat), pluginName, "bin", tgzPathNameAny1},
-								targetFilePath: []string{
-									"bin", tgzPathNameAny1,
-								},
-								targetFileMode: tgzModeExe,
-							},
-							{
-								sourceFilePath: []string{convPlatToDirName(plat), pluginName, "etc", tgzPathNameAny1},
-								targetFilePath: []string{
-									"etc", tgzPathNameAny1,
-								},
-								targetFileMode: tgzModeFile,
-							},
-							{
-								sourceFilePath: []string{convPlatToDirName(plat), pluginName, tgzPathNameAny1},
-								targetFilePath: []string{
-									tgzPathNameAny1,
-								},
-								targetFileMode: tgzModeFile,
-							},
-						},
+						fileRules:  files,
 					},
 				},
 			); err != nil {
