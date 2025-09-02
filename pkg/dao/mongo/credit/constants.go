@@ -16,4 +16,7 @@ const (
 
 	// FieldKeyCreditID the credit id field key.
 	FieldKeyCreditID = "data.credit_id"
+
+	// FieldKeyExpireAt the expire at field key.
+	FieldKeyExpireAt = "data.expire_at"
 )
