@@ -57,7 +57,7 @@ type IOperationInstData interface {
 }
 
 // Upsert updates or inserts an OperInstData.
-func (h *handler) Upsert(ctx context.Context, data *operation.InstanceData) error {
+func (h *Handler) Upsert(ctx context.Context, data *operation.InstanceData) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -80,7 +80,7 @@ func (h *handler) Upsert(ctx context.Context, data *operation.InstanceData) erro
 }
 
 // FindOne find one OperInstData.
-func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
+func (h *Handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
@@ -143,7 +143,7 @@ func (h *handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 }
 
 // List find all OperInstData.
-func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) ListFullData(ctx context.Context, page types.Page, opts ...OptFn) (
 	[]*operation.InstanceData, int64, error) {
 
 	if ctx == nil {
@@ -155,14 +155,14 @@ func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.baseOrm.Count(ctx, filter)
+	num, err := h.dao.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	operaInstDatas, err := h.dao.baseOrm.List(ctx, filter, findOpt)
+	operaInstDatas, err := h.dao.List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -211,7 +211,7 @@ func (h *handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 }
 
 // FindOneWithoutActionData find InstanceData without action data.
-func (h *handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
+func (h *Handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
@@ -235,7 +235,7 @@ func (h *handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 }
 
 // ListWithoutActInst List InstanceDatas without action data.
-func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) ListWithoutActInst(ctx context.Context, page types.Page, opts ...OptFn) (
 	[]*operation.InstanceBriefData, int64, error) {
 
 	if ctx == nil {
@@ -247,7 +247,7 @@ func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.baseOrm.Count(ctx, filter)
+	num, err := h.dao.Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -278,7 +278,7 @@ func (h *handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 }
 
 // Count count OperationDatas by conditions.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
+func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	if ctx == nil {
 		return 0, errors.New("ctx is nil")
 	}
@@ -288,11 +288,11 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.dao.baseOrm.Count(ctx, filter)
+	return h.dao.Count(ctx, filter)
 }
 
 // UpdateLifeCycle update operation instance's LifeCycle.
-func (h *handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error {
+func (h *Handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -322,7 +322,7 @@ func (h *handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 }
 
 // UpdateExtraExecutionMessages updates operation instance extra execution messages.
-func (h *handler) UpdateExtraExecutionMessages(
+func (h *Handler) UpdateExtraExecutionMessages(
 	ctx context.Context, operInstID string, messages ...common.Message) error {
 
 	if ctx == nil {
@@ -356,7 +356,7 @@ func (h *handler) UpdateExtraExecutionMessages(
 }
 
 // ListAllLastOperInst find all last OperInstData in their operation.
-func (h *handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
+func (h *Handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
 	[]*operation.InstanceBriefData, error) {
 
 	if ctx == nil {
@@ -384,7 +384,7 @@ func (h *handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
 }
 
 // Delete deletes operation instance data by given operation instance IDs.
-func (h *handler) Delete(ctx context.Context, operInstIDs ...string) error {
+func (h *Handler) Delete(ctx context.Context, operInstIDs ...string) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
