@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -56,8 +57,7 @@ func NewActionDetectInfoByWMI(
 
 // ActParamDetectInfoByWMI ...
 type ActParamDetectInfoByWMI struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionDetectInfoByWMI struct {
@@ -115,25 +115,46 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	client, err := generateWMIClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
+	// get wmi credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get wmi credit: %w", err)
+	}
+
+	// generate the wmi client.
+	client, err := wmix.NewClient(&wmix.Config{
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
+		Logger:     act.logger,
+		AuthMethod: cMethod,
+		Password: func() string {
+			if cMethod == wmix.AuthMethodPassword {
+				return cKey
+			}
+
+			return ""
+		}(),
+		Timeout: wmix.DefaultTimeout,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to generate new wmi client: %w", err)
 	}
 
 	osType, cpuArch, err := act.detectInfo(ctx, client)
@@ -141,51 +162,51 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = windowsDefaultInstallerWorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
-	info.Host.Dynamic.NodeOsType = osType
-	info.Host.Dynamic.NodeCPUArch = cpuArch
+	std.DeployInfo().Host.Dynamic.NodeOsType = osType
+	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		return err
 	}
-	if len(info.TargetVersion) > 0 {
-		for _, v := range info.TargetVersion {
-			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+	if len(std.DeployInfo().TargetVersion) > 0 {
+		for _, v := range std.DeployInfo().TargetVersion {
+			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
-				info.Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 				break
 			}
 		}
 	} else {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
+			std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
 				ReleaseType: releaseType,
-				Generation:  info.Host.Dynamic.NodeGeneration,
-				OSType:      info.Host.Dynamic.NodeOsType,
-				CPUArch:     info.Host.Dynamic.NodeCPUArch,
+				Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+				OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+				CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			})
 			if err != nil {
 				return err
 			}
-			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 		}
 	}
 
@@ -193,10 +214,10 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
-			Version:     info.Host.Dynamic.NodeVersion,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			Version:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		})
 	if err != nil {
 		return err

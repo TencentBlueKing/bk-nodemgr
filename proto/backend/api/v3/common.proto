@@ -107,8 +107,10 @@ message HostInfo {
   optional string login_ip = 13;
   optional int64 login_port = 14;
   optional string login_user = 15;
-  optional string export_ip = 16;
-  optional string advertise_ip = 17;
+  optional string login_mode = 16;
+  optional bool login_credit_valid = 17;
+  optional string export_ip = 18;
+  optional string advertise_ip = 19;
 }
 
 // Host describes the host informations.

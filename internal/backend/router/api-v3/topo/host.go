@@ -14,6 +14,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -40,7 +41,7 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 		}
 
 		resp := new(protoBackend.TopoHostListResp)
-		resp.ConvertHostsFromTypes(num, nil)
+		resp.ConvertHostsFromTypes(num, nil, nil)
 
 		return resp.GetData(), nil
 	}
@@ -54,8 +55,21 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// get credit status.
+	creditIDMap := make(map[string]struct{})
+	for _, host := range hosts {
+		if host.Dynamic.LoginCreditID != "" {
+			creditIDMap[host.Dynamic.LoginCreditID] = struct{}{}
+		}
+	}
+	hostCredits, err := h.storageHostCredit.CheckHostCreditValid(ctx, conv.MapKeyToSlice(creditIDMap)...)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to list host. failed to get host credit status. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
 	resp := new(protoBackend.TopoHostListResp)
-	resp.ConvertHostsFromTypes(num, hosts)
+	resp.ConvertHostsFromTypes(num, hosts, hostCredits)
 
 	return resp.GetData(), nil
 }

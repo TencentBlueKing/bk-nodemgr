@@ -11,24 +11,26 @@
 package credit
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // IHandler credit Handler interface.
 type IHandler interface {
+	// CheckValid check creditIDs is valid or not.
+	CheckValid(ctx contextx.ITenantContext, creditIDs ...string) (map[string]bool, error)
+
 	// Get get credit by creditID.
-	Get(ctx context.Context, creditID string) ([]byte, error)
+	Get(ctx contextx.ITenantContext, creditID string) ([]byte, error)
 
 	// Upsert a credit.
-	Upsert(ctx context.Context, creditID string, creditData []byte, expireAt time.Time) error
+	Upsert(ctx contextx.ITenantContext, creditID string, creditData []byte, expireAt time.Time) error
 }
 
 // Handler credit Handler.
@@ -67,16 +69,33 @@ func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	}
 }
 
-// Get get credit by creditID.
-func (h *Handler) Get(ctx context.Context, creditID string) ([]byte, error) {
-	tenantID, err := tenant.GetID(ctx)
+// CheckValid check creditIDs is valid or not.
+func (h *Handler) CheckValid(ctx contextx.ITenantContext, creditIDs ...string) (map[string]bool, error) {
+	filter := base.AliveFilter()
+	filter = WithCreditID(creditIDs...)(filter)
+
+	data, err := h.tenantDao(ctx.TenantID()).List(ctx, filter, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	validMap := make(map[string]bool)
+	for _, id := range creditIDs {
+		validMap[id] = false
+	}
+	for _, item := range data {
+		validMap[item.CreditID] = true
+	}
+
+	return validMap, nil
+}
+
+// Get get credit by creditID.
+func (h *Handler) Get(ctx contextx.ITenantContext, creditID string) ([]byte, error) {
 	filter := base.AliveFilter()
 	filter = WithCreditID(creditID)(filter)
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+
+	data, err := h.tenantDao(ctx.TenantID()).Get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -85,12 +104,7 @@ func (h *Handler) Get(ctx context.Context, creditID string) ([]byte, error) {
 }
 
 // Upsert a credit.
-func (h *Handler) Upsert(ctx context.Context, creditID string, creditData []byte, expireAt time.Time) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		return err
-	}
-
+func (h *Handler) Upsert(ctx contextx.ITenantContext, creditID string, creditData []byte, expireAt time.Time) error {
 	if creditID == "" {
 		return ErrInvalidCreditID()
 	}
@@ -104,11 +118,11 @@ func (h *Handler) Upsert(ctx context.Context, creditID string, creditData []byte
 	}
 
 	credit := &Credit{
-		TenantID:   tenantID,
+		TenantID:   ctx.TenantID(),
 		CreditID:   creditID,
 		CreditData: creditData,
 		ExpireAt:   expireAt,
 	}
 
-	return h.tenantDao(tenantID).upsert(ctx, credit)
+	return h.tenantDao(ctx.TenantID()).upsert(ctx, credit)
 }

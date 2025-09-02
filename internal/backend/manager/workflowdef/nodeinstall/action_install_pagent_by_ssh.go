@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -148,6 +149,8 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
+	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator)
+
 	// let the callback server known which action to mark and log.
 	info.BlockingActionName = ActionNameWaitInstallerComplete
 
@@ -191,7 +194,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	installCmd := act.buildCMD(installParams)
 	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
 
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	password, err := act.queryPassword(tenantUserCtx, param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -217,10 +220,10 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 	event := protoRelay.InstallPagentBySSHReq{
 		ActionName:       ctx.Data.Name,
 		OperInstID:       ctx.Data.OperationInstanceID,
-		IP:               info.LoginInfo.IP,
-		Port:             info.LoginInfo.Port,
-		User:             info.LoginInfo.User,
-		LoginMode:        string(info.LoginInfo.Mode),
+		IP:               info.Host.Dynamic.LoginIP,
+		Port:             info.Host.Dynamic.LoginPort,
+		User:             info.Host.Dynamic.LoginUser,
+		LoginMode:        string(info.Host.Dynamic.LoginMode),
 		Password:         password,
 		InstallerWorkDir: info.InstallerWorkDir,
 		ToolsName:        toolsName,
@@ -325,20 +328,17 @@ func (act *actionInstallPagentBySSH) buildCMD(param *pagentInstallParams) []stri
 }
 
 func (act *actionInstallPagentBySSH) queryPassword(
-	ctx context.Context,
+	ctx contextx.ITenantContext,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo) (string, error) {
 
-	switch info.LoginInfo.Mode {
+	switch info.Host.Dynamic.LoginMode {
 	case types.LoginModePassword:
 		passwd, err := storageHostCredit.LoadHostCredit(
 			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
+			info.Host.Dynamic.LoginCreditID)
 		if err != nil {
 			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
 		}
@@ -348,10 +348,7 @@ func (act *actionInstallPagentBySSH) queryPassword(
 	case types.LoginModeKeyFile:
 		privateKey, err := storageHostCredit.LoadHostCredit(
 			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
+			info.Host.Dynamic.LoginCreditID)
 		if err != nil {
 			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
 		}
@@ -362,14 +359,14 @@ func (act *actionInstallPagentBySSH) queryPassword(
 			ctx,
 			operator,
 			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
+			info.Host.Dynamic.LoginIP,
+			info.Host.Dynamic.LoginUser)
 		if err != nil {
 			return "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
 
 		return string(passwd), nil
 	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
+		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.Host.Dynamic.LoginMode)
 	}
 }

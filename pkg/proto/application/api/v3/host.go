@@ -74,6 +74,8 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.LoginIp = host.Dynamic.LoginIP
 		*item.Info.LoginPort = host.Dynamic.LoginPort
 		*item.Info.LoginUser = host.Dynamic.LoginUser
+		*item.Info.LoginMode = string(host.Dynamic.LoginMode)
+		*item.Info.LoginCreditValid = host.Dynamic.LoginCreditValid
 		*item.Info.ExportIp = host.Dynamic.ExportIP
 		*item.Info.AdvertiseIp = host.Dynamic.AdvertiseIP
 
@@ -128,20 +130,22 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			OSType:        info.GetOsType(),
 		}
 		host.Dynamic = &types.HostDynamic{
-			AgentID:        state.GetBkAgentId(),
-			NodeRole:       types.NodeRole(state.GetNodeRole()),
-			NodeStatus:     types.NodeStatus(state.GetNodeStatus()),
-			NodeVersion:    state.GetNodeVersion(),
-			NodeGeneration: types.Generation(state.GetNodeGeneration()),
-			NetworkUnitID:  info.GetBkNetworkunitId(),
-			NodeOsType:     criteria.OSType(info.GetOsType()),
-			NodeCPUArch:    criteria.CPUArch(info.GetCpuArch()),
-			ProxyTags:      types.StringListToProxyTagList(state.GetProxyTags()),
-			LoginIP:        info.GetLoginIp(),
-			LoginPort:      info.GetLoginPort(),
-			LoginUser:      info.GetLoginUser(),
-			ExportIP:       info.GetExportIp(),
-			AdvertiseIP:    info.GetAdvertiseIp(),
+			AgentID:          state.GetBkAgentId(),
+			NodeRole:         types.NodeRole(state.GetNodeRole()),
+			NodeStatus:       types.NodeStatus(state.GetNodeStatus()),
+			NodeVersion:      state.GetNodeVersion(),
+			NodeGeneration:   types.Generation(state.GetNodeGeneration()),
+			NetworkUnitID:    info.GetBkNetworkunitId(),
+			NodeOsType:       criteria.OSType(info.GetOsType()),
+			NodeCPUArch:      criteria.CPUArch(info.GetCpuArch()),
+			ProxyTags:        types.StringListToProxyTagList(state.GetProxyTags()),
+			LoginIP:          info.GetLoginIp(),
+			LoginPort:        info.GetLoginPort(),
+			LoginUser:        info.GetLoginUser(),
+			LoginMode:        types.LoginMode(info.GetLoginMode()),
+			LoginCreditValid: info.GetLoginCreditValid(),
+			ExportIP:         info.GetExportIp(),
+			AdvertiseIP:      info.GetAdvertiseIp(),
 		}
 
 		result[idx] = host
@@ -241,6 +245,8 @@ func newEmptyHost() *Host {
 			LoginIp:           new(string),
 			LoginPort:         new(int64),
 			LoginUser:         new(string),
+			LoginMode:         new(string),
+			LoginCreditValid:  new(bool),
 			ExportIp:          new(string),
 			AdvertiseIp:       new(string),
 		},

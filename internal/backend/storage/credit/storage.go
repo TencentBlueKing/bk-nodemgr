@@ -11,10 +11,8 @@
 package credit
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines the Storage interface.
@@ -28,22 +26,21 @@ type IStorage interface {
 type IStorageHostCredit interface {
 	basestorage.Interface
 
-	// StoreHostCredit store host credit data.
-	StoreHostCredit(
-		ctx context.Context,
-		networkAreaID int64,
-		loginIP string,
-		loginUser string,
-		loginMode types.LoginMode,
+	// CreateHostCredit create host credit data.
+	CreateHostCredit(
+		ctx contextx.ITenantContext,
 		creditData []byte,
-	) error
+	) (string, error)
 
 	// LoadHostCredit load host credit data.
 	LoadHostCredit(
-		ctx context.Context,
-		networkAreaID int64,
-		loginIP string,
-		loginUser string,
-		loginMode types.LoginMode,
+		ctx contextx.ITenantContext,
+		creditID string,
 	) ([]byte, error)
+
+	// CheckHostCreditValid check host credit valid.
+	CheckHostCreditValid(
+		ctx contextx.ITenantContext,
+		creditIDList ...string,
+	) (map[string]bool, error)
 }

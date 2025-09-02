@@ -415,6 +415,7 @@ func (x *NodeProxyUpdateReq) ConvertParamToTypes() *types.NodeProxyUpdateParam {
 			LoginIP:     host.GetLoginIp(),
 			LoginPort:   host.GetLoginPort(),
 			LoginUser:   host.GetLoginUser(),
+			LoginMode:   types.LoginMode(host.GetLoginMode()),
 			ExportIP:    host.GetExportIp(),
 			AdvertiseIP: host.GetAdvertiseIp(),
 			ProxyTags:   types.StringListToProxyTagList(host.GetProxyTags()),
