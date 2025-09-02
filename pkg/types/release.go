@@ -46,6 +46,9 @@ const (
 	// ReleaseTypeBinTool defines the release of nodemgr bin tool package.
 	ReleaseTypeBinTool ReleaseType = "bintool"
 
+	// ReleaseTypePluginBinTool defines the release of nodemgr plugin bin tool package.
+	ReleaseTypePluginBinTool ReleaseType = "plugin_bintool"
+
 	// ReleaseTypeOfficialPlugin defines the release of nodemgr official plugin package.
 	ReleaseTypeOfficialPlugin ReleaseType = "official_plugin"
 
@@ -160,6 +163,11 @@ type ReleaseBinTool struct {
 	Release
 }
 
+// ReleasePluginBinTool defines the plugin bin tool, it is kind of Release.
+type ReleasePluginBinTool struct {
+	Release
+}
+
 // ReleaseOfficialPlugin defines the official plugin, it is kind of Release.
 type ReleaseOfficialPlugin struct {
 	Release
@@ -221,6 +229,15 @@ type OriginBinToolPkgDetail struct {
 	Existed        bool
 	AgentPlatforms []platform.Platform
 	ProxyPlatforms []platform.Platform
+}
+
+// OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
+type OriginPluginBinToolPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID  string
+	Existed   bool
+	Platforms []platform.Platform
 }
 
 // OriginOfficialPluginPkgDetail defines the detail of official plugin package.

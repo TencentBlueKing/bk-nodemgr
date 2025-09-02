@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	releaseCertFileName = "cert.tgz"
+	originalCertFileName = "cert-all.tgz"
+	releaseCertFileName  = "cert.tgz"
 )
 
 // ICert defines the interface for cert.
 type ICert interface {
 	// UploadOriginCert uploads the origin cert.
-	UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+	UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// PublishReleaseCert generates release cert by upload-id.
 	PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error
@@ -38,8 +39,7 @@ type ICert interface {
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFileName string, certFile io.ReadCloser) (
-	*types.OriginCertPkgDetail, error) {
+func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error) {
 
 	if certFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, file is nil")
@@ -77,7 +77,7 @@ func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFileName string, c
 		return nil, err
 	}
 
-	pkgName := m.wrapOriginPackageName(certFileName)
+	pkgName := m.wrapOriginPackageName(originalCertFileName)
 
 	// upload to upstream.
 	if err := m.upstreamOriginCert.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {

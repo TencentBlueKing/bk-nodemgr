@@ -57,6 +57,21 @@ message PublishReleaseBinToolResp {
   Data data = 4;
 }
 
+// PublishReleasePluginBinToolReq is the request for upload release plugin
+// bintool pkg.
+message PublishReleasePluginBinToolReq { string upload_id = 1; }
+
+// PublishReleasePluginBinToolResp is the response for upload release plugin
+// bintool pkg.
+message PublishReleasePluginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
 // PublishReleaseOfficialPluginReq is the request for upload release official
 // plugin pkg.
 message PublishReleaseOfficialPluginReq { string upload_id = 1; }
@@ -121,6 +136,15 @@ service Publish {
       returns (PublishReleaseBinToolResp) {
     option (google.api.http) = {
       post : "/publish/release/bintool"
+      body : "*"
+    };
+  }
+
+  // PublishReleasePluginBinTool provides release plugin bintool publish.
+  rpc PublishReleasePluginBinTool(PublishReleasePluginBinToolReq)
+      returns (PublishReleasePluginBinToolResp) {
+    option (google.api.http) = {
+      post : "/publish/release/plugin_bintool"
       body : "*"
     };
   }

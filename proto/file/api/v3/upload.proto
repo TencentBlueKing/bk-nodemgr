@@ -135,6 +135,30 @@ message UploadOriginBinToolResp {
   Data data = 4;
 }
 
+// UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg.
+message UploadOriginPluginBinToolReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// UploadOriginPluginBinToolResp is the response for upload origin bin tool pkg.
+message UploadOriginPluginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    repeated Platform platforms = 7;
+  }
+  Data data = 4;
+}
+
 // UploadOriginOfficialPluginReq is the request for upload origin official
 // plugin pkg.
 message UploadOriginOfficialPluginReq { bool overwrite = 1; }
@@ -223,6 +247,15 @@ service Upload {
   // UploadOriginBinTool provides origin bintool upload.
   rpc UploadOriginBinTool(UploadOriginBinToolReq)
       returns (UploadOriginBinToolResp) {
+    option (google.api.http) = {
+      post : "/upload/origin/bintool"
+      body : "*"
+    };
+  }
+
+  // UploadOriginPluginBinTool provides origin bintool upload.
+  rpc UploadOriginPluginBinTool(UploadOriginPluginBinToolReq)
+      returns (UploadOriginPluginBinToolResp) {
     option (google.api.http) = {
       post : "/upload/origin/bintool"
       body : "*"

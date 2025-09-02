@@ -46,6 +46,7 @@ type IManager interface {
 	IServer
 	ICert
 	IBinTool
+	IPluginBinTool
 	IOfficialPlugin
 	IExternalPlugin
 
@@ -150,6 +151,13 @@ func WithUpstreamOriginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn 
 	}
 }
 
+// WithUpstreamOriginPluginBinToolFileGroup sets the upstream file group.
+func WithUpstreamOriginPluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginPluginBinTool = fileGroup
+	}
+}
+
 // WithUpstreamReleaseAgentFileGroup sets the upstream file group.
 func WithUpstreamReleaseAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -189,6 +197,13 @@ func WithUpstreamReleaseCertFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 func WithUpstreamReleaseBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseBinTool = fileGroup
+	}
+}
+
+// WithUpstreamReleasePluginBinToolFileGroup sets the upstream file group.
+func WithUpstreamReleasePluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleasePluginBinTool = fileGroup
 	}
 }
 
@@ -272,12 +287,14 @@ type Manager struct {
 	upstreamOriginServer          fileiface.FileGroup
 	upstreamOriginCert            fileiface.FileGroup
 	upstreamOriginBinTool         fileiface.FileGroup
+	upstreamOriginPluginBinTool   fileiface.FileGroup
 	upstreamOriginOfficialPlugin  fileiface.FileGroup
 	upstreamOriginExternalPlugin  fileiface.FileGroup
 	upstreamReleaseAgent          fileiface.FileGroup
 	upstreamReleaseProxy          fileiface.FileGroup
 	upstreamReleaseCert           fileiface.FileGroup
 	upstreamReleaseBinTool        fileiface.FileGroup
+	upstreamReleasePluginBinTool  fileiface.FileGroup
 	upstreamReleaseOfficialPlugin fileiface.FileGroup
 	upstreamReleaseExternalPlugin fileiface.FileGroup
 

@@ -103,6 +103,25 @@ script_tools: pre
 	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/bintool.tgz"
 	@$(ECHO) "Built successfully script tools"
 
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_arm64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_arm64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/darwin_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/darwin_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/windows_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/windows_amd64
+
+	@$(CD) $(OUTPUT_DIR)/script_tools/ && $(TAR) plugin_bintool.tgz plugin_bintool/
+
+	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/plugin_bintool.tgz"
+	@$(ECHO) "Built successfully script tools"
+
 docker-build-server: backend application file front tools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)

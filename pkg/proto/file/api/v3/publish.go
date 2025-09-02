@@ -47,6 +47,15 @@ func (x *PublishReleaseBinToolReq) AutoConvert() {
 }
 
 // Validate check request body.
+func (x *PublishReleasePluginBinToolReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PublishReleasePluginBinToolReq) AutoConvert() {
+}
+
+// Validate check request body.
 func (x *PublishReleaseOfficialPluginReq) Validate() error {
 	return nil
 }

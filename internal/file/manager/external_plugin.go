@@ -175,7 +175,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 		{
 			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, "project.yaml"},
 			callback: func(path []string, projectFile io.Reader) error {
-				detail.Platforms = append(detail.Platforms, convDirNameToPlat(path[0]))
+				detail.Platforms = append(detail.Platforms, convExternalPluginDirNameToPlat(path[0]))
 
 				pluginProject := new(ExternalPluginProject)
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
@@ -209,7 +209,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 		{
 			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, tgzPathNameAny3},
 			callback: func(path []string, _ io.Reader) error {
-				plat := convDirNameToPlat(path[0])
+				plat := convExternalPluginDirNameToPlat(path[0])
 				if plat.Arch == criteria.CPUArchUnknown || plat.OS == criteria.OSUnknown {
 					// this not a platform directory.
 					return nil
@@ -436,7 +436,7 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 				}
 
 				files = append(files, tgzWriteRuleFile{
-					sourceFilePath: append([]string{convPlatToDirName(plat), pluginName}, subFilePaths...),
+					sourceFilePath: append([]string{convPlatToExternalPluginDirName(plat), pluginName}, subFilePaths...),
 					targetFilePath: subFilePaths,
 					targetFileMode: subFileMode,
 				})
@@ -471,7 +471,7 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 	return conv.MapValueToSlice(result), nil
 }
 
-func convPlatToDirName(plat platform.Platform) string {
+func convPlatToExternalPluginDirName(plat platform.Platform) string {
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
 		return "external_plugins_linux_x86_64"
 	}
@@ -491,7 +491,7 @@ func convPlatToDirName(plat platform.Platform) string {
 	return ""
 }
 
-func convDirNameToPlat(dirName string) platform.Platform {
+func convExternalPluginDirNameToPlat(dirName string) platform.Platform {
 	switch dirName {
 	case "external_plugins_linux_x86_64":
 		{

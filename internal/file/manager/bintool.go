@@ -34,7 +34,7 @@ type IBinTool interface {
 }
 
 const (
-	originBinToolFileName  = "bintool.tgz"
+	originBinToolFileName  = "bintool-all.tgz"
 	releaseBinToolFileName = "bintool.tgz"
 )
 

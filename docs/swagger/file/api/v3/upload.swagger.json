@@ -52,13 +52,13 @@
     },
     "/upload/origin/bintool": {
       "post": {
-        "summary": "UploadOriginBinTool provides origin bintool upload.",
-        "operationId": "Upload_UploadOriginBinTool",
+        "summary": "UploadOriginPluginBinTool provides origin bintool upload.",
+        "operationId": "Upload_UploadOriginPluginBinTool",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginBinToolResp"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolResp"
             }
           },
           "default": {
@@ -71,11 +71,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginBinToolReq is the request for upload origin bin tool pkg.",
+            "description": "UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginBinToolReq"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolReq"
             }
           }
         ],
@@ -605,6 +605,69 @@
           "type": "string"
         },
         "launch_mode": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginPluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg."
+    },
+    "v3UploadOriginPluginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginPluginBinToolRespData"
+        }
+      },
+      "description": "UploadOriginPluginBinToolResp is the response for upload origin bin tool pkg."
+    },
+    "v3UploadOriginPluginBinToolRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
           "type": "string"
         },
         "platforms": {
