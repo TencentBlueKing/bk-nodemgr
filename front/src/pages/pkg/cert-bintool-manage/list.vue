@@ -2,7 +2,7 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <!-- <Button theme="primary" @click="handleUpload">包上传</Button> -->
+      <Button theme="primary" @click="handleUpload" class="mr-[16px]">包上传</Button>
       <SearchSelect
         class="flex-1"
         ref="searchSelect"
@@ -143,6 +143,11 @@ const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const title = computed(() =>
   route.name === "agentPackageMng" ? t("Agent 包管理") : t("Proxy 包管理")
 );
+const currentType = computed(() => {
+  const routeName = route.name?.toString() || '';
+  const type = routeName.split('PackageMng')[0];
+  return type;
+});
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
@@ -306,13 +311,15 @@ const handleBlur = async () => {
 const handleUpload = () => {
   isShow.value = true;
 }
+
 const getPackages = async () => {
   loading.value = true;
-  const currentType = route.name === "certMng" ? "cert" : "bintool";
   const res = await PackageService.ListRelease({
-    release_type: currentType,
+    release_type: currentType.value,
     generation: 2
-  });
+  }).catch(() => ({
+    items: []
+  }));
   const items = res.items.map((item, index) => ({
     ...item,
     labels: item.labels || [],
@@ -335,18 +342,6 @@ const getParams = (row: Release) => {
     },
     version: row.version,
   };
-};
-const handleSetDefaultVersion = async (row: Release) => {
-  await PackageService.SetAsDefaultRelease(getParams(row));
-  await getPackages();
-};
-const handleDisabled = async (row: Release) => {
-  await PackageService.DisableRelease(getParams(row));
-  await getPackages();
-};
-const handleEnabled = async (row: Release) => {
-  await PackageService.EnableRelease(getParams(row));
-  await getPackages();
 };
 const handleDelete = async (row: Release) => {
   await PackageService.DeleteRelease(getParams(row));

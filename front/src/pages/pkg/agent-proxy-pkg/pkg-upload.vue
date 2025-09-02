@@ -38,14 +38,14 @@
             <PopConfirm
               width="320"
               theme="light"
-              title="存在同名Agent包，是否覆盖上传？"
+              :title="`存在同名${ capitalizeFirstLetter(currentType) }包，是否覆盖上传？`"
               confirmText="覆盖上传"
               cancelText="取消上传"
               @confirm="handleOverwrite"
             >
               <div class="w-full">
                 <i class="nodeman-icon nc-remind-fill text-[#F8B64F]"></i>
-                <span class="text-[#F59500] ml-[7px]">存在同名 Agent 包</span>
+                <span class="text-[#F59500] ml-[7px]">存在同名 {{ capitalizeFirstLetter(currentType) }} 包</span>
               </div>
               <template #content>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
@@ -55,7 +55,7 @@
                   MD5：{{ curFile.data?.md5 }}
                 </div>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[22px]">
-                  继续上传，将会覆盖当前平台同名的 Agent 包
+                  继续上传，将会覆盖当前平台同名的 {{ capitalizeFirstLetter(currentType) }} 包
                 </div>
               </template>
             </PopConfirm>
@@ -92,13 +92,21 @@ import { Button, Upload, Message, Progress, PopConfirm } from "bkui-vue";
 import { bytesToMegabytes } from "@/common/util";
 import { RightTurnLine } from "bkui-vue/lib/icon";
 import { useRoute } from "vue-router";
+import { capitalizeFirstLetter } from '@/common/util'
 
 const route = useRoute();
 const emit = defineEmits('upload');
 const uploader = ref(null);
-const currentType = computed(() => route.name === "agentPackageMng" ? "agent" : "proxy");
+const currentType = computed(() => {
+  const routeName = route.name?.toString() || '';
+  const type = routeName.split('PackageMng')[0];
+  return type;
+});
 const url = computed(
-  () => `${location.origin}/api/v3/package/upload/origin/${currentType.value}`
+  () => {
+    const type = currentType.value === 'proxy' ? 'server' : currentType.value;
+    return `${location.origin}/api/v3/package/upload/origin/${type}`
+  }
 );
 const curFile = reactive({
   file: null as File | null,

@@ -67,28 +67,35 @@ const handleUpload = (data: PackageUploadOriginAgentRespData) => {
 };
 const loading = ref(false);
 const submit = async () => {
-  loading.value = true;
-  if (route.name === "agentPackageMng") {
-    await PackageService.PublishReleaseAgent({
-      upload_id: uploadData.value?.upload_id
-    });
-  } else {
-    await PackageService.PublishReleaseProxy({
-      upload_id: uploadData.value?.upload_id
-    });
-  }
-  loading.value = false;
-  isShow.value = false;
-  emit('confirm');
-}
-watch(
-  () => isShow.value,
-  () => {
-    if (!isShow.value) {
+  try {
+    loading.value = true;
+
+    // 创建一个从路由名称到服务方法的映射
+    const serviceMap: Record<string, (args: { upload_id: string }) => Promise<void>> = {
+      agentPackageMng: PackageService.PublishReleaseAgent,
+      proxyPackageMng: PackageService.PublishReleaseProxy,
+      certPackageMng: PackageService.PublishReleaseCert,
+      bintoolPackageMng: PackageService.PublishReleaseBinTool,
+    };
+
+    // 获取映射中的服务方法
+    const serviceMethod = route.name ? serviceMap[route.name] : undefined;
+
+    // 如果有对应的服务方法，调用它
+    if (serviceMethod && uploadData.value?.upload_id) {
+      await serviceMethod({ upload_id: uploadData.value.upload_id });
     }
-  },
-  { immediate: true }
-);
+
+    isShow.value = false;
+    emit('confirm');
+  } catch (error) {
+    console.error('Failed to submit:', error);
+  } finally {
+    loading.value = false; // 确保在任何情况下都能执行
+  }
+};
+
+
 onMounted(async () => {
   await packageStore.getPackages();
 });

@@ -135,12 +135,12 @@ const navList = [
             title: i18n.global.t('Proxy 包管理'),
           },
           {
-            routeName: 'certMng',
+            routeName: 'certPackageMng',
             icon: 'nodeman-icon nc-backstage',
             title: i18n.global.t('证书管理'),
           },
           {
-            routeName: 'bintoolMng',
+            routeName: 'bintoolPackageMng',
             icon: 'nodeman-icon nc-manual',
             title: i18n.global.t('工具管理'),
           }
@@ -149,6 +149,11 @@ const navList = [
       {
         title: i18n.global.t('插件'),
         children: [
+          {
+            routeName: 'plugin_bintoolPackageMng',
+            icon: 'nodeman-icon nc-manual',
+            title: i18n.global.t('插件包工具管理'),
+          },
           {
             routeName: 'pluginPackageMng',
             icon: 'nodeman-icon nc-plug-in',

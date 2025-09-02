@@ -240,8 +240,8 @@ const routes = setupLayouts([
             }
           },
           {
-            name: 'certMng',
-            path: 'certMng',
+            name: 'certPackageMng',
+            path: 'certPackageMng',
             component: CertBintoolMng,
             meta: {
               title: '证书管理',
@@ -250,11 +250,21 @@ const routes = setupLayouts([
             }
           },
           {
-            name: 'bintoolMng',
-            path: 'bintoolMng',
+            name: 'bintoolPackageMng',
+            path: 'bintoolPackageMng',
             component: CertBintoolMng,
             meta: {
               title: '工具管理',
+              back: false,
+              mainMenu: 'pkgManager'
+            }
+          },
+          {
+            name: 'plugin_bintoolPackageMng',
+            path: 'plugin_bintoolPackageMng',
+            component: CertBintoolMng,
+            meta: {
+              title: '插件包工具管理',
               back: false,
               mainMenu: 'pkgManager'
             }
