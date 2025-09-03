@@ -169,7 +169,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}
 	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir))
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}

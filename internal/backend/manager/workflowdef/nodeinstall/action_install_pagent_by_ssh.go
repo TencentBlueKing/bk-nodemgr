@@ -169,7 +169,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	installerPath := path.Clean(path.Join(info.InstallerWorkDir, toolName))
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}

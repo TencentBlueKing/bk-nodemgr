@@ -265,7 +265,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *utils.NodeActionStanda
 		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
