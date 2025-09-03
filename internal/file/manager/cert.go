@@ -40,7 +40,6 @@ type ICert interface {
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error) {
-
 	if certFile == nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, file is nil")
 

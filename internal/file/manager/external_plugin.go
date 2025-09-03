@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -429,7 +430,7 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 					})
 				}
 
-				subFilePaths := append(dirPaths, tgzPathNameAny1)
+				subFilePaths := slices.Concat(dirPaths, []string{tgzPathNameAny1})
 				subFileMode := int64(tgzModeFile)
 				if len(dirPaths) > 0 && dirPaths[0] == "bin" {
 					subFileMode = tgzModeExe
