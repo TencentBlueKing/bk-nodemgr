@@ -132,11 +132,18 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	for idx := range svc.conf.GSEDeployConfs {
-		deployConf := deployconstant.NodeDeployConf{
+		deployConf := deployconstant.DeployConf{
 			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
 			OsType:        criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
-			BaseWorkDir:   svc.conf.GSEDeployConfs[idx].BaseWorkDir,
 			BaseDeployDir: svc.conf.GSEDeployConfs[idx].BaseDeployDir,
+		}
+		if err := deployconstant.SetDeployConf(deployConf); err != nil {
+			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
+		}
+
+		nodeDeployConf := deployconstant.NodeDeployConf{
+			DeployConf:  deployConf,
+			BaseWorkDir: svc.conf.GSEDeployConfs[idx].BaseWorkDir,
 
 			LogDir:             svc.conf.GSEDeployConfs[idx].Custom.LogDir,
 			HostIDPath:         svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
@@ -144,8 +151,15 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].Custom.AgentPluginIPCPath,
 			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
-		if err := deployconstant.SetNodeDeployConf(deployConf); err != nil {
-			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
+		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
+			return nil, fmt.Errorf("failed to set node deploy conf: %w", err)
+		}
+
+		pluginDeployConf := deployconstant.PluginDeployConf{
+			DeployConf: deployConf,
+		}
+		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
+			return nil, fmt.Errorf("failed to set plugin deploy conf: %w", err)
 		}
 	}
 
