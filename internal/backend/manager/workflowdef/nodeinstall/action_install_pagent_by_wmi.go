@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -191,7 +192,8 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	installBat := act.buildBat(installParams)
 	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installBat))
 
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	password, err := act.queryPassword(contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator),
+		param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -218,10 +220,10 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceCo
 	event := protoRelay.InstallPagentByWMIReq{
 		ActionName:       ctx.Data.Name,
 		OperInstID:       ctx.Data.OperationInstanceID,
-		IP:               info.LoginInfo.IP,
-		Port:             info.LoginInfo.Port,
-		User:             info.LoginInfo.User,
-		LoginMode:        string(info.LoginInfo.Mode),
+		IP:               info.Host.Dynamic.LoginIP,
+		Port:             info.Host.Dynamic.LoginPort,
+		User:             info.Host.Dynamic.LoginUser,
+		LoginMode:        string(info.Host.Dynamic.LoginMode),
 		Password:         password,
 		InstallerWorkDir: info.InstallerWorkDir,
 		ToolsName:        toolsName,
@@ -328,22 +330,19 @@ func (act *actionInstallPagentByWMI) buildBat(param *pagentInstallParamsWin) []s
 }
 
 func (act *actionInstallPagentByWMI) queryPassword(
-	ctx context.Context,
+	ctx contextx.ITenantContext,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo) (string, error) {
 
-	switch info.LoginInfo.Mode {
+	switch info.Host.Dynamic.LoginMode {
 	case types.LoginModePassword:
 		passwd, err := storageHostCredit.LoadHostCredit(
 			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
+			info.Host.Dynamic.LoginCreditID)
 		if err != nil {
-			return "", fmt.Errorf("failed to decrypt password: %w", err)
+			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
 		}
 
 		return string(passwd), nil
@@ -355,14 +354,14 @@ func (act *actionInstallPagentByWMI) queryPassword(
 			ctx,
 			operator,
 			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
+			info.Host.Dynamic.LoginIP,
+			info.Host.Dynamic.LoginUser)
 		if err != nil {
 			return "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
 
-		return passwd, nil
+		return string(passwd), nil
 	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
+		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.Host.Dynamic.LoginMode)
 	}
 }

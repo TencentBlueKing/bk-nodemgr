@@ -28,6 +28,11 @@ type Tenant struct {
 	Status bool   `json:"status" bson:"status"`
 }
 
+// UniqueFields returns the unique fields of the table.
+func (t *Tenant) UniqueFields() []string {
+	return []string{FieldKeyID}
+}
+
 // UniqueKey unique key of the table.
 func (t *Tenant) UniqueKey() string {
 	return t.ID

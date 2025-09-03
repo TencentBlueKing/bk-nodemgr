@@ -18,6 +18,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -29,7 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -64,21 +65,7 @@ func NewActionInstallPagentBySSH(
 
 // ActParamInstallPagentBySSH ...
 type ActParamInstallPagentBySSH struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
-}
-
-// pagentInstallParams this struct defines the parameters for installing agent.
-type pagentInstallParams struct {
-	InstallerPath string
-	Generation    types.Generation
-	NodeRole      types.NodeRole
-	NodeVersion   string
-	DeployToken   string
-	OperInstID    string
-	BaseWorkDir   string
-	BaseDeployDir string
-	AdditionArgs  []string
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentBySSH struct {
@@ -135,7 +122,7 @@ func (act *actionInstallPagentBySSH) DelayFn() func() {
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamInstallAgentBySSH)
+	param := new(ActParamInstallPagentBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -143,86 +130,66 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+
+	// get ssh credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetSSHCredit(std)
+	if err != nil {
+		return fmt.Errorf("failed to get ssh credit: %w", err)
+	}
+
 	// select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
-	if err != nil {
-		err = fmt.Errorf("failed to format tools name: %w", err)
-
-		return err
-	}
-
-	installerPath := path.Clean(path.Join(info.InstallerWorkDir, toolName))
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	installParams := &pagentInstallParams{
-		NodeVersion:   info.Host.Dynamic.NodeVersion,
-		Generation:    info.Host.Dynamic.NodeGeneration,
-		InstallerPath: installerPath,
-		NodeRole:      info.Host.Dynamic.NodeRole,
-		DeployToken:   param.Token,
-		OperInstID:    ctx.Data.OperationInstanceID,
-		BaseWorkDir:   deployConstant.BaseWorkDir,
-		BaseDeployDir: deployConstant.BaseDeployDir,
-	}
-
-	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
-		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
-	}
-
-	// exec install command
-	installCmd := act.buildCMD(installParams)
-	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
-
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	toolName, installerPath, deployConstant, err := act.setupInstallationTools(std)
 	if err != nil {
 		return err
 	}
 
-	if err := act.notifyRelayToInstall(ctx, info, password, toolName, installCmd, &info.RelayInfo); err != nil {
-		return err
-	}
-	ctx.Data.LogI("notify relay to install pagent by ssh successfully")
+	// build install command.
+	installCmd := act.buildInstallParams(ctx, std, installerPath, deployConstant)
 
-	var stdOut string
-	stdOut, err = act.waitForRelayReportInstall(ctx)
-	if err != nil {
+	// notify relay to install pagent by ssh.
+	if err := act.notifyRelayToInstall(ctx, std, cMethod, cKey, toolName, installCmd); err != nil {
 		return err
 	}
-	ctx.Data.LogI("relay run install pagent by ssh successfully. result stdout: " + stdOut)
+
+	// wait for relay report install.
+	if err := act.waitForRelayReportInstall(ctx, std); err != nil {
+		return err
+	}
+
+	std.InstanceData().LogI("install pagent by ssh successfully")
 
 	return nil
 }
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, password string, toolsName string, args []string, relayInfo *types.RelayInfo) error {
+	std *utils.NodeActionStandarder,
+	cMethod sshx.AuthMethod, cKey string,
+	toolsName string, args []string,
+) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
 		ActionName:       ctx.Data.Name,
 		OperInstID:       ctx.Data.OperationInstanceID,
-		IP:               info.LoginInfo.IP,
-		Port:             info.LoginInfo.Port,
-		User:             info.LoginInfo.User,
-		LoginMode:        string(info.LoginInfo.Mode),
-		Password:         password,
-		InstallerWorkDir: info.InstallerWorkDir,
+		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
+		User:             std.DeployInfo().Host.Dynamic.LoginUser,
+		LoginMode:        string(cMethod),
+		Password:         cKey,
+		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     args,
 	}
@@ -232,7 +199,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeInstallBySSH, data, relayInfo.AgentID)
+		protoRelay.ServerPushEventTypeInstallBySSH, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
@@ -243,13 +210,13 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 		return ctx.Ctx.Err()
 	}
 
-	act.logger.Infof("notify relay to install pagent.")
+	std.InstanceData().LogI("notify relay to install pagent successfully")
 
 	return nil
 }
 
 func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
-	ctx *action.InstanceContext) (string, error) {
+	ctx *action.InstanceContext, std *utils.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
 	defer cancel()
@@ -260,7 +227,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 	for {
 		select {
 		case <-timeoutCtx.Done():
-			return "", fmt.Errorf("wait for relay report install result timed out. oper_inst_id(%s), action_name(%s)",
+			return fmt.Errorf("wait for relay report install result timed out. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 
 		case <-ticker.C:
@@ -280,96 +247,90 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 
 			relayInstallResult, ok := relayInstallResultRaw.(map[string]any)
 			if !ok {
-				return "", errors.New("unexpected type for relay install result")
+				return errors.New("unexpected type for relay install result")
 			}
 
 			errMsgRaw := relayInstallResult[relayconstant.InstallResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for error message")
+				return errors.New("unexpected type for error message")
 			}
 
 			if errMsg != "" {
-				return "", errors.New(errMsg)
+				return errors.New(errMsg)
 			}
 
 			outStrRaw := relayInstallResult[relayconstant.InstallResultOutStrKey]
 			outStr, ok := outStrRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for output string")
+				return errors.New("unexpected type for output string")
 			}
 
-			return outStr, nil
+			std.InstanceData().LogI("wait for relay report install result successfully. result stdout: " + outStr)
+
+			return nil
 		}
 	}
 }
 
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (act *actionInstallPagentBySSH) buildCMD(param *pagentInstallParams) []string {
+func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActionStandarder) (
+	string, string, deployconstant.DeployConf, error) {
+
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
+		std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	if err != nil {
+		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+	}
+
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
+		std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
+	}
+
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
+
+	std.InstanceData().LogI(fmt.Sprintf("setup installation tools,tool name(%s), installerPath(%s)", toolName, installerPath))
+
+	return toolName, installerPath, deployConstant, nil
+}
+
+// TODO: add relay file and callback address.
+func (act *actionInstallPagentBySSH) buildInstallParams(ctx *action.InstanceContext,
+	std *utils.NodeActionStandarder,
+	installerPath string, deployConstant deployconstant.DeployConf) []string {
+
+	installParams := &InstallParams{
+		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
+		InstallerPath: installerPath,
+		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
+		DeployToken:   std.Token(),
+		OperInstID:    ctx.Data.OperationInstanceID,
+		BaseWorkDir:   deployConstant.BaseWorkDir,
+		BaseDeployDir: deployConstant.BaseDeployDir,
+	}
+
+	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
+		installParams.AdditionArgs = append(installParams.AdditionArgs,
+			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
+	}
+
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+		fmt.Sprintf("--generation %d", installParams.Generation),
+		fmt.Sprintf("--node_role %s", installParams.NodeRole),
+		fmt.Sprintf("--base_work_dir %s", installParams.BaseWorkDir),
+		fmt.Sprintf("--base_deploy_dir %s", installParams.BaseDeployDir),
+		fmt.Sprintf("--deploy_token %s", installParams.DeployToken),
+		fmt.Sprintf("--node_version %s", installParams.NodeVersion),
+		fmt.Sprintf("--oper_inst_id %s", installParams.OperInstID),
 	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
+	if len(installParams.AdditionArgs) > 0 {
+		args = append(args, installParams.AdditionArgs...)
 	}
+
+	std.InstanceData().LogI(fmt.Sprintf("build install params: %v", args))
 
 	return args
-}
-
-func (act *actionInstallPagentBySSH) queryPassword(
-	ctx context.Context,
-	operator string,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-	info *types.DeploymentInfo) (string, error) {
-
-	switch info.LoginInfo.Mode {
-	case types.LoginModePassword:
-		passwd, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
-		}
-
-		return string(passwd), nil
-
-	case types.LoginModeKeyFile:
-		privateKey, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
-		if err != nil {
-			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
-		}
-
-		return string(privateKey), nil
-	case types.LoginModePasswordVault:
-		passwd, err := passwordVault.LoadPassword(
-			ctx,
-			operator,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from password vault: %w", err)
-		}
-
-		return string(passwd), nil
-	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
-	}
 }

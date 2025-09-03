@@ -57,7 +57,7 @@ type IActionInstData interface {
 }
 
 // UpdateActInstMsg update action inst msg.
-func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
+func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
 	msgs []common.Message) error {
 
 	if ctx == nil {
@@ -90,7 +90,7 @@ func (h *handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 }
 
 // UpdateActionInstContent update action instance content.
-func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
+func (h *Handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
 	content map[string]any) error {
 
 	if ctx == nil {
@@ -128,7 +128,7 @@ func (h *handler) UpdateActionInstContent(ctx context.Context, operInstID string
 }
 
 // PushActInstPrivateData push act inst private data.
-func (h *handler) PushActInstPrivateData(ctx context.Context, operInstID string, actionName string,
+func (h *Handler) PushActInstPrivateData(ctx context.Context, operInstID string, actionName string,
 	data map[string]any) error {
 
 	if ctx == nil {
@@ -175,7 +175,7 @@ func (h *handler) PushActInstPrivateData(ctx context.Context, operInstID string,
 }
 
 // PushActionInstanceMessage push act inst msg.
-func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstanceID, actionName string,
+func (h *Handler) PushActionInstanceMessage(ctx context.Context, operationInstanceID, actionName string,
 	messages ...common.Message) error {
 
 	if ctx == nil {
@@ -210,7 +210,7 @@ func (h *handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 }
 
 // GetActInstPrivateData get action inst data private data.
-func (h *handler) GetActInstPrivateData(ctx context.Context,
+func (h *Handler) GetActInstPrivateData(ctx context.Context,
 	operInstID string, actionName string) (map[string]any, error) {
 
 	if ctx == nil {
@@ -248,7 +248,7 @@ func (h *handler) GetActInstPrivateData(ctx context.Context,
 }
 
 // UpdateActionInstData upsert action inst data.
-func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
+func (h *Handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -279,7 +279,7 @@ func (h *handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
-func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
+func (h *Handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
 	lifecycle *action.Lifecycle) error {
 
 	if ctx == nil {
@@ -312,7 +312,7 @@ func (h *handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 }
 
 // GetActionInstData find one action inst data.
-func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
+func (h *Handler) GetActionInstData(ctx context.Context, operInstID string,
 	actionName string) (*action.InstanceData, error) {
 
 	if ctx == nil {
@@ -379,7 +379,7 @@ func (h *handler) GetActionInstData(ctx context.Context, operInstID string,
 }
 
 // GetActInstLifecycle find one action inst data.
-func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
+func (h *Handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 	actionName string) (*action.Lifecycle, error) {
 
 	if ctx == nil {
@@ -419,7 +419,7 @@ func (h *handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 }
 
 // UpdateActionInstStatus update action inst status.
-func (h *handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
+func (h *Handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
 	status action.State) error {
 
 	if ctx == nil {

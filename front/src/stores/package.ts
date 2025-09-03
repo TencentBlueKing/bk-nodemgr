@@ -10,7 +10,8 @@ export const usePackageStore = defineStore('package', () => {
   const getPackages = async () => {
     const currentType = route.name === "agentPackageMng" ? "agent" : "proxy";
     const res = await PackageService.ListRelease({
-      release_type: currentType
+      release_type: currentType,
+      generation: 2
     });
     const allLabels = res.items.flatMap(item => item.labels || []);
     tagList.value = Array.from(new Set(allLabels));

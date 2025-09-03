@@ -85,6 +85,7 @@ func buildUpsertManyParams(releases []*Release) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0, len(releases))
 	for _, release := range releases {
 		filter := bson.D{
+			bson.E{Key: FieldKeyName, Value: release.Name},
 			bson.E{Key: FieldKeyGeneration, Value: release.Generation},
 			bson.E{Key: FieldKeyType, Value: release.Type},
 			bson.E{Key: FieldKeyCPUArch, Value: release.CPUArch},

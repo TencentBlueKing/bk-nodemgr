@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -30,6 +31,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -136,90 +138,92 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	// get wmi credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get wmi credit: %w", err)
 	}
 
-	relayHost := &info.RelayInfo
-
-	if err := act.detectInfo(ctx, info, password, relayHost); err != nil {
+	// send detect info request to relay.
+	if err := act.detectInfo(ctx, std.DeployInfo(), cMethod, cKey, &std.DeployInfo().RelayInfo); err != nil {
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("detect info by wmi send to relay.relay-host-id(%d)", relayHost.HostID))
+	ctx.Data.LogI(fmt.Sprintf("detect info by wmi send to relay.relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
+	// wait for relay report detect result.
 	osType, cpuArch, err := act.waitForRelayReportDetect(ctx)
 	if err != nil {
 		return err
 	}
 	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s)", osType, cpuArch))
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = windowsDefaultInstallerWorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
-	info.Host.Dynamic.NodeOsType = osType
-	info.Host.Dynamic.NodeCPUArch = cpuArch
+	std.DeployInfo().Host.Dynamic.NodeOsType = osType
+	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		return err
 	}
-	if len(info.TargetVersion) > 0 {
-		for _, v := range info.TargetVersion {
-			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+	if len(std.DeployInfo().TargetVersion) > 0 {
+		for _, v := range std.DeployInfo().TargetVersion {
+			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
-				info.Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
 		}
-	} else if info.Host.Dynamic.NodeVersion == "" {
+	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		})
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
 		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
-			Version:     info.Host.Dynamic.NodeVersion,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			Version:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		})
 	if err != nil {
 		return err
@@ -229,16 +233,16 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, password string, relayHost *types.RelayInfo) error {
+	info *types.DeploymentInfo, cMethod wmix.AuthMethod, cKey string, relayHost *types.RelayInfo) error {
 
 	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
 		ActionName: ctx.Data.Name,
 		OperInstID: ctx.Data.OperationInstanceID,
-		IP:         info.LoginInfo.IP,
-		Port:       info.LoginInfo.Port,
-		User:       info.LoginInfo.User,
-		LoginMode:  string(info.LoginInfo.Mode),
-		Password:   password,
+		IP:         info.Host.Dynamic.LoginIP,
+		Port:       info.Host.Dynamic.LoginPort,
+		User:       info.Host.Dynamic.LoginUser,
+		LoginMode:  string(cMethod),
+		Password:   cKey,
 	}
 
 	data, err := json.Marshal(detectInfoEvent)
@@ -261,56 +265,6 @@ func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
 	}
 
 	return nil
-}
-
-func (act *actionPagentDetectInfoByWMI) queryPassword(
-	ctx context.Context,
-	operator string,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-	info *types.DeploymentInfo) (string, error) {
-
-	switch info.LoginInfo.Mode {
-	case types.LoginModePassword:
-		passwd, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
-		}
-
-		return string(passwd), nil
-
-	case types.LoginModeKeyFile:
-		privateKey, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
-		if err != nil {
-			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
-		}
-
-		return string(privateKey), nil
-	case types.LoginModePasswordVault:
-		passwd, err := passwordVault.LoadPassword(
-			ctx,
-			operator,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from password vault: %w", err)
-		}
-
-		return string(passwd), nil
-	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
-	}
 }
 
 // waitForRelayReportDetect wait for relay to report the detect result.

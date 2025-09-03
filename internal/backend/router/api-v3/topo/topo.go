@@ -14,6 +14,7 @@ package topo
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -22,21 +23,23 @@ import (
 )
 
 type handler struct {
-	rg          *gin.RouterGroup
-	manager     manager.IManager
-	storage     topoStg.IStorage
-	cmdbHandler cmdb.IHandler
-	logger      logger.ILogger
+	rg                *gin.RouterGroup
+	manager           manager.IManager
+	storage           topoStg.IStorage
+	storageHostCredit credit.IStorageHostCredit
+	cmdbHandler       cmdb.IHandler
+	logger            logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:          rg.Group("/topo"),
-		manager:     capability.Manager,
-		storage:     capability.StorageTopo,
-		cmdbHandler: capability.CmdbHandler,
-		logger:      capability.Logger,
+		rg:                rg.Group("/topo"),
+		manager:           capability.Manager,
+		storage:           capability.StorageTopo,
+		storageHostCredit: capability.StorageCredit,
+		cmdbHandler:       capability.CmdbHandler,
+		logger:            capability.Logger,
 	}
 }
 

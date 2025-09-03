@@ -87,6 +87,12 @@ const (
 	// FieldKeyDynamicLoginUser the dynamic login user field key.
 	FieldKeyDynamicLoginUser = "data.dynamic.login_user"
 
+	// FieldKeyDynamicLoginMode the dynamic login mode field key.
+	FieldKeyDynamicLoginMode = "data.dynamic.login_mode"
+
+	// FieldKeyDynamicLoginCreditID the dynamic login credit id field key.
+	FieldKeyDynamicLoginCreditID = "data.dynamic.login_credit_id"
+
 	// FieldKeyDynamicExportIP the dynamic export ip field key.
 	FieldKeyDynamicExportIP = "data.dynamic.export_ip"
 

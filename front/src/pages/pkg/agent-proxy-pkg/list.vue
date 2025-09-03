@@ -604,7 +604,8 @@ const handleUpload = () => {
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
-    release_type: currentType.value
+    release_type: currentType.value,
+    generation: 2
   });
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items

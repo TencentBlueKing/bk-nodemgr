@@ -82,6 +82,7 @@ type NodeProxyUpdateHost struct {
 	LoginIP     string
 	LoginPort   int64
 	LoginUser   string
+	LoginMode   LoginMode
 	ExportIP    string
 	AdvertiseIP string
 	ProxyTags   []ProxyTag

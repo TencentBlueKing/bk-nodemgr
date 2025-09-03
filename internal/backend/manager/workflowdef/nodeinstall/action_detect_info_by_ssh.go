@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -55,8 +56,7 @@ func NewActionDetectInfoBySSH(
 
 // ActParamDetectInfoBySSH ...
 type ActParamDetectInfoBySSH struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionDetectInfoBySSH struct {
@@ -113,25 +113,54 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	client, err := generateSSHClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
+	// get ssh credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get ssh credit: %w", err)
+	}
+
+	// generate the ssh client.
+	client, err := sshx.NewClient(std.Context(), &sshx.Config{
+		Network:    sshx.NetworkTCP,
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
+		Logger:     act.logger,
+		AuthMethod: cMethod,
+		Password: func() string {
+			if cMethod == sshx.AuthMethodPassword {
+				return cKey
+			}
+
+			return ""
+		}(),
+		PrivateKey: func() []byte {
+			if cMethod == sshx.AuthMethodPrivateKey {
+				return []byte(cKey)
+			}
+
+			return nil
+		}(),
+	}, sshx.DefaultTimeout)
+	if err != nil {
+		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
 
 	osType, cpuArch, connectedDir, err := act.detectInfo(ctx, client)
@@ -139,54 +168,54 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
 	// this is a fallback strategy, if system has no specified workdir, use connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = connectedDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = connectedDir
 	}
 
-	info.Host.Dynamic.NodeOsType = osType
-	info.Host.Dynamic.NodeCPUArch = cpuArch
+	std.DeployInfo().Host.Dynamic.NodeOsType = osType
+	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
 		return err
 	}
 
-	if len(info.TargetVersion) > 0 {
-		for _, v := range info.TargetVersion {
-			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+	if len(std.DeployInfo().TargetVersion) > 0 {
+		for _, v := range std.DeployInfo().TargetVersion {
+			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
-				info.Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 				break
 			}
 		}
 	} else {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		if info.Host.Dynamic.NodeVersion == "" {
-			info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
+			std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 				daoRelease:  act.storageRelease,
 				ReleaseType: releaseType,
-				Generation:  info.Host.Dynamic.NodeGeneration,
-				OSType:      info.Host.Dynamic.NodeOsType,
-				CPUArch:     info.Host.Dynamic.NodeCPUArch,
+				Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+				OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+				CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			})
 			if err != nil {
 				return err
 			}
-			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 		}
 	}
 
@@ -194,10 +223,10 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
-			Version:     info.Host.Dynamic.NodeVersion,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			Version:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		})
 	if err != nil {
 		return err

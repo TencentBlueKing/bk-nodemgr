@@ -37,4 +37,7 @@ const (
 
 	// FieldKeyFileName defines the field key of as filename.
 	FieldKeyFileName = "data.filename"
+
+	// FieldKeyName defines the field key of as name.
+	FieldKeyName = "data.name"
 )

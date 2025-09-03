@@ -57,6 +57,36 @@ message PublishReleaseBinToolResp {
   Data data = 4;
 }
 
+// PublishReleaseOfficialPluginReq is the request for upload release official
+// plugin pkg.
+message PublishReleaseOfficialPluginReq { string upload_id = 1; }
+
+// PublishReleaseOfficialPluginResp is the response for upload release official
+// plugin pkg.
+message PublishReleaseOfficialPluginResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
+// PublishReleaseExternalPluginReq is the request for upload release external
+// plugin pkg.
+message PublishReleaseExternalPluginReq { string upload_id = 1; }
+
+// PublishReleaseExternalPluginResp is the response for upload release external
+// plugin pkg.
+message PublishReleaseExternalPluginResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
 // Publish service.
 service Publish {
   // PublishReleaseAgent provides release agent publish.
@@ -91,6 +121,24 @@ service Publish {
       returns (PublishReleaseBinToolResp) {
     option (google.api.http) = {
       post : "/publish/release/bintool"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseOfficialPlugin provides release official plugin publish.
+  rpc PublishReleaseOfficialPlugin(PublishReleaseOfficialPluginReq)
+      returns (PublishReleaseOfficialPluginResp) {
+    option (google.api.http) = {
+      post : "/publish/release/official_plugin"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseExternalPlugin provides release external plugin publish.
+  rpc PublishReleaseExternalPlugin(PublishReleaseExternalPluginReq)
+      returns (PublishReleaseExternalPluginResp) {
+    option (google.api.http) = {
+      post : "/publish/release/external_plugin"
       body : "*"
     };
   }

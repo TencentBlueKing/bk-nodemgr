@@ -30,7 +30,7 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 		logger:    logger,
 		tableName: TableName,
 	}
-	d.baseOrm = base.NewOrm[*OperInstData, OperInstData](d)
+	d.IOrm = base.NewOrm[*OperInstData, OperInstData](d)
 
 	return d
 }
@@ -39,7 +39,7 @@ type dao struct {
 	client    *mongo.Collection
 	logger    logger.ILogger
 	tableName string
-	baseOrm   base.IOrm[*OperInstData, OperInstData]
+	base.IOrm[*OperInstData, OperInstData]
 }
 
 // GetClient get client.
@@ -162,7 +162,7 @@ func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.P
 
 // updateField update field.
 func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
-	return d.baseOrm.UpdateField(ctx, filter, field, value)
+	return d.UpdateField(ctx, filter, field, value)
 }
 
 // pushField push field.
@@ -180,7 +180,7 @@ func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value 
 }
 
 func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
-	return d.baseOrm.Get(ctx, filter, fields...)
+	return d.Get(ctx, filter, fields...)
 }
 
 // listALLLastOperInst lists all last operation instances base on operation id.

@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -29,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -71,8 +73,7 @@ func NewActionPagentDetectInfoBySSH(
 
 // ActParamPagentDetectInfoBySSH ...
 type ActParamPagentDetectInfoBySSH struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionPagentDetectInfoBySSH struct {
@@ -131,7 +132,7 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 // nolint: perfsprint,funlen,fnsize,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamDetectInfoBySSH)
+	param := new(ActParamPagentDetectInfoBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -139,93 +140,94 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	// get ssh credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetSSHCredit(std)
+	if err != nil {
+		return fmt.Errorf("failed to get ssh credit: %w", err)
+	}
+
+	// send detect info request to relay.
+	if err := act.detectInfo(ctx, std, cMethod, cKey); err != nil {
+		return err
+	}
+
+	// wait for relay report detect result.
+	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(ctx, std)
 	if err != nil {
 		return err
 	}
 
-	relayHost := &info.RelayInfo
-
-	if err := act.detectInfo(ctx, info, password, relayHost); err != nil {
-		return err
-	}
-	ctx.Data.LogI(fmt.Sprintf("detect info by ssh send to relay.relay-host-id(%d)", relayHost.HostID))
-
-	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(ctx)
-	if err != nil {
-		return err
-	}
-	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir))
-
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	// get deploy constant.
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
 	// this is a fallback strategy, if system has no specified workdir, use connected dir.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = connectedDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = connectedDir
 	}
 
-	info.Host.Dynamic.NodeOsType = osType
-	info.Host.Dynamic.NodeCPUArch = cpuArch
+	std.DeployInfo().Host.Dynamic.NodeOsType = osType
+	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type: %v", err))
 		return err
 	}
 
-	if len(info.TargetVersion) > 0 {
-		for _, v := range info.TargetVersion {
-			if info.Host.Dynamic.NodeOsType == v.OsType && info.Host.Dynamic.NodeCPUArch == v.CPUArch {
+	if len(std.DeployInfo().TargetVersion) > 0 {
+		for _, v := range std.DeployInfo().TargetVersion {
+			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
-				info.Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", info.Host.Dynamic.NodeVersion))
+				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
+				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
 		}
-	} else if info.Host.Dynamic.NodeVersion == "" {
+	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		info.Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		})
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", info.Host.Dynamic.NodeVersion))
+		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
 		ctx.Ctx, CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
-			Generation:  info.Host.Dynamic.NodeGeneration,
-			OSType:      info.Host.Dynamic.NodeOsType,
-			CPUArch:     info.Host.Dynamic.NodeCPUArch,
-			Version:     info.Host.Dynamic.NodeVersion,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			Version:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		})
 	if err != nil {
 		return err
@@ -235,92 +237,41 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, password string, relayHost *types.RelayInfo) error {
+	std *utils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
 		ActionName: ctx.Data.Name,
 		OperInstID: ctx.Data.OperationInstanceID,
-		IP:         info.LoginInfo.IP,
-		Port:       info.LoginInfo.Port,
-		User:       info.LoginInfo.User,
-		LoginMode:  string(info.LoginInfo.Mode),
-		Password:   password,
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:       std.DeployInfo().Host.Dynamic.LoginPort,
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
+		LoginMode:  string(cMethod),
+		Password:   cKey,
 	}
 
 	data, err := json.Marshal(detectInfoEvent)
 	if err != nil {
-		act.logger.Errorf("failed to marshal data: %v", err)
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, relayHost.AgentID)
+		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, std.DeployInfo().RelayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			act.logger.Errorf("detect info by ssh failed: %v", err)
 			return fmt.Errorf("detect info by ssh failed: %w", err)
 		}
 	case <-time.After(queryClientTimeout):
-		act.logger.Errorf("wait client timed out after (%s)", queryClientTimeout)
 		return errors.New("wait client timed out")
 	}
+
+	std.InstanceData().LogI("detect info by ssh send to relay successfully")
 
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) queryPassword(
-	ctx context.Context,
-	operator string,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-	info *types.DeploymentInfo) (string, error) {
-
-	switch info.LoginInfo.Mode {
-	case types.LoginModePassword:
-		passwd, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
-		}
-
-		return string(passwd), nil
-
-	case types.LoginModeKeyFile:
-		privateKey, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
-		if err != nil {
-			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
-		}
-
-		return string(privateKey), nil
-	case types.LoginModePasswordVault:
-		passwd, err := passwordVault.LoadPassword(
-			ctx,
-			operator,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from password vault: %w", err)
-		}
-
-		return string(passwd), nil
-	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
-	}
-}
-
 func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
-	ctx *action.InstanceContext) (criteria.OSType, criteria.CPUArch, string, error) {
+	ctx *action.InstanceContext, std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
 
 	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
 	defer cancel()
@@ -338,9 +289,6 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
-
 				continue
 			}
 
@@ -381,6 +329,9 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 			if err != nil {
 				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
+
+			std.InstanceData().LogI(fmt.Sprintf("wait for relay report detect result successfully. os-type(%s), cpu-arch(%s), connected-dir(%s)",
+				osType, cpuArch, connectionDir))
 
 			return osType, cpuArch, connectionDir, nil
 		}

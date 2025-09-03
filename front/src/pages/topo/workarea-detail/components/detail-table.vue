@@ -16,6 +16,8 @@
         :show-settings="isShowSetting"
         :settings="settings"
         :max-height="maxHeight"
+        @checkbox-change="handleSelectChange"
+        @checkbox-all="handleSelectAllChange"
         @setting-change="handleSettingChange"
         @column-filter="handleColumnFilter">
         <TableColumn type="checkbox" :width="60" :resizable="false" />
@@ -76,15 +78,22 @@
           :min-width="140">
           <template #default="{ row }">
             <div class="flex">
-              <Button theme="primary" text class="mr-[12px]">
+              <Button theme="primary" text class="mr-[12px]" @click="handleEdit(row)">
+                {{ $t('topoManager.workAreaDetail.table.edit') }}
+              </Button>
+              <Button theme="primary" text class="mr-[12px]" @click="handleReinstall(row)">
                 {{ $t('topoManager.workAreaDetail.table.Reassembly') }}
               </Button>
-              <MoreAction :ipv4="row.bk_host_innerip" :row="row"></MoreAction>
+              <MoreAction :ipv4="row.bk_host_innerip" :row="row">
+                <i class="nodeman-icon nc-more cursor"></i>
+              </MoreAction>
             </div>
           </template>
         </TableColumn>
       </Table>
     </bk-loading>
+    <edit-unit-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate"></edit-unit-sideslider>
+    <ReinstallProxy v-model:is-show="isShowInstallProxy" :data="reinstallData" :bk_networkunit_id="bkNetworkunitId"/>
   </div>
 </template>
 
@@ -98,6 +107,9 @@ import MoreAction from './more-action.vue';
 
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import EditUnitSideslider from './edit-unit-sideslider.vue';
+import ReinstallProxy from '../../install-proxy/reinstall-proxy.vue';
+
 import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
@@ -115,12 +127,19 @@ const props = defineProps({
     default: 0
   }
 });
+const emit = defineEmits(['selectChange']);
 const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 const list = ref<Host[]>([]);
 const pagination = reactive({ count: 0, limit: 20, current: 1 });
 const sortConfig = ref({ multiple: true });
-
+const sidesliderData = reactive<{
+  isShow: boolean,
+  data: Host | null
+}>({
+  isShow: false,
+  data: null
+});
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
@@ -132,7 +151,26 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   ],
   disabled: ['action'],
 });
+// 表格勾选
+const selection = computed(() =>
+  list.value.filter((item: any) => item.checked)
+);
+const handleSelectChange = ({
+  checked,
+  row,
+}: {
+  checked: boolean;
+  row: any;
+}) => {
+  row.checked = checked;
+  emit('selectChange', selection.value);
+};
 
+// 表格全选
+const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
+  list.value.forEach((item: any) => (item.checked = checked));
+  emit('selectChange', selection.value);
+};
 const tableRef = ref();
 const loading = ref(false);
 // 待优化 各影响table最大高度的元素的高度
@@ -160,6 +198,10 @@ const proxyStatusFilter = reactive({
   ],
   checked: [],
 });
+const handleEdit = (row: Host) => {
+  sidesliderData.isShow = true;
+  sidesliderData.data = row;
+}
 const fuzzyKeys = new Set([
   "bk_host_innerip",
   "bk_host_innerip_v6",
@@ -199,6 +241,15 @@ const getAgentList = async () => {
     ...item,
   }));
   loading.value = false;
+};
+const handleUpdate = async () => {
+  await getAgentList();
+}
+const isShowInstallProxy = ref(false);
+const reinstallData = ref<Host[]>([]);
+const handleReinstall = (row: Host) => {
+  isShowInstallProxy.value = true;
+  reinstallData.value = [row];
 };
 watch(searchSelectValue,async () => {
   await getAgentList();

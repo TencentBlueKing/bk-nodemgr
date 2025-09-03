@@ -37,7 +37,7 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['change']);
-const data = ref<Array<number | string>>([]);
+const data = ref<Array<number | string>>([props.list[0].value]);
 
 const handleChange = (state: boolean, value: string | number) => {
   if (!props.multiple) {

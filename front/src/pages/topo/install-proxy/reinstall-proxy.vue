@@ -1,7 +1,7 @@
 <template>
   <Sideslider
     v-model:is-show="isShow"
-    :title="$t('topoManager.installProxy.title')"
+    :title="$t('topoManager.installProxy.reinstall')"
     width="1490"
     :before-close="handleBeforeClose"
   >
@@ -27,74 +27,9 @@
             ref="installTableRef"
             v-model:data="form.info"
             realeaseType="proxy"
+            :isReinstall="true"
             :currentSettings="settings"
           ></install-table>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.password')"
-          property=""
-          label-width="90"
-          required
-        >
-          <Radio.Group v-model="form.saveTime">
-            <Radio.Button
-              :label="
-                $t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 })
-              "
-            >
-            </Radio.Button>
-            <Radio.Button
-              :label="$t('topoManager.installProxy.form.saveTime.longTermSave')"
-            >
-            </Radio.Button>
-          </Radio.Group>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.os')"
-          property=""
-          label-width="90"
-          required
-        >
-          <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.port')"
-          property=""
-          label-width="90"
-          required
-        >
-          <Input class="w-[488px]" v-model="form.login_port" />
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.account')"
-          property=""
-          label-width="90"
-          required
-        >
-          <Input class="w-[488px]" v-model="form.login_user" />
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.business')"
-          property=""
-          label-width="90"
-          required
-        > 
-          <Select
-            class="w-[488px]"
-            v-model="form.bk_biz_id"
-            auto-focus
-            filterable
-            placeholder="选择业务"
-          >
-            <Select.Option
-              v-for="item in businessList"
-              :key="item.bk_biz_id"
-              :name="item.bk_biz_name"
-              :id="item.bk_biz_id"
-            >
-              [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-            </Select.Option>
-          </Select>
         </Form.FormItem>
         <Form.FormItem
           label-width="90">
@@ -142,27 +77,29 @@
             </Table>
           </div>
         </Form.FormItem>
-        <div class="flex mt-[32px] ml-[90px]">
-          <Button
-            theme="primary"
-            class="mr-[8px] w-[120px]"
-            @click="handleConfirm"
-          >
-            <span>
-              {{ $t("action.install") }}
-            </span>
-            <span
-              class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
-            >
-              {{ form.info.length }}
-            </span>
-          </Button>
-          <Button @click="handleBeforeClose">
-            {{ $t("action.cancel") }}
-          </Button>
-        </div>
       </Form>
     </div>
+    <template #footer>
+      <div class="flex mt-[32px] ml-[90px]">
+        <Button
+          theme="primary"
+          class="mr-[8px] w-[120px]"
+          @click="handleConfirm"
+        >
+          <span>
+            {{ $t("action.reinstallProxy") }}
+          </span>
+          <span
+            class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+          >
+            {{ form.info.length }}
+          </span>
+        </Button>
+        <Button @click="handleBeforeClose">
+          {{ $t("action.cancel") }}
+        </Button>
+      </div>
+    </template>
     <chooseVersionDialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
@@ -174,15 +111,15 @@
 
 <script lang="ts" setup>
 import { Button, Form, Message, InfoBox, Input, Radio, Select, Sideslider } from "bkui-vue";
-import { reactive, ref, computed, PropType } from "vue";
+import { reactive, ref, computed, PropType, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
-import { Table, TableColumn } from "@blueking/table";
 import SelectItemGroup from "./components/select-item-group.vue";
 import { useMainStore } from "@/stores/main";
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { useRouter } from 'vue-router';
-import { watch } from "vue";
+import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
+import { Table, TableColumn } from "@blueking/table";
+import { cloneDeep } from "lodash";
 
 const props = defineProps({
   bk_networkunit_id: {
@@ -198,39 +135,14 @@ const router = useRouter();
 const isShow = defineModel<boolean>("isShow", { default: false });
 const { t } = useI18n();
 const mainStore = useMainStore();
-
-const form = reactive({
-  method: "0", // 安装方式
-  info: [
-    {
-      bk_host_id: "",
-      bk_host_innerip: "",
-      bk_host_innerip_v6: "",
-      export_ip: "",
-      advertise_ip: "",
-      login_ip: "",
-      login_mode: "password",
-      login_password: "",
-      login_key_file: "",
-      bk_addressing: "static",
-      dedicated_installer: true,
-      cluster_tunnel: true,
-      file_tunnel: true,
-      data_tunnel: true,
-      proxy_tags: [] as string[],
-    },
-  ], // 安装信息
-  saveTime: "保存 1 天", // 密钥/密码
-  os_type: "Linux", // 操作系统
-  login_port: "36000", // 登录端口
-  login_user: "root", // 登录账号
-  bk_biz_id: "", // 归属业务
-  target_version: [] as TargetVersion[],
-});
 const settings = reactive({
   fields: [
+    { field: "bk_biz_id", title: "归属业务" },
     { field: "bk_host_innerip", title: "内网 IPv4" },
     { field: "bk_host_innerip_v6", title: "内网 IPv6" },
+    { field: "os_type", title: "操作系统" },
+    { field: "login_port", title: "登录端口" },
+    { field: "login_user", title: "登录账号" },
     { field: "export_ip", title: "出口IP" },
     { field: "advertise_ip", title: "服务IP" },
     { field: "login_ip", title: "登录 IP" },
@@ -242,17 +154,48 @@ const settings = reactive({
     { field: "data_tunnel", title: "数据上报" },
   ],
   checked: [
+    "bk_biz_id",
     "bk_host_innerip",
-    "export_ip",
+    "bk_host_innerip_v6",
+    "os_type",
+    "login_port",
     "login_ip",
+    "login_user",
     "login_mode",
     "prove",
   ],
   disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
   size: "medium",
 });
+const initData = {
+  bk_host_id: "",
+  bk_host_innerip: "",
+  bk_host_innerip_v6: "",
+  export_ip: "",
+  advertise_ip: "",
+  login_ip: "",
+  login_mode: "password",
+  login_password: "",
+  login_key_file: "",
+  bk_addressing: "static",
+  bk_biz_id: '',
+  os_type: '',
+  login_port: "36000",
+  login_user: "root",
+  dedicated_installer: true,
+  cluster_tunnel: true,
+  file_tunnel: true,
+  data_tunnel: true,
+  proxy_tags: [] as string[],
+}
+const form = reactive({
+  method: "0", // 安装方式
+  info: [
+    cloneDeep(initData)
+  ],
+  target_version: [] as TargetVersion[],
+});
 const isTargetShow = ref(false);
-const businessList = computed(() => mainStore.businessList);
 const systemData = ref([
   {
     displayName: 'linux/amd64',
@@ -276,12 +219,6 @@ const installMethodList = ref([
     title: t("topoManager.installProxy.installMethodList.remote.title"),
     content: t("topoManager.installProxy.installMethodList.remote.content"),
     value: 0,
-  },
-  {
-    icon: "nodeman-icon nc-excel-2",
-    title: t("topoManager.installProxy.installMethodList.excel.title"),
-    content: t("topoManager.installProxy.installMethodList.excel.content"),
-    value: 1,
   },
   {
     icon: "nodeman-icon nc-custom-install",
@@ -376,9 +313,9 @@ const handleConfirm = async () => {
         return {
           ...rest,
           os_type: 'linux',
-          bk_biz_id: form.bk_biz_id,
-          login_user: form.login_user,
-          login_port: Number(form.login_port),
+          bk_biz_id: rest.bk_biz_id,
+          login_user: rest.login_user,
+          login_port: Number(rest.login_port),
           bk_networkunit_id: props.bk_networkunit_id,
           ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
         }
@@ -391,7 +328,7 @@ const handleConfirm = async () => {
     if (!res) return;
     Message({
       theme: 'success',
-      message: 'proxy安装成功！',
+      message: 'proxy重装成功！',
     });
     isShow.value = false;
     if (res.workflow_id) {
@@ -402,9 +339,20 @@ const handleConfirm = async () => {
     }
   }
 };
+// 工具函数
+const assign = (data1: any, data2: any, data3?: any) => {
+  Object.keys(data1).forEach((key) => {
+    data1[key] = data2[key] ?? data3?.[key] ?? data1[key];
+  });
+};
+
 watch(() => isShow.value, () => {
   if(isShow.value && props.data.length) {
-    Object.assign(form, props.data)
+    form.info = props.data.map((item: Host) => {
+      const data = cloneDeep(initData);
+      assign(data, item, item.info);
+      return data;
+    });
   }
 })
 </script>

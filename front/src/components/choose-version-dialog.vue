@@ -169,7 +169,7 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig<RowVO>>({
 
 const getVersions = async () => {
   const res = await PackageService.ListRelease({
-    generation: [2],
+    generation: 2,
     release_type: props.releaseType,
   }).catch(() => ({
     total: 0,

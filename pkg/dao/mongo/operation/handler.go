@@ -13,6 +13,7 @@ package operation
 
 import (
 	"context"
+	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -41,10 +42,17 @@ type handler struct {
 
 // New new a handler.
 func New(client *mongo.Database, logger logger.ILogger) IHandler {
-	return &handler{
-		logger: logger,
+	h := &handler{
 		dao:    newDao(client, logger),
+		logger: logger,
 	}
+
+	if err := h.dao.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure operation indexes, err: %v",
+			errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	return h
 }
 
 // List lists operation by page and opts.

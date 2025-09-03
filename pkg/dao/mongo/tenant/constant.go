@@ -8,22 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package base
+package tenant
 
 const (
-	// GlobalNetworkAreaID defines the main area of network.
-	// it belongs to system tenant in multi-tenant mode.
-	// and can be detected and linked by all tenants.
-	GlobalNetworkAreaID = 0
-)
-
-const (
-	// FieldKeyCreatedAt defines the key of create time.
-	FieldKeyCreatedAt = "basic.created_at"
-
-	// FieldKeyUpdatedAt defines the key of update time.
-	FieldKeyUpdatedAt = "basic.updated_at"
-
-	// FieldKeyIsDeleted defines the key of is deleted.
-	FieldKeyIsDeleted = "basic.is_deleted"
+	// FieldKeyID is the key for the id field.
+	FieldKeyID = "data.id"
 )

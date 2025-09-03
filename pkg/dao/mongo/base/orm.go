@@ -197,6 +197,11 @@ func (orm *Orm[P, T]) EnsureIndexes() error {
 		return nil
 	}
 
+	indexes = append(indexes, mongo.IndexModel{
+		Keys:    bson.D{{Key: FieldKeyIsDeleted, Value: -1}},
+		Options: mongoOptions.Index(),
+	})
+
 	// this is a common operation for mongo db, so we use background context.
 	_, err := orm.dao.GetClient().Indexes().CreateMany(context.Background(), indexes)
 	if err != nil {

@@ -31,15 +31,15 @@ func FormatPkgName(
 ) (string, error) {
 
 	if err := generation.Validate(); err != nil {
-		return "", fmt.Errorf("format pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format node pkg name failed, err: %w", err)
 	}
 
 	if err := releaseType.Validate(); err != nil {
-		return "", fmt.Errorf("format pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format node pkg name failed, err: %w", err)
 	}
 
 	if version == "" {
-		return "", errors.New("format pkg name failed, version is empty")
+		return "", errors.New("format node pkg name failed, version is empty")
 	}
 
 	// origin agent pkg contains all platforms in one pkg.
@@ -56,7 +56,7 @@ func FormatPkgName(
 	}
 
 	if !plat.Validate() {
-		return "", fmt.Errorf("format pkg name failed, platform is invalid: %s", plat.String())
+		return "", fmt.Errorf("format node pkg name failed, platform is invalid: %s", plat.String())
 	}
 
 	pkgName := fmt.Sprintf(

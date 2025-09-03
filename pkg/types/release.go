@@ -63,7 +63,9 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeCert,
 		ReleaseTypeBinTool,
 		ReleaseTypeOriginOfficialPlugin,
-		ReleaseTypeOriginExternalPlugin:
+		ReleaseTypeOriginExternalPlugin,
+		ReleaseTypeOfficialPlugin,
+		ReleaseTypeExternalPlugin:
 		return nil
 	default:
 		return fmt.Errorf("invalid release type, type(%s)", rt)
@@ -75,16 +77,6 @@ func ReleaseTypeListToStringList(releaseTypeList []ReleaseType) []string {
 	data := make([]string, len(releaseTypeList))
 	for idx, releaseType := range releaseTypeList {
 		data[idx] = string(releaseType)
-	}
-
-	return data
-}
-
-// StringListToReleaseTypeList converts a string list to release type list.
-func StringListToReleaseTypeList(releaseTypeList []string) []ReleaseType {
-	data := make([]ReleaseType, len(releaseTypeList))
-	for idx, releaseType := range releaseTypeList {
-		data[idx] = ReleaseType(releaseType)
 	}
 
 	return data
@@ -168,6 +160,28 @@ type ReleaseBinTool struct {
 	Release
 }
 
+// ReleaseOfficialPlugin defines the official plugin, it is kind of Release.
+type ReleaseOfficialPlugin struct {
+	Release
+	ReleaseAdditionInfoOfficialPlugin
+}
+
+// ReleaseAdditionInfoOfficialPlugin defines the addition info of release official plugin.
+type ReleaseAdditionInfoOfficialPlugin struct {
+	ConfigTemplates []PluginPkgConfigTemplate
+}
+
+// ReleaseExternalPlugin defines the external plugin, it is kind of Release.
+type ReleaseExternalPlugin struct {
+	Release
+	ReleaseAdditionInfoExternalPlugin
+}
+
+// ReleaseAdditionInfoExternalPlugin defines the addition info of release external plugin.
+type ReleaseAdditionInfoExternalPlugin struct {
+	ConfigTemplates []PluginPkgConfigTemplate
+}
+
 // OriginPkgDetail defines the detail of origin package.
 type OriginPkgDetail struct {
 	fileiface.FileInfo
@@ -216,13 +230,14 @@ type OriginOfficialPluginPkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name         string
-	Version      string
-	Description  string
-	Scenario     string
-	ConfigFile   string
-	ConfigFormat string
-	LaunchMode   string
+	Name            string
+	Version         string
+	Description     string
+	Scenario        string
+	ConfigFile      string
+	ConfigFormat    string
+	LaunchMode      string
+	ConfigTemplates []PluginPkgConfigTemplate
 
 	Platforms []platform.Platform
 }
@@ -234,13 +249,37 @@ type OriginExternalPluginPkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name         string
-	Version      string
-	Description  string
-	Scenario     string
-	ConfigFile   string
-	ConfigFormat string
-	LaunchMode   string
+	Name            string
+	Version         string
+	Description     string
+	Scenario        string
+	ConfigFile      string
+	ConfigFormat    string
+	LaunchMode      string
+	SubDirPaths     map[string]map[string]struct{}
+	ConfigTemplates []PluginPkgConfigTemplate
 
 	Platforms []platform.Platform
+}
+
+// PluginPkgConfigTemplate defines the detail of plugin package.
+type PluginPkgConfigTemplate struct {
+	PluginVersion string
+	Name          string
+	Version       string
+	FilePath      string
+	Format        string
+	IsMainConfig  string
+	SourcePath    string
+	Variables     *PluginPkgConfigTemplateProperty
+}
+
+// PluginPkgConfigTemplateProperty defines the detail of plugin package.
+type PluginPkgConfigTemplateProperty struct {
+	Title      string                                      `yaml:"title,omitempty"`
+	Type       string                                      `yaml:"type,omitempty"`
+	Required   bool                                        `yaml:"required,omitempty"`
+	Default    any                                         `yaml:"default,omitempty"`
+	Items      *PluginPkgConfigTemplateProperty            `yaml:"items,omitempty"`
+	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
 }
