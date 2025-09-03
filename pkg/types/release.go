@@ -67,6 +67,7 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeBinTool,
 		ReleaseTypeOriginOfficialPlugin,
 		ReleaseTypeOriginExternalPlugin,
+		ReleaseTypePluginBinTool,
 		ReleaseTypeOfficialPlugin,
 		ReleaseTypeExternalPlugin:
 		return nil
