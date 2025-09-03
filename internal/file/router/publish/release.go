@@ -104,6 +104,28 @@ func (h *handler) PublishReleaseBinTool(ctx *restserver.Context) (interface{}, e
 	return resp.GetData(), nil
 }
 
+// PublishReleasePluginBinTool publish release plugin bintool.
+func (h *handler) PublishReleasePluginBinTool(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.PublishReleasePluginBinToolReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.manager.PublishReleasePluginBinTool(ctx, uploadID); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool. upload-id(%s), err: %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded and generated release plugin bintool. upload-id(%s)", uploadID)
+
+	resp := new(protoFile.PublishReleasePluginBinToolResp)
+
+	return resp.GetData(), nil
+}
+
 // PublishReleaseOfficialPlugin publish release official plugin.
 func (h *handler) PublishReleaseOfficialPlugin(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoFile.PublishReleaseOfficialPluginReq)

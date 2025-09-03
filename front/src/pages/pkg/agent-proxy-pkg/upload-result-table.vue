@@ -60,7 +60,7 @@
       <template v-if="data?.changelog_zh">
         <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px]">描述</div>
         <div class="w-full bg-[#FAFBFD] min-h-[60px] border
-        border-[#DCDEE5] text-[#4D4F56] text-[12px] px-[10px] py-[6px]">
+        border-[#DCDEE5] text-[#4D4F56] text-[12px] px-[10px] py-[6px] formatted-text">
           {{ data.changelog_zh }}
         </div>
       </template>
@@ -101,3 +101,8 @@ const tableData = computed(() => props.data?.platforms?.map((item: Platform) => 
 const batchUpdateTag = () => {
 }
 </script>
+<style scoped>
+.formatted-text {
+  white-space: pre-wrap;
+}
+</style>

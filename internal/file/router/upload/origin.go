@@ -106,7 +106,7 @@ func (h *handler) UploadOriginCert(ctx *restserver.Context) (interface{}, error)
 		_ = file.Close()
 	}()
 
-	detail, err := h.manager.UploadOriginCert(ctx, fileHeader.Filename, file)
+	detail, err := h.manager.UploadOriginCert(ctx, file)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to upload cert: %v", err)
 
@@ -151,6 +151,41 @@ func (h *handler) UploadOriginBinTool(ctx *restserver.Context) (interface{}, err
 	h.logger.InfoCtxf(ctx, "uploaded origin bintool, detail: %v", detail)
 
 	resp := new(protoFile.UploadOriginBinToolResp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
+// UploadOriginPluginBinTool upload origin plugin bin tool.
+func (h *handler) UploadOriginPluginBinTool(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.UploadOriginPluginBinToolReq)
+	fileHeader, err := ctx.ParseFileForm(req)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool, failed to parse file form: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool, failed to open file. err: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.manager.UploadOriginPluginBinTool(ctx, file)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "uploaded origin plugin bintool, detail: %v", detail)
+
+	resp := new(protoFile.UploadOriginPluginBinToolResp)
 	resp.ConvertResultFromTypes(false, detail)
 
 	return resp.GetData(), nil

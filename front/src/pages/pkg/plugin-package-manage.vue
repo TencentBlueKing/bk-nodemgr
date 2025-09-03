@@ -2,7 +2,7 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload">插件上传</Button>
+      <Button theme="primary" @click="handleUpload" :disabled="true">插件上传</Button>
       <SearchSelect
         class="ml-[16px] flex-1"
         ref="searchSelect"
@@ -154,6 +154,7 @@
       </Loading>
     </div>
   </div>
+  <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
 type PkgQuickType = "os_cpu_arch" | "version";
@@ -189,6 +190,7 @@ import { isArray } from "lodash";
 import { useRoute, useRouter } from "vue-router";
 import type { VxeTablePropTypes } from 'vxe-table';
 import usePage from '@/composables/use-page';
+import PkgUploadSideslider from "./agent-proxy-pkg/pkg-upload-sideslider.vue";
 import { EditLine } from "bkui-vue/lib/icon";
 
 const { t } = useI18n();
@@ -197,6 +199,7 @@ const router = useRouter();
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);
+const isShow = ref(false);
 // 分页
 const {
   pagination
@@ -323,12 +326,16 @@ const handleChangeTag = () => {
 
 }
 const handleUpload = () => {
-  
+  isShow.value = true;
+}
+const handleConfirm = async () => {
+  await getPackages();
 }
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
     release_type: "agent",
+    generation: 2
   });
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items
