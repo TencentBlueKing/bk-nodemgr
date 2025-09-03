@@ -96,3 +96,27 @@ func BuildPushField(key string, value any) bson.D {
 
 	return push
 }
+
+// BuildPullField build pull field param.
+// please don't use slice as value.
+func BuildPullField(key string, value any) bson.D {
+	nowTime := time.Now()
+	pull := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				"basic.is_deleted": false,
+				"basic.updated_at": nowTime,
+			},
+		}, {
+			Key: "$pull",
+			Value: bson.M{
+				fmt.Sprintf("data.%s", key): bson.M{
+					"$in": value,
+				},
+			},
+		},
+	}
+
+	return pull
+}

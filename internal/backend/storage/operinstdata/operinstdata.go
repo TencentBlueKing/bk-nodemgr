@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -477,7 +478,7 @@ func (s *Storage) MarkOperInstStopping(ctx context.Context, operationInstID stri
 }
 
 // syncStopOperInsts sync all stopping operation instances.
-func (s *Storage) syncStopOperInsts(ctx context.Context) error {
+func (s *Storage) syncStopOperInsts(ctx contextx.IContext) error {
 	stopInstIDs, err := s.stopoperinstDao.FindAll(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to find all stopping operation instances: %v", err)

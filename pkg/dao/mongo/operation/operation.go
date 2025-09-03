@@ -118,3 +118,20 @@ func (d *dao) delete(ctx context.Context, operIDs ...string) error {
 
 	return nil
 }
+
+// pullField pull value from array field.
+func (d *dao) pullField(ctx context.Context, operID, field string, value any) error {
+	filter := base.AliveFilter()
+	filter = WithOperationID(operID)(filter)
+
+	update := base.BuildPullField(field, value)
+	result, err := d.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	d.logger.Debugf("pull operation field(%v), table(%s), value(%v), updated-count(%d)",
+		field, d.tableName, value, result.MatchedCount)
+
+	return nil
+}

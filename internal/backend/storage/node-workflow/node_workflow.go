@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
@@ -117,7 +118,7 @@ func (s *Storage) registerScheduler() error {
 }
 
 // obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.
-func (s *Storage) obtainMonitoredWorkflows(ctx context.Context) error {
+func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 	runningWorkflows, _, err := s.daoNodeWorkflow.List(
 		ctx,
 		types.UnlimitedPage(),
@@ -170,7 +171,7 @@ func (s *Storage) obtainMonitoredWorkflows(ctx context.Context) error {
 	return nil
 }
 
-func (s *Storage) monitorWorkflowStatus(ctx context.Context) error {
+func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
 	s.monitoredWorkflowsMutex.RLock()
 	defer s.monitoredWorkflowsMutex.RUnlock()
 
@@ -234,6 +235,7 @@ func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (ty
 			successCount++
 		case operation.StateFailed, operation.StateTimeout:
 			failedCount++
+		default:
 		}
 	}
 
@@ -270,7 +272,6 @@ func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditi
 
 // CountNodeWorkflow counts node workflow by conditions.
 func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
-
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
 	return s.daoNodeWorkflow.Count(ctx, opts...)
