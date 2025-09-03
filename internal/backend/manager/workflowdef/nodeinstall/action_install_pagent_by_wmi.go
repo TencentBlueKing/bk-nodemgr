@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -30,7 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -65,21 +65,7 @@ func NewActionInstallPagentByWMI(
 
 // ActParamInstallPagentBywmi ...
 type ActParamInstallPagentBywmi struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
-}
-
-// pagentInstallParamsWMI this struct defines the parameters for installing agent.
-type pagentInstallParamsWin struct {
-	InstallerPath string
-	Generation    types.Generation
-	NodeRole      types.NodeRole
-	NodeVersion   string
-	DeployToken   string
-	OperInstID    string
-	BaseWorkDir   string
-	BaseDeployDir string
-	AdditionArgs  []string
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentByWMI struct {
@@ -136,96 +122,97 @@ func (act *actionInstallPagentByWMI) DelayFn() func() {
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamInstallAgentByWMI)
+	param := new(ActParamInstallPagentBywmi)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+
+	// get ssh credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetWMICredit(std)
+	if err != nil {
+		return fmt.Errorf("failed to get ssh credit: %w", err)
+	}
+
 	// select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
-	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
-
-		return err
-	}
-
-	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkDir, toolName))
-
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
-	}
-
-	installParams := &pagentInstallParamsWin{
-		NodeVersion:   info.Host.Dynamic.NodeVersion,
-		Generation:    info.Host.Dynamic.NodeGeneration,
-		InstallerPath: installerPath,
-		NodeRole:      info.Host.Dynamic.NodeRole,
-		DeployToken:   param.Token,
-		OperInstID:    ctx.Data.OperationInstanceID,
-		BaseWorkDir:   deployConstant.BaseWorkDir,
-		BaseDeployDir: deployConstant.BaseDeployDir,
-	}
-
-	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
-		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
-	}
-
-	// exec install command
-	installBat := act.buildBat(installParams)
-	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installBat))
-
-	password, err := act.queryPassword(contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator),
-		param.Operator, act.storageHostCredit, act.passwordVault, info)
+	toolName, installerPath, deployConstant, err := act.setupInstallationTools(std)
 	if err != nil {
 		return err
 	}
 
-	targetWorkDir := winpath.Join(installParams.BaseWorkDir, system.GetEnv())
-	if err := act.notifyRelayToInstall(ctx, info, password, toolName, targetWorkDir, installBat, &info.RelayInfo); err != nil {
-		return err
-	}
-	ctx.Data.LogI("notify relay to install pagent by wmi successfully")
+	// build install command.
+	installCmd := act.buildInstallParams(std, installerPath, deployConstant)
 
-	var outStr string
-	outStr, err = act.waitForRelayReportInstall(ctx)
-	if err != nil {
+	// notify relay to install pagent by ssh.
+	targetWorkDir := winpath.Join(deployConstant.BaseWorkDir, system.GetEnv())
+	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, targetWorkDir, installCmd); err != nil {
 		return err
 	}
-	ctx.Data.LogI("relay run install pagent by wmi successfully. result out str: " + outStr)
+
+	// wait for relay report install result.
+	if err := act.waitForRelayReportInstall(std); err != nil {
+		return err
+	}
+
+	std.InstanceData().LogI("install pagent by wmi successfully")
 
 	return nil
 }
 
-func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, password, toolsName, targetWorkDir string, args []string, relayInfo *types.RelayInfo) error {
+func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActionStandarder) (
+	string, string, deployconstant.DeployConf, error) {
+
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
+		std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	if err != nil {
+		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+	}
+
+	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
+		std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
+	}
+
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+
+	std.InstanceData().LogI(fmt.Sprintf("setup installation tools,tool name(%s), installerPath(%s)", toolName, installerPath))
+
+	return toolName, installerPath, deployConstant, nil
+}
+
+func (act *actionInstallPagentByWMI) notifyRelayToInstall(
+	std *utils.NodeActionStandarder,
+	cMethod wmix.AuthMethod, cKey,
+	toolsName, targetWorkDir string,
+	args []string) error {
 
 	event := protoRelay.InstallPagentByWMIReq{
-		ActionName:       ctx.Data.Name,
-		OperInstID:       ctx.Data.OperationInstanceID,
-		IP:               info.Host.Dynamic.LoginIP,
-		Port:             info.Host.Dynamic.LoginPort,
-		User:             info.Host.Dynamic.LoginUser,
-		LoginMode:        string(info.Host.Dynamic.LoginMode),
-		Password:         password,
-		InstallerWorkDir: info.InstallerWorkDir,
+		ActionName:       std.InstanceData().Name,
+		OperInstID:       std.InstanceData().OperationInstanceID,
+		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
+		User:             std.DeployInfo().Host.Dynamic.LoginUser,
+		LoginMode:        string(cMethod),
+		Password:         cKey,
+		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     args,
 		TargetWorkDir:    targetWorkDir,
@@ -236,16 +223,16 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceCo
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeInstallByWMI, data, relayInfo.AgentID)
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeInstallByWMI, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
 			return fmt.Errorf("notify relay to install failed: %w", err)
 		}
-	case <-ctx.Ctx.Done():
-		return ctx.Ctx.Err()
+	case <-std.Context().Done():
+		return std.Context().Err()
 	}
 
 	act.logger.Infof("notify relay to install pagent.")
@@ -254,9 +241,9 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(ctx *action.InstanceCo
 }
 
 func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
-	ctx *action.InstanceContext) (string, error) {
+	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -265,15 +252,15 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 	for {
 		select {
 		case <-timeoutCtx.Done():
-			return "", fmt.Errorf("wait for relay report install result timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			return fmt.Errorf("wait for relay report install result timed out. oper_inst_id(%s), action_name(%s)",
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
 				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
 
 				continue
 			}
@@ -285,83 +272,68 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 
 			relayInstallResult, ok := relayInstallResultRaw.(map[string]any)
 			if !ok {
-				return "", errors.New("unexpected type for relay install result")
+				return errors.New("unexpected type for relay install result")
 			}
 
 			errMsgRaw := relayInstallResult[relayconstant.InstallResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for error message")
+				return errors.New("unexpected type for error message")
 			}
 
 			if errMsg != "" {
-				return "", errors.New(errMsg)
+				return errors.New(errMsg)
 			}
 
 			outStrRaw := relayInstallResult[relayconstant.InstallResultOutStrKey]
 			outStr, ok := outStrRaw.(string)
 			if !ok {
-				return "", errors.New("unexpected type for output string")
+				return errors.New("unexpected type for output string")
 			}
 
-			return outStr, nil
+			std.InstanceData().LogI("wait for relay report install result successfully. result stdout: " + outStr)
+
+			return nil
 		}
 	}
 }
 
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (act *actionInstallPagentByWMI) buildBat(param *pagentInstallParamsWin) []string {
+// TODO: add relay file and callback address.
+func (act *actionInstallPagentByWMI) buildInstallParams(
+	std *utils.NodeActionStandarder,
+	installerPath string, deployConstant deployconstant.DeployConf) []string {
+
+	installParams := &InstallParamsWin{
+		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
+		InstallerPath: installerPath,
+		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
+		DeployToken:   std.Token(),
+		OperInstID:    std.InstanceData().OperationInstanceID,
+		BaseWorkDir:   deployConstant.BaseWorkDir,
+		BaseDeployDir: deployConstant.BaseDeployDir,
+	}
+
+	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
+		installParams.AdditionArgs = append(installParams.AdditionArgs,
+			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
+	}
+
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+		fmt.Sprintf("--generation %d", installParams.Generation),
+		fmt.Sprintf("--node_role %s", installParams.NodeRole),
+		fmt.Sprintf("--base_work_dir %s", installParams.BaseWorkDir),
+		fmt.Sprintf("--base_deploy_dir %s", installParams.BaseDeployDir),
+		fmt.Sprintf("--deploy_token %s", installParams.DeployToken),
+		fmt.Sprintf("--node_version %s", installParams.NodeVersion),
+		fmt.Sprintf("--oper_inst_id %s", installParams.OperInstID),
 	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
+	if len(installParams.AdditionArgs) > 0 {
+		args = append(args, installParams.AdditionArgs...)
 	}
+
+	std.InstanceData().LogI(fmt.Sprintf("build install params: %v", args))
 
 	return args
-}
-
-func (act *actionInstallPagentByWMI) queryPassword(
-	ctx contextx.ITenantContext,
-	operator string,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-	info *types.DeploymentInfo) (string, error) {
-
-	switch info.Host.Dynamic.LoginMode {
-	case types.LoginModePassword:
-		passwd, err := storageHostCredit.LoadHostCredit(
-			ctx,
-			info.Host.Dynamic.LoginCreditID)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
-		}
-
-		return string(passwd), nil
-
-	case types.LoginModeKeyFile:
-		return "", errors.New("implete me")
-	case types.LoginModePasswordVault:
-		passwd, err := passwordVault.LoadPassword(
-			ctx,
-			operator,
-			info.Host.Static.NetworkAreaID,
-			info.Host.Dynamic.LoginIP,
-			info.Host.Dynamic.LoginUser)
-		if err != nil {
-			return "", fmt.Errorf("failed to load password from password vault: %w", err)
-		}
-
-		return string(passwd), nil
-	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.Host.Dynamic.LoginMode)
-	}
 }

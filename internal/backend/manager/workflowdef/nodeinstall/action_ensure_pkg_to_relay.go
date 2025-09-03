@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -72,8 +73,7 @@ func NewActionEnsurePkgToRelay(
 
 // ActParamEnsurePkgToRelay ...
 type ActParamEnsurePkgToRelay struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionEnsurePkgToRelay struct {
@@ -132,7 +132,7 @@ func (act *actionEnsurePkgToRelay) DelayFn() func() {
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamEnsurePkgToRelay)
+	param := new(ActParamInstallPagentBywmi)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -140,97 +140,93 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
 	// TODO: if pkg not required, no need to get the info.
-	releasePkg, installerPkg, err := act.getRequiredPackages(ctx, info)
+	releasePkg, installerPkg, err := act.getRequiredPackages(std)
 	if err != nil {
 		return err
 	}
 
-	filesToProcess := act.determineFilesToProcess(info, releasePkg, installerPkg)
+	filesToProcess := act.determineFilesToProcess(std, releasePkg, installerPkg)
 	if len(filesToProcess) == 0 {
-		ctx.Data.LogI("no packages to process, all transfers disabled by options")
+		std.InstanceData().LogI("no packages to process, all transfers disabled by options")
 		return nil
 	}
 
-	if err := act.queryRelayPackageState(ctx, filesToProcess, info.RelayInfo.AgentID); err != nil {
+	if err := act.queryRelayPackageState(std, filesToProcess); err != nil {
 		return fmt.Errorf("query relay state failed: %w", err)
 	}
 
-	pkgStates, storageDir, err := act.waitForRelayReportFile(ctx, filesToProcess)
+	pkgStates, storageDir, err := act.waitForRelayReportFile(std, filesToProcess)
 	if err != nil {
 		return fmt.Errorf("wait for relay report failed: %w", err)
 	}
 
 	if storageDir == "" {
-		ctx.Data.LogE("failed to get relay storage dir. storage dir is empty")
+		std.InstanceData().LogE("failed to get relay storage dir. storage dir is empty")
 		return errors.New("failed to get relay storage dir. storage dir is empty")
 	}
-	info.RelayInfo.PackageDestDir = storageDir
+	std.DeployInfo().RelayInfo.PackageDestDir = storageDir
 
-	transferredPkgs, err := act.transferMissingPackages(ctx, info, releasePkg, installerPkg, pkgStates)
+	transferredPkgs, err := act.transferMissingPackages(std, releasePkg, installerPkg, pkgStates)
 	if err != nil {
 		return err
 	}
 
 	// only notify relay if there are packages to transfer.
 	if len(transferredPkgs) > 0 {
-		if err := act.notifyRelayToReceivePackage(ctx, transferredPkgs, &info.RelayInfo); err != nil {
+		if err := act.notifyRelayToReceivePackage(std, transferredPkgs); err != nil {
 			return fmt.Errorf("notify transfer completion failed: %w", err)
 		}
-		if err := act.waitForRelayReportStorage(ctx); err != nil {
+		if err := act.waitForRelayReportStorage(std); err != nil {
 			return fmt.Errorf("wait for relay report storage failed: %w", err)
 		}
 	}
 
-	ctx.Data.LogI("all packages processed successfully")
+	std.InstanceData().LogI("all packages processed successfully")
 
 	return nil
 }
 
 func (act *actionEnsurePkgToRelay) getRequiredPackages(
-	ctx *action.InstanceContext, info *types.DeploymentInfo) (*types.Release, fileiface.File, error) {
+	std *utils.NodeActionStandarder) (*types.Release, fileiface.File, error) {
 
-	releasePkg, err := act.getReleasePackageInfo(ctx.Ctx, info)
+	releasePkg, err := act.getReleasePackageInfo(std.Context(), std)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("get release package failed: %v", err))
 		return nil, nil, fmt.Errorf("get release package: %w", err)
 	}
-	ctx.Data.LogI(fmt.Sprintf("get release package info. file-name(%s)", releasePkg.FileName))
 
-	installPkg, err := act.getInstallerFile(ctx.Ctx, info)
+	installPkg, err := act.getInstallerFile(std.Context(), std)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("get installer package failed: %v", err))
 		return nil, nil, fmt.Errorf("get installer package: %w", err)
 	}
-	ctx.Data.LogI(fmt.Sprintf("get installer package info. file-name(%s)", installPkg.Info().Name))
 
 	return releasePkg, installPkg, nil
 }
 
 func (act *actionEnsurePkgToRelay) determineFilesToProcess(
-	info *types.DeploymentInfo, releasePkg *types.Release, installPkg fileiface.File) []protoRelay.FileInfo {
+	std *utils.NodeActionStandarder, releasePkg *types.Release, installPkg fileiface.File) []protoRelay.FileInfo {
 
 	files := make([]protoRelay.FileInfo, 0)
 
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		files = append(files, protoRelay.FileInfo{
 			FileName: releasePkg.FileName,
 			FileMD5:  releasePkg.MD5,
 		})
 	}
 
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		files = append(files, protoRelay.FileInfo{
 			FileName: installPkg.Info().Name,
 			FileMD5:  installPkg.Info().MD5,
@@ -240,12 +236,12 @@ func (act *actionEnsurePkgToRelay) determineFilesToProcess(
 	return files
 }
 
-func (act *actionEnsurePkgToRelay) queryRelayPackageState(
-	ctx *action.InstanceContext, files []protoRelay.FileInfo, agentID string) error {
+func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *utils.NodeActionStandarder,
+	files []protoRelay.FileInfo) error {
 
 	event := protoRelay.CheckPkgStateReq{
-		ActionName: ctx.Data.Name,
-		OperInstID: ctx.Data.OperationInstanceID,
+		ActionName: std.InstanceData().Name,
+		OperInstID: std.InstanceData().OperationInstanceID,
 		FileList:   files,
 	}
 
@@ -253,8 +249,8 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(
 	if err != nil {
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeCheckPkgState, data, agentID)
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeCheckPkgState, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
@@ -265,13 +261,13 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(
 		return errors.New("relay response timeout")
 	}
 
-	ctx.Data.LogI("package state query sent to relay.")
+	std.InstanceData().LogI("package state query sent to relay.")
 
 	return nil
 }
 
 func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
-	ctx *action.InstanceContext, files []protoRelay.FileInfo) (map[string]bool, string, error) {
+	std *utils.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
 
 	results := make(map[string]bool, len(files))
 	for _, file := range files {
@@ -281,7 +277,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	fileStorageDir := ""
 	completedCount := 0
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -291,16 +287,13 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 		select {
 		case <-timeoutCtx.Done():
 			return results, fileStorageDir, fmt.Errorf("wait for relay report timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
-
-				continue
+				return results, fileStorageDir, fmt.Errorf("get private data failed: %w", err)
 			}
 
 			fileStateRaw, exists := privateData[relayconstant.FileStateKey]
@@ -317,7 +310,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 				if storageDirRaw, exists := fileState[relayconstant.FileStateStorageKey]; exists {
 					if storageDir, ok := storageDirRaw.(string); ok && storageDir != "" {
 						fileStorageDir = storageDir
-						ctx.Data.LogI(fmt.Sprintf("relay storage dir set. dir(%s)", fileStorageDir))
+						std.InstanceData().LogI(fmt.Sprintf("relay storage dir set. dir(%s)", fileStorageDir))
 					}
 				}
 			}
@@ -328,14 +321,14 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 					return results, fileStorageDir, errors.New("unexpected type for file state")
 				}
 
+				completedCount++
 				if stateStr == string(relayconstant.RelayReportPkgComplete) {
 					results[fileName] = true
-					ctx.Data.LogI(fmt.Sprintf("package state complete. file-name(%s)", fileName))
-				} else if stateStr == string(relayconstant.RelayReportPkgInComplete) {
-					results[fileName] = false
-					ctx.Data.LogI(fmt.Sprintf("package state incomplete. file-name(%s)", fileName))
+					std.InstanceData().LogI(fmt.Sprintf("package state complete. file-name(%s)", fileName))
+
+					continue
 				}
-				completedCount++
+				std.InstanceData().LogI(fmt.Sprintf("package state incomplete. file-name(%s)", fileName))
 			}
 		}
 	}
@@ -344,29 +337,28 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 }
 
 func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
-	ctx context.Context, info *types.DeploymentInfo) (*types.Release, error) {
+	ctx context.Context, std *utils.NodeActionStandarder) (*types.Release, error) {
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		return nil, fmt.Errorf("convert node role to release type failed, err: %w", err)
+		return nil, fmt.Errorf("convert node role to release type failed: %w", err)
 	}
 
-	gen := info.Host.Dynamic.NodeGeneration
+	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
 
-	FileName, err := nodepkg.FormatPkgName(
+	filename, err := nodepkg.FormatPkgName(
 		gen,
 		releaseType,
-		platform.Platform{OS: info.Host.Dynamic.NodeOsType, Arch: info.Host.Dynamic.NodeCPUArch},
-		info.Host.Dynamic.NodeVersion,
+		platform.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+		std.DeployInfo().Host.Dynamic.NodeVersion,
 	)
 	if err != nil {
 		return nil, err
 	}
-	act.logger.Infof("get release package info. file-name(%s)", FileName)
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			FileName: []string{FileName},
+			FileName: []string{filename},
 		},
 	}
 	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, gen, types.UnlimitedPage(), cond)
@@ -375,20 +367,22 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	}
 
 	if len(releases) == 0 {
-		return nil, fmt.Errorf("release package not found. file-name(%s)", FileName)
+		return nil, fmt.Errorf("release package not found. file-name(%s)", filename)
 	}
 
 	if len(releases) > 1 {
-		return nil, fmt.Errorf("release package not unique. file-name(%s)", FileName)
+		return nil, fmt.Errorf("release package not unique. file-name(%s)", filename)
 	}
+
+	std.InstanceData().LogI(fmt.Sprintf("get release package info. file-name(%s)", filename))
 
 	return releases[0], nil
 }
 
 func (act *actionEnsurePkgToRelay) getInstallerFile(
-	ctx context.Context, info *types.DeploymentInfo) (fileiface.File, error) {
+	ctx context.Context, std *utils.NodeActionStandarder) (fileiface.File, error) {
 
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to format tools name: %w", err)
 	}
@@ -398,12 +392,13 @@ func (act *actionEnsurePkgToRelay) getInstallerFile(
 		return nil, fmt.Errorf("failed to get file. installer-name(%s): %w", toolName, err)
 	}
 
+	std.InstanceData().LogI(fmt.Sprintf("get installer file. file-name(%s)", installPkgInfo.Info().Name))
+
 	return installPkgInfo, nil
 }
 
 func (act *actionEnsurePkgToRelay) transferMissingPackages(
-	ctx *action.InstanceContext,
-	info *types.DeploymentInfo,
+	std *utils.NodeActionStandarder,
 	releasePkg *types.Release,
 	installPkg fileiface.File,
 	pkgStates map[string]bool) ([]string, error) {
@@ -413,8 +408,7 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 
 	if state, exists := pkgStates[releasePkg.FileName]; exists && !state {
 		gp.Go(func() error {
-			if err := act.transferReleasePkg(ctx, releasePkg.Type, &info.Host, &info.RelayInfo); err != nil {
-				ctx.Data.LogE(fmt.Sprintf("failed to transfer release package: %v", err))
+			if err := act.transferReleasePkg(std, releasePkg.Type); err != nil {
 				return fmt.Errorf("failed to transfer release package: %w", err)
 			}
 			transferred = append(transferred, releasePkg.FileName)
@@ -422,14 +416,13 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 			return nil
 		})
 	} else {
-		ctx.Data.LogI(fmt.Sprintf("release package exists. file-name(%s)", releasePkg.FileName))
+		std.InstanceData().LogI(fmt.Sprintf("release package exists. file-name(%s)", releasePkg.FileName))
 	}
 
 	installPkgName := installPkg.Info().Name
 	if state, exists := pkgStates[installPkgName]; exists && !state {
 		gp.Go(func() error {
-			if err := act.transferInstaller(ctx, &info.Host, &info.RelayInfo); err != nil {
-				ctx.Data.LogE(fmt.Sprintf("failed to transfer installer package: %v", err))
+			if err := act.transferInstaller(std); err != nil {
 				return fmt.Errorf("failed to transfer installer package: %w", err)
 			}
 			transferred = append(transferred, installPkgName)
@@ -437,7 +430,7 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 			return nil
 		})
 	} else {
-		ctx.Data.LogI(fmt.Sprintf("installer package exists. file-name(%s)", installPkgName))
+		std.InstanceData().LogI(fmt.Sprintf("installer package exists. file-name(%s)", installPkgName))
 	}
 
 	if err := gp.Wait(); err != nil {
@@ -447,137 +440,125 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 	return transferred, nil
 }
 
-func (act *actionEnsurePkgToRelay) transferReleasePkg(ctx *action.InstanceContext,
-	rt types.ReleaseType, info *types.Host, relayInfo *types.RelayInfo) error {
+func (act *actionEnsurePkgToRelay) transferReleasePkg(std *utils.NodeActionStandarder,
+	rt types.ReleaseType) error {
 
-	act.logger.Infof("transfer release. host-id(%d)", relayInfo.HostID)
-	ctx.Data.LogI(fmt.Sprintf("transferring release package. relay-host-id(%d)", relayInfo.HostID))
+	std.InstanceData().LogI(fmt.Sprintf("transferring release package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx.Ctx,
-		info.Dynamic.NodeGeneration,
+	transferHandler, err := act.fileHandler.LaunchTransferRelease(std.Context(),
+		std.DeployInfo().Host.Dynamic.NodeGeneration,
 		rt,
 		platform.Platform{
-			OS:   info.Dynamic.NodeOsType,
-			Arch: info.Dynamic.NodeCPUArch,
+			OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
+			Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		},
-		info.Dynamic.NodeVersion,
-		relayInfo.PackageDestDir,
-		&types.Host{HostID: relayInfo.HostID})
+		std.DeployInfo().Host.Dynamic.NodeVersion,
+		std.DeployInfo().RelayInfo.PackageDestDir,
+		&types.Host{HostID: std.DeployInfo().RelayInfo.HostID})
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer release. relay-host-id(%d): %v", relayInfo.HostID, err))
-		return fmt.Errorf("failed to launch transfer release. relay-host-id(%d): %w", relayInfo.HostID, err)
+		return fmt.Errorf("failed to launch transfer release. relay-host-id(%d): %w", std.DeployInfo().RelayInfo.HostID, err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("launched transfer release. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "launched transfer release. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID)
+	std.InstanceData().LogI(fmt.Sprintf("launched transfer release. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID))
 
-	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
+	result, err := transferHandler.WaitUntilDone(std.Context())
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), relay-host-id(%d): %w",
-			transferHandler.GetTaskID(), relayInfo.HostID, err)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID, err)
 	}
 
 	if !result.Terminated {
 		return fmt.Errorf("transfer release not terminated. task-id(%s), relay-host-id(%d)",
-			transferHandler.GetTaskID(), relayInfo.HostID)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID)
 	}
 
 	if result.ErrorCode != 0 {
 		return fmt.Errorf("transfer release failed. task-id(%s), relay-host-id(%d), err-code(%d), err-msg(%s)",
-			transferHandler.GetTaskID(), relayInfo.HostID, result.ErrorCode, result.ErrorMessage)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("transfer release done. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "transfer release done. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID)
+	std.InstanceData().LogI(fmt.Sprintf("transfer release done. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID))
 
 	return nil
 }
 
-func (act *actionEnsurePkgToRelay) transferInstaller(ctx *action.InstanceContext,
-	info *types.Host, relayInfo *types.RelayInfo) error {
+func (act *actionEnsurePkgToRelay) transferInstaller(
+	std *utils.NodeActionStandarder) error {
 
-	act.logger.Infof("transfer installer. relay-host-id(%d)", relayInfo.HostID)
-	ctx.Data.LogI(fmt.Sprintf("transferring installer package. relay-host-id(%d)", relayInfo.HostID))
+	std.InstanceData().LogI(fmt.Sprintf("transferring installer package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
-	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx.Ctx,
-		info.Dynamic.NodeGeneration,
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(std.Context(),
+		std.DeployInfo().Host.Dynamic.NodeGeneration,
 		platform.Platform{
-			OS:   info.Dynamic.NodeOsType,
-			Arch: info.Dynamic.NodeCPUArch,
+			OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
+			Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		},
-		relayInfo.PackageDestDir,
-		&types.Host{HostID: relayInfo.HostID})
+		std.DeployInfo().RelayInfo.PackageDestDir,
+		&types.Host{HostID: std.DeployInfo().RelayInfo.HostID})
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to launch transfer installer. relay-host-id(%d): %v", relayInfo.HostID, err))
-		return fmt.Errorf("failed to launch transfer installer. relay-host-id(%d): %w", relayInfo.HostID, err)
+		return fmt.Errorf("failed to launch transfer installer. relay-host-id(%d): %w", std.DeployInfo().RelayInfo.HostID, err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("launched transfer installer. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "launched transfer installer. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID)
+	std.InstanceData().LogI(fmt.Sprintf("launched transfer installer. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID))
 
-	result, err := transferHandler.WaitUntilDone(ctx.Ctx)
+	result, err := transferHandler.WaitUntilDone(std.Context())
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), relay-host-id(%d): %w",
-			transferHandler.GetTaskID(), relayInfo.HostID, err)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID, err)
 	}
 
 	if !result.Terminated {
 		return fmt.Errorf("transfer installer not terminated. task-id(%s), relay-host-id(%d)",
-			transferHandler.GetTaskID(), relayInfo.HostID)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID)
 	}
 
 	if result.ErrorCode != 0 {
 		return fmt.Errorf("transfer installer failed. task-id(%s), relay-host-id(%d), err-code(%d), err-msg(%s)",
-			transferHandler.GetTaskID(), relayInfo.HostID, result.ErrorCode, result.ErrorMessage)
+			transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("transfer installer done. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID))
-	act.logger.InfoCtxf(ctx.Ctx, "transfer installer done. task-id(%s), relay-host-id(%d)",
-		transferHandler.GetTaskID(), relayInfo.HostID)
+	std.InstanceData().LogI(fmt.Sprintf("transfer installer done. task-id(%s), relay-host-id(%d)",
+		transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID))
 
 	return nil
 }
 
 func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
-	ctx *action.InstanceContext, pkgNames []string, relayInfo *types.RelayInfo) error {
+	std *utils.NodeActionStandarder, pkgNames []string) error {
 
 	event := protoRelay.NotifyReceiveReq{
-		ActionName: ctx.Data.Name,
-		OperInstID: ctx.Data.OperationInstanceID,
+		ActionName: std.InstanceData().Name,
+		OperInstID: std.InstanceData().OperationInstanceID,
 		PkgName:    pkgNames}
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeNotifyReceive, data, relayInfo.AgentID)
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeNotifyReceive, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
 			return fmt.Errorf("notify relay to receive failed: %w", err)
 		}
-	case <-ctx.Ctx.Done():
-		return ctx.Ctx.Err()
+	case <-std.Context().Done():
+		return std.Context().Err()
 	}
 
-	act.logger.Infof("transfer completion notified for packages. pkg-names(%v)", pkgNames)
+	std.InstanceData().LogI("notify relay to receive package done")
 
 	return nil
 }
 
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
-	ctx *action.InstanceContext) error {
+	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -587,14 +568,14 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 		select {
 		case <-timeoutCtx.Done():
 			return fmt.Errorf("wait for relay report storage result timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
 				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
 
 				continue
 			}
@@ -614,6 +595,8 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 			if !ok {
 				return errors.New("unexpected type for relay storage result message")
 			}
+
+			std.InstanceData().LogI("wait for relay report storage result done")
 
 			if errMsg == "" {
 				return nil

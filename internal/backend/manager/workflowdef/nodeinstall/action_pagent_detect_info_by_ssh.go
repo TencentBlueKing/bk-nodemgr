@@ -159,12 +159,12 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// send detect info request to relay.
-	if err := act.detectInfo(ctx, std, cMethod, cKey); err != nil {
+	if err := act.notifyRelayTodetect(std, cMethod, cKey); err != nil {
 		return err
 	}
 
 	// wait for relay report detect result.
-	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(ctx, std)
+	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(std)
 	if err != nil {
 		return err
 	}
@@ -236,12 +236,12 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
+func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 	std *utils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
-		ActionName: ctx.Data.Name,
-		OperInstID: ctx.Data.OperationInstanceID,
+		ActionName: std.InstanceData().Name,
+		OperInstID: std.InstanceData().OperationInstanceID,
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:       std.DeployInfo().Host.Dynamic.LoginPort,
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
@@ -254,7 +254,7 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
+	errCh := act.proxyMessager.PushToClient(std.Context(),
 		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, std.DeployInfo().RelayInfo.AgentID)
 	select {
 	case err := <-errCh:
@@ -271,9 +271,9 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 }
 
 func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
-	ctx *action.InstanceContext, std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
+	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -283,11 +283,11 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 		select {
 		case <-timeoutCtx.Done():
 			return "", "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
 				continue
 			}

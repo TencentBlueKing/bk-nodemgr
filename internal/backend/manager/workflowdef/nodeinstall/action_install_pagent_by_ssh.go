@@ -158,15 +158,15 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// build install command.
-	installCmd := act.buildInstallParams(ctx, std, installerPath, deployConstant)
+	installCmd := act.buildInstallParams(std, installerPath, deployConstant)
 
 	// notify relay to install pagent by ssh.
-	if err := act.notifyRelayToInstall(ctx, std, cMethod, cKey, toolName, installCmd); err != nil {
+	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
 		return err
 	}
 
 	// wait for relay report install.
-	if err := act.waitForRelayReportInstall(ctx, std); err != nil {
+	if err := act.waitForRelayReportInstall(std); err != nil {
 		return err
 	}
 
@@ -175,15 +175,15 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceContext,
+func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 	std *utils.NodeActionStandarder,
 	cMethod sshx.AuthMethod, cKey string,
 	toolsName string, args []string,
 ) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
-		ActionName:       ctx.Data.Name,
-		OperInstID:       ctx.Data.OperationInstanceID,
+		ActionName:       std.InstanceData().Name,
+		OperInstID:       std.InstanceData().OperationInstanceID,
 		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
@@ -198,7 +198,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
+	errCh := act.proxyMessager.PushToClient(std.Context(),
 		protoRelay.ServerPushEventTypeInstallBySSH, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
@@ -206,8 +206,8 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 		if err != nil {
 			return fmt.Errorf("notify relay to install failed: %w", err)
 		}
-	case <-ctx.Ctx.Done():
-		return ctx.Ctx.Err()
+	case <-std.Context().Done():
+		return std.Context().Err()
 	}
 
 	std.InstanceData().LogI("notify relay to install pagent successfully")
@@ -216,9 +216,9 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(ctx *action.InstanceCo
 }
 
 func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
-	ctx *action.InstanceContext, std *utils.NodeActionStandarder) error {
+	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -228,14 +228,14 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 		select {
 		case <-timeoutCtx.Done():
 			return fmt.Errorf("wait for relay report install result timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
 				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
+					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
 
 				continue
 			}
@@ -296,7 +296,7 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActio
 }
 
 // TODO: add relay file and callback address.
-func (act *actionInstallPagentBySSH) buildInstallParams(ctx *action.InstanceContext,
+func (act *actionInstallPagentBySSH) buildInstallParams(
 	std *utils.NodeActionStandarder,
 	installerPath string, deployConstant deployconstant.DeployConf) []string {
 
@@ -306,7 +306,7 @@ func (act *actionInstallPagentBySSH) buildInstallParams(ctx *action.InstanceCont
 		InstallerPath: installerPath,
 		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
 		DeployToken:   std.Token(),
-		OperInstID:    ctx.Data.OperationInstanceID,
+		OperInstID:    std.InstanceData().OperationInstanceID,
 		BaseWorkDir:   deployConstant.BaseWorkDir,
 		BaseDeployDir: deployConstant.BaseDeployDir,
 	}

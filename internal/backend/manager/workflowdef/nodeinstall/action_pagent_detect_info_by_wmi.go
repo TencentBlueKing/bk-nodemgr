@@ -70,8 +70,7 @@ func NewActionPagentDetectInfoByWMI(
 
 // ActParamPagentDetectInfoByWMI ...
 type ActParamPagentDetectInfoByWMI struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionPagentDetectInfoByWMI struct {
@@ -130,7 +129,7 @@ func (act *actionPagentDetectInfoByWMI) DelayFn() func() {
 // nolint: perfsprint,funlen,fnsize,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamDetectInfoByWMI)
+	param := new(ActParamPagentDetectInfoByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -157,17 +156,15 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// send detect info request to relay.
-	if err := act.detectInfo(ctx, std.DeployInfo(), cMethod, cKey, &std.DeployInfo().RelayInfo); err != nil {
+	if err := act.notifyRelayTodetect(std, cMethod, cKey); err != nil {
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("detect info by wmi send to relay.relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
 	// wait for relay report detect result.
-	osType, cpuArch, err := act.waitForRelayReportDetect(ctx)
+	osType, cpuArch, err := act.waitForRelayReportDetect(std)
 	if err != nil {
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s)", osType, cpuArch))
 
 	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
@@ -203,7 +200,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -232,37 +229,36 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 	return nil
 }
 
-func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
-	info *types.DeploymentInfo, cMethod wmix.AuthMethod, cKey string, relayHost *types.RelayInfo) error {
+func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
+	std *utils.NodeActionStandarder, cMethod wmix.AuthMethod, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
-		ActionName: ctx.Data.Name,
-		OperInstID: ctx.Data.OperationInstanceID,
-		IP:         info.Host.Dynamic.LoginIP,
-		Port:       info.Host.Dynamic.LoginPort,
-		User:       info.Host.Dynamic.LoginUser,
+		ActionName: std.InstanceData().Name,
+		OperInstID: std.InstanceData().OperationInstanceID,
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:       std.DeployInfo().Host.Dynamic.LoginPort,
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
 		LoginMode:  string(cMethod),
 		Password:   cKey,
 	}
 
 	data, err := json.Marshal(detectInfoEvent)
 	if err != nil {
-		act.logger.Errorf("failed to marshal data: %v", err)
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(ctx.Ctx,
-		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, relayHost.AgentID)
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, std.DeployInfo().RelayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			act.logger.Errorf("detect info by WMI failed: %v", err)
-			return fmt.Errorf("detect info by WMI failed: %w", err)
+			return fmt.Errorf("detect info by wmi failed: %w", err)
 		}
 	case <-time.After(queryClientTimeout):
-		act.logger.Errorf("wait client timed out after (%s)", queryClientTimeout)
 		return errors.New("wait client timed out")
 	}
+
+	std.InstanceData().LogI("detect info by wmi send to relay successfully")
 
 	return nil
 }
@@ -270,9 +266,9 @@ func (act *actionPagentDetectInfoByWMI) detectInfo(ctx *action.InstanceContext,
 // waitForRelayReportDetect wait for relay to report the detect result.
 // nolint: gocognit
 func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
-	ctx *action.InstanceContext) (criteria.OSType, criteria.CPUArch, error) {
+	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 
-	timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, waitForRelayReportTimeout)
+	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -282,15 +278,12 @@ func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 		select {
 		case <-timeoutCtx.Done():
 			return "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
-				timeoutCtx, ctx.Data.OperationInstanceID, ctx.Data.Name)
+				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					ctx.Data.OperationInstanceID, ctx.Data.Name, err)
-
 				continue
 			}
 
@@ -330,6 +323,9 @@ func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 			if err != nil {
 				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
+
+			std.InstanceData().LogI(fmt.Sprintf("wait for relay report detect result successfully, os-type(%s), cpu-arch(%s)",
+				osType, cpuArch))
 
 			return osType, cpuArch, nil
 		}
