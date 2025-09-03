@@ -128,6 +128,20 @@ func (m *Manager) UploadOriginServer(ctx contextx.IContext, pkgFile io.ReadClose
 	return detail, nil
 }
 
+const (
+	originalServerDirNameRoot        = "server"
+	originalServerDirNameBin         = "bin"
+	originalServerDirNameEnv         = "env"
+	originalServerDirNameSupportFile = "support-files"
+	originalServerDirNameTemplate    = "templates"
+
+	originalServerFileNameProxyEnv               = "gse_proxy.env"
+	originalServerFileNameFileServer             = "gse_file"
+	originalServerFileNameDataServer             = "gse_data"
+	originalServerFileNameConfTemplateFileServer = "#etc#gse#gse_file_proxy.conf"
+	originalServerFileNameConfTemplateDataServer = "#etc#gse#gse_data_proxy.conf"
+)
+
 // checkGSE2OriginServerPkg check gse2 origin server package.
 // nolint: gocognit,gocyclo,cyclop,funlen
 // NOCC: golint/gocyclo,cyclop (this function should be complex).
@@ -149,7 +163,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "server", "bin", "gse_file"},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin, originalServerFileNameFileServer},
 			callback: func(_ []string, r io.Reader) error {
 				seenFile = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -165,7 +179,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "server", "bin", "gse_data"},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin, originalServerFileNameDataServer},
 			callback: func(_ []string, r io.Reader) error {
 				seenData = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -181,7 +195,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "support-files", "templates", "#etc#gse#gse_file_proxy.conf"},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServer},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -194,7 +208,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "support-files", "templates", "#etc#gse#gse_data_proxy.conf"},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServer},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -207,7 +221,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "support-files", "env", "gse_proxy.env"},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameEnv, originalServerFileNameProxyEnv},
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {

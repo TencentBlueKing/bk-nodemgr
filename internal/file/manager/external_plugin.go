@@ -391,6 +391,12 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 		return nil, err
 	}
 
+	// local plugin bintool.
+	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	pluginName := originDetail.Name
 
 	gp := gopool.NewPool()
@@ -416,6 +422,14 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 				return fmt.Errorf("failed to open origin external plugin file: %w", err)
 			}
 
+			originPluginBinToolFile, err := localPluginBinTool.Content(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to open origin plugin bintool file: %w", err)
+			}
+
+			// set sub dir paths.
+			originDetail.SubDirPaths[plat.String()][externalPluginPkgDirNameBin] = struct{}{}
+
 			subDirPaths := conv.MapKeyToSlice(originDetail.SubDirPaths[plat.String()])
 			dirs := make([]tgzWriteRuleDir, 0, len(subDirPaths))
 			files := make([]tgzWriteRuleFile, 0, len(dirs))
@@ -432,7 +446,7 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 
 				subFilePaths := slices.Concat(dirPaths, []string{tgzPathNameAny1})
 				subFileMode := int64(tgzModeFile)
-				if len(dirPaths) > 0 && dirPaths[0] == "bin" {
+				if len(dirPaths) > 0 && dirPaths[0] == externalPluginPkgDirNameBin {
 					subFileMode = tgzModeExe
 				}
 
@@ -450,6 +464,17 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 					{
 						sourceFile: origiExternalPluginFile,
 						fileRules:  files,
+					},
+					// get things from origin plugin bintool.
+					{
+						sourceFile: originPluginBinToolFile,
+						fileRules: []tgzWriteRuleFile{
+							{
+								sourceFilePath: []string{tgzPathNameAny1, convPlatToPluginBinToolDirName(plat), tgzPathNameAny2},
+								targetFilePath: []string{externalPluginPkgDirNameBin, tgzPathNameAny2},
+								targetFileMode: tgzModeExe,
+							},
+						},
 					},
 				},
 			); err != nil {
@@ -472,21 +497,30 @@ func (m *Manager) generateExternalPluginPkg(ctx context.Context,
 	return conv.MapValueToSlice(result), nil
 }
 
+const (
+	originalExternalPluginPlatLinuxAmd64   = "external_plugins_linux_x86_64"
+	originalExternalPluginPlatLinuxArm64   = "external_plugins_linux_aarch64"
+	originalExternalPluginPlatWindowsAmd64 = "external_plugins_windows_x86_64"
+	originalExternalPluginPlatDarwinAmd64  = "external_plugins_darwin_x86_64"
+
+	externalPluginPkgDirNameBin = "bin"
+)
+
 func convPlatToExternalPluginDirName(plat platform.Platform) string {
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return "external_plugins_linux_x86_64"
+		return originalExternalPluginPlatLinuxAmd64
 	}
 
 	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return "external_plugins_linux_aarch64"
+		return originalExternalPluginPlatLinuxArm64
 	}
 
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return "external_plugins_darwin_x86_64"
+		return originalExternalPluginPlatDarwinAmd64
 	}
 
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return "external_plugins_windows_x86_64"
+		return originalExternalPluginPlatWindowsAmd64
 	}
 
 	return ""
@@ -494,19 +528,19 @@ func convPlatToExternalPluginDirName(plat platform.Platform) string {
 
 func convExternalPluginDirNameToPlat(dirName string) platform.Platform {
 	switch dirName {
-	case "external_plugins_linux_x86_64":
+	case originalExternalPluginPlatLinuxAmd64:
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
 		}
-	case "external_plugins_linux_aarch64":
+	case originalExternalPluginPlatLinuxArm64:
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 		}
-	case "external_plugins_windows_x86_64":
+	case originalExternalPluginPlatWindowsAmd64:
 		{
 			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
 		}
-	case "external_plugins_darwin_x86_64":
+	case originalExternalPluginPlatDarwinAmd64:
 		{
 			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
 		}

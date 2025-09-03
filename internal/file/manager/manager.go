@@ -468,6 +468,31 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (fileiface.Fil
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
+func (m *Manager) fetchReleasePluginBinToolToLocal(ctx context.Context) (fileiface.File, error) {
+	// get plugin bintool.
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
+	}
+
+	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release plugin bintool to temp file: %w", err)
+	}
+
+	return m.tempFileGroup.GetFile(ctx, localFileName)
+}
+
 func (m *Manager) fetchReleaseAgentLocal(
 	ctx context.Context, plat platform.Platform, version string) (fileiface.File, error) {
 
