@@ -210,12 +210,19 @@ func (m *serverMessager) PushToClient(
 
 	resultChan := make(chan error, 1)
 
+	messageID := identifier.GenMessageID()
 	req := &protoRelay.ServerPushReq{
 		Base: protoRelay.Base{
 			MessageType: protoRelay.MessageTypeServerPushReq,
+			MessageID:   messageID,
 		},
 		EventType: eventType,
 		Payload:   payload,
+	}
+	reqData, err := json.Marshal(req)
+	if err != nil {
+		resultChan <- fmt.Errorf("marshal request failed: %w", err)
+		return resultChan
 	}
 
 	go func() {
@@ -226,11 +233,8 @@ func (m *serverMessager) PushToClient(
 				return nil
 			}
 
-			messageID := identifier.GenMessageID()
 			m.config.Logger.Infof("sending message to client. attempt(%d), message-id(%s)", attempt, messageID)
 
-			req.Base.MessageID = messageID
-			reqData, _ := json.Marshal(req)
 			result, err := m.client.Cluster().PluginDispatchMessage(
 				ctx, messageID, reqData, agentIDs...)
 			if err != nil {

@@ -18,11 +18,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -44,9 +42,9 @@ func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
 	fileStates := make([]fileState, 0)
 
 	for _, fileInfo := range event.FileList {
-		statePkg := protoRelay.RelayReportPkgInComplete
+		statePkg := relayconstant.RelayReportPkgInComplete
 		if exists := h.fileManager.FileExists(ctx, fileInfo.FileName, fileInfo.FileMD5); exists {
-			statePkg = protoRelay.RelayReportPkgComplete
+			statePkg = relayconstant.RelayReportPkgComplete
 		}
 
 		h.logger.Infof("check package status. file-name(%s), md5(%s), exists(%v)",
@@ -103,7 +101,7 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 		OperInstID: event.OperInstID,
 		ErrMsg:     errMsg,
 	}
-	if err := h.reportStorageResultReq(ctx, h.client, req); err != nil {
+	if err := h.reportStorageResult(ctx, h.client, req); err != nil {
 		h.logger.Errorf("failed to report relay file state: %v", err)
 	}
 
@@ -114,95 +112,7 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 		}
 	}
 
-	h.logger.Infof("storage package success")
-}
-
-type reportRelayFileState struct {
-	ActionName    string      `json:"action_name"`
-	OperInstID    string      `json:"oper_inst_id"`
-	StorageTmpDir string      `json:"storage_tmp_dir"`
-	FileState     []fileState `json:"file_state"`
-}
-
-type fileState struct {
-	FileName   string `json:"file_name"`
-	FileStatus string `json:"file_status"`
-}
-
-func (h *handler) reportRelayFileState(ctx context.Context,
-	client relayhandler.IClientMessager, req reportRelayFileState) error {
-
-	h.logger.Infof("report relay file state. action-name(%s), instance-id(%s)",
-		req.ActionName, req.OperInstID)
-
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
-	}
-
-	errCh := client.ClientPushReq(ctx, reportRelayFileStateURL, jsonData)
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			h.logger.Errorf("report relay file state failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
-
-			return fmt.Errorf("report relay file state failed. action-name(%s), instance-id(%s): %w",
-				req.ActionName, req.OperInstID, err)
-		}
-		h.logger.Infof("report relay file state success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return nil
-	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report relay file state timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return errors.New("report relay file state timed out")
-	}
-}
-
-type reportRelayStorageResult struct {
-	ActionName string `json:"action_name"`
-	OperInstID string `json:"oper_inst_id"`
-	ErrMsg     string `json:"err_msg"`
-}
-
-func (h *handler) reportStorageResultReq(ctx context.Context,
-	client relayhandler.IClientMessager, req reportRelayStorageResult) error {
-
-	h.logger.Infof("report storage result. action-name(%s), instance-id(%s)",
-		req.ActionName, req.OperInstID)
-
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
-	}
-
-	errCh := client.ClientPushReq(ctx, reportRelayStorageResultURL, jsonData)
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			h.logger.Errorf("report storage result failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
-
-			return fmt.Errorf("report storage result failed. action-name(%s), instance-id(%s): %w",
-				req.ActionName, req.OperInstID, err)
-		}
-		h.logger.Infof("report storage result success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return nil
-	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report storage result timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return errors.New("report storage result timed out")
-	}
+	h.logger.Infof("storage package event success")
 }
 
 func (h *handler) safeRemove(baseDir string, filename string) error {

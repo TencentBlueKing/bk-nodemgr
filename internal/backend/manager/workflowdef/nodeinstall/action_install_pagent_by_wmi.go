@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
@@ -30,18 +29,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNameInstallPagentBySSH defines the action name.
-	ActionNameInstallPagentBySSH = "install_pagent_by_ssh"
+	// ActionNameInstallPagentByWMI defines the action name.
+	ActionNameInstallPagentByWMI = "install_pagent_by_wmi"
 )
 
-// NewActionInstallPagentBySSH get a new action.
-func NewActionInstallPagentBySSH(
+// NewActionInstallPagentByWMI get a new action.
+func NewActionInstallPagentByWMI(
 	proxyMessager relayhandler.IServerMessager,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	storageHostCredit credit.IStorageHostCredit,
@@ -50,7 +50,7 @@ func NewActionInstallPagentBySSH(
 	logger logger.ILogger,
 ) action.Definition {
 
-	return &actionInstallPagentBySSH{
+	return &actionInstallPagentByWMI{
 		storageHostCredit:     storageHostCredit,
 		storageNodeDeployment: storageNodeDeployment,
 		storageActionInstance: storageActionInstance,
@@ -63,12 +63,12 @@ func NewActionInstallPagentBySSH(
 	}
 }
 
-// ActParamInstallPagentBySSH ...
-type ActParamInstallPagentBySSH struct {
+// ActParamInstallPagentBywmi ...
+type ActParamInstallPagentBywmi struct {
 	utils.NodeActionStandardParam `json:",inline"`
 }
 
-type actionInstallPagentBySSH struct {
+type actionInstallPagentByWMI struct {
 	logger logger.ILogger
 
 	storageHostCredit     credit.IStorageHostCredit
@@ -81,37 +81,37 @@ type actionInstallPagentBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *actionInstallPagentBySSH) Name() string {
-	return ActionNameInstallPagentBySSH
+func (act *actionInstallPagentByWMI) Name() string {
+	return ActionNameInstallPagentByWMI
 }
 
 // Version returns the version of the action.
-func (act *actionInstallPagentBySSH) Version() string {
+func (act *actionInstallPagentByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionInstallPagentBySSH) Description() string {
+func (act *actionInstallPagentByWMI) Description() string {
 	return "let relay to connect to the target machine, transfer files through sftp, and execute the installation command"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionInstallPagentBySSH) Timeout() time.Duration {
+func (act *actionInstallPagentByWMI) Timeout() time.Duration {
 	return 3 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (act *actionInstallPagentBySSH) Tags() []action.Tag {
+func (act *actionInstallPagentByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionInstallPagentBySSH) MaxRetryCount() uint {
+func (act *actionInstallPagentByWMI) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallPagentBySSH) DelayFn() func() {
+func (act *actionInstallPagentByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -121,8 +121,8 @@ func (act *actionInstallPagentBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamInstallPagentBySSH)
+func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamInstallPagentBywmi)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -146,7 +146,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 
 	// get ssh credit.
 	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
-	cMethod, cKey, err := credit.GetSSHCredit(std)
+	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
 	}
@@ -161,27 +161,50 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	installCmd := act.buildInstallParams(std, installerPath, deployConstant)
 
 	// notify relay to install pagent by ssh.
-	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
+	targetWorkDir := winpath.Join(deployConstant.BaseWorkDir, system.GetEnv())
+	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, targetWorkDir, installCmd); err != nil {
 		return err
 	}
 
-	// wait for relay report install.
+	// wait for relay report install result.
 	if err := act.waitForRelayReportInstall(std); err != nil {
 		return err
 	}
 
-	std.InstanceData().LogI("install pagent by ssh successfully")
+	std.InstanceData().LogI("install pagent by wmi successfully")
 
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) notifyRelayToInstall(
-	std *utils.NodeActionStandarder,
-	cMethod sshx.AuthMethod, cKey string,
-	toolsName string, args []string,
-) error {
+func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActionStandarder) (
+	string, string, deployconstant.NodeDeployConf, error) {
 
-	event := protoRelay.InstallPagentBySSHReq{
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
+		std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	if err != nil {
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+	}
+
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
+		std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
+	}
+
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+
+	std.InstanceData().LogI(fmt.Sprintf("setup installation tools,tool name(%s), installerPath(%s)", toolName, installerPath))
+
+	return toolName, installerPath, deployConstant, nil
+}
+
+func (act *actionInstallPagentByWMI) notifyRelayToInstall(
+	std *utils.NodeActionStandarder,
+	cMethod wmix.AuthMethod, cKey,
+	toolsName, targetWorkDir string,
+	args []string) error {
+
+	event := protoRelay.InstallPagentByWMIReq{
 		ActionName:       std.InstanceData().Name,
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
@@ -192,6 +215,8 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     args,
+		TargetWorkDir:    targetWorkDir,
+		InstallerBatName: installBatName,
 	}
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -199,7 +224,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 	}
 
 	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeInstallBySSH, data, std.DeployInfo().RelayInfo.AgentID)
+		protoRelay.ServerPushEventTypeInstallByWMI, data, std.DeployInfo().RelayInfo.AgentID)
 
 	select {
 	case err := <-errCh:
@@ -210,12 +235,12 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 		return std.Context().Err()
 	}
 
-	std.InstanceData().LogI("notify relay to install pagent successfully")
+	act.logger.Infof("notify relay to install pagent.")
 
 	return nil
 }
 
-func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
+func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 	std *utils.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
@@ -273,34 +298,12 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 	}
 }
 
-func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActionStandarder) (
-	string, string, deployconstant.NodeDeployConf, error) {
-
-	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
-		std.DeployInfo().Host.Dynamic.NodeCPUArch)
-	if err != nil {
-		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
-	}
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
-		std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
-	}
-
-	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
-
-	std.InstanceData().LogI(fmt.Sprintf("setup installation tools,tool name(%s), installerPath(%s)", toolName, installerPath))
-
-	return toolName, installerPath, deployConstant, nil
-}
-
 // TODO: add relay file and callback address.
-func (act *actionInstallPagentBySSH) buildInstallParams(
+func (act *actionInstallPagentByWMI) buildInstallParams(
 	std *utils.NodeActionStandarder,
 	installerPath string, deployConstant deployconstant.NodeDeployConf) []string {
 
-	installParams := &InstallParams{
+	installParams := &InstallParamsWin{
 		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
 		InstallerPath: installerPath,

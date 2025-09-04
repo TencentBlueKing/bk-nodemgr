@@ -27,10 +27,18 @@ const (
 
 // IHandler defines a relay client handler.
 type IHandler interface {
+	// ReportPrivateData reports the private data.
 	CheckPkgStats(ctx context.Context, payload []byte)
+	// StorePkg stores the package.
 	StoragePkg(ctx context.Context, payload []byte)
+	// DetectInfoBySSH detects the node info by ssh.
 	DetectInfoBySSH(ctx context.Context, payload []byte)
+	// InstallPagentBySSH installs the pagent by ssh.
 	InstallPagentBySSH(ctx context.Context, payload []byte)
+	// DetectInfoByWMI detects the node info by wmi.
+	DetectInfoByWMI(ctx context.Context, payload []byte)
+	// InstallPagentByWMI installs the pagent by wmi.
+	InstallPagentByWMI(ctx context.Context, payload []byte)
 }
 
 // handler is a relay client handler.

@@ -30,22 +30,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 const (
-	// ActionNamePagentDetectInfoBySSH defines the action name.
-	ActionNamePagentDetectInfoBySSH = "pagent_detect_info_by_ssh"
-
-	// queryClientTimeout defines the query client timeout.
-	queryClientTimeout = 3 * time.Second
+	// ActionNamePagentDetectInfoByWMI defines the action name.
+	ActionNamePagentDetectInfoByWMI = "pagent_detect_info_by_wmi"
 )
 
-// NewActionPagentDetectInfoBySSH get a new action.
-func NewActionPagentDetectInfoBySSH(
+// NewActionPagentDetectInfoByWMI get a new action.
+func NewActionPagentDetectInfoByWMI(
 	logger logger.ILogger,
 
 	storageActionInstance workflow.IStorageActionInstance,
@@ -57,7 +54,7 @@ func NewActionPagentDetectInfoBySSH(
 	proxyMessager relayhandler.IServerMessager,
 ) action.Definition {
 
-	return &actionPagentDetectInfoBySSH{
+	return &actionPagentDetectInfoByWMI{
 		logger: logger,
 
 		storageHostCredit:     storageHostCredit,
@@ -71,12 +68,12 @@ func NewActionPagentDetectInfoBySSH(
 	}
 }
 
-// ActParamPagentDetectInfoBySSH ...
-type ActParamPagentDetectInfoBySSH struct {
+// ActParamPagentDetectInfoByWMI ...
+type ActParamPagentDetectInfoByWMI struct {
 	utils.NodeActionStandardParam `json:",inline"`
 }
 
-type actionPagentDetectInfoBySSH struct {
+type actionPagentDetectInfoByWMI struct {
 	logger logger.ILogger
 
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
@@ -90,38 +87,38 @@ type actionPagentDetectInfoBySSH struct {
 }
 
 // Name returns the name of the action.
-func (act *actionPagentDetectInfoBySSH) Name() string {
-	return ActionNamePagentDetectInfoBySSH
+func (act *actionPagentDetectInfoByWMI) Name() string {
+	return ActionNamePagentDetectInfoByWMI
 }
 
 // Version returns the version of the action.
-func (act *actionPagentDetectInfoBySSH) Version() string {
+func (act *actionPagentDetectInfoByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionPagentDetectInfoBySSH) Description() string {
-	return "Let relay use ssh to connect to the target machine, detect the target machine's OS type and CPU architecture, " +
+func (act *actionPagentDetectInfoByWMI) Description() string {
+	return "Let relay use WMI to connect to the target machine, detect the target machine's OS type and CPU architecture, " +
 		"then use these info detect pkg version."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionPagentDetectInfoBySSH) Timeout() time.Duration {
+func (act *actionPagentDetectInfoByWMI) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionPagentDetectInfoBySSH) Tags() []action.Tag {
+func (act *actionPagentDetectInfoByWMI) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
+func (act *actionPagentDetectInfoByWMI) MaxRetryCount() uint {
 	return 5 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
+func (act *actionPagentDetectInfoByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -131,8 +128,8 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,fnsize,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActParamPagentDetectInfoBySSH)
+func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamPagentDetectInfoByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		err = fmt.Errorf("failed to convert param: %w", err)
@@ -151,11 +148,11 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		}
 	}()
 
-	// get ssh credit.
+	// get wmi credit.
 	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
-	cMethod, cKey, err := credit.GetSSHCredit(std)
+	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
-		return fmt.Errorf("failed to get ssh credit: %w", err)
+		return fmt.Errorf("failed to get wmi credit: %w", err)
 	}
 
 	// send detect info request to relay.
@@ -164,12 +161,11 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// wait for relay report detect result.
-	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(std)
+	osType, cpuArch, err := act.waitForRelayReportDetect(std)
 	if err != nil {
 		return err
 	}
 
-	// get deploy constant.
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
@@ -180,9 +176,8 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
-	// this is a fallback strategy, if system has no specified workdir, use connected dir.
 	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = connectedDir
+		std.DeployInfo().InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType
@@ -190,10 +185,8 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type: %v", err))
 		return err
 	}
-
 	if len(std.DeployInfo().TargetVersion) > 0 {
 		for _, v := range std.DeployInfo().TargetVersion {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
@@ -207,7 +200,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -236,10 +229,10 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
-	std *utils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
+func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
+	std *utils.NodeActionStandarder, cMethod wmix.AuthMethod, cKey string) error {
 
-	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
+	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
 		ActionName: std.InstanceData().Name,
 		OperInstID: std.InstanceData().OperationInstanceID,
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
@@ -255,23 +248,25 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 	}
 
 	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, std.DeployInfo().RelayInfo.AgentID)
+		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, std.DeployInfo().RelayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("detect info by ssh failed: %w", err)
+			return fmt.Errorf("detect info by wmi failed: %w", err)
 		}
 	case <-time.After(queryClientTimeout):
 		return errors.New("wait client timed out")
 	}
 
-	std.InstanceData().LogI("detect info by ssh send to relay successfully")
+	std.InstanceData().LogI("detect info by wmi send to relay successfully")
 
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
-	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
+// waitForRelayReportDetect wait for relay to report the detect result.
+// nolint: gocognit
+func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
+	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 
 	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
@@ -282,7 +277,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 	for {
 		select {
 		case <-timeoutCtx.Done():
-			return "", "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
+			return "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
 				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
@@ -299,41 +294,40 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 
 			relayDetectResult, ok := relayDetectResultRaw.(map[string]any)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for relay detect result")
+				return "", "", errors.New("unexpected type for relay detect result")
 			}
 
 			errMsgRaw := relayDetectResult[relayconstant.DetectResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for relay detect result error message")
+				return "", "", errors.New("unexpected type for relay detect result error message")
 			}
 
 			if errMsg != "" {
-				return "", "", "", errors.New(errMsg)
+				return "", "", errors.New(errMsg)
 			}
 
 			osTypeStr, osTypeOk := relayDetectResult[relayconstant.DetectResultOsTypeKey].(string)
 			cpuArchStr, cpuArchOk := relayDetectResult[relayconstant.DetectResultCPUArchKey].(string)
-			connectionDir, connerctionDirOk := relayDetectResult[relayconstant.DetectResultConnectionDirKey].(string)
 
-			if !osTypeOk || !cpuArchOk || !connerctionDirOk {
-				return "", "", "", errors.New("incomplete relay detect result")
+			if !osTypeOk || !cpuArchOk {
+				return "", "", errors.New("incomplete relay detect result")
 			}
 
 			osType, err := platform.NormalizeOS(osTypeStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
 			cpuArch, err := platform.NormalizeArch(cpuArchStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
-			std.InstanceData().LogI(fmt.Sprintf("wait for relay report detect result successfully. os-type(%s), cpu-arch(%s), connected-dir(%s)",
-				osType, cpuArch, connectionDir))
+			std.InstanceData().LogI(fmt.Sprintf("wait for relay report detect result successfully, os-type(%s), cpu-arch(%s)",
+				osType, cpuArch))
 
-			return osType, cpuArch, connectionDir, nil
+			return osType, cpuArch, nil
 		}
 	}
 }

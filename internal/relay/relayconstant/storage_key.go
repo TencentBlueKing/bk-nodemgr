@@ -32,13 +32,13 @@ const (
 
 	// StorageResultKey defines the storage result key.
 	StorageResultKey = "storage_result"
-	// StorageResultMsgKey defines the storage result key.
-	StorageResultMsgKey = "err_msg"
+	// StorageResultErrMsgKey defines the storage result key.
+	StorageResultErrMsgKey = "err_msg"
 
-	// InstallBySSHResultKey defines the install by ssh result key.
-	InstallBySSHResultKey = "install_by_ssh_result"
-	// InstallBySSHResultStdOutKey defines the install by ssh result key.
-	InstallBySSHResultStdOutKey = "std_out"
-	// InstallBySSHResultErrMsgKey defines the install by ssh result key.
-	InstallBySSHResultErrMsgKey = "err_msg"
+	// InstallResultKey defines the install result key.
+	InstallResultKey = "install_result"
+	// InstallResultOutStrKey defines the install result key.
+	InstallResultOutStrKey = "out_str"
+	// InstallResultErrMsgKey defines the install result key.
+	InstallResultErrMsgKey = "err_msg"
 )

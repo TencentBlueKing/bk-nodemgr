@@ -273,12 +273,19 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 		return resultChan
 	}
 
+	messageID := identifier.GenMessageID()
 	req := &protoRelay.CallbackReq{
 		Base: protoRelay.Base{
+			MessageID:   messageID,
 			MessageType: protoRelay.MessageTypeClientPushReq,
 		},
 		URL:  callbackURL,
 		Body: body,
+	}
+	reqData, err := json.Marshal(req)
+	if err != nil {
+		resultChan <- fmt.Errorf("marshal request failed: %w", err)
+		return resultChan
 	}
 
 	go func() {
@@ -289,12 +296,9 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 				return nil
 			}
 
-			messageID := identifier.GenMessageID()
 			m.config.Logger.Infof("sending client push request. callback-url(%s), attempt(%d), message-id(%s)",
 				callbackURL, attempt, messageID)
 
-			req.Base.MessageID = messageID
-			reqData, _ := json.Marshal(req)
 			if err := m.client.SendMessage(ctx, messageID, reqData); err != nil {
 				return fmt.Errorf("sending client push request failed: %w", err)
 			}

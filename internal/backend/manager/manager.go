@@ -320,6 +320,8 @@ func (mgr *Manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
 		nodeinstall.NewActionEnableReleaseTransfer(mgr.conf.StorageNodeDeployment, mgr.logger),
 		nodeinstall.NewActionUpgradePagent(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
+		nodeinstall.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		nodeinstall.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
 	)
 }
 
@@ -539,10 +541,7 @@ func (mgr *Manager) createInstallNodeOper(
 		return err
 	}
 
-	operationDef, err := mgr.getInstallOperationDef(deploy, operator)
-	if err != nil {
-		return err
-	}
+	operationDef := mgr.getInstallOperationDef(deploy, operator)
 
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
@@ -565,13 +564,13 @@ func (mgr *Manager) createInstallNodeOper(
 	return nil
 }
 
-func (mgr *Manager) getInstallOperationDef(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
+func (mgr *Manager) getInstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
 	// proxy.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
-		}), nil
+		})
 	}
 
 	// direct agent.
@@ -581,19 +580,19 @@ func (mgr *Manager) getInstallOperationDef(deploy *types.NodeDeployment, operato
 			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
-			}), nil
+			})
 
 		case criteria.OSWindows:
 			return nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
 				Token:    deploy.Token,
 				Operator: operator,
-			}), nil
+			})
 
 		default:
 			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
-			}), nil
+			})
 		}
 	}
 
@@ -603,16 +602,19 @@ func (mgr *Manager) getInstallOperationDef(deploy *types.NodeDeployment, operato
 		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
-		}), nil
+		})
 
 	case criteria.OSWindows:
-		return nil, errors.New("implete me")
+		return nodeinstall.NewOperInstallPagentNodeByWMI(nodeinstall.OperParamInstallPagentNodeByWMI{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 
 	default:
 		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
-		}), nil
+		})
 	}
 }
 

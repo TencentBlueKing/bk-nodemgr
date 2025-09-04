@@ -19,11 +19,9 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
 
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/pkg/errors"
 )
 
 const reportRelayInstallResultURL = "/relay/report_install_result"
@@ -43,6 +41,8 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 		if err := h.reportInstallResult(ctx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
 			h.logger.Errorf("failed to report install result: %v", err)
 		}
+		h.logger.Infof("done report install result by ssh. stdout(%s). ip(%s), port(%d), user(%s),",
+			outStr, event.IP, event.Port, event.User)
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
@@ -64,13 +64,13 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 
 	// ensure the workspace dir
 	result, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
-	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, result)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to mkdir -p %s, error: %v", event.InstallerWorkDir, err)
+		errMsg = fmt.Sprintf("failed to mkdir -p %s: %v", event.InstallerWorkDir, err)
 		h.logger.Errorf(errMsg)
 
 		return
 	}
+	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, result, "")
 	h.logger.Infof("run command mkdir success. mkdir -p %s", event.InstallerWorkDir)
 
 	// get the tool file
@@ -102,14 +102,14 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 
 	// ensure tool is executable
 	result, err = client.RunCommand("chmod +x " + installerPath)
-	outStr += buildLogOutput("chmod", installerPath, result)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to chmod +x %s, error: %v", installerPath, err)
+		errMsg = fmt.Sprintf("failed to chmod +x %s: %v", installerPath, err)
 		h.logger.Errorf(errMsg)
 
 		return
 	}
-	h.logger.Infof("install pagent by ssh success. chmod +x %s", installerPath)
+	outStr += buildLogOutput("chmod", installerPath, result, "")
+	h.logger.Infof("run command chmod success. chmod +x %s", installerPath)
 
 	// execute install command
 	installCmd := h.buildCMD(installerPath, event.InstallerCmd)
@@ -118,66 +118,16 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	result, err = client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
 		event.InstallerWorkDir, event.InstallerWorkDir, installCmd))
-	outStr += buildLogOutput("install", "install.sh", result)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to exec cmd: %v", err)
 		h.logger.Errorf(errMsg)
 
 		return
 	}
+	outStr += buildLogOutput("install", "install.sh", result, "")
 
 	h.logger.Infof("install pagent by ssh success. stdout(%s). ip(%s), port(%d), user(%s),",
 		outStr, event.IP, event.Port, event.User)
-}
-
-func (h *handler) reportInstallResult(ctx context.Context,
-	actionName, operInstID, outStr, errMsg string) error {
-
-	h.logger.Infof("report install info. action-name(%s), instance-id(%s)",
-		actionName, operInstID)
-
-	req := &reportInstallResult{
-		ActionName: actionName,
-		OperInstID: operInstID,
-		StdOut:     outStr,
-		ErrMsg:     errMsg,
-	}
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		h.logger.Errorf("failed to marshal install result request: %v", err)
-		return fmt.Errorf("failed to marshal install result request: %w", err)
-	}
-
-	errCh := h.client.ClientPushReq(ctx, reportRelayInstallResultURL, jsonData)
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			h.logger.Errorf("report install result failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
-
-			return fmt.Errorf("report install result failed. action-name(%s), instance-id(%s): %w",
-				req.ActionName, req.OperInstID, err)
-		}
-		h.logger.Infof("report install result success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return nil
-	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report install result timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
-
-		return errors.New("report install result imed out")
-	}
-}
-
-type reportInstallResult struct {
-	ActionName string `json:"action_name"`
-	OperInstID string `json:"oper_inst_id"`
-
-	StdOut string `json:"std_out"`
-
-	ErrMsg string `json:"err_msg"`
 }
 
 // add cmd backend svc and file svc.
@@ -192,11 +142,20 @@ func (h *handler) buildCMD(installerPath string, args []string) string {
 
 	return fmt.Sprintf("%s >%s 2>&1 &", cmd, installLogPath)
 }
-
 func getIPV4Address(ip string, port int) string {
 	return "http://" + net.JoinHostPort(ip, strconv.Itoa(port))
 }
 
-func buildLogOutput(action, target, result string) string {
-	return fmt.Sprintf("action: %s, target: %s, result: %s\n", action, target, result)
+func buildLogOutput(action, target, stdout, stderr string) string {
+	var builder strings.Builder
+
+	if stdout != "" {
+		builder.WriteString(fmt.Sprintf("%s %s, stdout:\n%s\n", action, target, stdout))
+	}
+
+	if stderr != "" {
+		builder.WriteString(fmt.Sprintf("%s %s, stderr:\n%s\n", action, target, stderr))
+	}
+
+	return builder.String()
 }
