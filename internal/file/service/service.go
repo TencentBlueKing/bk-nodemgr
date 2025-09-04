@@ -389,6 +389,10 @@ func initManager(conf *config.FileService,
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
+	upstreamOriginPluginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "origin/plugin_bintool")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
+	}
 	upstreamOriginOfficialPlugin, err := repo.EnsureFileGroup(context.Background(), "origin/official_plugin")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
@@ -411,7 +415,11 @@ func initManager(conf *config.FileService,
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
 	}
-	upstreamReleaseBintoolFG, err := repo.EnsureFileGroup(context.Background(), "release/bintool")
+	upstreamReleaseBinToolFG, err := repo.EnsureFileGroup(context.Background(), "release/bintool")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
+	}
+	upstreamReleasePluginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "release/plugin_bintool")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
@@ -444,10 +452,12 @@ func initManager(conf *config.FileService,
 		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
 		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
 		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
+		manager.WithUpstreamOriginPluginBinToolFileGroup(upstreamOriginPluginBinToolFG),
 		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
-		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
+		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBinToolFG),
+		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithCacheFileGroup(cacheFG),

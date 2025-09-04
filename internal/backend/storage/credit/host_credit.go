@@ -11,11 +11,11 @@
 package credit
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/google/uuid"
 )
 
 const hostCreditExpiredInterval = time.Hour * 24
@@ -24,40 +24,34 @@ func generateHostCreditExpiredAt() time.Time {
 	return time.Now().Add(hostCreditExpiredInterval)
 }
 
-func generateHostCreditID(networkAreaID int64, loginIP string, loginUser string, loginMode types.LoginMode) string {
-	return fmt.Sprintf("%d_%s_%s_%s", networkAreaID, loginIP, loginUser, loginMode)
+func generateHostCreditID() string {
+	return fmt.Sprintf("host_%d_%s", time.Now().Unix(), uuid.New().String())
 }
 
-// StoreHostCredit store host credit.
-func (s *Storage) StoreHostCredit(
-	ctx context.Context,
-	networkAreaID int64,
-	loginIP string,
-	loginUser string,
-	loginMode types.LoginMode,
+// CreateHostCredit create host credit.
+func (s *Storage) CreateHostCredit(
+	ctx contextx.ITenantContext,
 	creditData []byte,
-) error {
-
-	creditID := generateHostCreditID(networkAreaID, loginIP, loginUser, loginMode)
+) (string, error) {
+	creditID := generateHostCreditID()
 
 	encryptedCreditData, err := s.crypter.Encrypt(creditData)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return s.daoCredit.Upsert(ctx, creditID, encryptedCreditData, generateHostCreditExpiredAt())
+	if err := s.daoCredit.Upsert(ctx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
+		return "", err
+	}
+
+	return creditID, nil
 }
 
 // LoadHostCredit load host credit.
 func (s *Storage) LoadHostCredit(
-	ctx context.Context,
-	networkAreaID int64,
-	loginIP string,
-	loginUser string,
-	loginMode types.LoginMode,
+	ctx contextx.ITenantContext,
+	creditID string,
 ) ([]byte, error) {
-
-	creditID := generateHostCreditID(networkAreaID, loginIP, loginUser, loginMode)
 
 	encryptedCreditData, err := s.daoCredit.Get(ctx, creditID)
 	if err != nil {
@@ -70,4 +64,13 @@ func (s *Storage) LoadHostCredit(
 	}
 
 	return creditData, nil
+}
+
+// CheckHostCreditValid check host credit valid.
+func (s *Storage) CheckHostCreditValid(
+	ctx contextx.ITenantContext,
+	creditIDList ...string,
+) (map[string]bool, error) {
+
+	return s.daoCredit.CheckValid(ctx, creditIDList...)
 }

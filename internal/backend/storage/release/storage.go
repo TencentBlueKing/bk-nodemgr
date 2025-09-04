@@ -159,7 +159,7 @@ func (s *Storage) GetRelease(ctx context.Context,
 func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error) {
 
-	opts, err := convertReleaseconditionsToOptions(conditions...)
+	opts, err := convertReleaseConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -171,7 +171,7 @@ func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType
 func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest,
 	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
 
-	opts, err := convertReleaseconditionsToOptions(conditions...)
+	opts, err := convertReleaseConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.Release
 func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation,
 	conditions ...*types.ReleaseCondition) (int64, error) {
 
-	opts, err := convertReleaseconditionsToOptions(conditions...)
+	opts, err := convertReleaseConditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err
 	}
@@ -286,7 +286,7 @@ func (s *Storage) DeleteRelease(ctx context.Context,
 	return s.daoRelease.Delete(ctx, releaseType, gen, plat, version)
 }
 
-func convertReleaseconditionsToOptions(conditions ...*types.ReleaseCondition) ([]release.OptFn, error) {
+func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([]release.OptFn, error) {
 	opts := make([]release.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {

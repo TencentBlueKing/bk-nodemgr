@@ -199,6 +199,29 @@ type releaseProxyPkg struct {
 	tempFileName string
 }
 
+const (
+	proxyPkgDirNameBin             = "bin"
+	proxyPkgDirNameCert            = "cert"
+	proxyPkgFileNameFileServer     = "gse_file"
+	proxyPkgFileNameDataServer     = "gse_data"
+	proxyPkgFileNameCaCrt          = "gseca.crt"
+	proxyPkgFileNameAgentCrt       = "gse_agent.crt"
+	proxyPkgFileNameAgentKey       = "gse_agent.key"
+	proxyPkgFileNameServerCrt      = "gse_server.crt"
+	proxyPkgFileNameServerKey      = "gse_server.key"
+	proxyPkgFileNameAPIClientCrt   = "gse_api_client.crt"
+	proxyPkgFileNameAPIClientKey   = "gse_api_client.key"
+	proxyPkgFileNameCertEncryptKey = "cert_encrypt.key"
+)
+
+func proxyPkgFileNameAgent(plat platform.Platform) string {
+	if plat.OS == criteria.OSWindows {
+		return "gse_agent.exe"
+	}
+
+	return "gse_agent"
+}
+
 // generateProxyPkg generates proxy package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
@@ -267,8 +290,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
-					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
-					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{proxyPkgDirNameBin}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{proxyPkgDirNameCert}, targetFileMode: tgzModeDir},
 				},
 				[]*tgzWriteRuleStream{
 					// get things from origin server.
@@ -276,13 +299,15 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						sourceFile: originServerFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "server", "bin", "gse_file"},
-								targetFilePath: []string{"bin", "gse_file"},
+								sourceFilePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin,
+									originalServerFileNameFileServer},
+								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameFileServer},
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "server", "bin", "gse_data"},
-								targetFilePath: []string{"bin", "gse_data"},
+								sourceFilePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin,
+									originalServerFileNameDataServer},
+								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameDataServer},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -292,43 +317,43 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						sourceFile: originCertFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gseca.crt"},
-								targetFilePath: []string{"cert", "gseca.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameCaCrt},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameCaCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.crt"},
-								targetFilePath: []string{"cert", "gse_agent.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentCrt},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAgentCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.key"},
-								targetFilePath: []string{"cert", "gse_agent.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentKey},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAgentKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_server.crt"},
-								targetFilePath: []string{"cert", "gse_server.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameServerCrt},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameServerCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_server.key"},
-								targetFilePath: []string{"cert", "gse_server.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameServerKey},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameServerKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_api_client.crt"},
-								targetFilePath: []string{"cert", "gse_api_client.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAPIClientCrt},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAPIClientCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_api_client.key"},
-								targetFilePath: []string{"cert", "gse_api_client.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAPIClientKey},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAPIClientKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
-								targetFilePath: []string{"cert", "cert_encrypt.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameCertEncryptKey},
+								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameCertEncryptKey},
 								targetFileMode: tgzModeFile,
 							},
 						},
@@ -338,18 +363,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						sourceFile: originBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, func() string {
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-										return "proxy_linux_amd64"
-									}
-
-									if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-										return "proxy_linux_arm64"
-									}
-
-									return ""
-								}(), tgzPathNameAny2},
-								targetFilePath: []string{"bin", tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathNameAny1, convPlatToBinToolDirName(types.ReleaseTypeProxy, plat), tgzPathNameAny2},
+								targetFilePath: []string{proxyPkgDirNameBin, tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -359,8 +374,8 @@ func (m *Manager) generateProxyPkg(ctx context.Context,
 						sourceFile: releaseAgentFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{"bin", "gse_agent"},
-								targetFilePath: []string{"bin", "gse_agent"},
+								sourceFilePath: []string{agentPkgDirNameBin, agentPkgFileNameAgent(plat)},
+								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameAgent(plat)},
 								targetFileMode: tgzModeExe,
 							},
 						},

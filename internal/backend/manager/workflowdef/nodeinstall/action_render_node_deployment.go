@@ -375,7 +375,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 	}
 
 	osType := host.Dynamic.NodeOsType
-	deploymentConf, err := deployconstant.GetDeployConf(host.Dynamic.NodeGeneration, osType)
+	deploymentConf, err := deployconstant.GetNodeDeployConf(host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("get deploy conf failed, err: %w", err)
 	}

@@ -21,6 +21,7 @@ import (
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -150,7 +151,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		}
 	}()
 
-	password, err := act.queryPassword(ctx.Ctx, param.Operator, act.storageHostCredit, act.passwordVault, info)
+	password, err := act.queryPassword(contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator), param.Operator, act.storageHostCredit, act.passwordVault, info)
 	if err != nil {
 		return err
 	}
@@ -168,7 +169,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}
 	ctx.Data.LogI(fmt.Sprintf("detected os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir))
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, osType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
@@ -240,10 +241,10 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
 		ActionName: ctx.Data.Name,
 		OperInstID: ctx.Data.OperationInstanceID,
-		IP:         info.LoginInfo.IP,
-		Port:       info.LoginInfo.Port,
-		User:       info.LoginInfo.User,
-		LoginMode:  string(info.LoginInfo.Mode),
+		IP:         info.Host.Dynamic.LoginIP,
+		Port:       info.Host.Dynamic.LoginPort,
+		User:       info.Host.Dynamic.LoginUser,
+		LoginMode:  string(info.Host.Dynamic.LoginMode),
 		Password:   password,
 	}
 
@@ -270,20 +271,17 @@ func (act *actionPagentDetectInfoBySSH) detectInfo(ctx *action.InstanceContext,
 }
 
 func (act *actionPagentDetectInfoBySSH) queryPassword(
-	ctx context.Context,
+	ctx contextx.ITenantUserContext,
 	operator string,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
 	info *types.DeploymentInfo) (string, error) {
 
-	switch info.LoginInfo.Mode {
+	switch info.Host.Dynamic.LoginMode {
 	case types.LoginModePassword:
 		passwd, err := storageHostCredit.LoadHostCredit(
 			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModePassword)
+			info.Host.Dynamic.LoginCreditID)
 		if err != nil {
 			return "", fmt.Errorf("failed to load password from storageHostCredit storage: %w", err)
 		}
@@ -293,10 +291,7 @@ func (act *actionPagentDetectInfoBySSH) queryPassword(
 	case types.LoginModeKeyFile:
 		privateKey, err := storageHostCredit.LoadHostCredit(
 			ctx,
-			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User,
-			types.LoginModeKeyFile)
+			info.Host.Dynamic.LoginCreditID)
 		if err != nil {
 			return "", fmt.Errorf("failed to load private key from storageHostCredit storage: %w", err)
 		}
@@ -307,15 +302,15 @@ func (act *actionPagentDetectInfoBySSH) queryPassword(
 			ctx,
 			operator,
 			info.Host.Static.NetworkAreaID,
-			info.LoginInfo.IP,
-			info.LoginInfo.User)
+			info.Host.Dynamic.LoginIP,
+			info.Host.Dynamic.LoginUser)
 		if err != nil {
 			return "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
 
 		return string(passwd), nil
 	default:
-		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.LoginInfo.Mode)
+		return "", fmt.Errorf("unsupported login mode, mode(%s)", info.Host.Dynamic.LoginMode)
 	}
 }
 

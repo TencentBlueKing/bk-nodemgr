@@ -53,8 +53,12 @@ type Info struct {
 	ProxyClusterPort       int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort          int64           `json:"proxy_data_port" bson:"proxy_data_port"`
 	ProxyFilePort          int64           `json:"proxy_file_port" bson:"proxy_file_port"`
+	LoginIP                string          `json:"login_ip" bson:"login_ip"`
+	LoginPort              int64           `json:"login_port" bson:"login_port"`
+	LoginUser              string          `json:"login_user" bson:"login_user"`
+	LoginMode              string          `json:"login_mode" bson:"login_mode"`
+	LoginCreditID          string          `json:"login_credit_id" bson:"login_credit_id"`
 	InstallerWorkDir       string          `json:"installer_workdir" bson:"installer_workdir"`
-	LoginInfo              LoginInfo       `json:"login_info" bson:"login_info"`
 	InstallOptions         InstallOptions  `json:"install_options" bson:"install_options"`
 	UpgradeOptions         UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
 	RestartOptions         RestartOptions  `json:"restart_options" bson:"restart_options"`
@@ -69,14 +73,6 @@ type TargetVersion struct {
 	OsType  string `json:"os_type" bson:"os_type"`
 	CPUArch string `json:"cpu_arch" bson:"cpu_arch"`
 	Version string `json:"version" bson:"version"`
-}
-
-// LoginInfo this is the login info for node deployment.
-type LoginInfo struct {
-	IP   string `json:"ip" bson:"ip"`
-	Port int64  `json:"port" bson:"port"`
-	User string `json:"user" bson:"user"`
-	Mode string `json:"mode" bson:"mode"`
 }
 
 // InstallOptions this is the options for nodemgr tools.

@@ -118,6 +118,108 @@
         ]
       }
     },
+    "/publish/release/external_plugin": {
+      "post": {
+        "summary": "PublishReleaseExternalPlugin provides release external plugin publish.",
+        "operationId": "Publish_PublishReleaseExternalPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/official_plugin": {
+      "post": {
+        "summary": "PublishReleaseOfficialPlugin provides release official plugin publish.",
+        "operationId": "Publish_PublishReleaseOfficialPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseOfficialPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseOfficialPluginReq is the request for upload release official\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseOfficialPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/plugin_bintool": {
+      "post": {
+        "summary": "PublishReleasePluginBinTool provides release plugin bintool publish.",
+        "operationId": "Publish_PublishReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
     "/publish/release/server": {
       "post": {
         "summary": "PublishReleaseServer provides release server publish.",
@@ -273,6 +375,99 @@
       "description": "PublishReleaseCertResp is the response for upload release cert pkg."
     },
     "v3PublishReleaseCertRespData": {
+      "type": "object"
+    },
+    "v3PublishReleaseExternalPluginReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg."
+    },
+    "v3PublishReleaseExternalPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseExternalPluginRespData"
+        }
+      },
+      "description": "PublishReleaseExternalPluginResp is the response for upload release external\nplugin pkg."
+    },
+    "v3PublishReleaseExternalPluginRespData": {
+      "type": "object"
+    },
+    "v3PublishReleaseOfficialPluginReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleaseOfficialPluginReq is the request for upload release official\nplugin pkg."
+    },
+    "v3PublishReleaseOfficialPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleaseOfficialPluginRespData"
+        }
+      },
+      "description": "PublishReleaseOfficialPluginResp is the response for upload release official\nplugin pkg."
+    },
+    "v3PublishReleaseOfficialPluginRespData": {
+      "type": "object"
+    },
+    "v3PublishReleasePluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg."
+    },
+    "v3PublishReleasePluginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleasePluginBinToolRespData"
+        }
+      },
+      "description": "PublishReleasePluginBinToolResp is the response for upload release plugin\nbintool pkg."
+    },
+    "v3PublishReleasePluginBinToolRespData": {
       "type": "object"
     },
     "v3PublishReleaseProxyReq": {

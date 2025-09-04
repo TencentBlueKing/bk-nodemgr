@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -27,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -58,8 +60,7 @@ func NewActionInstallNodeBySSH(
 
 // ActParamInstallAgentBySSH ...
 type ActParamInstallAgentBySSH struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 // InstallParams this struct defines the parameters for installing agent.
@@ -133,78 +134,127 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallAgentBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	client, err := generateSSHClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+
+	// get ssh credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get ssh credit: %w", err)
+	}
+
+	// generate the ssh client.
+	client, err := sshx.NewClient(std.Context(), &sshx.Config{
+		Network:    sshx.NetworkTCP,
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
+		Logger:     act.logger,
+		AuthMethod: cMethod,
+		Password: func() string {
+			if cMethod == sshx.AuthMethodPassword {
+				return cKey
+			}
+
+			return ""
+		}(),
+		PrivateKey: func() []byte {
+			if cMethod == sshx.AuthMethodPrivateKey {
+				return []byte(cKey)
+			}
+
+			return nil
+		}(),
+	}, sshx.DefaultTimeout)
+	if err != nil {
+		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
 
 	// ensure the workspace dir.
-	if result, err := client.RunCommand("mkdir -p " + info.InstallerWorkDir); err != nil {
-		err = fmt.Errorf("failed to mkdir -p %s , result(%s), err: %w", info.InstallerWorkDir, result, err)
+	if err = act.ensureWorkspace(std, client); err != nil {
+		return fmt.Errorf("failed to ensure workspace through ssh: %w", err)
+	}
+
+	// ensure the installer tool.
+	installerPath, err := act.ensureInstallerTool(std, client)
+	if err != nil {
+		return fmt.Errorf("failed to ensure installer tool through ssh: %w", err)
+	}
+
+	// execute install cmd.
+	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
+		return fmt.Errorf("failed to execute install cmd: %w", err)
+	}
+
+	return nil
+}
+
+func (act *actionInstallNodeBySSH) ensureWorkspace(std *utils.NodeActionStandarder, client *sshx.Client) error {
+	if result, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerWorkDir); err != nil {
+		err = fmt.Errorf("failed to run command. command(mkdir -p %s), result(%s): %w", std.DeployInfo().InstallerWorkDir, result, err)
 
 		return err
 	}
 
+	return nil
+}
+
+func (act *actionInstallNodeBySSH) ensureInstallerTool(std *utils.NodeActionStandarder, client *sshx.Client) (string, error) {
 	// select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
-
-		return err
+		return "", fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	toolFile, err := act.installerGroup.GetFile(ctx.Ctx, toolName)
+	toolFile, err := act.installerGroup.GetFile(std.Context(), toolName)
 	if err != nil {
-		err = fmt.Errorf("failed to get file, err: %w", err)
-
-		return err
+		return "", fmt.Errorf("failed to get installer tool file from local: %w", err)
 	}
 
-	reader, err := toolFile.Content(ctx.Ctx)
+	reader, err := toolFile.Content(std.Context())
 	if err != nil {
-		err = fmt.Errorf("failed to get file content, err: %w", err)
-
-		return err
+		return "", fmt.Errorf("failed to get installer tool file content: %w", err)
 	}
 
-	installerPath := path.Clean(path.Join(info.InstallerWorkDir, toolName))
-	if err := client.TransferFile(reader, installerPath); err != nil {
-		return fmt.Errorf("failed to transfer file, err: %w", err)
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
+	if err = client.TransferFile(reader, installerPath); err != nil {
+		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
+	std.InstanceData().LogI(fmt.Sprintf("transfered file to host, path(%s)", installerPath))
 
 	// make sure tool is executable
 	if result, err := client.RunCommand("chmod +x " + installerPath); err != nil {
-		err = fmt.Errorf("failed to chmod +x, result(%s), err: %w", result, err)
-
-		return err
+		return "", fmt.Errorf("failed to run command. command(chmod +x %s), result(%s): %w", installerPath, result, err)
 	}
 
+	return installerPath, nil
+}
+
+func (act *actionInstallNodeBySSH) executeInstallCMD(std *utils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 	randSelector := discover.NewRandomSelector()
 	fileSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileBasic,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get file endpoint, err: %w", err)
+		return fmt.Errorf("failed to get file endpoint: %w", err)
 	}
 
 	callbackSvrEndpoint, err := act.provider.GetEndpoint(
@@ -212,41 +262,40 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		discover.EndpointNameBackendCallback,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	installParams := &InstallParams{
-		NodeVersion:     info.Host.Dynamic.NodeVersion,
-		Generation:      info.Host.Dynamic.NodeGeneration,
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
 		InstallerPath:   installerPath,
-		NodeRole:        info.Host.Dynamic.NodeRole,
+		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 		FileSvrAddr:     "http://" + fileSvrEndpoint.GetIPV4Address(),
-		DeployToken:     param.Token,
-		OperInstID:      ctx.Data.OperationInstanceID,
+		DeployToken:     std.Token(),
+		OperInstID:      std.InstanceData().OperationInstanceID,
 		BaseWorkDir:     deployConstant.BaseWorkDir,
 		BaseDeployDir:   deployConstant.BaseDeployDir,
 	}
 
-	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
+	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
+			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	// exec install command
 	installCmd := act.buildCMD(installParams)
+	std.InstanceData().LogI(fmt.Sprintf("install node cmd: %s", installCmd))
 
-	ctx.Data.LogI(fmt.Sprintf("install node cmd: %s", installCmd))
-
+	// exec install command.
 	outStr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		info.InstallerWorkDir,
-		info.InstallerWorkDir,
+		std.DeployInfo().InstallerWorkDir,
+		std.DeployInfo().InstallerWorkDir,
 		installCmd),
 	)
 	if err != nil {
@@ -254,7 +303,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("install node result: %s", outStr))
+
+	std.InstanceData().LogI(fmt.Sprintf("install node result: %s", outStr))
 
 	return nil
 }

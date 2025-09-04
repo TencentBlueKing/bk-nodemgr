@@ -144,7 +144,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	detail := types.NewOriginPkgDetail()
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, "VERSION"},
+			filePath: []string{tgzPathNameAny1, originalAgentFileNameVersion},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -157,7 +157,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "DESCRIPTION"},
+			filePath: []string{tgzPathNameAny1, originalAgentFileNameDescription},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -170,7 +170,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "DESCRIPTION_EN"},
+			filePath: []string{tgzPathNameAny1, originalAgentFileNameDescriptionEN},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -183,7 +183,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "support-files", "templates", "#etc#gse#gse_agent.conf"},
+			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgent},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -196,7 +196,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "support-files", "env", "gse_agent.env"},
+			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameEnv, originalAgentFileNameAgentEnv},
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {
@@ -209,37 +209,14 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, "agent_linux_x86_64", "bin", "gse_agent"},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}
-				plats[plat.String()] = plat
+			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalAgentDirNameBin, tgzPathNameAny3},
+			callback: func(path []string, _ io.Reader) error {
+				plat := convAgentDirNameToPlat(path[1])
 
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_linux_aarch64", "bin", "gse_agent"},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}
-				plats[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_windows_x86_64", "bin", "gse_agent.exe"},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSWindows, Arch: criteria.CPUArchAmd64}
-				plats[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_darwin_x86_64", "bin", "gse_agent"},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSDarwin, Arch: criteria.CPUArchAmd64}
-				plats[plat.String()] = plat
+				//  only has agent file to be considered a valid agent package.
+				if path[3] == originalAgentFileNameAgent(plat) {
+					plats[plat.String()] = plat
+				}
 
 				return nil
 			},
@@ -464,8 +441,8 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
-					{targetFilePath: []string{"bin"}, targetFileMode: tgzModeDir},
-					{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{agentPkgDirNameBin}, targetFileMode: tgzModeDir},
+					{targetFilePath: []string{agentPkgDirNameCert}, targetFileMode: tgzModeDir},
 				},
 				[]*tgzWriteRuleStream{
 					// get things from origin agent.
@@ -473,26 +450,8 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 						sourceFile: originAgentFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, func() string {
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-										return "agent_linux_x86_64"
-									}
-
-									if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-										return "agent_linux_aarch64"
-									}
-
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-										return "agent_darwin_x86_64"
-									}
-
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-										return "agent_windows_x86_64"
-									}
-
-									return ""
-								}(), "bin", tgzPathNameAny2},
-								targetFilePath: []string{"bin", tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathNameAny1, convPlatToAgentDirName(plat), originalAgentDirNameBin, tgzPathNameAny2},
+								targetFilePath: []string{agentPkgDirNameBin, tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -502,23 +461,23 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 						sourceFile: originCertFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gseca.crt"},
-								targetFilePath: []string{"cert", "gseca.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameCaCrt},
+								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameCaCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.crt"},
-								targetFilePath: []string{"cert", "gse_agent.crt"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentCrt},
+								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameAgentCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "gse_agent.key"},
-								targetFilePath: []string{"cert", "gse_agent.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentKey},
+								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameAgentKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, "cert_encrypt.key"},
-								targetFilePath: []string{"cert", "cert_encrypt.key"},
+								sourceFilePath: []string{tgzPathNameAny1, certFileNameCertEncryptKey},
+								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameCertEncryptKey},
 								targetFileMode: tgzModeFile,
 							},
 						},
@@ -528,26 +487,8 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 						sourceFile: originBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, func() string {
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-										return "agent_linux_amd64"
-									}
-
-									if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-										return "agent_linux_arm64"
-									}
-
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-										return "agent_darwin_amd64"
-									}
-
-									if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-										return "agent_windows_amd64"
-									}
-
-									return ""
-								}(), tgzPathNameAny2},
-								targetFilePath: []string{"bin", tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathNameAny1, convPlatToBinToolDirName(types.ReleaseTypeAgent, plat), tgzPathNameAny2},
+								targetFilePath: []string{agentPkgDirNameBin, tgzPathNameAny2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -571,4 +512,92 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 	}
 
 	return conv.MapValueToSlice(result), nil
+}
+
+const (
+	originalAgentDirNameEnv              = "env"
+	originalAgentDirNameSupportFile      = "support-files"
+	originalAgentDirNameBin              = "bin"
+	originalAgentDirNameTemplates        = "templates"
+	originalAgentDirNamePlatLinuxAmd64   = "agent_linux_x86_64"
+	originalAgentDirNamePlatLinuxArm64   = "agent_linux_aarch64"
+	originalAgentDirNamePlatDarwinAmd64  = "agent_darwin_x86_64"
+	originalAgentDirNamePlatWindowsAmd64 = "agent_windows_x86_64"
+
+	originalAgentFileNameVersion           = "VERSION"
+	originalAgentFileNameDescription       = "DESCRIPTION"
+	originalAgentFileNameDescriptionEN     = "DESCRIPTION_EN"
+	originalAgentFileNameConfTemplateAgent = "#etc#gse#gse_agent.conf"
+	originalAgentFileNameAgentEnv          = "gse_agent.env"
+
+	agentPkgDirNameCert = "cert"
+	agentPkgDirNameBin  = "bin"
+
+	agentPkgFileNameCaCrt          = "gseca.crt"
+	agentPkgFileNameAgentCrt       = "gse_agent.crt"
+	agentPkgFileNameAgentKey       = "gse_agent.key"
+	agentPkgFileNameCertEncryptKey = "cert_encrypt.key"
+)
+
+// nolint: goconst
+func originalAgentFileNameAgent(plat platform.Platform) string {
+	if plat.OS == criteria.OSWindows {
+		return "gse_agent.exe"
+	}
+
+	return "gse_agent"
+}
+
+// nolint: goconst
+func agentPkgFileNameAgent(plat platform.Platform) string {
+	if plat.OS == criteria.OSWindows {
+		return "gse_agent.exe"
+	}
+
+	return "gse_agent"
+}
+
+func convPlatToAgentDirName(plat platform.Platform) string {
+	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
+		return originalAgentDirNamePlatLinuxAmd64
+	}
+
+	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
+		return originalAgentDirNamePlatLinuxArm64
+	}
+
+	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
+		return originalAgentDirNamePlatDarwinAmd64
+	}
+
+	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
+		return originalAgentDirNamePlatWindowsAmd64
+	}
+
+	return ""
+}
+
+func convAgentDirNameToPlat(dirName string) platform.Platform {
+	switch dirName {
+	case originalAgentDirNamePlatLinuxAmd64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+		}
+	case originalAgentDirNamePlatLinuxArm64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+		}
+	case originalAgentDirNamePlatWindowsAmd64:
+		{
+			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
+		}
+	case originalAgentDirNamePlatDarwinAmd64:
+		{
+			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
+		}
+	default:
+		{
+			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		}
+	}
 }

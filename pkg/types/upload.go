@@ -17,22 +17,25 @@ type UploadCategory string
 
 const (
 	// UploadCategoryOriginAgent represents the origin agent.
-	UploadCategoryOriginAgent = "origin_agent"
+	UploadCategoryOriginAgent UploadCategory = "origin_agent"
 
 	// UploadCategoryOriginServer represents the origin server.
-	UploadCategoryOriginServer = "origin_server"
+	UploadCategoryOriginServer UploadCategory = "origin_server"
 
 	// UploadCategoryOriginCert represents the origin cert.
-	UploadCategoryOriginCert = "origin_cert"
+	UploadCategoryOriginCert UploadCategory = "origin_cert"
 
 	// UploadCategoryOriginBinTool represents the origin bin tool.
-	UploadCategoryOriginBinTool = "origin_bin_tool"
+	UploadCategoryOriginBinTool UploadCategory = "origin_bin_tool"
+
+	// UploadCategoryOriginPluginBinTool represents the origin bin tool.
+	UploadCategoryOriginPluginBinTool UploadCategory = "origin_plugin_bin_tool"
 
 	// UploadCategoryOriginOfficialPlugin represents the origin official plugin.
-	UploadCategoryOriginOfficialPlugin = "origin_official_plugin"
+	UploadCategoryOriginOfficialPlugin UploadCategory = "origin_official_plugin"
 
 	// UploadCategoryOriginExternalPlugin represents the origin external plugin.
-	UploadCategoryOriginExternalPlugin = "origin_external_plugin"
+	UploadCategoryOriginExternalPlugin UploadCategory = "origin_external_plugin"
 )
 
 // Upload defines the upload struct.

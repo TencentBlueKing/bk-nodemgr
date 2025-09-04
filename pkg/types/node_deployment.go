@@ -72,14 +72,6 @@ func (mode LoginMode) Validate() error {
 	}
 }
 
-// LoginInfo this is the login info for node deployment.
-type LoginInfo struct {
-	IP   string
-	Port int64
-	User string
-	Mode LoginMode
-}
-
 // DeploymentInstallOptions this is the options for nodemgr tools.
 type DeploymentInstallOptions struct {
 	ReRegister bool
@@ -119,9 +111,6 @@ type DeploymentInfo struct {
 	BlockingActionName string
 	Host               Host
 	RelayInfo          RelayInfo
-
-	// LoginInfo is used to connect to host by ssh or wmi.
-	LoginInfo LoginInfo
 
 	// InstallerWorkDir is used to store the installation files.
 	InstallerWorkDir string
@@ -220,7 +209,7 @@ func (info DeploymentInfo) Validate() error {
 		}
 	}
 
-	if err := info.LoginInfo.Mode.Validate(); err != nil {
+	if err := info.Host.Dynamic.LoginMode.Validate(); err != nil {
 		return fmt.Errorf("login_mode validate failed, err: %w", err)
 	}
 

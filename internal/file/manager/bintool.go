@@ -34,7 +34,7 @@ type IBinTool interface {
 }
 
 const (
-	originBinToolFileName  = "bintool.tgz"
+	originBinToolFileName  = "bintool-all.tgz"
 	releaseBinToolFileName = "bintool.tgz"
 )
 
@@ -135,55 +135,10 @@ func checkGen2OriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetai
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, "agent_linux_amd64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}
+			filePath: []string{binToolDirNameRoot, tgzPathNameAny1, tgzPathNameAny2},
+			callback: func(path []string, _ io.Reader) error {
+				plat := convBinToolDirNameToPlat(path[1])
 				agentPlatforms[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_linux_arm64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}
-				agentPlatforms[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_windows_amd64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSWindows, Arch: criteria.CPUArchAmd64}
-				agentPlatforms[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "agent_darwin_amd64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSDarwin, Arch: criteria.CPUArchAmd64}
-				agentPlatforms[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "proxy_linux_amd64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}
-				proxyPlatforms[plat.String()] = plat
-
-				return nil
-			},
-		},
-		{
-			filePath: []string{tgzPathNameAny1, "proxy_linux_arm64", tgzPathNameAny2},
-			callback: func(_ []string, _ io.Reader) error {
-				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}
-				proxyPlatforms[plat.String()] = plat
 
 				return nil
 			},
@@ -294,6 +249,16 @@ func (m *Manager) PublishReleaseBinTool(ctx contextx.IUserContext, uploadID stri
 	return nil
 }
 
+const (
+	binToolDirNameRoot                  = "bintool"
+	binToolDirNameAgentPlatLinuxAmd64   = "agent_linux_amd64"
+	binToolDirNameAgentPlatLinuxArm64   = "agent_linux_arm64"
+	binToolDirNameAgentPlatDarwinAmd64  = "agent_darwin_amd64"
+	binToolDirNameAgentPlatWindowsAmd64 = "agent_windows_amd64"
+	binToolDirNameProxyPlatLinuxAmd64   = "proxy_linux_amd64"
+	binToolDirNameProxyPlatLinuxArm64   = "proxy_linux_arm64"
+)
+
 func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadCloser) (io.ReadCloser, error) {
 	tempFileName, err := m.createTempFile(ctx)
 	if err != nil {
@@ -307,45 +272,45 @@ func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadClos
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{
-			{targetFilePath: []string{"bintool"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "agent_linux_amd64"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "agent_linux_arm64"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "agent_darwin_amd64"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "agent_windows_amd64"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "proxy_linux_amd64"}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{"bintool", "proxy_linux_arm64"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxArm64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatDarwinAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatWindowsAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxArm64}, targetFileMode: tgzModeDir},
 		},
 		[]*tgzWriteRuleStream{{
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "agent_linux_amd64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "agent_linux_amd64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatLinuxAmd64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxAmd64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "agent_linux_arm64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "agent_linux_arm64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatLinuxArm64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxArm64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "agent_darwin_amd64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "agent_darwin_amd64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatDarwinAmd64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatDarwinAmd64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "agent_windows_amd64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "agent_windows_amd64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatWindowsAmd64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatWindowsAmd64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "proxy_linux_amd64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "proxy_linux_amd64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameProxyPlatLinuxAmd64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxAmd64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, "proxy_linux_arm64", tgzPathNameAny2},
-					targetFilePath: []string{"bintool", "proxy_linux_arm64", tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameProxyPlatLinuxArm64, tgzPathNameAny2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxArm64, tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 			},
@@ -360,4 +325,69 @@ func (m *Manager) generateBinToolPkg(ctx context.Context, sourceFile io.ReadClos
 	}
 
 	return file.Content(ctx)
+}
+
+func convPlatToBinToolDirName(releaseType types.ReleaseType, plat platform.Platform) string {
+	if releaseType == types.ReleaseTypeAgent {
+		if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
+			return binToolDirNameAgentPlatLinuxAmd64
+		}
+
+		if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
+			return binToolDirNameAgentPlatLinuxArm64
+		}
+
+		if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
+			return binToolDirNameAgentPlatDarwinAmd64
+		}
+
+		if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
+			return binToolDirNameAgentPlatWindowsAmd64
+		}
+	}
+
+	if releaseType == types.ReleaseTypeProxy {
+		if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
+			return binToolDirNameProxyPlatLinuxAmd64
+		}
+
+		if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
+			return binToolDirNameProxyPlatLinuxArm64
+		}
+	}
+
+	return ""
+}
+
+func convBinToolDirNameToPlat(dirName string) platform.Platform {
+	switch dirName {
+	case binToolDirNameAgentPlatLinuxAmd64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+		}
+	case binToolDirNameAgentPlatLinuxArm64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+		}
+	case binToolDirNameAgentPlatWindowsAmd64:
+		{
+			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
+		}
+	case binToolDirNameAgentPlatDarwinAmd64:
+		{
+			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
+		}
+	case binToolDirNameProxyPlatLinuxAmd64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+		}
+	case binToolDirNameProxyPlatLinuxArm64:
+		{
+			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+		}
+	default:
+		{
+			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		}
+	}
 }

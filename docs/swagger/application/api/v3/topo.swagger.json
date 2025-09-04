@@ -913,6 +913,12 @@
         "login_user": {
           "type": "string"
         },
+        "login_mode": {
+          "type": "string"
+        },
+        "login_credit_valid": {
+          "type": "boolean"
+        },
         "export_ip": {
           "type": "string"
         },

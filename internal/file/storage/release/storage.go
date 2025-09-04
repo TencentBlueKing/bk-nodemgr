@@ -29,6 +29,7 @@ type IStorage interface {
 	IProxy
 	IBinTool
 	ICert
+	IPluginBinTool
 	IOfficialPlugin
 	IExternalPlugin
 }

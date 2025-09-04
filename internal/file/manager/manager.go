@@ -46,6 +46,7 @@ type IManager interface {
 	IServer
 	ICert
 	IBinTool
+	IPluginBinTool
 	IOfficialPlugin
 	IExternalPlugin
 
@@ -150,6 +151,13 @@ func WithUpstreamOriginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn 
 	}
 }
 
+// WithUpstreamOriginPluginBinToolFileGroup sets the upstream file group.
+func WithUpstreamOriginPluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginPluginBinTool = fileGroup
+	}
+}
+
 // WithUpstreamReleaseAgentFileGroup sets the upstream file group.
 func WithUpstreamReleaseAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -189,6 +197,13 @@ func WithUpstreamReleaseCertFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 func WithUpstreamReleaseBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamReleaseBinTool = fileGroup
+	}
+}
+
+// WithUpstreamReleasePluginBinToolFileGroup sets the upstream file group.
+func WithUpstreamReleasePluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamReleasePluginBinTool = fileGroup
 	}
 }
 
@@ -272,12 +287,14 @@ type Manager struct {
 	upstreamOriginServer          fileiface.FileGroup
 	upstreamOriginCert            fileiface.FileGroup
 	upstreamOriginBinTool         fileiface.FileGroup
+	upstreamOriginPluginBinTool   fileiface.FileGroup
 	upstreamOriginOfficialPlugin  fileiface.FileGroup
 	upstreamOriginExternalPlugin  fileiface.FileGroup
 	upstreamReleaseAgent          fileiface.FileGroup
 	upstreamReleaseProxy          fileiface.FileGroup
 	upstreamReleaseCert           fileiface.FileGroup
 	upstreamReleaseBinTool        fileiface.FileGroup
+	upstreamReleasePluginBinTool  fileiface.FileGroup
 	upstreamReleaseOfficialPlugin fileiface.FileGroup
 	upstreamReleaseExternalPlugin fileiface.FileGroup
 
@@ -446,6 +463,31 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (fileiface.Fil
 	localFileName, err := m.saveTempFile(ctx, content)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save release bintool to temp file: %w", err)
+	}
+
+	return m.tempFileGroup.GetFile(ctx, localFileName)
+}
+
+func (m *Manager) fetchReleasePluginBinToolToLocal(ctx context.Context) (fileiface.File, error) {
+	// get plugin bintool.
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
+	}
+
+	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release plugin bintool to temp file: %w", err)
 	}
 
 	return m.tempFileGroup.GetFile(ctx, localFileName)

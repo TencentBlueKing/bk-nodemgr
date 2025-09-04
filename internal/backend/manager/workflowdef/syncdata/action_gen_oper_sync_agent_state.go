@@ -160,6 +160,8 @@ func (act *actionGenOperSyncAgentState) executeOper(
 		actionInstData.LogE(
 			fmt.Sprintf("failed to create sync agent state operation, tenant-id(%s), operation-id(%s): %s",
 				tenantID, actionInstData.OperationID, err.Error()))
+
+		return err
 	}
 
 	actionInstData.LogI(

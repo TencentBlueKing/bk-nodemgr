@@ -56,6 +56,8 @@ func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
 	resp := new(protoBackend.NodeProxyInstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
+	h.logger.InfoCtxf(ctx, "launched install proxy workflow: %s", workflowID)
+
 	return resp.GetData(), nil
 }
 
@@ -72,123 +74,82 @@ func (h *handler) generateInstallNodeDeployments(
 		}
 	}
 
-	// build biz-id and networkunit-id.
+	// build biz-id.
 	bizIDMap := make(map[int64]struct{})
-	networkUnitIDMap := make(map[int64]struct{})
 	for _, host := range req.GetHost() {
 		bizIDMap[host.GetBkBizId()] = struct{}{}
-		networkUnitIDMap[host.GetBkNetworkunitId()] = struct{}{}
 	}
 	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
 	// fetch networkunit.
-	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
-		ExactInclude: &types.NetworkUnitExactFields{
-			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
-		},
-	})
+	networkUnitMap, err := h.fetchNetworkunits(ctx, req.GetHost())
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to fetch networkunit: %w", err)
+		return nil, nil, fmt.Errorf("failed to fetch networkunits: %w", err)
 	}
 
-	networkUnitMap := make(map[int64]*types.NetworkUnit)
-	for _, networkUnit := range networkUnitList {
-		networkUnitMap[networkUnit.ID] = networkUnit
+	// fetch host.
+	existedHostMap, err := h.fetchExistedHosts(ctx, req.GetHost())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
 	}
 
 	gp := gopool.NewPool()
 	nodeDeployments := make([]*types.NodeDeployment, len(req.Host))
 	for i := range req.GetHost() {
 		idx := i
-		host := req.GetHost()[idx]
+		reqHost := req.GetHost()[idx]
 
 		gp.Go(func() error {
-			networkUnit, ok := networkUnitMap[host.GetBkNetworkunitId()]
+			networkUnit, ok := networkUnitMap[reqHost.GetBkNetworkunitId()]
 			if !ok {
-				return fmt.Errorf("failed to find networkunit with id: %d", host.GetBkNetworkunitId())
+				return fmt.Errorf("failed to find networkunit with id: %d", reqHost.GetBkNetworkunitId())
+			}
+
+			loginCreditID := ""
+			if existedHost, ok := existedHostMap[reqHost.GetBkHostId()]; ok {
+				loginCreditID = existedHost.Dynamic.LoginCreditID
 			}
 
 			nodeDeployment := types.NewNodeDeployment(
 				&types.DeploymentInfo{
 					Host: types.Host{
-						HostID:   host.GetBkHostId(),
+						HostID:   reqHost.GetBkHostId(),
 						TenantID: ctx.TenantID(),
 						Static: &types.HostStatic{
-							BizID:         host.GetBkBizId(),
+							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
-							InnerIP:       host.GetBkHostInnerip(),
-							InnerIPV6:     host.GetBkHostInneripV6(),
-							OSType:        host.GetOsType(),
-							Addressing:    types.Addressing(host.GetBkAddressing()),
+							InnerIP:       reqHost.GetBkHostInnerip(),
+							InnerIPV6:     reqHost.GetBkHostInneripV6(),
+							OSType:        reqHost.GetOsType(),
+							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},
 						Dynamic: &types.HostDynamic{
 							NodeRole:       types.NodeRoleProxy,
+							NodeStatus:     types.NodeStatusInit,
 							NodeGeneration: DefaultNodeGeneration,
 							NetworkUnitID:  networkUnit.ID,
-							ProxyTags:      types.StringListToProxyTagList(host.GetProxyTags()),
-							LoginIP:        host.GetLoginIp(),
-							LoginPort:      host.GetLoginPort(),
-							LoginUser:      host.GetLoginUser(),
-							ExportIP:       host.GetExportIp(),
-							AdvertiseIP:    host.GetAdvertiseIp(),
+							ProxyTags:      types.StringListToProxyTagList(reqHost.GetProxyTags()),
+							LoginIP:        reqHost.GetLoginIp(),
+							LoginPort:      reqHost.GetLoginPort(),
+							LoginUser:      reqHost.GetLoginUser(),
+							LoginMode:      types.LoginMode(reqHost.GetLoginMode()),
+							LoginCreditID:  loginCreditID,
+							ExportIP:       reqHost.GetExportIp(),
+							AdvertiseIP:    reqHost.GetAdvertiseIp(),
 						},
 					},
+					CurrentVersionSupports: types.DeploymentVersionSupports{},
 					InstallOptions: types.DeploymentInstallOptions{
-						ReRegister: host.GetReRegister(),
+						ReRegister: reqHost.GetReRegister(),
 					},
-					LoginInfo: types.LoginInfo{
-						IP:   host.GetLoginIp(),
-						Port: host.GetLoginPort(),
-						User: host.GetLoginUser(),
-						Mode: types.LoginMode(host.GetLoginMode()),
-					},
-					TargetVersion: targetVersions,
+					UpgradeOptions:  types.DeploymentUpgradeOptions{},
+					RestartOptions:  types.DeploymentRestartOptions{},
+					TransferOptions: types.DeploymentTransferOptions{},
+					TargetVersion:   targetVersions,
 				})
 
-			switch nodeDeployment.Info.LoginInfo.Mode {
-			case types.LoginModeKeyFile:
-				loginKeyFile, err := base64.StdEncoding.DecodeString(host.GetLoginKeyFile())
-				if err != nil {
-					h.logger.Errorf("use base64 decode key file failed, err: %v", err)
-
-					return fmt.Errorf("failed to decode key file, err: %w", err)
-				}
-
-				err = h.storageHostCredit.StoreHostCredit(
-					ctx,
-					nodeDeployment.Info.Host.Static.NetworkAreaID,
-					nodeDeployment.Info.LoginInfo.IP,
-					nodeDeployment.Info.LoginInfo.User,
-					nodeDeployment.Info.LoginInfo.Mode,
-					loginKeyFile,
-				)
-				if err != nil {
-					return fmt.Errorf("failed to gen node deployment: %w", err)
-				}
-
-			case types.LoginModePassword:
-				loginPassword := host.GetLoginPassword()
-
-				err = h.storageHostCredit.StoreHostCredit(
-					ctx,
-					nodeDeployment.Info.Host.Static.NetworkAreaID,
-					nodeDeployment.Info.LoginInfo.IP,
-					nodeDeployment.Info.LoginInfo.User,
-					nodeDeployment.Info.LoginInfo.Mode,
-					[]byte(loginPassword),
-				)
-				if err != nil {
-					return fmt.Errorf("failed to gen node deployment: %w", err)
-				}
-
-			case types.LoginModePasswordVault:
-				// notice: password vault don't need to store password.
-
-			default:
-				err = fmt.Errorf("unsupported this login mode. login-mode(%s)", host.GetLoginMode())
-				h.logger.Error(err)
-
-				return err
+			if err = h.processHostCredit(ctx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
+				return fmt.Errorf("failed to process host credit: %w", err)
 			}
 
 			nodeDeployments[idx] = nodeDeployment
@@ -201,4 +162,117 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	return nodeDeployments, bizIDs, nil
+}
+
+func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend.NodeProxyInstallHost) (map[int64]*types.NetworkUnit, error) {
+	networkUnitIDMap := make(map[int64]struct{})
+	for _, host := range hosts {
+		networkUnitIDMap[host.GetBkNetworkunitId()] = struct{}{}
+	}
+
+	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+		ExactInclude: &types.NetworkUnitExactFields{
+			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch networkunit: %w", err)
+	}
+
+	networkUnitMap := make(map[int64]*types.NetworkUnit)
+	for _, networkUnit := range networkUnitList {
+		networkUnitMap[networkUnit.ID] = networkUnit
+	}
+
+	return networkUnitMap, nil
+}
+
+func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoBackend.NodeProxyInstallHost) (map[int64]*types.Host, error) {
+	hostIDMap := make(map[int64]struct{})
+	for _, host := range hosts {
+		if hostID := host.GetBkHostId(); hostID >= 0 {
+			hostIDMap[hostID] = struct{}{}
+		}
+	}
+
+	existedHostList, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
+		ExactInclude: &types.HostExactFields{
+			HostID: conv.MapKeyToSlice(hostIDMap),
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch existed host: %w", err)
+	}
+	existedHostMap := make(map[int64]*types.Host)
+	for _, host := range existedHostList {
+		existedHostMap[host.HostID] = host
+	}
+
+	return existedHostMap, nil
+}
+
+func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Host, password, keyfile string) error {
+	var err error
+	switch host.Dynamic.LoginMode {
+	case types.LoginModeKeyFile:
+		if keyfile == "" {
+			if host.Dynamic.LoginCreditID == "" {
+				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
+				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+
+				return err
+			}
+
+			// use old credit id.
+			return nil
+		}
+
+		loginKeyFile, err := base64.StdEncoding.DecodeString(keyfile)
+		if err != nil {
+			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+
+			return fmt.Errorf("failed to decode key file, err: %w", err)
+		}
+
+		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
+			ctx,
+			loginKeyFile,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to gen node deployment: %w", err)
+		}
+		return nil
+
+	case types.LoginModePassword:
+		if password == "" {
+			if host.Dynamic.LoginCreditID == "" {
+				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
+				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+
+				return err
+			}
+
+			// use old credit id.
+			return nil
+		}
+
+		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
+			ctx,
+			[]byte(password),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to gen node deployment: %w", err)
+		}
+		return nil
+
+	case types.LoginModePasswordVault:
+		// notice: password vault don't need to store password.
+		return nil
+
+	default:
+		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", host.Dynamic.LoginMode)
+		h.logger.Error(err)
+
+		return err
+	}
 }

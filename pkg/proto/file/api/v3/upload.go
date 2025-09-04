@@ -245,6 +245,47 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 }
 
 // Validate check request body.
+func (x *UploadOriginPluginBinToolReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginPluginBinToolReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginPluginBinToolResp_Data{
+		UploadId:  new(string),
+		Existed:   new(bool),
+		Generated: new(bool),
+		Name:      new(string),
+		Size:      new(int64),
+		Md5:       new(string),
+		Platforms: plats,
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// Validate check request body.
 func (x *UploadOriginOfficialPluginReq) Validate() error {
 	return nil
 }

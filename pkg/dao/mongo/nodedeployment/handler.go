@@ -111,13 +111,12 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				ProxyClusterPort: info.ProxyClusterPort,
 				ProxyDataPort:    info.ProxyDataPort,
 				ProxyFilePort:    info.ProxyFilePort,
+				LoginIP:          info.LoginIP,
+				LoginPort:        info.LoginPort,
+				LoginUser:        info.LoginUser,
+				LoginMode:        types.LoginMode(info.LoginMode),
+				LoginCreditID:    info.LoginCreditID,
 			},
-		},
-		LoginInfo: types.LoginInfo{
-			IP:   info.LoginInfo.IP,
-			Port: info.LoginInfo.Port,
-			User: info.LoginInfo.User,
-			Mode: types.LoginMode(info.LoginInfo.Mode),
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions: types.DeploymentInstallOptions{
@@ -332,16 +331,15 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return tags
 		}(),
+		LoginIP:          info.Host.Dynamic.LoginIP,
+		LoginPort:        info.Host.Dynamic.LoginPort,
+		LoginUser:        info.Host.Dynamic.LoginUser,
+		LoginMode:        string(info.Host.Dynamic.LoginMode),
+		LoginCreditID:    info.Host.Dynamic.LoginCreditID,
 		ProxyClusterPort: info.Host.Dynamic.ProxyClusterPort,
 		ProxyDataPort:    info.Host.Dynamic.ProxyDataPort,
 		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
 		InstallerWorkDir: info.InstallerWorkDir,
-		LoginInfo: LoginInfo{
-			IP:   info.LoginInfo.IP,
-			Port: info.LoginInfo.Port,
-			User: info.LoginInfo.User,
-			Mode: string(info.LoginInfo.Mode),
-		},
 		InstallOptions: InstallOptions{
 			ReRegister: info.InstallOptions.ReRegister,
 			DirectLink: info.InstallOptions.DirectLink,

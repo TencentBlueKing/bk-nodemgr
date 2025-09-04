@@ -28,6 +28,7 @@ type IStorage interface {
 	IServer
 	IBinTool
 	ICert
+	IPluginBinTool
 	IOfficialPlugin
 	IExternalPlugin
 }

@@ -426,6 +426,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 			LoginIP:           host.Dynamic.LoginIP,
 			LoginPort:         host.Dynamic.LoginPort,
 			LoginUser:         host.Dynamic.LoginUser,
+			LoginMode:         string(host.Dynamic.LoginMode),
+			LoginCreditID:     host.Dynamic.LoginCreditID,
 			ExportIP:          host.Dynamic.ExportIP,
 			AdvertiseIP:       host.Dynamic.AdvertiseIP,
 			RelayFilePort:     host.Dynamic.RelayFilePort,
@@ -490,6 +492,8 @@ func convertHostToTypes(host *Host) *types.Host {
 			LoginIP:             host.Dynamic.LoginIP,
 			LoginPort:           host.Dynamic.LoginPort,
 			LoginUser:           host.Dynamic.LoginUser,
+			LoginMode:           types.LoginMode(host.Dynamic.LoginMode),
+			LoginCreditID:       host.Dynamic.LoginCreditID,
 			ExportIP:            host.Dynamic.ExportIP,
 			AdvertiseIP:         host.Dynamic.AdvertiseIP,
 			RelayFilePort:       host.Dynamic.RelayFilePort,
@@ -616,6 +620,12 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 	if fields.LoginUser {
 		updates[FieldKeyDynamicLoginUser] = host.Dynamic.LoginUser
+	}
+	if fields.LoginMode {
+		updates[FieldKeyDynamicLoginMode] = host.Dynamic.LoginMode
+	}
+	if fields.LoginCreditID {
+		updates[FieldKeyDynamicLoginCreditID] = host.Dynamic.LoginCreditID
 	}
 	if fields.ExportIP {
 		updates[FieldKeyDynamicExportIP] = host.Dynamic.ExportIP

@@ -23,4 +23,7 @@ const (
 
 	// FieldKeyUpdatedAt defines the key of update time.
 	FieldKeyUpdatedAt = "basic.updated_at"
+
+	// FieldKeyIsDeleted defines the key of is deleted.
+	FieldKeyIsDeleted = "basic.is_deleted"
 )

@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -31,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -61,8 +63,7 @@ func NewActionInstallNodeByWMI(
 
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 // InstallParamsWin this struct defines the parameters for installing agent.
@@ -136,84 +137,117 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallAgentByWMI)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	client, err := generateWMIClient(ctx.Ctx, param.Operator, act.logger, act.storageHostCredit, act.passwordVault, info)
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+
+	// get wmi credit.
+	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
+		return fmt.Errorf("failed to get wmi credit: %w", err)
+	}
+
+	// generate the wmi client.
+	client, err := wmix.NewClient(&wmix.Config{
+		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
+		User:       std.DeployInfo().Host.Dynamic.LoginUser,
+		Logger:     act.logger,
+		AuthMethod: cMethod,
+		Password: func() string {
+			if cMethod == wmix.AuthMethodPassword {
+				return cKey
+			}
+
+			return ""
+		}(),
+		Timeout: wmix.DefaultTimeout,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to generate new wmi client: %w", err)
+	}
+
+	// ensure the workspace dir.
+	if err = act.ensureWorkspace(std, client); err != nil {
+		return fmt.Errorf("failed to ensure workspace through wmi: %w", err)
+	}
+
+	// ensure the installer tool.
+	installerPath, err := act.ensureInstallerTool(std, client)
+	if err != nil {
+		return fmt.Errorf("failed to ensure installer tool through wmi: %w", err)
+	}
+
+	// execute install cmd.
+	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
+		return fmt.Errorf("failed to execute install cmd: %w", err)
+	}
+
+	return nil
+}
+
+func (act *actionInstallNodeByWMI) ensureWorkspace(std *utils.NodeActionStandarder, client *wmix.Client) error {
+	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerWorkDir)
+	if err != nil {
+		err = fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
+			std.DeployInfo().InstallerWorkDir, stdout, stderr, err)
+
 		return err
 	}
 
-	stdOut, stdErr, err := client.RunCommand(ctx.Ctx, "mkdir "+info.InstallerWorkDir)
-	if err != nil {
-		err = fmt.Errorf("failed to run mkdir %s, err: %w", info.InstallerWorkDir, err)
+	std.InstanceData().LogI(fmt.Sprintf("make sure the installer workspace exists, stdout(%s), stderr(%s)",
+		strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")))
 
-		return err
-	}
+	return nil
+}
 
-	ctx.Data.LogI(fmt.Sprintf("make sure the installer workspace exists, stdOut: %s, stdErr: %s",
-		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n")))
-
+func (act *actionInstallNodeByWMI) ensureInstallerTool(std *utils.NodeActionStandarder, client *wmix.Client) (string, error) {
 	// select matching tools, and use sftp to transfer it.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
-
-		return err
+		return "", fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	toolFile, err := act.installerGroup.GetFile(ctx.Ctx, toolName)
+	toolFile, err := act.installerGroup.GetFile(std.Context(), toolName)
 	if err != nil {
-		err = fmt.Errorf("failed to get file, err: %w", err)
-
-		return err
-	}
-
-	if toolFile.FileObject() != fileiface.LocalFile {
-		err = fmt.Errorf("installer file is not a local file, file-info(%v)", toolFile.Info())
-
-		return err
+		return "", fmt.Errorf("failed to get installer tool file from local: %w", err)
 	}
 
 	tmpInstallFilePath := local.GetLocalFileAbsFilePath(toolFile)
-	stdOut, stdErr, err = client.UploadFile(ctx.Ctx, tmpInstallFilePath, info.InstallerWorkDir)
+	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallFilePath, std.DeployInfo().InstallerWorkDir)
 	if err != nil {
-		return fmt.Errorf("failed to transfer file, stdOut: %s, stdErr: %s err: %w",
-			stdOut, stdErr, err)
+		return "", fmt.Errorf("failed to transfer installer tool to host, stdout(%s), stderr(%s): %w",
+			stdout, stderr, err)
 	}
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+	std.InstanceData().LogI(fmt.Sprintf("transfered file to host, path(%s)", installerPath))
 
-	installerPath := winpath.Clean(winpath.Join(info.InstallerWorkDir, toolName))
+	return installerPath, nil
+}
 
-	ctx.Data.LogI(fmt.Sprintf("upload file to remote, path(%s)", installerPath))
-	act.logger.Infof("upload file to remote, path(%s)", installerPath)
-
-	ctx.Data.LogI(fmt.Sprintf("upload file stdout: %s, stdErr: %s",
-		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n")))
-	act.logger.Infof("upload file stdout: %s, stdErr: %s",
-		strings.Split(strings.TrimSpace(stdOut), "\n"), strings.Split(strings.TrimSpace(stdErr), "\n"))
-
+func (act *actionInstallNodeByWMI) executeInstallCMD(std *utils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
 	randSelector := discover.NewRandomSelector()
 	fileSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileBasic,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get file endpoint, err: %w", err)
+		return fmt.Errorf("failed to get file endpoint: %w", err)
 	}
 
 	callbackSvrEndpoint, err := act.provider.GetEndpoint(
@@ -221,57 +255,57 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 		discover.EndpointNameBackendCallback,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	installParams := &InstallParamsWin{
-		NodeVersion:     info.Host.Dynamic.NodeVersion,
-		Generation:      info.Host.Dynamic.NodeGeneration,
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
 		InstallerPath:   installerPath,
-		NodeRole:        info.Host.Dynamic.NodeRole,
+		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 		FileSvrAddr:     "http://" + fileSvrEndpoint.GetIPV4Address(),
-		DeployToken:     param.Token,
-		OperInstID:      ctx.Data.OperationInstanceID,
+		DeployToken:     std.Token(),
+		OperInstID:      std.InstanceData().OperationInstanceID,
 		BaseWorkDir:     deployConstant.BaseWorkDir,
 		BaseDeployDir:   deployConstant.BaseDeployDir,
 	}
 
-	if !info.InstallOptions.ReRegister && info.Host.Dynamic.AgentID != "" {
+	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
 		installParams.AdditionArgs = append(installParams.AdditionArgs,
-			fmt.Sprintf("--agent_id %s", info.Host.Dynamic.AgentID))
+			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	// exec install command
 	installBat := act.buildBat(installParams)
-	ctx.Data.LogI(fmt.Sprintf("install-node-cmd(%s)", installBat))
+	std.InstanceData().LogI(fmt.Sprintf("install node cmd: %s", installBat))
 
+	// exec install command.
 	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), installBatName)
 	if err != nil {
-		return fmt.Errorf("failed to create temp file, err: %w", err)
+		return fmt.Errorf("failed to create temp bat file for wmi execution: %w", err)
 	}
 	defer tmp.Clean()
 
-	_, _, err = client.UploadFile(ctx.Ctx, tmpInstallBat.Path(), info.InstallerWorkDir)
+	_, _, err = client.UploadFile(std.Context(), tmpInstallBat.Path(), std.DeployInfo().InstallerWorkDir)
 	if err != nil {
-		return fmt.Errorf("failed to transfer file, err: %w", err)
+		return fmt.Errorf("failed to transfer bat file for wmi execution: %w", err)
 	}
 
-	installCMD := winpath.Clean(winpath.Join(info.InstallerWorkDir, installBatName))
-	stdOutStr, stdErrStr, err := client.RunSilentCommand(ctx.Ctx, installCMD)
+	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, installBatName))
+	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
 		err = fmt.Errorf("failed to run install node, err: %w", err)
 
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("install node stdout: %s", strings.Split(strings.TrimSpace(stdOutStr), "\n")))
-	ctx.Data.LogI(fmt.Sprintf("install node stderr: %s", strings.Split(strings.TrimSpace(stdErrStr), "\n")))
+	std.InstanceData().LogI(fmt.Sprintf("install node stdout: %s", strings.Split(strings.TrimSpace(stdout), "\n")))
+	std.InstanceData().LogI(fmt.Sprintf("install node stderr: %s", strings.Split(strings.TrimSpace(stderr), "\n")))
 
 	return nil
 }
