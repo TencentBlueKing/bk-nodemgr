@@ -17,9 +17,15 @@ spec:
     app: nodemgr-backend
   clusterIP: None
   ports:
-    - name: service-http
-      port: {{ .Values.backend.config.httpServer.port }}
-      targetPort: service-http
+    - name: info-http
+      port: {{ .Values.backend.config.infoServer.port }}
+      targetPort: info-http
+    - name: admin-http
+      port: {{ .Values.backend.config.adminServer.port }}
+      targetPort: admin-http
+    - name: basic-http
+      port: {{ .Values.backend.config.basicServer.port }}
+      targetPort: basic-http
     - name: callback-http
       port: {{ .Values.backend.config.callbackServer.port }}
       targetPort: callback-http

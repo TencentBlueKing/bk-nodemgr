@@ -491,6 +491,135 @@ externalMongodb:
   authSource: "admin"
   authMechanism: "SCRAM-SHA-256"
 
+
+## Nodeman application.
+##
+application:
+  ## @param application, enabled Enable application
+  ##
+  enabled: true
+
+  ## @param imageTag module image tag, it's empty as default.
+  ## NOTE: would use root image configs when it's empty.
+  imageTag: ""
+
+  ## @param podAnnotations module pod annotations,
+  ## NOTE: would use root annotations configs when it's not set.
+  podAnnotations: { }
+
+  ## @param hostNetwork module host network mode config.
+  hostNetwork: false
+
+  ## @param nodeSelector specify node labels for task pod assignment.
+  ## NOTE: will be combined with the top nodeSelector in values.
+  nodeSelector: { }
+
+  ## @param terminationGracePeriodSeconds module pod termination grace period
+  ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
+  terminationGracePeriodSeconds: 30
+
+  ## application containers' resource requests and limits
+  ##
+  resources:
+    limits:
+      memory: 4096Mi
+      cpu: 2000m
+    requests:
+      memory: 2048Mi
+      cpu: 1000m
+
+  ## @param configs module configs
+  ##
+  config:
+    ## mode: release or debug, default is release.
+    runMode: "release"
+
+    ## tenant_mode: multi or single, default is single.
+    tenantMode: "single"
+
+    ## defines the backend server advertise-ip, if not set then will use the pod-ip.
+    advertiseIPV4: ""
+    advertiseIPV6: ""
+
+    # defines the nodemgr backend (BK API gateway) related settings.
+    backend:
+      # endpoints is a seed list of host:port addresses of apigw nodes.
+      endpoints:
+        - "https://example.com/api/bk-nodemgr/prod"
+      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request api gateway.
+      user: ""
+      # authMode is the mode to do api auth verification,
+      # it support 'oa' and 'ee' and 'at' mode for now.
+      # 1. oa use bkTicket auth.
+      # 2. ee use bkToken auth.
+      # 3. at use accessToken auth.
+      # 4. un use no user authentication required
+      authMode: "un"
+      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      bkTicket: ""
+      # bkToken is the BlueKing user token of costops to request api gateway.
+      bkToken: ""
+      # accessToken is the BlueKing access token of costops to request api gateway.
+      accessToken: ""
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
+    ## defines the application info server related settings.
+    infoServer:
+      bindIP: "0.0.0.0"
+      port: 28000
+
+    ## defines the application admin server related settings.
+    adminServer:
+      bindIP: "0.0.0.0"
+      port: 28001
+      authIdentity: rest-server
+
+    ## defines the application http server related settings.
+    basicServer:
+      bindIP: "0.0.0.0"
+      port: 28002
+      authIdentity: bk-login
+
+    ## defines the log related settings.
+    log:
+      dir: "/bk-nodemgr/log"
+      level: "INFO"
+      maxNum: 10
+      maxSizeMB: 200
+      toStderr: false
+      alsoToStderr: false
+
+    bkSaaS:
+      bkLogin:
+        loginURL: ""
+        # defines tls related options.
+        tls:
+          # server should be accessed without verifying the TLS certificate.
+          insecureSkipVerify: false
+          # server requires TLS client certificate authentication.
+          certFile: ""
+          # server requires TLS client certificate authentication.
+          keyFile: ""
+          # trusted root certificates for server.
+          caFile: ""
+          # the password to decrypt the certificate.
+          password: ""
+
 ## Nodeman backend.
 ##
 backend:
@@ -552,27 +681,32 @@ backend:
     advertiseIPV4: ""
     advertiseIPV6: ""
 
-    ## defines the backend http server related settings.
-    httpServer:
+    ## defines the backend info server related settings.
+    infoServer:
       bindIP: "0.0.0.0"
-      port: 8000
-      authIdentity: api-gateway
+      port: 28100
 
     ## defines the backend admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
-      port: 8001
+      port: 28101
       authIdentity: rest-server
+
+    ## defines the backend basic server related settings.
+    basicServer:
+      bindIP: "0.0.0.0"
+      port: 28102
+      authIdentity: api-gateway
 
     ## defines the backend callback server related settings.
     callbackServer:
       bindIP: "0.0.0.0"
-      port: 8002
+      port: 28103
 
     ## defines the backend proxy server related settings.
     proxyServer:
       bindIP: "0.0.0.0"
-      port: 8003
+      port: 28104
 
     ## defines the workflow related settings.
     workflow:
@@ -743,123 +877,6 @@ backend:
       toStderr: false
       alsoToStderr: false
 
-## Nodeman application.
-##
-application:
-  ## @param application, enabled Enable application
-  ##
-  enabled: true
-
-  ## @param imageTag module image tag, it's empty as default.
-  ## NOTE: would use root image configs when it's empty.
-  imageTag: ""
-
-  ## @param podAnnotations module pod annotations,
-  ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
-
-  ## @param hostNetwork module host network mode config.
-  hostNetwork: false
-
-  ## @param nodeSelector specify node labels for task pod assignment.
-  ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
-
-  ## @param terminationGracePeriodSeconds module pod termination grace period
-  ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
-  terminationGracePeriodSeconds: 30
-
-  ## application containers' resource requests and limits
-  ##
-  resources:
-    limits:
-      memory: 4096Mi
-      cpu: 2000m
-    requests:
-      memory: 2048Mi
-      cpu: 1000m
-
-  ## @param configs module configs
-  ##
-  config:
-    ## mode: release or debug, default is release.
-    runMode: "release"
-
-    ## tenant_mode: multi or single, default is single.
-    tenantMode: "single"
-
-    ## defines the backend server advertise-ip, if not set then will use the pod-ip.
-    advertiseIPV4: ""
-    advertiseIPV6: ""
-
-    # defines the nodemgr backend (BK API gateway) related settings.
-    backend:
-      # endpoints is a seed list of host:port addresses of apigw nodes.
-      endpoints:
-        - "https://example.com/api/bk-nodemgr/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
-      appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
-      appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
-      user: ""
-      # authMode is the mode to do api auth verification,
-      # it support 'oa' and 'ee' and 'at' mode for now.
-      # 1. oa use bkTicket auth.
-      # 2. ee use bkToken auth.
-      # 3. at use accessToken auth.
-      # 4. un use no user authentication required
-      authMode: "un"
-      # bkTicket is the BlueKing access ticket of costops to request api gateway.
-      bkTicket: ""
-      # bkToken is the BlueKing user token of costops to request api gateway.
-      bkToken: ""
-      # accessToken is the BlueKing access token of costops to request api gateway.
-      accessToken: ""
-      # defines tls related options.
-      tls:
-        # server should be accessed without verifying the TLS certificate.
-        insecureSkipVerify: false
-        # server requires TLS client certificate authentication.
-        certFile: ""
-        # server requires TLS client certificate authentication.
-        keyFile: ""
-        # trusted root certificates for server.
-        caFile: ""
-        # the password to decrypt the certificate.
-        password: ""
-
-    ## defines the application http server related settings.
-    httpServer:
-      bindIP: "0.0.0.0"
-      port: 5000
-      authIdentity: bk-login
-
-    ## defines the log related settings.
-    log:
-      dir: "/bk-nodemgr/log"
-      level: "INFO"
-      maxNum: 10
-      maxSizeMB: 200
-      toStderr: false
-      alsoToStderr: false
-
-    bkSaaS:
-      bkLogin:
-        loginURL: ""
-        # defines tls related options.
-        tls:
-          # server should be accessed without verifying the TLS certificate.
-          insecureSkipVerify: false
-          # server requires TLS client certificate authentication.
-          certFile: ""
-          # server requires TLS client certificate authentication.
-          keyFile: ""
-          # trusted root certificates for server.
-          caFile: ""
-          # the password to decrypt the certificate.
-          password: ""
-
 ## Nodeman file
 ##
 file:
@@ -909,15 +926,26 @@ file:
     advertiseIPV4: ""
     advertiseIPV6: ""
 
-    ## defines the file http server related settings.
-    httpServer:
+    ## defines the file info server related settings.
+    infoServer:
       bindIP: "0.0.0.0"
-      port: 7000
+      port: 28200
 
     ## defines the file admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
-      port: 7001
+      port: 28201
+      authIdentity: rest-server
+
+    ## defines the file basic server related settings.
+    basicServer:
+      bindIP: "0.0.0.0"
+      port: 28202
+
+    ## defines the file download server related settings.
+    downloadServer:
+      bindIP: "0.0.0.0"
+      port: 28203
 
     ## defines the bkrepo related settings.
     repo:

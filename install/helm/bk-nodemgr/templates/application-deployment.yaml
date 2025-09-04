@@ -103,13 +103,15 @@ spec:
             - name: NODEMAN-MODULE
               value: application
           ports:
-            - name: service-http
-              containerPort: {{ .Values.application.config.httpServer.port }}
+            - name: info-http
+              containerPort: {{ .Values.application.config.infoServer.port }}
+            - name: basic-http
+              containerPort: {{ .Values.application.config.basicServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -122,7 +124,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}

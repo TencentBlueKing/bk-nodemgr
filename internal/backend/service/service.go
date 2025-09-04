@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
 	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/basic"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
@@ -102,35 +101,51 @@ type Service struct {
 
 	// instance is the discover instance of the service.
 	instance discover.Instance
+
+	// authIdentityMap defines the mapping between auth identity and auth identity handler.
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
 }
 
 // NewService creates a new backend service.
 // nolint: funlen,gocognit,gocyclo,cyclop,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.BackendService) (*Service, error) {
-	if err := loadSystemInfo(conf); err != nil {
-		return nil, err
-	}
-
 	svc := &Service{
 		conf: conf,
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
-		instance: discover.NewInstance("backend", nil),
+		instance: discover.NewInstance(string(discover.ServiceNameBackend), nil),
 	}
-
-	access.SetVirtualUser(conf.Access.VirtualUser)
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
-	var err error
-
-	svc.Cap.Crypter, err = crypter.NewAESCrypter([]byte(conf.EncryptKey))
-	if err != nil {
-		return nil, err
+	if err := svc.initialStaticsConfigs(); err != nil {
+		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
 	}
 
+	if err := svc.initialCapability(); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
+	}
+
+	if err := svc.registerRestServer(); err != nil {
+		return nil, fmt.Errorf("failed to register http rest server: %w", err)
+	}
+
+	return svc, nil
+}
+
+func (svc *Service) initialStaticsConfigs() error {
+	// initial system edition.
+	system.SetEnv(svc.conf.System.Env)
+	if err := system.SetEdition(system.Edition(svc.conf.System.Edition)); err != nil {
+		return fmt.Errorf("failed to set system edition, edition(%s): %w", svc.conf.System.Edition, err)
+	}
+
+	// initial access virtual user.
+	access.SetVirtualUser(svc.conf.Access.VirtualUser)
+
+	// initial gse deploy conf.
 	for idx := range svc.conf.GSEDeployConfs {
 		deployConf := deployconstant.DeployConf{
 			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
@@ -138,7 +153,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			BaseDeployDir: svc.conf.GSEDeployConfs[idx].BaseDeployDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
-			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
+			return fmt.Errorf("failed to set deploy conf: %w", err)
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
@@ -152,134 +167,345 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
-			return nil, fmt.Errorf("failed to set node deploy conf: %w", err)
+			return fmt.Errorf("failed to set node deploy conf: %w", err)
 		}
 
 		pluginDeployConf := deployconstant.PluginDeployConf{
 			DeployConf: deployConf,
 		}
 		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
-			return nil, fmt.Errorf("failed to set plugin deploy conf: %w", err)
+			return fmt.Errorf("failed to set plugin deploy conf: %w", err)
 		}
 	}
 
-	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
+	// initial idenity map.
+	publickeyPem, err := base64.StdEncoding.DecodeString(svc.conf.APIGateWayServer.PublickeyPem)
+	if err != nil {
+		return fmt.Errorf("failed to decode publickey: %w", err)
+	}
+	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityAPIGW:      apigwserver.NewBKGWJWTAuthIdentity(publickeyPem),
+		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+	}
+
+	return nil
+}
+
+// nolint: funlen
+func (svc *Service) initialCapability() error {
+	var err error
+
+	// discover provider watch backend and file service.
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
 		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
-	svc.Cap.CmdbHandler, err = newCMDBHandler(conf.CMDB, svc.Cap.Logger)
+	// initial local installer file group.
+	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(svc.conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create installer file group: %w", err)
 	}
 
-	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
+	// initial AES crypter with given key.
+	svc.Cap.Crypter, err = crypter.NewAESCrypter([]byte(svc.conf.EncryptKey))
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create AES crypter: %w", err)
 	}
 
-	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
+	// initial cmdb handler.
+	svc.Cap.CmdbHandler, err = svc.newCMDBHandler()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create cmdb handler: %w", err)
 	}
 
-	redisClient, err := initRedis(&conf.Redis)
+	// initial gse handler.
+	svc.Cap.GSEHandler, err = svc.newGSEHandler()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create gse handler: %w", err)
 	}
 
-	svc.Cap.LockerFactory = redsync.New(redisClient)
-
-	mongoClient, err := initMongoDB(&conf.MongoDB)
+	// initial file handler.
+	svc.Cap.FileHandler, err = svc.newFileHandler()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create file handler: %w", err)
 	}
 
-	svc.Cap.StorageTopo, err = topo.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	// initial credit vault.
+	svc.Cap.CreditVault, err = svc.newCreditVault()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create credit vault: %w", err)
 	}
 
-	svc.Cap.StorageTrigger, err = trigger.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	// initial redis client.
+	svc.Cap.RedisClient, err = svc.newRedisClient()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create redis client: %w", err)
 	}
 
-	svc.Cap.StorageOperInst, err = operinstdataStorage.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	// initial mongo client.
+	svc.Cap.MongoClient, err = svc.newMongoClient()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create mongo client: %w", err)
 	}
 
-	svc.Cap.StorageOperation, err = operation.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
+	// initial serveral storages.
+	if err = svc.initialStorages(); err != nil {
+		return fmt.Errorf("failed to initial storages: %w", err)
 	}
 
-	svc.Cap.StorageNodeDeployment, err = nodedeployment.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
+	// initial locker factory.
+	svc.Cap.LockerFactory = redsync.New(svc.Cap.RedisClient)
+
+	// initial manager.
+	if err = svc.initialManager(); err != nil {
+		return fmt.Errorf("failed to initial manager: %w", err)
 	}
 
-	svc.Cap.StorageNodeWorkflow, err = nodeworkflow.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
+	// initial period task.
+	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
+		Locker:              svc.Cap.LockerFactory,
+		Logger:              svc.Cap.Logger,
+		StgGlobalSetting:    svc.Cap.StorageGlobalSettings,
+		StgTrigger:          svc.Cap.StorageTrigger,
+		StgOperation:        svc.Cap.StorageOperation,
+		StgOperInst:         svc.Cap.StorageOperInst,
+		StgScheduleWorkflow: svc.Cap.StorageScheduleWorkflow,
+	})
+
+	return nil
+}
+
+func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
+	apiGWAPPConfig := newAPIGWAppConfig(&svc.conf.CMDB.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.CMDB.APIGatewayClient)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to new apigw client for cmdb: %w", err)
 	}
 
-	svc.Cap.StorageScheduleWorkflow, err = scheduleworkflow.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.StorageRelease, err = release.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.StorageCredit, err = credit.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger, svc.Cap.Crypter)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.StorageConfigPolicy, err = configpolicy.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(
-		mongoClient,
-		conf.MongoDB.Database,
-		svc.Cap.Logger,
+	apiGwClientCapability.Name = "cmdb"
+	cmdbHandler, err := cmdb.New(
+		apiGwClientCapability,
+		&cmdb.Config{
+			SupplierAccount: svc.conf.CMDB.SupplierAccount,
+			APIGWAppConfig:  apiGWAPPConfig,
+		},
+		cmdb.WithLogger(svc.Cap.Logger),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
+	return cmdbHandler, nil
+}
+
+func (svc *Service) newGSEHandler() (gse.IHandler, error) {
+	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.GSE.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.GSE.APIGatewayClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
+	}
+
+	apiGwClientCapability.Name = "gse"
+	gseHandler, err := gse.New(
+		apiGwClientCapability,
+		&gse.Config{
+			APIGWUserConfig: apiGWUserConfig,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.Cap.CreditVault, err = newCreditVault(conf.CreditVault, svc.Cap.Logger)
+	return gseHandler, nil
+}
+
+func (svc *Service) newFileHandler() (file.IHandler, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create http client for file service: %w", err)
 	}
 
-	bkJWTAuthIdentity, err := newBKJWTAuthIdentity(conf.APIGateWayServer)
-	if err != nil {
-		return nil, err
+	clientCap := &restclient.Capability{
+		HTTPClient: httpClient,
+		Discover: restdiscovery.NewServiceDiscovery(
+			svc.Cap.DiscoverProvider,
+			discover.ServiceNameFile,
+			discover.EndpointNameFileBasic,
+		),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
+		Logger:               logger.LoggerDefault{},
 	}
 
+	return file.New(clientCap, &file.Config{})
+}
+
+func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
+	if !svc.conf.CreditVault.HostCreditVault.Enable {
+		return creditvault.New(creditvault.WithHostPasswordVault(&creditvault.DisabledHostPasswordVault{})), nil
+	}
+
+	switch svc.conf.CreditVault.HostCreditVault.Type {
+	case "iegtjj":
+		iegtjjHandler, err := newIEGTJJHandler(svc.conf.CreditVault.HostCreditVault.IEGTJJ, svc.Cap.Logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create IEG TJJ vault: %w", err)
+		}
+
+		return creditvault.New(creditvault.WithHostPasswordVault(iegtjjHandler)), nil
+
+	default:
+		return nil, fmt.Errorf("unsupported host password vault type: %s", svc.conf.CreditVault.HostCreditVault.Type)
+	}
+}
+
+func (svc *Service) newRedisClient() (*redis.Client, error) {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
+		Password: svc.conf.Redis.Password,
+		DB:       svc.conf.Redis.DB,
+	})
+
+	_, err := redisClient.Ping(context.Background()).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping redis after creating redis client: %w", err)
+	}
+
+	return redisClient, nil
+}
+
+func (svc *Service) newMongoClient() (*mongo.Client, error) {
+	mongoClient, err := mongo.Connect(
+		context.Background(),
+		&mongoOptions.ClientOptions{
+			Hosts: svc.conf.MongoDB.Hosts,
+			Auth: &mongoOptions.Credential{
+				Username:      svc.conf.MongoDB.Username,
+				Password:      svc.conf.MongoDB.Password,
+				AuthSource:    svc.conf.MongoDB.AuthSource,
+				AuthMechanism: svc.conf.MongoDB.AuthMechanism,
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to mongo client: %w", err)
+	}
+
+	return mongoClient, nil
+}
+
+// nolint: funlen
+func (svc *Service) initialStorages() error {
+	var err error
+
+	svc.Cap.StorageTopo, err = topo.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create topo storage: %w", err)
+	}
+
+	svc.Cap.StorageTrigger, err = trigger.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create trigger storage: %w", err)
+	}
+
+	svc.Cap.StorageOperInst, err = operinstdataStorage.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create oper inst storage: %w", err)
+	}
+
+	svc.Cap.StorageOperation, err = operation.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create operation storage: %w", err)
+	}
+
+	svc.Cap.StorageNodeDeployment, err = nodedeployment.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create node deployment storage: %w", err)
+	}
+
+	svc.Cap.StorageNodeWorkflow, err = nodeworkflow.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create node workflow storage: %w", err)
+	}
+
+	svc.Cap.StorageScheduleWorkflow, err = scheduleworkflow.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create schedule workflow storage: %w", err)
+	}
+
+	svc.Cap.StorageRelease, err = release.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create release storage: %w", err)
+	}
+
+	svc.Cap.StorageCredit, err = credit.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger,
+		svc.Cap.Crypter)
+	if err != nil {
+		return fmt.Errorf("failed to create credit storage: %w", err)
+	}
+
+	svc.Cap.StorageConfigPolicy, err = configpolicy.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create config policy storage: %w", err)
+	}
+
+	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create global settings storage: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) initialManager() error {
 	svc.Cap.ProxyMessager = relayhandler.NewServerMessager(relayhandler.ServerMessagerConfig{
-		SlotID:        conf.GSE.PluginSlotID,
-		Token:         conf.GSE.PluginSlotToken,
-		AppCode:       conf.GSE.AppCode,
-		AppSecret:     conf.GSE.AppSecret,
-		GSEBaseURL:    conf.GSE.Endpoints[0],
-		SkipTLSVerify: conf.GSE.TLS.InsecureSkipVerify,
-		RedisClient:   redisClient,
+		SlotID:        svc.conf.GSE.PluginSlotID,
+		Token:         svc.conf.GSE.PluginSlotToken,
+		AppCode:       svc.conf.GSE.AppCode,
+		AppSecret:     svc.conf.GSE.AppSecret,
+		GSEBaseURL:    svc.conf.GSE.Endpoints[0],
+		SkipTLSVerify: svc.conf.GSE.TLS.InsecureSkipVerify,
+		RedisClient:   svc.Cap.RedisClient,
 		Logger:        svc.Cap.Logger,
 	})
 
+	var err error
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
 		CmdbHandler:           svc.Cap.CmdbHandler,
 		GSEHandler:            svc.Cap.GSEHandler,
@@ -299,188 +525,186 @@ func NewService(conf *config.BackendService) (*Service, error) {
 		HostPasswordVault:     svc.Cap.CreditVault,
 		FileHandler:           svc.Cap.FileHandler,
 		ProxyMessager:         svc.Cap.ProxyMessager,
-		Cache:                 rediscache.NewRedisCache(redisClient, rediscache.DefaultTimeout),
+		Cache:                 rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
-			WorkNodeNum: conf.Workflow.WorkerNum,
+			WorkNodeNum: svc.conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{
-				Addr:     fmt.Sprintf("%s:%d", conf.Redis.Host, conf.Redis.Port),
-				Password: conf.Redis.Password,
-				DB:       conf.Redis.DB,
+				Addr:     fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
+				Password: svc.conf.Redis.Password,
+				DB:       svc.conf.Redis.DB,
 			},
 		},
 	}, blog.GlobalLogger{})
 	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
-		Locker:              svc.Cap.LockerFactory,
-		Logger:              svc.Cap.Logger,
-		StgGlobalSetting:    svc.Cap.StorageGlobalSettings,
-		StgTrigger:          svc.Cap.StorageTrigger,
-		StgOperation:        svc.Cap.StorageOperation,
-		StgOperInst:         svc.Cap.StorageOperInst,
-		StgScheduleWorkflow: svc.Cap.StorageScheduleWorkflow,
-	})
-
-	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityAPIGW:      bkJWTAuthIdentity,
-		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
-	}
-
-	if err := svc.registerRestServer(conf, authIdentityMap); err != nil {
-		return nil, fmt.Errorf("failed to new backend service: %w", err)
-	}
-
-	return svc, nil
-}
-
-func loadSystemInfo(conf *config.BackendService) error {
-	system.SetEnv(conf.System.Env)
-	if err := system.SetEdition(system.Edition(conf.System.Edition)); err != nil {
-		return fmt.Errorf("failed to set edition: %w", err)
+		return fmt.Errorf("failed to create manager: %w", err)
 	}
 
 	return nil
 }
 
-// nolint: funlen
-func (svc *Service) registerRestServer(
-	conf *config.BackendService,
-	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
-
-	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
-
-	httpServerAuthIdentity := authIdentityMap[conf.HTTPServer.AuthIdentity]
-	if httpServerAuthIdentity == nil {
-		return fmt.Errorf("backend no support this auth identity, auth-identity(%s): please use one of %v",
-			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
+func (svc *Service) registerRestServer() error {
+	if err := svc.registerInfoServer(); err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
 	}
 
-	httpServer := restserver.NewServer(
+	if err := svc.registerAdminServer(); err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
+
+	if err := svc.registerBasicServer(); err != nil {
+		return fmt.Errorf("failed to register basic server: %w", err)
+	}
+
+	if err := svc.registerCallbackServer(); err != nil {
+		return fmt.Errorf("failed to register callback server: %w", err)
+	}
+
+	if err := svc.registerProxyServer(); err != nil {
+		return fmt.Errorf("failed to register proxy server: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerInfoServer() error {
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendBasic),
-			IP:              conf.HTTPServer.BindIP,
-			Port:            conf.HTTPServer.Port,
+			Name:            string(discover.EndpointNameBackendInfo),
+			IP:              svc.conf.InfoServer.BindIP,
+			Port:            svc.conf.InfoServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
-			RequestIDSetter: apigwRequestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
-		withAPIV3(svc.Cap, httpServerAuthIdentity),
-		withBasic(svc.Cap),
 	)
-	svc.servers = append(svc.servers, httpServer)
-	svc.instance.Update(discover.EndpointNameBackendBasic, discover.Endpoint{
-		IPV4: conf.HTTPServer.AdvertiseIPV4,
-		IPV6: conf.HTTPServer.AdvertiseIPV6,
-		Port: conf.HTTPServer.Port,
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameBackendInfo, discover.Endpoint{
+		IPV4: svc.conf.InfoServer.AdvertiseIPV4,
+		IPV6: svc.conf.InfoServer.AdvertiseIPV6,
+		Port: svc.conf.InfoServer.Port,
 	})
 
-	requestIDSetter := restserver.NewRequestIDSetter()
-	callbackServer := restserver.NewServer(
+	return nil
+}
+
+func (svc *Service) registerAdminServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendAdmin),
+			IP:              svc.conf.AdminServer.BindIP,
+			Port:            svc.conf.AdminServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withAdmin(svc.Cap, authIdentity),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameBackendAdmin, discover.Endpoint{
+		IPV4: svc.conf.AdminServer.AdvertiseIPV4,
+		IPV6: svc.conf.AdminServer.AdvertiseIPV6,
+		Port: svc.conf.AdminServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerBasicServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.BasicServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendBasic),
+			IP:              svc.conf.BasicServer.BindIP,
+			Port:            svc.conf.BasicServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withAPIV3(svc.Cap, authIdentity),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameBackendBasic, discover.Endpoint{
+		IPV4: svc.conf.BasicServer.AdvertiseIPV4,
+		IPV6: svc.conf.BasicServer.AdvertiseIPV6,
+		Port: svc.conf.BasicServer.Port,
+	})
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerCallbackServer() error {
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameBackendCallback),
-			IP:              conf.CallbackServer.BindIP,
-			Port:            conf.CallbackServer.Port,
+			IP:              svc.conf.CallbackServer.BindIP,
+			Port:            svc.conf.CallbackServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
-			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 		withCallback(svc.Cap),
 	)
-	svc.servers = append(svc.servers, callbackServer)
+
+	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameBackendCallback, discover.Endpoint{
-		IPV4: conf.CallbackServer.AdvertiseIPV4,
-		IPV6: conf.CallbackServer.AdvertiseIPV6,
-		Port: conf.CallbackServer.Port,
+		IPV4: svc.conf.CallbackServer.AdvertiseIPV4,
+		IPV6: svc.conf.CallbackServer.AdvertiseIPV6,
+		Port: svc.conf.CallbackServer.Port,
 	})
-
-	proxyServer := restserver.NewServer(
-		svc.ctx,
-		restserver.Options{
-			Name:            string(discover.EndpointNameBackendPorxy),
-			IP:              conf.ProxyServer.BindIP,
-			Port:            conf.ProxyServer.Port,
-			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
-			LogWriter:       loggerWriterAdaptor{},
-		},
-		restserver.WithPing(),
-		withProxy(svc.Cap),
-	)
-	svc.servers = append(svc.servers, proxyServer)
-	svc.instance.Update(discover.EndpointNameBackendPorxy, discover.Endpoint{
-		IPV4: conf.ProxyServer.AdvertiseIPV4,
-		IPV6: conf.ProxyServer.AdvertiseIPV6,
-		Port: conf.ProxyServer.Port,
-	})
-
-	adminServerAuthIdentity := authIdentityMap[conf.AdminServer.AuthIdentity]
-	if adminServerAuthIdentity == nil {
-		return fmt.Errorf("backend no support this auth identity, auth-identity(%s): please use one of %v",
-			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
-	}
-	adminServer := restserver.NewServer(
-		svc.ctx,
-		restserver.Options{
-			Name:            string(discover.EndpointNameBackendAdmin),
-			IP:              conf.AdminServer.BindIP,
-			Port:            conf.AdminServer.Port,
-			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
-			LogWriter:       loggerWriterAdaptor{},
-		},
-		restserver.WithPing(),
-		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
-		withAdmin(svc.Cap, adminServerAuthIdentity),
-	)
-	svc.servers = append(svc.servers, adminServer)
 
 	return nil
 }
 
-func initRedis(conf *config.Redis) (*redis.Client, error) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", conf.Host, conf.Port),
-		Password: conf.Password,
-		DB:       conf.DB,
+// nolint: unparam
+func (svc *Service) registerProxyServer() error {
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameBackendPorxy),
+			IP:              svc.conf.ProxyServer.BindIP,
+			Port:            svc.conf.ProxyServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withProxy(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameBackendPorxy, discover.Endpoint{
+		IPV4: svc.conf.ProxyServer.AdvertiseIPV4,
+		IPV6: svc.conf.ProxyServer.AdvertiseIPV6,
+		Port: svc.conf.ProxyServer.Port,
 	})
 
-	_, err := redisClient.Ping(context.Background()).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	return redisClient, nil
-}
-
-func initMongoDB(conf *config.MongoDB) (*mongo.Client, error) {
-	mongoClient, err := mongo.Connect(
-		context.Background(),
-		&mongoOptions.ClientOptions{
-			Hosts: conf.Hosts,
-			Auth: &mongoOptions.Credential{
-				Username:      conf.Username,
-				Password:      conf.Password,
-				AuthSource:    conf.AuthSource,
-				AuthMechanism: conf.AuthMechanism,
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return mongoClient, nil
+	return nil
 }
 
 // loggerWriterAdaptor implements rest.LoggerWriter.
@@ -515,13 +739,6 @@ func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIden
 	}
 }
 
-// withBasic load basic.
-func withBasic(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		basic.Load(rg, capability)
-	}
-}
-
 // withAdmin load admin.
 func withAdmin(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
@@ -543,67 +760,6 @@ func withProxy(capability *options.Capability) restserver.OptionFunc {
 	}
 }
 
-// newCMDBHandler.
-func newCMDBHandler(conf config.CMDB, logger logger.ILogger) (cmdb.IHandler, error) {
-	apiGWAPPConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
-	if err != nil {
-		return nil, err
-	}
-
-	apiGwClientCapability.Name = "cmdb"
-	cmdbHandler, err := cmdb.New(apiGwClientCapability, &cmdb.Config{
-		SupplierAccount: conf.SupplierAccount,
-		APIGWAppConfig:  apiGWAPPConfig,
-	}, cmdb.WithLogger(logger))
-	if err != nil {
-		return nil, err
-	}
-
-	return cmdbHandler, nil
-}
-
-func newCreditVault(conf config.CreditVault, logger logger.ILogger) (creditvault.ICreditVault, error) {
-	hostPasswordVault, err := newHostPasswordVault(conf.HostCreditVault, logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to new credit password vault: %w", err)
-	}
-
-	vault := creditvault.New(creditvault.WithHostPasswordVault(hostPasswordVault))
-
-	return vault, nil
-}
-
-func newBKJWTAuthIdentity(conf config.APIGateWayServer) (*apigwserver.BKGWJWTAuthIdentityAppState, error) {
-	publickeyPem, err := base64.StdEncoding.DecodeString(conf.PublickeyPem)
-	if err != nil {
-		return nil, fmt.Errorf("failed to new bk jwt auth identity: %w", err)
-	}
-
-	authIdentity := apigwserver.NewBKGWJWTAuthIdentity(publickeyPem)
-
-	return authIdentity, nil
-}
-
-func newHostPasswordVault(conf config.HostCreditVault, logger logger.ILogger) (creditvault.IHostPasswordVault, error) {
-	if !conf.Enable {
-		return &creditvault.DisabledHostPasswordVault{}, nil
-	}
-
-	switch conf.Type {
-	case "iegtjj":
-		iegtjjHandler, err := newIEGTJJHandler(conf.IEGTJJ, logger)
-		if err != nil {
-			return nil, fmt.Errorf("failed to new host password vault: %w", err)
-		}
-
-		return iegtjjHandler, nil
-
-	default:
-		return nil, fmt.Errorf("unknown host password vault type: %s", conf.Type)
-	}
-}
-
 func newIEGTJJHandler(conf config.IEGTJJ, logger logger.ILogger) (iegtjj.IHandler, error) {
 	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
 	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.UserConfig
@@ -622,48 +778,6 @@ func newIEGTJJHandler(conf config.IEGTJJ, logger logger.ILogger) (iegtjj.IHandle
 	}
 
 	return iegtjjHandler, nil
-}
-
-// newGSEHandler.
-func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGWUserConfig := newAPIGWUserConfig(&conf.APIGatewayClient)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
-	if err != nil {
-		return nil, err
-	}
-
-	apiGwClientCapability.Name = "gse"
-	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		APIGWUserConfig: apiGWUserConfig,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return gseHandler, nil
-}
-
-// newFileHandler creates a new file handler.
-func newFileHandler(discov discover.Discover) (file.IHandler, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	clientCap := &restclient.Capability{
-		HTTPClient: httpClient,
-		Discover: restdiscovery.NewServiceDiscovery(
-			discov,
-			discover.ServiceNameFile,
-			discover.EndpointNameFileAdmin),
-		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
-		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
-	}
-
-	return file.New(clientCap, &file.Config{})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.

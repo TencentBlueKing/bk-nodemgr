@@ -17,10 +17,16 @@ spec:
     app: nodemgr-file
   clusterIP: None
   ports:
-    - name: service-http
-      port: {{ .Values.file.config.httpServer.port }}
-      targetPort: service-http
+    - name: info-http
+      port: {{ .Values.file.config.infoServer.port }}
+      targetPort: info-http
     - name: admin-http
       port: {{ .Values.file.config.adminServer.port }}
       targetPort: admin-http
+    - name: basic-http
+      port: {{ .Values.file.config.basicServer.port }}
+      targetPort: basic-http
+    - name: download-http
+      port: {{ .Values.file.config.downloadServer.port }}
+      targetPort: download-http
 {{- end }}

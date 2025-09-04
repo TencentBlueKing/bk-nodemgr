@@ -35,7 +35,7 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	FileSvrAddr        string
+	DownloadSvrAddr    string
 	CallbackSvrAddr    string
 	NodeRole           types.NodeRole
 	DeployToken        string
@@ -313,7 +313,7 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 
 	if err := step.downloadFile(ctx,
 		requestBody,
-		step.args.FileSvrAddr,
+		step.args.DownloadSvrAddr,
 		"/download/"+string(step.args.NodeRole),
 		step.args.PkgSavedPath); err != nil {
 		logger.Errorf(installer.StepDownloadFiles, "failed to get release package: %v", err)

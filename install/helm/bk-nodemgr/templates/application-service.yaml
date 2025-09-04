@@ -17,7 +17,13 @@ spec:
   selector:
     app: nodemgr-application
   ports:
-    - name: service-http
-      port: {{ .Values.application.config.httpServer.port }}
-      targetPort: service-http
+    - name: info-http
+      port: {{ .Values.application.config.infoServer.port }}
+      targetPort: info-http
+    - name: admin-http
+      port: {{ .Values.application.config.adminServer.port }}
+      targetPort: admin-http
+    - name: basic-http
+      port: {{ .Values.application.config.basicServer.port }}
+      targetPort: basic-http
 {{- end }}

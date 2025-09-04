@@ -24,16 +24,24 @@ import (
 
 const (
 	// application service config default values.
-	defaultApplicationRunMode       = RunModeRelease
-	defaultApplicationTenantMode    = tenant.ModeSingle
-	defaultApplicationHTTPBindIP    = "127.0.0.1"
-	defaultApplicationHTTPPort      = 5000
-	defaultApplicationHTTPStaticDir = "/bk-nodemgr/static/"
-	defaultApplicationHTTPIdentity  = AuthIdentityBKLogin
-	defaultApplicationLogDir        = "/bk-nodemgr/log/"
-	defaultApplicationLogMaxNum     = 10
-	defaultApplicationLogMaxSizeMB  = 200
-	defaultApplicationLogLevel      = "INFO"
+	defaultApplicationRunMode        = RunModeRelease
+	defaultApplicationTenantMode     = tenant.ModeSingle
+	defaultApplicationInfoBindIP     = "127.0.0.1"
+	defaultApplicationInfoPort       = 28000
+	defaultApplicationInfoIdentity   = AuthIdentityNone
+	defaultApplicationAdminBindIP    = "127.0.0.1"
+	defaultApplicationAdminPort      = 28001
+	defaultApplicationAdminIdentity  = AuthIdentityRestServer
+	defaultApplicationBasicBindIP    = "127.0.0.1"
+	defaultApplicationBasicPort      = 28002
+	defaultApplicationBasicStaticDir = "/bk-nodemgr/static/"
+	defaultApplicationBasicIdentity  = AuthIdentityBKLogin
+	defaultApplicationLogDir         = "/bk-nodemgr/log/"
+	defaultApplicationLogMaxNum      = 10
+	defaultApplicationLogMaxSizeMB   = 200
+	defaultApplicationLogLevel       = "INFO"
+	defaultApplicationAdvertiseIPv4  = "127.0.0.1"
+	defaultApplicationAdvertiseIPv6  = "::1"
 )
 
 // BackendGateway the config of backend gateway config.
@@ -43,15 +51,17 @@ type BackendGateway struct {
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode    RunMode        `yaml:"mode" usage:"run mode of service"`
-	TenantMode tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	BKSaas     BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
-	BKPaas     BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
-	Backend    BackendGateway `yaml:"backend" usage:"backend gateway config"`
-	Etcd       Etcd           `yaml:"etcd" usage:"etcd config of application service"`
-	MongoDB    MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
-	HTTPServer HTTPServer     `yaml:"httpServer" usage:"http server config of application service"`
-	Log        Log            `yaml:"log" usage:"log config of application service"`
+	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
+	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
+	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	BKPaas      BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
+	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
+	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
+	MongoDB     MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
+	InfoServer  HTTPServer     `yaml:"infoServer" usage:"info server config of application service"`
+	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
+	BasicServer HTTPServer     `yaml:"basicServer" usage:"basic server config of application service"`
+	Log         Log            `yaml:"log" usage:"log config of application service"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -59,11 +69,25 @@ func NewApplicationService() *ApplicationService {
 	return &ApplicationService{
 		RunMode:    defaultApplicationRunMode,
 		TenantMode: defaultApplicationTenantMode,
-		HTTPServer: HTTPServer{
-			BindIP:       defaultApplicationHTTPBindIP,
-			Port:         defaultApplicationHTTPPort,
-			StaticDir:    defaultApplicationHTTPStaticDir,
-			AuthIdentity: defaultApplicationHTTPIdentity,
+		InfoServer: HTTPServer{
+			BindIP:        defaultApplicationInfoBindIP,
+			Port:          defaultApplicationInfoPort,
+			AuthIdentity:  defaultApplicationInfoIdentity,
+			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+		},
+		AdminServer: HTTPServer{
+			BindIP:        defaultApplicationAdminBindIP,
+			Port:          defaultApplicationAdminPort,
+			AuthIdentity:  defaultApplicationAdminIdentity,
+			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+		},
+		BasicServer: HTTPServer{
+			BindIP:       defaultApplicationBasicBindIP,
+			Port:         defaultApplicationBasicPort,
+			StaticDir:    defaultApplicationBasicStaticDir,
+			AuthIdentity: defaultApplicationBasicIdentity,
 		},
 		Log: Log{
 			Dir:       defaultApplicationLogDir,
@@ -87,6 +111,7 @@ func (svc *ApplicationService) Load(filePath string) error {
 }
 
 // LoadFromEnv loads config from environment variables.
+// nolint: gocyclo, cyclop, funlen
 func (svc *ApplicationService) LoadFromEnv() error {
 	// run mode.
 	var runMode string
@@ -178,8 +203,8 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	}
 
 	// http_server.
-	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.HTTPServer.BindIP)
-	if _, err := envx.LoadInt("NODEMAN_HTTPSVR_PORT", &svc.HTTPServer.Port); err != nil {
+	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.BasicServer.BindIP)
+	if _, err := envx.LoadInt("NODEMAN_HTTPSVR_PORT", &svc.BasicServer.Port); err != nil {
 		return err
 	}
 
@@ -219,39 +244,47 @@ func (svc *ApplicationService) LoadFromFile(path string) error {
 // Validate validates the config.
 func (svc *ApplicationService) Validate() error {
 	if err := svc.RunMode.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate run mode config: %w", err)
 	}
 
 	if err := svc.TenantMode.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate tenant mode config: %w", err)
 	}
 
 	if err := svc.BKSaas.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate bksaas config: %w", err)
 	}
 
 	if err := svc.BKPaas.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate bkpaas config: %w", err)
 	}
 
 	if err := svc.Backend.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate backend config: %w", err)
 	}
 
 	if err := svc.Etcd.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate etcd config: %w", err)
 	}
 
 	if err := svc.MongoDB.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate mongodb config: %w", err)
 	}
 
-	if err := svc.HTTPServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+	if err := svc.InfoServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate info service config: %w", err)
+	}
+
+	if err := svc.AdminServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate admin service config: %w", err)
+	}
+
+	if err := svc.BasicServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate basic service config: %w", err)
 	}
 
 	if err := svc.Log.Validate(); err != nil {
-		return fmt.Errorf("failed to validate application config: %w", err)
+		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
 	return nil

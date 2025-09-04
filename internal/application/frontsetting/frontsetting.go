@@ -62,13 +62,11 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		return nil, fmt.Errorf("failed to new front setting: %v", err)
 	}
 
-	setting := &FrontSetting{
+	return &FrontSetting{
 		bkloginURL:            opt.BKLoginURL,
 		bkRequestIDHeaderKEy:  opt.BKRequestIDHeaderKEy,
 		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
-	}
-
-	return setting, nil
+	}, nil
 }
 
 // BKLoginURL get bk login url.

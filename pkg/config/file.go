@@ -13,6 +13,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,16 +23,26 @@ import (
 
 const (
 	// file service config default values.
-	defaultFileRunMode      = RunModeRelease
-	defaultFileTenantMode   = tenant.ModeSingle
-	defaultFileHTTPBindIP   = "127.0.0.1"
-	defaultFileHTTPPort     = 6000
-	defaultFileAdminBindIP  = "127.0.0.1"
-	defaultFileAdminPort    = 6001
-	defaultFileLogDir       = "/bk-nodeman/log/"
-	defaultFileLogMaxNum    = 10
-	defaultFileLogMaxSizeMB = 200
-	defaultFileLogLevel     = "INFO"
+	defaultFileRunMode          = RunModeRelease
+	defaultFileTenantMode       = tenant.ModeSingle
+	defaultFileInfoBindIP       = "127.0.0.1"
+	defaultFileInfoPort         = 28200
+	defaultFileInfoIdentity     = AuthIdentityNone
+	defaultFileAdminBindIP      = "127.0.0.1"
+	defaultFileAdminPort        = 28201
+	defaultFileAdminIdentity    = AuthIdentityRestServer
+	defaultFileBasicBindIP      = "127.0.0.1"
+	defaultFileBasicPort        = 28202
+	defaultFileBasicIdentity    = AuthIdentityNone
+	defaultFileDownloadBindIP   = "127.0.0.1"
+	defaultFileDownloadPort     = 28203
+	defaultFileDownloadIdentity = AuthIdentityNone
+	defaultFileLogDir           = "/bk-nodeman/log/"
+	defaultFileLogMaxNum        = 10
+	defaultFileLogMaxSizeMB     = 200
+	defaultFileLogLevel         = "INFO"
+	defaultFileAdvertiseIPv4    = "127.0.0.1"
+	defaultFileAdvertiseIPv6    = "::1"
 
 	defaultFileEtcdUsername = "root"
 	defaultFileEtcdPassword = ""
@@ -53,13 +64,33 @@ func NewFileService() *FileService {
 			Username:  defaultFileEtcdUsername,
 			Password:  defaultFileEtcdPassword,
 		},
-		HTTPServer: HTTPServer{
-			BindIP: defaultFileHTTPBindIP,
-			Port:   defaultFileHTTPPort,
+		InfoServer: HTTPServer{
+			BindIP:        defaultFileInfoBindIP,
+			Port:          defaultFileInfoPort,
+			AuthIdentity:  defaultFileInfoIdentity,
+			AdvertiseIPV4: defaultFileAdvertiseIPv4,
+			AdvertiseIPV6: defaultFileAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP: defaultFileAdminBindIP,
-			Port:   defaultFileAdminPort,
+			BindIP:        defaultApplicationAdminBindIP,
+			Port:          defaultApplicationAdminPort,
+			AuthIdentity:  defaultApplicationAdminIdentity,
+			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+		},
+		BasicServer: HTTPServer{
+			BindIP:        defaultFileBasicBindIP,
+			Port:          defaultFileBasicPort,
+			AuthIdentity:  defaultFileBasicIdentity,
+			AdvertiseIPV4: defaultFileAdvertiseIPv4,
+			AdvertiseIPV6: defaultFileAdvertiseIPv6,
+		},
+		DownloadServer: HTTPServer{
+			BindIP:        defaultFileDownloadBindIP,
+			Port:          defaultFileDownloadPort,
+			AuthIdentity:  defaultFileDownloadIdentity,
+			AdvertiseIPV4: defaultFileAdvertiseIPv4,
+			AdvertiseIPV6: defaultFileAdvertiseIPv6,
 		},
 		WorkspaceFileGroup: FileGroup{
 			FullPath: defaultFileWorkspaceGroupFullPath,
@@ -79,8 +110,10 @@ type FileService struct {
 	TenantMode         tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
 	Etcd               Etcd        `yaml:"etcd" usage:"etcd config of file service"`
 	GSE                GSE         `yaml:"gse" usage:"gse config of file service"`
-	HTTPServer         HTTPServer  `yaml:"httpServer" usage:"http server config of file service"`
+	InfoServer         HTTPServer  `yaml:"infoServer" usage:"info server config of file service"`
 	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
+	BasicServer        HTTPServer  `yaml:"basicServer" usage:"basic server config of file service"`
+	DownloadServer     HTTPServer  `yaml:"downloadServer" usage:"download server config of file service"`
 	WorkspaceFileGroup FileGroup   `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
 	MountHostDir       string      `yaml:"mountHostDir" usage:"mount host dir of file service"`
 	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
@@ -110,16 +143,36 @@ func (svc *FileService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *FileService) Validate() error {
-	if err := svc.WorkspaceFileGroup.Validate(); err != nil {
-		return err
+	if err := svc.RunMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate run mode config: %w", err)
 	}
 
-	if err := svc.HTTPServer.Validate(); err != nil {
-		return err
+	if err := svc.TenantMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate tenant mode config: %w", err)
+	}
+
+	if err := svc.WorkspaceFileGroup.Validate(); err != nil {
+		return fmt.Errorf("failed to validate workspace file group config: %w", err)
+	}
+
+	if err := svc.InfoServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate info service config: %w", err)
 	}
 
 	if err := svc.AdminServer.Validate(); err != nil {
-		return err
+		return fmt.Errorf("failed to validate admin service config: %w", err)
+	}
+
+	if err := svc.BasicServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate basic service config: %w", err)
+	}
+
+	if err := svc.DownloadServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate node service config: %w", err)
+	}
+
+	if err := svc.Log.Validate(); err != nil {
+		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
 	return nil

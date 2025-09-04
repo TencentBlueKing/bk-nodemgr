@@ -22,12 +22,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// Logger logger
 	Logger logger.ILogger
+
+	// MongoClient mongo client.
+	MongoClient *mongo.Client
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider

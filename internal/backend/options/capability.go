@@ -36,12 +36,20 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// Manager workflow management.
 	Manager manager.IManager
+
+	// RedisClient redis client.
+	RedisClient *redis.Client
+
+	// MongoClient mongo client.
+	MongoClient *mongo.Client
 
 	// StorageTopo topo storage.
 	StorageTopo topo.IStorage

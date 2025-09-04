@@ -102,8 +102,10 @@ spec:
             - name: NODEMGR-MODULE
               value: backend
           ports:
-            - name: service-http
-              containerPort: {{ .Values.backend.config.httpServer.port }}
+            - name: info-http
+              containerPort: {{ .Values.backend.config.infoServer.port }}
+            - name: basic-http
+              containerPort: {{ .Values.backend.config.basicServer.port }}
             - name: callback-http
               containerPort: {{ .Values.backend.config.callbackServer.port }}
             - name: proxy-http
@@ -112,7 +114,7 @@ spec:
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -125,7 +127,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
