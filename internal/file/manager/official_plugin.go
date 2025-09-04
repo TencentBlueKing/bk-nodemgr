@@ -182,7 +182,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalOfficialPluginFileNameProject},
+			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, "project.yaml"},
 			callback: func(path []string, projectFile io.Reader) error {
 				detail.Platforms = append(detail.Platforms, convOfficialPluginDirNameToPlat(path[0]))
 
@@ -249,7 +249,6 @@ func convPropertyToTypes(property *Property) *types.PluginPkgConfigTemplatePrope
 }
 
 // PublishReleaseOfficialPlugin generates release official plugin by upload-id.
-// nolint: funlen,gocognit
 func (m *Manager) PublishReleaseOfficialPlugin(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetOfficialPluginUpload(ctx, uploadID)
 	if err != nil {
@@ -405,12 +404,6 @@ func (m *Manager) generateOfficialPluginPkg(ctx context.Context,
 		return nil, err
 	}
 
-	// local plugin bintool.
-	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	pluginName := originDetail.Name
 
 	gp := gopool.NewPool()
@@ -436,19 +429,14 @@ func (m *Manager) generateOfficialPluginPkg(ctx context.Context,
 				return fmt.Errorf("failed to open origin official plugin file: %w", err)
 			}
 
-			originPluginBinToolFile, err := localPluginBinTool.Content(ctx)
-			if err != nil {
-				return fmt.Errorf("failed to open origin plugin bintool file: %w", err)
-			}
-
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
 					{
-						targetFilePath: []string{officialPluginPkgDirNameBin},
+						targetFilePath: []string{"bin"},
 						targetFileMode: tgzModeDir,
 					},
 					{
-						targetFilePath: []string{officialPluginPkgDirNameEtc},
+						targetFilePath: []string{"etc"},
 						targetFileMode: tgzModeDir,
 					},
 				},
@@ -458,38 +446,25 @@ func (m *Manager) generateOfficialPluginPkg(ctx context.Context,
 						sourceFile: origiOfficialPluginFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginDirNameBin,
-									tgzPathNameAny2},
+								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, "bin", tgzPathNameAny2},
 								targetFilePath: []string{
-									officialPluginPkgDirNameBin, tgzPathNameAny2,
+									"bin", tgzPathNameAny2,
 								},
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginDirNameEtc,
-									tgzPathNameAny2},
+								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, "etc", tgzPathNameAny2},
 								targetFilePath: []string{
-									officialPluginPkgDirNameEtc, tgzPathNameAny2,
+									"etc", tgzPathNameAny2,
 								},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginFileNameProject},
+								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, "project.yaml"},
 								targetFilePath: []string{
-									fmt.Sprintf("project_%s.yaml", pluginName),
+									fmt.Sprintf("%s_project.yaml", pluginName),
 								},
 								targetFileMode: tgzModeFile,
-							},
-						},
-					},
-					// get things from origin plugin bintool.
-					{
-						sourceFile: originPluginBinToolFile,
-						fileRules: []tgzWriteRuleFile{
-							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToPluginBinToolDirName(plat), tgzPathNameAny2},
-								targetFilePath: []string{officialPluginPkgDirNameBin, tgzPathNameAny2},
-								targetFileMode: tgzModeExe,
 							},
 						},
 					},
@@ -514,34 +489,21 @@ func (m *Manager) generateOfficialPluginPkg(ctx context.Context,
 	return conv.MapValueToSlice(result), nil
 }
 
-const (
-	originalOfficialPluginFileNameProject         = "project.yaml"
-	originalOfficialPluginDirNameBin              = "bin"
-	originalOfficialPluginDirNameEtc              = "etc"
-	originalOfficialPluginDirNamePlatLinuxAmd64   = "plugins_linux_x86_64"
-	originalOfficialPluginDirNamePlatLinuxArm64   = "plugins_linux_aarch64"
-	originalOfficialPluginDirNamePlatDarwinAmd64  = "plugins_darwin_x86_64"
-	originalOfficialPluginDirNamePlatWindowsAmd64 = "plugins_windows_x86_64"
-
-	officialPluginPkgDirNameBin = "bin"
-	officialPluginPkgDirNameEtc = "etc"
-)
-
 func convPlatToOfficialPluginDirName(plat platform.Platform) string {
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return originalOfficialPluginDirNamePlatLinuxAmd64
+		return "plugins_linux_x86_64"
 	}
 
 	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return originalOfficialPluginDirNamePlatLinuxArm64
+		return "plugins_linux_aarch64"
 	}
 
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return originalOfficialPluginDirNamePlatDarwinAmd64
+		return "plugins_darwin_x86_64"
 	}
 
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return originalOfficialPluginDirNamePlatWindowsAmd64
+		return "plugins_windows_x86_64"
 	}
 
 	return ""
@@ -549,19 +511,19 @@ func convPlatToOfficialPluginDirName(plat platform.Platform) string {
 
 func convOfficialPluginDirNameToPlat(dirName string) platform.Platform {
 	switch dirName {
-	case originalOfficialPluginDirNamePlatLinuxAmd64:
+	case "plugins_linux_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
 		}
-	case originalOfficialPluginDirNamePlatLinuxArm64:
+	case "plugins_linux_aarch64":
 		{
 			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 		}
-	case originalOfficialPluginDirNamePlatWindowsAmd64:
+	case "plugins_windows_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
 		}
-	case originalOfficialPluginDirNamePlatDarwinAmd64:
+	case "plugins_darwin_x86_64":
 		{
 			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
 		}

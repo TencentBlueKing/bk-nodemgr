@@ -13,10 +13,13 @@ package nodeinstall
 import (
 	"errors"
 	"fmt"
+	"net"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -32,20 +35,18 @@ import (
 )
 
 const (
-	// ActionNameUpgradeNode defines the action name.
-	ActionNameUpgradeNode = "upgrade_node"
-
-	upgradeScriptTimeout = 10 * time.Minute
+	// ActionNameUpgradePagent defines the action name.
+	ActionNameUpgradePagent = "upgrade_pagent"
 )
 
-// NewActionUpgradeNode get a new action.
-func NewActionUpgradeNode(
+// NewActionUpgradePagent get a new action.
+func NewActionUpgradePagent(
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.ILogger,
 	provider discover.Provider) action.Definition {
 
-	return &actionUpgradeNode{
+	return &actionUpgradePagent{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
 		logger:                logger,
@@ -53,29 +54,12 @@ func NewActionUpgradeNode(
 	}
 }
 
-// ActionParamUpgradeNode defines the action param.
-type ActionParamUpgradeNode struct {
-	Token string `json:"token"`
+// ActionParamUpgradePagent defines the action param.
+type ActionParamUpgradePagent struct {
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
-// UpgradeParams this struct defines the parameters for upgrading agent.
-type UpgradeParams struct {
-	AgentID          string
-	InstallerName    string
-	InstallerWorkDir string
-	Generation       types.Generation
-	NodeRole         types.NodeRole
-	CallbackSvrAddr  string
-	FileSvrAddr      string
-	NodeVersion      string
-	DeployToken      string
-	OperInstID       string
-	BaseWorkDir      string
-	BaseDeployDir    string
-	AdditionArgs     []string
-}
-
-type actionUpgradeNode struct {
+type actionUpgradePagent struct {
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.ILogger
@@ -83,37 +67,37 @@ type actionUpgradeNode struct {
 }
 
 // Name returns the name of the action.
-func (act *actionUpgradeNode) Name() string {
-	return ActionNameUpgradeNode
+func (act *actionUpgradePagent) Name() string {
+	return ActionNameUpgradePagent
 }
 
 // Version returns the version of the action.
-func (act *actionUpgradeNode) Version() string {
+func (act *actionUpgradePagent) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionUpgradeNode) Description() string {
-	return "upgrade node"
+func (act *actionUpgradePagent) Description() string {
+	return "upgrade pagent"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionUpgradeNode) Timeout() time.Duration {
+func (act *actionUpgradePagent) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionUpgradeNode) Tags() []action.Tag {
+func (act *actionUpgradePagent) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionUpgradeNode) MaxRetryCount() uint {
+func (act *actionUpgradePagent) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradeNode) DelayFn() func() {
+func (act *actionUpgradePagent) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -122,83 +106,81 @@ func (act *actionUpgradeNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
-	param := new(ActionParamUpgradeNode)
+func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamInstallAgentBySSH)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	// select matching tools.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
-	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
+	// get upgrade params.
+	upgradeParams, err := act.setupUpgradeParams(std)
+	if err != nil {
 		return err
 	}
 
-	randSelector := discover.NewRandomSelector()
-	fileSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileBasic,
-		randSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get file endpoint, err: %w", err)
-	}
-
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		randSelector)
-	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
-	}
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
-	}
-
-	upgradeParams := &UpgradeParams{
-		AgentID:          info.Host.Dynamic.AgentID,
-		InstallerName:    toolName,
-		InstallerWorkDir: info.InstallerWorkDir,
-		NodeVersion:      info.Host.Dynamic.NodeVersion,
-		Generation:       info.Host.Dynamic.NodeGeneration,
-		NodeRole:         info.Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		FileSvrAddr:      "http://" + fileSvrEndpoint.GetIPV4Address(),
-		DeployToken:      param.Token,
-		OperInstID:       ctx.Data.OperationInstanceID,
-		BaseWorkDir:      deployConstant.BaseWorkDir,
-		BaseDeployDir:    deployConstant.BaseDeployDir,
-	}
-
 	// exec upgrade command
-	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
+	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doUpgradeWindows(ctx, upgradeParams)
 	}
 
 	return act.doUpgradeUnix(ctx, upgradeParams)
 }
 
+func (act *actionUpgradePagent) setupUpgradeParams(
+	std *utils.NodeActionStandarder) (*UpgradeParams, error) {
+
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to format tools name: %w", err)
+	}
+
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
+	}
+
+	// get service addresses form relay config file.
+	fileSvcAddr, callbackSvcAddr := act.getServiceAddresses(std)
+
+	upgradeParams := &UpgradeParams{
+		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
+		InstallerName:    toolName,
+		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		NodeVersion:      std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
+		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
+		CallbackSvrAddr:  callbackSvcAddr,
+		FileSvrAddr:      fileSvcAddr,
+		DeployToken:      std.Token(),
+		OperInstID:       std.InstanceData().OperationInstanceID,
+		BaseWorkDir:      deployConstant.BaseWorkDir,
+		BaseDeployDir:    deployConstant.BaseDeployDir,
+	}
+
+	std.InstanceData().LogI(fmt.Sprintf("build upgrade params success. params(%v)", upgradeParams))
+
+	return upgradeParams, nil
+}
+
 // nolint: perfsprint
-func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeUnix(ctx *action.InstanceContext, param *UpgradeParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -212,7 +194,6 @@ func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--skip_download",
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
@@ -245,7 +226,7 @@ func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *
 }
 
 // nolint: perfsprint
-func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, param *UpgradeParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -259,7 +240,6 @@ func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, para
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--skip_download",
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
@@ -288,4 +268,19 @@ func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, para
 	ctx.Data.LogI("upgrade node task-id: " + taskID)
 
 	return nil
+}
+
+func (act *actionUpgradePagent) getServiceAddresses(std *utils.NodeActionStandarder) (
+	string, string) {
+
+	fileSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.FileSvcPort)
+	callbackSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort)
+
+	std.InstanceData().LogI(fmt.Sprintf("relay file svr addr(%s), callback svr addr(%s)", fileSvrAddr, callbackSvrAddr))
+
+	return fileSvrAddr, callbackSvrAddr
+}
+
+func getHTTPAddress(ip string, port int64) string {
+	return "http://" + net.JoinHostPort(ip, strconv.Itoa(int(port)))
 }

@@ -318,6 +318,8 @@ func (mgr *Manager) registerActionDefNodeInstall() error {
 		nodeinstall.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
 		nodeinstall.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
 		nodeinstall.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
+		nodeinstall.NewActionEnableReleaseTransfer(mgr.conf.StorageNodeDeployment, mgr.logger),
+		nodeinstall.NewActionUpgradePagent(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 	)
 }
 
@@ -647,6 +649,11 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
+			operationDef := mgr.getUpgradeOperationDef(deploy, param.Operator)
+
+			operationParam := operationDef.DefaultParameters()
+			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
+
 			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
@@ -655,22 +662,6 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 
 				return err
 			}
-
-			var operationDef operation.Definition
-			if deploy.Info.UpgradeOptions.DirectLink {
-				operationDef = nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
-					Token:    deploy.Token,
-					Operator: param.Operator,
-				})
-			} else {
-				operationDef = nodeinstall.NewoperUpgradePagent(nodeinstall.OperParamUpgradePagent{
-					Token:    deploy.Token,
-					Operator: param.Operator,
-				})
-			}
-
-			operationParam := operationDef.DefaultParameters()
-			operationParam.ExtraContent = deploymentInfoToMap(deploy.Info)
 
 			operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationParam)
 			if err != nil {
@@ -700,6 +691,33 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 	}
 
 	return workflowID, nil
+}
+
+func (mgr *Manager) getUpgradeOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
+	// proxy.
+	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// agent
+	if deploy.Info.UpgradeOptions.DirectLink {
+		return nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// if not direct link, use pagent. than we noly need to transfer installer.
+	deploy.Info.TransferOptions.SelectDownloads = true
+	deploy.Info.TransferOptions.EnableInstaller = true
+
+	return nodeinstall.NewoperUpgradePagent(nodeinstall.OperParamUpgradePagent{
+		Token:    deploy.Token,
+		Operator: operator,
+	})
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.

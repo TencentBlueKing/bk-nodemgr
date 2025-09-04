@@ -129,23 +129,61 @@ func (m *Manager) UploadOriginPluginBinTool(
 	return detail, nil
 }
 
-const (
-	pluginBinToolDirNameRoot             = "plugin_bintool"
-	pluginBinToolDirNamePlatLinuxAmd64   = "linux_amd64"
-	pluginBinToolDirNamePlatLinuxArm64   = "linux_arm64"
-	pluginBinToolDirNamePlatDarwinAmd64  = "darwin_amd64"
-	pluginBinToolDirNamePlatWindowsAmd64 = "windows_amd64"
-)
-
 func checkGen2OriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
-	platforms := make(map[string]platform.Platform)
+	agentPlatforms := make(map[string]platform.Platform)
+	proxyPlatforms := make(map[string]platform.Platform)
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{pluginBinToolDirNameRoot, tgzPathNameAny1, tgzPathNameAny2},
-			callback: func(path []string, _ io.Reader) error {
-				plat := convPluginBinToolDirNameToPlat(path[1])
-				platforms[plat.String()] = plat
+			filePath: []string{tgzPathNameAny1, "linux_amd64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}
+				agentPlatforms[plat.String()] = plat
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "linux_arm64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}
+				agentPlatforms[plat.String()] = plat
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "windows_amd64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSWindows, Arch: criteria.CPUArchAmd64}
+				agentPlatforms[plat.String()] = plat
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "darwin_amd64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSDarwin, Arch: criteria.CPUArchAmd64}
+				agentPlatforms[plat.String()] = plat
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "linux_amd64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}
+				proxyPlatforms[plat.String()] = plat
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, "linux_arm64", tgzPathNameAny2},
+			callback: func(_ []string, _ io.Reader) error {
+				plat := platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}
+				proxyPlatforms[plat.String()] = plat
 
 				return nil
 			},
@@ -156,7 +194,7 @@ func checkGen2OriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBin
 
 	detail := new(types.OriginPluginBinToolPkgDetail)
 	detail.Platforms = make([]platform.Platform, 0)
-	for _, plat := range platforms {
+	for _, plat := range agentPlatforms {
 		detail.Platforms = append(detail.Platforms, plat)
 	}
 
@@ -265,33 +303,33 @@ func (m *Manager) generatePluginBinToolPkg(ctx context.Context, sourceFile io.Re
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{
-			{targetFilePath: []string{pluginBinToolDirNameRoot}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64}, targetFileMode: tgzModeDir},
-			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{"plugin_bintool"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{"plugin_bintool", "linux_amd64"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{"plugin_bintool", "linux_arm64"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{"plugin_bintool", "darwin_amd64"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{"plugin_bintool", "windows_amd64"}, targetFileMode: tgzModeDir},
 		},
 		[]*tgzWriteRuleStream{{
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{tgzPathNameAny1, "linux_amd64", tgzPathNameAny2},
+					targetFilePath: []string{"plugin_bintool", "linux_amd64", tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathNameAny1},
+					sourceFilePath: []string{tgzPathNameAny1, "linux_arm64", tgzPathNameAny2},
+					targetFilePath: []string{"plugin_bintool", "linux_arm64", tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{tgzPathNameAny1, "darwin_amd64", tgzPathNameAny2},
+					targetFilePath: []string{"plugin_bintool", "darwin_amd64", tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{tgzPathNameAny1, "windows_amd64", tgzPathNameAny2},
+					targetFilePath: []string{"plugin_bintool", "windows_amd64", tgzPathNameAny2},
 					targetFileMode: tgzModeFile,
 				},
 			},
@@ -306,49 +344,4 @@ func (m *Manager) generatePluginBinToolPkg(ctx context.Context, sourceFile io.Re
 	}
 
 	return file.Content(ctx)
-}
-
-func convPlatToPluginBinToolDirName(plat platform.Platform) string {
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return pluginBinToolDirNamePlatLinuxAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return pluginBinToolDirNamePlatLinuxArm64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return pluginBinToolDirNamePlatDarwinAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return pluginBinToolDirNamePlatWindowsAmd64
-	}
-
-	return ""
-}
-
-func convPluginBinToolDirNameToPlat(dirName string) platform.Platform {
-	switch dirName {
-	case pluginBinToolDirNamePlatLinuxAmd64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-		}
-	case pluginBinToolDirNamePlatLinuxArm64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-		}
-	case pluginBinToolDirNamePlatWindowsAmd64:
-		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-		}
-	case pluginBinToolDirNamePlatDarwinAmd64:
-		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
-		}
-	default:
-		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
-		}
-	}
 }

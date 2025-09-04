@@ -16,6 +16,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall/utils"
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -45,7 +46,7 @@ func NewActionSelectRelayHost(
 
 // ActParamSelectRelayHost ...
 type ActParamSelectRelayHost struct {
-	Token string `json:"token"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 // actionSelectRelayHost ...
@@ -93,39 +94,44 @@ func (act *actionSelectRelayHost) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamEnsurePkgToRelay)
-	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
-		return err
-	}
-
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActParamSelectRelayHost)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
+		err = fmt.Errorf("failed to convert param: %w", err)
+
 		return err
 	}
 
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
+	}
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	relayHost, err := act.selectDedicatedInstallerHost(ctx, info)
+	relayHost, err := act.selectDedicatedInstallerHost(std)
 	if err != nil {
 		return err
 	}
-	info.RelayInfo = relayHost
+
+	std.DeployInfo().RelayInfo = relayHost
+
 	ctx.Data.LogI(fmt.Sprintf("select relay host success. host-id(%d)", relayHost.HostID))
 
 	return nil
 }
 
-func (act *actionSelectRelayHost) selectDedicatedInstallerHost(ctx *action.InstanceContext,
-	info *types.DeploymentInfo) (types.RelayInfo, error) {
+func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
+	std *utils.NodeActionStandarder) (types.RelayInfo, error) {
 
-	hosts, num, err := act.storageHost.ListHost(ctx.Ctx, types.UnlimitedPage(), &types.HostCondition{
+	hosts, num, err := act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
-			NetworkUnitID: []int64{info.Host.Dynamic.NetworkUnitID},
+			NetworkUnitID: []int64{std.DeployInfo().Host.Dynamic.NetworkUnitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
 		},
@@ -145,7 +151,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(ctx *action.Insta
 	}
 
 	if len(dedicatedHosts) == 0 {
-		ctx.Data.LogE("no dedicated installer host")
+		std.InstanceData().LogE("no dedicated installer host")
 		return types.RelayInfo{}, errors.New("no dedicated installer host")
 	}
 
