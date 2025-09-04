@@ -40,8 +40,8 @@ type ClientMessagerConfig struct {
 	// DomainSocketPath is the domain socket path when in unix node.
 	DomainSocketPath string `json:"domain_socket_path"`
 
-	// MessageIDFullPath is the full path for message ID storage.
-	MessageIDPath string `json:"message_id_path"`
+	// MessageTrackerFullPath is the message tracker full path.
+	MessageTrackerFullPath string `json:"message_tracker_full_path"`
 
 	// LocalSocketPort is the local socket port when in windows node.
 	LocalSocketPort int `json:"local_socket_port"`
@@ -61,7 +61,7 @@ func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
 		eventDispatcher: manager.NewDefaultEventDispatcher(),
-		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageIDPath),
+		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageTrackerFullPath),
 	}
 }
 

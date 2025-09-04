@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
@@ -24,7 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -34,13 +35,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	messagetrackerDirName     = "messagetracker"
+	fileManagerStorageDirName = "filemanager"
+)
+
 // Service defines a server that provides relay service.
 type Service struct {
 	// conf holds the configuration for the service.
 	conf *config.RelayService
 
 	// ctx is used to control the service lifecycle (cancellation and timeouts).
-	ctx context.Context
+	ctx contextx.IContext
 
 	// cancelFunc is used to cancel the service and all associated operations.
 	cancelFunc context.CancelFunc
@@ -51,6 +57,9 @@ type Service struct {
 
 	// router is the entry point of the service, routing requests to different capabilities.
 	servers []*restserver.Server
+
+	// instance is the discover instance of the service.
+	instance discover.Instance
 }
 
 // NewService creates a new relay service.
@@ -61,44 +70,52 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
+		instance: discover.NewInstance(string(discover.ServiceNameRelay), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
-	var err error
-	svc.Cap.AgentFileGroup, err = local.NewLocalDir(conf.AgentFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init agent file group: %v", err)
+	if err := svc.initialCapability(); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
 
-	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init proxy file group: %v", err)
+	if err := svc.registerRestServer(); err != nil {
+		return nil, fmt.Errorf("failed to register http rest server: %w", err)
 	}
 
+	return svc, nil
+}
+
+func (svc *Service) initialCapability() error {
+	// initial messager
 	svc.Cap.Messager = relayhandler.NewClientMessager(relayhandler.ClientMessagerConfig{
-		PluginVersion:    version.Version().Version,
-		DomainSocketPath: conf.Plugin.MessageDomainSocketPath,
-		LocalSocketPort:  conf.Plugin.MessageLocalSocketPort,
-		Logger:           svc.Cap.Logger,
-		MessageIDPath:    conf.MessageIDPath,
-		PluginName:       conf.PluginName,
+		PluginVersion:          version.Version().Version,
+		DomainSocketPath:       svc.conf.Plugin.MessageDomainSocketPath,
+		LocalSocketPort:        svc.conf.Plugin.MessageLocalSocketPort,
+		Logger:                 svc.Cap.Logger,
+		MessageTrackerFullPath: filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, messagetrackerDirName),
+		PluginName:             svc.conf.PluginName,
 	})
 
-	svc.Cap.FileManager = file.NewFileManager(svc.ctx,
-		conf.FileManagerDirPath,
+	// initial file manager
+	svc.Cap.FileManager = file.NewFileManager(
+		svc.ctx,
+		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName),
 		svc.Cap.Logger)
+	if svc.Cap.FileManager == nil {
+		return fmt.Errorf("failed to init file manager")
+	}
 
-	// TODO: write a client handler config.
+	// initial client handler
 	clientHandler := handler.NewClientHandler(svc.Cap.FileManager,
 		svc.Cap.Messager,
-		svc.Cap.Logger,
-		conf.StorageTmpDirPath,
-		conf.CallbackServer.AdvertiseIPV4,
-		conf.CallbackServer.Port,
-		conf.FileServer.AdvertiseIPV4,
-		conf.FileServer.Port)
+		svc.conf,
+		svc.Cap.Logger)
+	if clientHandler == nil {
+		return fmt.Errorf("failed to init client handler")
+	}
 
+	// register server push event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeCheckPkgState, clientHandler.CheckPkgStats)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeNotifyReceive, clientHandler.StoragePkg)
@@ -107,14 +124,31 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeDetectInfoByWMI, clientHandler.DetectInfoByWMI)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeInstallByWMI, clientHandler.InstallPagentByWMI)
 
+	return nil
+}
+
+func (svc *Service) registerRestServer() error {
+	if err := svc.registerCallbackServer(); err != nil {
+		return fmt.Errorf("failed to register callback server: %w", err)
+	}
+
+	if err := svc.registerFileServer(); err != nil {
+		return fmt.Errorf("failed to register file server: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) registerCallbackServer() error {
 	requestIDSetter := restserver.NewRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
-	callbackServer := restserver.NewServer(
+
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameRelayCallback),
-			IP:              conf.CallbackServer.BindIP,
-			Port:            conf.CallbackServer.Port,
+			IP:              svc.conf.CallbackServer.BindIP,
+			Port:            svc.conf.CallbackServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
@@ -122,14 +156,30 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
 	)
-	svc.servers = append(svc.servers, callbackServer)
 
-	fileServer := restserver.NewServer(
+	if server == nil {
+		return fmt.Errorf("failed to create callback server")
+	}
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameRelayCallback, discover.Endpoint{
+		IPV4: svc.conf.CallbackServer.AdvertiseIPV4,
+		Port: svc.conf.CallbackServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerFileServer() error {
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameRelayFile),
-			IP:              conf.FileServer.BindIP,
-			Port:            conf.FileServer.Port,
+			IP:              svc.conf.DownloadServer.BindIP,
+			Port:            svc.conf.DownloadServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
@@ -137,9 +187,18 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		restserver.WithPing(),
 		withDownload(svc.Cap),
 	)
-	svc.servers = append(svc.servers, fileServer)
 
-	return svc, nil
+	if server == nil {
+		return fmt.Errorf("failed to create file server")
+	}
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameRelayFile, discover.Endpoint{
+		IPV4: svc.conf.DownloadServer.AdvertiseIPV4,
+		Port: svc.conf.DownloadServer.Port,
+	})
+
+	return nil
 }
 
 // withCallbackServer load callback api.

@@ -11,6 +11,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -20,8 +21,8 @@ import (
 const (
 	defaultRelayCallbackBindIP = "127.0.0.1"
 	defaultRelayCallbackPort   = 8001
-	defaultRelayFileBindIP     = "127.0.0.1"
-	defaultRelayFilePort       = 8002
+	defaultRelayDownloadBindIP = "127.0.0.1"
+	defaultRelayDownloadPort   = 8002
 	defaultRelayAdvertiseIPv4  = "127.0.0.1"
 	defaultRelayAdvertiseIPv6  = "::1"
 
@@ -31,28 +32,18 @@ const (
 	defaultRelayLogLevel     = "INFO"
 	defaultRelayPluginName   = "bk-nodemgr-relay"
 
-	defaultRelayMessageIDPath     = "/usr/local/gse2/proxy/bin/tmp/message_id"
-	defaultRelayStorageTmpDirPath = "/usr/local/gse2/proxy/bin/tmp/transfer_files"
-
-	defaultRelayFileManagerDirPath = "/usr/local/gse2/proxy/bin/file_manager"
+	defaultRelayWorkspaceGroupFullPath = "/data/plugin-relay"
 )
 
 // RelayService the config of relay service.
 type RelayService struct {
-	Plugin GSEPlugin `yaml:"plugin" usage:"gse agent plugin config of relay service"`
-
-	AgentFileGroup FileGroup `yaml:"agentFileGroup" usage:"agent file group config of relay service"`
-	ProxyFileGroup FileGroup `yaml:"proxyFileGroup" usage:"proxy file group config of relay service"`
+	PluginName string    `yaml:"pluginName" usage:"gse agent plugin name of relay service"`
+	Plugin     GSEPlugin `yaml:"plugin" usage:"gse agent plugin config of relay service"`
 
 	CallbackServer CallbackServer `yaml:"callbackServer" usage:"callback server config of relay service"`
-	FileServer     HTTPServer     `yaml:"fileServer" usage:"file server config of relay service"`
+	DownloadServer HTTPServer     `yaml:"downloadServer" usage:"download server config of file service"`
 
-	PluginName string `yaml:"pluginName" usage:"gse agent plugin name of relay service"`
-
-	MessageIDPath string `yaml:"messageIDPath" usage:"message id full path of relay service"`
-
-	FileManagerDirPath string `yaml:"fileManagerDirPath" usage:"file manager dir path of relay service"`
-	StorageTmpDirPath  string `yaml:"storageTmpDirPath" usage:"storage tmp dir path of relay service"`
+	RelayWorkspaceFileGroup FileGroup `yaml:"relayWorkspaceFileGroup" usage:"workspace file group config of file service"`
 
 	Log Log `yaml:"log" usage:"log config of relay service"`
 }
@@ -72,9 +63,9 @@ func NewRelayService() *RelayService {
 				AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 				AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 			}},
-		FileServer: HTTPServer{
-			BindIP:        defaultRelayFileBindIP,
-			Port:          defaultRelayFilePort,
+		DownloadServer: HTTPServer{
+			BindIP:        defaultRelayDownloadBindIP,
+			Port:          defaultRelayDownloadPort,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 		},
@@ -84,10 +75,10 @@ func NewRelayService() *RelayService {
 			MaxNum:    defaultRelayLogMaxNum,
 			Level:     defaultRelayLogLevel,
 		},
-		MessageIDPath:      defaultRelayMessageIDPath,
-		PluginName:         defaultRelayPluginName,
-		FileManagerDirPath: defaultRelayFileManagerDirPath,
-		StorageTmpDirPath:  defaultRelayStorageTmpDirPath,
+		PluginName: defaultRelayPluginName,
+		RelayWorkspaceFileGroup: FileGroup{
+			FullPath: defaultRelayWorkspaceGroupFullPath,
+		},
 	}
 }
 
@@ -113,12 +104,20 @@ func (svc *RelayService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *RelayService) Validate() error {
-	if err := svc.AgentFileGroup.Validate(); err != nil {
-		return err
+	if err := svc.RelayWorkspaceFileGroup.Validate(); err != nil {
+		return fmt.Errorf("failed to validate workspace file group config: %w", err)
 	}
 
-	if err := svc.ProxyFileGroup.Validate(); err != nil {
-		return err
+	if err := svc.DownloadServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate node service config: %w", err)
+	}
+
+	if err := svc.CallbackServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate callback service config: %w", err)
+	}
+
+	if err := svc.Log.Validate(); err != nil {
+		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
 	return nil
