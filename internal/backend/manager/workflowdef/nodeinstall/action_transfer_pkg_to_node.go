@@ -213,7 +213,6 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 }
 
 func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
-
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,
 		platform.Platform{

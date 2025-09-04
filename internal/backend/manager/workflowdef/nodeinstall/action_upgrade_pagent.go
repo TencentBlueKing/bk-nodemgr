@@ -137,10 +137,10 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 
 	// exec upgrade command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doUpgradeWindows(ctx, upgradeParams)
+		return act.doUpgradeWindows(std, upgradeParams)
 	}
 
-	return act.doUpgradeUnix(ctx, upgradeParams)
+	return act.doUpgradeUnix(std, upgradeParams)
 }
 
 func (act *actionUpgradePagent) setupUpgradeParams(
@@ -157,7 +157,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 	}
 
 	// get service addresses form relay config file.
-	fileSvcAddr, callbackSvcAddr := act.getServiceAddresses(std)
+	downloadSvcAddr, callbackSvcAddr := act.getServiceAddresses(std)
 
 	upgradeParams := &UpgradeParams{
 		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
@@ -167,7 +167,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  callbackSvcAddr,
-		FileSvrAddr:      fileSvcAddr,
+		DownloadSvrAddr:  downloadSvcAddr,
 		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
@@ -180,7 +180,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeUnix(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, param *UpgradeParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -189,7 +189,7 @@ func (act *actionUpgradePagent) doUpgradeUnix(ctx *action.InstanceContext, param
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
+		fmt.Sprintf("--filesvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
@@ -202,9 +202,9 @@ func (act *actionUpgradePagent) doUpgradeUnix(ctx *action.InstanceContext, param
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("chmod +x %s && %s full-upgrade %s >%s 2>&1 &",
 		installerPath, installerPath, strings.Join(args, " "), upgradeLogPath)
-	ctx.Data.LogI("upgrade node cmd: " + upgradeCmd)
+	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
@@ -220,13 +220,14 @@ func (act *actionUpgradePagent) doUpgradeUnix(ctx *action.InstanceContext, param
 	if err != nil {
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
-	ctx.Data.LogI("upgrade node task-id: " + taskID)
+
+	std.InstanceData().LogI("upgrade node task id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder, param *UpgradeParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -235,7 +236,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, pa
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
+		fmt.Sprintf("--filesvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
@@ -248,9 +249,9 @@ func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, pa
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("%s full-upgrade %s >%s 2>&1",
 		installerPath, strings.Join(args, " "), upgradeLogPath)
-	ctx.Data.LogI("upgrade node cmd: " + upgradeCmd)
+	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
@@ -265,7 +266,8 @@ func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, pa
 	if err != nil {
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
-	ctx.Data.LogI("upgrade node task-id: " + taskID)
+
+	std.InstanceData().LogI("upgrade node task id: " + taskID)
 
 	return nil
 }
@@ -273,12 +275,12 @@ func (act *actionUpgradePagent) doUpgradeWindows(ctx *action.InstanceContext, pa
 func (act *actionUpgradePagent) getServiceAddresses(std *utils.NodeActionStandarder) (
 	string, string) {
 
-	fileSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.FileSvcPort)
+	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.FileSvcPort)
 	callbackSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort)
 
-	std.InstanceData().LogI(fmt.Sprintf("relay file svr addr(%s), callback svr addr(%s)", fileSvrAddr, callbackSvrAddr))
+	std.InstanceData().LogI(fmt.Sprintf("relay file svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))
 
-	return fileSvrAddr, callbackSvrAddr
+	return downloadSvrAddr, callbackSvrAddr
 }
 
 func getHTTPAddress(ip string, port int64) string {
