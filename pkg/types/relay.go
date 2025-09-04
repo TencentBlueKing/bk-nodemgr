@@ -16,13 +16,13 @@ type RelayInfo struct {
 	HostID int64
 	// AgentID is the proxy host id.
 	AgentID string
-	// PackageBasePath is the package base path.
+	// PackageDestDir is the package dest dir.
 	PackageDestDir string
 
 	// InnerIP is the inner ip.
 	InnerIP string
-	// FileSvcPort is the file service port.
-	FileSvcPort int64
+	// DownloadSvcPort is the file service port.
+	DownloadSvcPort int64
 	// CallbackSvcPort is the callback service port.
 	CallbackSvcPort int64
 }

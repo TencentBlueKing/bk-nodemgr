@@ -275,7 +275,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder
 func (act *actionUpgradePagent) getServiceAddresses(std *utils.NodeActionStandarder) (
 	string, string) {
 
-	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.FileSvcPort)
+	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort)
 	callbackSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort)
 
 	std.InstanceData().LogI(fmt.Sprintf("relay file svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))

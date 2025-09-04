@@ -155,7 +155,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			AgentID:         info.RelayInfo.AgentID,
 			InnerIP:         info.RelayInfo.InnerIP,
 			PackageDestDir:  info.RelayInfo.PackageDestDir,
-			FileSvcPort:     info.RelayInfo.FileSvcPort,
+			DownloadSvcPort: info.RelayInfo.DownloadSvcPort,
 			CallbackSvcPort: info.RelayInfo.CallbackSvcPort,
 		},
 	}, nil
@@ -373,7 +373,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			AgentID:         info.RelayInfo.AgentID,
 			PackageDestDir:  info.RelayInfo.PackageDestDir,
 			InnerIP:         info.RelayInfo.InnerIP,
-			FileSvcPort:     info.RelayInfo.FileSvcPort,
+			DownloadSvcPort: info.RelayInfo.DownloadSvcPort,
 			CallbackSvcPort: info.RelayInfo.CallbackSvcPort,
 		},
 	}

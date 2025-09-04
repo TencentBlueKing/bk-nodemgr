@@ -168,7 +168,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		HostID:          relayHost.HostID,
 		AgentID:         relayHost.Dynamic.AgentID,
 		InnerIP:         relayHost.Static.InnerIP,
-		FileSvcPort:     relayHost.Dynamic.RelayFilePort,
+		DownloadSvcPort: relayHost.Dynamic.RelayDownloadPort,
 		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil
 }

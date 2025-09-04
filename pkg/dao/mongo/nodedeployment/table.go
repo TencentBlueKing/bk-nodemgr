@@ -119,7 +119,7 @@ type RelayInfo struct {
 	AgentID         string `json:"agent_id" bson:"agent_id"`
 	InnerIP         string `json:"inner_ip" bson:"inner_ip"`
 	PackageDestDir  string `json:"package_dest_dir" bson:"package_dest_dir"`
-	FileSvcPort     int64  `json:"file_svc_port" bson:"file_svc_port"`
+	DownloadSvcPort int64  `json:"download_svc_port" bson:"download_svc_port"`
 	CallbackSvcPort int64  `json:"callback_svc_port" bson:"callback_svc_port"`
 }
 

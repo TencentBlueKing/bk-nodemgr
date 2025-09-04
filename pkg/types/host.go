@@ -136,9 +136,9 @@ type HostDynamic struct {
 	ProxyDataPort    int64
 	ProxyFilePort    int64
 
-	// RelayFilePort represents the port of relay file server.
+	// RelayDownloadPort represents the port of relay file server.
 	// RelayCallbackPort represents the port of relay callback server.
-	RelayFilePort     int64
+	RelayDownloadPort int64
 	RelayCallbackPort int64
 }
 

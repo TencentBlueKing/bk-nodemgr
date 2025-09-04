@@ -430,7 +430,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			LoginCreditID:     host.Dynamic.LoginCreditID,
 			ExportIP:          host.Dynamic.ExportIP,
 			AdvertiseIP:       host.Dynamic.AdvertiseIP,
-			RelayFilePort:     host.Dynamic.RelayFilePort,
+			RelayDownloadPort: host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort: host.Dynamic.RelayCallbackPort,
 		}
 	}
@@ -496,7 +496,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			LoginCreditID:       host.Dynamic.LoginCreditID,
 			ExportIP:            host.Dynamic.ExportIP,
 			AdvertiseIP:         host.Dynamic.AdvertiseIP,
-			RelayFilePort:       host.Dynamic.RelayFilePort,
+			RelayDownloadPort:   host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort:   host.Dynamic.RelayCallbackPort,
 		}
 	}
@@ -648,7 +648,7 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 
 	if fields.RelayFilePort {
-		updates[FieldKeyDynamicRelayFilePort] = host.Dynamic.RelayFilePort
+		updates[FieldKeyDynamicRelayFilePort] = host.Dynamic.RelayDownloadPort
 	}
 	if fields.RelayCallbackPort {
 		updates[FieldKeyDynamicRelayCallbackPort] = host.Dynamic.RelayCallbackPort
