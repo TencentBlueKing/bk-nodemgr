@@ -177,18 +177,18 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 }
 
 func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActionStandarder) (
-	string, string, deployconstant.DeployConf, error) {
+	string, string, deployconstant.NodeDeployConf, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
 		std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
-		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
 	}
 
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
@@ -301,7 +301,7 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 // TODO: add relay file and callback address.
 func (act *actionInstallPagentByWMI) buildInstallParams(
 	std *utils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.DeployConf) []string {
+	installerPath string, deployConstant deployconstant.NodeDeployConf) []string {
 
 	installParams := &InstallParamsWin{
 		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,

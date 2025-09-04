@@ -22,8 +22,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// DeployConf defines the deployment configuration for agent.
-type DeployConf struct {
+// NodeDeployConf defines the deployment configuration for agent.
+type NodeDeployConf struct {
 	// base.
 	Generation    types.Generation
 	OsType        criteria.OSType
@@ -43,7 +43,7 @@ type DeployConf struct {
 }
 
 // Validate checks if the deployment configuration is valid.
-func (conf DeployConf) Validate() error {
+func (conf NodeDeployConf) Validate() error {
 	if err := conf.Generation.Validate(); err != nil {
 		return fmt.Errorf("invalid generation, err: %w", err)
 	}
@@ -84,55 +84,55 @@ func (conf DeployConf) Validate() error {
 }
 
 // nolint: gochecknoglobals
-var deployConfMap = make(map[types.Generation]map[criteria.OSType]DeployConf)
+var nodeDeployConfMap = make(map[types.Generation]map[criteria.OSType]NodeDeployConf)
 
-// GetDeployConf returns the deployment configuration for the specified OS type.
-func GetDeployConf(generation types.Generation, osType criteria.OSType) (DeployConf, error) {
-	confMap, ok := deployConfMap[generation]
+// GetNodeDeployConf returns the deployment configuration for the specified OS type.
+func GetNodeDeployConf(generation types.Generation, osType criteria.OSType) (NodeDeployConf, error) {
+	confMap, ok := nodeDeployConfMap[generation]
 	if !ok {
-		return DeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
+		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
 	}
 
 	conf, ok := confMap[osType]
 	if !ok {
-		return DeployConf{}, fmt.Errorf("deploy conf not found for os type: %s", osType)
+		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for os type: %s", osType)
 	}
 
 	return conf, nil
 }
 
-// SetDeployConf sets the deployment configuration for the specified OS type.
+// SetNodeDeployConf sets the deployment configuration for the specified OS type.
 // this map only set once, if the osType already exists, it will not be set again.
-func SetDeployConf(conf DeployConf) error {
+func SetNodeDeployConf(conf NodeDeployConf) error {
 	// Populate default values if not set
-	populateDefaultValues(&conf)
+	populateNodeDefaultValues(&conf)
 
 	if err := conf.Validate(); err != nil {
 		return fmt.Errorf("set deploy conf failed, err: %w", err)
 	}
 
-	if _, ok := deployConfMap[conf.Generation]; !ok {
-		deployConfMap[conf.Generation] = make(map[criteria.OSType]DeployConf)
+	if _, ok := nodeDeployConfMap[conf.Generation]; !ok {
+		nodeDeployConfMap[conf.Generation] = make(map[criteria.OSType]NodeDeployConf)
 	}
 
-	if _, ok := deployConfMap[conf.Generation][conf.OsType]; !ok {
-		deployConfMap[conf.Generation][conf.OsType] = conf
+	if _, ok := nodeDeployConfMap[conf.Generation][conf.OsType]; !ok {
+		nodeDeployConfMap[conf.Generation][conf.OsType] = conf
 	}
 
 	return nil
 }
 
-func populateDefaultValues(conf *DeployConf) {
+func populateNodeDefaultValues(conf *NodeDeployConf) {
 	if conf.OsType == criteria.OSWindows {
-		populateDefaultValuesWindows(conf)
+		populateNodeDefaultValuesWindows(conf)
 
 		return
 	}
 
-	populateDefaultValuesUnix(conf)
+	populateNodeDefaultValuesUnix(conf)
 }
 
-func populateDefaultValuesUnix(conf *DeployConf) {
+func populateNodeDefaultValuesUnix(conf *NodeDeployConf) {
 	env := system.GetEnv()
 
 	if conf.LogDir == "" {
@@ -159,7 +159,7 @@ func populateDefaultValuesUnix(conf *DeployConf) {
 	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
 }
 
-func populateDefaultValuesWindows(conf *DeployConf) {
+func populateNodeDefaultValuesWindows(conf *NodeDeployConf) {
 	env := system.GetEnv()
 
 	if conf.LogDir == "" {

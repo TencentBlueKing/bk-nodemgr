@@ -132,7 +132,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 	}
 
 	for idx := range svc.conf.GSEDeployConfs {
-		deployConf := deployconstant.DeployConf{
+		deployConf := deployconstant.NodeDeployConf{
 			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
 			OsType:        criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
 			BaseWorkDir:   svc.conf.GSEDeployConfs[idx].BaseWorkDir,
@@ -144,7 +144,7 @@ func NewService(conf *config.BackendService) (*Service, error) {
 			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].Custom.AgentPluginIPCPath,
 			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
 		}
-		if err := deployconstant.SetDeployConf(deployConf); err != nil {
+		if err := deployconstant.SetNodeDeployConf(deployConf); err != nil {
 			return nil, fmt.Errorf("failed to set deploy conf: %w", err)
 		}
 	}

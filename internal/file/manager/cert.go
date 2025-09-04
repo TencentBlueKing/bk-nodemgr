@@ -206,6 +206,18 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 	return detail, nil
 }
 
+const (
+	certDirNameRoot            = "cert"
+	certFileNameCaCrt          = "gseca.crt"
+	certFileNameCertEncryptKey = "cert_encrypt.key"
+	certFileNameAgentCrt       = "gse_agent.crt"
+	certFileNameAgentKey       = "gse_agent.key"
+	certFileNameServerCrt      = "gse_server.crt"
+	certFileNameServerKey      = "gse_server.key"
+	certFileNameAPIClientCrt   = "gse_api_client.crt"
+	certFileNameAPIClientKey   = "gse_api_client.key"
+)
+
 // PublishReleaseCert generates release cert by upload-id.
 func (m *Manager) PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetCertUpload(ctx, uploadID)
@@ -308,49 +320,49 @@ func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser)
 
 	if err = generateTgz(targetFile,
 		[]tgzWriteRuleDir{
-			{targetFilePath: []string{"cert"}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{certDirNameRoot}, targetFileMode: tgzModeDir},
 		},
 		[]*tgzWriteRuleStream{{
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{"gseca.crt"},
-					targetFilePath: []string{"cert", "gseca.crt"},
+					sourceFilePath: []string{certFileNameCaCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameCaCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_agent.crt"},
-					targetFilePath: []string{"cert", "gse_agent.crt"},
+					sourceFilePath: []string{certFileNameAgentCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_agent.key"},
-					targetFilePath: []string{"cert", "gse_agent.key"},
+					sourceFilePath: []string{certFileNameAgentKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameAgentKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_server.crt"},
-					targetFilePath: []string{"cert", "gse_server.crt"},
+					sourceFilePath: []string{certFileNameServerCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameServerCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_server.key"},
-					targetFilePath: []string{"cert", "gse_server.key"},
+					sourceFilePath: []string{certFileNameServerKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameServerKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_api_client.crt"},
-					targetFilePath: []string{"cert", "gse_api_client.crt"},
+					sourceFilePath: []string{certFileNameAPIClientCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"gse_api_client.key"},
-					targetFilePath: []string{"cert", "gse_api_client.key"},
+					sourceFilePath: []string{certFileNameAPIClientKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{"cert_encrypt.key"},
-					targetFilePath: []string{"cert", "cert_encrypt.key"},
+					sourceFilePath: []string{certFileNameCertEncryptKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
 					targetFileMode: tgzModeFile,
 				},
 			},

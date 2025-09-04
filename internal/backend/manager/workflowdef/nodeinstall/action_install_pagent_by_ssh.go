@@ -274,18 +274,18 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 }
 
 func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActionStandarder) (
-	string, string, deployconstant.DeployConf, error) {
+	string, string, deployconstant.NodeDeployConf, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
 		std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
-		return "", "", deployconstant.DeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
+		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
 	}
 
 	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
@@ -298,7 +298,7 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActio
 // TODO: add relay file and callback address.
 func (act *actionInstallPagentBySSH) buildInstallParams(
 	std *utils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.DeployConf) []string {
+	installerPath string, deployConstant deployconstant.NodeDeployConf) []string {
 
 	installParams := &InstallParams{
 		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
