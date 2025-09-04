@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/robfig/cron/v3"
 )
@@ -61,7 +62,7 @@ type Task struct {
 	ID       string
 	Interval string
 	Timeout  time.Duration
-	Fn       func(context.Context) error
+	Fn       func(contextx.IContext) error
 }
 
 // NewTask creates a new Task with the given ID, interval, timeout, and function.
@@ -70,7 +71,7 @@ func NewTask[T string | time.Duration](
 	id string,
 	interval T,
 	timeout time.Duration,
-	fn func(context.Context) error,
+	fn func(contextx.IContext) error,
 ) *Task {
 
 	var cronExpr string
@@ -93,7 +94,7 @@ func NewTask[T string | time.Duration](
 type scheduler struct {
 	tasks  map[string]*scheduledTask
 	mu     sync.Mutex
-	ctx    context.Context
+	ctx    contextx.IContext
 	cancel context.CancelFunc
 	cron   *cron.Cron
 	logger logger.ILogger
@@ -118,7 +119,7 @@ func WithLogger(logger logger.ILogger) OptionFn {
 
 // NewScheduler ...
 func NewScheduler(opts ...OptionFn) Scheduler {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
 	s := &scheduler{
 		tasks:  make(map[string]*scheduledTask),
@@ -143,7 +144,7 @@ func NewScheduler(opts ...OptionFn) Scheduler {
 	return s
 }
 
-// RegisterTask register a task
+// RegisterTask register a task.
 func (s *scheduler) RegisterTask(task *Task) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -177,7 +178,7 @@ func (s *scheduler) Start() {
 
 // executeTask ...
 func (s *scheduler) executeTask(task *scheduledTask) {
-	ctx, cancel := context.WithTimeout(s.ctx, task.Timeout)
+	ctx, cancel := contextx.WithTimeout(contextx.NewContext(s.ctx, map[string]any{}), task.Timeout)
 	defer cancel()
 
 	defer func() {

@@ -129,7 +129,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint
 func (h *handler) buildBat(installerPath, targetWorkDir string, args []string) string {
-	args = append(args, "--filesvr_addr "+getIPV4Address(h.fileSvcIP, h.fileSvcPort))
+	args = append(args, "--dlsvr_addr "+getIPV4Address(h.downloadSvcIP, h.downloadSvcPort))
 	args = append(args, "--cbsvr_addr "+getIPV4Address(h.callbackSvcIP, h.callbackSvcPort))
 
 	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))

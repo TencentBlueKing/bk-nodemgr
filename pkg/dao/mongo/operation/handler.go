@@ -33,6 +33,9 @@ type IHandler interface {
 
 	// Delete deletes operations.
 	Delete(ctx context.Context, operationID ...string) error
+
+	// PullOperInstIDs pull operation instance ids by operation id.
+	PullOperInstIDs(ctx context.Context, operationID string, operInstIDs ...string) error
 }
 
 type handler struct {
@@ -108,6 +111,15 @@ func (h *handler) Delete(ctx context.Context, operationID ...string) error {
 	}
 
 	return h.dao.delete(ctx, operationID...)
+}
+
+// PullOperInstIDs pull operation instance ids by operation id.
+func (h *handler) PullOperInstIDs(ctx context.Context, operationID string, operInstIDs ...string) error {
+	if operationID == "" || len(operInstIDs) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	return h.dao.pullField(ctx, operationID, "oper_inst_ids", operInstIDs)
 }
 
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {

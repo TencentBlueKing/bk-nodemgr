@@ -51,8 +51,8 @@ type handler struct {
 	callbackSvcIP   string
 	callbackSvcPort int
 
-	fileSvcIP   string
-	fileSvcPort int
+	downloadSvcIP   string
+	downloadSvcPort int
 
 	logger logger.ILogger
 }
@@ -60,7 +60,7 @@ type handler struct {
 // NewClientHandler creates a new file handler.
 func NewClientHandler(fm file.IFileManager, client relayhandler.IClientMessager,
 	logger logger.ILogger, storageTmpDir string,
-	callbackSvcIP string, callbackSvcPort int, fileSvcIP string, fileSvcPort int) IHandler {
+	callbackSvcIP string, callbackSvcPort int, downloadSvcIP string, downloadSvcPort int) IHandler {
 
 	return &handler{
 		storageTmpDir:   storageTmpDir,
@@ -68,8 +68,8 @@ func NewClientHandler(fm file.IFileManager, client relayhandler.IClientMessager,
 		client:          client,
 		callbackSvcIP:   callbackSvcIP,
 		callbackSvcPort: callbackSvcPort,
-		fileSvcIP:       fileSvcIP,
-		fileSvcPort:     fileSvcPort,
+		downloadSvcIP:   downloadSvcIP,
+		downloadSvcPort: downloadSvcPort,
 		logger:          logger,
 	}
 }

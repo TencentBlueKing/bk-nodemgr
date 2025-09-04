@@ -4,12 +4,12 @@ runMode: debug
 # tenantMode single/multiple.
 tenantMode: single
 
-# httpServer defines self http server settings.
-httpServer:
+# infoServer defines self info http server settings.
+infoServer:
   # listening IP and Port.
-  bindIP: 0.0.0.0
-  port: __BK_NODEMGR_FILE_SERVICE_PORT__
-  
+  bindIP: 127.0.0.1
+  port: __BK_NODEMGR_FILE_INFO_PORT__
+
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
 
@@ -18,6 +18,24 @@ adminServer:
   # listening IP and Port.
   bindIP: 127.0.0.1
   port: __BK_NODEMGR_FILE_ADMIN_PORT__
+
+  # advertiseIP advertise ip for external access.
+  advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+
+# basicServer defines self basic http server settings.
+basicServer:
+  # listening IP and Port.
+  bindIP: 0.0.0.0
+  port: __BK_NODEMGR_FILE_BASIC_PORT__
+  
+  # advertiseIP advertise ip for external access.
+  advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+
+# downloadServer defines self node http server settings.
+downloadServer:
+  # listening IP and Port.
+  bindIP: 127.0.0.1
+  port: __BK_NODEMGR_FILE_DOWNLOAD_PORT__
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__

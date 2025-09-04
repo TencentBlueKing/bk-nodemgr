@@ -12,20 +12,21 @@
 package main
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 )
 
+// nolint: mnd
 func main() {
-	s := scheduler.NewScheduler()
+	schedule := scheduler.NewScheduler()
 
-	err := s.RegisterTask(scheduler.NewTask(
+	err := schedule.RegisterTask(scheduler.NewTask(
 		"test1",
 		1*time.Second,
-		5*time.Second, // nolint: mnd
-		func(_ context.Context) error {
+		5*time.Second,
+		func(_ contextx.IContext) error {
 			time.Sleep(10 * time.Second)
 
 			return nil
@@ -35,7 +36,7 @@ func main() {
 		panic(err)
 	}
 
-	s.Start()
+	schedule.Start()
 
 	time.Sleep(100 * time.Second)
 }

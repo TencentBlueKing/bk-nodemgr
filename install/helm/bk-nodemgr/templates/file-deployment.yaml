@@ -102,15 +102,17 @@ spec:
             - name: NODEMGR-MODULE
               value: file
           ports:
-            - name: service-http
-              containerPort: {{ .Values.file.config.httpServer.port }}
-            - name: admin-http
-              containerPort: {{ .Values.file.config.adminServer.port }}
+            - name: info-http
+              containerPort: {{ .Values.file.config.infoServer.port }}
+            - name: basic-http
+              containerPort: {{ .Values.file.config.basicServer.port }}
+            - name: download-http
+              containerPort: {{ .Values.file.config.downloadServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -123,7 +125,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: service-http
+              port: info-http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}

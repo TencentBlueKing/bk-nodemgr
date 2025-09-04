@@ -66,7 +66,7 @@ type UpgradeParams struct {
 	Generation       types.Generation
 	NodeRole         types.NodeRole
 	CallbackSvrAddr  string
-	FileSvrAddr      string
+	DownloadSvrAddr  string
 	NodeVersion      string
 	DeployToken      string
 	OperInstID       string
@@ -153,9 +153,9 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	randSelector := discover.NewRandomSelector()
-	fileSvrEndpoint, err := act.provider.GetEndpoint(
+	downloadSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,
-		discover.EndpointNameFileBasic,
+		discover.EndpointNameFileDownload,
 		randSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get file endpoint, err: %w", err)
@@ -182,7 +182,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		Generation:       info.Host.Dynamic.NodeGeneration,
 		NodeRole:         info.Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		FileSvrAddr:      "http://" + fileSvrEndpoint.GetIPV4Address(),
+		DownloadSvrAddr:  "http://" + downloadSvrEndpoint.GetIPV4Address(),
 		DeployToken:      param.Token,
 		OperInstID:       ctx.Data.OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
@@ -207,7 +207,7 @@ func (act *actionUpgradeNode) doUpgradeUnix(ctx *action.InstanceContext, param *
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
+		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
@@ -254,7 +254,7 @@ func (act *actionUpgradeNode) doUpgradeWindows(ctx *action.InstanceContext, para
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.FileSvrAddr),
+		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),

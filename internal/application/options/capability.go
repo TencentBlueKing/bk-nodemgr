@@ -20,10 +20,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
+	// MongoClient mongo client.
+	MongoClient *mongo.Client
+
 	// BackendHandler the backend api hanler.
 	BackendHandler backend.IHandler
 

@@ -39,7 +39,7 @@ import (
 func NewFullInstall() *cobra.Command {
 	var (
 		// required flags.
-		fileSvrAddr     string
+		downloadSvrAddr string
 		callbackSvrAddr string
 		deployToken     string
 		operInstID      string
@@ -104,7 +104,7 @@ func NewFullInstall() *cobra.Command {
 
 			// download files.
 			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				FileSvrAddr:        fileSvrAddr,
+				DownloadSvrAddr:    downloadSvrAddr,
 				CallbackSvrAddr:    callbackSvrAddr,
 				NodeRole:           persistentVars.NodeRole,
 				Generation:         persistentVars.Generation,
@@ -192,8 +192,8 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files and reporting status")
-	_ = fullCmd.MarkFlagRequired(flag.FilesSvrAddr)
+	fullCmd.Flags().StringVar(&downloadSvrAddr, flag.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
+	_ = fullCmd.MarkFlagRequired(flag.DownloadSvrAddr)
 
 	fullCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
 	_ = fullCmd.MarkFlagRequired(flag.CallbackSvrAddr)

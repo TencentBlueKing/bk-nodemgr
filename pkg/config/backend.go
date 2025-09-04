@@ -25,17 +25,20 @@ const (
 	// backend service config default values.
 	defaultBackendRunMode              = RunModeRelease
 	defaultBackendTenantMode           = tenant.ModeSingle
-	defaultBackendHTTPBindIP           = "127.0.0.1"
-	defaultBackendHTTPPort             = 8000
-	defaultBackendHTTPAuthIdentity     = AuthIdentityAPIGW
+	defaultBackendInfoBindIP           = "127.0.0.1"
+	defaultBackendInfoBindPort         = 28100
+	defaultBackendInfoAuthIdentity     = AuthIdentityNone
 	defaultBackendAdminBindIP          = "127.0.0.1"
-	defaultBackendAdminPort            = 8001
+	defaultBackendAdminPort            = 28101
 	defaultBackendAdminAuthIdentity    = AuthIdentityRestServer
+	defaultBackendBasicBindIP          = "127.0.0.1"
+	defaultBackendBasicPort            = 28102
+	defaultBackendBasicAuthIdentity    = AuthIdentityAPIGW
 	defaultBackendCallbackBindIP       = "127.0.0.1"
-	defaultBackendCallbackPort         = 8002
+	defaultBackendCallbackPort         = 28103
 	defaultBackendCallbackAuthIdentity = AuthIdentityNone
 	defaultBackendProxyBindIP          = "127.0.0.1"
-	defaultBackendProxyPort            = 8003
+	defaultBackendProxyPort            = 28104
 	defaultBackendProxyAuthIdentity    = AuthIdentityNone
 	defaultBackendLogDir               = "/bk-nodemgr/log/"
 	defaultBackendLogMaxNum            = 10
@@ -69,8 +72,9 @@ type BackendService struct {
 	CMDB               CMDB             `yaml:"cmdb" usage:"cmdb config of backend service"`
 	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
 	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
-	HTTPServer         HTTPServer       `yaml:"httpServer" usage:"http server config of backend service"`
+	InfoServer         HTTPServer       `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer       `yaml:"adminServer" usage:"admin server config of backend service"`
+	BasicServer        HTTPServer       `yaml:"basicServer" usage:"basic server config of backend service"`
 	CallbackServer     CallbackServer   `yaml:"callbackServer" usage:"callback server config of backend service"`
 	ProxyServer        ProxyServer      `yaml:"proxyServer" usage:"proxy server config of backend service"`
 	Etcd               Etcd             `yaml:"etcd" usage:"etcd config of backend service"`
@@ -91,17 +95,26 @@ func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
-		HTTPServer: HTTPServer{
-			BindIP:        defaultBackendHTTPBindIP,
-			Port:          defaultBackendHTTPPort,
-			AuthIdentity:  defaultBackendHTTPAuthIdentity,
+		InfoServer: HTTPServer{
+			BindIP:        defaultBackendInfoBindIP,
+			Port:          defaultBackendInfoBindPort,
+			AuthIdentity:  defaultBackendInfoAuthIdentity,
 			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:       defaultBackendAdminBindIP,
-			Port:         defaultBackendAdminPort,
-			AuthIdentity: defaultBackendAdminAuthIdentity,
+			BindIP:        defaultBackendAdminBindIP,
+			Port:          defaultBackendAdminPort,
+			AuthIdentity:  defaultBackendAdminAuthIdentity,
+			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
+			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
+		},
+		BasicServer: HTTPServer{
+			BindIP:        defaultBackendBasicBindIP,
+			Port:          defaultBackendBasicPort,
+			AuthIdentity:  defaultBackendBasicAuthIdentity,
+			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
+			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer: HTTPServer{
@@ -177,32 +190,48 @@ func (svc *BackendService) LoadFromFile(path string) error {
 
 // Validate validates the config.
 func (svc *BackendService) Validate() error {
+	if err := svc.RunMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate run mode config: %w", err)
+	}
+
+	if err := svc.TenantMode.Validate(); err != nil {
+		return fmt.Errorf("failed to validate tenant mode config: %w", err)
+	}
+
 	if err := svc.Workflow.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate workflow service config: %w", err)
 	}
 
 	if err := svc.CreditVault.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate credit vault service config: %w", err)
 	}
 
-	if err := svc.HTTPServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+	if err := svc.InfoServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate info service config: %w", err)
 	}
 
 	if err := svc.AdminServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate admin service config: %w", err)
+	}
+
+	if err := svc.BasicServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate basic service config: %w", err)
 	}
 
 	if err := svc.CallbackServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate callback service config: %w", err)
 	}
 
 	if err := svc.ProxyServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate proxy service config: %w", err)
 	}
 
 	if err := svc.Access.Validate(); err != nil {
-		return fmt.Errorf("failed to validate backend service: %w", err)
+		return fmt.Errorf("failed to validate access service config: %w", err)
+	}
+
+	if err := svc.Log.Validate(); err != nil {
+		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
 	return nil

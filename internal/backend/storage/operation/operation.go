@@ -193,3 +193,16 @@ func (s *Storage) DeleteOperations(ctx context.Context, operationID ...string) e
 
 	return s.daoOperation.Delete(ctx, operationID...)
 }
+
+// PullOperationInstanceIDs pulls operation instance IDs from operation.
+func (s *Storage) PullOperationInstanceIDs(ctx context.Context, operationID string, operInstIDs ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.PullOperInstIDs(ctx, operationID, operInstIDs...)
+}

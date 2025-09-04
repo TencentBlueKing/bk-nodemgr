@@ -42,11 +42,11 @@ func NewFullUpgrade() *cobra.Command {
 		nodeVersion     string
 
 		// optional flags.
-		fileSvrAddr  string
-		logDir       string
-		restart      bool
-		force        bool
-		skipDownload bool
+		downloadSvrAddr string
+		logDir          string
+		restart         bool
+		force           bool
+		skipDownload    bool
 
 		// pre-run.
 		persistentVars   *persistent.Variables
@@ -59,8 +59,8 @@ func NewFullUpgrade() *cobra.Command {
 		Short: "Full upgrade process",
 		Long:  "Full upgrade process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			if fileSvrAddr == "" && !skipDownload {
-				return fmt.Errorf("%s is required when %s is not set", flag.FilesSvrAddr, flag.SkipDownload)
+			if downloadSvrAddr == "" && !skipDownload {
+				return fmt.Errorf("%s is required when %s is not set", flag.DownloadSvrAddr, flag.SkipDownload)
 			}
 
 			vars, err := persistent.GetVariables(cmd)
@@ -107,7 +107,7 @@ func NewFullUpgrade() *cobra.Command {
 			// download files.
 			if !skipDownload {
 				if err := filedownloader.NewStep(filedownloader.StepArgs{
-					FileSvrAddr:        fileSvrAddr,
+					DownloadSvrAddr:    downloadSvrAddr,
 					CallbackSvrAddr:    callbackSvrAddr,
 					NodeRole:           persistentVars.NodeRole,
 					Generation:         persistentVars.Generation,
@@ -187,7 +187,7 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files. if skip_download is set, this can be empty")
+	fullCmd.Flags().StringVar(&downloadSvrAddr, flag.DownloadSvrAddr, "", "download server address, for downloading release files. if skip_download is set, this can be empty")
 	fullCmd.Flags().StringVar(&logDir, flag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&restart, flag.Restart, false, "whether to restart node after upgrade")
 	fullCmd.Flags().BoolVar(&force, flag.Force, false, "whether to force restart when --restart is set")

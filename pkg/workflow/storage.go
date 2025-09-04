@@ -72,6 +72,9 @@ type IStorageOperation interface {
 
 	// DeleteOperations deletes operations.
 	DeleteOperations(ctx context.Context, operationID ...string) error
+
+	// PullOperationInstanceIDs pulls operation instance IDs from operation.
+	PullOperationInstanceIDs(ctx context.Context, operationID string, operInstIDs ...string) error
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.

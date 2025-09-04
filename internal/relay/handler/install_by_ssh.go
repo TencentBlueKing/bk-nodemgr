@@ -133,7 +133,7 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 // add cmd backend svc and file svc.
 // nolint: perfsprint
 func (h *handler) buildCMD(installerPath string, args []string) string {
-	args = append(args, "--filesvr_addr "+getIPV4Address(h.fileSvcIP, h.fileSvcPort))
+	args = append(args, "--dlsvr_addr "+getIPV4Address(h.downloadSvcIP, h.downloadSvcPort))
 	args = append(args, "--cbsvr_addr "+getIPV4Address(h.callbackSvcIP, h.callbackSvcPort))
 
 	cmd := fmt.Sprintf("%s full-install %s", installerPath, strings.Join(args, " "))

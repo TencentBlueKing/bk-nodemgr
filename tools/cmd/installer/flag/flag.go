@@ -51,8 +51,8 @@ const (
 	// DeployToken defines the deploy token flag.
 	DeployToken = "deploy_token"
 
-	// FilesSvrAddr defines the file server address flag.
-	FilesSvrAddr = "filesvr_addr"
+	// DownloadSvrAddr defines the download server address flag.
+	DownloadSvrAddr = "dlsvr_addr"
 
 	// CallbackSvrAddr defines the callback server address flag.
 	CallbackSvrAddr = "cbsvr_addr"

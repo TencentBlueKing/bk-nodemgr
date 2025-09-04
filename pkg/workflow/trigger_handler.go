@@ -12,7 +12,6 @@
 package workflow
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -121,13 +120,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckOnceTrigger,
 			onceTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				if err := handler.syncOnceTrigger(ctx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(
-					contextx.NewContext(ctx, make(map[string]any)), handler.onceTriggers.get()); err != nil {
+				if err := handler.checkTriggerList(ctx, handler.onceTriggers.get()); err != nil {
 					return err
 				}
 
@@ -138,13 +136,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckOrderedTrigger,
 			orderedTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				if err := handler.syncOrderedTrigger(ctx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(
-					contextx.NewContext(ctx, make(map[string]any)), handler.orderedTriggers.get()); err != nil {
+				if err := handler.checkTriggerList(ctx, handler.orderedTriggers.get()); err != nil {
 					return err
 				}
 
@@ -155,13 +152,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckPeriodicTrigger,
 			periodicTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				if err := handler.syncPeriodicTrigger(ctx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(
-					contextx.NewContext(ctx, make(map[string]any)), handler.periodicTriggers.get()); err != nil {
+				if err := handler.checkTriggerList(ctx, handler.periodicTriggers.get()); err != nil {
 					return err
 				}
 
@@ -179,7 +175,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 }
 
 // syncOnceTrigger syncs once triggers from storage.
-func (handler *triggerHandler) syncOnceTrigger(ctx context.Context) error {
+func (handler *triggerHandler) syncOnceTrigger(ctx contextx.IContext) error {
 	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOnce)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
@@ -196,7 +192,7 @@ func (handler *triggerHandler) syncOnceTrigger(ctx context.Context) error {
 }
 
 // syncOrderedTrigger syncs ordered triggers from storage.
-func (handler *triggerHandler) syncOrderedTrigger(ctx context.Context) error {
+func (handler *triggerHandler) syncOrderedTrigger(ctx contextx.IContext) error {
 	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOrdered)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
@@ -213,7 +209,7 @@ func (handler *triggerHandler) syncOrderedTrigger(ctx context.Context) error {
 }
 
 // syncPeriodicTrigger syncs periodic triggers from storage.
-func (handler *triggerHandler) syncPeriodicTrigger(ctx context.Context) error {
+func (handler *triggerHandler) syncPeriodicTrigger(ctx contextx.IContext) error {
 	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryPeriodic)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.

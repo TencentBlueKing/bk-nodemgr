@@ -31,11 +31,13 @@ import (
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -76,6 +78,9 @@ type Service struct {
 
 	// instance is the discover instance of the service.
 	instance discover.Instance
+
+	// authIdentityMap defines the mapping between auth identity and auth identity handler.
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
 }
 
 // NewService creates a new file service.
@@ -87,132 +92,415 @@ func NewService(conf *config.FileService) (*Service, error) {
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
-		instance: discover.NewInstance("file", nil),
+		instance: discover.NewInstance(string(discover.ServiceNameFile), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
-	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
-		etcddiscover.WithLogger(svc.Cap.Logger),
-		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
-	)
-
-	var err error
-
-	// init mongoclient.
-	mongoClient, err := initMongoDB(&conf.MongoDB)
-	if err != nil {
-		return nil, err
+	if err := svc.initialStaticsConfigs(); err != nil {
+		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
 	}
 
-	svc.Cap.StorageUpload, err = storageUpload.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
+	if err := svc.initialCapability(); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
 
-	svc.Cap.StorageRelease, err = storageRelease.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
+	if err := svc.registerRestServer(); err != nil {
+		return nil, fmt.Errorf("failed to register http rest server: %w", err)
 	}
-
-	svc.Cap.StorageTopo, err = storageTopo.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	// init gse handler.
-	svc.Cap.GSEHandler, err = newGSEHandler(conf.GSE)
-	if err != nil {
-		return nil, err
-	}
-
-	// init bkrepo.
-	svc.Cap.BKRepo, err = initBKRepo(conf, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init bkrepo: %w", err)
-	}
-
-	// init manager.
-	svc.Cap.Manager, err = initManager(conf,
-		svc.Cap.BKRepo,
-		svc.Cap.StorageUpload,
-		svc.Cap.StorageRelease,
-		svc.Cap.StorageTopo,
-		svc.Cap.GSEHandler,
-		svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init manager: %w", err)
-	}
-
-	requestIDSetter := restserver.NewRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
-
-	httpServer := restserver.NewServer(
-		svc.ctx,
-		restserver.Options{
-			Name:            string(discover.EndpointNameFileBasic),
-			IP:              conf.HTTPServer.BindIP,
-			Port:            conf.HTTPServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
-			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
-		},
-		restserver.WithPing(),
-		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
-		withDownload(svc.Cap),
-	)
-	svc.servers = append(svc.servers, httpServer)
-	svc.instance.Update(discover.EndpointNameFileBasic, discover.Endpoint{
-		IPV4: conf.HTTPServer.AdvertiseIPV4,
-		IPV6: conf.HTTPServer.AdvertiseIPV6,
-		Port: conf.HTTPServer.Port,
-	})
-
-	adminServer := restserver.NewServer(
-		svc.ctx,
-		restserver.Options{
-			Name:            string(discover.EndpointNameFileAdmin),
-			IP:              conf.AdminServer.BindIP,
-			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
-			Port:            conf.AdminServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
-		},
-		restserver.WithPing(),
-		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
-		withUpload(svc.Cap),
-		withPublish(svc.Cap),
-		withTransfer(svc.Cap),
-	)
-	svc.servers = append(svc.servers, adminServer)
-	svc.instance.Update(discover.EndpointNameFileAdmin, discover.Endpoint{
-		IPV4: conf.AdminServer.AdvertiseIPV4,
-		IPV6: conf.AdminServer.AdvertiseIPV6,
-		Port: conf.AdminServer.Port,
-	})
 
 	return svc, nil
 }
 
-// newGSEHandler.
-func newGSEHandler(conf config.GSE) (gse.IHandler, error) {
-	apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
+// nolint: unparam
+func (svc *Service) initialStaticsConfigs() error {
+	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+	}
+
+	return nil
+}
+
+// nolint: funlen
+func (svc *Service) initialCapability() error {
+	var err error
+
+	// discover provider.
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
+		etcddiscover.WithLogger(svc.Cap.Logger),
+	)
+
+	// initial gse handler.
+	svc.Cap.GSEHandler, err = svc.newGSEHandler()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to create gse handler: %w", err)
+	}
+
+	// initial bkrepo.
+	svc.Cap.BKRepo, err = svc.newBKRepoHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create bkrepo handler: %w", err)
+	}
+
+	// initial mongo client.
+	svc.Cap.MongoClient, err = svc.newMongoClient()
+	if err != nil {
+		return fmt.Errorf("failed to create mongo client: %w", err)
+	}
+
+	// initial serveral storages.
+	if err = svc.initialStorages(); err != nil {
+		return fmt.Errorf("failed to initial storages: %w", err)
+	}
+
+	// initial manager.
+	if err = svc.initialManager(); err != nil {
+		return fmt.Errorf("failed to initial manager: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) newGSEHandler() (gse.IHandler, error) {
+	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.GSE.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.GSE.APIGatewayClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
 	}
 
 	apiGwClientCapability.Name = "gse"
-	gseHandler, err := gse.New(apiGwClientCapability, &gse.Config{
-		APIGWUserConfig: apiGwClientConfig,
-	})
+	gseHandler, err := gse.New(
+		apiGwClientCapability,
+		&gse.Config{
+			APIGWUserConfig: apiGWUserConfig,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	return gseHandler, nil
+}
+
+func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http client for bkrepo handler: %w", err)
+	}
+
+	clientCap := &restclient.Capability{
+		HTTPClient:           httpClient,
+		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{svc.conf.Repo.Endpoint}),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	return bkrepo.New(clientCap, &bkrepo.Config{
+		ProjectID: svc.conf.Repo.ProjectID,
+		RepoName:  svc.conf.Repo.RepoName,
+		Username:  svc.conf.Repo.AccessKey,
+		Password:  svc.conf.Repo.SecretKey,
+	})
+}
+
+func (svc *Service) newMongoClient() (*mongo.Client, error) {
+	mongoClient, err := mongo.Connect(
+		context.Background(),
+		&mongoOptions.ClientOptions{
+			Hosts: svc.conf.MongoDB.Hosts,
+			Auth: &mongoOptions.Credential{
+				Username:      svc.conf.MongoDB.Username,
+				Password:      svc.conf.MongoDB.Password,
+				AuthSource:    svc.conf.MongoDB.AuthSource,
+				AuthMechanism: svc.conf.MongoDB.AuthMechanism,
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to mongo client: %w", err)
+	}
+
+	return mongoClient, nil
+}
+
+// nolint: funlen
+func (svc *Service) initialStorages() error {
+	var err error
+
+	svc.Cap.StorageUpload, err = storageUpload.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create upload storage: %w", err)
+	}
+
+	svc.Cap.StorageRelease, err = storageRelease.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database, svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create release storage: %w", err)
+	}
+
+	svc.Cap.StorageTopo, err = storageTopo.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create topo storage: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: funlen
+func (svc *Service) initialManager() error {
+	// init upstream origin file groups from bkrepo.
+	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/agent")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
+	}
+	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/server")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
+	}
+	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/cert")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
+	}
+	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/bintool")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
+	}
+	upstreamOriginOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/official_plugin")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
+	}
+	upstreamOriginExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/external_plugin")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
+	}
+
+	// init upstream release file groups from bkrepo.
+	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/agent")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
+	}
+	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/proxy")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
+	}
+	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/cert")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
+	}
+	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/bintool")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
+	}
+	upstreamOriginPluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/plugin_bintool")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
+	}
+	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/plugin_bintool")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
+	}
+	upstreamReleaseOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/official_plugin")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release official plugin file group: %w", err)
+	}
+	upstreamReleaseExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/external_plugin")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream release external plugin file group: %w", err)
+	}
+
+	// init local temp file group.
+	tempFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "temp"), svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to init temp file group: %w", err)
+	}
+	installerFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "installer"), svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to init installer file group: %w", err)
+	}
+	cacheFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "cache"), svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to init cache file group: %w", err)
+	}
+
+	svc.Cap.Manager = manager.New(
+		manager.WithLogger(svc.Cap.Logger),
+		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
+		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
+		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
+		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
+		manager.WithUpstreamOriginPluginBinToolFileGroup(upstreamOriginPluginBinToolFG),
+		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
+		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
+		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
+		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
+		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
+		manager.WithTempFileGroup(tempFG),
+		manager.WithInstallerFileGroup(installerFG),
+		manager.WithCacheFileGroup(cacheFG),
+		manager.WithStorageUpload(svc.Cap.StorageUpload),
+		manager.WithStorageRelease(svc.Cap.StorageRelease),
+		manager.WithStorageTopo(svc.Cap.StorageTopo),
+		manager.WithAdvertiseIPV4(svc.conf.BasicServer.AdvertiseIPV4),
+		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
+		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),
+		manager.WithGSEHandler(svc.Cap.GSEHandler),
+		manager.WithUpstreamOriginOfficialPluginFileGroup(upstreamOriginOfficialPlugin),
+		manager.WithUpstreamReleaseOfficialPluginFileGroup(upstreamReleaseOfficialPlugin),
+		manager.WithUpstreamOriginExternalPluginFileGroup(upstreamOriginExternalPlugin),
+		manager.WithUpstreamReleaseExternalPluginFileGroup(upstreamReleaseExternalPlugin),
+	)
+
+	return nil
+}
+
+func (svc *Service) registerRestServer() error {
+	if err := svc.registerInfoServer(); err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
+
+	if err := svc.registerAdminServer(); err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
+
+	if err := svc.registerBasicServer(); err != nil {
+		return fmt.Errorf("failed to register basic server: %w", err)
+	}
+
+	if err := svc.registerDownloadServer(); err != nil {
+		return fmt.Errorf("failed to register download server: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerInfoServer() error {
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileInfo),
+			IP:              svc.conf.InfoServer.BindIP,
+			Port:            svc.conf.InfoServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withHealthz(svc.Cap),
+		withMetrics(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameFileInfo, discover.Endpoint{
+		IPV4: svc.conf.InfoServer.AdvertiseIPV4,
+		IPV6: svc.conf.InfoServer.AdvertiseIPV6,
+		Port: svc.conf.InfoServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerAdminServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileAdmin),
+			IP:              svc.conf.AdminServer.BindIP,
+			Port:            svc.conf.AdminServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameFileAdmin, discover.Endpoint{
+		IPV4: svc.conf.AdminServer.AdvertiseIPV4,
+		IPV6: svc.conf.AdminServer.AdvertiseIPV6,
+		Port: svc.conf.AdminServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerBasicServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.BasicServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileBasic),
+			IP:              svc.conf.BasicServer.BindIP,
+			Port:            svc.conf.BasicServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withUpload(svc.Cap),
+		withPublish(svc.Cap),
+		withTransfer(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameFileBasic, discover.Endpoint{
+		IPV4: svc.conf.BasicServer.AdvertiseIPV4,
+		IPV6: svc.conf.BasicServer.AdvertiseIPV6,
+		Port: svc.conf.BasicServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerDownloadServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.DownloadServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameFileDownload),
+			IP:              svc.conf.DownloadServer.BindIP,
+			Port:            svc.conf.DownloadServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withDownload(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameFileDownload, discover.Endpoint{
+		IPV4: svc.conf.DownloadServer.AdvertiseIPV4,
+		IPV6: svc.conf.DownloadServer.AdvertiseIPV6,
+		Port: svc.conf.DownloadServer.Port,
+	})
+
+	return nil
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
@@ -239,30 +527,23 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 	return clientCap, nil
 }
 
-// newAPIGwClientConfig creates a new api-gateway client config.
-func newAPIGwClientConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
+// newAPIGWUserConfig creates a new api-gateway client config.
+func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 	return apigwclient.UserConfig{
-		AppConfig: apigwclient.NewAppConfig(
-			conf.Endpoints,
-			conf.AppCode,
-			conf.AppSecret),
+		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		BKUsername:  conf.User,
 		AccessToken: conf.AccessToken,
 	}
 }
 
-var _ restserver.ILogWriter = &loggerWriterAdaptor{}
-
 // loggerWriterAdaptor implements rest.LoggerWriter.
 type loggerWriterAdaptor struct{}
 
-// InfoWriter returns the writer for logging info.
 func (l loggerWriterAdaptor) InfoWriter() io.Writer {
 	return blog.WriterInfo{}
 }
 
-// ErrorWriter returns the writer for logging errors.
 func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
 	return blog.WriterError{}
 }
@@ -361,161 +642,4 @@ func (svc *Service) GracefulShutdown() error {
 	blog.CloseLogs()
 
 	return nil
-}
-
-// nolint: funlen
-func initManager(conf *config.FileService,
-	repo bkrepo.IHandler,
-	storageUpload storageUpload.IStorage,
-	storageRelease storageRelease.IStorage,
-	storageTopo storageTopo.IStorage,
-	gseHandler gse.IHandler,
-	logger logger.ILogger) (manager.IManager, error) {
-
-	// init upstream origin file groups from bkrepo.
-	upstreamOriginAgentFG, err := repo.EnsureFileGroup(context.Background(), "origin/agent")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
-	}
-	upstreamOriginServerFG, err := repo.EnsureFileGroup(context.Background(), "origin/server")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
-	}
-	upstreamOriginCertFG, err := repo.EnsureFileGroup(context.Background(), "origin/cert")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
-	}
-	upstreamOriginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "origin/bintool")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
-	}
-	upstreamOriginPluginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "origin/plugin_bintool")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
-	}
-	upstreamOriginOfficialPlugin, err := repo.EnsureFileGroup(context.Background(), "origin/official_plugin")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
-	}
-	upstreamOriginExternalPlugin, err := repo.EnsureFileGroup(context.Background(), "origin/external_plugin")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
-	}
-
-	// init upstream release file groups from bkrepo.
-	upstreamReleaseAgentFG, err := repo.EnsureFileGroup(context.Background(), "release/agent")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
-	}
-	upstreamReleaseProxyFg, err := repo.EnsureFileGroup(context.Background(), "release/proxy")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
-	}
-	upstreamRealseCertFG, err := repo.EnsureFileGroup(context.Background(), "release/cert")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
-	}
-	upstreamReleaseBinToolFG, err := repo.EnsureFileGroup(context.Background(), "release/bintool")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
-	}
-	upstreamReleasePluginBinToolFG, err := repo.EnsureFileGroup(context.Background(), "release/plugin_bintool")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
-	}
-	upstreamReleaseOfficialPlugin, err := repo.EnsureFileGroup(context.Background(), "release/official_plugin")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release official plugin file group: %w", err)
-	}
-	upstreamReleaseExternalPlugin, err := repo.EnsureFileGroup(context.Background(), "release/external_plugin")
-	if err != nil {
-		return nil, fmt.Errorf("failed to ensure upstream release external plugin file group: %w", err)
-	}
-
-	// init local temp file group.
-	tempFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "temp"), logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init temp file group: %w", err)
-	}
-	installerFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "installer"), logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init installer file group: %w", err)
-	}
-	cacheFG, err := local.NewLocalDir(filepath.Join(conf.WorkspaceFileGroup.FullPath, "cache"), logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init cache file group: %w", err)
-	}
-
-	return manager.New(
-		manager.WithLogger(logger),
-		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
-		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
-		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
-		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
-		manager.WithUpstreamOriginPluginBinToolFileGroup(upstreamOriginPluginBinToolFG),
-		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
-		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
-		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
-		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBinToolFG),
-		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
-		manager.WithTempFileGroup(tempFG),
-		manager.WithInstallerFileGroup(installerFG),
-		manager.WithCacheFileGroup(cacheFG),
-		manager.WithStorageUpload(storageUpload),
-		manager.WithStorageRelease(storageRelease),
-		manager.WithStorageTopo(storageTopo),
-		manager.WithAdvertiseIPV4(conf.HTTPServer.AdvertiseIPV4),
-		manager.WithAdvertiseIPV6(conf.HTTPServer.AdvertiseIPV6),
-		manager.WithMount(conf.MountHostDir, conf.WorkspaceFileGroup.FullPath),
-		manager.WithGSEHandler(gseHandler),
-		manager.WithUpstreamOriginOfficialPluginFileGroup(upstreamOriginOfficialPlugin),
-		manager.WithUpstreamReleaseOfficialPluginFileGroup(upstreamReleaseOfficialPlugin),
-		manager.WithUpstreamOriginExternalPluginFileGroup(upstreamOriginExternalPlugin),
-		manager.WithUpstreamReleaseExternalPluginFileGroup(upstreamReleaseExternalPlugin),
-	), nil
-}
-
-func initBKRepo(conf *config.FileService, logger logger.ILogger) (bkrepo.IHandler, error) {
-	// init repo
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to init rest client: %w", err)
-	}
-
-	clientCap := &restclient.Capability{
-		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{conf.Repo.Endpoint}),
-		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
-		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger,
-	}
-
-	return bkrepo.New(clientCap, &bkrepo.Config{
-		ProjectID: conf.Repo.ProjectID,
-		RepoName:  conf.Repo.RepoName,
-		Username:  conf.Repo.AccessKey,
-		Password:  conf.Repo.SecretKey,
-	})
-}
-
-func initMongoDB(conf *config.MongoDB) (*mongo.Client, error) {
-	mongoClient, err := mongo.Connect(
-		context.Background(),
-		&mongoOptions.ClientOptions{
-			Hosts: conf.Hosts,
-			Auth: &mongoOptions.Credential{
-				Username:      conf.Username,
-				Password:      conf.Password,
-				AuthSource:    conf.AuthSource,
-				AuthMechanism: conf.AuthMechanism,
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return mongoClient, nil
 }

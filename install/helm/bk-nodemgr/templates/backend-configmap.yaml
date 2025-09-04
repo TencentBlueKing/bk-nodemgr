@@ -20,7 +20,15 @@ data:
 
     encryptKey: {{ .Values.backend.config.encryptKey }}
 
-    httpServer: {{ .Values.backend.config.httpServer | toYaml | nindent 6 }}
+    infoServer: {{ .Values.backend.config.infoServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
+      advertiseIPV4: __ADVERTISE_IPV4__
+      advertiseIPV6: __ADVERTISE_IPV6__
+
+    basicServer: {{ .Values.backend.config.basicServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
@@ -29,10 +37,6 @@ data:
       advertiseIPV6: __ADVERTISE_IPV6__
 
     proxyServer: {{ .Values.backend.config.proxyServer | toYaml | nindent 6 }}
-      advertiseIPV4: __ADVERTISE_IPV4__
-      advertiseIPV6: __ADVERTISE_IPV6__
-
-    adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 

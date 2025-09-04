@@ -1,11 +1,11 @@
 package scheduler
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
@@ -18,7 +18,7 @@ func TestScheduler(t *testing.T) {
 		"normal",
 		time.Second,
 		time.Minute,
-		func(ctx context.Context) error {
+		func(ctx contextx.IContext) error {
 			t.Logf("cnt: %d\n", cnt)
 			cnt++
 			return nil
@@ -28,7 +28,7 @@ func TestScheduler(t *testing.T) {
 		"normal",
 		"*/5 * * * * *",
 		time.Minute,
-		func(ctx context.Context) error {
+		func(ctx contextx.IContext) error {
 			t.Logf("cnt: %d\n", cnt)
 			cnt++
 			return nil
@@ -39,7 +39,7 @@ func TestScheduler(t *testing.T) {
 		"timeout",
 		time.Second,
 		2*time.Second,
-		func(ctx context.Context) error {
+		func(ctx contextx.IContext) error {
 			time.Sleep(2 * time.Second)
 			return nil
 		},
@@ -49,7 +49,7 @@ func TestScheduler(t *testing.T) {
 		"error",
 		time.Second,
 		time.Minute,
-		func(ctx context.Context) error {
+		func(ctx contextx.IContext) error {
 			return fmt.Errorf("error")
 		},
 	))
@@ -58,7 +58,7 @@ func TestScheduler(t *testing.T) {
 		"panic",
 		time.Second,
 		time.Minute,
-		func(ctx context.Context) error {
+		func(ctx contextx.IContext) error {
 			panic("panic")
 		},
 	))

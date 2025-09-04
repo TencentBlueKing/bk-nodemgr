@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package deployconstant provides constants and configuration for deployment.
 package deployconstant
 
 import (
@@ -24,11 +23,10 @@ import (
 
 // NodeDeployConf defines the deployment configuration for agent.
 type NodeDeployConf struct {
+	DeployConf
+
 	// base.
-	Generation    types.Generation
-	OsType        criteria.OSType
-	BaseWorkDir   string
-	BaseDeployDir string
+	BaseWorkDir string
 
 	// custom.
 	LogDir             string
@@ -38,8 +36,7 @@ type NodeDeployConf struct {
 	EnvironDir         string
 
 	// generates by base and custom.
-	WorkDir   string
-	DeployDir string
+	WorkDir string
 }
 
 // Validate checks if the deployment configuration is valid.

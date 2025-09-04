@@ -37,11 +37,14 @@ type Provider interface {
 type EndpointName string
 
 const (
-	// EndpointNameBackendBasic the backend endpoint name.
-	EndpointNameBackendBasic EndpointName = "backend-basic"
+	// EndpointNameBackendInfo the backend info endpoint name.
+	EndpointNameBackendInfo EndpointName = "backend-info"
 
 	// EndpointNameBackendAdmin the backend admin endpoint name.
 	EndpointNameBackendAdmin EndpointName = "backend-admin"
+
+	// EndpointNameBackendBasic the backend endpoint name.
+	EndpointNameBackendBasic EndpointName = "backend-basic"
 
 	// EndpointNameBackendCallback the backend callback endpoint name.
 	EndpointNameBackendCallback EndpointName = "backend-callback"
@@ -49,23 +52,35 @@ const (
 	// EndpointNameBackendPorxy the backend proxy endpoint name.
 	EndpointNameBackendPorxy EndpointName = "backend-proxy"
 
-	// EndpointNameApplicationBasic the application basic endpoint name.
-	EndpointNameApplicationBasic EndpointName = "application-basic"
+	// EndpointNameApplicationInfo the application info endpoint name.
+	EndpointNameApplicationInfo EndpointName = "application-info"
 
 	// EndpointNameApplicationAdmin the application admin endpoint name.
 	EndpointNameApplicationAdmin EndpointName = "application-admin"
 
-	// EndpointNameFileBasic the file basic endpoint name.
-	EndpointNameFileBasic EndpointName = "file-basic"
+	// EndpointNameApplicationBasic the application basic endpoint name.
+	EndpointNameApplicationBasic EndpointName = "application-basic"
+
+	// EndpointNameFileInfo the file info endpoint name.
+	EndpointNameFileInfo EndpointName = "file-info"
 
 	// EndpointNameFileAdmin the file admin endpoint name.
 	EndpointNameFileAdmin EndpointName = "file-admin"
+
+	// EndpointNameFileBasic the file basic endpoint name.
+	EndpointNameFileBasic EndpointName = "file-basic"
+
+	// EndpointNameFileDownload the file download endpoint name.
+	EndpointNameFileDownload EndpointName = "file-download"
 
 	// EndpointNameRelayCallback the relay callback endpoint name.
 	EndpointNameRelayCallback EndpointName = "relay-callback"
 
 	// EndpointNameRelayFile the relay file endpoint name.
 	EndpointNameRelayFile EndpointName = "relay-file"
+
+	// EndpointNameRelayInfo the relay info endpoint name.
+	EndpointNameRelayInfo EndpointName = "relay-info"
 )
 
 // Endpoint defines the exported endpoint of service on discover.

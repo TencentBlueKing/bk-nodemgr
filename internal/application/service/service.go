@@ -70,99 +70,276 @@ type Service struct {
 	// Note: Cap is initialized in the Start() and could not be used in other package.
 	// Cap is the capability of the service.
 	Cap *options.Capability
+
+	// instance is the discover instance of the service.
+	instance discover.Instance
+
+	// authIdentityMap defines the mapping between auth identity and auth identity handler.
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
+
+	// bkloginHandler is the handler of bklogin.
+	bkloginHandler bksaasbklogin.IHandler
 }
 
 // NewService creates a new application service.
 func NewService(conf *config.ApplicationService) (*Service, error) {
-	if err := conf.Validate(); err != nil {
-		return nil, fmt.Errorf("failed to new service: %w", err)
-	}
-
 	svc := &Service{
 		conf: conf,
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
+		instance: discover.NewInstance(string(discover.ServiceNameApplication), nil),
 	}
 
 	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
 
-	var err error
-
-	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&conf.Etcd,
-		etcddiscover.WithLogger(svc.Cap.Logger),
-		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
-	)
-
-	svc.Cap.BackendHandler, err = newBackendHandler(svc.conf.Backend)
-	if err != nil {
-		return nil, fmt.Errorf("failed to new service: %w", err)
+	if err := svc.initialStaticsConfigs(); err != nil {
+		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
 	}
 
-	mongoClient, err := initMongoDB(&conf.MongoDB)
-	if err != nil {
-		return nil, err
+	if err := svc.initialCapability(); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
 
-	svc.Cap.StorageConfigPolicyTemplate, err = cptemplate.NewStorage(mongoClient, conf.MongoDB.Database, svc.Cap.Logger)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.Cap.FileHandler, err = newFileHandler(svc.Cap.DiscoverProvider)
-	if err != nil {
-		return nil, fmt.Errorf("failed to new service: %w", err)
-	}
-
-	bkloginHandler, err := newBKLoginHandler(conf.BKSaas.BKLogin, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to new service: %w", err)
-	}
-
-	svc.Cap.FrontSetting, _ = frontsetting.NewFrontSetting(
-		frontsetting.Option{
-			BKLoginURL:            bkloginHandler.GetLoginURL(),
-			BKRequestIDHeaderKEy:  bksaasheader.KeyBKRequestID,
-			BKPassAnalyticsScript: conf.BKPaas.AnalysisScript,
-		},
-	)
-
-	authIdentityMap := map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone:    restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityBKLogin: bkloginHandler.GetAuthIdentity(),
-	}
-
-	if err := svc.registerRestServer(conf, authIdentityMap); err != nil {
-		return nil, fmt.Errorf("failed to new service: %w", err)
+	if err := svc.registerRestServer(); err != nil {
+		return nil, fmt.Errorf("failed to register http rest server: %w", err)
 	}
 
 	return svc, nil
 }
 
-// nolint: unparam
-func (svc *Service) registerRestServer(
-	conf *config.ApplicationService,
-	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity) error {
+func (svc *Service) initialStaticsConfigs() error {
+	var err error
 
-	apigwRequestIDSetter := apigwserver.NewBKAPIRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
-
-	httpServerAuthIdentity := authIdentityMap[conf.HTTPServer.AuthIdentity]
-	if httpServerAuthIdentity == nil {
-		return fmt.Errorf("application no support this auth identity, auth-identity(%s): please use one of %v",
-			conf.HTTPServer.AuthIdentity, conv.MapKeyToSlice(authIdentityMap))
+	// initial bklogin handler.
+	svc.bkloginHandler, err = newBKLoginHandler(svc.conf.BKSaas.BKLogin, svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create bklogin handler: %w", err)
 	}
 
-	httpServer := restserver.NewServer(
+	// initial idenity map.
+	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityBKLogin:    svc.bkloginHandler.GetAuthIdentity(),
+		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+	}
+
+	return nil
+}
+
+// nolint: funlen
+func (svc *Service) initialCapability() error {
+	var err error
+
+	// discover provider watch backend and file service.
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
+		etcddiscover.WithLogger(svc.Cap.Logger),
+		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
+	)
+
+	// initial backend handler.
+	svc.Cap.BackendHandler, err = svc.newBackendHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create backend handler: %w", err)
+	}
+
+	// initial file handler.
+	svc.Cap.FileHandler, err = svc.newFileHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create file handler: %w", err)
+	}
+
+	// initial mongo client.
+	svc.Cap.MongoClient, err = svc.newMongoClient()
+	if err != nil {
+		return fmt.Errorf("failed to create mongo client: %w", err)
+	}
+
+	// initial serveral storages.
+	if err = svc.initialStorages(); err != nil {
+		return fmt.Errorf("failed to initial storages: %w", err)
+	}
+
+	// initial front setting.
+	svc.Cap.FrontSetting, err = frontsetting.NewFrontSetting(
+		frontsetting.Option{
+			BKLoginURL:            svc.bkloginHandler.GetLoginURL(),
+			BKRequestIDHeaderKEy:  bksaasheader.KeyBKRequestID,
+			BKPassAnalyticsScript: svc.conf.BKPaas.AnalysisScript,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create front setting: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) newBackendHandler() (backend.IHandler, error) {
+	apiGwClientConfig := newAPIGWAppConfig(&svc.conf.Backend.APIGatewayClient)
+
+	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.Backend.APIGatewayClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for backend: %w", err)
+	}
+
+	apiGwClientCapability.Name = "backend"
+	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
+		APIGWAppConfig: apiGwClientConfig,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return backendHandler, nil
+}
+
+func (svc *Service) newFileHandler() (file.IHandler, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http client for file service: %w", err)
+	}
+
+	clientCap := &restclient.Capability{
+		HTTPClient: httpClient,
+		Discover: restdiscovery.NewServiceDiscovery(
+			svc.Cap.DiscoverProvider,
+			discover.ServiceNameFile,
+			discover.EndpointNameFileBasic,
+		),
+		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
+		MetricOpts:           restclient.MetricOption{},
+		Logger:               logger.LoggerDefault{},
+	}
+
+	return file.New(clientCap, &file.Config{})
+}
+
+func (svc *Service) newMongoClient() (*mongo.Client, error) {
+	mongoClient, err := mongo.Connect(
+		context.Background(),
+		&mongoOptions.ClientOptions{
+			Hosts: svc.conf.MongoDB.Hosts,
+			Auth: &mongoOptions.Credential{
+				Username:      svc.conf.MongoDB.Username,
+				Password:      svc.conf.MongoDB.Password,
+				AuthSource:    svc.conf.MongoDB.AuthSource,
+				AuthMechanism: svc.conf.MongoDB.AuthMechanism,
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to mongo client: %w", err)
+	}
+
+	return mongoClient, nil
+}
+
+// nolint: funlen
+func (svc *Service) initialStorages() error {
+	var err error
+
+	svc.Cap.StorageConfigPolicyTemplate, err = cptemplate.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create config policy template storage: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) registerRestServer() error {
+	if err := svc.registerInfoServer(); err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
+
+	if err := svc.registerAdminServer(); err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
+
+	if err := svc.registerBasicServer(); err != nil {
+		return fmt.Errorf("failed to register basic server: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerInfoServer() error {
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameApplicationInfo),
+			IP:              svc.conf.InfoServer.BindIP,
+			Port:            svc.conf.InfoServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+		withHealthz(svc.Cap),
+		withMetrics(svc.Cap),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameApplicationInfo, discover.Endpoint{
+		IPV4: svc.conf.InfoServer.AdvertiseIPV4,
+		IPV6: svc.conf.InfoServer.AdvertiseIPV6,
+		Port: svc.conf.InfoServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerAdminServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(discover.EndpointNameApplicationAdmin),
+			IP:              svc.conf.AdminServer.BindIP,
+			Port:            svc.conf.AdminServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+		},
+		restserver.WithPing(),
+	)
+
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameApplicationAdmin, discover.Endpoint{
+		IPV4: svc.conf.AdminServer.AdvertiseIPV4,
+		IPV6: svc.conf.AdminServer.AdvertiseIPV6,
+		Port: svc.conf.AdminServer.Port,
+	})
+
+	return nil
+}
+
+func (svc *Service) registerBasicServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.BasicServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameApplicationBasic),
-			IP:              conf.HTTPServer.BindIP,
-			Port:            conf.HTTPServer.Port,
-			LogWriter:       loggerWriter{},
-			RequestIDSetter: apigwRequestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
-			StaticOptions: restserver.NewStaticOptions(conf.HTTPServer.StaticDir).
+			IP:              svc.conf.BasicServer.BindIP,
+			Port:            svc.conf.BasicServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
+			TenantIDSetter:  restserver.NewTenantIDSetter(),
+			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").
 				WithDirs("static").
@@ -170,25 +347,28 @@ func (svc *Service) registerRestServer(
 				WithFiles("bk.svg", "favicon.png", "nodeman.png"),
 		},
 		restserver.WithPing(),
-		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
 		withWeb(svc.Cap),
-		withAPIV3(svc.Cap, httpServerAuthIdentity),
+		withAPIV3(svc.Cap, authIdentity),
 	)
 
-	svc.servers = append(svc.servers, httpServer)
+	svc.servers = append(svc.servers, server)
+	svc.instance.Update(discover.EndpointNameApplicationBasic, discover.Endpoint{
+		IPV4: svc.conf.BasicServer.AdvertiseIPV4,
+		IPV6: svc.conf.BasicServer.AdvertiseIPV6,
+		Port: svc.conf.BasicServer.Port,
+	})
 
 	return nil
 }
 
-// loggerWriter implements rest.LoggerWriter.
-type loggerWriter struct{}
+// loggerWriterAdaptor implements rest.LoggerWriter.
+type loggerWriterAdaptor struct{}
 
-func (l loggerWriter) InfoWriter() io.Writer {
+func (l loggerWriterAdaptor) InfoWriter() io.Writer {
 	return blog.WriterInfo{}
 }
 
-func (l loggerWriter) ErrorWriter() io.Writer {
+func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
 	return blog.WriterError{}
 }
 
@@ -218,49 +398,6 @@ func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIden
 	return func(rg *gin.RouterGroup) {
 		applicationapiv3.Load(rg, capability, authIdentity)
 	}
-}
-
-// newBackendHandler creates a new backend handler.
-func newBackendHandler(conf config.BackendGateway) (backend.IHandler, error) {
-	apiGwClientConfig := newAPIGWAppConfig(&conf.APIGatewayClient)
-
-	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
-	if err != nil {
-		return nil, fmt.Errorf("faild to new backend handler: %v", err)
-	}
-
-	apiGwClientCapability.Name = "backend"
-	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
-		APIGWAppConfig: apiGwClientConfig,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("faild to new backend handler: %v", err)
-	}
-
-	return backendHandler, nil
-}
-
-// newFileHandler creates a new file handler.
-func newFileHandler(discov discover.Discover) (file.IHandler, error) {
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	clientCap := &restclient.Capability{
-		HTTPClient: httpClient,
-		Discover: restdiscovery.NewServiceDiscovery(
-			discov,
-			discover.ServiceNameFile,
-			discover.EndpointNameFileAdmin),
-		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
-		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
-	}
-
-	return file.New(clientCap, &file.Config{})
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
@@ -304,7 +441,7 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogi
 		Password:           conf.TLS.Password,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to new bklogin handler: %v", err)
+		return nil, fmt.Errorf("failed to create http client for bklogin handler: %w", err)
 	}
 
 	clientCap := &restclient.Capability{
@@ -321,7 +458,7 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogi
 		bksaasbklogin.WithLogger(logger),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to new bklogin handler: %w", err)
+		return nil, err
 	}
 
 	return bkloginHandler, nil

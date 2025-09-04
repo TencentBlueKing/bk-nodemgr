@@ -206,6 +206,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	return h, nil
 }
 
+// nolint: gocognit, funlen
 func (h *Handler) initEnumKeepers() error {
 	h.logger.Infof("initializing enum keepers from cmdb")
 
@@ -218,7 +219,7 @@ func (h *Handler) initEnumKeepers() error {
 			"sync_cloud_vendor",
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
 					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
@@ -235,7 +236,7 @@ func (h *Handler) initEnumKeepers() error {
 			"sync_os_type",
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
 					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
@@ -251,7 +252,7 @@ func (h *Handler) initEnumKeepers() error {
 			"sync_cpu_arch",
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
-			func(ctx context.Context) error {
+			func(ctx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
 					tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, access.GetVirtualUser())
@@ -475,7 +476,7 @@ func (h *Handler) BindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*ty
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to bind host agent, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to bind host agent, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	for _, host := range hostInfo {
@@ -503,7 +504,7 @@ func (h *Handler) UnbindHostAgent(ctx contextx.ITenantUserContext, hostInfo ...*
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to un bind host agent, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to un bind host agent, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	for _, host := range hostInfo {
@@ -534,7 +535,7 @@ func (h *Handler) AddHostToBusinessIdle(ctx contextx.ITenantUserContext, bizID i
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to add host to business idle, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to add host to business idle, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	resp, err := h.cli.addHostToBusinessIdle(tenantUserCtx, req)
@@ -553,7 +554,7 @@ func (h *Handler) PushHostIdentifier(ctx contextx.ITenantUserContext, hostIDs ..
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to push host identifier, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to push host identifier, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	resp, err := h.cli.pushHostIdentifier(tenantUserCtx, req)
@@ -574,7 +575,7 @@ func (h *Handler) FindHostIdentifierPushResult(ctx contextx.ITenantUserContext, 
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to find host identifier push result, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to find host identifier push result, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	resp, err := h.cli.findHostIdentifierPushResult(tenantUserCtx, req)
@@ -643,7 +644,7 @@ func (h *Handler) AddHostToResourcePool(ctx contextx.ITenantUserContext, hosts .
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to add host to resource pool, virutal-user(%s), req(%v)", virtualUser, req)
+	h.logger.InfoCtxf(ctx, "use virtual user to add host to resource pool, virtual-user(%s), req(%v)", virtualUser, req)
 	tenantUserCtx := contextx.NewTenantUserContext(ctx, ctx.TenantID(), virtualUser)
 
 	for _, host := range hosts {

@@ -31,7 +31,7 @@ const (
 func NewDownloadFiles() *cobra.Command {
 	var (
 		// required flags.
-		fileSvrAddr     string
+		downloadSvrAddr string
 		callbackSvrAddr string
 		deployToken     string
 		nodeVersion     string
@@ -54,7 +54,7 @@ func NewDownloadFiles() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := filedownloader.NewStep(filedownloader.StepArgs{
-				FileSvrAddr:        fileSvrAddr,
+				DownloadSvrAddr:    downloadSvrAddr,
 				CallbackSvrAddr:    callbackSvrAddr,
 				NodeRole:           persistentVars.NodeRole,
 				Generation:         persistentVars.Generation,
@@ -78,8 +78,8 @@ func NewDownloadFiles() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&fileSvrAddr, flag.FilesSvrAddr, "", "file server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(flag.FilesSvrAddr)
+	stepCmd.Flags().StringVar(&downloadSvrAddr, flag.DownloadSvrAddr, "", "download server address, for downloading release files")
+	_ = stepCmd.MarkFlagRequired(flag.DownloadSvrAddr)
 
 	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
 	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
