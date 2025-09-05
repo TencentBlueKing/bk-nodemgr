@@ -532,6 +532,6 @@ func (conf PluginName) Validate() error {
 	case PluginNameRelay:
 		return nil
 	default:
-		return fmt.Errorf("invalid plugin name: %s", conf)
+		return fmt.Errorf("invalid plugin name(%s)", conf)
 	}
 }

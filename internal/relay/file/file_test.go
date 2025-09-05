@@ -37,8 +37,10 @@ func setupTestFileManager(t *testing.T) (IFileManager, string, func()) {
 
 	// Create a file manager
 	ctx, cancel := context.WithCancel(context.Background())
-	fm := NewFileManager(ctx, baseDir, logger.LoggerDefault{})
-
+	fm, err := NewFileManager(ctx, baseDir, logger.LoggerDefault{})
+	if err != nil {
+		t.Fatalf("failed to create file manager: %v", err)
+	}
 	return fm, testFilePath, func() {
 		cancel()
 	}

@@ -40,8 +40,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // Healthz check service health.
 func (h *handler) Healthz(ctx *gin.Context) {
-	resp := new(Response)
-	resp.OK = true
-	resp.Manager = "ok"
+	resp := &Response{
+		OK:      true,
+		Manager: "ok",
+	}
+
 	ctx.JSON(http.StatusOK, resp)
 }

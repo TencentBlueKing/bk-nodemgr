@@ -56,13 +56,18 @@ const (
 )
 
 // NewClientMessager creates a new client messager.
-func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
+func NewClientMessager(conf ClientMessagerConfig) (IClientMessager, error) {
+	fileMsgTracker, err := messagetracker.NewFileTracker(context.Background(), conf.MessageTrackerFullPath)
+	if err != nil {
+		return nil, err
+	}
+
 	return &clientMessager{
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
 		eventDispatcher: manager.NewDefaultEventDispatcher(),
-		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageTrackerFullPath),
-	}
+		fileMsgTracker:  fileMsgTracker,
+	}, nil
 }
 
 // clientMessager provides the managements for receiving and sending messages via gse agent.

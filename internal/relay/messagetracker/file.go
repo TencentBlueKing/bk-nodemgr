@@ -35,13 +35,26 @@ type FileTracker struct {
 	mutex       sync.RWMutex
 }
 
-// NewFileManager creates a new FileTracker with the specified storage path.
-func NewFileManager(ctx context.Context, storagePath string) IMessageTracker {
-	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
-		if err := os.MkdirAll(storagePath, 0750); err != nil { //nolint: mnd
-			return nil
-		}
+// NewFileTracker creates a new FileTracker with the specified storage path.
+// nolint: mnd
+func NewFileTracker(ctx context.Context, storagePath string) (IMessageTracker, error) {
+	_, err := os.Stat(storagePath)
+	if err == nil {
+		return initializeFileTracker(ctx, storagePath), nil
 	}
+
+	if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	if mkdirErr := os.MkdirAll(storagePath, 0750); mkdirErr != nil {
+		return nil, mkdirErr
+	}
+
+	return initializeFileTracker(ctx, storagePath), nil
+}
+
+func initializeFileTracker(ctx context.Context, storagePath string) *FileTracker {
 	fm := &FileTracker{
 		storagePath: storagePath,
 		messageSet:  make(map[string]struct{}),

@@ -31,7 +31,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
@@ -39,6 +38,11 @@ import (
 )
 
 const (
+	relayInfoSvcName     = "relay-info"
+	relayAdminSvcName    = "relay-admin"
+	relayCallbackSvcName = "relay-callback"
+	relayDownloadSvcName = "relay-download"
+
 	messagetrackerDirName     = "messagetracker"
 	fileManagerStorageDirName = "filemanager"
 )
@@ -61,9 +65,6 @@ type Service struct {
 	// router is the entry point of the service, routing requests to different capabilities.
 	servers []*restserver.Server
 
-	// instance is the discover instance of the service.
-	instance discover.Instance
-
 	// authIdentityMap is the map of auth identities.
 	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
 }
@@ -76,7 +77,6 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		Cap: &options.Capability{
 			Logger: blog.GlobalLogger{},
 		},
-		instance: discover.NewInstance(string(discover.ServiceNameRelay), nil),
 	}
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
@@ -97,8 +97,9 @@ func NewService(conf *config.RelayService) (*Service, error) {
 }
 
 func (svc *Service) initialCapability() error {
-	// initial messager
-	svc.Cap.Messager = relayhandler.NewClientMessager(relayhandler.ClientMessagerConfig{
+	var err error
+	// initial message
+	svc.Cap.Messager, err = relayhandler.NewClientMessager(relayhandler.ClientMessagerConfig{
 		PluginVersion:          version.Version().Version,
 		DomainSocketPath:       svc.conf.Plugin.MessageDomainSocketPath,
 		LocalSocketPort:        svc.conf.Plugin.MessageLocalSocketPort,
@@ -106,14 +107,17 @@ func (svc *Service) initialCapability() error {
 		MessageTrackerFullPath: filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, messagetrackerDirName),
 		PluginName:             string(svc.conf.PluginName),
 	})
+	if err != nil {
+		return fmt.Errorf("failed to create messager: %w", err)
+	}
 
 	// initial file manager
-	svc.Cap.FileManager = file.NewFileManager(
+	svc.Cap.FileManager, err = file.NewFileManager(
 		svc.ctx,
 		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName),
 		svc.Cap.Logger)
-	if svc.Cap.FileManager == nil {
-		return fmt.Errorf("failed to init file manager")
+	if err != nil {
+		return fmt.Errorf("failed to create file manager: %w", err)
 	}
 
 	// initial client handler
@@ -121,9 +125,6 @@ func (svc *Service) initialCapability() error {
 		svc.Cap.Messager,
 		svc.conf,
 		svc.Cap.Logger)
-	if clientHandler == nil {
-		return fmt.Errorf("failed to init client handler")
-	}
 
 	// register server push event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()
@@ -166,6 +167,7 @@ func (svc *Service) registerRestServer() error {
 	return nil
 }
 
+// nolint: unparam
 func (svc *Service) registerInfoServer() error {
 	requestIDSetter := restserver.NewRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
@@ -173,7 +175,7 @@ func (svc *Service) registerInfoServer() error {
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayInfo),
+			Name:            string(relayInfoSvcName),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
@@ -182,23 +184,15 @@ func (svc *Service) registerInfoServer() error {
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
+		withMetrics(),
 	)
 
-	if server == nil {
-		return fmt.Errorf("failed to create info server")
-	}
-
 	svc.servers = append(svc.servers, server)
-	svc.instance.Update(discover.EndpointNameRelayInfo, discover.Endpoint{
-		IPV4: svc.conf.InfoServer.AdvertiseIPV4,
-		IPV6: svc.conf.InfoServer.AdvertiseIPV6,
-		Port: svc.conf.InfoServer.Port,
-	})
 
 	return nil
 }
 
+// nolint: unparam
 func (svc *Service) registerAdminServer() error {
 	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
 	if authIdentity == nil {
@@ -212,7 +206,7 @@ func (svc *Service) registerAdminServer() error {
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayAdmin),
+			Name:            string(relayAdminSvcName),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
@@ -222,20 +216,12 @@ func (svc *Service) registerAdminServer() error {
 		restserver.WithPing(),
 	)
 
-	if server == nil {
-		return fmt.Errorf("failed to create admin server")
-	}
-
 	svc.servers = append(svc.servers, server)
-	svc.instance.Update(discover.EndpointNameRelayAdmin, discover.Endpoint{
-		IPV4: svc.conf.AdminServer.AdvertiseIPV4,
-		IPV6: svc.conf.AdminServer.AdvertiseIPV6,
-		Port: svc.conf.AdminServer.Port,
-	})
 
 	return nil
 }
 
+// nolint: unparam
 func (svc *Service) registerCallbackServer() error {
 	authIdentity := svc.authIdentityMap[svc.conf.CallbackServer.AuthIdentity]
 	if authIdentity == nil {
@@ -249,7 +235,7 @@ func (svc *Service) registerCallbackServer() error {
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayCallback),
+			Name:            string(relayCallbackSvcName),
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
@@ -260,20 +246,12 @@ func (svc *Service) registerCallbackServer() error {
 		withCallbackServer(svc.Cap),
 	)
 
-	if server == nil {
-		return fmt.Errorf("failed to create callback server")
-	}
-
 	svc.servers = append(svc.servers, server)
-	svc.instance.Update(discover.EndpointNameRelayCallback, discover.Endpoint{
-		IPV4: svc.conf.CallbackServer.AdvertiseIPV4,
-		IPV6: svc.conf.CallbackServer.AdvertiseIPV6,
-		Port: svc.conf.CallbackServer.Port,
-	})
 
 	return nil
 }
 
+// nolint: unparam
 func (svc *Service) registerDownloadServer() error {
 	authIdentity := svc.authIdentityMap[svc.conf.DownloadServer.AuthIdentity]
 	if authIdentity == nil {
@@ -287,7 +265,7 @@ func (svc *Service) registerDownloadServer() error {
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayDownload),
+			Name:            string(relayDownloadSvcName),
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
@@ -298,16 +276,7 @@ func (svc *Service) registerDownloadServer() error {
 		withDownload(svc.Cap),
 	)
 
-	if server == nil {
-		return fmt.Errorf("failed to create download server")
-	}
-
 	svc.servers = append(svc.servers, server)
-	svc.instance.Update(discover.EndpointNameRelayDownload, discover.Endpoint{
-		IPV4: svc.conf.DownloadServer.AdvertiseIPV4,
-		IPV6: svc.conf.DownloadServer.AdvertiseIPV6,
-		Port: svc.conf.DownloadServer.Port,
-	})
 
 	return nil
 }
@@ -319,7 +288,7 @@ func withHealthz(capability *options.Capability) restserver.OptionFunc {
 }
 
 // withMetrics load metrics.
-func withMetrics(_ *options.Capability) restserver.OptionFunc {
+func withMetrics() restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	}
@@ -378,7 +347,7 @@ func (svc *Service) Start() error {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 
