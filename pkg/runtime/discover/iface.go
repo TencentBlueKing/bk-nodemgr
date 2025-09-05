@@ -115,8 +115,6 @@ const (
 	ServiceNameApplication ServiceName = "application"
 	// ServiceNameFile the file service name.
 	ServiceNameFile ServiceName = "file"
-	// ServiceNameRelay the relay service name.
-	ServiceNameRelay ServiceName = "relay"
 )
 
 // NewInstance creates a new instance.

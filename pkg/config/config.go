@@ -527,11 +527,11 @@ const (
 )
 
 // Validate validates the config.
-func (conf PluginName) Validate() error {
-	switch conf {
+func (name PluginName) Validate() error {
+	switch name {
 	case PluginNameRelay:
 		return nil
 	default:
-		return fmt.Errorf("invalid plugin name(%s)", conf)
+		return fmt.Errorf("invalid plugin name, plugin-name(%s)", name)
 	}
 }
