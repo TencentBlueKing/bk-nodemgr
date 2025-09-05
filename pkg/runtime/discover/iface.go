@@ -73,14 +73,17 @@ const (
 	// EndpointNameFileDownload the file download endpoint name.
 	EndpointNameFileDownload EndpointName = "file-download"
 
+	// EndpointNameRelayInfo the relay info endpoint name.
+	EndpointNameRelayInfo EndpointName = "relay-info"
+
+	// EndpointNameRelayAdmin the relay admin endpoint name.
+	EndpointNameRelayAdmin EndpointName = "file-admin"
+
 	// EndpointNameRelayCallback the relay callback endpoint name.
 	EndpointNameRelayCallback EndpointName = "relay-callback"
 
-	// EndpointNameRelayFile the relay file endpoint name.
-	EndpointNameRelayFile EndpointName = "relay-file"
-
-	// EndpointNameRelayInfo the relay info endpoint name.
-	EndpointNameRelayInfo EndpointName = "relay-info"
+	// EndpointNameRelayDownload the relay download endpoint name.
+	EndpointNameRelayDownload EndpointName = "relay-download"
 )
 
 // Endpoint defines the exported endpoint of service on discover.
