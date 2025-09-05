@@ -41,7 +41,7 @@ func NewBasicInfo() BasicInfo {
 	}
 }
 
-// TableChangeEventBroker table change event broker
+// TableChangeEventBroker table change event broker.
 type TableChangeEventBroker[T IData] struct {
 	FullDocument *TableBroker[T] `json:"fullDocument" bson:"fullDocument"`
 }

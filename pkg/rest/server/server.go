@@ -160,11 +160,10 @@ func NewServer(ctx context.Context,
 	}))
 
 	// Set metrics monitor.
-	svr.metrics = restmetrics.NewMonitor(opts.Name).
-		WithSlowTime(1 * time.Second).
-		WithExcludePaths([]string{"/ping", "/healthz", "/metrics"}).
-		RegisterMiddleware(svr.engine).
-		Enable()
+	svr.metrics = restmetrics.NewMonitor("server_"+opts.Name,
+		restmetrics.WithSlowTime(1*time.Second),
+		restmetrics.WithExcludePaths([]string{"/ping", "/healthz", "/metrics"}),
+	).RegisterMiddleware(svr.engine).Enable()
 
 	svr.rg = svr.engine.Group("/")
 

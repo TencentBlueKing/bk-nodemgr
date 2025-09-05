@@ -11,7 +11,6 @@
 package metrics
 
 import (
-	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -22,7 +21,14 @@ import (
 
 // Enable enable metrics into prometheus handler.
 func (monitor *Monitor) Enable() *Monitor {
-	monitor.initMetrics()
+	monitor.bloomFilter = newBloomFilter()
+
+	_ = monitor.metricSets.requestTotal.Enable()
+	_ = monitor.metricSets.requestUVTotal.Enable()
+	_ = monitor.metricSets.requestBody.Enable()
+	_ = monitor.metricSets.responseBody.Enable()
+	_ = monitor.metricSets.requestDuration.Enable()
+	_ = monitor.metricSets.slowRequest.Enable()
 
 	return monitor
 }
@@ -33,55 +39,6 @@ func (monitor *Monitor) RegisterMiddleware(r gin.IRoutes) *Monitor {
 	r.Use(monitor.middleware)
 
 	return monitor
-}
-
-// initMetrics used to init metrics.
-func (monitor *Monitor) initMetrics() {
-	monitor.bloomFilter = newBloomFilter()
-
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.requestTotal,
-		Description: "all the server received request num.",
-		Labels:      nil,
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.requestUVTotal,
-		Description: "all the server received ip num.",
-		Labels:      nil,
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.uriRequestTotal,
-		Description: "all the server received request num with every uri.",
-		Labels:      []string{"uri", "method", "code"},
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.requestBody,
-		Description: "the server received request body size, unit byte",
-		Labels:      nil,
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.responseBody,
-		Description: "the server send response body size, unit byte",
-		Labels:      nil,
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        histogram,
-		Name:        monitor.metricKey.requestDuration,
-		Description: "the time server took to handle the request.",
-		Labels:      []string{"uri"},
-		Buckets:     monitor.durationMSBuckets,
-	})
-	_ = monitor.AddMetric(&metric{
-		Type:        counter,
-		Name:        monitor.metricKey.slowRequest,
-		Description: fmt.Sprintf("the server handled slow requests counter, t=%dms.", monitor.slowTime.Milliseconds()),
-		Labels:      []string{"uri", "method", "code"},
-	})
 }
 
 // monitorMiddleware as gin monitor middleware.
@@ -141,49 +98,33 @@ type metricParam struct {
 
 // nolint:cyclop
 func (monitor *Monitor) metricHandle(param *metricParam) {
+	labels := []string{param.requestPath, param.request.Method, strconv.Itoa(param.responseStatusCode)}
+
 	// set request total
-	metric, err := monitor.getMetric(monitor.metricKey.requestTotal)
-	if err == nil {
-		_ = metric.Inc(nil)
-	}
+	_ = monitor.metricSets.requestTotal.Inc(labels)
 
 	// set uv
 	if !monitor.bloomFilter.contains(param.clientIP) {
 		monitor.bloomFilter.add(param.clientIP)
-		if metric, err = monitor.getMetric(monitor.metricKey.requestUVTotal); err == nil {
-			_ = metric.Inc(nil)
-		}
-	}
-
-	// set uri request total
-	if metric, err = monitor.getMetric(monitor.metricKey.uriRequestTotal); err == nil {
-		_ = metric.Inc([]string{param.requestPath, param.request.Method, strconv.Itoa(param.responseStatusCode)})
+		_ = monitor.metricSets.requestUVTotal.Inc(labels)
 	}
 
 	// set request body size
 	// since r.ContentLength can be negative (in some occasions) guard the operation
 	if param.request.ContentLength >= 0 {
-		if metric, err = monitor.getMetric(monitor.metricKey.requestBody); err == nil {
-			_ = metric.Add(nil, float64(param.request.ContentLength))
-		}
+		_ = monitor.metricSets.requestBody.Add(labels, float64(param.request.ContentLength))
 	}
 
 	// set slow request
 	if param.processDuration >= monitor.slowTime {
-		if metric, err = monitor.getMetric(monitor.metricKey.slowRequest); err == nil {
-			_ = metric.Inc([]string{param.requestPath, param.request.Method, strconv.Itoa(param.responseStatusCode)})
-		}
+		_ = monitor.metricSets.slowRequest.Inc(labels)
 	}
 
 	// set request duration
-	if metric, err = monitor.getMetric(monitor.metricKey.requestDuration); err == nil {
-		_ = metric.Observe([]string{param.requestPath}, float64(param.processDuration.Milliseconds()))
-	}
+	_ = monitor.metricSets.requestDuration.Observe(labels, float64(param.processDuration.Milliseconds()))
 
 	// set response size
 	if param.responseContentLength > 0 {
-		if metric, err = monitor.getMetric(monitor.metricKey.responseBody); err == nil {
-			_ = metric.Add(nil, float64(param.responseContentLength))
-		}
+		_ = monitor.metricSets.responseBody.Add(labels, float64(param.responseContentLength))
 	}
 }
