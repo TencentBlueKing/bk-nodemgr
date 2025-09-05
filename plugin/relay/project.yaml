@@ -1,0 +1,23 @@
+name: bk-nodemgr-relay
+version: 1.0.0
+description: 蓝鲸节点管理中继模块
+scenario: 蓝鲸节点管理中继模块，用于节点管理在多级 proxy 场景下的对 agent 的操作命令转发
+category: official
+config_file: bk-nodemgr-relay.conf
+config_format: yaml
+launch_node: proxy
+is_binary: 1
+config_templates:
+  - plugin_version: 1.0.0
+    name: bk-nodemgr-relay.conf
+    version: 1.0.0
+    file_path: etc
+    format: yaml
+    is_main_config: 1
+    source_path: etc/bk-nodemgr-relay.tmpl.yaml
+control:
+  start: "./start.sh bk-nodemgr-relay"
+  stop: "./stop.sh bk-nodemgr-relay"
+  restart: "./restart.sh bk-nodemgr-relay"
+  reload: "./reload.sh bk-nodemgr-relay"
+  version: "./bk-nodemgr-relay -v"
