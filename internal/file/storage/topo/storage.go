@@ -9,6 +9,7 @@
  */
 
 // Package topo provides the topo storage interface.
+// nolint: nonamedreturns
 package topo
 
 import (
@@ -16,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -89,7 +91,11 @@ func (s *Storage) check() error {
 }
 
 // GetDirectNetworkAreaHostByAnyInnerIP get host by any inner ip, v4 or v6 in direct networkarea.
-func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4, ipv6 string) (*types.Host, error) {
+func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4, ipv6 string) (data *types.Host, err error) {
+	// record metric.
+	metric := s.metric().Start("get_direct_networkarea_host_by_any_inner_ip")
+	defer metric.End(err)
+
 	if ipv4 != "" {
 		hosts, _, err := s.daoHost.List(ctx,
 			types.UnlimitedPage(),
@@ -136,7 +142,11 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4
 }
 
 // GetHostByID get host by host-id.
-func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, error) {
+func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (data *types.Host, err error) {
+	// record metric.
+	metric := s.metric().Start("get_host_by_id")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -156,4 +166,8 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, e
 	}
 
 	return hosts[0], nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }

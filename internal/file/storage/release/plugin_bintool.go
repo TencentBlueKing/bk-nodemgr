@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -34,12 +36,14 @@ type IPluginBinTool interface {
 }
 
 // UpsertReleasePluginBinTool upserts release plugin bintool gen2.
-func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) error {
-	releaseType := types.ReleaseTypePluginBinTool
+func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_plugin_bintool")
+	defer metric.End(err)
 
-	return s.daoRelease.UpsertMany(ctx, releaseType, types.Generation2, &types.Release{
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypePluginBinTool, types.Generation2, &types.Release{
 		Generation: pluginBinTool.Generation,
-		Type:       releaseType,
+		Type:       types.ReleaseTypePluginBinTool,
 		Platform:   platform.EmptyPlatform(),
 		Version:    "",
 		FileName:   pluginBinTool.FileName,
@@ -49,23 +53,35 @@ func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool 
 }
 
 // DeleteReleasePluginBinTool deletes release plugin bintool gen2.
-func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_plugin_bintool")
+	defer metric.End(err)
+
 	return s.daoRelease.Delete(ctx, types.ReleaseTypePluginBinTool, gen, platform.EmptyPlatform(), fileName)
 }
 
 // GetReleasePluginBinTool gets release plugin bintool gen2.
-func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (*types.ReleasePluginBinTool, error) {
-	r, err := s.daoRelease.Get(ctx, types.ReleaseTypePluginBinTool, gen, platform.EmptyPlatform(), "")
-	if err != nil {
+func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (data *types.ReleasePluginBinTool, err error) {
+	// record metric.
+	metric := s.metric().Start("get_plugin_bintool")
+	defer metric.End(err)
+
+	var rls *types.Release
+	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypePluginBinTool, gen, platform.EmptyPlatform(), ""); err != nil {
 		return nil, err
 	}
 
 	return &types.ReleasePluginBinTool{
-		Release: *r,
+		Release: *rls,
 	}, nil
 }
 
 // ExistReleasePluginBinTool checks if release plugin bintool gen2 exists.
-func (s *Storage) ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+func (s *Storage) ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (result bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_plugin_bintool")
+	defer metric.End(err)
+
 	return s.daoRelease.Exist(ctx, types.ReleaseTypePluginBinTool, gen, platform.EmptyPlatform(), "")
 }

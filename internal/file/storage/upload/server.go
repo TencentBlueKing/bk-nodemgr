@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type IServer interface {
 }
 
 // GetServerUpload gets a upload by upload-id.
-func (s *Storage) GetServerUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetServerUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_server")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginServer, uploadID)
 }
 
 // CreateServerUpload creates a upload.
-func (s *Storage) CreateServerUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreateServerUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_server")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginServer, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginServer, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeleteServerUpload deletes a upload by upload-id.
-func (s *Storage) DeleteServerUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeleteServerUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_server")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginServer, uploadID)
 }

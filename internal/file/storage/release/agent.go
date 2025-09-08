@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -34,10 +36,12 @@ type IAgent interface {
 }
 
 // UpsertManyReleaseAgentGen2 upsert many release.
-func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
-	var err error
-	releases := make([]*types.Release, 0, len(releaseAgents))
+func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_agent")
+	defer metric.End(err)
 
+	releases := make([]*types.Release, 0, len(releaseAgents))
 	for _, rls := range releaseAgents {
 		if rls == nil {
 			continue
@@ -56,7 +60,11 @@ func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents 
 }
 
 // ExistReleaseAgent checks if release agent gen2 exists.
-func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (result bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_agent")
+	defer metric.End(err)
+
 	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen,
 		release.WithGeneration(gen),
 		release.WithType(types.ReleaseTypeAgent),
@@ -70,22 +78,25 @@ func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, v
 }
 
 // GetReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version)
-	if err != nil {
+func (s *Storage) GetReleaseAgent(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseAgent, err error) {
+
+	// record metric.
+	metric := s.metric().Start("get_agent")
+	defer metric.End(err)
+
+	var rls *types.Release
+	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version); err != nil {
 		return nil, fmt.Errorf("failed to get release agent: %w", err)
 	}
 
 	additionInfo := new(types.ReleaseAdditionInfoAgent)
-	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
-	if err != nil {
+	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
 		return nil, fmt.Errorf("failed to get release agent: %v", err)
 	}
 
-	releaseAgent := &types.ReleaseAgent{
+	return &types.ReleaseAgent{
 		Release:                  *rls,
 		ReleaseAdditionInfoAgent: *additionInfo,
-	}
-
-	return releaseAgent, nil
+	}, nil
 }
