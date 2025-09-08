@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
+// PluginType represents the type of plugin.
 type PluginType string
 
 const (
@@ -39,7 +40,7 @@ func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
 	}
 }
 
-// Plugin define the all info of plugin
+// Plugin define the all info of plugin.
 type Plugin struct {
 	HostID     int64
 	Type       PluginType
