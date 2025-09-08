@@ -11,12 +11,12 @@
 package plugindeployment
 
 const (
-	// FieldKeyToken the token field key
+	// FieldKeyToken the token field key.
 	FieldKeyToken = "data.token"
 
-	// FieldKeyInfo the info field key
+	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 
-	// FieldKeyExpireAt the expire_at field key
+	// FieldKeyExpireAt the expire_at field key.
 	FieldKeyExpireAt = "data.expire_at"
 )

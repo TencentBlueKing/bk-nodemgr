@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package plugin-deployment this package is used to store the need data for plugin deployment.
+// Package plugindeployment this package is used to store the need data for plugin deployment.
 package plugindeployment
 
 import (
