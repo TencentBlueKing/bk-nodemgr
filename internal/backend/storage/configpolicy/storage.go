@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -113,15 +114,21 @@ func (s *Storage) MatchConfigPolicy(ctx context.Context,
 	bizID, networkAreaID, networkUnitID int64,
 	osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error) {
 
-	results, _, err := s.daoConfigPolicy.List(ctx,
+	var results []*types.ConfigPolicy
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("match")
+	defer metric.End(err)
+
+	if results, _, err = s.daoConfigPolicy.List(ctx,
 		types.Page{
 			Limit: 1,
 			Sort:  "-" + configpolicy.FieldKeyUpdatedAt,
 		},
 		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch),
-	)
-	if err != nil {
-		return nil, false, fmt.Errorf("list config policy failed, err: %w")
+	); err != nil {
+		return nil, false, fmt.Errorf("list config policy failed, err: %w", err)
 	}
 
 	if len(results) == 0 {
@@ -133,8 +140,14 @@ func (s *Storage) MatchConfigPolicy(ctx context.Context,
 
 // CountConfigPolicy counts the config policy by conditions.
 func (s *Storage) CountConfigPolicy(ctx context.Context, conditions ...*types.ConfigPolicyCondition) (int64, error) {
-	opts, err := convertConfigPolicyConditionsToOptions(conditions...)
-	if err != nil {
+	var opts []configpolicy.OptFn
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("count")
+	defer metric.End(err)
+
+	if opts, err = convertConfigPolicyConditionsToOptions(conditions...); err != nil {
 		return 0, err
 	}
 
@@ -145,8 +158,14 @@ func (s *Storage) CountConfigPolicy(ctx context.Context, conditions ...*types.Co
 func (s *Storage) ListConfigPolicy(ctx context.Context, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 	[]*types.ConfigPolicy, int64, error) {
 
-	opts, err := convertConfigPolicyConditionsToOptions(conditions...)
-	if err != nil {
+	var opts []configpolicy.OptFn
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("list")
+	defer metric.End(err)
+
+	if opts, err = convertConfigPolicyConditionsToOptions(conditions...); err != nil {
 		return nil, 0, err
 	}
 
@@ -155,36 +174,100 @@ func (s *Storage) ListConfigPolicy(ctx context.Context, page types.Page, conditi
 
 // GetConfigPolicy gets the config policy.
 func (s *Storage) GetConfigPolicy(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error) {
-	return s.daoConfigPolicy.Get(ctx, configPolicyID)
+	var data *types.ConfigPolicy
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
+	if data, err = s.daoConfigPolicy.Get(ctx, configPolicyID); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 // CreateConfigPolicy creates the config policy.
 func (s *Storage) CreateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error) {
-	configPolicy.UpdatedAt = time.Now()
+	var configPolicyID int64
+	var err error
 
-	return s.daoConfigPolicy.Create(ctx, configPolicy)
+	// record metric.
+	metric := s.metric().Start("create")
+	defer metric.End(err)
+
+	configPolicy.UpdatedAt = time.Now()
+	if configPolicyID, err = s.daoConfigPolicy.Create(ctx, configPolicy); err != nil {
+		return -1, err
+	}
+
+	return configPolicyID, nil
 }
 
 // UpdateConfigPolicy updates the config policy.
 func (s *Storage) UpdateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) error {
-	configPolicy.UpdatedAt = time.Now()
+	var err error
 
-	return s.daoConfigPolicy.UpdateMany(ctx, configPolicy)
+	// record metric.
+	metric := s.metric().Start("update")
+	defer metric.End(err)
+
+	configPolicy.UpdatedAt = time.Now()
+	if err = s.daoConfigPolicy.UpdateMany(ctx, configPolicy); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteManyConfigPolicy deletes the config policies.
 func (s *Storage) DeleteManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
-	return s.daoConfigPolicy.DeleteMany(ctx, configPolicyIDs...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("delete_many")
+	defer metric.End(err)
+
+	if err = s.daoConfigPolicy.DeleteMany(ctx, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // EnableManyConfigPolicy enables the config policies.
 func (s *Storage) EnableManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
-	return s.daoConfigPolicy.EnableMany(ctx, configPolicyIDs...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("enable_many")
+	defer metric.End(err)
+
+	if err = s.daoConfigPolicy.EnableMany(ctx, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DisableManyConfigPolicy disables the config policies.
 func (s *Storage) DisableManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error {
-	return s.daoConfigPolicy.DisableMany(ctx, configPolicyIDs...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("disable_many")
+	defer metric.End(err)
+
+	if err = s.daoConfigPolicy.DisableMany(ctx, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
 
 func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCondition) ([]configpolicy.OptFn, error) {

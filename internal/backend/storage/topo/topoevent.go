@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package topo provides topology storage for backend.
+// nolint: nonamedreturns
 package topo
 
 import (
@@ -19,49 +21,77 @@ import (
 )
 
 // CountTopoEvent counts topo events.
-func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (int64, error) {
-	opts, err := convertTopoEventConditionsToOptions(conditions...)
-	if err != nil {
+func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (num int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_topo_event")
+	defer metric.End(err)
+
+	var opts []topoevent.OptFn
+	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
 		return 0, err
 	}
 
-	return s.daoTopoEvent.Count(ctx, opts...)
+	if num, err = s.daoTopoEvent.Count(ctx, opts...); err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // ListTopoEvent lists topo events.
 func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...*types.TopoEventCondition) (
-	[]*types.TopoEvent, int64, error) {
+	results []*types.TopoEvent, num int64, err error) {
 
-	opts, err := convertTopoEventConditionsToOptions(conditions...)
-	if err != nil {
+	// record metric.
+	metric := s.metric().Start("list_topo_event")
+	defer metric.End(err)
+
+	var opts []topoevent.OptFn
+	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
 		return nil, 0, err
 	}
 
-	return s.daoTopoEvent.List(ctx, page, opts...)
+	if results, num, err = s.daoTopoEvent.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // CreateManyTopoEvent creates topo events.
-func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) error {
-	return s.daoTopoEvent.CreateMany(ctx, events...)
+func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) (err error) {
+	// record metric.
+	metric := s.metric().Start("create_many_topo_event")
+	defer metric.End(err)
+
+	if err = s.daoTopoEvent.CreateMany(ctx, events...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DistinctTopoEvent distincts topo events.
 func (s *Storage) DistinctTopoEvent(
 	ctx context.Context, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
-	*types.TopoEventDistinctResult, error) {
+	data *types.TopoEventDistinctResult, err error) {
 
-	opts, err := convertTopoEventConditionsToOptions(conditions...)
-	if err != nil {
+	// record metric.
+	metric := s.metric().Start("distinct_topo_event")
+	defer metric.End(err)
+
+	var opts []topoevent.OptFn
+	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
 		return nil, err
 	}
 
-	result := new(types.TopoEventDistinctResult)
+	data = new(types.TopoEventDistinctResult)
 
 	gp := gopool.NewPool()
 	if request.Type {
 		gp.Go(func() error {
 			var err error
-			result.Type, err = s.daoTopoEvent.DistinctType(ctx, opts...)
+			data.Type, err = s.daoTopoEvent.DistinctType(ctx, opts...)
 
 			return err
 		})
@@ -69,7 +99,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.NetworkAreaID {
 		gp.Go(func() error {
 			var err error
-			result.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(ctx, opts...)
+			data.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(ctx, opts...)
 
 			return err
 		})
@@ -77,7 +107,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.NetworkUnitID {
 		gp.Go(func() error {
 			var err error
-			result.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(ctx, opts...)
+			data.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(ctx, opts...)
 
 			return err
 		})
@@ -85,7 +115,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.AccessPointID {
 		gp.Go(func() error {
 			var err error
-			result.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(ctx, opts...)
+			data.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(ctx, opts...)
 
 			return err
 		})
@@ -93,16 +123,16 @@ func (s *Storage) DistinctTopoEvent(
 	if request.Operator {
 		gp.Go(func() error {
 			var err error
-			result.Operator, err = s.daoTopoEvent.DistinctOperator(ctx, opts...)
+			data.Operator, err = s.daoTopoEvent.DistinctOperator(ctx, opts...)
 
 			return err
 		})
 	}
-	if err := gp.Wait(); err != nil {
+	if err = gp.Wait(); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return data, nil
 }
 
 func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition) ([]topoevent.OptFn, error) {

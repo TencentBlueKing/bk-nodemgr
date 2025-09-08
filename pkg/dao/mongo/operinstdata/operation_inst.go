@@ -142,7 +142,7 @@ func (h *Handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 	return data, nil
 }
 
-// List find all OperInstData.
+// ListFullData find all OperInstData.
 func (h *Handler) ListFullData(ctx context.Context, page types.Page, opts ...OptFn) (
 	[]*operation.InstanceData, int64, error) {
 

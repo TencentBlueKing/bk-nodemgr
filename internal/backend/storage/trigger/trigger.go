@@ -9,12 +9,14 @@
  */
 
 // Package trigger ...
+// nolint: nonamedreturns
 package trigger
 
 import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -32,7 +34,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (I
 		return nil, errors.New("mongo client is nil")
 	}
 
-	s := &storage{
+	s := &Storage{
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
@@ -50,20 +52,21 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (I
 	return s, nil
 }
 
-type storage struct {
+// storage implements IStorage.
+type Storage struct {
 	basestorage.Storage
 
 	// dao
 	triggerDao daoTrigger.IHandler
 }
 
-func (s *storage) initDao() error {
+func (s *Storage) initDao() error {
 	s.triggerDao = daoTrigger.New(s.Database, s.Logger)
 
 	return nil
 }
 
-func (s *storage) check() error {
+func (s *Storage) check() error {
 	if s.triggerDao == nil {
 		return errors.New("trigger dao is nil")
 	}
@@ -72,12 +75,16 @@ func (s *storage) check() error {
 }
 
 // CreateTrigger creates a new trigger.
-func (s *storage) CreateTrigger(ctx context.Context, trig *trigger.Trigger) error {
+func (s *Storage) CreateTrigger(ctx context.Context, trig *trigger.Trigger) (err error) {
+	// record metric.
+	metric := s.metric().Start("create")
+	defer metric.End(err)
+
 	if trig == nil {
 		return errors.New("trigger is nil")
 	}
 
-	if err := s.triggerDao.Create(ctx, trig); err != nil {
+	if err = s.triggerDao.Create(ctx, trig); err != nil {
 		s.Logger.Errorf("failed to create trigger. trigger-id: %s, err: %v", trig.TriggerID, err)
 		return err
 	}
@@ -86,12 +93,16 @@ func (s *storage) CreateTrigger(ctx context.Context, trig *trigger.Trigger) erro
 }
 
 // UpdateTrigger updates a trigger.
-func (s *storage) UpdateTrigger(ctx context.Context, trig *trigger.Trigger) error {
+func (s *Storage) UpdateTrigger(ctx context.Context, trig *trigger.Trigger) (err error) {
+	// record metric.
+	metric := s.metric().Start("update")
+	defer metric.End(err)
+
 	if trig == nil {
 		return errors.New("trigger is nil")
 	}
 
-	if err := s.triggerDao.Update(ctx, trig); err != nil {
+	if err = s.triggerDao.Update(ctx, trig); err != nil {
 		s.Logger.Errorf("failed to update trigger. trigger-id: %s, err: %v", trig.TriggerID, err)
 		return err
 	}
@@ -100,8 +111,12 @@ func (s *storage) UpdateTrigger(ctx context.Context, trig *trigger.Trigger) erro
 }
 
 // UpdateTriggerState updates a trigger's state.
-func (s *storage) UpdateTriggerState(ctx context.Context, triggerID string, state trigger.State) error {
-	if err := s.triggerDao.UpdateState(ctx, triggerID, state); err != nil {
+func (s *Storage) UpdateTriggerState(ctx context.Context, triggerID string, state trigger.State) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_state")
+	defer metric.End(err)
+
+	if err = s.triggerDao.UpdateState(ctx, triggerID, state); err != nil {
 		s.Logger.Errorf("failed to update trigger state. trigger-id: %s, err: %v", triggerID, err)
 		return err
 	}
@@ -110,9 +125,12 @@ func (s *storage) UpdateTriggerState(ctx context.Context, triggerID string, stat
 }
 
 // GetTrigger gets a trigger by triggerID.
-func (s *storage) GetTrigger(ctx context.Context, triggerID string) (*trigger.Trigger, error) {
-	data, err := s.triggerDao.Get(ctx, triggerID)
-	if err != nil {
+func (s *Storage) GetTrigger(ctx context.Context, triggerID string) (data *trigger.Trigger, err error) {
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
+	if data, err = s.triggerDao.Get(ctx, triggerID); err != nil {
 		s.Logger.Errorf("failed to get trigger. trigger-id: %s, err: %v", triggerID, err)
 		return nil, err
 	}
@@ -121,23 +139,38 @@ func (s *storage) GetTrigger(ctx context.Context, triggerID string) (*trigger.Tr
 }
 
 // ListAliveTrigger lists alive triggers by category.
-func (s *storage) ListAliveTrigger(ctx context.Context, category trigger.Category) ([]*trigger.Trigger, error) {
-	trigs, _, err := s.triggerDao.List(ctx, types.UnlimitedPage(),
+func (s *Storage) ListAliveTrigger(ctx context.Context, category trigger.Category) (results []*trigger.Trigger, err error) {
+	// record metric.
+	metric := s.metric().Start("list_alive")
+	defer metric.End(err)
+
+	if results, _, err = s.triggerDao.List(ctx, types.UnlimitedPage(),
 		daoTrigger.WithState(trigger.StateInit, trigger.StateRunning),
-		daoTrigger.WithCategory(category))
-	if err != nil {
+		daoTrigger.WithCategory(category)); err != nil {
 		s.Logger.Errorf("failed to list alive triggers. category: %s, err: %v", category, err)
 		return nil, err
 	}
 
-	return trigs, nil
+	return results, nil
 }
 
 // DeleteTriggers deletes triggers by given trigger IDs.
-func (s *storage) DeleteTriggers(ctx context.Context, triggerIDs ...string) error {
+func (s *Storage) DeleteTriggers(ctx context.Context, triggerIDs ...string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_many")
+	defer metric.End(err)
+
 	if len(triggerIDs) == 0 {
 		return nil
 	}
 
-	return s.triggerDao.Delete(ctx, triggerIDs...)
+	if err = s.triggerDao.Delete(ctx, triggerIDs...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }

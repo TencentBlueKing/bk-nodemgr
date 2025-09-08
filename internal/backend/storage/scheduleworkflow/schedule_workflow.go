@@ -9,6 +9,7 @@
  */
 
 // Package scheduleworkflow provides storage for schedule workflow.
+// nolint: nonamedreturns
 package scheduleworkflow
 
 import (
@@ -16,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
@@ -77,37 +79,54 @@ func (s *Storage) check() error {
 }
 
 // ListScheduleWorkflow lists schedule workflow by page and conditions.
-func (s *Storage) ListScheduleWorkflow(ctx context.Context, page types.Page,
-	conditions ...*types.ScheduleWorkflowCondition) ([]*types.ScheduleWorkflow, int64, error) {
+func (s *Storage) ListScheduleWorkflow(ctx context.Context, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
+	results []*types.ScheduleWorkflow, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list")
+	defer metric.End(err)
 
 	opts := convertScheduleWorkflowConditionsToOptions(conditions...)
+	if results, num, err = s.daoScheduleWorkflow.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
 
-	return s.daoScheduleWorkflow.List(ctx, page, opts...)
+	return results, num, nil
 }
 
 // CountScheduleWorkflow counts schedule workflow by conditions.
 func (s *Storage) CountScheduleWorkflow(ctx context.Context, conditions ...*types.ScheduleWorkflowCondition) (
-	int64, error) {
+	num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("count")
+	defer metric.End(err)
 
 	opts := convertScheduleWorkflowConditionsToOptions(conditions...)
+	if num, err = s.daoScheduleWorkflow.Count(ctx, opts...); err != nil {
+		return 0, err
+	}
 
-	return s.daoScheduleWorkflow.Count(ctx, opts...)
+	return num, nil
 }
 
 // DistinctScheduleWorkflow distincts schedule workflow fields.
 func (s *Storage) DistinctScheduleWorkflow(
 	ctx context.Context, request types.ScheduleWorkflowDistinctRequest, conditions ...*types.ScheduleWorkflowCondition) (
-	*types.ScheduleWorkflowDistinctResult, error) {
+	data *types.ScheduleWorkflowDistinctResult, err error) {
+
+	// record metric.
+	metric := s.metric().Start("distinct")
+	defer metric.End(err)
 
 	opts := convertScheduleWorkflowConditionsToOptions(conditions...)
-
-	result := new(types.ScheduleWorkflowDistinctResult)
+	data = new(types.ScheduleWorkflowDistinctResult)
 
 	gp := gopool.NewPool()
 	if request.Operator {
 		gp.Go(func() error {
 			var err error
-			result.Operator, err = s.daoScheduleWorkflow.DistinctScheduleWorkflowOperator(ctx, opts...)
+			data.Operator, err = s.daoScheduleWorkflow.DistinctScheduleWorkflowOperator(ctx, opts...)
 
 			return err
 		})
@@ -115,21 +134,25 @@ func (s *Storage) DistinctScheduleWorkflow(
 	if request.WorkflowName {
 		gp.Go(func() error {
 			var err error
-			result.Type, err = s.daoScheduleWorkflow.DistinctScheduleWorkflowName(ctx, opts...)
+			data.Type, err = s.daoScheduleWorkflow.DistinctScheduleWorkflowName(ctx, opts...)
 
 			return err
 		})
 	}
 
-	if err := gp.Wait(); err != nil {
+	if err = gp.Wait(); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return data, nil
 }
 
 // GetScheduleWorkflow gets a schedule workflow by workflow-id.
-func (s *Storage) GetScheduleWorkflow(ctx context.Context, workflowID string) (*types.ScheduleWorkflow, error) {
+func (s *Storage) GetScheduleWorkflow(ctx context.Context, workflowID string) (workflow *types.ScheduleWorkflow, err error) {
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -138,9 +161,8 @@ func (s *Storage) GetScheduleWorkflow(ctx context.Context, workflowID string) (*
 		return nil, errors.New("workflow id cannot be empty")
 	}
 
-	workflow, err := s.daoScheduleWorkflow.Get(ctx, workflowID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get workflow by workflow-id(%s), err %w", workflowID, err)
+	if workflow, err = s.daoScheduleWorkflow.Get(ctx, workflowID); err != nil {
+		return nil, fmt.Errorf("failed to get workflow, workflow-id(%s): %w", workflowID, err)
 	}
 
 	if workflow == nil {
@@ -151,7 +173,11 @@ func (s *Storage) GetScheduleWorkflow(ctx context.Context, workflowID string) (*
 }
 
 // CreateScheduleWorkflow creates a new schedule workflow.
-func (s *Storage) CreateScheduleWorkflow(ctx context.Context, workflow *types.ScheduleWorkflow) error {
+func (s *Storage) CreateScheduleWorkflow(ctx context.Context, workflow *types.ScheduleWorkflow) (err error) {
+	// record metric.
+	metric := s.metric().Start("create")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -164,11 +190,15 @@ func (s *Storage) CreateScheduleWorkflow(ctx context.Context, workflow *types.Sc
 		return errors.New("schedule workflow id cannot be empty")
 	}
 
-	if err := s.daoScheduleWorkflow.Create(ctx, workflow); err != nil {
+	if err = s.daoScheduleWorkflow.Create(ctx, workflow); err != nil {
 		return fmt.Errorf("failed to create schedule workflow, workflow-id(%s), err: %w", workflow.WorkflowID, err)
 	}
 
 	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
 
 // convertScheduleWorkflowConditionsToOptions converts schedule workflow conditions to options.

@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package topo provides topology storage for backend.
+// nolint: nonamedreturns
 package topo
 
 import (
@@ -25,20 +27,36 @@ import (
 
 // GetV4AgentAccessEndpoints get v4 agent access endpoints by networkunit id.
 func (s *Storage) GetV4AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
-	[]string, []string, []string, error) {
+	cluster []string, file []string, data []string, err error) {
 
-	return s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
+	// record metric.
+	metric := s.metric().Start("get_v4_agent_access_endpoints")
+	defer metric.End(err)
+
+	if cluster, file, data, err = s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
 		return static.InnerIP
-	})
+	}); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return cluster, file, data, nil
 }
 
 // GetV6AgentAccessEndpoints get v6 agent access endpoints by networkunit id.
 func (s *Storage) GetV6AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
-	[]string, []string, []string, error) {
+	cluster []string, file []string, data []string, err error) {
 
-	return s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
+	// record metric.
+	metric := s.metric().Start("get_v6_agent_access_endpoints")
+	defer metric.End(err)
+
+	if cluster, file, data, err = s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
 		return static.InnerIPV6
-	})
+	}); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return cluster, file, data, nil
 }
 
 // nolint: nonamedreturns
@@ -113,6 +131,10 @@ func (s *Storage) getAgentAccessEndpoints(
 func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
+	// record metric.
+	metric := s.metric().Start("get_proxy_upstream_accesspoints")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, nil, nil, basestorage.ErrNilContent()
 	}
@@ -121,8 +143,8 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 		return nil, nil, nil, errors.New("unit id should be equal or greater than 0")
 	}
 
-	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
-	if err != nil {
+	var networkUnit *types.NetworkUnit
+	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
 	}
@@ -138,12 +160,12 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 			fmt.Errorf("networkunit-id(%d) links is invalid, cluster or file or data have empty upstreams", networkUnitID)
 	}
 
-	accesspoints, _, err := s.daoAccessPoint.List(ctx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
+	var accesspoints []*types.AccessPoint
+	if accesspoints, _, err = s.daoAccessPoint.List(ctx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
 		networkUnit.Links.Cluster.AccessPointID,
 		networkUnit.Links.File.AccessPointID,
 		networkUnit.Links.Data.AccessPointID,
-	))
-	if err != nil {
+	)); err != nil {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d), err: %w", networkUnitID, err)
 	}
@@ -172,7 +194,11 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 }
 
 // NeedStaticAccess check host is need static access or not.
-func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (bool, error) {
+func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (result bool, err error) {
+	// record metric.
+	metric := s.metric().Start("need_static_access")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return false, basestorage.ErrNilContent()
 	}
@@ -181,8 +207,8 @@ func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (bo
 		return false, errors.New("unit id should be equal or greater than 0")
 	}
 
-	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
-	if err != nil {
+	var networkUnit *types.NetworkUnit
+	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
 		return false,
 			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
 	}

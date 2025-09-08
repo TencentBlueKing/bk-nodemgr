@@ -8,7 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo ...
+// Package topo provides topology storage for backend.
+// nolint: nonamedreturns
 package topo
 
 import (
@@ -25,7 +26,11 @@ import (
 )
 
 // GetHostByID get host by id.
-func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, error) {
+func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (data *types.Host, err error) {
+	// record metric.
+	metric := s.metric().Start("get_host_by_id")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -36,7 +41,7 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, e
 
 	hosts, count, err := s.daoHost.List(ctx, types.Page{Limit: 1}, host.WithHostID(hostID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get host by id, host-id(%d), err: %w", hostID, err)
+		return nil, fmt.Errorf("failed to get host by id, host-id(%d): %w", hostID, err)
 	}
 
 	if count != 1 {
@@ -48,7 +53,11 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (*types.Host, e
 }
 
 // UpsertManyHost upserts many hosts.
-func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_host")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -57,15 +66,19 @@ func (s *Storage) UpsertManyHost(ctx context.Context, hosts ...*types.Host) erro
 		return nil
 	}
 
-	if err := s.daoHost.UpsertMany(ctx, hosts...); err != nil {
-		return fmt.Errorf("failed to upsert hosts: %v", err)
+	if err = s.daoHost.UpsertMany(ctx, hosts...); err != nil {
+		return fmt.Errorf("failed to upsert hosts: %w", err)
 	}
 
 	return nil
 }
 
 // UpsertManyHostStatic updates or inserts host statics.
-func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_host_static")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -74,15 +87,19 @@ func (s *Storage) UpsertManyHostStatic(ctx context.Context, hosts ...*types.Host
 		return nil
 	}
 
-	if err := s.daoHost.UpsertStaticMany(ctx, hosts...); err != nil {
-		return fmt.Errorf("failed to upsert host statics: %v", err)
+	if err = s.daoHost.UpsertStaticMany(ctx, hosts...); err != nil {
+		return fmt.Errorf("failed to upsert host statics: %w", err)
 	}
 
 	return nil
 }
 
 // UpdateManyHostDynamic updates host dynamics.
-func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) error {
+func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Host) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_many_host_dynamic")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -91,7 +108,7 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 		return nil
 	}
 
-	if err := s.daoHost.UpdateDynamicMany(ctx, hosts...); err != nil {
+	if err = s.daoHost.UpdateDynamicMany(ctx, hosts...); err != nil {
 		return fmt.Errorf("failed to upsert host dynamics: %v", err)
 	}
 
@@ -100,30 +117,50 @@ func (s *Storage) UpdateManyHostDynamic(ctx context.Context, hosts ...*types.Hos
 
 // ListHost lists hosts by page and conditions.
 func (s *Storage) ListHost(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
-	[]*types.Host, int64, error) {
+	results []*types.Host, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_host")
+	defer metric.End(err)
 
 	opts := convertHostConditionsToOptions(conditions...)
+	if results, num, err = s.daoHost.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
 
-	return s.daoHost.List(ctx, page, opts...)
+	return results, num, nil
 }
 
 // ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by update time.
-func (s *Storage) ListHostOrderByUpdateTime(ctx context.Context, page types.Page,
-	conditions ...*types.HostCondition) ([]*types.Host, int64, error) {
+func (s *Storage) ListHostOrderByUpdateTime(
+	ctx context.Context, page types.Page, conditions ...*types.HostCondition) (results []*types.Host, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_host_order_by_updatetime")
+	defer metric.End(err)
 
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(base.FieldKeyUpdatedAt))
-
 	opts := convertHostConditionsToOptions(conditions...)
+	if results, num, err = s.daoHost.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
 
-	return s.daoHost.List(ctx, page, opts...)
+	return results, num, nil
 }
 
 // CountHost counts host by conditions.
-func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondition) (int64, error) {
-	opts := convertHostConditionsToOptions(conditions...)
+func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondition) (num int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_host")
+	defer metric.End(err)
 
-	return s.daoHost.Count(ctx, opts...)
+	opts := convertHostConditionsToOptions(conditions...)
+	if num, err = s.daoHost.Count(ctx, opts...); err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // DistinctHost distinct host fields.
@@ -131,17 +168,20 @@ func (s *Storage) CountHost(ctx context.Context, conditions ...*types.HostCondit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (s *Storage) DistinctHost(
 	ctx context.Context, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
-	*types.HostDistinctResult, error) {
+	data *types.HostDistinctResult, err error) {
+
+	// record metric.
+	metric := s.metric().Start("distinct_host")
+	defer metric.End(err)
 
 	opts := convertHostConditionsToOptions(conditions...)
-
-	result := new(types.HostDistinctResult)
+	data = new(types.HostDistinctResult)
 
 	gp := gopool.NewPool()
 	if request.BizID {
 		gp.Go(func() error {
 			var err error
-			result.BizID, err = s.daoHost.DistinctBizID(ctx, opts...)
+			data.BizID, err = s.daoHost.DistinctBizID(ctx, opts...)
 
 			return err
 		})
@@ -149,7 +189,7 @@ func (s *Storage) DistinctHost(
 	if request.NodeRole {
 		gp.Go(func() error {
 			var err error
-			result.NodeRole, err = s.daoHost.DistinctNodeRole(ctx, opts...)
+			data.NodeRole, err = s.daoHost.DistinctNodeRole(ctx, opts...)
 
 			return err
 		})
@@ -157,7 +197,7 @@ func (s *Storage) DistinctHost(
 	if request.NodeStatus {
 		gp.Go(func() error {
 			var err error
-			result.NodeStatus, err = s.daoHost.DistinctNodeStatus(ctx, opts...)
+			data.NodeStatus, err = s.daoHost.DistinctNodeStatus(ctx, opts...)
 
 			return err
 		})
@@ -165,7 +205,7 @@ func (s *Storage) DistinctHost(
 	if request.NodeVersion {
 		gp.Go(func() error {
 			var err error
-			result.NodeVersion, err = s.daoHost.DistinctNodeVersion(ctx, opts...)
+			data.NodeVersion, err = s.daoHost.DistinctNodeVersion(ctx, opts...)
 
 			return err
 		})
@@ -173,7 +213,7 @@ func (s *Storage) DistinctHost(
 	if request.DeptName {
 		gp.Go(func() error {
 			var err error
-			result.DeptName, err = s.daoHost.DistinctDeptName(ctx, opts...)
+			data.DeptName, err = s.daoHost.DistinctDeptName(ctx, opts...)
 
 			return err
 		})
@@ -181,7 +221,7 @@ func (s *Storage) DistinctHost(
 	if request.OSType {
 		gp.Go(func() error {
 			var err error
-			result.OSType, err = s.daoHost.DistinctOSType(ctx, opts...)
+			data.OSType, err = s.daoHost.DistinctOSType(ctx, opts...)
 
 			return err
 		})
@@ -189,7 +229,7 @@ func (s *Storage) DistinctHost(
 	if request.Arch {
 		gp.Go(func() error {
 			var err error
-			result.Arch, err = s.daoHost.DistinctArch(ctx, opts...)
+			data.Arch, err = s.daoHost.DistinctArch(ctx, opts...)
 
 			return err
 		})
@@ -197,7 +237,7 @@ func (s *Storage) DistinctHost(
 	if request.Addressing {
 		gp.Go(func() error {
 			var err error
-			result.Addressing, err = s.daoHost.DistinctAddressing(ctx, opts...)
+			data.Addressing, err = s.daoHost.DistinctAddressing(ctx, opts...)
 
 			return err
 		})
@@ -205,7 +245,7 @@ func (s *Storage) DistinctHost(
 	if request.NetworkAreaID {
 		gp.Go(func() error {
 			var err error
-			result.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(ctx, opts...)
+			data.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(ctx, opts...)
 
 			return err
 		})
@@ -213,16 +253,16 @@ func (s *Storage) DistinctHost(
 	if request.NetworkUnitID {
 		gp.Go(func() error {
 			var err error
-			result.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(ctx, opts...)
+			data.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(ctx, opts...)
 
 			return err
 		})
 	}
-	if err := gp.Wait(); err != nil {
+	if err = gp.Wait(); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return data, nil
 }
 
 func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.OptFn {
@@ -295,7 +335,11 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 }
 
 // DeleteManyHost delete many hosts by hostIDs.
-func (s *Storage) DeleteManyHost(ctx context.Context, hostIDs ...int64) error {
+func (s *Storage) DeleteManyHost(ctx context.Context, hostIDs ...int64) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_many_host")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -304,29 +348,44 @@ func (s *Storage) DeleteManyHost(ctx context.Context, hostIDs ...int64) error {
 		return nil
 	}
 
-	return s.daoHost.DeleteMany(ctx, hostIDs...)
+	if err = s.daoHost.DeleteMany(ctx, hostIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // FindHostWithDynamic finds hosts with dynamic fields.
 func (s *Storage) FindHostWithDynamic(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
-	[]*types.Host, error) {
+	results []*types.Host, err error) {
+
+	// record metric.
+	metric := s.metric().Start("find_host_with_dynamic")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
 	opts := convertHostConditionsToOptions(conditions...)
+	if results, err = s.daoHost.FindWithDynamic(ctx, page, opts...); err != nil {
+		return nil, err
+	}
 
-	return s.daoHost.FindWithDynamic(ctx, page, opts...)
+	return results, nil
 }
 
 // UpdateHostDynamicFields updates the dynamic fields of a host.
-func (s *Storage) UpdateHostDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error {
+func (s *Storage) UpdateHostDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_host_dynamic_fields")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
 
-	if err := s.daoHost.UpdateDynamicFields(ctx, fields, hosts...); err != nil {
+	if err = s.daoHost.UpdateDynamicFields(ctx, fields, hosts...); err != nil {
 		return fmt.Errorf("failed to update host dynamic fields, err: %w", err)
 	}
 
