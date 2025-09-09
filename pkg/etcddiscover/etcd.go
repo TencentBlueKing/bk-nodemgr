@@ -200,7 +200,7 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 
 	go func() {
 		for resp := range ch {
-			provider.logger.Infof("recved grant keepalive response, lease-id(%d)", resp.ID)
+			provider.logger.Debugf("recved grant keepalive response, lease-id(%d)", resp.ID)
 		}
 		provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
 	}()
@@ -303,7 +303,7 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 
 		go func() {
 			for resp := range ch {
-				provider.logger.Infof("recved grant keepalive response, lease-id(%d)", resp.ID)
+				provider.logger.Debugf("recved grant keepalive response, lease-id(%d)", resp.ID)
 			}
 			provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
 		}()
