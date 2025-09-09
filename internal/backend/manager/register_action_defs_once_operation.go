@@ -15,7 +15,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // registerOnceTriggerActions registers the action definitions for once trigger actions.
@@ -30,6 +32,10 @@ func (mgr *Manager) registerActionDefsOnceOperation() error {
 
 	if err := mgr.registerActionDefSyncData(); err != nil {
 		return fmt.Errorf("failed to register action def sync data: %w", err)
+	}
+
+	if err := mgr.registerActionDefPlugin(); err != nil {
+		return fmt.Errorf("failed to register action defs plugin install: %w", err)
 	}
 
 	return nil
@@ -87,4 +93,19 @@ func (mgr *Manager) registerActionDefSyncData() error {
 		syncdata.NewActionSyncAliveHostAgentInfo(mgr.conf.StorageTopo, mgr.workflowMgr),
 		syncdata.NewActionWatchCMDBResource(mgr.conf.Cache, mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
 	)
+}
+
+// registerActionDefPlugin registers the action definitions for plugin operations.
+// nolint: lll
+func (mgr *Manager) registerActionDefPlugin() error {
+	actionDefs := []action.Definition{
+		plugin.NewActionTransferPluginPkgToNode(mgr.conf.StoragePlugin, mgr.conf.StorageTopo, mgr.conf.FileHandler),
+		plugin.NewActionRenderPluginDeployment(mgr.conf.StorageTopo, mgr.conf.StoragePlugin),
+	}
+
+	if err := mgr.workflowMgr.RegisterActions(actionDefs...); err != nil {
+		return fmt.Errorf("failed to reigster actions: %w", err)
+	}
+
+	return nil
 }

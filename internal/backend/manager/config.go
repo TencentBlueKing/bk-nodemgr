@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -45,6 +46,7 @@ type Config struct {
 	StorageRelease      release.IStorage
 	StorageNode         nodeStg.IStorage
 	StorageWorkflow     workflow.IStorage
+	StoragePlugin       plugin.IStorage
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
 

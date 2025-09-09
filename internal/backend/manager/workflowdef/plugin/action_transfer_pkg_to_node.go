@@ -1,0 +1,257 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package plugin
+
+import (
+	"errors"
+	"fmt"
+	"path/filepath"
+	"time"
+
+	pluginployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+)
+
+const (
+	// ActionNameTransferPluginPkgToNode defines the action name.
+	ActionNameTransferPluginPkgToNode = "transfer_plugin_pkg_to_node"
+)
+
+// NewActionTransferPluginPkgToNode get a new action.
+func NewActionTransferPluginPkgToNode(daoPluginDeployment pluginployment.IDaoPluginDeployment, daoHost storageTopo.IStorageHost, fileHandler file.IHandler) action.Definition {
+
+	return &actionTransferPluginPkgToNode{
+		daoPluginDeployment: daoPluginDeployment,
+		fileHandler:         fileHandler,
+		daoHost:             daoHost,
+	}
+}
+
+// ActionParamTransferPluginPkgToNode defines the action param.
+type ActionParamTransferPluginPkgToNode struct {
+	Token    string `json:"token"`
+	TenantID string `json:"tenant_id"`
+	Operator string `json:"operator"`
+}
+
+type actionTransferPluginPkgToNode struct {
+	daoPluginDeployment pluginployment.IDaoPluginDeployment
+	daoHost             storageTopo.IStorageHost
+	fileHandler         file.IHandler
+}
+
+// Name returns the name of the action.
+func (act *actionTransferPluginPkgToNode) Name() string {
+	return ActionNameTransferPluginPkgToNode
+}
+
+// Version returns the version of the action.
+func (act *actionTransferPluginPkgToNode) Version() string {
+	return "v1.0.0" // nolint: goconst
+}
+
+// Description returns the description of the action.
+func (act *actionTransferPluginPkgToNode) Description() string {
+	return "transfer plugin pkg to node"
+}
+
+// Timeout returns the timeout of the action.
+func (act *actionTransferPluginPkgToNode) Timeout() time.Duration {
+	return 1 * time.Minute
+}
+
+// Tags returns the tags of the action.
+func (act *actionTransferPluginPkgToNode) Tags() []action.Tag {
+	return []action.Tag{}
+}
+
+// MaxRetryCount returns the max retry count of the action.
+func (act *actionTransferPluginPkgToNode) MaxRetryCount() uint {
+	return 3 // nolint: mnd
+}
+
+// DelayFn this func define when this action fails, how long to wait before retrying.
+func (act *actionTransferPluginPkgToNode) DelayFn() func() {
+	return func() {
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// Do this func define what the action will do.
+// nolint: funlen,nonamedreturns
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err error) {
+	param := new(ActionParamTransferPluginPkgToNode)
+	err = conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
+		err = fmt.Errorf("failed to convert param, err: %w", err)
+
+		return err
+	}
+
+	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+
+	ctx.Data.LogI("transfer plugin pkg to node start.")
+
+	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, param.Token)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, param.Token, info); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
+
+	targetHost, err := act.daoHost.GetHostByID(nCtx, info.Plugin.HostID)
+	if err != nil {
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", info.Plugin.HostID, err)
+	}
+
+	deployConstant, err := deployconstant.GetPluginDeployConf(info.Plugin.Generation, info.Plugin.Platform.OS)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+	}
+
+	// installer workdir priority: user specified in info > deploy constant default.
+	if info.InstallerWorkDir == "" {
+		info.InstallerWorkDir = deployConstant.WorkDir
+	}
+
+	gp := gopool.NewPool()
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+		gp.Go(func() error {
+			ctx.Data.LogI("transfer release start.")
+			defer ctx.Data.LogI("transfer release done.")
+
+			if err := act.transferRelease(nCtx, info, targetHost); err != nil {
+				return fmt.Errorf("failed to transfer release. host-id(%d), err: %w", targetHost.HostID, err)
+			}
+
+			return nil
+		})
+	}
+	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+		gp.Go(func() error {
+			return act.transferInstaller(nCtx, info, targetHost)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("host-id", targetHost.HostID).Error("failed to transfer plugin pkg to node.")
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done.")
+	ctx.Data.LogI("transfer plugin pkg to node all done.")
+
+	return nil
+}
+
+func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
+	rt, err := types.ConvPluginTypeToReleaseType(info.Plugin.Type)
+	if err != nil {
+		return fmt.Errorf("failed to convert plugin type to release type: %w", err)
+	}
+
+	var dataDir string
+	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
+		dataDir = winpath.Join(info.InstallerWorkDir, "data")
+	} else {
+		dataDir = filepath.Join(info.InstallerWorkDir, "data")
+	}
+
+	transferHandler, err := act.fileHandler.LaunchTransferPlugin(nCtx,
+		info.Plugin.Name,
+		info.Plugin.Generation,
+		rt,
+		info.Plugin.Platform,
+		info.Plugin.Version,
+		dataDir,
+		targetHost)
+	if err != nil {
+		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", targetHost.HostID, err)
+	}
+
+	logger.G.Biz(nCtx).Info("launched transfer release. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), targetHost.HostID)
+
+	result, err := transferHandler.WaitUntilDone(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d), err: %w",
+			transferHandler.GetTaskID(), targetHost.HostID, err)
+	}
+
+	if !result.Terminated {
+		return fmt.Errorf("transfer release not terminated. task-id(%s), host-id(%d)",
+			transferHandler.GetTaskID(), targetHost.HostID)
+	}
+
+	if result.ErrorCode != 0 {
+		return fmt.Errorf("transfer release failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
+	}
+
+	logger.G.Biz(nCtx).Info("transfer release done. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), targetHost.HostID)
+
+	return nil
+}
+
+func (act *actionTransferPluginPkgToNode) transferInstaller(ctx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
+		types.Generation2,
+		platform.Platform{
+			OS:   targetHost.Dynamic.NodeOsType,
+			Arch: targetHost.Dynamic.NodeCPUArch,
+		},
+		info.InstallerWorkDir,
+		targetHost)
+	if err != nil {
+		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", targetHost.HostID, err)
+	}
+
+	logger.G.Biz(ctx).Info("launched transfer installer. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), targetHost.HostID)
+
+	result, err := transferHandler.WaitUntilDone(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d), err: %w",
+			transferHandler.GetTaskID(), targetHost.HostID, err)
+	}
+
+	if !result.Terminated {
+		return fmt.Errorf("transfer installer not terminated. task-id(%s), host-id(%d)",
+			transferHandler.GetTaskID(), targetHost.HostID)
+	}
+
+	if result.ErrorCode != 0 {
+		return fmt.Errorf("transfer installer failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
+	}
+
+	logger.G.Biz(ctx).Info("transfer installer done. task-id(%s), host-id(%d)",
+		transferHandler.GetTaskID(), targetHost.HostID)
+
+	return nil
+}

@@ -43,12 +43,6 @@ type PluginDeploymentInfo struct {
 	// InstallOptions is used to control the tools when install plugin.
 	InstallOptions PluginDeploymentInstallOptions
 
-	// UpgradeOptions is used to control the tools when upgrade plugin.
-	UpgradeOptions PluginDeploymentUpgradeOptions
-
-	// RestartOptions is used to control the tools when restart plugin.
-	RestartOptions PluginDeploymentRestartOptions
-
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions
 
@@ -58,14 +52,6 @@ type PluginDeploymentInfo struct {
 
 // PluginDeploymentInstallOptions defines the options for plugin deployment.
 type PluginDeploymentInstallOptions struct {
-}
-
-// PluginDeploymentUpgradeOptions defines the options for plugin deployment.
-type PluginDeploymentUpgradeOptions struct {
-}
-
-// PluginDeploymentRestartOptions defines the options for plugin deployment.
-type PluginDeploymentRestartOptions struct {
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.

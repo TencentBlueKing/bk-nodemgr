@@ -39,6 +39,7 @@ type IManager interface {
 
 	ISyncManager
 	INodeManager
+	IPluginManager
 }
 
 // NewManager creates a new Manager.

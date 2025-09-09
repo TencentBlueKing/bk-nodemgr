@@ -18,14 +18,6 @@ import (
 // Tag represents a tag of an action.
 type Tag string
 
-const (
-	// TagIdempotent represents an idempotent action.
-	TagIdempotent Tag = "idempotent"
-
-	// TagNotIdempotent represents a not idempotent action.
-	TagNotIdempotent Tag = "non-idempotent"
-)
-
 // Definition represents an action, which is a single basic step of work.
 type Definition interface {
 	// Name returns the name of the action.

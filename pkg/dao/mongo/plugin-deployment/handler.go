@@ -104,6 +104,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
 		Plugin: types.Plugin{
+			TenantID:   info.Plugin.TenantID,
 			Name:       info.Plugin.Name,
 			HostID:     info.Plugin.HostID,
 			Type:       types.PluginType(info.Plugin.Type),
@@ -116,8 +117,6 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions:   types.PluginDeploymentInstallOptions{},
-		UpgradeOptions:   types.PluginDeploymentUpgradeOptions{},
-		RestartOptions:   types.PluginDeploymentRestartOptions{},
 		TransferOptions: types.PluginDeploymentTransferOptions{
 			SelectDownloads:      info.TransferOptions.SelectDownloads,
 			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
@@ -209,6 +208,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		ActionName:       info.BlockingActionName,
 		InstallerWorkDir: info.InstallerWorkDir,
 		Plugin: Plugin{
+			TenantID:   info.Plugin.TenantID,
 			Name:       info.Plugin.Name,
 			HostID:     info.Plugin.HostID,
 			Type:       string(info.Plugin.Type),

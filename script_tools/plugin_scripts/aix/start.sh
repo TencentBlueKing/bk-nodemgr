@@ -59,27 +59,6 @@ _status_linux_proc () {
     [ ${#pids[@]} -ne 0 ]
 }
 
-_status_darwin_proc () {
-    local proc="$1"
-    local pids
-    local __pids=()
- 
-    pids=$(ps xao pid,ppid,command | awk -v PROG="./$proc" '$3 == PROG { print $1 }')
-    for pid in ${pids[@]} ; do
-        abs_path=$(lsof -p $pid | awk '$4 == "txt" { print $9 }')
-        for _abs_path in ${abs_path[@]} ; do
-            if [ "${_abs_path%/$proc*}" == "${PWD}" ] ; then
-                __pids=(${__pids} ${pid})
-            fi
-        done
-    done
-    pids=(${__pids[@]})
-
-    echo -n ${pids[@]}
-
-    [ ${#pids[@]} -ne 0 ]
-}
-
 _status () {
     local proc="$1"
 
@@ -89,7 +68,6 @@ _status () {
 case $(uname -s) in
     *Linux) os_type=linux ;;
     *CYGWIN*) os_type=windows ;;
-    *Darwin*) os_type=darwin ;;
 esac
 
 [ -z "$1" ] && usage
@@ -103,7 +81,7 @@ else
 fi
 
 if [ -f ../etc/${1}.conf ]; then
-    ./$1 -c ../etc/${1}.conf >/dev/null 2>/tmp/xuoasefasd.err &
+    nohup ./$1 -c ../etc/${1}.conf >/dev/null 2>/tmp/xuoasefasd.err &
     sleep 1
     if _status $1; then
         green_echo "Done"

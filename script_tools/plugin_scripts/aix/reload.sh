@@ -2,7 +2,7 @@
 
 cd ${BASH_SOURCE%/*}
 
-red_echo ()      { [ "$HASTTY" != "1" ] && echo "$@" || echo -e "\033[031;1m$@\033[0m" >&2; }
+red_echo ()      { [ "$HASTTY" != "1" ] && echo "$@" || echo -e "\033[031;1m$@\033[0m"; }
 blue_echo ()     { [ "$HASTTY" != "1" ] && echo "$@" || echo -e "\033[034;1m$@\033[0m"; }
 green_echo ()    { [ "$HASTTY" != "1" ] && echo "$@" || echo -e "\033[032;1m$@\033[0m"; }
 
@@ -23,7 +23,7 @@ log () {
           opt=""
      fi
 
-     echo -e $opt "$timestamp $BASH_LINENO   $@"
+     echo -e $opt "$timestamp|$BASH_LINENO\t$@"
      echo -e $opt "$timestamp $level|$BASH_LINENO|${func_seq} $@\n" >>$logfile
 
      return $retval
@@ -36,16 +36,19 @@ usage () {
 
 _status_windows_proc () {
     local proc="$1"
+    local pids
 
-    pids=( $(ps -efW | grep "${proc}.exe" | awk '{print $2}') )
+    pids=( $(ps -efW | grep "bin/${proc}" | awk '{print $2}') )
     echo -n ${pids[@]}
+
+    [ ${#pids[@]} -ne 0 ]
 }
 
 _status_linux_proc () {
     local proc="$1"
     local pids
     local __pids=()
-
+ 
     pids=$(ps xao pid,ppid,command | awk -v PROG="./$proc" '$3 == PROG { print $1 }')
     for pid in ${pids[@]} ; do
         abs_path=$(readlink -f /proc/$pid/exe)
@@ -59,25 +62,8 @@ _status_linux_proc () {
     [ ${#pids[@]} -ne 0 ]
 }
 
-_status_darwin_proc () {
-    local proc="$1"
-    local pids
-    local __pids=()
- 
-    pids=$(ps xao pid,ppid,command | awk -v PROG="./$proc" '$3 == PROG { print $1 }')
-    for pid in ${pids[@]} ; do
-        abs_path=$(lsof -p $pid | awk '$4 == "txt" { print $9 }')
-        for _abs_path in ${abs_path[@]} ; do
-            if [ "${_abs_path%/$proc*}" == "${PWD}" ] ; then
-                __pids=(${__pids} ${pid})
-            fi
-        done
-    done
-    pids=(${__pids[@]})
-
-    echo -n ${pids[@]}
-
-    [ ${#pids[@]} -ne 0 ]
+_reload () {
+    kill -USR1 $(_status_${os_type}_proc $1) 2>/dev/null
 }
 
 _status () {
@@ -89,29 +75,9 @@ _status () {
 case $(uname -s) in
     *Linux) os_type=linux ;;
     *CYGWIN*) os_type=windows ;;
-    *Darwin*) os_type=darwin ;;
 esac
 
 [ -z "$1" ] && usage
 
-log -n "start $1 ..."
-if [ -f $1 ]; then
-    chmod +x ./$1
-else
-    red_echo "$1: file not exists($PWD)"
-    exit 1
-fi
-
-if [ -f ../etc/${1}.conf ]; then
-    ./$1 -c ../etc/${1}.conf >/dev/null 2>/tmp/xuoasefasd.err &
-    sleep 1
-    if _status $1; then
-        green_echo "Done"
-    else
-        red_echo "$(< /tmp/xuoasefasd.err). Fail"
-        exit 1
-    fi
-else
-    red_echo "config file ${1}.conf not exists"
-    exit 1
-fi
+log -n "reload $1 ..."
+_reload $1 && green_echo " Done" || red_echo " Fail"

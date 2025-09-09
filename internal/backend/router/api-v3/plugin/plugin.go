@@ -8,21 +8,29 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package manager
+// Package plugin defines the router to handle the plugin request.
+package plugin
 
 import (
-	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/official"
+	"github.com/gin-gonic/gin"
 )
 
-// registerActionDefs init action defs.
-func (mgr *Manager) registerActionDefs() error {
-	if err := mgr.registerActionDefsOnceOperation(); err != nil {
-		return fmt.Errorf("register once operation actions failed: %w", err)
-	}
+type handler struct {
+	rg *gin.RouterGroup
+}
 
-	if err := mgr.registerActionDefsPeriodicOperation(); err != nil {
-		return fmt.Errorf("register periodic operation actions failed: %w", err)
+func newHandler(rg *gin.RouterGroup) *handler {
+	return &handler{
+		// this is a sub router, so we can use some special middleware in it and not affect the father router.
+		rg: rg.Group("/plugin"),
 	}
+}
 
-	return nil
+// Load loads node handler.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg)
+
+	official.Load(h.rg, capability)
 }

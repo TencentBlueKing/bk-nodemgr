@@ -30,6 +30,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
+const (
+	// ActionNameActionName defines the action name.
+	ActionNameActionName = "action_name"
+)
+
 // NewActionActionName ...
 func NewActionActionName() action.Definition {
 	return &ActionName{}
@@ -45,12 +50,12 @@ type ActionName struct {
 
 // Name returns the name of the action.
 func (act *ActionName) Name() string {
-	return ""
+	return ActionNameActionName
 }
 
 // Version returns the version of the action.
 func (act *ActionName) Version() string {
-	return ""
+	return "1.0.0"
 }
 
 // Description returns the description of the action.

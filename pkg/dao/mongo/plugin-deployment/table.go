@@ -38,6 +38,7 @@ type Info struct {
 
 // Plugin defines the plugin.
 type Plugin struct {
+	TenantID   string   `json:"tenant_id" bson:"tenant_id"`
 	HostID     int64    `json:"host_id" bson:"host_id"`
 	Name       string   `json:"name" bson:"name"`
 	Type       string   `json:"type" bson:"type"`

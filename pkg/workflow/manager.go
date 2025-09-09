@@ -14,6 +14,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/RichardKnop/machinery/v2"
 	backendIface "github.com/RichardKnop/machinery/v2/backends/iface"
@@ -274,7 +275,7 @@ func (mgr *manager) RegisterAction(actionDef action.Definition) error {
 	}
 
 	if _, ok := mgr.registeredActionDefs[actionDef.Name()]; ok {
-		return errors.New("action already registered")
+		return fmt.Errorf("action already registered, action-name(%s)", actionDef.Name())
 	}
 
 	mgr.registeredActionDefs[actionDef.Name()] = actionDef

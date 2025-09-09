@@ -468,6 +468,7 @@ func (svc *Service) initialManager() error {
 		StorageRelease:      svc.Cap.StorageRelease,
 		StorageNode:         svc.Cap.StorageNode,
 		StorageWorkflow:     svc.Cap.StorageWorkflow,
+		StoragePlugin:       svc.Cap.StoragePlugin,
 		StorageHostCredit:   svc.Cap.StorageCredit,
 		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
 		HostPasswordVault:   svc.Cap.CreditVault,
