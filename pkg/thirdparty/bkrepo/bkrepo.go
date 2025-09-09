@@ -15,7 +15,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -76,13 +75,9 @@ func (c *cli) DownloadFile(ctx context.Context, req *DownloadFileReq) (*Download
 	resp := new(DownloadFileResp)
 	header := c.getCommonHeader()
 
-	subPath, err := url.JoinPath("generic", c.config.ProjectID, c.config.RepoName, req.Path)
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	resp.Data, err = c.client.Get().
-		SubResourcef(subPath).
+		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithParam("download", "true").
 		WithContext(ctx).
 		WithHeaders(header).
@@ -100,13 +95,8 @@ func (c *cli) UploadFile(ctx context.Context, req *UploadFileReq) (*UploadFileRe
 	header := c.getCommonHeader()
 	header = req.Info.BindHeader(header)
 
-	subPath, err := url.JoinPath("generic", c.config.ProjectID, c.config.RepoName, req.Path)
-	if err != nil {
-		return nil, fmt.Errorf("upload file failed, err: %w", err)
-	}
-
-	err = c.client.Put().
-		SubResourcef(subPath).
+	err := c.client.Put().
+		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithContext(ctx).
 		WithHeaders(header).
 		BodyReader(req.Reader).
@@ -123,13 +113,8 @@ func (c *cli) QueryNodeInfo(ctx context.Context, req *QueryNodeInfoReq) (*QueryN
 	resp := new(BaseBroker[*QueryNodeInfoResp])
 	header := c.getCommonHeader()
 
-	subPath, err := url.JoinPath("/repository/api/node/detail", c.config.ProjectID, c.config.RepoName, req.Path)
-	if err != nil {
-		return nil, fmt.Errorf("query node info failed, err: %w", err)
-	}
-
-	err = c.client.Get().
-		SubResourcef(subPath).
+	err := c.client.Get().
+		SubResourcef("/repository/api/node/detail/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithContext(ctx).
 		WithHeaders(header).
 		EnableLogBody().
@@ -150,13 +135,8 @@ func (c *cli) ListNode(ctx context.Context, req *ListNodeReq) (*ListNodeResp, er
 	resp := new(BaseBroker[*ListNodeResp])
 	header := c.getCommonHeader()
 
-	subPath, err := url.JoinPath("/repository/api/node/page", c.config.ProjectID, c.config.RepoName, req.Path)
-	if err != nil {
-		return nil, fmt.Errorf("list node failed, err: %w", err)
-	}
-
-	err = c.client.Get().
-		SubResourcef(subPath).
+	err := c.client.Get().
+		SubResourcef("/repository/api/node/page/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithContext(ctx).
 		WithHeaders(header).
 		WithParams(map[string]string{
@@ -184,13 +164,8 @@ func (c *cli) MkDir(ctx context.Context, req *MkdirReq) error {
 	resp := new(BaseBroker[*MkdirResp])
 	header := c.getCommonHeader()
 
-	subPath, err := url.JoinPath("/repository/api/node/mkdir", c.config.ProjectID, c.config.RepoName, req.Path)
-	if err != nil {
-		return fmt.Errorf("mkdir failed, err: %w", err)
-	}
-
-	err = c.client.Post().
-		SubResourcef(subPath).
+	err := c.client.Post().
+		SubResourcef("/repository/api/node/mkdir/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithContext(ctx).
 		WithHeaders(header).
 		Do().Into(resp)

@@ -328,6 +328,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 	}
 
 	clientCap := &restclient.Capability{
+		Name:       "file",
 		HTTPClient: httpClient,
 		Discover: restdiscovery.NewServiceDiscovery(
 			svc.Cap.DiscoverProvider,

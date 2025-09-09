@@ -190,6 +190,7 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 	}
 
 	clientCap := &restclient.Capability{
+		Name:                 "bkrepo",
 		HTTPClient:           httpClient,
 		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{svc.conf.Repo.Endpoint}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
