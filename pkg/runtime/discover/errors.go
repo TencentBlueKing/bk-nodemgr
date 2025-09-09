@@ -72,3 +72,8 @@ func ErrDiscoverNotStarted() error {
 func ErrDiscoverInternalError() error {
 	return errors.New("discover internal error")
 }
+
+// ErrMetaValueNotFound this defines the error of meta value not found.
+func ErrMetaValueNotFound() error {
+	return errors.New("meta value not found")
+}

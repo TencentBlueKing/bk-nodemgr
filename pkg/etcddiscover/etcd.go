@@ -172,27 +172,13 @@ func (provider *ProviderEtcd) GetEndpoint(
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
 	provider.logger.Infof("registering serivce(%s), id(%s)", string(serviceName), instance.ID)
 
-	if provider.etcdClient == nil {
-		return discover.ErrDiscoverNotStarted()
-	}
-
-	if serviceName == "" {
-		return discover.ErrInvalidServiceName()
-	}
-
-	if err := instance.Validate(); err != nil {
-		return err
-	}
-
-	lease, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
+	resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
 	if err != nil {
 		return err
 	}
 
-	if instance.Meta == nil {
-		instance.Meta = make(map[string]string)
-	}
-	instance.Meta[metaKeyLeaseID] = fmt.Sprintf("%d", lease.ID)
+	leaseID := int64(resp.ID)
+	instance.SetMeta(metaKeyLeaseID, leaseID)
 	content, err := json.Marshal(instance)
 	if err != nil {
 		return err
@@ -202,42 +188,70 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 		provider.ctx,
 		filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID),
 		string(content),
-		clientv3.WithLease(lease.ID),
+		clientv3.WithLease(clientv3.LeaseID(leaseID)),
 	)
 	if err != nil {
 		return err
 	}
 
-	ch, err := provider.etcdClient.KeepAlive(provider.ctx, lease.ID)
+	ch, err := provider.etcdClient.KeepAlive(provider.ctx, clientv3.LeaseID(leaseID))
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		for {
-			select {
-			case <-provider.ctx.Done():
-				return
-			case _, ok := <-ch:
-				if !ok {
-					provider.logger.Infof("keep registered node alive channel closed. serivce(%s), id(%s)",
-						string(serviceName), instance.ID)
-
-					return
-				}
-			}
+		for resp := range ch {
+			provider.logger.Infof("recved grant keepalive response, lease-id(%d)", resp.ID)
 		}
+		provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
 	}()
 
 	provider.getLocalInstanceHolder(serviceName).upsert(instance)
 	provider.logger.Infof("registered serivce(%s), id(%s), data(%s)",
 		string(serviceName), instance.ID, string(content))
 
+	// register keeper.
+	go func() {
+		for {
+			select {
+			case <-provider.ctx.Done():
+				return
+			default:
+				cachedInstance, err := provider.getLocalInstanceHolder(serviceName).get(instance.ID)
+				if err != nil {
+					provider.logger.Warnf("local instance not found, quit the register keeper. service(%s), id(%s): %v",
+						string(serviceName), instance.ID, err)
+
+					return
+				}
+
+				if err = provider.putService(serviceName, cachedInstance); err != nil {
+					provider.logger.Warnf("failed to put service in register keeper: %v", err)
+				}
+			}
+
+			time.Sleep(time.Second)
+		}
+	}()
+
 	return nil
 }
 
 // Update updates a service instance.
 func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance discover.Instance) error {
+	if err := provider.putService(serviceName, instance); err != nil {
+		provider.logger.Errorf("failed to update instance. service(%s), id(%s): %v", string(serviceName), instance.ID, err)
+
+		return err
+	}
+
+	provider.logger.Infof("successfully updated. serivce(%s), id(%s), data(%+v)",
+		string(serviceName), instance.ID, instance)
+
+	return nil
+}
+
+func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, instance discover.Instance) error {
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
@@ -256,42 +270,49 @@ func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance 
 		return err
 	}
 
-	if instanceOld.Meta == nil {
-		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
-	}
-
-	leaseIDStr, ok := instanceOld.Meta[metaKeyLeaseID]
-	if !ok {
-		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
-	}
-
-	leaseID, err := conv.ToInt64(leaseIDStr)
+	leaseID, err := instanceOld.GetMetaInt64(metaKeyLeaseID)
 	if err != nil {
-		return err
+		return errors.Join(discover.ErrDiscoverInternalError(), fmt.Errorf("lease id not found: %w", err))
 	}
 
-	if instance.Meta == nil {
-		instance.Meta = make(map[string]string)
-	}
-	instance.Meta[metaKeyLeaseID] = leaseIDStr
+	instance.SetMeta(metaKeyLeaseID, leaseID)
 	content, err := json.Marshal(instance)
 	if err != nil {
 		return err
 	}
 
-	_, err = provider.etcdClient.Put(
-		provider.ctx,
-		filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID),
-		string(content),
-		clientv3.WithLease(clientv3.LeaseID(leaseID)),
-	)
-	if err != nil {
-		return err
+	key := filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID)
+	if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
+		provider.logger.Warnf("failed to put service to etcd, need to grant new lease. key(%s): %+v", key, err)
+
+		resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
+		if err != nil {
+			return err
+		}
+
+		leaseID := int64(resp.ID)
+		instance.SetMeta(metaKeyLeaseID, leaseID)
+
+		if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
+			return err
+		}
+
+		ch, err := provider.etcdClient.KeepAlive(provider.ctx, clientv3.LeaseID(leaseID))
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			for resp := range ch {
+				provider.logger.Infof("recved grant keepalive response, lease-id(%d)", resp.ID)
+			}
+			provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
+		}()
+
+		provider.logger.Infof("successfully grant new lease and update resource(%s)", key)
 	}
 
 	holder.upsert(instance)
-	provider.logger.Infof("successfully updated. serivce(%s), id(%s), data(%s)",
-		string(serviceName), instance.ID, string(content))
 
 	return nil
 }

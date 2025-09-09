@@ -127,7 +127,7 @@ const (
 )
 
 // NewInstance creates a new instance.
-func NewInstance(name string, meta map[string]string) Instance {
+func NewInstance(name string, meta map[string]interface{}) Instance {
 	inst := Instance{
 		ID:        identifier.GenServiceID(),
 		Name:      name,
@@ -143,7 +143,60 @@ type Instance struct {
 	ID        string                    `json:"id"`
 	Name      string                    `json:"name"`
 	Endpoints map[EndpointName]Endpoint `json:"endpoints"`
-	Meta      map[string]string         `json:"meta"`
+	Meta      map[string]interface{}    `json:"meta"`
+}
+
+// GetMeta gets the meta value of the given key.
+func (instance *Instance) GetMeta(key string) (interface{}, error) {
+	if instance.Meta == nil {
+		return "", ErrMetaValueNotFound()
+	}
+
+	v, ok := instance.Meta[key]
+	if !ok {
+		return "", ErrMetaValueNotFound()
+	}
+
+	return v, nil
+}
+
+// SetMeta sets the meta value of the given key.
+func (instance *Instance) SetMeta(key string, value interface{}) {
+	if instance.Meta == nil {
+		instance.Meta = make(map[string]interface{})
+	}
+
+	instance.Meta[key] = value
+}
+
+// GetMetaString gets the meta value of the given key.
+func (instance *Instance) GetMetaString(key string) (string, error) {
+	v, err := instance.GetMeta(key)
+	if err != nil {
+		return "", err
+	}
+
+	s, ok := v.(string)
+	if !ok {
+		return "", ErrMetaValueNotFound()
+	}
+
+	return s, nil
+}
+
+// GetMetaInt64 gets the meta value of the given key as int64.
+func (instance *Instance) GetMetaInt64(key string) (int64, error) {
+	v, err := instance.GetMeta(key)
+	if err != nil {
+		return 0, err
+	}
+
+	i, ok := v.(int64)
+	if !ok {
+		return 0, ErrMetaValueNotFound()
+	}
+
+	return i, nil
 }
 
 // Validate validates the instance.
