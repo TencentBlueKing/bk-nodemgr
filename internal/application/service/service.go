@@ -454,7 +454,7 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogi
 
 	bkloginHandler, err := bksaasbklogin.New(
 		clientCap,
-		&bksaasbklogin.Config{LoginURL: conf.LoginURL},
+		&bksaasbklogin.Config{LoginURL: conf.LoginURL, AuthType: conf.AuthType.String()},
 		bksaasbklogin.WithLogger(logger),
 	)
 	if err != nil {
@@ -516,24 +516,4 @@ func (svc *Service) GracefulShutdown() error {
 	blog.CloseLogs()
 
 	return nil
-}
-
-func initMongoDB(conf *config.MongoDB) (*mongo.Client, error) {
-	mongoClient, err := mongo.Connect(
-		context.Background(),
-		&mongoOptions.ClientOptions{
-			Hosts: conf.Hosts,
-			Auth: &mongoOptions.Credential{
-				Username:      conf.Username,
-				Password:      conf.Password,
-				AuthSource:    conf.AuthSource,
-				AuthMechanism: conf.AuthMechanism,
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return mongoClient, nil
 }

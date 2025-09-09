@@ -607,6 +607,7 @@ application:
     bkSaaS:
       bkLogin:
         loginURL: ""
+        authType: "bk_token"
         # defines tls related options.
         tls:
           # server should be accessed without verifying the TLS certificate.

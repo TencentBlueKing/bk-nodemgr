@@ -11,11 +11,11 @@
 package bklogin
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
@@ -25,8 +25,8 @@ type IHandler interface {
 	// GetLoginURL get the login url.
 	GetLoginURL() string
 
-	// Verify verify the bk_ticket.
-	Verify(ctx context.Context, bkTicket string) (string, error)
+	// Verify verify the bk_ticket or bk_token.
+	Verify(ctx contextx.IContext, token string) (string, error)
 
 	// GetAuthIdentity get the auth identity.
 	GetAuthIdentity() *AuthIdentity
@@ -42,6 +42,7 @@ type Handler struct {
 // Config the config of bkoa.
 type Config struct {
 	LoginURL string
+	AuthType string
 }
 
 // Validate validates the config.
@@ -49,6 +50,12 @@ func (conf *Config) Validate() error {
 	_, err := url.Parse(conf.LoginURL)
 	if err != nil {
 		return fmt.Errorf("failed to validate bklogin config: %w", err)
+	}
+
+	switch conf.AuthType {
+	case CookieKeyBKTicket, CookieKeyBKToken:
+	default:
+		return fmt.Errorf("failed to validate bklogin config: unsupported auth type: %s", conf.AuthType)
 	}
 
 	return nil
@@ -71,35 +78,48 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 		return nil, err
 	}
 
-	h := &Handler{
+	err = conf.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	handler := &Handler{
 		cli:    cli,
 		logger: logger.LoggerDefault{},
 		conf:   conf,
 	}
 
 	for _, opt := range opts {
-		opt(h)
+		opt(handler)
 	}
 
-	return h, nil
+	return handler, nil
 }
 
-// Verify the bk_ticket is valid or not, and return the bk_username.
-func (h *Handler) Verify(ctx context.Context, bkTicket string) (string, error) {
+// Verify the bk_ticket or bk_token is valid or not, and return the bk_username.
+func (h *Handler) Verify(ctx contextx.IContext, token string) (string, error) {
 	if ctx == nil {
-		return "", errors.New("failed to verify bk_ticket: invalid context")
+		return "", errors.New("failed to verify token: invalid context")
 	}
 
-	if bkTicket == "" {
-		return "", errors.New("failed to verify bk_ticket: invalid param")
-	}
+	switch h.conf.AuthType {
+	case CookieKeyBKTicket:
+		resp, err := h.cli.getUserInfoByBKTicket(ctx, &GetUserInfoByBKTicketReq{BKTicket: token})
+		if err != nil {
+			return "", fmt.Errorf("failed to verify bk_ticket: %w", err)
+		}
 
-	resp, err := h.cli.getUserInfo(ctx, &GetUserInfoReq{BKTicket: bkTicket})
-	if err != nil {
-		return "", fmt.Errorf("failed to verify bk_ticket: %w", err)
-	}
+		return resp.Username, nil
+	case CookieKeyBKToken:
+		resp, err := h.cli.getUserInfoByBKToken(ctx, &GetUserInfoByBKTokenReq{BKToken: token})
+		if err != nil {
+			return "", fmt.Errorf("failed to verify bk_token: %w", err)
+		}
 
-	return resp.Username, nil
+		return resp.Username, nil
+	default:
+		return "", fmt.Errorf("failed to verify token: unsupported auth type: %s", h.conf.AuthType)
+	}
 }
 
 // GetAuthIdentity ...
