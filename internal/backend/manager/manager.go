@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -241,113 +240,6 @@ func (mgr *Manager) startWorkflowManager(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// registerActionDefs init action defs.
-func (mgr *Manager) registerActionDefs() error {
-	if err := mgr.registerOnceOperationActions(); err != nil {
-		return fmt.Errorf("register once operation actions failed, err: %w", err)
-	}
-
-	if err := mgr.registerPeriodicOperationActions(); err != nil {
-		return fmt.Errorf("register periodic operation actions failed, err: %w", err)
-	}
-
-	return nil
-}
-
-// registerOnceTriggerActions registers the action definitions for once trigger actions.
-func (mgr *Manager) registerOnceOperationActions() error {
-	if err := mgr.registerActionDefNodeInstall(); err != nil {
-		return fmt.Errorf("register action def node install failed, err: %w", err)
-	}
-
-	if err := mgr.registerActionDefSyncData(); err != nil {
-		return fmt.Errorf("register action def sync data failed, err: %w", err)
-	}
-
-	return nil
-}
-
-// registerPeriodicTriggerActions registers the action definitions for periodic trigger actions.
-func (mgr *Manager) registerPeriodicOperationActions() error {
-	if err := mgr.registerActionDefSchedule(); err != nil {
-		return fmt.Errorf("register action def schedule failed, err: %w", err)
-	}
-
-	return nil
-}
-
-// registerActionDefSyncData registers the action definitions for sync data operations.
-func (mgr *Manager) registerActionDefSyncData() error {
-	return mgr.workflowMgr.RegisterActions(
-		syncdata.NewActionSyncBusinessFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.logger),
-		syncdata.NewActionSyncHostFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
-		syncdata.NewActionSyncNetworkAreaFromCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
-		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
-		syncdata.NewActionSyncAgentState(mgr.conf.GSEHandler, mgr.conf.StorageTopo, mgr.logger),
-		syncdata.NewActionGenOperSyncAgentState(mgr.conf.StorageTopo, mgr.workflowMgr),
-		syncdata.NewActionWatchCMDBResource(mgr.conf.Cache, mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
-	)
-}
-
-// registerActionDefNodeInstall registers the action definitions for node installation operations.
-// nolint: lll
-func (mgr *Manager) registerActionDefNodeInstall() error {
-	return mgr.workflowMgr.RegisterActions(
-		node.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		node.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),
-		node.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
-		node.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
-		node.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
-		node.NewActionDetectInfoBySSH(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		node.NewActionDetectInfoByWMI(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		node.NewActionUpgradeNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
-		node.NewActionCleanInstaller(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
-		node.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
-		node.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
-		node.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		node.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
-		node.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
-		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
-	)
-}
-
-// registerActionDefSchedule registers the action definitions for schedule operations.
-// nolint: lll
-func (mgr *Manager) registerActionDefSchedule() error {
-	return mgr.workflowMgr.RegisterActions(
-		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
-		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
-		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbNetworkAreaWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncNetworkArea),
-		schedule.NewActionGenScheduleOnceTrigger(WatchAndApplyCMDBResourceWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchWatchAndApplyCMDBResource),
-	)
-}
-
-// registerOperExecDefs init operation execution definitions.
-func (mgr *Manager) registerOperExecDefs() error {
-	if err := mgr.registerOperExecDefNodeInstall(); err != nil {
-		return fmt.Errorf("register oper extra action def node install failed, err: %w", err)
-	}
-
-	return nil
-}
-
-// registerOperExecDefNodeInstall registers the operation execution definitions for node installation operations.
-func (mgr *Manager) registerOperExecDefNodeInstall() error {
-	return mgr.workflowMgr.RegisterOperExtraExecutions(
-		node.NewOperationExtraExecution(mgr.conf.Cache, mgr.conf.StorageNodeDeployment),
-	)
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.
