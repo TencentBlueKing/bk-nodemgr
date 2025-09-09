@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
@@ -337,16 +336,7 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 		return err
 	}
 
-	if instance.Meta == nil {
-		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
-	}
-
-	leaseIDStr, ok := instance.Meta[metaKeyLeaseID]
-	if !ok {
-		return errors.Join(discover.ErrDiscoverInternalError(), errors.New("lease id not found"))
-	}
-
-	leaseID, err := conv.ToInt64(leaseIDStr)
+	leaseID, err := instance.GetMetaInt64(metaKeyLeaseID)
 	if err != nil {
 		return err
 	}
@@ -422,7 +412,7 @@ func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 
 				instanceHolder.upsert(instance)
 
-				provider.logger.Infof("observed instance put. service(%s), id(%s), data(%s)",
+				provider.logger.Debugf("observed instance put. service(%s), id(%s), data(%s)",
 					serviceName, id, string(ev.Kv.Value))
 
 			case clientv3.EventTypeDelete:
