@@ -129,7 +129,7 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen,fnsize,gocognit,nestif
+// nolint: perfsprint,funlen,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamPagentDetectInfoBySSH)

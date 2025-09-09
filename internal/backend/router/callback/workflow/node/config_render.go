@@ -77,7 +77,7 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderj
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
 		default:
-			configStr = strings.ReplaceAll(configStr, item[0], escapeForJson(fmt.Sprintf("%v", value)))
+			configStr = strings.ReplaceAll(configStr, item[0], escapeForJSON(fmt.Sprintf("%v", value)))
 		}
 	}
 
@@ -129,7 +129,7 @@ func renderCustomSetting(uniqueKey string, config *orderjson.OrderedData, key st
 	return nil
 }
 
-func escapeForJson(src string) string {
+func escapeForJSON(src string) string {
 	quoted := strconv.Quote(src)
 	return quoted[1 : len(quoted)-1]
 }

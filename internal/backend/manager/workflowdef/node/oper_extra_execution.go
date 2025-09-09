@@ -32,6 +32,7 @@ func NewOperationExtraExecution(
 	locker cache.ICache,
 	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
 ) operation.ExtraExecution {
+
 	return &extraExecution{
 		locker:                locker,
 		storageNodeDeployment: storageNodeDeployment,
@@ -77,6 +78,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 		if err != nil {
 			instance.LogE(err.Error())
 			instance.Lifecycle.End(action.StateFailed)
+
 			return err
 		}
 
@@ -89,6 +91,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 		if err != nil {
 			instance.LogE(err.Error())
 			instance.Lifecycle.End(action.StateFailed)
+
 			return fmt.Errorf("unlock host by locker(%s) failed: %w", lockerName, err)
 		}
 
@@ -98,6 +101,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 	default:
 		instance.LogE(fmt.Sprintf("unexpected operation instance state: %s", instance.Lifecycle.State))
 		instance.Lifecycle.End(action.StateFailed)
+
 		return fmt.Errorf("unexpected operation instance state: %s", instance.Lifecycle.State)
 	}
 }

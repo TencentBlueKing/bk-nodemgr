@@ -87,7 +87,7 @@ const (
 
 func (h *handler) calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequire, error) {
 	diskRequiresMap := map[string]uint64{
-		"__BK_GSE_HOME_DIR__": 300,
+		"__BK_GSE_HOME_DIR__": 300, // nolint: mnd
 	}
 
 	logFileSize, err := conv.ToInt64(nodeConf.PreSetting[GSELogFileSizeMB])
@@ -125,13 +125,13 @@ func (h *handler) calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequ
 
 func (h *handler) calCheckListPortPolicies(nodeConf *types.NodeConf) ([]PortPolicy, error) {
 	portPoliciesMap := map[string]criteria.NetType{
-		//"__BK_GSE_DATA_AGENT_BIND_PORT__":              criteria.NetTypeTCP,
-		//"__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_BITTORRENT_BIND_PORT__":         criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__": criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_TOPOLOGY_BIND_PORT__":           criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__":    criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
+		// "__BK_GSE_DATA_AGENT_BIND_PORT__":              criteria.NetTypeTCP,
+		// "__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
+		// "__BK_GSE_FILE_BITTORRENT_BIND_PORT__":         criteria.NetTypeTCP,
+		// "__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__": criteria.NetTypeTCP,
+		// "__BK_GSE_FILE_TOPOLOGY_BIND_PORT__":           criteria.NetTypeTCP,
+		// "__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__":    criteria.NetTypeTCP,
+		// "__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
 		"__BK_GSE_PROXY_BIND_PORT__": criteria.NetTypeTCP,
 	}
 

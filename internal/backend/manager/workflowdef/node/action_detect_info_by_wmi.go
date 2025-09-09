@@ -189,6 +189,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
 				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+
 				break
 			}
 		}

@@ -175,6 +175,8 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
 		nodeConf.ConfigTemplate = rlsProxy.ReleaseAdditionInfoProxy.ConfigTemplate
+	default:
+		return fmt.Errorf("unsupported release type: %s", releaseType)
 	}
 
 	gp := gopool.NewPool()

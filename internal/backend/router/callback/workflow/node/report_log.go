@@ -38,7 +38,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		return
 	}
 
-	info, err := h.GetInfo(gCtx, req.Token)
+	info, err := h.GetInfo(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("token is invalid, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -46,8 +46,8 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		return
 	}
 
-	logs := make([]common.Message, len(req.Logs))
-	for idx, log := range req.Logs {
+	logs := make([]common.Message, len(req.GetLogs()))
+	for idx, log := range req.GetLogs() {
 		logs[idx] = common.Message{
 			Time: time.Now(),
 			Text: fmt.Sprintf("%s\t:%s\t:%s\t",
