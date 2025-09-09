@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/nodeinstall"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -295,31 +295,31 @@ func (mgr *Manager) registerActionDefSyncData() error {
 // nolint: lll
 func (mgr *Manager) registerActionDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterActions(
-		nodeinstall.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		nodeinstall.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		nodeinstall.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),
-		nodeinstall.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
-		nodeinstall.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
-		nodeinstall.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
-		nodeinstall.NewActionDetectInfoBySSH(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		nodeinstall.NewActionDetectInfoByWMI(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		nodeinstall.NewActionUpgradeNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
-		nodeinstall.NewActionCleanInstaller(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
-		nodeinstall.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
-		nodeinstall.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
-		nodeinstall.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
-		nodeinstall.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
-		nodeinstall.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		nodeinstall.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
-		nodeinstall.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		nodeinstall.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
+		node.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
+		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionRenderNodeDeployment(mgr.conf.StorageNodeDeployment, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),
+		node.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment),
+		node.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
+		node.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionTransferPkgToNode(mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.logger),
+		node.NewActionDetectInfoBySSH(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
+		node.NewActionDetectInfoByWMI(mgr.logger, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
+		node.NewActionUpgradeNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
+		node.NewActionCleanInstaller(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		node.NewActionVersionCompatCheck(mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionReconfigNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
+		node.NewActionRestartNode(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger),
+		node.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
+		node.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
 	)
 }
 
@@ -346,7 +346,7 @@ func (mgr *Manager) registerOperExecDefs() error {
 // registerOperExecDefNodeInstall registers the operation execution definitions for node installation operations.
 func (mgr *Manager) registerOperExecDefNodeInstall() error {
 	return mgr.workflowMgr.RegisterOperExtraExecutions(
-		nodeinstall.NewOperationExtraExecution(mgr.conf.Cache, mgr.conf.StorageNodeDeployment),
+		node.NewOperationExtraExecution(mgr.conf.Cache, mgr.conf.StorageNodeDeployment),
 	)
 }
 
@@ -565,7 +565,7 @@ func (mgr *Manager) createInstallNodeOper(
 func (mgr *Manager) getOperationDefinition(deploy *types.NodeDeployment, operator string) operation.Definition {
 	// proxy.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
@@ -575,19 +575,19 @@ func (mgr *Manager) getOperationDefinition(deploy *types.NodeDeployment, operato
 	if deploy.Info.InstallOptions.DirectLink {
 		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
 		case criteria.OSLinux, criteria.OSDarwin:
-			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
 			})
 
 		case criteria.OSWindows:
-			return nodeinstall.NewOperInstallNodeByWMI(nodeinstall.OperParamInstallNodeByWMI{
+			return node.NewOperInstallNodeByWMI(node.OperParamInstallNodeByWMI{
 				Token:    deploy.Token,
 				Operator: operator,
 			})
 
 		default:
-			return nodeinstall.NewOperInstallNodeBySSH(nodeinstall.OperParamInstallNodeBySSH{
+			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
 				Token:    deploy.Token,
 				Operator: operator,
 			})
@@ -597,19 +597,19 @@ func (mgr *Manager) getOperationDefinition(deploy *types.NodeDeployment, operato
 	// pagent under proxy.
 	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
 	case criteria.OSLinux, criteria.OSDarwin:
-		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
 
 	case criteria.OSWindows:
-		return nodeinstall.NewOperInstallPagentNodeByWMI(nodeinstall.OperParamInstallPagentNodeByWMI{
+		return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
 
 	default:
-		return nodeinstall.NewOperInstallPagentNodeBySSH(nodeinstall.OperParamInstallPagentNodeBySSH{
+		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
@@ -658,7 +658,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperUpgradeNode(nodeinstall.OperParamUpgradeNode{
+			operationDef := node.NewOperUpgradeNode(node.OperParamUpgradeNode{
 				Token:    deploy.Token,
 				Operator: param.Operator,
 			})
@@ -739,7 +739,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperReconfigNode(nodeinstall.OperParamReconfigNode{
+			operationDef := node.NewOperReconfigNode(node.OperParamReconfigNode{
 				Token:    deploy.Token,
 				Operator: param.Operator,
 			})
@@ -820,7 +820,7 @@ func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param Res
 				return err
 			}
 
-			operationDef := nodeinstall.NewOperRestartNode(nodeinstall.OperParamRestartNode{
+			operationDef := node.NewOperRestartNode(node.OperParamRestartNode{
 				Token:    deploy.Token,
 				Operator: param.Operator,
 			})
