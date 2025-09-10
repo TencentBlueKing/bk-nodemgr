@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type ICert interface {
 }
 
 // GetCertUpload gets a upload by upload-id.
-func (s *Storage) GetCertUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetCertUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_cert")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginCert, uploadID)
 }
 
 // CreateCertUpload creates a upload.
-func (s *Storage) CreateCertUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreateCertUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_cert")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginCert, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginCert, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeleteCertUpload deletes a upload by upload-id.
-func (s *Storage) DeleteCertUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeleteCertUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_cert")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginCert, uploadID)
 }

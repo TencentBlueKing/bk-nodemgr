@@ -19,6 +19,9 @@ import (
 const (
 	// CookieKeyBKTicket is the key of cookie.
 	CookieKeyBKTicket = "bk_ticket"
+
+	// CookieKeyBKToken is the key of cookie.
+	CookieKeyBKToken = "bk_token"
 )
 
 var _ restserver.IAuthIdentity = &AuthIdentity{}
@@ -30,12 +33,12 @@ type AuthIdentity struct {
 
 // Verify the ticket.
 func (identity *AuthIdentity) Verify(rCtx *restserver.Context) error {
-	bkTicket, err := rCtx.GetCookie(CookieKeyBKTicket)
+	token, err := rCtx.GetCookie(identity.handler.conf.AuthType)
 	if err != nil {
-		return fmt.Errorf("failed to verify authentication: %w", err)
+		return fmt.Errorf("failed to verify authentication by get cookie: %w", err)
 	}
 
-	loginUsername, err := identity.handler.Verify(rCtx, bkTicket)
+	loginUsername, err := identity.handler.Verify(rCtx, token)
 	if err != nil {
 		return fmt.Errorf("failed to verify authentication: %w", err)
 	}

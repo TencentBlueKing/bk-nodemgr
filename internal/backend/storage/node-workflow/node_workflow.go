@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package nodeworkflow provides the node workflow storage.
+// nolint: nonamedreturns
 package nodeworkflow
 
 import (
@@ -17,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
@@ -262,19 +265,39 @@ func (s *Storage) check() error {
 func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
+	var results []*types.NodeWorkflow
+	var num int64
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("list")
+	defer metric.End(err)
+
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(nodeworkflow.FieldKeyOperateTime))
-
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	if results, num, err = s.daoNodeWorkflow.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
 
-	return s.daoNodeWorkflow.List(ctx, page, opts...)
+	return results, num, nil
 }
 
 // CountNodeWorkflow counts node workflow by conditions.
 func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	var num int64
+	var err error
 
-	return s.daoNodeWorkflow.Count(ctx, opts...)
+	// record metric.
+	metric := s.metric().Start("count")
+	defer metric.End(err)
+
+	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	if num, err = s.daoNodeWorkflow.Count(ctx, opts...); err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // DistinctNodeWorkflow distincts node workflow fields.
@@ -282,9 +305,14 @@ func (s *Storage) DistinctNodeWorkflow(
 	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("distinct")
+	defer metric.End(err)
 
 	result := new(types.NodeWorkflowDistinctResult)
+	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 
 	gp := gopool.NewPool()
 	if request.BizID {
@@ -320,7 +348,7 @@ func (s *Storage) DistinctNodeWorkflow(
 		})
 	}
 
-	if err := gp.Wait(); err != nil {
+	if err = gp.Wait(); err != nil {
 		return nil, err
 	}
 
@@ -328,7 +356,11 @@ func (s *Storage) DistinctNodeWorkflow(
 }
 
 // GetNodeWorkflow gets a node workflow by workflow-id.
-func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
+func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (workflow *types.NodeWorkflow, err error) {
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -337,8 +369,7 @@ func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*type
 		return nil, errors.New("workflowID cannot be empty")
 	}
 
-	workflow, err := s.daoNodeWorkflow.Get(ctx, workflowID)
-	if err != nil {
+	if workflow, err = s.daoNodeWorkflow.Get(ctx, workflowID); err != nil {
 		return nil, fmt.Errorf("failed to get workflow by id: %w", err)
 	}
 
@@ -350,7 +381,11 @@ func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*type
 }
 
 // CreateNodeWorkflow creates a new node workflow.
-func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error {
+func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) (err error) {
+	// record metric.
+	metric := s.metric().Start("create")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -359,15 +394,15 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 		return errors.New("workflow cannot be nil")
 	}
 
-	if err := workflow.Type.Validate(); err != nil {
+	if err = workflow.Type.Validate(); err != nil {
 		return fmt.Errorf("invalid workflow data.type: %w", err)
 	}
 
-	if err := workflow.Status.Validate(); err != nil {
+	if err = workflow.Status.Validate(); err != nil {
 		return fmt.Errorf("invalid workflow data.status: %w", err)
 	}
 
-	if err := s.daoNodeWorkflow.Create(ctx, workflow); err != nil {
+	if err = s.daoNodeWorkflow.Create(ctx, workflow); err != nil {
 		return fmt.Errorf("failed to create workflow: %w", err)
 	}
 
@@ -375,8 +410,10 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 }
 
 // UpdateNodeWorkflowStatus updates the status of a node workflow.
-func (s *Storage) UpdateNodeWorkflowStatus(
-	ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_status")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return basestorage.ErrNilContent()
@@ -386,15 +423,19 @@ func (s *Storage) UpdateNodeWorkflowStatus(
 		return errors.New("workflowID cannot be empty")
 	}
 
-	if err := status.Validate(); err != nil {
+	if err = status.Validate(); err != nil {
 		return fmt.Errorf("invalid workflow status: %s", status)
 	}
 
-	if err := s.daoNodeWorkflow.UpdateStatus(ctx, workflowID, status); err != nil {
+	if err = s.daoNodeWorkflow.UpdateStatus(ctx, workflowID, status); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
 
 // convertNodeWorkflowConditionsToOptions converts node workflow conditions to options.

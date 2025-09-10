@@ -8,7 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package topo provides topology Storage for nodeman.
+// Package topo provides topology storage for backend.
+// nolint: nonamedreturns
 package topo
 
 import (
@@ -16,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
@@ -108,7 +110,11 @@ func (s *Storage) check() error {
 }
 
 // UpsertManyBusiness updates or inserts many business.
-func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) error {
+func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_business")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -117,7 +123,7 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 		return basestorage.ErrUpsertNilData()
 	}
 
-	if err := s.daoBusiness.UpsertMany(ctx, biz...); err != nil {
+	if err = s.daoBusiness.UpsertMany(ctx, biz...); err != nil {
 		return fmt.Errorf("failed to upsert business: %v", err)
 	}
 
@@ -126,7 +132,11 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 
 // ListBusinesses lists businesses by page and conditions.
 func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...*types.BusinessCondition) (
-	[]*types.Business, int64, error) {
+	results []*types.Business, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_business")
+	defer metric.End(err)
 
 	opts := make([]business.OptFn, 0)
 	for _, condition := range conditions {
@@ -159,13 +169,21 @@ func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, condition
 		}
 	}
 
-	return s.daoBusiness.List(ctx, page, opts...)
+	if results, num, err = s.daoBusiness.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // ListNetworkArea lists networkarea by page and conditions.
 // nolint: cyclop
 func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
-	[]*types.NetworkArea, int64, error) {
+	results []*types.NetworkArea, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_networkarea")
+	defer metric.End(err)
 
 	opts := make([]networkarea.OptFn, 0)
 	for _, condition := range conditions {
@@ -198,32 +216,72 @@ func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	return s.daoNetworkArea.List(ctx, page, opts...)
+	if results, num, err = s.daoNetworkArea.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // GetNetworkArea gets networkarea by id.
-func (s *Storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (*types.NetworkArea, error) {
-	return s.daoNetworkArea.Get(ctx, networkAreaID)
+func (s *Storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (data *types.NetworkArea, err error) {
+	// record metric.
+	metric := s.metric().Start("get_networkarea")
+	defer metric.End(err)
+
+	if data, err = s.daoNetworkArea.Get(ctx, networkAreaID); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 // UpsertManyNetworkArea updates or inserts networkarea.
-func (s *Storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) error {
-	return s.daoNetworkArea.UpsertMany(ctx, networkAreas...)
+func (s *Storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_networkarea")
+	defer metric.End(err)
+
+	if err = s.daoNetworkArea.UpsertMany(ctx, networkAreas...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateManyNetworkArea updates networkarea.
-func (s *Storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) error {
-	return s.daoNetworkArea.UpdateMany(ctx, networkArea...)
+func (s *Storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_many_networkarea")
+	defer metric.End(err)
+
+	if err = s.daoNetworkArea.UpdateMany(ctx, networkArea...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteManyNetworkArea deletes networkarea.
-func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) error {
-	return s.daoNetworkArea.DeleteMany(ctx, networkAreaIDs...)
+func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_many_networkarea")
+	defer metric.End(err)
+
+	if err = s.daoNetworkArea.DeleteMany(ctx, networkAreaIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListNetworkUnit lists networkunit.
 func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
-	[]*types.NetworkUnit, int64, error) {
+	results []*types.NetworkUnit, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_networkunit")
+	defer metric.End(err)
 
 	opts := make([]networkunit.OptFn, 0)
 	for _, condition := range conditions {
@@ -246,12 +304,24 @@ func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	return s.daoNetworkUnit.List(ctx, page, opts...)
+	if results, num, err = s.daoNetworkUnit.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // GetNetworkUnit gets networkunit by id.
-func (s *Storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error) {
-	return s.daoNetworkUnit.Get(ctx, networkUnitID)
+func (s *Storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (data *types.NetworkUnit, err error) {
+	// record metric.
+	metric := s.metric().Start("get_networkunit")
+	defer metric.End(err)
+
+	if data, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.NetworkUnit) error {
@@ -322,13 +392,15 @@ func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, 
 }
 
 // CreateNetworkUnit creates networkunit.
-func (s *Storage) CreateNetworkUnit(
-	ctx context.Context,
-	networkUnit *types.NetworkUnit,
-	accessPoints ...*types.AccessPoint) (int64, *AccessPointResult, error) {
+func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+	networkUnitID int64, data *AccessPointResult, err error) {
+
+	// record metric.
+	metric := s.metric().Start("create_networkunit")
+	defer metric.End(err)
 
 	if !networkUnit.IsDirect {
-		if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+		if err = s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
 			return -1, nil, err
 		}
 	}
@@ -336,7 +408,7 @@ func (s *Storage) CreateNetworkUnit(
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		networkUnitID, err := s.daoNetworkUnit.Create(ctx, networkUnit)
+		networkUnitID, err = s.daoNetworkUnit.Create(ctx, networkUnit)
 		if err != nil {
 			return -1, nil, err
 		}
@@ -345,7 +417,8 @@ func (s *Storage) CreateNetworkUnit(
 	}
 
 	// create accesspoints first.
-	accessPointIDs, err := s.daoAccessPoint.CreateMany(ctx, accessPoints...)
+	var accessPointIDs []int64
+	accessPointIDs, err = s.daoAccessPoint.CreateMany(ctx, accessPoints...)
 	if err != nil {
 		s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
 
@@ -362,8 +435,7 @@ func (s *Storage) CreateNetworkUnit(
 	}
 
 	// create networkunit.
-	networkUnitID, err := s.daoNetworkUnit.Create(ctx, networkUnit)
-	if err != nil {
+	if networkUnitID, err = s.daoNetworkUnit.Create(ctx, networkUnit); err != nil {
 		return -1, nil, err
 	}
 
@@ -373,10 +445,12 @@ func (s *Storage) CreateNetworkUnit(
 }
 
 // UpdateNetworkUnit updates networkunit.
-func (s *Storage) UpdateNetworkUnit(
-	ctx context.Context,
-	networkUnit *types.NetworkUnit,
-	accessPoints ...*types.AccessPoint) (*AccessPointResult, error) {
+func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+	data *AccessPointResult, err error) {
+
+	// record metric.
+	metric := s.metric().Start("update_networkunit")
+	defer metric.End(err)
 
 	if !networkUnit.IsDirect {
 		if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
@@ -387,7 +461,7 @@ func (s *Storage) UpdateNetworkUnit(
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		if err := s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+		if err = s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
 			return nil, err
 		}
 
@@ -410,8 +484,7 @@ func (s *Storage) UpdateNetworkUnit(
 	}
 
 	if len(oldAccessPoints) > 0 {
-		err := s.daoAccessPoint.UpdateMany(ctx, oldAccessPoints...)
-		if err != nil {
+		if err = s.daoAccessPoint.UpdateMany(ctx, oldAccessPoints...); err != nil {
 			s.Logger.Errorf("failed to create networkunit, failed to update accesspoint: %v", err.Error())
 
 			return nil, err
@@ -432,7 +505,7 @@ func (s *Storage) UpdateNetworkUnit(
 	}
 	networkUnit.AccessPoints = accessPointIDs
 
-	if err := s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+	if err = s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
 		return nil, err
 	}
 
@@ -444,12 +517,24 @@ func (s *Storage) UpdateNetworkUnit(
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
-func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) error {
-	return s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...)
+func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_networkunit")
+	defer metric.End(err)
+
+	if err = s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CountAccessPoint counts accesspoint.
-func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (int64, error) {
+func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (num int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_accesspoint")
+	defer metric.End(err)
+
 	opts := make([]accesspoint.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -471,12 +556,20 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.Acc
 		}
 	}
 
-	return s.daoAccessPoint.Count(ctx, opts...)
+	if num, err = s.daoAccessPoint.Count(ctx, opts...); err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // ListAccessPoint lists accesspoint.
 func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...*types.AccessPointCondition) (
-	[]*types.AccessPoint, int64, error) {
+	results []*types.AccessPoint, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_accesspoint")
+	defer metric.End(err)
 
 	opts := make([]accesspoint.OptFn, 0)
 	for _, condition := range conditions {
@@ -499,7 +592,15 @@ func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	return s.daoAccessPoint.List(ctx, page, opts...)
+	if results, num, err = s.daoAccessPoint.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
 
 // AccessPointResult describes the accesspoint result in networkunit handlers.

@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type IOfficialPlugin interface {
 }
 
 // GetOfficialPluginUpload gets a upload by upload-id.
-func (s *Storage) GetOfficialPluginUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetOfficialPluginUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_official_plugin")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginOfficialPlugin, uploadID)
 }
 
 // CreateOfficialPluginUpload creates a upload.
-func (s *Storage) CreateOfficialPluginUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreateOfficialPluginUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_official_plugin")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginOfficialPlugin, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginOfficialPlugin, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeleteOfficialPluginUpload deletes a upload by upload-id.
-func (s *Storage) DeleteOfficialPluginUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeleteOfficialPluginUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_official_plugin")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginOfficialPlugin, uploadID)
 }

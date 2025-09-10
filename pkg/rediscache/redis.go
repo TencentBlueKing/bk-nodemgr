@@ -9,6 +9,7 @@
  */
 
 // Package rediscache provides a Redis-based cache implementation.
+// nolint: nonamedreturns
 package rediscache
 
 import (
@@ -32,6 +33,10 @@ type RedisCache struct {
 	defaultTTL time.Duration
 }
 
+var (
+	errContextIsNil = errors.New("context is nil")
+)
+
 // NewRedisCache creates a new RedisCache instance.
 func NewRedisCache(client *redis.Client, defaultTTL time.Duration) *RedisCache {
 	return &RedisCache{
@@ -41,13 +46,16 @@ func NewRedisCache(client *redis.Client, defaultTTL time.Duration) *RedisCache {
 }
 
 // Get retrieves a value by key.
-func (rc *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
+func (rc *RedisCache) Get(ctx context.Context, key string) (data []byte, err error) {
 	if ctx == nil {
-		return nil, errors.New("context is nil")
+		return nil, errContextIsNil
 	}
 
-	data, err := rc.client.Get(ctx, key).Bytes()
-	if err == redis.Nil {
+	// record metric.
+	metric := metric().start(MetricOperationGet, 0)
+	defer metric.end(err, len(data))
+
+	if data, err = rc.client.Get(ctx, key).Bytes(); err == redis.Nil {
 		return nil, fmt.Errorf("key not found. key(%s)", key)
 	}
 
@@ -59,15 +67,16 @@ func (rc *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 }
 
 // SetWithExpiration sets a value with an expiration time.
-func (rc *RedisCache) SetWithExpiration(ctx context.Context,
-	key string, value []byte, ttl time.Duration) error {
-
+func (rc *RedisCache) SetWithExpiration(ctx context.Context, key string, value []byte, ttl time.Duration) (err error) {
 	if ctx == nil {
-		return errors.New("context is nil")
+		return errContextIsNil
 	}
 
-	err := rc.client.Set(ctx, key, value, ttl).Err()
-	if err != nil {
+	// record metric.
+	metric := metric().start(MetricOperationSet, len(value))
+	defer metric.end(err, 0)
+
+	if err = rc.client.Set(ctx, key, value, ttl).Err(); err != nil {
 		return fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
@@ -75,13 +84,16 @@ func (rc *RedisCache) SetWithExpiration(ctx context.Context,
 }
 
 // Set stores a value with a key with default expiration.
-func (rc *RedisCache) Set(ctx context.Context, key string, value []byte) error {
+func (rc *RedisCache) Set(ctx context.Context, key string, value []byte) (err error) {
 	if ctx == nil {
-		return errors.New("context is nil")
+		return errContextIsNil
 	}
 
-	err := rc.client.Set(ctx, key, value, rc.defaultTTL).Err()
-	if err != nil {
+	// record metric.
+	metric := metric().start(MetricOperationSet, len(value))
+	defer metric.end(err, 0)
+
+	if err = rc.client.Set(ctx, key, value, rc.defaultTTL).Err(); err != nil {
 		return fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
@@ -89,41 +101,51 @@ func (rc *RedisCache) Set(ctx context.Context, key string, value []byte) error {
 }
 
 // SetNX sets a value with a key if the key exist will return false.
-func (rc *RedisCache) SetNX(ctx context.Context, key string, value []byte) (bool, error) {
+func (rc *RedisCache) SetNX(ctx context.Context, key string, value []byte) (result bool, err error) {
 	if ctx == nil {
-		return false, errors.New("context is nil")
+		return false, errContextIsNil
 	}
-	exists, err := rc.client.SetNX(ctx, key, value, rc.defaultTTL).Result()
-	if err != nil {
+
+	// record metric.
+	metric := metric().start(MetricOperationSetNX, len(value))
+	defer metric.end(err, 0)
+
+	if result, err = rc.client.SetNX(ctx, key, value, rc.defaultTTL).Result(); err != nil {
 		return false, fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
-	return exists, nil
+	return result, nil
 }
 
 // SetNXWithExpiration sets a value with an expiration time if the key exist will return false.
-func (rc *RedisCache) SetNXWithExpiration(ctx context.Context,
-	key string, value []byte, expiration time.Duration) (bool, error) {
-
+func (rc *RedisCache) SetNXWithExpiration(ctx context.Context, key string, value []byte, expiration time.Duration) (result bool, err error) {
 	if ctx == nil {
-		return false, errors.New("context is nil")
+		return false, errContextIsNil
 	}
 
-	exists, err := rc.client.SetNX(ctx, key, value, expiration).Result()
-	if err != nil {
+	// record metric.
+	metric := metric().start(MetricOperationSetNX, len(value))
+	defer metric.end(err, 0)
+
+	if result, err = rc.client.SetNX(ctx, key, value, expiration).Result(); err != nil {
 		return false, fmt.Errorf("failed to set redis cache. key(%s): %w", key, err)
 	}
 
-	return exists, nil
+	return result, nil
 }
 
 // Exists checks if a key exists in the cache.
-func (rc *RedisCache) Exists(ctx context.Context, key string) (bool, error) {
+func (rc *RedisCache) Exists(ctx context.Context, key string) (result bool, err error) {
 	if ctx == nil {
-		return false, errors.New("context is nil")
+		return false, errContextIsNil
 	}
-	count, err := rc.client.Exists(ctx, key).Result()
-	if err != nil {
+
+	// record metric.
+	metric := metric().start(MetricOperationExists, 0)
+	defer metric.end(err, 1)
+
+	var count int64
+	if count, err = rc.client.Exists(ctx, key).Result(); err != nil {
 		return false, fmt.Errorf("failed to check redis cache. key(%s): %w", key, err)
 	}
 
@@ -131,15 +153,19 @@ func (rc *RedisCache) Exists(ctx context.Context, key string) (bool, error) {
 }
 
 // Delete removes a value by key.
-func (rc *RedisCache) Delete(ctx context.Context, key string) (bool, error) {
+func (rc *RedisCache) Delete(ctx context.Context, key string) (result bool, err error) {
 	if ctx == nil {
-		return false, errors.New("context is nil")
+		return false, errContextIsNil
 	}
 
-	count, err := rc.client.Del(ctx, key).Result()
-	if err != nil {
+	// record metric.
+	metric := metric().start(MetricOperationDelete, 0)
+	defer metric.end(err, 1)
+
+	var count int64
+	if count, err = rc.client.Del(ctx, key).Result(); err != nil {
 		return false, fmt.Errorf("failed to delete redis cache. key(%s): %w", key, err)
 	}
 
-	return count > 0, err
+	return count > 0, nil
 }

@@ -19,6 +19,12 @@ const (
 	// OSAix this defines the os type of aix.
 	OSAix OSType = "aix"
 
+	// OSAix6 this defines the os type of aix6.
+	OSAix6 OSType = "aix6"
+
+	// OSAix7 this defines the os type of aix7.
+	OSAix7 OSType = "aix7"
+
 	// OSAndroid this defines the os type of android.
 	OSAndroid OSType = "android"
 
@@ -74,7 +80,7 @@ const (
 // Validate checks if the os type is valid.
 func (os OSType) Validate() error {
 	switch os {
-	case OSAix, OSAndroid, OSDarwin, OSDragonfly, OSFreebsd, OSHurd,
+	case OSAix, OSAix6, OSAix7, OSAndroid, OSDarwin, OSDragonfly, OSFreebsd, OSHurd,
 		OSIllumos, OSIos, OSJs, OSLinux, OSNetbsd, OSOpenbsd,
 		OSPlan9, OSSolaris, OSWasip1, OSWindows, OSZos, OSUnknown:
 		return nil

@@ -9,6 +9,7 @@
  */
 
 // Package operation ...
+// nolint: nonamedreturns
 package operation
 
 import (
@@ -16,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -73,26 +75,35 @@ func (s *Storage) check() error {
 }
 
 // GetOperation get operation by operationID.
-func (s *Storage) GetOperation(ctx context.Context, operationID string) (*workoper.Operation, error) {
+func (s *Storage) GetOperation(ctx context.Context, operationID string) (oper *workoper.Operation, err error) {
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
-	operations, count, err := s.daoOperation.List(ctx, types.SingleItemPage(), operation.WithOperationID(operationID))
-	if err != nil {
+	var opers []*workoper.Operation
+	var count int64
+	if opers, count, err = s.daoOperation.List(ctx, types.SingleItemPage(), operation.WithOperationID(operationID)); err != nil {
 		return nil, err
 	}
 
-	if count != 1 || int64(len(operations)) != count {
+	if count != 1 || int64(len(opers)) != count {
 		return nil, fmt.Errorf("get operation failed, match num not 1, operationID: %s, count: %d",
 			operationID, count)
 	}
 
-	return operations[0], nil
+	return opers[0], nil
 }
 
 // UpsertOperation upsert operation.
-func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) error {
+func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Operation) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -101,18 +112,26 @@ func (s *Storage) UpsertOperation(ctx context.Context, operation *workoper.Opera
 		return basestorage.ErrUpsertNilData()
 	}
 
-	return s.daoOperation.Upsert(ctx, operation)
+	if err = s.daoOperation.Upsert(ctx, operation); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListOperationByTrigger lists operation by triggerid.
 func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
-	[]*workoper.Operation, int64, error) {
+	opers []*workoper.Operation, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_by_trigger")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
-	if err := page.Validate(); err != nil {
+	if err = page.Validate(); err != nil {
 		return nil, 0, err
 	}
 
@@ -120,12 +139,20 @@ func (s *Storage) ListOperationByTrigger(ctx context.Context, page types.Page, t
 		return nil, 0, basestorage.ErrEmptyTriggerID()
 	}
 
-	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
+	if opers, num, err = s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...)); err != nil {
+		return nil, 0, err
+	}
+
+	return opers, num, nil
 }
 
 // ListOperation lists operation by operation id.
 func (s *Storage) ListOperation(ctx context.Context, operationID ...string) (
-	[]*workoper.Operation, int64, error) {
+	opers []*workoper.Operation, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return nil, 0, basestorage.ErrNilContent()
@@ -135,12 +162,20 @@ func (s *Storage) ListOperation(ctx context.Context, operationID ...string) (
 		return nil, 0, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
+	if opers, num, err = s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...)); err != nil {
+		return nil, 0, err
+	}
+
+	return opers, num, nil
 }
 
 // ListOperationByCondition lists operation by condition.
 func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
-	condition ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+	condition ...*types.NodeWorkflowOperationCondition) (opers []*workoper.Operation, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_by_condition")
+	defer metric.End(err)
 
 	opts := make([]operation.OptFn, 0)
 	for _, condition := range condition {
@@ -159,12 +194,20 @@ func (s *Storage) ListOperationByCondition(ctx context.Context, page types.Page,
 		}
 	}
 
-	return s.daoOperation.List(ctx, page, opts...)
+	if opers, num, err = s.daoOperation.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return opers, num, nil
 }
 
 // ListEmptyOperation lists empty operation by triggerid.
 func (s *Storage) ListEmptyOperation(
-	ctx context.Context, page types.Page, triggerID string) ([]*workoper.Operation, int64, error) {
+	ctx context.Context, page types.Page, triggerID string) (opers []*workoper.Operation, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_empty")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return nil, 0, basestorage.ErrNilContent()
@@ -178,11 +221,19 @@ func (s *Storage) ListEmptyOperation(
 		return nil, 0, basestorage.ErrEmptyTriggerID()
 	}
 
-	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation())
+	if opers, num, err = s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation()); err != nil {
+		return nil, 0, err
+	}
+
+	return opers, num, nil
 }
 
 // DeleteOperations deletes operations by operation ids.
-func (s *Storage) DeleteOperations(ctx context.Context, operationID ...string) error {
+func (s *Storage) DeleteOperations(ctx context.Context, operationID ...string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -191,11 +242,19 @@ func (s *Storage) DeleteOperations(ctx context.Context, operationID ...string) e
 		return basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.Delete(ctx, operationID...)
+	if err = s.daoOperation.Delete(ctx, operationID...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // PullOperationInstanceIDs pulls operation instance IDs from operation.
-func (s *Storage) PullOperationInstanceIDs(ctx context.Context, operationID string, operInstIDs ...string) error {
+func (s *Storage) PullOperationInstanceIDs(ctx context.Context, operationID string, operInstIDs ...string) (err error) {
+	// record metric.
+	metric := s.metric().Start("pull_instance_ids")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -204,5 +263,13 @@ func (s *Storage) PullOperationInstanceIDs(ctx context.Context, operationID stri
 		return basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.PullOperInstIDs(ctx, operationID, operInstIDs...)
+	if err = s.daoOperation.PullOperInstIDs(ctx, operationID, operInstIDs...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }

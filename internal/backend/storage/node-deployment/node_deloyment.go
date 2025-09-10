@@ -9,12 +9,14 @@
  */
 
 // Package nodedeployment ...
+// nolint: nonamedreturns
 package nodedeployment
 
 import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -72,7 +74,11 @@ func (s *Storage) check() error {
 }
 
 // GetNodeConf get gse node conf.
-func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
+func (s *Storage) GetNodeConf(ctx context.Context, token string) (nodeConf *types.NodeConf, err error) {
+	// record metric.
+	metric := s.metric().Start("get_node_conf")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -81,8 +87,7 @@ func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeCon
 		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
-	nodeConf, err := s.nodeDeploymentDao.GetNodeConf(ctx, token)
-	if err != nil {
+	if nodeConf, err = s.nodeDeploymentDao.GetNodeConf(ctx, token); err != nil {
 		return nil, err
 	}
 
@@ -90,7 +95,11 @@ func (s *Storage) GetNodeConf(ctx context.Context, token string) (*types.NodeCon
 }
 
 // GetInfo get node deployment info.
-func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
+func (s *Storage) GetInfo(ctx context.Context, token string) (deployInfo *types.DeploymentInfo, err error) {
+	// record metric.
+	metric := s.metric().Start("get_deploy_info")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -99,16 +108,19 @@ func (s *Storage) GetInfo(ctx context.Context, token string) (*types.DeploymentI
 		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
-	info, err := s.nodeDeploymentDao.GetInfo(ctx, token)
-	if err != nil {
+	if deployInfo, err = s.nodeDeploymentDao.GetInfo(ctx, token); err != nil {
 		return nil, err
 	}
 
-	return info, nil
+	return deployInfo, nil
 }
 
 // SetNodeConf set gse node conf.
-func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
+func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.NodeConf) (err error) {
+	// record metric.
+	metric := s.metric().Start("set_node_conf")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -121,7 +133,7 @@ func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.Nod
 		return errors.New("node conf is nil")
 	}
 
-	if err := s.nodeDeploymentDao.SetNodeConf(ctx, token, conf); err != nil {
+	if err = s.nodeDeploymentDao.SetNodeConf(ctx, token, conf); err != nil {
 		return err
 	}
 
@@ -129,7 +141,11 @@ func (s *Storage) SetNodeConf(ctx context.Context, token string, conf *types.Nod
 }
 
 // UpdateInfo update node deployment info.
-func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_deploy_info")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -142,7 +158,7 @@ func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.Depl
 		return errors.New("node deployment info is nil")
 	}
 
-	if err := s.nodeDeploymentDao.UpdateInfo(ctx, token, info); err != nil {
+	if err = s.nodeDeploymentDao.UpdateInfo(ctx, token, info); err != nil {
 		return err
 	}
 
@@ -150,7 +166,11 @@ func (s *Storage) UpdateInfo(ctx context.Context, token string, info *types.Depl
 }
 
 // Create create a node deployment.
-func (s *Storage) Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
+func (s *Storage) Create(ctx context.Context, nodeDeployment *types.NodeDeployment) (err error) {
+	// record metric.
+	metric := s.metric().Start("create")
+	defer metric.End(err)
+
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -159,9 +179,13 @@ func (s *Storage) Create(ctx context.Context, nodeDeployment *types.NodeDeployme
 		return errors.New("node deployment is nil")
 	}
 
-	if err := s.nodeDeploymentDao.Create(ctx, nodeDeployment); err != nil {
+	if err = s.nodeDeploymentDao.Create(ctx, nodeDeployment); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }

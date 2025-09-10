@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -74,31 +75,68 @@ func (s *Storage) check() error {
 }
 
 // ListGlobalSettings lists global settings by page and condition.
-func (s *Storage) ListGlobalSettings(
-	ctx context.Context, page types.Page, condition *types.GlobalSettingsCondition) (
+func (s *Storage) ListGlobalSettings(ctx context.Context, page types.Page, condition *types.GlobalSettingsCondition) (
 	[]*types.GlobalSettings, int64, error) {
 
-	opts := convertGlobalSettingsConditionsToOptions(condition)
+	var results []*types.GlobalSettings
+	var num int64
+	var err error
 
-	return s.daoGlobalSettings.List(ctx, page, opts...)
+	// record metric.
+	metric := s.metric().Start("list")
+	defer metric.End(err)
+
+	opts := convertGlobalSettingsConditionsToOptions(condition)
+	if results, num, err = s.daoGlobalSettings.List(ctx, page, opts...); err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // CountGlobalSettings counts global settings by condition.
 func (s *Storage) CountGlobalSettings(ctx context.Context, condition *types.GlobalSettingsCondition) (int64, error) {
-	opts := convertGlobalSettingsConditionsToOptions(condition)
+	var num int64
+	var err error
 
-	return s.daoGlobalSettings.Count(ctx, opts...)
+	// record metric.
+	metric := s.metric().Start("count")
+	defer metric.End(err)
+
+	opts := convertGlobalSettingsConditionsToOptions(condition)
+	if num, err = s.daoGlobalSettings.Count(ctx, opts...); err != nil {
+		return 0, nil
+	}
+
+	return num, err
 }
 
 // ExistGlobalSettings checks if global settings exist by condition.
 func (s *Storage) ExistGlobalSettings(ctx context.Context, key string) (bool, error) {
-	return s.daoGlobalSettings.Exist(ctx, key)
+	var exist bool
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("exist")
+	defer metric.End(err)
+
+	if exist, err = s.daoGlobalSettings.Exist(ctx, key); err != nil {
+		return false, err
+	}
+
+	return exist, err
 }
 
 // GetGlobalSetting gets a global settings by setting name.
 func (s *Storage) GetGlobalSetting(ctx context.Context, name string) (string, error) {
-	setting, err := s.daoGlobalSettings.Get(ctx, name)
-	if err != nil {
+	var setting *types.GlobalSettings
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
+
+	if setting, err = s.daoGlobalSettings.Get(ctx, name); err != nil {
 		return "", err
 	}
 
@@ -107,12 +145,36 @@ func (s *Storage) GetGlobalSetting(ctx context.Context, name string) (string, er
 
 // UpsertGlobalSettings upserts many global settings.
 func (s *Storage) UpsertGlobalSettings(ctx context.Context, settings ...*types.GlobalSettings) error {
-	return s.daoGlobalSettings.Upsert(ctx, settings...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("upsert")
+	defer metric.End(err)
+
+	if err = s.daoGlobalSettings.Upsert(ctx, settings...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteGlobalSettings deletes many global settings.
 func (s *Storage) DeleteGlobalSettings(ctx context.Context, settingName ...string) error {
-	return s.daoGlobalSettings.Delete(ctx, settingName...)
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("delete")
+	defer metric.End(err)
+
+	if err = s.daoGlobalSettings.Delete(ctx, settingName...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
 
 // convertGlobalSettingsConditionsToOptions converts global settings conditions to options.

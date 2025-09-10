@@ -30,7 +30,7 @@ basicServer:
 
 # backend settings.
 backend:
-  # backend endpoints. 
+  # backend endpoints.
   endpoints:
     - __BK_NODEMGR_SERVICE_ENDPOINT__
 
@@ -67,6 +67,7 @@ mongodb:
 bkSaaS:
   bkLogin:
     loginURL: __BK_NODEMGR_APPLICATION_LOGIN_URL__
+    authType: __BK_NODEMGR_APPLICATION_AUTH_TYPE__
     # defines tls related options.
     tls:
       # server should be accessed without verifying the TLS certificate.

@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -354,7 +355,12 @@ func (ctl *controller) GetOperationInstanceID() string {
 }
 
 // LaunchOperationInstance launches the operation instance.
-func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) error {
+// nolint: nonamedreturns
+func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error) {
+	// record metric.
+	m := metric.NewOperationInstanceLaunch(ctl.operInstanceBriefData).Start()
+	defer m.End(err)
+
 	ctl.mgr.logger.InfoCtxf(ctx, "try to launch operation instance. oper-inst-id(%s)",
 		ctl.operInstanceBriefData.Metadata.OperationInstanceID)
 

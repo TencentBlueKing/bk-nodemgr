@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -34,12 +36,14 @@ type IBinTool interface {
 }
 
 // UpsertReleaseBinTool upserts release bintool gen2.
-func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error {
-	releaseType := types.ReleaseTypeBinTool
+func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_bintool")
+	defer metric.End(err)
 
-	return s.daoRelease.UpsertMany(ctx, releaseType, types.Generation2, &types.Release{
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeBinTool, types.Generation2, &types.Release{
 		Generation: bintool.Generation,
-		Type:       releaseType,
+		Type:       types.ReleaseTypeBinTool,
 		Platform:   platform.EmptyPlatform(),
 		Version:    "",
 		FileName:   bintool.FileName,
@@ -49,23 +53,35 @@ func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.Releas
 }
 
 // DeleteReleaseBinTool deletes release bintool gen2.
-func (s *Storage) DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+func (s *Storage) DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_bintool")
+	defer metric.End(err)
+
 	return s.daoRelease.Delete(ctx, types.ReleaseTypeBinTool, gen, platform.EmptyPlatform(), fileName)
 }
 
 // GetReleaseBinTool gets release bintool gen2.
-func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error) {
-	r, err := s.daoRelease.Get(ctx, types.ReleaseTypeBinTool, gen, platform.EmptyPlatform(), "")
-	if err != nil {
+func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (data *types.ReleaseBinTool, err error) {
+	// record metric.
+	metric := s.metric().Start("get_bintool")
+	defer metric.End(err)
+
+	var rls *types.Release
+	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeBinTool, gen, platform.EmptyPlatform(), ""); err != nil {
 		return nil, err
 	}
 
 	return &types.ReleaseBinTool{
-		Release: *r,
+		Release: *rls,
 	}, nil
 }
 
 // ExistReleaseBinTool checks if release bintool gen2 exists.
-func (s *Storage) ExistReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+func (s *Storage) ExistReleaseBinTool(ctx context.Context, gen types.Generation) (result bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_bintool")
+	defer metric.End(err)
+
 	return s.daoRelease.Exist(ctx, types.ReleaseTypeBinTool, gen, platform.EmptyPlatform(), "")
 }

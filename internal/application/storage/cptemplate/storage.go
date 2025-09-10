@@ -9,12 +9,14 @@
  */
 
 // Package cptemplate provides the config policy template storage interface.
+// nolint: nonamedreturns
 package cptemplate
 
 import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/cptemplate"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -85,20 +87,32 @@ func (s *Storage) check() error {
 }
 
 // GetConfigPolicyTemplate gets the config policy template.
-func (s *Storage) GetConfigPolicyTemplate(
-	ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
+func (s *Storage) GetConfigPolicyTemplate(ctx context.Context, configPolicyID int64) (data *types.ConfigPolicyTemplate, err error) {
+	// record metric.
+	metric := s.metric().Start("get")
+	defer metric.End(err)
 
 	return s.daoConfigPolicyTemplate.Get(ctx, configPolicyID)
 }
 
 // UpsertManyConfigPolicyTemplate upserts the config policy template.
-func (s *Storage) UpsertManyConfigPolicyTemplate(
-	ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
+func (s *Storage) UpsertManyConfigPolicyTemplate(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many")
+	defer metric.End(err)
 
 	return s.daoConfigPolicyTemplate.UpsertMany(ctx, configPolicyTemplates...)
 }
 
 // DeleteManyConfigPolicyTemplate deletes the config policy template.
-func (s *Storage) DeleteManyConfigPolicyTemplate(ctx context.Context, configPolicyID ...int64) error {
+func (s *Storage) DeleteManyConfigPolicyTemplate(ctx context.Context, configPolicyID ...int64) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_many")
+	defer metric.End(err)
+
 	return s.daoConfigPolicyTemplate.DeleteMany(ctx, configPolicyID...)
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
