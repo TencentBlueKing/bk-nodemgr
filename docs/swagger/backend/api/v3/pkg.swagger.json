@@ -301,6 +301,17 @@
         }
       }
     },
+    "PackageReleaseDistinctReqDistinctField": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "boolean"
+        },
+        "cpu_arch": {
+          "type": "boolean"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -491,6 +502,9 @@
         },
         "exact_include_conditions": {
           "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        },
+        "distinctField": {
+          "$ref": "#/definitions/PackageReleaseDistinctReqDistinctField"
         }
       },
       "description": "PackageReleaseDistinctReq describes the HTTP request body when distinct\nrelease."
@@ -581,19 +595,6 @@
     "v3PackageReleaseExactConditions": {
       "type": "object",
       "properties": {
-        "generation": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "release_type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "platform": {
           "type": "array",
           "items": {

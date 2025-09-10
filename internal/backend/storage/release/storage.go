@@ -44,7 +44,7 @@ type IStorage interface {
 		conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, request types.ReleaseDistinctRequest,
+	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
 		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
@@ -189,7 +189,7 @@ func (s *Storage) ListRelease(
 // DistinctRelease distincts release by conditions.
 func (s *Storage) DistinctRelease(
 	ctx context.Context, releaseType types.ReleaseType, gen types.Generation,
-	request types.ReleaseDistinctRequest, conditions ...*types.ReleaseCondition) (
+	distinctField types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
 	data *types.ReleaseDistinctResult, err error) {
 
 	// record metric.
@@ -204,7 +204,7 @@ func (s *Storage) DistinctRelease(
 	data = new(types.ReleaseDistinctResult)
 
 	gp := gopool.NewPool()
-	if request.OSType {
+	if distinctField.OSType {
 		gp.Go(func() error {
 			var err error
 			data.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, gen, opts...)
@@ -212,7 +212,7 @@ func (s *Storage) DistinctRelease(
 			return err
 		})
 	}
-	if request.CPUArch {
+	if distinctField.CPUArch {
 		gp.Go(func() error {
 			var err error
 			data.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, gen, opts...)

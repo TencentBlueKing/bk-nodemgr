@@ -298,7 +298,7 @@ type IHandlerRelease interface {
 		condition *types.ReleaseCondition) (int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, request types.ReleaseDistinctRequest,
+	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
 		condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// SetReleaseLabels sets release labels.
@@ -976,12 +976,32 @@ func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType type
 }
 
 // DistinctRelease distincts release by conditions.
-func (h *Handler) DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, _ types.ReleaseDistinctRequest,
-	condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
+func (h *Handler) DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+	distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
 
 	req := &protoBackend.PackageReleaseDistinctReq{
 		ReleaseType: string(releaseType),
+		Generation:  int64(gen),
+		DistinctField: &protoBackend.PackageReleaseDistinctReq_DistinctField{
+			OsType:  distinctField.OSType,
+			CpuArch: distinctField.CPUArch,
+		},
 	}
+
+	if condition != nil && condition.ExactExclude != nil {
+		exactIncludeConditions := &protoBackend.PackageReleaseExactConditions{
+			Version:   condition.ExactExclude.Version,
+			AsDefault: condition.ExactExclude.AsDefault,
+			Enabled:   condition.ExactExclude.Enabled,
+		}
+
+		for _, item := range condition.ExactExclude.Platform {
+			exactIncludeConditions.Platform = append(exactIncludeConditions.Platform, protoBackend.ConvertPlatformFromTypes(item))
+		}
+
+		req.ExactIncludeConditions = exactIncludeConditions
+	}
+
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, err
 	}

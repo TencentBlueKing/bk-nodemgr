@@ -8,12 +8,10 @@ import "google/api/annotations.proto";
 
 // PackageReleaseExactConditions describes release exact conditions.
 message PackageReleaseExactConditions {
-  repeated int64 generation = 1;
-  repeated string release_type = 2;
-  repeated Platform platform = 3;
-  repeated string version = 4;
-  repeated bool as_default = 5;
-  repeated bool enabled = 6;
+  repeated Platform platform = 1;
+  repeated string version = 2;
+  repeated bool as_default = 3;
+  repeated bool enabled = 4;
 }
 
 // PackageReleaseListReq describes the HTTP request body when list package
@@ -48,6 +46,13 @@ message PackageReleaseDistinctReq {
   string release_type = 1;
   int64 generation = 2;
   PackageReleaseExactConditions exact_include_conditions = 3;
+
+  message DistinctField {
+    bool os_type = 1;
+    bool cpu_arch = 2;
+  }
+
+  DistinctField distinctField = 4;
 }
 
 // PackageReleaseDistinctResp describes the HTTP response body when distinct

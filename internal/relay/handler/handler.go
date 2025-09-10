@@ -13,9 +13,11 @@ package handler
 
 import (
 	"context"
+	"path/filepath"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
@@ -58,18 +60,20 @@ type handler struct {
 }
 
 // NewClientHandler creates a new file handler.
-func NewClientHandler(fm file.IFileManager, client relayhandler.IClientMessager,
-	logger logger.ILogger, storageTmpDir string,
-	callbackSvcIP string, callbackSvcPort int, downloadSvcIP string, downloadSvcPort int) IHandler {
+func NewClientHandler(
+	fm file.IFileManager,
+	client relayhandler.IClientMessager,
+	conf *config.RelayService,
+	logger logger.ILogger) IHandler {
 
 	return &handler{
-		storageTmpDir:   storageTmpDir,
 		fileManager:     fm,
 		client:          client,
-		callbackSvcIP:   callbackSvcIP,
-		callbackSvcPort: callbackSvcPort,
-		downloadSvcIP:   downloadSvcIP,
-		downloadSvcPort: downloadSvcPort,
+		storageTmpDir:   filepath.Join(conf.RelayWorkspaceFileGroup.FullPath, "transfer-file"),
+		callbackSvcIP:   conf.CallbackServer.AdvertiseIPV4,
+		callbackSvcPort: conf.CallbackServer.Port,
+		downloadSvcIP:   conf.DownloadServer.AdvertiseIPV4,
+		downloadSvcPort: conf.DownloadServer.Port,
 		logger:          logger,
 	}
 }

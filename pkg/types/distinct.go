@@ -129,8 +129,8 @@ type ScheduleWorkflowDistinctResult struct {
 	Operator []string
 }
 
-// ReleaseDistinctRequest describes the wanted distinct fields.
-type ReleaseDistinctRequest struct {
+// ReleaseDistinctField describes the wanted distinct fields.
+type ReleaseDistinctField struct {
 	OSType  bool
 	CPUArch bool
 }
@@ -141,9 +141,9 @@ type ReleaseDistinctResult struct {
 	CPUArch []string
 }
 
-// NewReleaseDistinctRequestAllSet creates a ReleaseDistinctRequest with all fields set to true.
-func NewReleaseDistinctRequestAllSet() ReleaseDistinctRequest {
-	return ReleaseDistinctRequest{
+// ReleaseDistinctFieldAllSet creates a ReleaseDistinctField with all fields set to true.
+func ReleaseDistinctFieldAllSet() ReleaseDistinctField {
+	return ReleaseDistinctField{
 		OSType:  true,
 		CPUArch: true,
 	}

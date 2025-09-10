@@ -61,7 +61,10 @@ message ConfigPolicyGetTemplateResp {
 
 // ConfigPolicyListPlatformReq describes HTTP request body when list config
 // policy platform.
-message ConfigPolicyListPlatformReq { string node_role = 1; }
+message ConfigPolicyListPlatformReq {
+  string node_role = 1;
+  int64 generation = 2;
+}
 
 // ConfigPolicyListPlatformResp describes HTTP response body when list config
 // policy platform.

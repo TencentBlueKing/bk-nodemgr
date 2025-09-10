@@ -8,34 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package options provides the various capabilities the service supports.
-package options
+// Package healthz defines the types in healthz api handler.
+package healthz
 
-import (
-	"context"
+// Response this is a response for healthz.
+type Response struct {
+	// define the result of whole health check.
+	OK bool `json:"ok"`
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-)
-
-// Capability encapsulates the various capabilities the service supports.
-type Capability struct {
-	// Logger logger.
-	Logger logger.ILogger
-
-	// Messager messager.
-	Messager relayhandler.IClientMessager
-
-	// FileManager file manager
-	FileManager file.IFileManager
-}
-
-// Start start the capability.
-func (c *Capability) Start(ctx context.Context) error {
-	if err := c.Messager.Start(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	// detail reason of several services.
+	Manager string `json:"manager"`
 }

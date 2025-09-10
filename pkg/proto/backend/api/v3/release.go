@@ -69,11 +69,10 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ReleaseExactFields{
-			Generation: types.Int64ListToGenerationList(exactCond.GetGeneration()),
-			Platform:   plats,
-			Version:    exactCond.GetVersion(),
-			AsDefault:  exactCond.GetAsDefault(),
-			Enabled:    exactCond.GetEnabled(),
+			Platform:  plats,
+			Version:   exactCond.GetVersion(),
+			AsDefault: exactCond.GetAsDefault(),
+			Enabled:   exactCond.GetEnabled(),
 		}
 	}
 
@@ -89,7 +88,6 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 
 	if conditions.ExactInclude != nil {
 		exactCond = new(PackageReleaseExactConditions)
-		exactCond.Generation = types.GenerationListToInt64List(conditions.ExactInclude.Generation)
 		exactCond.Platform = make([]*Platform, 0)
 		for _, plat := range conditions.ExactInclude.Platform {
 			exactCond.Platform = append(exactCond.Platform, ConvertPlatformFromTypes(plat))

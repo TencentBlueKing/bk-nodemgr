@@ -550,3 +550,21 @@ func (conf *APIGateWayServer) Validate() error {
 
 	return nil
 }
+
+// PluginName the name of plugin.
+type PluginName string
+
+const (
+	// PluginNameRelay relay plugin name.
+	PluginNameRelay PluginName = "bk-nodemgr-relay"
+)
+
+// Validate validates the config.
+func (name PluginName) Validate() error {
+	switch name {
+	case PluginNameRelay:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin name, plugin-name(%s)", name)
+	}
+}

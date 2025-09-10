@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
@@ -22,16 +23,28 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/download"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+const (
+	relayInfoSvcName     = "relay-info"
+	relayAdminSvcName    = "relay-admin"
+	relayCallbackSvcName = "relay-callback"
+	relayDownloadSvcName = "relay-download"
+
+	messagetrackerDirName     = "messagetracker"
+	fileManagerStorageDirName = "filemanager"
 )
 
 // Service defines a server that provides relay service.
@@ -40,7 +53,7 @@ type Service struct {
 	conf *config.RelayService
 
 	// ctx is used to control the service lifecycle (cancellation and timeouts).
-	ctx context.Context
+	ctx contextx.IContext
 
 	// cancelFunc is used to cancel the service and all associated operations.
 	cancelFunc context.CancelFunc
@@ -51,6 +64,9 @@ type Service struct {
 
 	// router is the entry point of the service, routing requests to different capabilities.
 	servers []*restserver.Server
+
+	// authIdentityMap is the map of auth identities.
+	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
 }
 
 // NewService creates a new relay service.
@@ -63,42 +79,54 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		},
 	}
 
-	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
 
+	if err := svc.initialStaticsConfigs(); err != nil {
+		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
+	}
+
+	if err := svc.initialCapability(); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
+	}
+
+	if err := svc.registerRestServer(); err != nil {
+		return nil, fmt.Errorf("failed to register http rest server: %w", err)
+	}
+
+	return svc, nil
+}
+
+func (svc *Service) initialCapability() error {
 	var err error
-	svc.Cap.AgentFileGroup, err = local.NewLocalDir(conf.AgentFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init agent file group: %v", err)
-	}
-
-	svc.Cap.ProxyFileGroup, err = local.NewLocalDir(conf.ProxyFileGroup.FullPath, svc.Cap.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init proxy file group: %v", err)
-	}
-
-	svc.Cap.Messager = relayhandler.NewClientMessager(relayhandler.ClientMessagerConfig{
-		PluginVersion:    version.Version().Version,
-		DomainSocketPath: conf.Plugin.MessageDomainSocketPath,
-		LocalSocketPort:  conf.Plugin.MessageLocalSocketPort,
-		Logger:           svc.Cap.Logger,
-		MessageIDPath:    conf.MessageIDPath,
-		PluginName:       conf.PluginName,
+	// initial message
+	svc.Cap.Messager, err = relayhandler.NewClientMessager(relayhandler.ClientMessagerConfig{
+		PluginVersion:          version.Version().Version,
+		DomainSocketPath:       svc.conf.Plugin.MessageDomainSocketPath,
+		LocalSocketPort:        svc.conf.Plugin.MessageLocalSocketPort,
+		Logger:                 svc.Cap.Logger,
+		MessageTrackerFullPath: filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, messagetrackerDirName),
+		PluginName:             string(svc.conf.PluginName),
 	})
+	if err != nil {
+		return fmt.Errorf("failed to create messager: %w", err)
+	}
 
-	svc.Cap.FileManager = file.NewFileManager(svc.ctx,
-		conf.FileManagerDirPath,
+	// initial file manager
+	svc.Cap.FileManager, err = file.NewFileManager(
+		svc.ctx,
+		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName),
 		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create file manager: %w", err)
+	}
 
-	// TODO: write a client handler config.
+	// initial client handler
 	clientHandler := handler.NewClientHandler(svc.Cap.FileManager,
 		svc.Cap.Messager,
-		svc.Cap.Logger,
-		conf.StorageTmpDirPath,
-		conf.CallbackServer.AdvertiseIPV4,
-		conf.CallbackServer.Port,
-		conf.FileServer.AdvertiseIPV4,
-		conf.FileServer.Port)
+		svc.conf,
+		svc.Cap.Logger)
 
+	// register server push event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeCheckPkgState, clientHandler.CheckPkgStats)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeNotifyReceive, clientHandler.StoragePkg)
@@ -107,14 +135,109 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeDetectInfoByWMI, clientHandler.DetectInfoByWMI)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeInstallByWMI, clientHandler.InstallPagentByWMI)
 
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) initialStaticsConfigs() error {
+	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
+		config.AuthIdentityNone: restserver.NewNodeAuthIdentity(),
+	}
+
+	return nil
+}
+
+func (svc *Service) registerRestServer() error {
+	if err := svc.registerInfoServer(); err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
+
+	if err := svc.registerAdminServer(); err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
+
+	if err := svc.registerCallbackServer(); err != nil {
+		return fmt.Errorf("failed to register callback server: %w", err)
+	}
+
+	if err := svc.registerDownloadServer(); err != nil {
+		return fmt.Errorf("failed to register download server: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerInfoServer() error {
 	requestIDSetter := restserver.NewRequestIDSetter()
 	tenantIDSetter := restserver.NewTenantIDSetter()
-	callbackServer := restserver.NewServer(
+
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayCallback),
-			IP:              conf.CallbackServer.BindIP,
-			Port:            conf.CallbackServer.Port,
+			Name:            string(relayInfoSvcName),
+			IP:              svc.conf.InfoServer.BindIP,
+			Port:            svc.conf.InfoServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+		},
+		restserver.WithPing(),
+		withHealthz(svc.Cap),
+		withMetrics(),
+	)
+
+	svc.servers = append(svc.servers, server)
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerAdminServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(relayAdminSvcName),
+			IP:              svc.conf.AdminServer.BindIP,
+			Port:            svc.conf.AdminServer.Port,
+			LogWriter:       loggerWriterAdaptor{},
+			RequestIDSetter: requestIDSetter,
+			TenantIDSetter:  tenantIDSetter,
+		},
+		restserver.WithPing(),
+	)
+
+	svc.servers = append(svc.servers, server)
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerCallbackServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.CallbackServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.CallbackServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	server := restserver.NewServer(
+		svc.ctx,
+		restserver.Options{
+			Name:            string(relayCallbackSvcName),
+			IP:              svc.conf.CallbackServer.BindIP,
+			Port:            svc.conf.CallbackServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
@@ -122,14 +245,29 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
 	)
-	svc.servers = append(svc.servers, callbackServer)
 
-	fileServer := restserver.NewServer(
+	svc.servers = append(svc.servers, server)
+
+	return nil
+}
+
+// nolint: unparam
+func (svc *Service) registerDownloadServer() error {
+	authIdentity := svc.authIdentityMap[svc.conf.DownloadServer.AuthIdentity]
+	if authIdentity == nil {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
+			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	}
+
+	requestIDSetter := restserver.NewRequestIDSetter()
+	tenantIDSetter := restserver.NewTenantIDSetter()
+
+	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameRelayFile),
-			IP:              conf.FileServer.BindIP,
-			Port:            conf.FileServer.Port,
+			Name:            string(relayDownloadSvcName),
+			IP:              svc.conf.DownloadServer.BindIP,
+			Port:            svc.conf.DownloadServer.Port,
 			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
@@ -137,9 +275,23 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		restserver.WithPing(),
 		withDownload(svc.Cap),
 	)
-	svc.servers = append(svc.servers, fileServer)
 
-	return svc, nil
+	svc.servers = append(svc.servers, server)
+
+	return nil
+}
+
+func withHealthz(capability *options.Capability) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		healthz.Load(rg, capability)
+	}
+}
+
+// withMetrics load metrics.
+func withMetrics() restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	}
 }
 
 // withCallbackServer load callback api.
@@ -195,7 +347,7 @@ func (svc *Service) Start() error {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 

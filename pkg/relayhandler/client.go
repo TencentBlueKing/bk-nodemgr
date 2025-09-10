@@ -40,8 +40,8 @@ type ClientMessagerConfig struct {
 	// DomainSocketPath is the domain socket path when in unix node.
 	DomainSocketPath string `json:"domain_socket_path"`
 
-	// MessageIDFullPath is the full path for message ID storage.
-	MessageIDPath string `json:"message_id_path"`
+	// MessageTrackerFullPath is the message tracker full path.
+	MessageTrackerFullPath string `json:"message_tracker_full_path"`
 
 	// LocalSocketPort is the local socket port when in windows node.
 	LocalSocketPort int `json:"local_socket_port"`
@@ -56,13 +56,18 @@ const (
 )
 
 // NewClientMessager creates a new client messager.
-func NewClientMessager(conf ClientMessagerConfig) IClientMessager {
+func NewClientMessager(conf ClientMessagerConfig) (IClientMessager, error) {
+	fileMsgTracker, err := messagetracker.NewFileTracker(context.Background(), conf.MessageTrackerFullPath)
+	if err != nil {
+		return nil, err
+	}
+
 	return &clientMessager{
 		config:          conf,
 		messages:        make(map[string]*synchronousData),
 		eventDispatcher: manager.NewDefaultEventDispatcher(),
-		fileMsgTracker:  messagetracker.NewFileManager(context.Background(), conf.MessageIDPath),
-	}
+		fileMsgTracker:  fileMsgTracker,
+	}, nil
 }
 
 // clientMessager provides the managements for receiving and sending messages via gse agent.
