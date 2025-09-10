@@ -3,25 +3,18 @@ plugin:
   messageDomainSocketPath: "{{ .GSE_MESSAGE_DOMAIN_SOCKET_PATH }}"
   messageLocalSocketPort: {{ .BK_NODEMGR_MESSAGE_LOCAL_SOCKET_PORT }}
 
-agentFileGroup:
-  fullPath: "{{ .BK_NODEMGR_AGENT_FILE_GROUP_FULL_PATH }}"
-
-proxyFileGroup:
-  fullPath: "{{ .RELAY_PROXY_FILE_GROUP_FULL_PATH }}"
-
 callbackServer:
   bindIP: "{{ .BK_NODEMGR_CALLBACK_SERVER_BIND_IP }}"
   port: {{ .BK_NODEMGR_CALLBACK_SERVER_PORT }}
   advertiseIPV4: "{{ .BK_NODEMGR_CALLBACK_SERVER_ADVERTISE_IPV4 }}"
 
-fileServer:
-  bindIP: "{{ .BK_NODEMGR_FILE_SERVER_BIND_IP }}"
-  port: {{ .BK_NODEMGR_FILE_SERVER_PORT }}
-  advertiseIPV4: "{{ .BK_NODEMGR_FILE_SERVER_ADVERTISE_IPV4 }}"
+downloadServer: 
+  bindIP: "{{ .BK_NODEMGR_DOWNLOAD_SERVER_BIND_IP }}"
+  port: {{ .BK_NODEMGR_DOWNLOAD_SERVER_PORT }}
+  advertiseIPV4: "{{ .BK_NODEMGR_DOWNLOAD_SERVER_ADVERTISE_IPV4 }}"
 
-messageIDPath: "{{ .RELAY_MESSAGE_ID_PATH }}"
-fileManagerDirPath: "{{ .RELAY_FILE_MANAGER_DIR_PATH }}"
-storageTmpDirPath: "{{ .RELAY_STORAGE_TMP_DIR_PATH }}"
+relayWorkspaceFileGroup:
+  fullPath: "{{ .BK_NODEMGR_RELAY_WORKSPACE_FILE_GROUP_FULL_PATH }}"
 
 log:
   dir: "{{ .RELAY_LOG_DIR }}"
