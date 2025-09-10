@@ -20,11 +20,11 @@ import (
 // registerOnceTriggerActions registers the action definitions for once trigger actions.
 func (mgr *Manager) registerActionDefsOnceOperation() error {
 	if err := mgr.registerActionDefNodeInstall(); err != nil {
-		return fmt.Errorf("register action def node install failed, err: %w", err)
+		return fmt.Errorf("register action def node install failed: %w", err)
 	}
 
 	if err := mgr.registerActionDefSyncData(); err != nil {
-		return fmt.Errorf("register action def sync data failed, err: %w", err)
+		return fmt.Errorf("register action def sync data failed: %w", err)
 	}
 
 	return nil
@@ -59,6 +59,8 @@ func (mgr *Manager) registerActionDefNodeInstall() error {
 		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
 		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNodeDeployment, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
 		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNodeDeployment, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionEnableReleaseTransfer(mgr.conf.StorageNodeDeployment, mgr.logger),
+		node.NewActionUpgradePagent(mgr.conf.StorageNodeDeployment, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 	)
 }
 

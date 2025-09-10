@@ -189,7 +189,7 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, p
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.DownloadSvrAddr),
+		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
@@ -236,7 +236,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--filesvr_addr %s", param.DownloadSvrAddr),
+		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
@@ -278,7 +278,7 @@ func (act *actionUpgradePagent) getServiceAddresses(std *utils.NodeActionStandar
 	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort)
 	callbackSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort)
 
-	std.InstanceData().LogI(fmt.Sprintf("relay file svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))
+	std.InstanceData().LogI(fmt.Sprintf("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))
 
 	return downloadSvrAddr, callbackSvrAddr
 }
