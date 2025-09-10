@@ -807,6 +807,10 @@
       "properties": {
         "node_role": {
           "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "ConfigPolicyListPlatformReq describes HTTP request body when list config\npolicy platform."

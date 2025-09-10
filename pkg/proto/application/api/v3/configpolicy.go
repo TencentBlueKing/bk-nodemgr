@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -167,6 +168,14 @@ func (x *ConfigPolicyGetTemplateResp) ConvertTemplateFromTypes(blocks []types.Co
 
 // Validate check body.
 func (x *ConfigPolicyListPlatformReq) Validate() error {
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return fmt.Errorf("invalid generation: %v", err)
+	}
+
+	if err := types.NodeRole(x.GetNodeRole()).Validate(); err != nil {
+		return fmt.Errorf("invalid node role: %v", err)
+	}
+
 	return nil
 }
 

@@ -68,8 +68,12 @@ func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) 
 
 	releaseType := types.ReleaseType(req.GetReleaseType())
 	gen := types.Generation(req.GetGeneration())
+	distinctField := types.ReleaseDistinctField{
+		OSType:  req.GetDistinctField().GetOsType(),
+		CPUArch: req.GetDistinctField().GetCpuArch(),
+	}
 
-	result, err := h.storage.DistinctRelease(ctx, releaseType, gen, types.NewReleaseDistinctRequestAllSet(), req.ConvertConditionsToTypes())
+	result, err := h.storage.DistinctRelease(ctx, releaseType, gen, distinctField, req.ConvertConditionsToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

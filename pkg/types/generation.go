@@ -10,7 +10,10 @@
 
 package types
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Generation represents a node generation.
 type Generation int64
@@ -29,7 +32,9 @@ const (
 // Validate validates the node generation.
 func (gen Generation) Validate() error {
 	switch gen {
-	case Generation1, Generation2:
+	case Generation1:
+		return fmt.Errorf("generation 1 now no support")
+	case Generation2:
 		return nil
 	default:
 		return errors.New("invalid generation")
