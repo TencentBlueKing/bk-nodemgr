@@ -114,8 +114,8 @@ const (
 	// FieldKeyDynamicProxyAccessDisabled the dynamic proxy access disabled field key.
 	FieldKeyDynamicProxyAccessDisabled = "data.dynamic.proxy_access_disabled"
 
-	// FieldKeyDynamicRelayFilePort the dynamic relay file port field key.
-	FieldKeyDynamicRelayFilePort = "data.dynamic.relay_file_port"
+	// FieldKeyDynamicRelayDownloadPort the dynamic relay download port field key.
+	FieldKeyDynamicRelayDownloadPort = "data.dynamic.relay_download_port"
 
 	// FieldKeyDynamicRelayCallbackPort the dynamic relay callback port field key.
 	FieldKeyDynamicRelayCallbackPort = "data.dynamic.relay_callback_port"

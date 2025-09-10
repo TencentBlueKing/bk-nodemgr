@@ -647,8 +647,8 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 		updates[FieldKeyDynamicProxyDataPort] = host.Dynamic.ProxyDataPort
 	}
 
-	if fields.RelayFilePort {
-		updates[FieldKeyDynamicRelayFilePort] = host.Dynamic.RelayDownloadPort
+	if fields.RelayDownloadPort {
+		updates[FieldKeyDynamicRelayDownloadPort] = host.Dynamic.RelayDownloadPort
 	}
 	if fields.RelayCallbackPort {
 		updates[FieldKeyDynamicRelayCallbackPort] = host.Dynamic.RelayCallbackPort

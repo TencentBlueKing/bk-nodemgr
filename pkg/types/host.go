@@ -210,7 +210,7 @@ type HostDynamicFields struct {
 	ProxyDataPort    bool
 	ProxyFilePort    bool
 
-	RelayFilePort     bool
+	RelayDownloadPort bool
 	RelayCallbackPort bool
 }
 
