@@ -74,13 +74,13 @@ func (info *cacheInfo) isExpired(cutoffTime time.Time) bool {
 // NewFileManager creates a new file manager.
 func NewFileManager(ctx context.Context, baseDir string, logger logger.ILogger) (IFileManager, error) {
 	if err := os.MkdirAll(baseDir, 0750); err != nil { // nolint: mnd
-		logger.Errorf("failed to create base dir.basedir(%s): %v", baseDir, err)
+		logger.Errorf("failed to create base dir. basedir(%s): %v", baseDir, err)
 		return nil, err
 	}
 
 	baseGroup, err := local.NewLocalDir(baseDir, logger)
 	if err != nil {
-		logger.Errorf("failed to create root group.basedir(%s): %v", baseDir, err)
+		logger.Errorf("failed to create root group. basedir(%s): %v", baseDir, err)
 		return nil, err
 	}
 
