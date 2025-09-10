@@ -121,7 +121,7 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 
 	std.DeployInfo().RelayInfo = relayHost
 
-	ctx.Data.LogI(fmt.Sprintf("select relay host success. host-id(%d)", relayHost.HostID))
+	std.InstanceData().LogI(fmt.Sprintf("select relay host success. relay-host-id(%d)", relayHost.HostID))
 
 	return nil
 }
