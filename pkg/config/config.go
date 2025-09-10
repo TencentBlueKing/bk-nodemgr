@@ -482,10 +482,39 @@ func (saas *BKSaas) Validate() error {
 	return nil
 }
 
+// LoginAuthType defines the auth type of bklogin.
+type LoginAuthType string
+
+const (
+	// LoginAuthTypeBKTicket BKTicket mode.
+	LoginAuthTypeBKTicket LoginAuthType = "bk_ticket"
+
+	// LoginAuthTypeBKToken BKToken mode.
+	LoginAuthTypeBKToken LoginAuthType = "bk_token"
+)
+
+// Validate validates the auth type.
+func (authType LoginAuthType) Validate() error {
+	switch authType {
+	case LoginAuthTypeBKTicket, LoginAuthTypeBKToken:
+		return nil
+	default:
+		return fmt.Errorf("invalid login auth type (%s)", authType)
+	}
+}
+
+// String returns the string of auth type.
+func (authType LoginAuthType) String() string {
+	return string(authType)
+}
+
 // BKLogin the config of bklogin.
 type BKLogin struct {
 	// LoginURL defines the login url of bklogin.
 	LoginURL string `yaml:"loginURL" usage:"login url of bklogin"`
+
+	// AuthType defines the auth type of bklogin, support 'bk_token' and 'bk_ticket'.
+	AuthType LoginAuthType `yaml:"authType" usage:"auth type of bklogin, support 'bk_token' and 'bk_ticket'"`
 
 	// TLS defines the tls config of bklogin.
 	TLS TLSConfig `yaml:"tls" usage:"tls config of bklogin"`
@@ -498,6 +527,10 @@ func (bklogin *BKLogin) Validate() error {
 	}
 
 	if err := bklogin.TLS.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bklogin config: %w", err)
+	}
+
+	if err := bklogin.AuthType.Validate(); err != nil {
 		return fmt.Errorf("failed to validate bklogin config: %w", err)
 	}
 

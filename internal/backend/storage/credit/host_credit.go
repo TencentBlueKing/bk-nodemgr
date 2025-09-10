@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/google/uuid"
 )
@@ -29,18 +30,20 @@ func generateHostCreditID() string {
 }
 
 // CreateHostCredit create host credit.
-func (s *Storage) CreateHostCredit(
-	ctx contextx.ITenantContext,
-	creditData []byte,
-) (string, error) {
-	creditID := generateHostCreditID()
+func (s *Storage) CreateHostCredit(ctx contextx.ITenantContext, creditData []byte) (string, error) {
+	var encryptedCreditData []byte
+	var err error
 
-	encryptedCreditData, err := s.crypter.Encrypt(creditData)
-	if err != nil {
+	// record metric.
+	metric := s.metric().Start("host_create")
+	defer metric.End(err)
+
+	if encryptedCreditData, err = s.crypter.Encrypt(creditData); err != nil {
 		return "", err
 	}
 
-	if err := s.daoCredit.Upsert(ctx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
+	creditID := generateHostCreditID()
+	if err = s.daoCredit.Upsert(ctx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
 		return "", err
 	}
 
@@ -48,18 +51,19 @@ func (s *Storage) CreateHostCredit(
 }
 
 // LoadHostCredit load host credit.
-func (s *Storage) LoadHostCredit(
-	ctx contextx.ITenantContext,
-	creditID string,
-) ([]byte, error) {
+func (s *Storage) LoadHostCredit(ctx contextx.ITenantContext, creditID string) ([]byte, error) {
+	var encryptedCreditData, creditData []byte
+	var err error
 
-	encryptedCreditData, err := s.daoCredit.Get(ctx, creditID)
-	if err != nil {
+	// record metric.
+	metric := s.metric().Start("host_load")
+	defer metric.End(err)
+
+	if encryptedCreditData, err = s.daoCredit.Get(ctx, creditID); err != nil {
 		return nil, err
 	}
 
-	creditData, err := s.crypter.Decrypt(encryptedCreditData)
-	if err != nil {
+	if creditData, err = s.crypter.Decrypt(encryptedCreditData); err != nil {
 		return nil, err
 	}
 
@@ -67,10 +71,21 @@ func (s *Storage) LoadHostCredit(
 }
 
 // CheckHostCreditValid check host credit valid.
-func (s *Storage) CheckHostCreditValid(
-	ctx contextx.ITenantContext,
-	creditIDList ...string,
-) (map[string]bool, error) {
+func (s *Storage) CheckHostCreditValid(ctx contextx.ITenantContext, creditIDList ...string) (map[string]bool, error) {
+	var result map[string]bool
+	var err error
 
-	return s.daoCredit.CheckValid(ctx, creditIDList...)
+	// record metric.
+	metric := s.metric().Start("host_check_valid")
+	defer metric.End(err)
+
+	if result, err = s.daoCredit.CheckValid(ctx, creditIDList...); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }

@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type IPluginBinTool interface {
 }
 
 // GetPluginBinToolUpload gets a upload by upload-id.
-func (s *Storage) GetPluginBinToolUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetPluginBinToolUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_plugin_bintool")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginPluginBinTool, uploadID)
 }
 
 // CreatePluginBinToolUpload creates a upload.
-func (s *Storage) CreatePluginBinToolUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreatePluginBinToolUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_plugin_bintool")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginPluginBinTool, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginPluginBinTool, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeletePluginBinToolUpload deletes a upload by upload-id.
-func (s *Storage) DeletePluginBinToolUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeletePluginBinToolUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_plugin_bintool")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginPluginBinTool, uploadID)
 }

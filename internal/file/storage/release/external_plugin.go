@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -33,7 +35,13 @@ type IExternalPlugin interface {
 }
 
 // ExistReleaseExternalPluginGen2 checks if release plugin exists.
-func (s *Storage) ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) ExistReleaseExternalPluginGen2(
+	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {
+
+	// record metric.
+	metric := s.metric().Start("exist_external_plugin")
+	defer metric.End(err)
+
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
 		pluginFileName, err := epluginpkg.FormatPkgName(pluginName, types.ReleaseTypeExternalPlugin, types.Generation2, plat, version)
@@ -44,20 +52,21 @@ func (s *Storage) ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginNa
 		fileNames = append(fileNames, pluginFileName)
 	}
 
-	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, types.Generation2,
-		release.WithFileName(fileNames...))
-	if err != nil {
+	var num int64
+	if num, err = s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, release.WithFileName(fileNames...)); err != nil {
 		return false, err
 	}
 
-	return count > 0, nil
+	return num > 0, nil
 }
 
 // UpsertManyReleaseExternalPluginGen2 upsert many release.
-func (s *Storage) UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
-	var err error
-	releases := make([]*types.Release, 0, len(releaseExternalPlugins))
+func (s *Storage) UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_external_plugin")
+	defer metric.End(err)
 
+	releases := make([]*types.Release, 0, len(releaseExternalPlugins))
 	for _, rls := range releaseExternalPlugins {
 		if rls == nil {
 			continue

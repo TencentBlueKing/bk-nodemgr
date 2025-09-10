@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type IBinTool interface {
 }
 
 // GetBinToolUpload gets a upload by upload-id.
-func (s *Storage) GetBinToolUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetBinToolUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_bintool")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginBinTool, uploadID)
 }
 
 // CreateBinToolUpload creates a upload.
-func (s *Storage) CreateBinToolUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreateBinToolUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_bintool")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginBinTool, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginBinTool, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeleteBinToolUpload deletes a upload by upload-id.
-func (s *Storage) DeleteBinToolUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeleteBinToolUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_bintool")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginBinTool, uploadID)
 }

@@ -36,8 +36,12 @@ type IDomainNodeInstall interface {
 }
 
 // UpdateOperInstActionStatus update the oper inst action status.
-func (s *Storage) UpdateOperInstActionStatus(ctx context.Context, operInstID string, actionName string,
-	status action.State) error {
+func (s *Storage) UpdateOperInstActionStatus(
+	ctx context.Context, operInstID string, actionName string, status action.State) (err error) {
+
+	// record metric.
+	metric := s.metric().Start("update_action_status")
+	defer metric.End(err)
 
 	if ctx == nil {
 		return basestorage.ErrNilContent()
@@ -55,8 +59,7 @@ func (s *Storage) UpdateOperInstActionStatus(ctx context.Context, operInstID str
 		return err
 	}
 
-	err := s.daoOperinstdata.UpdateActionInstStatus(ctx, operInstID, actionName, status)
-	if err != nil {
+	if err = s.daoOperinstdata.UpdateActionInstStatus(ctx, operInstID, actionName, status); err != nil {
 		return fmt.Errorf("update oper inst action status error: %v", err)
 	}
 

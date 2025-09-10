@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -75,15 +76,25 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
+		// record metric.
+		metric.ActionNotRegistered(actionName)
+
 		return fmt.Errorf("action not registered, name(%s)", actionName)
 	}
 
 	// get action instance.
 	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionName)
 	if err != nil {
+		// record metric.
+		metric.ActionDataNotFound(actionName)
+
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s), err: %v", operationInstanceID, actionName, err)
 	}
+
+	// record metric.
+	m := metric.NewActionProcess(actionInstData).Start()
+	defer m.End(actionInstData.Lifecycle)
 
 	// check if this action should be executed.
 	if err := actionInstData.NeedExecuted(); err != nil {
@@ -164,6 +175,9 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
+		// record oper inst metric.
+		defer metric.OperationInstanceProcessed(operInstBriefData)
+
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
 		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
 			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",

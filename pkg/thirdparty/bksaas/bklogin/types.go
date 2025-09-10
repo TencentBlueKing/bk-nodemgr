@@ -38,12 +38,22 @@ func (resp *BaseBroker[T]) IsFailed() error {
 	return nil
 }
 
-// GetUserInfoReq describe the get user info request.
-type GetUserInfoReq struct {
+// GetUserInfoByBKTicketReq describe the get user info bk_ticket request.
+type GetUserInfoByBKTicketReq struct {
 	BKTicket string `json:"-"`
 }
 
-// GetUserInfoResp describe the get user info response.
-type GetUserInfoResp struct {
+// GetUserInfoByBKTicketResp describe the get user info by bk_ticket response.
+type GetUserInfoByBKTicketResp struct {
+	Username string `json:"username"`
+}
+
+// GetUserInfoByBKTokenReq describe the get user info by bk_token request.
+type GetUserInfoByBKTokenReq struct {
+	BKToken string `json:"-"`
+}
+
+// GetUserInfoByBKTokenResp describe the get user info by bk_token response.
+type GetUserInfoByBKTokenResp struct {
 	Username string `json:"username"`
 }

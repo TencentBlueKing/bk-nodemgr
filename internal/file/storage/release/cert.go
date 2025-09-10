@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -34,24 +36,36 @@ type ICert interface {
 }
 
 // GetReleaseCertGen2 gets release cert gen2.
-func (s *Storage) GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error) {
-	r, err := s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
-	if err != nil {
+func (s *Storage) GetReleaseCertGen2(ctx context.Context) (data *types.ReleaseCert, err error) {
+	// record metric.
+	metric := s.metric().Start("get_cert")
+	defer metric.End(err)
+
+	var rls *types.Release
+	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), ""); err != nil {
 		return nil, err
 	}
 
 	return &types.ReleaseCert{
-		Release: *r,
+		Release: *rls,
 	}, nil
 }
 
 // ExistReleaseCertGen2 checks if release cert gen2 exists.
-func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (bool, error) {
+func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (result bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_cert")
+	defer metric.End(err)
+
 	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
 }
 
 // UpsertReleaseCertGen2 upserts release cert gen2.
-func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error {
+func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_cert")
+	defer metric.End(err)
+
 	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
 		Generation: types.Generation2,
 		Type:       types.ReleaseTypeCert,
@@ -64,6 +78,10 @@ func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseC
 }
 
 // DeleteReleaseCertGen2 deletes release cert gen2.
-func (s *Storage) DeleteReleaseCertGen2(ctx context.Context, fileName string) error {
+func (s *Storage) DeleteReleaseCertGen2(ctx context.Context, fileName string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_cert")
+	defer metric.End(err)
+
 	return s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), fileName)
 }

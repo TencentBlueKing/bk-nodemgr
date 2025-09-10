@@ -23,6 +23,8 @@ import (
 func StandardOSMap() map[string]criteria.OSType {
 	return map[string]criteria.OSType{
 		"aix":       criteria.OSAix,
+		"aix6":      criteria.OSAix6,
+		"aix7":      criteria.OSAix7,
 		"android":   criteria.OSAndroid,
 		"darwin":    criteria.OSDarwin,
 		"dragonfly": criteria.OSDragonfly,
@@ -125,6 +127,7 @@ func StandardArchMap() map[string]criteria.CPUArch {
 		"ppc":      criteria.CPUArchPpc,
 		"ppc64":    criteria.CPUArchPpc64,
 		"ppc64le":  criteria.CPUArchPpc64le,
+		"powerpc":  criteria.CPUArchPpc,
 		"riscv":    criteria.CPUArchRiscv,
 		"riscv64":  criteria.CPUArchRiscv64,
 		"s390":     criteria.CPUArchS390,

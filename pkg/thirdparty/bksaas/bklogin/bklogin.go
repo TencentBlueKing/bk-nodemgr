@@ -47,19 +47,22 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 	return header, nil
 }
 
-// getUserInfo get user info.
-func (c *cli) getUserInfo(ctx context.Context, req *GetUserInfoReq) (*GetUserInfoResp, error) {
-	resp := new(BaseBroker[*GetUserInfoResp])
+// getUserInfoByBKTicket get user info by bk_ticket.
+func (c *cli) getUserInfoByBKTicket(
+	ctx context.Context, req *GetUserInfoByBKTicketReq) (*GetUserInfoByBKTicketResp, error) {
+
+	resp := new(BaseBroker[*GetUserInfoByBKTicketResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.client.Get().
-		SubResourcef("/user/get_info").
+		// add '/' after subpath to prevent redirection during requests.
+		SubResourcef("/user/get_info/").
 		WithContext(ctx).
 		WithHeaders(header).
-		WithParam("bk_ticket", req.BKTicket).
+		WithParam(CookieKeyBKTicket, req.BKTicket).
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
@@ -67,7 +70,36 @@ func (c *cli) getUserInfo(ctx context.Context, req *GetUserInfoReq) (*GetUserInf
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("failed to get user info: %w", err)
+		return nil, fmt.Errorf("failed to get user info by bk_ticket: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// getUserInfoByBKToken get user info by bk_token.
+func (c *cli) getUserInfoByBKToken(
+	ctx context.Context, req *GetUserInfoByBKTokenReq) (*GetUserInfoByBKTokenResp, error) {
+
+	resp := new(BaseBroker[*GetUserInfoByBKTokenResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		// add '/' after subpath to prevent redirection during requests.
+		SubResourcef("/accounts/get_user/").
+		WithContext(ctx).
+		WithHeaders(header).
+		WithParam(CookieKeyBKToken, req.BKToken).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("failed to get user info by bk_token: %w", err)
 	}
 
 	return resp.Data, nil

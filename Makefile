@@ -122,6 +122,65 @@ script_tools: pre
 	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/plugin_bintool.tgz"
 	@$(ECHO) "Built successfully script tools"
 
+OSES := linux
+
+# 支持的架构
+ARCHES := amd64 arm64
+
+plugin-pkg-relay: pre
+	@$(ECHO) "Building plugin-pkg-relay..."
+	@$(MKDIR) $(OUTPUT_DIR)/bk-nodemgr-relay
+	@$(ECHO) "Building $(APP_NAME) $(VERSION) for all platforms..."
+	@$(foreach os,$(OSES),\
+		$(foreach arch,$(ARCHES),\
+			if [ "$(os)" = "darwin" ] && [ "$(arch)" = "arm" ]; then \
+				$(ECHO) "Skipping unsupported platform: $(os)/$(arch)"; \
+			else \
+				$(ECHO) "Building for $(os)/$(arch)..." && \
+				ext=$(if $(filter windows,$(os)),.exe,) && \
+				plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_$(os)_$(arch); \
+                if [ "$(os)" = "linux" ] && [ "$(arch)" = "amd64" ]; then \
+                    plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_linux_x86_64; \
+                else \
+                    plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_linux_aarch64; \
+                fi; \
+				$(MKDIR) $$plugin_path && \
+				binary="$$plugin_path/bk-nodemgr-relay$$ext" && \
+				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
+					-o $$binary $(ROOT_DIR)/cmd/relay/*.go && \
+				$(ECHO) "Built: $$binary" && \
+				if [ "$(UPX_ENABLED)" ]; then \
+					$(MAKE) compress-binary BINARY=$$binary; \
+				fi; \
+				$(MKDIR) "$$plugin_path/etc"; \
+				$(CP) $(ROOT_DIR)/plugin/relay/etc/* "$$plugin_path/etc"; \
+			fi; \
+		)\
+	)
+
+	@$(CP) "./plugin/relay/project.yaml" "$(OUTPUT_DIR)/bk-nodemgr-relay/project.yaml"
+	@$(ECHO) "Packaging artifacts..."
+	@$(TAR) "$(OUTPUT_DIR)/bk-nodemgr-relay.tgz" -C "$(OUTPUT_DIR)" bk-nodemgr-relay
+
+# 压缩单个二进制文件
+compress-binary:
+	@if [ -z "$(BINARY)" ]; then \
+		$(ECHO) "Error: BINARY path not specified"; \
+		$(ECHO) "Usage: make compress-binary BINARY=path/to/binary"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(BINARY)" ]; then \
+		$(ECHO) "Error: Binary file not found: $(BINARY)"; \
+		exit 1; \
+	fi
+	@if [ -z"$(UPX_ENABLED)" ]; then \
+		$(ECHO) "Compressing $(BINARY) with UPX..."; \
+		upx $(UPX_ARGS) "$(BINARY)"; \
+		$(ECHO) "Compression complete"; \
+	else \
+		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
+	fi
+
 docker-build-server: backend application file front tools
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)

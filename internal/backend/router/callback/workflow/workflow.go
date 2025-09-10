@@ -13,7 +13,7 @@ package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/nodeinstall"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -37,5 +37,5 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	nodeinstall.Load(h.rg, capability)
+	node.Load(h.rg, capability)
 }

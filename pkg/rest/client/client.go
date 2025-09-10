@@ -90,10 +90,9 @@ func NewClient(capability *Capability, baseURL string, opts ...Opt) (IClient, er
 	restClient := &Client{
 		baseURL:    baseURL,
 		capability: capability,
-		metrics: restmetrics.NewMonitor(capability.Name).
-			WithDurationMSBuckets(capability.MetricOpts.DurationMSBuckets).
-			WithSlowTime(capability.ToleranceLatencyTime).
-			Enable(),
+		metrics: restmetrics.NewMonitor("client_"+capability.Name,
+			restmetrics.WithDurationMSBuckets(capability.MetricOpts.DurationMSBuckets),
+			restmetrics.WithSlowTime(capability.ToleranceLatencyTime)).Enable(),
 		exclusionURL:  make(map[string]struct{}),
 		maxRetryCycle: maxRetryCycleDefault,
 		headerMasker:  make(map[string]func(string) string),

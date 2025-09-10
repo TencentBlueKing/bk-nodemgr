@@ -741,3 +741,5 @@ linters-settings:
         alias: workoper
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger
         alias: daoTrigger
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo
+        alias: daomongo

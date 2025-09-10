@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package release provides the release storage interface.
+// nolint: nonamedreturns
 package release
 
 import (
@@ -30,31 +32,36 @@ type IProxy interface {
 }
 
 // GetReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version)
-	if err != nil {
+func (s *Storage) GetReleaseProxy(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseProxy, err error) {
+
+	// record metric.
+	metric := s.metric().Start("get_proxy")
+	defer metric.End(err)
+
+	var rls *types.Release
+	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version); err != nil {
 		return nil, fmt.Errorf("failed to get release proxy: %w", err)
 	}
 
 	additionInfo := new(types.ReleaseAdditionInfoProxy)
-	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
-	if err != nil {
+	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
 		return nil, fmt.Errorf("failed to get release proxy: %v", err)
 	}
 
-	releaseProxy := &types.ReleaseProxy{
+	return &types.ReleaseProxy{
 		Release:                  *rls,
 		ReleaseAdditionInfoProxy: *additionInfo,
-	}
-
-	return releaseProxy, nil
+	}, nil
 }
 
 // UpsertManyReleaseProxy upsert many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error {
-	releases := make([]*types.Release, 0, len(releaseProxys))
+func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) (err error) {
+	// record metric.
+	metric := s.metric().Start("upsert_many_proxy")
+	defer metric.End(err)
 
-	var err error
+	releases := make([]*types.Release, 0, len(releaseProxys))
 	for _, rls := range releaseProxys {
 		if rls == nil {
 			continue

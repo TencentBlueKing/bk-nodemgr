@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package upload provides the upload storage interface.
+// nolint: nonamedreturns
 package upload
 
 import (
@@ -30,18 +32,33 @@ type IAgent interface {
 }
 
 // GetAgentUpload gets a upload by upload-id.
-func (s *Storage) GetAgentUpload(ctx context.Context, uploadID string) (*types.Upload, error) {
+func (s *Storage) GetAgentUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+	// record metric.
+	metric := s.metric().Start("get_agent")
+	defer metric.End(err)
+
 	return s.daoUpload.Get(ctx, types.UploadCategoryOriginAgent, uploadID)
 }
 
 // CreateAgentUpload creates a upload.
-func (s *Storage) CreateAgentUpload(ctx context.Context, up *types.Upload) (string, error) {
-	up.UploadID = identifier.GenUploadID()
+func (s *Storage) CreateAgentUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+	// record metric.
+	metric := s.metric().Start("create_agent")
+	defer metric.End(err)
 
-	return up.UploadID, s.daoUpload.Create(ctx, types.UploadCategoryOriginAgent, up)
+	up.UploadID = identifier.GenUploadID()
+	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginAgent, up); err != nil {
+		return "", err
+	}
+
+	return up.UploadID, nil
 }
 
 // DeleteAgentUpload deletes a upload by upload-id.
-func (s *Storage) DeleteAgentUpload(ctx context.Context, uploadID string) error {
+func (s *Storage) DeleteAgentUpload(ctx context.Context, uploadID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_agent")
+	defer metric.End(err)
+
 	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginAgent, uploadID)
 }

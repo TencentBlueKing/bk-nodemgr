@@ -14,6 +14,7 @@ package release
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -82,4 +83,8 @@ func (s *Storage) check() error {
 	}
 
 	return nil
+}
+
+func (s *Storage) metric() *storage.MetricData {
+	return storage.Metric(StorageName)
 }
