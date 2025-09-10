@@ -1,5 +1,20 @@
 # storage
 
+## 文件职责
+- iface.go:
+  - 定义 IStorage 接口
+  - 定义 IDomainxxx 接口
+  - 定义 IDaoxxx 接口
+- storage.go: 
+  - 包入口点, 所有的导出函数仅可在此文件中实现;
+  - 提供指标采集能力
+  - Storage 的数据结构声明
+  - Storage 的初始化函数
+- dao_xxx.go:
+  - 用于提供针对于单表的数据访问能力
+- domain_xxx.go:
+  - 用于提供针对业务领域的数据访问能力
+
 ## 接口规范
 - IStorage: 用于提供整个包的全部接口，主要在初始化时使用
 - IDaoxxx: 提供单个 Storage 下各数据表的单表数据访问能力
