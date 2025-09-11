@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -30,7 +30,7 @@ const (
 // NewOperationExtraExecution creates a new operation extra execution.
 func NewOperationExtraExecution(
 	locker cache.ICache,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) operation.ExtraExecution {
 
 	return &extraExecution{
@@ -46,7 +46,7 @@ type ExtraExecutionParam struct {
 
 type extraExecution struct {
 	locker                cache.ICache
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -62,7 +62,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 		return err
 	}
 
-	info, err := exec.storageNodeDeployment.GetInfo(ctx, param.Token)
+	info, err := exec.storageNodeDeployment.GetNodeDeploymentInfo(ctx, param.Token)
 	if err != nil {
 		instance.LogE(fmt.Sprintf("get deployment info by token(%s) failed: %v", param.Token, err))
 		return fmt.Errorf("get node deployment info by token(%s) failed: %w", param.Token, err)

@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -37,7 +37,7 @@ const (
 )
 
 // NewActionCleanInstaller get a new action.
-func NewActionCleanInstaller(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+func NewActionCleanInstaller(storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.ILogger) action.Definition {
 
@@ -66,7 +66,7 @@ type CleanParams struct {
 }
 
 type actionCleanInstaller struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.ILogger
 }
@@ -120,7 +120,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}

@@ -8,9 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package nodeworkflow provides the node workflow storage.
-// nolint: nonamedreturns
-package nodeworkflow
+// Package node provide storage for node.
+package node
 
 import (
 	"context"
@@ -22,12 +21,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodedeployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/nodeworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -36,7 +34,7 @@ import (
 )
 
 // StorageName defines the storage name.
-const StorageName = "node_workflow"
+const StorageName = "node"
 
 const (
 	recentMonitoredTime = 5 * time.Minute
@@ -79,8 +77,10 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 type Storage struct {
 	basestorage.Storage
 
-	daoNodeWorkflow nodeworkflow.IHandler
-	daoOperInstData operinstdata.IHandler
+	// dao
+	daoNodeDeployment nodedeployment.IHandler
+	daoNodeWorkflow   nodeworkflow.IHandler
+	daoOperInstData   operinstdata.IHandler
 
 	monitoredWorkflows      map[string]*types.NodeWorkflow
 	monitoredWorkflowsMutex sync.RWMutex
@@ -89,6 +89,7 @@ type Storage struct {
 func (s *Storage) initDao() error {
 	s.daoNodeWorkflow = nodeworkflow.New(s.Database, s.Logger)
 	s.daoOperInstData = operinstdata.New(s.Database, s.Logger)
+	s.daoNodeDeployment = nodedeployment.New(s.Database, s.Logger)
 
 	return nil
 }
@@ -258,177 +259,12 @@ func (s *Storage) check() error {
 		return errors.New("dao node workflow is nil")
 	}
 
-	return nil
-}
-
-// ListNodeWorkflow lists node workflow by page and conditions.
-func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
-	[]*types.NodeWorkflow, int64, error) {
-
-	var results []*types.NodeWorkflow
-	var num int64
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("list")
-	defer metric.End(err)
-
-	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldDesc(nodeworkflow.FieldKeyOperateTime))
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
-	if results, num, err = s.daoNodeWorkflow.List(ctx, page, opts...); err != nil {
-		return nil, 0, err
+	if s.daoNodeDeployment == nil {
+		return errors.New("dao node deployment is nil")
 	}
 
-	return results, num, nil
-}
-
-// CountNodeWorkflow counts node workflow by conditions.
-func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
-	var num int64
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("count")
-	defer metric.End(err)
-
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
-	if num, err = s.daoNodeWorkflow.Count(ctx, opts...); err != nil {
-		return 0, err
-	}
-
-	return num, nil
-}
-
-// DistinctNodeWorkflow distincts node workflow fields.
-func (s *Storage) DistinctNodeWorkflow(
-	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
-	*types.NodeWorkflowDistinctResult, error) {
-
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("distinct")
-	defer metric.End(err)
-
-	result := new(types.NodeWorkflowDistinctResult)
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
-
-	gp := gopool.NewPool()
-	if request.BizID {
-		gp.Go(func() error {
-			var err error
-			result.BizID, err = s.daoNodeWorkflow.DistinctNodeWorkflowBkBizID(ctx, opts...)
-
-			return err
-		})
-	}
-	if request.Operator {
-		gp.Go(func() error {
-			var err error
-			result.Operator, err = s.daoNodeWorkflow.DistinctNodeWorkflowOperator(ctx, opts...)
-
-			return err
-		})
-	}
-	if request.Status {
-		gp.Go(func() error {
-			var err error
-			result.Status, err = s.daoNodeWorkflow.DistinctNodeWorkflowStatus(ctx, opts...)
-
-			return err
-		})
-	}
-	if request.Type {
-		gp.Go(func() error {
-			var err error
-			result.Type, err = s.daoNodeWorkflow.DistinctNodeWorkflowType(ctx, opts...)
-
-			return err
-		})
-	}
-
-	if err = gp.Wait(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-// GetNodeWorkflow gets a node workflow by workflow-id.
-func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (workflow *types.NodeWorkflow, err error) {
-	// record metric.
-	metric := s.metric().Start("get")
-	defer metric.End(err)
-
-	if ctx == nil {
-		return nil, basestorage.ErrNilContent()
-	}
-
-	if workflowID == "" {
-		return nil, errors.New("workflowID cannot be empty")
-	}
-
-	if workflow, err = s.daoNodeWorkflow.Get(ctx, workflowID); err != nil {
-		return nil, fmt.Errorf("failed to get workflow by id: %w", err)
-	}
-
-	if workflow == nil {
-		return nil, fmt.Errorf("workflow not found results, workflow id: %s", workflowID)
-	}
-
-	return workflow, nil
-}
-
-// CreateNodeWorkflow creates a new node workflow.
-func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) (err error) {
-	// record metric.
-	metric := s.metric().Start("create")
-	defer metric.End(err)
-
-	if ctx == nil {
-		return basestorage.ErrNilContent()
-	}
-
-	if workflow == nil {
-		return errors.New("workflow cannot be nil")
-	}
-
-	if err = workflow.Type.Validate(); err != nil {
-		return fmt.Errorf("invalid workflow data.type: %w", err)
-	}
-
-	if err = workflow.Status.Validate(); err != nil {
-		return fmt.Errorf("invalid workflow data.status: %w", err)
-	}
-
-	if err = s.daoNodeWorkflow.Create(ctx, workflow); err != nil {
-		return fmt.Errorf("failed to create workflow: %w", err)
-	}
-
-	return nil
-}
-
-// UpdateNodeWorkflowStatus updates the status of a node workflow.
-func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_status")
-	defer metric.End(err)
-
-	if ctx == nil {
-		return basestorage.ErrNilContent()
-	}
-
-	if workflowID == "" {
-		return errors.New("workflowID cannot be empty")
-	}
-
-	if err = status.Validate(); err != nil {
-		return fmt.Errorf("invalid workflow status: %s", status)
-	}
-
-	if err = s.daoNodeWorkflow.UpdateStatus(ctx, workflowID, status); err != nil {
-		return err
+	if s.daoOperInstData == nil {
+		return errors.New("dao operation instance data is nil")
 	}
 
 	return nil
@@ -438,36 +274,177 @@ func (s *Storage) metric() *storage.MetricData {
 	return storage.Metric(StorageName)
 }
 
-// convertNodeWorkflowConditionsToOptions converts node workflow conditions to options.
-func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) []nodeworkflow.OptFn {
-	opts := make([]nodeworkflow.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
+// GetNodeDeploymentNodeConf get gse node conf.
+func (s *Storage) GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
+	var (
+		nodeConf *types.NodeConf
+		err      error
+	)
 
-		if condition.OperateTimeRange != nil {
-			opts = append(opts, topoevent.WithOperateTimeRange(*condition.OperateTimeRange))
-		}
+	// record metric.
+	metric := s.metric().Start("get_node_deployment_node_conf")
+	defer metric.End(err)
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				nodeworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
-				nodeworkflow.WithBizID(condition.ExactInclude.BizID...),
-				nodeworkflow.WithType(condition.ExactInclude.Type...),
-				nodeworkflow.WithOperator(condition.ExactInclude.Operator...),
-				nodeworkflow.WithStatus(condition.ExactInclude.Status...))
-		}
+	nodeConf, err = s.getNodeDeploymentNodeConf(ctx, token)
 
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				nodeworkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
-				nodeworkflow.WithoutBizID(condition.ExactExclude.BizID...),
-				nodeworkflow.WithoutType(condition.ExactExclude.Type...),
-				nodeworkflow.WithoutOperator(condition.ExactExclude.Operator...),
-				nodeworkflow.WithoutStatus(condition.ExactExclude.Status...))
-		}
-	}
+	return nodeConf, err
+}
 
-	return opts
+// GetNodeDeploymentInfo get node deployment info.
+func (s *Storage) GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
+	var (
+		deployInfo *types.DeploymentInfo
+		err        error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_node_deployment_info")
+	defer metric.End(err)
+
+	deployInfo, err = s.getNodeDeploymentInfo(ctx, token)
+
+	return deployInfo, err
+}
+
+// SetNodeDeploymentNodeConf set gse node conf.
+func (s *Storage) SetNodeDeploymentNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("set_node_deployment_node_conf")
+	defer metric.End(err)
+
+	err = s.seNodeDeploymenttNodeConf(ctx, token, conf)
+
+	return err
+}
+
+// UpdateNodeDeploymentInfo update node deployment info.
+func (s *Storage) UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("update_node_deployment_info")
+	defer metric.End(err)
+
+	err = s.updateNodeDeploymentInfo(ctx, token, info)
+
+	return err
+}
+
+// CreateNodeDeployment createNodeDeployment a node deployment.
+func (s *Storage) CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("create_node_deployment")
+	defer metric.End(err)
+
+	err = s.createNodeDeployment(ctx, nodeDeployment)
+
+	return err
+}
+
+// ListNodeWorkflow lists node workflow by page and conditions.
+func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+	[]*types.NodeWorkflow, int64, error) {
+
+	var (
+		results []*types.NodeWorkflow
+		num     int64
+		err     error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_node_workflow")
+	defer metric.End(err)
+
+	results, num, err = s.listNodeWorkflow(ctx, page, conditions...)
+
+	return results, num, err
+}
+
+// CountNodeWorkflow counts node workflow by conditions.
+func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
+	var num int64
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("count_node_workflow")
+	defer metric.End(err)
+
+	num, err = s.countNodeWorkflow(ctx, conditions...)
+
+	return num, err
+}
+
+// DistinctNodeWorkflow distincts node workflow fields.
+func (s *Storage) DistinctNodeWorkflow(
+	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+	*types.NodeWorkflowDistinctResult, error) {
+
+	var (
+		result *types.NodeWorkflowDistinctResult
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("distinct_node_workflow")
+	defer metric.End(err)
+
+	result, err = s.distinctNodeWorkflow(ctx, request, conditions...)
+
+	return result, err
+}
+
+// GetNodeWorkflow gets a node workflow by workflow-id.
+func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
+	var (
+		nodeWorkflow *types.NodeWorkflow
+		err          error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_node_workflow")
+	defer metric.End(err)
+
+	nodeWorkflow, err = s.getNodeWorkflow(ctx, workflowID)
+
+	return nodeWorkflow, err
+}
+
+// CreateNodeWorkflow creates a new node workflow.
+func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("create_node_workflow")
+	defer metric.End(err)
+
+	err = s.createNodeWorkflow(ctx, workflow)
+
+	return err
+}
+
+// UpdateNodeWorkflowStatus updates the status of a node workflow.
+func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("update_node_workflow_status")
+	defer metric.End(err)
+
+	err = s.updateNodeWorkflowStatus(ctx, workflowID, status)
+
+	return err
 }

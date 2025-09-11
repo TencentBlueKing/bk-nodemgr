@@ -23,11 +23,11 @@ import (
 
 // IHandler node deployment Handler interface.
 type IHandler interface {
-	Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error
-	GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
-	GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
-	SetNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error
-	UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
+	CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error
+	GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
+	GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
+	SetNodeDeploymentNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error
+	UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -51,8 +51,8 @@ func New(client *mongo.Database, logger logger.ILogger) *Handler {
 	return h
 }
 
-// GetInfo get a node deployment info.
-func (h *Handler) GetInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
+// GetNodeDeploymentInfo get a node deployment info.
+func (h *Handler) GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -156,8 +156,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}, nil
 }
 
-// Create create a new node deployment.
-func (h *Handler) Create(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
+// CreateNodeDeployment create a new node deployment.
+func (h *Handler) CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -208,8 +208,8 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 	}, nil
 }
 
-// GetNodeConf get a node deployment node conf.
-func (h *Handler) GetNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
+// GetNodeDeploymentNodeConf get a node deployment node conf.
+func (h *Handler) GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -240,8 +240,8 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 	}, nil
 }
 
-// SetNodeConf set a node deployment node conf.
-func (h *Handler) SetNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error {
+// SetNodeDeploymentNodeConf set a node deployment node conf.
+func (h *Handler) SetNodeDeploymentNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -268,8 +268,8 @@ func (h *Handler) SetNodeConf(ctx context.Context, token string, nodeConf *types
 	return nil
 }
 
-// UpdateInfo update a node deployment info.
-func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+// UpdateNodeDeploymentInfo update a node deployment info.
+func (h *Handler) UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}

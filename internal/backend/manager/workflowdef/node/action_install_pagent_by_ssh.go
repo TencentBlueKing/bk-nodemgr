@@ -20,7 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -43,7 +43,7 @@ const (
 // NewActionInstallPagentBySSH get a new action.
 func NewActionInstallPagentBySSH(
 	proxyMessager relayhandler.IServerMessager,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageHostCredit credit.IStorageHostCredit,
 	storageActionInstance workflow.IStorageActionInstance,
 	passwordVault creditvault.IHostPasswordVault,
@@ -72,7 +72,7 @@ type actionInstallPagentBySSH struct {
 	logger logger.ILogger
 
 	storageHostCredit     credit.IStorageHostCredit
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
 
 	passwordVault creditvault.IHostPasswordVault

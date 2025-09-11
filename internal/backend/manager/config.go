@@ -16,8 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -45,16 +44,15 @@ type Config struct {
 
 	LockerFactory locker.MutexFactory
 
-	StorageTopo           topo.IStorage
-	StorageRelease        release.IStorage
-	StorageNodeDeployment nodedeployment.IStorage
-	StorageNodeWorkflow   nodeworkflow.IStorage
-	StorageTrigger        trigger.IStorage
-	StorageOperation      operation.IStorage
-	StorageOperInst       operinstdata.IStorage
-	StorageSchedule       scheduleworkflow.IStorage
-	StorageHostCredit     credit.IStorageHostCredit
-	StorageConfigPolicy   configpolicy.IStorage
+	StorageTopo         topo.IStorage
+	StorageRelease      release.IStorage
+	StorageNode         nodeStg.IStorage
+	StorageTrigger      trigger.IStorage
+	StorageOperation    operation.IStorage
+	StorageOperInst     operinstdata.IStorage
+	StorageSchedule     scheduleworkflow.IStorage
+	StorageHostCredit   credit.IStorageHostCredit
+	StorageConfigPolicy configpolicy.IStorage
 
 	HostPasswordVault creditvault.IHostPasswordVault
 

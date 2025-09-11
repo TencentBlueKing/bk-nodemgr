@@ -36,7 +36,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse data proxy setting failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

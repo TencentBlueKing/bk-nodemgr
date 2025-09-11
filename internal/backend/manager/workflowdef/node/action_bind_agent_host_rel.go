@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -36,7 +36,7 @@ const (
 func NewActionBindAgentHostRel(
 	bindHostAgent cmdb.IBindHostAgent,
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger) action.Definition {
 
 	return &actionBindAgentHostRel{
@@ -56,7 +56,7 @@ type ActParamBindAgentHostRel struct {
 type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
 	storageHost           topo.IStorageHost
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	logger                logger.ILogger
 }
 
@@ -105,7 +105,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}

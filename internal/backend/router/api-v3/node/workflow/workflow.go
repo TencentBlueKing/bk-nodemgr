@@ -14,7 +14,7 @@ package workflow
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	storageOperation "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -33,7 +33,7 @@ const (
 type handler struct {
 	rg                  *gin.RouterGroup
 	manager             manager.IManager
-	storageNodeWorkflow nodeworkflow.IStorage
+	daoNodeWorkflow     nodeStg.IDaoNodeWorkflow
 	storageOperation    storageOperation.IStorage
 	storageOperInstData operinstdata.IStorage
 	logger              logger.ILogger
@@ -44,7 +44,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/workflow"),
 		manager:             capability.Manager,
-		storageNodeWorkflow: capability.StorageNodeWorkflow,
+		daoNodeWorkflow:     capability.StorageNode,
 		storageOperation:    capability.StorageOperation,
 		storageOperInstData: capability.StorageOperInst,
 		logger:              capability.Logger,
@@ -74,7 +74,7 @@ func (h *handler) ListNodeWorkflow(ctx *restserver.Context) (interface{}, error)
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storageNodeWorkflow.CountNodeWorkflow(ctx, req.ConvertConditionsToTypes())
+		num, err := h.daoNodeWorkflow.CountNodeWorkflow(ctx, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list node workflow, failed to count workflow. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -86,7 +86,7 @@ func (h *handler) ListNodeWorkflow(ctx *restserver.Context) (interface{}, error)
 		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.storageNodeWorkflow.ListNodeWorkflow(ctx,
+	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(ctx,
 		req.ConvertPageToTypes(maxNodeWorkflowLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
@@ -109,7 +109,7 @@ func (h *handler) DistinctNodeWorkflow(ctx *restserver.Context) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.storageNodeWorkflow.DistinctNodeWorkflow(
+	result, err := h.daoNodeWorkflow.DistinctNodeWorkflow(
 		ctx,
 		types.NewNodeWorkflowDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
@@ -137,7 +137,7 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
-	workflow, err := h.storageNodeWorkflow.GetNodeWorkflow(ctx, req.ConvertConditionsToComm())
+	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(ctx, req.ConvertConditionsToComm())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

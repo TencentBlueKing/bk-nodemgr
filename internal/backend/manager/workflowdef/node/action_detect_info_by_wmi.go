@@ -18,7 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -40,7 +40,7 @@ const (
 // NewActionDetectInfoByWMI get a new action.
 func NewActionDetectInfoByWMI(
 	logger logger.ILogger,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
 	passwordVault creditvault.IHostPasswordVault,
@@ -63,7 +63,7 @@ type ActParamDetectInfoByWMI struct {
 type actionDetectInfoByWMI struct {
 	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageRelease        release.IStorage
 	passwordVault         creditvault.IHostPasswordVault
 }

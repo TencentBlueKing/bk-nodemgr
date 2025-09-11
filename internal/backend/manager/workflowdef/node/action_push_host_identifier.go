@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -32,7 +32,7 @@ const (
 // NewActionPushHostIdentifier get a new action.
 func NewActionPushHostIdentifier(
 	cmdbClient cmdb.IHandler,
-	storage nodedeployment.IStorage,
+	storage nodeStg.IStorage,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -52,7 +52,7 @@ type ActParamPushHostIdentifier struct {
 // PushHostIdentifier ...
 type actionPushHostIdentifier struct {
 	cmdbClient cmdb.IHandler
-	storage    nodedeployment.IStorage
+	storage    nodeStg.IStorage
 	logger     logger.ILogger
 }
 
@@ -101,7 +101,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storage.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storage.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}

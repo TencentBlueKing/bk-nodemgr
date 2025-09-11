@@ -17,8 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -63,11 +62,8 @@ type Capability struct {
 	// StorageOperation operation storage.
 	StorageOperation operation.IStorage
 
-	// StorageNodeDeployment node deployment storage.
-	StorageNodeDeployment nodedeployment.IStorage
-
-	// StorageNodeWorkflow node workflow storage.
-	StorageNodeWorkflow nodeworkflow.IStorage
+	// StorageNode node storage.
+	StorageNode nodeStg.IStorage
 
 	// StorageScheduleWorkflow schedule workflow storage.
 	StorageScheduleWorkflow scheduleworkflow.IStorage
@@ -140,11 +136,7 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := capability.StorageNodeDeployment.Start(ctx); err != nil {
-		return err
-	}
-
-	if err := capability.StorageNodeWorkflow.Start(ctx); err != nil {
+	if err := capability.StorageNode.Start(ctx); err != nil {
 		return err
 	}
 

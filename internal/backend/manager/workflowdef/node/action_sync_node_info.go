@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -31,7 +31,7 @@ const (
 // NewActionSyncNodeInfo get a new action.
 func NewActionSyncNodeInfo(
 	gseClient gse.IHandler,
-	storage nodedeployment.IStorage,
+	storage nodeStg.IStorage,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -49,7 +49,7 @@ type ActParamSyncNodeInfo struct {
 
 type actionSyncNodeInfo struct {
 	gseClient gse.IHandler
-	storage   nodedeployment.IStorage
+	storage   nodeStg.IStorage
 	logger    logger.ILogger
 }
 
@@ -98,7 +98,7 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storage.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storage.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 			info.Host.Dynamic.AgentID, agentInfo.OSType, err)
 	}
 
-	if err := act.storage.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storage.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Host.Dynamic.AgentID, err)
 	}
 

@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -27,7 +27,7 @@ type handler struct {
 	rg                              *gin.RouterGroup
 	manager                         manager.IManager
 	storageNetworkUnit              topo.IStorageNetworkUnit
-	storageNodeDeploymentDomainInit nodedeployment.IStorageDomainInit
+	storageNodeDeploymentDomainInit nodeStg.IDaoNodeDeployment
 	storageHostCredit               credit.IStorageHostCredit
 	storageHost                     topo.IStorageHost
 
@@ -41,7 +41,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:                              rg.Group("/proxy"),
 		manager:                         capability.Manager,
 		storageNetworkUnit:              capability.StorageTopo,
-		storageNodeDeploymentDomainInit: capability.StorageNodeDeployment,
+		storageNodeDeploymentDomainInit: capability.StorageNode,
 		logger:                          capability.Logger,
 		storageHostCredit:               capability.StorageCredit,
 		storageHost:                     capability.StorageTopo,

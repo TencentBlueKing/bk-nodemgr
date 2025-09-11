@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
@@ -32,7 +32,7 @@ const (
 // NewActionTryReuseAgentID ...
 func NewActionTryReuseAgentID(
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -52,7 +52,7 @@ type ActParamTryReuseAgentID struct {
 type TryReuseAgentID struct {
 	logger                logger.ILogger
 	storageHost           topo.IStorageHost
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -100,7 +100,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	info.Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
-	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 

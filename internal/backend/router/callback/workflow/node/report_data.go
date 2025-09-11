@@ -34,7 +34,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 		return
 	}
 
-	info, err := h.GetInfo(gCtx, req.GetToken())
+	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("token is invalid, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -44,7 +44,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 
 	info.Host.Dynamic.AgentID = req.GetAgentId()
 
-	err = h.UpdateInfo(gCtx, req.GetToken(), info)
+	err = h.UpdateNodeDeploymentInfo(gCtx, req.GetToken(), info)
 	if err != nil {
 		h.logger.Errorf("update info failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

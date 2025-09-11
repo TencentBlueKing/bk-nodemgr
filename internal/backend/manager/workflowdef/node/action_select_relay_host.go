@@ -16,7 +16,7 @@ import (
 	"math/rand"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -32,7 +32,7 @@ const (
 // NewActionSelectRelayHost get a new action.
 func NewActionSelectRelayHost(
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -51,7 +51,7 @@ type ActParamSelectRelayHost struct {
 // actionSelectRelayHost ...
 type actionSelectRelayHost struct {
 	storageHost           topo.IStorageHost
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	logger                logger.ILogger
 }
 
@@ -99,13 +99,13 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()

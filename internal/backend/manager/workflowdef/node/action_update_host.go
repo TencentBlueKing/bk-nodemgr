@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 
@@ -30,7 +30,7 @@ const (
 // NewActionUpdateHost get a new action.
 func NewActionUpdateHost(
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -49,7 +49,7 @@ type ActParamUpdateHost struct {
 // UpdateHost ...
 type actionUpdateHost struct {
 	storageHost           topo.IStorageHost
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	logger                logger.ILogger
 }
 
@@ -98,7 +98,7 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node deployment info failed, err: %w", err)
 	}

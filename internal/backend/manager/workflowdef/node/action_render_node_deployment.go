@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -41,7 +41,7 @@ const (
 
 // NewActionRenderNodeDeployment get a new action.
 func NewActionRenderNodeDeployment(
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageHost topo.IStorageHost,
 	storageDomainGse topo.IStorageDomainGse,
 	storageRelease release.IStorage,
@@ -64,7 +64,7 @@ type ActParamRenderNodeDeployment struct {
 }
 
 type actionRenderNodeDeployment struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topo.IStorageHost
 	storageDomainGse      topo.IStorageDomainGse
 	storageRelease        release.IStorage
@@ -118,7 +118,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -128,12 +128,12 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.storageNodeDeployment.GetNodeConf(tenantCtx, param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(tenantCtx, param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed, err: %w", err)
 	}
@@ -204,13 +204,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config, err: %w", err)
 	}
 
-	if err := act.storageNodeDeployment.SetNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed, err: %w", err)
 	}
 
 	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
 
-	if err := act.storageNodeDeployment.UpdateInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
 		return fmt.Errorf("set node deployment info failed, err: %w", err)
 	}
 

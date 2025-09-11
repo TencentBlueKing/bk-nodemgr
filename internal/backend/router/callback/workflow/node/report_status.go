@@ -35,7 +35,7 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 		return
 	}
 
-	info, err := h.GetInfo(gCtx, req.GetToken())
+	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("token is invalid, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)

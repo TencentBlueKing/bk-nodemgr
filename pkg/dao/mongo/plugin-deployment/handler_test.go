@@ -189,11 +189,11 @@ func TestHandler_GetInfo(t *testing.T) {
 			h := testClient(t)
 			got, err := h.GetInfo(tt.args.ctx, tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetNodeDeploymentInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetInfo() got = %v, want %v", got, tt.want)
+				t.Errorf("GetNodeDeploymentInfo() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -255,7 +255,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 			if err := h.UpdateInfo(tt.args.ctx, tt.args.token, tt.args.info); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UpdateNodeDeploymentInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

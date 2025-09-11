@@ -595,7 +595,6 @@ linters-settings:
       - t *Transfer
       - m *clientMessager
       - m *serverMessager
-      - m *MetricsDecorator
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
@@ -677,12 +676,9 @@ linters-settings:
       # Using `operinstdataStorage` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata
         alias: operinstdataStorage
-      # Using `nodedeployment` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment`
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment
-        alias: nodedeployment
-      # Using `nodeworkflow` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow`
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow
-        alias: nodeworkflow
+      # Using `nodeStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node
+        alias: nodeStg
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface
         alias: backendIface

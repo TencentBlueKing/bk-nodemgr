@@ -13,7 +13,7 @@ package node
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -25,7 +25,7 @@ type handler struct {
 	rg      *gin.RouterGroup
 	logger  logger.ILogger
 	crypter crypter.Crypter
-	nodedeployment.IStorageNodeDeployment
+	nodeStg.IDaoNodeDeployment
 	operinstdata.IDomainNodeInstall
 }
 
@@ -33,11 +33,11 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                     rg.Group("/node_install"),
-		logger:                 capability.Logger,
-		crypter:                capability.Crypter,
-		IStorageNodeDeployment: capability.StorageNodeDeployment,
-		IDomainNodeInstall:     capability.StorageOperInst,
+		rg:                 rg.Group("/node_install"),
+		logger:             capability.Logger,
+		crypter:            capability.Crypter,
+		IDaoNodeDeployment: capability.StorageNode,
+		IDomainNodeInstall: capability.StorageOperInst,
 	}
 }
 

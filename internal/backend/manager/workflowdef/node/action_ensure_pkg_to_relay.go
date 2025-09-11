@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
@@ -52,7 +52,7 @@ func NewActionEnsurePkgToRelay(
 	installerFileGroup fileiface.FileGroup,
 	storageRelease release.IStorage,
 	storageActionInstance workflow.IStorageActionInstance,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	fileHandler file.IHandler,
 	proxyMessager relayhandler.IServerMessager,
 	logger logger.ILogger) action.Definition {
@@ -84,7 +84,7 @@ type actionEnsurePkgToRelay struct {
 
 	storageRelease        release.IStorage
 	storageActionInstance workflow.IStorageActionInstance
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 
 	logger logger.ILogger
 }

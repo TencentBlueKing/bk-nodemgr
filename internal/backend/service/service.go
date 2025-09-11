@@ -30,8 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-workflow"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
 	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -433,20 +432,12 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create operation storage: %w", err)
 	}
 
-	svc.Cap.StorageNodeDeployment, err = nodedeployment.NewStorage(
+	svc.Cap.StorageNode, err = nodeStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
 		svc.Cap.Logger)
 	if err != nil {
-		return fmt.Errorf("failed to create node deployment storage: %w", err)
-	}
-
-	svc.Cap.StorageNodeWorkflow, err = nodeworkflow.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
-	if err != nil {
-		return fmt.Errorf("failed to create node workflow storage: %w", err)
+		return fmt.Errorf("failed to create node storage: %w", err)
 	}
 
 	svc.Cap.StorageScheduleWorkflow, err = scheduleworkflow.NewStorage(
@@ -508,25 +499,24 @@ func (svc *Service) initialManager() error {
 
 	var err error
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
-		CmdbHandler:           svc.Cap.CmdbHandler,
-		GSEHandler:            svc.Cap.GSEHandler,
-		Provider:              svc.Cap.DiscoverProvider,
-		InstallerFileGroup:    svc.Cap.InstallerFileGroup,
-		LockerFactory:         svc.Cap.LockerFactory,
-		StorageTopo:           svc.Cap.StorageTopo,
-		StorageRelease:        svc.Cap.StorageRelease,
-		StorageNodeDeployment: svc.Cap.StorageNodeDeployment,
-		StorageNodeWorkflow:   svc.Cap.StorageNodeWorkflow,
-		StorageTrigger:        svc.Cap.StorageTrigger,
-		StorageOperation:      svc.Cap.StorageOperation,
-		StorageOperInst:       svc.Cap.StorageOperInst,
-		StorageSchedule:       svc.Cap.StorageScheduleWorkflow,
-		StorageHostCredit:     svc.Cap.StorageCredit,
-		StorageConfigPolicy:   svc.Cap.StorageConfigPolicy,
-		HostPasswordVault:     svc.Cap.CreditVault,
-		FileHandler:           svc.Cap.FileHandler,
-		ProxyMessager:         svc.Cap.ProxyMessager,
-		Cache:                 rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
+		CmdbHandler:         svc.Cap.CmdbHandler,
+		GSEHandler:          svc.Cap.GSEHandler,
+		Provider:            svc.Cap.DiscoverProvider,
+		InstallerFileGroup:  svc.Cap.InstallerFileGroup,
+		LockerFactory:       svc.Cap.LockerFactory,
+		StorageTopo:         svc.Cap.StorageTopo,
+		StorageRelease:      svc.Cap.StorageRelease,
+		StorageNode:         svc.Cap.StorageNode,
+		StorageTrigger:      svc.Cap.StorageTrigger,
+		StorageOperation:    svc.Cap.StorageOperation,
+		StorageOperInst:     svc.Cap.StorageOperInst,
+		StorageSchedule:     svc.Cap.StorageScheduleWorkflow,
+		StorageHostCredit:   svc.Cap.StorageCredit,
+		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
+		HostPasswordVault:   svc.Cap.CreditVault,
+		FileHandler:         svc.Cap.FileHandler,
+		ProxyMessager:       svc.Cap.ProxyMessager,
+		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: svc.conf.Workflow.WorkerNum,
 			Redis: manager.RedisConfig{

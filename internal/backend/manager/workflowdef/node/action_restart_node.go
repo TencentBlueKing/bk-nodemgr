@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -36,7 +36,7 @@ const (
 )
 
 // NewActionRestartNode get a new action.
-func NewActionRestartNode(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+func NewActionRestartNode(storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.ILogger) action.Definition {
 
@@ -65,7 +65,7 @@ type RestartParams struct {
 }
 
 type actionRestartNode struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.ILogger
 }
@@ -119,7 +119,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}

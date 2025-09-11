@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -36,7 +36,7 @@ const (
 func NewActionUpsertHostToCMDB(
 	cmdbHandler cmdb.IHandler,
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) action.Definition {
 
 	return &actionUpsertHostToCMDB{
@@ -55,7 +55,7 @@ type ActParamUpsertHostToCMDB struct {
 type actionUpsertHostToCMDB struct {
 	cmdbHandler           cmdb.IHost
 	storageHost           topo.IStorageHost
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -105,7 +105,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+		if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
 			return fmt.Errorf("update node deployment info failed, err: %w", err)
 		}
 

@@ -13,14 +13,14 @@ package utils
 import (
 	"fmt"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
 // NewNodeActionStandarder creates a new NodeActionStandarder.
-func NewNodeActionStandarder(storageNodeDeployment nodedeployment.IStorageNodeDeployment) *NodeActionStandarder {
+func NewNodeActionStandarder(storageNodeDeployment nodeStg.IDaoNodeDeployment) *NodeActionStandarder {
 	return &NodeActionStandarder{
 		storageNodeDeployment: storageNodeDeployment,
 	}
@@ -28,7 +28,7 @@ func NewNodeActionStandarder(storageNodeDeployment nodedeployment.IStorageNodeDe
 
 // NodeActionStandarder defines the standard parameters of node action.
 type NodeActionStandarder struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 
 	instanceContext *action.InstanceContext
 	param           NodeActionStandardParam
@@ -43,7 +43,7 @@ func (std *NodeActionStandarder) Initialize(instanceContext *action.InstanceCont
 	std.param = param
 
 	var err error
-	std.info, err = std.storageNodeDeployment.GetInfo(std.instanceContext.Ctx, std.param.Token)
+	std.info, err = std.storageNodeDeployment.GetNodeDeploymentInfo(std.instanceContext.Ctx, std.param.Token)
 	if err != nil {
 		return fmt.Errorf("failed to get node deployment info: %w", err)
 	}
@@ -55,14 +55,14 @@ func (std *NodeActionStandarder) Initialize(instanceContext *action.InstanceCont
 
 // Save saves the NodeActionStandarder data.
 func (std *NodeActionStandarder) Save() error {
-	if err := std.storageNodeDeployment.UpdateInfo(std.instanceContext.Ctx, std.param.Token, std.info); err != nil {
+	if err := std.storageNodeDeployment.UpdateNodeDeploymentInfo(std.instanceContext.Ctx, std.param.Token, std.info); err != nil {
 		return fmt.Errorf("failed to update node deployment info: %w", err)
 	}
 
 	return nil
 }
 
-// Info returns the node deployment info.
+// DeployInfo returns the node deployment info.
 func (std *NodeActionStandarder) DeployInfo() *types.DeploymentInfo {
 	return std.info
 }

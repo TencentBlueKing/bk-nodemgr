@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -40,7 +40,7 @@ const (
 
 // NewActionUpgradeNode get a new action.
 func NewActionUpgradeNode(
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	gseHandler gse.IHandler,
 	logger logger.ILogger,
 	provider discover.Provider) action.Definition {
@@ -76,7 +76,7 @@ type UpgradeParams struct {
 }
 
 type actionUpgradeNode struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
 	logger                logger.ILogger
 	provider              discover.Provider
@@ -131,7 +131,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 	info.BlockingActionName = ActionNameWaitInstallerComplete
 
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()

@@ -37,7 +37,7 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	nodeConf, err := h.GetNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
 		h.logger.Errorf("get gse file proxy setting failed, err: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("get gse file proxy setting failed, err: %w", err))

@@ -210,7 +210,7 @@ func (testSuit *TestSuite) TestCreate() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.Create(tt.args.ctx, tt.args.nodeDeployment)
+			err := testSuit.Handler.CreateNodeDeployment(tt.args.ctx, tt.args.nodeDeployment)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "Create() error = %v", err)
 			}
@@ -259,14 +259,14 @@ func (testSuit *TestSuite) TestHandler_GetInfo() {
 		}}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, err := testSuit.Handler.GetInfo(tt.args.ctx, tt.args.Token)
+			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.ctx, tt.args.Token)
 			if !tt.wantErr {
-				testSuit.Require().NoError(err, "GetInfo() error = %v", err)
+				testSuit.Require().NoError(err, "GetNodeDeploymentInfo() error = %v", err)
 			} else {
-				testSuit.Require().Error(err, "GetInfo() error = %v", err)
+				testSuit.Require().Error(err, "GetNodeDeploymentInfo() error = %v", err)
 			}
 
-			testSuit.Assert().Equal(got, tt.want, "GetInfo() got = %v, want %v", got, tt.want)
+			testSuit.Assert().Equal(got, tt.want, "GetNodeDeploymentInfo() got = %v, want %v", got, tt.want)
 			testSuit.T().Logf("got: %+v", got)
 		})
 	}
@@ -308,14 +308,14 @@ func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, err := testSuit.Handler.GetNodeConf(tt.args.ctx, tt.args.Token)
+			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token)
 			if tt.wantErr {
-				testSuit.Require().Error(err, "GetNodeConf() error = %v", err)
+				testSuit.Require().Error(err, "GetNodeDeploymentNodeConf() error = %v", err)
 			} else {
-				testSuit.Require().NoError(err, "GetNodeConf() error = %v", err)
+				testSuit.Require().NoError(err, "GetNodeDeploymentNodeConf() error = %v", err)
 			}
 
-			testSuit.Assert().Equal(got, tt.want, "GetNodeConf() got = %v, want %v", got, tt.want)
+			testSuit.Assert().Equal(got, tt.want, "GetNodeDeploymentNodeConf() got = %v, want %v", got, tt.want)
 			testSuit.T().Logf("got: %+v", got)
 		})
 	}
@@ -352,18 +352,18 @@ func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.SetNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
+			err := testSuit.Handler.SetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
 			if !tt.wantErr {
-				testSuit.NoError(err, "SetNodeConf() error = %v", err)
+				testSuit.NoError(err, "SetNodeDeploymentNodeConf() error = %v", err)
 			} else {
-				testSuit.Error(err, "SetNodeConf() error = %v", err)
+				testSuit.Error(err, "SetNodeDeploymentNodeConf() error = %v", err)
 			}
 			testSuit.T().Logf("err: %v", err)
 
 			// Verify that the nodeConf was updated correctly
-			got, err := testSuit.Handler.GetNodeConf(tt.args.ctx, tt.args.Token)
-			testSuit.NoError(err, "GetNodeConf() error = %v", err)
-			testSuit.Assert().Equal(got, tt.args.nodeConf, "GetNodeConf() got = %v, want %v", got, tt.args.nodeConf)
+			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token)
+			testSuit.NoError(err, "GetNodeDeploymentNodeConf() error = %v", err)
+			testSuit.Assert().Equal(got, tt.args.nodeConf, "GetNodeDeploymentNodeConf() got = %v, want %v", got, tt.args.nodeConf)
 
 			testSuit.T().Logf("got: %+v", got)
 		})
@@ -410,19 +410,19 @@ func (testSuit *TestSuite) TestHandler_UpdateInfo() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.UpdateInfo(tt.args.ctx, tt.args.token, tt.args.info)
+			err := testSuit.Handler.UpdateNodeDeploymentInfo(tt.args.ctx, tt.args.token, tt.args.info)
 			if !tt.wantErr {
-				testSuit.NoError(err, "UpdateInfo() error = %v", err)
+				testSuit.NoError(err, "UpdateNodeDeploymentInfo() error = %v", err)
 			} else {
-				testSuit.Error(err, "UpdateInfo() error = %v", err)
+				testSuit.Error(err, "UpdateNodeDeploymentInfo() error = %v", err)
 			}
 
 			testSuit.T().Logf("err: %v", err)
 
 			// Verify that the info was updated correctly
-			got, err := testSuit.Handler.GetInfo(tt.args.ctx, tt.args.token)
-			testSuit.NoError(err, "GetInfo() error = %v", err)
-			testSuit.Assert().Equal(got, tt.args.info, "GetInfo() got = %v, want %v", got, tt.args.info)
+			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.ctx, tt.args.token)
+			testSuit.NoError(err, "GetNodeDeploymentInfo() error = %v", err)
+			testSuit.Assert().Equal(got, tt.args.info, "GetNodeDeploymentInfo() got = %v, want %v", got, tt.args.info)
 			testSuit.T().Logf("got: %+v", got)
 		})
 	}

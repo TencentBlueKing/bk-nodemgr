@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -32,7 +32,7 @@ const (
 // NewActionWaitGseReady get a new action.
 func NewActionWaitGseReady(
 	gseClient gse.IHandler,
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger,
 ) action.Definition {
 
@@ -50,7 +50,7 @@ type ActParamWaitGseReady struct {
 
 type actionWaitGseReady struct {
 	gseClient             gse.IHandler
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	logger                logger.ILogger
 }
 
@@ -102,7 +102,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
 		return fmt.Errorf("update node deployment info failed, err: %w", err)
 	}
 

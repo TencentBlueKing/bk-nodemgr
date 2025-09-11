@@ -93,7 +93,7 @@ func (mgr *Manager) LaunchInstallNode(ctx contextx.ITenantUserContext, param Ins
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -129,7 +129,7 @@ func (mgr *Manager) LaunchInstallNode(ctx contextx.ITenantUserContext, param Ins
 func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
-	nodeWorkflow, err := mgr.conf.StorageNodeWorkflow.GetNodeWorkflow(ctx, param.WorkflowID)
+	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(ctx, param.WorkflowID)
 	if err != nil {
 		return nil, fmt.Errorf("get trigger failed, err: %w", err)
 	}
@@ -144,7 +144,7 @@ func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param Re
 		return nil, fmt.Errorf("get operation failed, err: %w", err)
 	}
 
-	err = mgr.conf.StorageNodeWorkflow.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning)
+	err = mgr.conf.StorageNode.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning)
 	if err != nil {
 		return nil, fmt.Errorf("update node workflow status failed, err: %w", err)
 	}
@@ -172,10 +172,10 @@ func (mgr *Manager) createInstallNodeOper(
 	deploy *types.NodeDeployment,
 ) error {
 
-	if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+	if err := mgr.conf.StorageNode.CreateNodeDeployment(ctx, deploy); err != nil {
 		mgr.logger.ErrorCtxf(ctx,
 			"failed to create node deployment. "+
-				"trigger-id(%s), node-deployment-token(%s), err(%v)",
+				"trigger-id(%s), node-token(%s), err(%v)",
 			triggerCtl.GetTriggerID(), deploy.Token, err)
 
 		return err
@@ -190,7 +190,7 @@ func (mgr *Manager) createInstallNodeOper(
 	if err != nil {
 		mgr.logger.ErrorCtxf(ctx,
 			"failed to launch install node task. "+
-				"trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+				"trigger-id(%s), operation-id(%s), node-token(%s), err(%v)",
 			triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
 
 		return err
@@ -198,7 +198,7 @@ func (mgr *Manager) createInstallNodeOper(
 
 	mgr.logger.InfoCtxf(ctx,
 		"launched install node task. trigger-id(%s), operation-id(%s),"+
-			" node-deployment-token(%s)",
+			" node-token(%s)",
 		triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
 
 	return nil
@@ -271,7 +271,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -291,10 +291,10 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.conf.StorageNode.CreateNodeDeployment(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
-						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
 
 				return err
@@ -311,7 +311,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to launch upgrade node task. "+
-						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
 
 				return err
@@ -319,7 +319,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 
 			mgr.logger.InfoCtxf(ctx,
 				"launched upgrade node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
-					" node-deployment-token(%s)",
+					" node-token(%s)",
 				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
 
 			return nil
@@ -350,7 +350,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -372,10 +372,10 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 		deploy.Info.TransferOptions.EnableInstaller = true
 
 		gp.Go(func() error {
-			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.conf.StorageNode.CreateNodeDeployment(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
-						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
 
 				return err
@@ -392,7 +392,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to launch reconfig node task. "+
-						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
 
 				return err
@@ -400,7 +400,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 
 			mgr.logger.InfoCtxf(ctx,
 				"launched reconfig node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
-					" node-deployment-token(%s)",
+					" node-token(%s)",
 				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
 
 			return nil
@@ -431,7 +431,7 @@ func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param Res
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNodeWorkflow.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -453,10 +453,10 @@ func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param Res
 		deploy.Info.TransferOptions.EnableInstaller = true
 
 		gp.Go(func() error {
-			if err := mgr.conf.StorageNodeDeployment.Create(ctx, deploy); err != nil {
+			if err := mgr.conf.StorageNode.CreateNodeDeployment(ctx, deploy); err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to create node deployment. "+
-						"tenant-id(%s), trigger-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), deploy.Token, err)
 
 				return err
@@ -473,7 +473,7 @@ func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param Res
 			if err != nil {
 				mgr.logger.ErrorCtxf(ctx,
 					"failed to launch restart node task. "+
-						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-deployment-token(%s), err(%v)",
+						"tenant-id(%s), trigger-id(%s), operation-id(%s), node-token(%s), err(%v)",
 					tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token, err)
 
 				return err
@@ -481,7 +481,7 @@ func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param Res
 
 			mgr.logger.InfoCtxf(ctx,
 				"launched restart node task. tenant-id(%s), trigger-id(%s), operation-id(%s),"+
-					" node-deployment-token(%s)",
+					" node-token(%s)",
 				tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID(), deploy.Token)
 
 			return nil

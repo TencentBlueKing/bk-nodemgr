@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node-deployment"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -31,7 +31,7 @@ const (
 )
 
 // NewActionVersionCompatCheck get a new action.
-func NewActionVersionCompatCheck(storageNodeDeployment nodedeployment.IStorageNodeDeployment,
+func NewActionVersionCompatCheck(storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	logger logger.ILogger) action.Definition {
 
 	return &actionVersionCompatCheck{
@@ -48,7 +48,7 @@ type ActionParamVersionCompatCheck struct {
 }
 
 type actionVersionCompatCheck struct {
-	storageNodeDeployment nodedeployment.IStorageNodeDeployment
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	logger                logger.ILogger
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
@@ -103,13 +103,13 @@ func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) (err error)
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetInfo(ctx.Ctx, param.Token)
+	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
