@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package nodedeployment ...
 package nodedeployment
 
 const (
