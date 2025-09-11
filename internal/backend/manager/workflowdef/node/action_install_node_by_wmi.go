@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -154,7 +155,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}()
 
 	// let the callback server known which action to mark and log.
-	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+	std.DeployInfo().BlockingActionName = common.ActionNameWaitInstallerComplete
 
 	// get wmi credit.
 	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)

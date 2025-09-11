@@ -37,7 +37,7 @@ func (mgr *Manager) registerActionDefsOnceOperation() error {
 
 func (mgr *Manager) registerActionDefCommon() error {
 	return mgr.workflowMgr.RegisterActions(
-		common.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
+		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
 	)
 }
 
@@ -53,7 +53,7 @@ func (mgr *Manager) registerActionDefNode() error {
 		node.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionRenderNodeDeployment(mgr.conf.StorageNode, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),
 		node.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNode),
-		node.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
+		common.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
 		node.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionTransferPkgToNode(mgr.conf.StorageNode, mgr.conf.FileHandler, mgr.logger),
 		node.NewActionDetectInfoBySSH(mgr.logger, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
