@@ -73,7 +73,7 @@ type Handler struct {
 
 func (h *Handler) tenantDao(tenantID string) *dao {
 	if d, ok := h.daoMap.Load(tenantID); ok {
-		return d.(*dao)
+		return d.(*dao) // nolint: forcetypeassert
 	}
 
 	newDaoClient := newDao(h.client, h.logger)
@@ -85,7 +85,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 
 	// note: we can be sure that only the tenantDao func edit the daoMap,
 	// so we can just use the type assertion here.
-	return d.(*dao)
+	return d.(*dao) // nolint: forcetypeassert
 }
 
 // New new a Handler.
@@ -191,6 +191,7 @@ func (h *Handler) Get(ctx contextx.ITenantContext, workflowID string) (*types.Pl
 	if err != nil {
 		return nil, err
 	}
+
 	return convertPluginWorkflowToTypes(data), nil
 }
 
