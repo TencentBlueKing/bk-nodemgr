@@ -8,27 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package keys ...
-package keys
-
-const (
-	// CKey means the key of workflow content.
-
-	// CKeyTenantID define the key of tenant_id.
-	CKeyTenantID string = "tenant_id"
-
-	// CKeyHostID define the key of host_id.
-	CKeyHostID string = "host_id"
-
-	// CKeyAgentID define the key of agent_id.
-	CKeyAgentID string = "agent_id"
-
-	// CKeyAgentState define the key of agent state.
-	CKeyAgentState string = "agent_state"
-
-	// CKeyToken define the key of token.
-	CKeyToken string = "token"
-
-	// CKeyBizID define the key of biz_id.
-	CKeyBizID string = "biz_id"
-)
+// Package common this package provide common action definition.
+package common

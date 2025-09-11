@@ -13,6 +13,7 @@ package node
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -51,7 +52,7 @@ func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeBySSH,
 		ActionNameWaitInstallerComplete,
-		ActionNameWaitGseReady,
+		common.ActionNameWaitGseReady,
 		ActionNameSyncNodeInfo,
 		ActionNameBindAgentHostRel,
 		ActionNamePushHostIdentifier,
@@ -71,7 +72,7 @@ func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
 			ActionNameRenderNodeDeployment:  true,
 			ActionNameInstallNodeBySSH:      true,
 			ActionNameWaitInstallerComplete: false,
-			ActionNameWaitGseReady:          false,
+			common.ActionNameWaitGseReady:   false,
 			ActionNameSyncNodeInfo:          true,
 			ActionNameBindAgentHostRel:      true,
 			ActionNamePushHostIdentifier:    true,

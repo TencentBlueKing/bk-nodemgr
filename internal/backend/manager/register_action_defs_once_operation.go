@@ -13,32 +13,42 @@ package manager
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 )
 
 // registerOnceTriggerActions registers the action definitions for once trigger actions.
 func (mgr *Manager) registerActionDefsOnceOperation() error {
-	if err := mgr.registerActionDefNodeInstall(); err != nil {
-		return fmt.Errorf("register action def node install failed, err: %w", err)
+	if err := mgr.registerActionDefCommon(); err != nil {
+		return fmt.Errorf("failed to register action def common: %w", err)
+	}
+
+	if err := mgr.registerActionDefNode(); err != nil {
+		return fmt.Errorf("failed to register action def node install: %w", err)
 	}
 
 	if err := mgr.registerActionDefSyncData(); err != nil {
-		return fmt.Errorf("register action def sync data failed, err: %w", err)
+		return fmt.Errorf("failed to register action def sync data: %w", err)
 	}
 
 	return nil
 }
 
-// registerActionDefNodeInstall registers the action definitions for node installation operations.
+func (mgr *Manager) registerActionDefCommon() error {
+	return mgr.workflowMgr.RegisterActions(
+		common.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
+	)
+}
+
+// registerActionDefNode registers the action definitions for node operations.
 // nolint: lll
-func (mgr *Manager) registerActionDefNodeInstall() error {
+func (mgr *Manager) registerActionDefNode() error {
 	return mgr.workflowMgr.RegisterActions(
 		node.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNode, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
 		node.NewActionInstallNodeByWMI(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNode, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
-		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionSyncNodeInfo(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionRenderNodeDeployment(mgr.conf.StorageNode, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),

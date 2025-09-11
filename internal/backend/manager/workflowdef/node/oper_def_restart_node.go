@@ -13,6 +13,7 @@ package node
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -48,7 +49,7 @@ func (oper *operRestartNode) ActionDefNames() []string {
 		ActionNameVersionCompatCheck,
 		ActionNameTransferPkgToNode,
 		ActionNameRestartNode,
-		ActionNameWaitGseReady,
+		common.ActionNameWaitGseReady,
 		ActionNameCleanInstaller,
 		ActionNameSyncNodeInfo,
 		ActionNameUpdateHost,
@@ -61,13 +62,13 @@ func (oper *operRestartNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameVersionCompatCheck: true,
-			ActionNameTransferPkgToNode:  true,
-			ActionNameRestartNode:        true,
-			ActionNameWaitGseReady:       false,
-			ActionNameCleanInstaller:     true,
-			ActionNameSyncNodeInfo:       true,
-			ActionNameUpdateHost:         true,
+			ActionNameVersionCompatCheck:  true,
+			ActionNameTransferPkgToNode:   true,
+			ActionNameRestartNode:         true,
+			common.ActionNameWaitGseReady: false,
+			ActionNameCleanInstaller:      true,
+			ActionNameSyncNodeInfo:        true,
+			ActionNameUpdateHost:          true,
 		},
 	}
 }

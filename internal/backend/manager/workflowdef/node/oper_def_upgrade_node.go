@@ -13,6 +13,7 @@ package node
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -51,7 +52,7 @@ func (oper *operUpgradeNode) ActionDefNames() []string {
 		ActionNameUpgradeNode,
 		ActionNameWaitInstallerComplete,
 		ActionNameRestartNode,
-		ActionNameWaitGseReady,
+		common.ActionNameWaitGseReady,
 		ActionNameCleanInstaller,
 		ActionNameSyncNodeInfo,
 		ActionNameUpdateHost,
@@ -70,7 +71,7 @@ func (oper *operUpgradeNode) DefaultParameters() operation.Param {
 			ActionNameUpgradeNode:           true,
 			ActionNameWaitInstallerComplete: false,
 			ActionNameRestartNode:           true,
-			ActionNameWaitGseReady:          false,
+			common.ActionNameWaitGseReady:   false,
 			ActionNameCleanInstaller:        true,
 			ActionNameSyncNodeInfo:          true,
 			ActionNameUpdateHost:            true,
