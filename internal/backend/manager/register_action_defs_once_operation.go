@@ -37,7 +37,7 @@ func (mgr *Manager) registerActionDefsOnceOperation() error {
 
 func (mgr *Manager) registerActionDefCommon() error {
 	return mgr.workflowMgr.RegisterActions(
-		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
+		common.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
 	)
 }
 
@@ -45,6 +45,7 @@ func (mgr *Manager) registerActionDefCommon() error {
 // nolint: lll
 func (mgr *Manager) registerActionDefNode() error {
 	return mgr.workflowMgr.RegisterActions(
+		node.NewActionWaitGseReady(mgr.conf.GSEHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionTryReuseAgentID(mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionBindAgentHostRel(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionInstallNodeBySSH(mgr.conf.InstallerFileGroup, mgr.logger, mgr.conf.StorageNode, mgr.conf.Provider, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
@@ -53,7 +54,6 @@ func (mgr *Manager) registerActionDefNode() error {
 		node.NewActionPushHostIdentifier(mgr.conf.CmdbHandler, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionRenderNodeDeployment(mgr.conf.StorageNode, mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageRelease, mgr.conf.StorageConfigPolicy, mgr.logger),
 		node.NewActionUpsertHostToCMDB(mgr.conf.CmdbHandler, mgr.conf.StorageTopo, mgr.conf.StorageNode),
-		common.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
 		node.NewActionUpdateHost(mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
 		node.NewActionTransferPkgToNode(mgr.conf.StorageNode, mgr.conf.FileHandler, mgr.logger),
 		node.NewActionDetectInfoBySSH(mgr.logger, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault),
