@@ -63,7 +63,7 @@ func (oper *operInstallNodeByWMI) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operInstallNodeByWMI) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute,
+		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
 			ActionNameTryReuseAgentID:       true,
