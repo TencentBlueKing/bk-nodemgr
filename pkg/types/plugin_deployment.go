@@ -10,12 +10,25 @@
 
 package types
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+import (
+	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/google/uuid"
+)
 
 // PluginDeployment this is the info for plugin deployment.
 type PluginDeployment struct {
 	Token string
 	Info  *PluginDeploymentInfo
+}
+
+// NewPluginDeployment new a plugin deployment.
+func NewPluginDeployment(info *PluginDeploymentInfo) *PluginDeployment {
+	return &PluginDeployment{
+		Token: strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Info:  info,
+	}
 }
 
 // PluginDeploymentInfo defines the plugin deployment info.

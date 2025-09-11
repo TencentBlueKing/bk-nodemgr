@@ -28,6 +28,16 @@ const (
 	PluginTypeExternal PluginType = "external"
 )
 
+// Validate validate the plugin type.
+func (pluginType PluginType) Validate() error {
+	switch pluginType {
+	case PluginTypeUnknown, PluginTypeOfficial, PluginTypeExternal:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin type, plugin-type(%s)", pluginType)
+	}
+}
+
 // ConvPluginTypeToReleaseType convert plugin type to release type.
 func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
 	switch pluginType {
@@ -36,7 +46,7 @@ func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
 	case PluginTypeExternal:
 		return ReleaseTypeExternalPlugin, nil
 	default:
-		return "", fmt.Errorf("unsupport plugin type: %s", pluginType)
+		return "", fmt.Errorf("unsupport plugin type, plugin-type(%s)", pluginType)
 	}
 }
 

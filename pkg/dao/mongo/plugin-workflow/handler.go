@@ -1,0 +1,344 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package pluginworkflow
+
+import (
+	"errors"
+	"sync"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+// IHandler plugin workflow Handler interface.
+type IHandler interface {
+	// Get gets plugin workflow by id.
+	Get(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error)
+
+	// Count counts plugin workflow by opts.
+	Count(ctx contextx.ITenantContext, opts ...OptFn) (int64, error)
+
+	// List lists plugin workflow by page and opts.
+	List(ctx contextx.ITenantContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error)
+
+	// Create creates a new plugin workflow.
+	Create(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error
+
+	// UpdateStatus updates the status of a plugin workflow.
+	UpdateStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error
+
+	// UpdateFinishTime updates the finish time of a plugin workflow.
+	UpdateFinishTime(ctx contextx.ITenantContext, workflowID string, finishTime time.Time) error
+
+	IDistinctor
+}
+
+// IDistinctor plugin workflow distinctor interface.
+type IDistinctor interface {
+	// DistinctPluginWorkflowType distincts with field type.
+	DistinctPluginWorkflowType(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowType, error)
+
+	// DistinctPluginWorkflowBkHostID distincts with field bk-host-id.
+	DistinctPluginWorkflowBkHostID(ctx contextx.ITenantContext, opts ...OptFn) ([]int64, error)
+
+	// DistinctPluginWorkflowOperator distincts with field operator.
+	DistinctPluginWorkflowOperator(ctx contextx.ITenantContext, opts ...OptFn) ([]string, error)
+
+	// DistinctPluginWorkflowStatus distincts with field status.
+	DistinctPluginWorkflowStatus(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error)
+}
+
+// Handler this is a Handler to operate plugin workflow table.
+type Handler struct {
+	client *mongo.Database
+	logger logger.ILogger
+
+	// daoMap stores dao's containing tenant information.
+	// Do not edit the daoMap except with the tenantDao func.
+	daoMap sync.Map
+}
+
+func (h *Handler) tenantDao(tenantID string) *dao {
+	if d, ok := h.daoMap.Load(tenantID); ok {
+		return d.(*dao)
+	}
+
+	newDaoClient := newDao(h.client, h.logger)
+	if err := newDaoClient.EnsureIndexes(); err != nil {
+		h.logger.Warnf("failed to ensure plugin workflow indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+	}
+
+	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
+
+	// note: we can be sure that only the tenantDao func edit the daoMap,
+	// so we can just use the type assertion here.
+	return d.(*dao)
+}
+
+// New new a Handler.
+func New(client *mongo.Database, logger logger.ILogger) *Handler {
+	return &Handler{
+		client: client,
+		logger: logger,
+		daoMap: sync.Map{},
+	}
+}
+
+// Count counts plugin workflow by opts.
+func (h *Handler) Count(ctx contextx.ITenantContext, opts ...OptFn) (int64, error) {
+	if ctx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).Count(ctx, filter)
+}
+
+// List lists plugin workflow by page and opts.
+func (h *Handler) List(ctx contextx.ITenantContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error) {
+	if ctx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	workflows := make([]*types.PluginWorkflow, len(datas))
+	for idx, data := range datas {
+		workflows[idx] = convertPluginWorkflowToTypes(data)
+	}
+
+	return workflows, num, nil
+}
+
+// Create creates a new plugin workflow.
+func (h *Handler) Create(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error {
+	if ctx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	if workflow == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	if workflow.TriggerID == "" {
+		return errors.New("trigger id should not be empty")
+	}
+
+	if workflow.Status != types.PluginWorkflowStatusRunning {
+		return errors.New("status should be running")
+	}
+
+	if err := h.tenantDao(tenantID).Create(ctx, convertPluginWorkflowFromTypes(workflow)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Get gets plugin workflow by id.
+func (h *Handler) Get(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	if workflowID == "" {
+		return nil, errors.New("workflow id should not be empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return convertPluginWorkflowToTypes(data), nil
+}
+
+// UpdateStatus updates the status of a plugin workflow.
+func (h *Handler) UpdateStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error {
+	if ctx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	if err := status.Validate(); err != nil {
+		return err
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyStatus, string(status)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateFinishTime updates the finish time of a plugin workflow.
+func (h *Handler) UpdateFinishTime(ctx contextx.ITenantContext, workflowID string, finishTime time.Time) error {
+	if ctx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	if finishTime.IsZero() {
+		return errors.New("finish time should not be zero")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyFinishTime, finishTime); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DistinctPluginWorkflowType distincts with field type.
+func (h *Handler) DistinctPluginWorkflowType(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowType, error) {
+	result, err := h.distinctString(ctx, FieldKeyType, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginWorkflowTypes := make([]types.PluginWorkflowType, 0, len(result))
+	for _, v := range result {
+		pluginWorkflowTypes = append(pluginWorkflowTypes, types.PluginWorkflowType(v))
+	}
+
+	return pluginWorkflowTypes, nil
+}
+
+// DistinctPluginWorkflowBkHostID distincts with field bk-biz-id.
+func (h *Handler) DistinctPluginWorkflowBkHostID(ctx contextx.ITenantContext, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(ctx, FieldKeyHostIDs, opts...)
+}
+
+// DistinctPluginWorkflowOperator distincts with field operator.
+func (h *Handler) DistinctPluginWorkflowOperator(ctx contextx.ITenantContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(ctx, FieldKeyOperator, opts...)
+}
+
+// DistinctPluginWorkflowStatus distincts with field plugin-version.
+func (h *Handler) DistinctPluginWorkflowStatus(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error) {
+	result, err := h.distinctString(ctx, FieldKeyStatus, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginWorkflowStatus := make([]types.PluginWorkflowStatus, 0, len(result))
+	for _, v := range result {
+		pluginWorkflowStatus = append(pluginWorkflowStatus, types.PluginWorkflowStatus(v))
+	}
+
+	return pluginWorkflowStatus, nil
+}
+
+// distinctInt64 returns distinct values of specified field.
+func (h *Handler) distinctInt64(ctx contextx.ITenantContext, key string, opts ...OptFn) ([]int64, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+}
+
+// distinctString returns distinct values of specified field.
+func (h *Handler) distinctString(ctx contextx.ITenantContext, key string, opts ...OptFn) ([]string, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	tenantID := ctx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
+}
+
+// convertPluginWorkflowToTypes convert plugin workflow to types.
+func convertPluginWorkflowToTypes(data *Data) *types.PluginWorkflow {
+	return &types.PluginWorkflow{
+		WorkflowID:  data.WorkflowID,
+		TriggerID:   data.TriggerID,
+		Type:        types.PluginWorkflowType(data.Type),
+		HostIDs:     data.HostIDs,
+		Operator:    data.Operator,
+		OperateTime: data.OperateTime,
+		FinishTime:  data.FinishTime,
+		Status:      types.PluginWorkflowStatus(data.Status),
+	}
+}
+
+// convertPluginWorkflowFromTypes convert plugin workflow from types.
+func convertPluginWorkflowFromTypes(workflow *types.PluginWorkflow) *Data {
+	return &Data{
+		WorkflowID:  workflow.WorkflowID,
+		TriggerID:   workflow.TriggerID,
+		Type:        string(workflow.Type),
+		HostIDs:     workflow.HostIDs,
+		Operator:    workflow.Operator,
+		OperateTime: workflow.OperateTime,
+		Status:      string(workflow.Status),
+	}
+}
