@@ -37,7 +37,7 @@ func TestAll(t *testing.T) {
 
 	testSuit := new(TestSuite)
 	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.ILogger) {
-		testSuit.Dao = newDao("", client, logger)
+		testSuit.Dao = newDao(client, logger)
 		testSuit.Handler = New(client, logger)
 		testSuit.counter = counter.New(client, logger)
 		testSuit.TestDatas = testSuit.prepareTestData()
