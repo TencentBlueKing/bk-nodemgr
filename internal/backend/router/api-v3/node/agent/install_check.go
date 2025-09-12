@@ -37,17 +37,14 @@ func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error
 	}
 
 	resp := new(protoBackend.NodeAgentInstallCheckResp)
-	resp.ConvertResultFromTypes(results, len(results))
 
-	h.logger.InfoCtxf(ctx, "checked install agent")
-
-	return resp.GetData(), nil
+	return resp.ConvertResultFromTypes(results, len(results)), nil
 }
 
 func (h *handler) checkHostStatus(ctx contextx.ITenantContext,
 	hosts []*protoBackend.NodeAgentInstallCheckReq_Host) ([]*types.NodeAgentInstallCheckResult, error) {
 
-	unitIDToAreaMap, err := h.mapUnitToArea(ctx, hosts)
+	unitIDToAreaMap, err := h.getNetworkAreaByNetworkUnit(ctx, hosts)
 	if err != nil {
 		return nil, err
 	}
@@ -55,17 +52,17 @@ func (h *handler) checkHostStatus(ctx contextx.ITenantContext,
 	gp := gopool.NewPool()
 	results := make([]*types.NodeAgentInstallCheckResult, len(hosts))
 
-	for i, host := range hosts {
-		i, host := i, host
+	for i := range hosts {
+		idx := i
 		gp.Go(func() error {
-			result, err := h.checkSingleHostStatus(ctx, host, unitIDToAreaMap[host.GetBkNetworkunitId()])
+			result, err := h.checkSingleHostStatus(ctx, hosts[idx], unitIDToAreaMap[hosts[idx].GetBkNetworkunitId()])
 			if err != nil {
 				h.logger.ErrorCtxf(ctx, "failed to check status for host. inner-ip(%s), network-unit-id(%d): %v",
-					host.GetBkHostInnerip(), host.GetBkNetworkunitId(), err)
+					hosts[idx].GetBkHostInnerip(), hosts[idx].GetBkNetworkunitId(), err)
 
 				return err
 			}
-			results[i] = result
+			results[idx] = result
 
 			return nil
 		})
@@ -78,18 +75,22 @@ func (h *handler) checkHostStatus(ctx contextx.ITenantContext,
 	return results, nil
 }
 
-// mapUnitToArea maps unit IDs to their network area IDs.
-func (h *handler) mapUnitToArea(ctx contextx.ITenantContext, hosts []*protoBackend.NodeAgentInstallCheckReq_Host) (map[int64]int64, error) {
+// getNetworkAreaByNetworkUnit get network area id by network unit id.
+func (h *handler) getNetworkAreaByNetworkUnit(ctx contextx.ITenantContext, hosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
+	map[int64]int64, error) {
+
 	unitIDs := make([]int64, 0, len(hosts))
 	for _, host := range hosts {
 		unitIDs = append(unitIDs, host.GetBkNetworkunitId())
 	}
 
-	networkUnits, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
-		ExactInclude: &types.NetworkUnitExactFields{
-			NetworkUnitID: unitIDs,
-		},
-	})
+	networkUnits, _, err := h.iDomainNodeInstall.ListNetworkUnitByConditions(ctx,
+		types.UnlimitedPage(),
+		&types.NetworkUnitCondition{
+			ExactInclude: &types.NetworkUnitExactFields{
+				NetworkUnitID: unitIDs,
+			},
+		})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list network units: %w", err)
 	}
@@ -102,83 +103,107 @@ func (h *handler) mapUnitToArea(ctx contextx.ITenantContext, hosts []*protoBacke
 	return unitIDToAreaMap, nil
 }
 
-func (h *handler) checkSingleHostStatus(ctx contextx.ITenantContext, host *protoBackend.NodeAgentInstallCheckReq_Host, networkAreaID int64) (
-	*types.NodeAgentInstallCheckResult, error) {
+func (h *handler) checkSingleHostStatus(ctx contextx.ITenantContext, host *protoBackend.NodeAgentInstallCheckReq_Host,
+	networkAreaID int64) (*types.NodeAgentInstallCheckResult, error) {
 
-	hosts, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
-			NetworkAreaID: []int64{networkAreaID},
-			InnerIP:       []string{host.GetBkHostInnerip()},
-		},
-	})
+	hosts, _, err := h.iDomainNodeInstall.ListHostByConditions(ctx,
+		types.UnlimitedPage(),
+		&types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				NetworkAreaID: []int64{networkAreaID},
+				InnerIP:       []string{host.GetBkHostInnerip()},
+			},
+		})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(hosts) == 0 {
-		return &types.NodeAgentInstallCheckResult{
-			InnerIP: host.GetBkHostInnerip(),
-			State:   types.NodeAgentInstallCheckStateClean,
-		}, nil
-	}
-
-	return h.determineHostState(hosts, host.GetBkBizId()), nil
+	return h.determineHostState(hosts, host.GetBkHostInnerip(), host.GetBkBizId()), nil
 }
 
 func (h *handler) determineHostState(
-	hosts []*types.Host, bizID int64) *types.NodeAgentInstallCheckResult {
+	hosts []*types.Host, innerIP string, bizID int64) *types.NodeAgentInstallCheckResult {
 
-	if len(hosts) > 1 {
-		// if install record with the same ip already exists under dynamic addressing. we need to check ip conflict.
-		if duplicateHostIDs := getDynamicDuplicateIPHostIDs(hosts); len(duplicateHostIDs) > 0 {
-			return &types.NodeAgentInstallCheckResult{
-				InnerIP:          hosts[0].Static.InnerIP,
-				State:            types.NodeAgentInstallCheckStateDuplicateIP,
-				DuplicateHostIDs: duplicateHostIDs,
-			}
-		}
-
-		// if install record with the same ip already exists under biz. we need to check ip conflict.
-		if conflictHostIDs := getIPConflictHostIDsByBizID(hosts, bizID); len(conflictHostIDs) > 0 {
-			return &types.NodeAgentInstallCheckResult{
-				InnerIP:          hosts[0].Static.InnerIP,
-				State:            types.NodeAgentInstallCheckStateConflictIP,
-				DuplicateHostIDs: conflictHostIDs,
-			}
-		}
-	}
-
-	host := hosts[0]
 	result := &types.NodeAgentInstallCheckResult{
-		InnerIP: host.Static.InnerIP,
+		InnerIP: innerIP,
+	}
+	switch {
+	// if no install record found, we can clean install agent.
+	case len(hosts) == 0:
+		result.State = types.NodeAgentInstallCheckStateClean
+		return result
+
+	// if more than one install record found, we need to check conflict.
+	case len(hosts) > 1:
+		return h.handleMultipleHosts(hosts, innerIP, bizID)
+
+	// if only one install record found, we need to check conflict is running or not.
+	default:
+		return h.handleSingleHost(hosts[0], innerIP)
+	}
+}
+
+func (h *handler) handleSingleHost(host *types.Host, innerIP string) *types.NodeAgentInstallCheckResult {
+	result := &types.NodeAgentInstallCheckResult{
+		InnerIP: innerIP,
+		State:   types.NodeAgentInstallCheckStateNormal,
 	}
 
-	if host.Dynamic.NodeStatus == types.NodeStatusRunning {
-		// node already exists proxy. we can't install agent.
-		if host.Dynamic.NodeRole == types.NodeRoleProxy {
-			result.State = types.NodeAgentInstallCheckStateExistProxy
-			return result
-		}
-
-		// node already exists agent. we can't reinstall agent.
-		if host.Dynamic.NodeRole == types.NodeRoleAgent {
-			result.State = types.NodeAgentInstallCheckStateExistAgent
-			return result
-		}
+	if host.Dynamic.NodeStatus != types.NodeStatusRunning {
+		return result
 	}
 
-	// node is not running, we can install agent.
-	result.State = types.NodeAgentInstallCheckStateNormal
+	switch host.Dynamic.NodeRole {
+	// node already exists proxy. we can't install agent.
+	case types.NodeRoleProxy:
+		result.State = types.NodeAgentInstallCheckStateExistProxy
+
+	// node already exists agent. we can't reinstall agent.
+	case types.NodeRoleAgent:
+		result.State = types.NodeAgentInstallCheckStateExistAgent
+
+	// node is blank, we can install agent normally.
+	default:
+		result.State = types.NodeAgentInstallCheckStateNormal
+	}
 
 	return result
+}
+
+func (h *handler) handleMultipleHosts(hosts []*types.Host, innerIP string, bizID int64) *types.NodeAgentInstallCheckResult {
+	if duplicateHostIDs := getDynamicDuplicateIPHostIDs(hosts); len(duplicateHostIDs) > 0 {
+		return &types.NodeAgentInstallCheckResult{
+			InnerIP:          innerIP,
+			State:            types.NodeAgentInstallCheckStateDuplicateIP,
+			DuplicateHostIDs: duplicateHostIDs,
+		}
+	}
+
+	if conflictHostIDs := getIPConflictHostIDsByBizID(hosts, bizID); len(conflictHostIDs) > 0 {
+		return &types.NodeAgentInstallCheckResult{
+			InnerIP:          innerIP,
+			State:            types.NodeAgentInstallCheckStateConflictIP,
+			DuplicateHostIDs: conflictHostIDs,
+		}
+	}
+
+	return &types.NodeAgentInstallCheckResult{
+		InnerIP: innerIP,
+		State:   types.NodeAgentInstallCheckStateNormal,
+	}
 }
 
 func getDynamicDuplicateIPHostIDs(hosts []*types.Host) []int64 {
 	hostIDs := make([]int64, 0)
 	for _, host := range hosts {
-		if host.Static.Addressing == types.AddressingDynamic {
-			hostIDs = append(hostIDs, host.HostID)
+		if host.Static.Addressing != types.AddressingDynamic {
+			continue
 		}
+		if host.Dynamic.NodeStatus == types.NodeStatusRunning {
+			continue
+		}
+
+		hostIDs = append(hostIDs, host.HostID)
 	}
 
 	return hostIDs
@@ -187,9 +212,14 @@ func getDynamicDuplicateIPHostIDs(hosts []*types.Host) []int64 {
 func getIPConflictHostIDsByBizID(hosts []*types.Host, bizID int64) []int64 {
 	hostIDs := make([]int64, 0)
 	for _, host := range hosts {
-		if host.Static.BizID == bizID {
-			hostIDs = append(hostIDs, host.HostID)
+		if host.Static.BizID != bizID {
+			continue
 		}
+		if host.Dynamic.NodeStatus == types.NodeStatusRunning {
+			continue
+		}
+
+		hostIDs = append(hostIDs, host.HostID)
 	}
 
 	return hostIDs

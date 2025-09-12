@@ -69,23 +69,23 @@ func (mode NodeOperationRetryMode) Validate() error {
 type NodeAgentInstallCheckState string
 
 const (
-	// NodeAgentInstallCheckStateConflictIP is the conflict ip under biz.
+	// NodeAgentInstallCheckStateConflictIP indicates there is a conflicting IP under the same business context.
 	NodeAgentInstallCheckStateConflictIP NodeAgentInstallCheckState = "conflict_ip"
 
-	// NodeAgentInstallCheckStateDuplicateIP is the duplicate ip under dynamic addressing.
-	NodeAgentInstallCheckStateDuplicateIP NodeAgentInstallCheckState = "dynamic_duplicate_ip"
+	// NodeAgentInstallCheckStateDuplicateIP indicates there are duplicate IPs in dynamic addressing mode.
+	NodeAgentInstallCheckStateDuplicateIP NodeAgentInstallCheckState = "duplicate_dynamic_ip"
 
-	// NodeAgentInstallCheckStateExistProxy is the exist proxy.
+	// NodeAgentInstallCheckStateExistProxy indicates a proxy already exists on this node.
 	NodeAgentInstallCheckStateExistProxy NodeAgentInstallCheckState = "exist_proxy"
 
-	// NodeAgentInstallCheckStateExistAgent is the exist agent.
+	// NodeAgentInstallCheckStateExistAgent indicates an agent already exists on this node.
 	NodeAgentInstallCheckStateExistAgent NodeAgentInstallCheckState = "exist_agent"
 
-	// NodeAgentInstallCheckStateNormal is the normal node agent install, can reuse host.
-	NodeAgentInstallCheckStateNormal NodeAgentInstallCheckState = "normal"
+	// NodeAgentInstallCheckStateNormal indicates a normal node agent installation; the host can be reused.
+	NodeAgentInstallCheckStateNormal NodeAgentInstallCheckState = "normal_install"
 
-	// NodeAgentInstallCheckStateClean is the clean node agent install and import into CMDB.
-	NodeAgentInstallCheckStateClean NodeAgentInstallCheckState = "clean"
+	// NodeAgentInstallCheckStateClean indicates a clean node agent installation and can be imported into CMDB.
+	NodeAgentInstallCheckStateClean NodeAgentInstallCheckState = "clean_install"
 )
 
 // NodeAgentInstallCheckResult describes the node agent install check result.

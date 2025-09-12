@@ -29,6 +29,8 @@ type IStorage interface {
 	IStorageHost
 	IStorageTopoEvent
 	IStorageDomainGse
+
+	IDomainNodeInstall
 }
 
 // IStorageTopoEvent this interface defines the operations which is only for topo event.

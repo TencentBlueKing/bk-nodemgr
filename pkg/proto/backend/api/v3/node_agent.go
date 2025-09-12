@@ -249,6 +249,20 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 		return errors.New("host can not be empty")
 	}
 
+	for _, host := range hosts {
+		if host.GetBkNetworkunitId() < 0 {
+			return errors.New("bk_networkunit_id is required")
+		}
+
+		if host.GetBkHostInnerip() == "" {
+			return errors.New("bk_innerip is required")
+		}
+
+		if host.GetBkBizId() < 0 {
+			return errors.New("bk_biz_id is required")
+		}
+	}
+
 	return nil
 }
 
@@ -257,7 +271,8 @@ func (x *NodeAgentInstallCheckReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, total int) {
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult,
+	total int) *NodeAgentInstallCheckResp_Data {
 	items := make([]*NodeAgentInstallCheckStatus, 0, total)
 	for _, status := range result {
 		item := &NodeAgentInstallCheckStatus{
@@ -274,4 +289,5 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 		TotalCount: int64(total),
 		Status:     items,
 	}
+	return x.GetData()
 }
