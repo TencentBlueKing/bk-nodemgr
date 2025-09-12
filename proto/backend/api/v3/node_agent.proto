@@ -46,6 +46,38 @@ message NodeAgentInstallResp {
   Data data = 5;
 }
 
+// NodeAgentInstallCheckReq describes the node agent install check request.
+message NodeAgentInstallCheckReq {
+  message Host {
+    int64 bk_biz_id = 1;
+    string bk_host_innerip = 2;
+    string bk_host_innerip_v6 = 3;
+    int64 bk_networkunit_id = 4;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentInstallCheckResp describes the node agent install check response.
+message NodeAgentInstallCheckResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated NodeAgentInstallCheckStatus status = 1;
+    int64 total_count = 2;
+  }
+  Data data = 5;
+}
+
+// NodeAgentInstallCheckResp describes the node agent install check status.
+message NodeAgentInstallCheckStatus {
+  string innerip = 1;
+  string state = 2;
+  repeated int64 duplicate_host_ids = 3;
+}
+
 // NodeAgentUpgradeReq describes the node agent upgrade request.
 message NodeAgentUpgradeReq {
   message Host {

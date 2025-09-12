@@ -61,6 +61,36 @@ func (mode NodeOperationRetryMode) Validate() error {
 	case OperationRetryModeFull, OperationRetryModePartial:
 		return nil
 	default:
-		return fmt.Errorf("invalid node operation retry mode: %s", mode)
+		return fmt.Errorf("invalid node operation retry mode. mode(%s)", mode)
 	}
+}
+
+// NodeAgentInstallCheckState describes the node agent install check state.
+type NodeAgentInstallCheckState string
+
+const (
+	// NodeAgentInstallCheckStateConflictIP is the conflict ip under biz.
+	NodeAgentInstallCheckStateConflictIP NodeAgentInstallCheckState = "conflict_ip"
+
+	// NodeAgentInstallCheckStateDuplicateIP is the duplicate ip under dynamic addressing.
+	NodeAgentInstallCheckStateDuplicateIP NodeAgentInstallCheckState = "dynamic_duplicate_ip"
+
+	// NodeAgentInstallCheckStateExistProxy is the exist proxy.
+	NodeAgentInstallCheckStateExistProxy NodeAgentInstallCheckState = "exist_proxy"
+
+	// NodeAgentInstallCheckStateExistAgent is the exist agent.
+	NodeAgentInstallCheckStateExistAgent NodeAgentInstallCheckState = "exist_agent"
+
+	// NodeAgentInstallCheckStateNormal is the normal node agent install, can reuse host.
+	NodeAgentInstallCheckStateNormal NodeAgentInstallCheckState = "normal"
+
+	// NodeAgentInstallCheckStateClean is the clean node agent install and import into CMDB.
+	NodeAgentInstallCheckStateClean NodeAgentInstallCheckState = "clean"
+)
+
+// NodeAgentInstallCheckResult describes the node agent install check result.
+type NodeAgentInstallCheckResult struct {
+	InnerIP          string
+	State            NodeAgentInstallCheckState
+	DuplicateHostIDs []int64
 }

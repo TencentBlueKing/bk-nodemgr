@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/install_check": {
+      "post": {
+        "summary": "NodeAgentInstallCheck provides node agent install check.",
+        "operationId": "NodeWorkflow_NodeAgentInstallCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentInstallCheckReq describes the node agent install check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/proxy/install": {
       "post": {
         "summary": "NodeProxyInstall provides node proxy install.",
@@ -414,6 +448,87 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeAgentInstallCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallCheckReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentInstallCheckReq describes the node agent install check request."
+    },
+    "v3NodeAgentInstallCheckReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_addressing": {
+          "type": "string"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentInstallCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
+        }
+      },
+      "description": "NodeAgentInstallCheckResp describes the node agent install check response."
+    },
+    "v3NodeAgentInstallCheckRespData": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallCheckStatus"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentInstallCheckStatus": {
+      "type": "object",
+      "properties": {
+        "innerip": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "description": "NodeAgentInstallCheckResp describes the node agent install check status."
     },
     "v3NodeAgentInstallReq": {
       "type": "object",

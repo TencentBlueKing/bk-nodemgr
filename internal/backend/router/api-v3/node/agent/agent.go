@@ -50,6 +50,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/install", restserver.Handler(h.AgentInstall))
+	h.rg.POST("/install_check", restserver.Handler(h.AgentInstallCheck))
 	h.rg.POST("/upgrade", restserver.Handler(h.AgentUpgrade))
 	h.rg.POST("/reconfig", restserver.Handler(h.AgentReconfig))
 	h.rg.POST("/restart", restserver.Handler(h.AgentRestart))

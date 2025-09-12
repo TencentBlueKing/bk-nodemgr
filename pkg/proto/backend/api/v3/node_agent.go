@@ -241,3 +241,37 @@ func (x *NodeAgentRestartReq) AutoConvert() {
 func (x *NodeAgentRestartResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentRestartResp_Data{WorkflowId: workflowID}
 }
+
+// Validate check body.
+func (x *NodeAgentInstallCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentInstallCheckReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, total int) {
+	items := make([]*NodeAgentInstallCheckStatus, 0, total)
+	for _, status := range result {
+		item := &NodeAgentInstallCheckStatus{
+			Innerip: status.InnerIP,
+			State:   string(status.State),
+		}
+		if status.DuplicateHostIDs != nil {
+			item.DuplicateHostIds = status.DuplicateHostIDs
+		}
+		items = append(items, item)
+	}
+
+	x.Data = &NodeAgentInstallCheckResp_Data{
+		TotalCount: int64(total),
+		Status:     items,
+	}
+}
