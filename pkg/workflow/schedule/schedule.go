@@ -8,16 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package operation ...
-package operation
+// Package schedule ...
+package schedule
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	"time"
 )
 
-// IStorage defines the storage interface.
-type IStorage interface {
-	basestorage.Interface
-	workflow.IStorageOperation
+// Schedule represents the workflow of a schedule.
+type Schedule struct {
+	WorkflowID   string
+	WorkflowName string
+	TriggerID    string
+	Operator     string
+	OperateTime  time.Time
 }

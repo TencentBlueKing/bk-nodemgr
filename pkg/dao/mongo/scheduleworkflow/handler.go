@@ -20,22 +20,23 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // IHandler schedule workflow handler interface.
 type IHandler interface {
 	// Get gets schedule workflow by id.
-	Get(ctx context.Context, workflowID string) (*types.ScheduleWorkflow, error)
+	Get(ctx context.Context, workflowID string) (*schedule.Schedule, error)
 
 	// Count counts schedule workflow by opts.
 	Count(ctx context.Context, opts ...OptFn) (int64, error)
 
 	// List lists schedule workflow by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.ScheduleWorkflow, int64, error)
+	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error)
 
 	// Create creates a new schedule workflow.
-	Create(ctx context.Context, workflow *types.ScheduleWorkflow) error
+	Create(ctx context.Context, workflow *schedule.Schedule) error
 
 	// IDistinctor distincts schedule workflow fields.
 	IDistinctor
@@ -103,7 +104,7 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 }
 
 // List lists schedule workflow by page and opts.
-func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.ScheduleWorkflow, int64, error) {
+func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -126,7 +127,7 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		return nil, 0, err
 	}
 
-	workflows := make([]*types.ScheduleWorkflow, len(datas))
+	workflows := make([]*schedule.Schedule, len(datas))
 	for idx, data := range datas {
 		workflows[idx] = convertScheduleWorkflowToTypes(data)
 	}
@@ -135,7 +136,7 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Create creates a new schedule workflow.
-func (h *Handler) Create(ctx context.Context, workflow *types.ScheduleWorkflow) error {
+func (h *Handler) Create(ctx context.Context, workflow *schedule.Schedule) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return err
@@ -157,7 +158,7 @@ func (h *Handler) Create(ctx context.Context, workflow *types.ScheduleWorkflow) 
 }
 
 // Get gets schedule workflow by id.
-func (h *Handler) Get(ctx context.Context, workflowID string) (*types.ScheduleWorkflow, error) {
+func (h *Handler) Get(ctx context.Context, workflowID string) (*schedule.Schedule, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return nil, err
@@ -210,8 +211,8 @@ func (h *Handler) distinctString(ctx context.Context, key string, opts ...OptFn)
 }
 
 // convertScheduleWorkflowToTypes convert schedule workflow to types.
-func convertScheduleWorkflowToTypes(data *ScheduleWorkflow) *types.ScheduleWorkflow {
-	return &types.ScheduleWorkflow{
+func convertScheduleWorkflowToTypes(data *ScheduleWorkflow) *schedule.Schedule {
+	return &schedule.Schedule{
 		WorkflowID:   data.WorkflowID,
 		WorkflowName: data.WorkflowName,
 		TriggerID:    data.TriggerID,
@@ -221,7 +222,7 @@ func convertScheduleWorkflowToTypes(data *ScheduleWorkflow) *types.ScheduleWorkf
 }
 
 // convertScheduleWorkflowFromTypes convert schedule workflow from types.
-func convertScheduleWorkflowFromTypes(workflow *types.ScheduleWorkflow) *ScheduleWorkflow {
+func convertScheduleWorkflowFromTypes(workflow *schedule.Schedule) *ScheduleWorkflow {
 	return &ScheduleWorkflow{
 		WorkflowID:   workflow.WorkflowID,
 		WorkflowName: workflow.WorkflowName,

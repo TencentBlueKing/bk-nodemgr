@@ -8,17 +8,32 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package trigger ...
-package trigger
+package workflow
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// IStorage defines the storage interface.
+// IStorage defines the interface of schedule workflow storage.
 type IStorage interface {
 	basestorage.Interface
-
 	workflow.IStorageTrigger
+	workflow.IStorageActionInstance
+	workflow.IStorageOperation
+	workflow.IStorageOperationInstance
+	workflow.IStorageSchedule
+
+	IDomainNodeInstall
+}
+
+// IDomainNodeInstall defines the interface for domain node installation related operations.
+type IDomainNodeInstall interface {
+	// ListOperationByNodeWorkflowOperationCondition lists operations by condition with pagination support.
+	ListOperationByNodeWorkflowOperationCondition(
+		ctx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
+		[]*workoper.Operation, int64, error)
 }

@@ -29,9 +29,9 @@ func (mgr *Manager) registerActionDefsPeriodicOperation() error {
 // nolint: lll
 func (mgr *Manager) registerActionDefSchedule() error {
 	return mgr.workflowMgr.RegisterActions(
-		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncBizAndHost),
-		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncAllAgentState),
-		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbNetworkAreaWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchSyncNetworkArea),
-		schedule.NewActionGenScheduleOnceTrigger(WatchAndApplyCMDBResourceWorkflowName, mgr.conf.StorageOperInst, mgr.LaunchWatchAndApplyCMDBResource),
+		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncBizAndHost),
+		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncAllAgentState),
+		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbNetworkAreaWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncNetworkArea),
+		schedule.NewActionGenScheduleOnceTrigger(WatchAndApplyCMDBResourceWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchWatchAndApplyCMDBResource),
 	)
 }

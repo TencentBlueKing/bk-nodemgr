@@ -11,126 +11,141 @@
 package workflow
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 // IStorageActionInstance defines the storage handler for action instance.
 type IStorageActionInstance interface {
 	// GetActionInstanceData gets full action instance data.
-	GetActionInstanceData(ctx context.Context, operationInstanceID, actionName string) (*action.InstanceData, error)
+	GetActionInstanceData(ctx contextx.IContext, operationInstanceID, actionName string) (*action.InstanceData, error)
 
 	// GetActionInstanceLifecycle gets action instance lifecycle.
-	GetActionInstanceLifecycle(ctx context.Context, operationInstanceID, actionName string) (*action.Lifecycle, error)
+	GetActionInstanceLifecycle(ctx contextx.IContext, operationInstanceID, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActionInstanceLifecycle updates action instance lifecycle.
 	UpdateActionInstanceLifecycle(
-		ctx context.Context, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
+		ctx contextx.IContext, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
 
 	// UpdateActionInstanceContent updates action instance content.
 	UpdateActionInstanceContent(
-		ctx context.Context, operationInstanceID, actionName string, content map[string]any) error
+		ctx contextx.IContext, operationInstanceID, actionName string, content map[string]any) error
+
+	// UpdateOperInstActionStatus will update the oper inst action status.
+	UpdateOperInstActionStatus(ctx contextx.IContext, operInstID string, actionName string, status action.State) error
 
 	// UpsertActionInstancePrivateData upserts action instance private data.
 	UpsertActionInstancePrivateData(
-		ctx context.Context, operInstID string, actionName string, privateData map[string]any) error
+		ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error
 
 	// PushActionInstanceMessage pushes action instance message.
 	PushActionInstanceMessage(
-		ctx context.Context, operationInstanceID, actionName string, messages ...common.Message) error
+		ctx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error
 
 	// GetActionInstancePrivateData gets action instance private data.
-	GetActionInstancePrivateData(ctx context.Context, operationInstanceID, actionName string) (map[string]any, error)
+	GetActionInstancePrivateData(ctx contextx.IContext, operationInstanceID, actionName string) (map[string]any, error)
 }
 
 // IStorageOperation defines the storage handler for operation.
 type IStorageOperation interface {
 	// UpsertOperation upserts operation.
-	UpsertOperation(ctx context.Context, oper *operation.Operation) error
+	UpsertOperation(ctx contextx.IContext, oper *operation.Operation) error
 
 	// GetOperation gets operation.
-	GetOperation(ctx context.Context, operationID string) (*operation.Operation, error)
+	GetOperation(ctx contextx.IContext, operationID string) (*operation.Operation, error)
 
-	// ListOperationByTrigger lists operation.
-	ListOperationByTrigger(ctx context.Context, page types.Page, triggerID ...string) (
+	// ListOperationByTriggerID lists operation.
+	ListOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) (
 		[]*operation.Operation, int64, error)
 
-	// ListOperation lists operation.
-	ListOperation(ctx context.Context, operationID ...string) ([]*operation.Operation, int64, error)
-
-	// ListOperationByCondition lists operation by condition.
-	ListOperationByCondition(ctx context.Context, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
-		[]*operation.Operation, int64, error)
+	// ListOperationByOperationID lists operation by operation ID.
+	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
 
 	// ListEmptyOperation lists empty operation.
-	ListEmptyOperation(ctx context.Context, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
+	ListEmptyOperation(ctx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 
 	// DeleteOperations deletes operations.
-	DeleteOperations(ctx context.Context, operationID ...string) error
+	DeleteOperations(ctx contextx.IContext, operationID ...string) error
 
-	// PullOperationInstanceIDs pulls operation instance IDs from operation.
-	PullOperationInstanceIDs(ctx context.Context, operationID string, operInstIDs ...string) error
+	// PullOperationInstanceIDsFromOperation pulls operation instance IDs from operation.
+	PullOperationInstanceIDsFromOperation(ctx contextx.IContext, operationID string, operInstIDs ...string) error
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.
 type IStorageOperationInstance interface {
-	// GetOperationInstanceData gets full operation instance data.
-	GetOperationInstanceFullData(ctx context.Context, operationInstanceID string) (*operation.InstanceData, error)
+	// GetOperationInstanceFullData gets full operation instance data.
+	GetOperationInstanceFullData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceData, error)
 
 	// GetOperationInstanceBriefData gets brief operation instance data.
-	GetOperationInstanceBriefData(ctx context.Context, operationInstanceID string) (*operation.InstanceBriefData, error)
+	GetOperationInstanceBriefData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceBriefData, error)
 
 	// ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
 	ListOperationInstanceBriefData(
-		ctx context.Context, page types.Page, condition operation.ListOperationInstanceCondition) (
+		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 		[]*operation.InstanceBriefData, int64, error)
 
-	// ListOperInstanceBriefByOperation lists operation instance brief data.
-	ListOperInstanceBriefByOperation(ctx context.Context, page types.Page, operationID ...string) (
+	// ListOperInstanceBriefByOperationID lists operation instance brief data.
+	ListOperInstanceBriefByOperationID(ctx contextx.IContext, page types.Page, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// CountOperationInstance counts operation instance.
-	CountOperationInstance(ctx context.Context, triggerID string, states ...operation.State) (int64, error)
+	CountOperationInstance(ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error)
 
 	// UpsertOperationInstanceData upserts operation instance data.
-	UpsertOperationInstanceData(ctx context.Context, operationInstanceData *operation.InstanceData) error
+	UpsertOperationInstanceData(ctx contextx.IContext, operationInstanceData *operation.InstanceData) error
 
 	// UpdateOperationInstanceLifecycle updates operation instance lifecycle.
-	UpdateOperationInstanceLifecycle(ctx context.Context, operationInstanceID string, lifecycle *operation.Lifecycle) error
+	UpdateOperationInstanceLifecycle(ctx contextx.IContext, operationInstanceID string, lifecycle *operation.Lifecycle) error
 
 	// UpdateOperationInstanceExtraExecutionMessages updates operation instance extra execution messages.
 	UpdateOperationInstanceExtraExecutionMessages(
-		ctx context.Context, operationInstanceID string, messages ...common.Message) error
+		ctx contextx.IContext, operationInstanceID string, messages ...common.Message) error
 
 	// WatchOperInstStopping watches operation instance stopping.
-	WatchOperInstStopping(ctx context.Context, operationInstanceID string) <-chan struct{}
+	WatchOperInstStopping(ctx contextx.IContext, operationInstanceID string) <-chan struct{}
 
 	// DeleteOperationInstances deletes operation instances.
-	DeleteOperationInstances(ctx context.Context, operationInstanceID ...string) error
+	DeleteOperationInstances(ctx contextx.IContext, operationInstanceID ...string) error
 }
 
 // IStorageTrigger defines the storage handler for trigger.
 type IStorageTrigger interface {
 	// CreateTrigger creates trigger.
-	CreateTrigger(ctx context.Context, trig *trigger.Trigger) error
+	CreateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error
 
 	// GetTrigger gets trigger.
-	GetTrigger(ctx context.Context, triggerID string) (*trigger.Trigger, error)
+	GetTrigger(ctx contextx.IContext, triggerID string) (*trigger.Trigger, error)
 
 	// UpdateTrigger updates trigger.
-	UpdateTrigger(ctx context.Context, trig *trigger.Trigger) error
+	UpdateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error
 
 	// UpdateTriggerState updates trigger state.
-	UpdateTriggerState(ctx context.Context, triggerID string, state trigger.State) error
+	UpdateTriggerState(ctx contextx.IContext, triggerID string, state trigger.State) error
 
 	// ListAliveTrigger lists alive triggers by given category.
-	ListAliveTrigger(ctx context.Context, category trigger.Category) ([]*trigger.Trigger, error)
+	ListAliveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error)
 
 	// DeleteTriggers deletes triggers by given trigger IDs.
-	DeleteTriggers(ctx context.Context, triggerIDs ...string) error
+	DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) error
+}
+
+// IStorageSchedule defines the interface of schedule workflow storage.
+type IStorageSchedule interface {
+	// ListScheduleWorkflow lists schedule workflow by page and conditions.
+	ListScheduleWorkflow(ctx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
+		[]*schedule.Schedule, int64, error)
+
+	// CountScheduleWorkflow counts schedule workflow by conditions.
+	CountScheduleWorkflow(ctx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (int64, error)
+
+	// GetScheduleWorkflow gets a schedule workflow by workflow-id.
+	GetScheduleWorkflow(ctx contextx.IContext, workflowID string) (*schedule.Schedule, error)
+
+	// CreateScheduleWorkflow creates a new schedule workflow.
+	CreateScheduleWorkflow(ctx contextx.IContext, workflow *schedule.Schedule) error
 }

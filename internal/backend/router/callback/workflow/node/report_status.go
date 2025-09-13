@@ -14,13 +14,14 @@ package node
 import (
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) ReportStatus(gCtx *gin.Context) {
-	req := new(proto.ReportStatusReq)
+	req := new(protoCallback.ReportStatusReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report status failed, err: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
@@ -45,7 +46,8 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 	h.logger.Infof("operation instance:%s, action:%s ,report status: %s",
 		req.GetOperInstId(), info.BlockingActionName, req.GetStatus())
 
-	if err := h.UpdateOperInstActionStatus(gCtx, req.GetOperInstId(), info.BlockingActionName,
+	ctx := contextx.NewContext(gCtx, map[string]any{})
+	if err = h.UpdateOperInstActionStatus(ctx, req.GetOperInstId(), info.BlockingActionName,
 		action.State(req.GetStatus())); err != nil {
 		h.logger.Errorf("update action status failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

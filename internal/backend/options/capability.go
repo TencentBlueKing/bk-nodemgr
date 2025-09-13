@@ -18,12 +18,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -53,20 +50,11 @@ type Capability struct {
 	// StorageTopo topo storage.
 	StorageTopo topo.IStorage
 
-	// StorageTrigger trigger storage.
-	StorageTrigger trigger.IStorage
-
-	// StorageOperInst operation_inst storage.
-	StorageOperInst operinstdataStorage.IStorage
-
-	// StorageOperation operation storage.
-	StorageOperation operation.IStorage
-
 	// StorageNode node storage.
 	StorageNode nodeStg.IStorage
 
 	// StorageScheduleWorkflow schedule workflow storage.
-	StorageScheduleWorkflow scheduleworkflow.IStorage
+	StorageWorkflow workflow.IStorage
 
 	// StorageRelease release storage.
 	StorageRelease release.IStorage
@@ -124,23 +112,11 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := capability.StorageTrigger.Start(ctx); err != nil {
-		return err
-	}
-
-	if err := capability.StorageOperInst.Start(ctx); err != nil {
-		return err
-	}
-
-	if err := capability.StorageOperation.Start(ctx); err != nil {
-		return err
-	}
-
 	if err := capability.StorageNode.Start(ctx); err != nil {
 		return err
 	}
 
-	if err := capability.StorageScheduleWorkflow.Start(ctx); err != nil {
+	if err := capability.StorageWorkflow.Start(ctx); err != nil {
 		return err
 	}
 

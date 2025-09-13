@@ -11,7 +11,6 @@
 package node
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,6 +21,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -270,10 +270,11 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 	return nil
 }
 
+// nolint: gocognit
 func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
 
-	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

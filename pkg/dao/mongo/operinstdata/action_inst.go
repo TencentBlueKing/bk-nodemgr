@@ -36,8 +36,7 @@ type IActionInstData interface {
 	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActInstLifecycle updates action inst data lifecycle.
-	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-		lifecycle *action.Lifecycle) error
+	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string, lifecycle *action.Lifecycle) error
 
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
 	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...common.Message) error
@@ -52,14 +51,11 @@ type IActionInstData interface {
 	UpdateActionInstContent(ctx context.Context, operInstID string, actionName string, content map[string]any) error
 
 	// UpdateActionInstStatus updates the action_inst_data's status.
-	UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-		status action.State) error
+	UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string, status action.State) error
 }
 
 // UpdateActInstMsg update action inst msg.
-func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string,
-	msgs []common.Message) error {
-
+func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []common.Message) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -90,8 +86,8 @@ func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 }
 
 // UpdateActionInstContent update action instance content.
-func (h *Handler) UpdateActionInstContent(ctx context.Context, operInstID string, actionName string,
-	content map[string]any) error {
+func (h *Handler) UpdateActionInstContent(
+	ctx context.Context, operInstID string, actionName string, content map[string]any) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -128,8 +124,8 @@ func (h *Handler) UpdateActionInstContent(ctx context.Context, operInstID string
 }
 
 // PushActInstPrivateData push act inst private data.
-func (h *Handler) PushActInstPrivateData(ctx context.Context, operInstID string, actionName string,
-	data map[string]any) error {
+func (h *Handler) PushActInstPrivateData(
+	ctx context.Context, operInstID string, actionName string, data map[string]any) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -175,8 +171,8 @@ func (h *Handler) PushActInstPrivateData(ctx context.Context, operInstID string,
 }
 
 // PushActionInstanceMessage push act inst msg.
-func (h *Handler) PushActionInstanceMessage(ctx context.Context, operationInstanceID, actionName string,
-	messages ...common.Message) error {
+func (h *Handler) PushActionInstanceMessage(
+	ctx context.Context, operationInstanceID, actionName string, messages ...common.Message) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -210,8 +206,8 @@ func (h *Handler) PushActionInstanceMessage(ctx context.Context, operationInstan
 }
 
 // GetActInstPrivateData get action inst data private data.
-func (h *Handler) GetActInstPrivateData(ctx context.Context,
-	operInstID string, actionName string) (map[string]any, error) {
+func (h *Handler) GetActInstPrivateData(
+	ctx context.Context, operInstID string, actionName string) (map[string]any, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
@@ -279,8 +275,8 @@ func (h *Handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
-func (h *Handler) UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string,
-	lifecycle *action.Lifecycle) error {
+func (h *Handler) UpdateActInstLifecycle(
+	ctx context.Context, operInstID, actionName string, lifecycle *action.Lifecycle) error {
 
 	if ctx == nil {
 		return errors.New("ctx is nil")
@@ -312,8 +308,8 @@ func (h *Handler) UpdateActInstLifecycle(ctx context.Context, operInstID, action
 }
 
 // GetActionInstData find one action inst data.
-func (h *Handler) GetActionInstData(ctx context.Context, operInstID string,
-	actionName string) (*action.InstanceData, error) {
+func (h *Handler) GetActionInstData(
+	ctx context.Context, operInstID string, actionName string) (*action.InstanceData, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
@@ -379,8 +375,8 @@ func (h *Handler) GetActionInstData(ctx context.Context, operInstID string,
 }
 
 // GetActInstLifecycle find one action inst data.
-func (h *Handler) GetActInstLifecycle(ctx context.Context, operInstID string,
-	actionName string) (*action.Lifecycle, error) {
+func (h *Handler) GetActInstLifecycle(
+	ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error) {
 
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
@@ -419,8 +415,8 @@ func (h *Handler) GetActInstLifecycle(ctx context.Context, operInstID string,
 }
 
 // UpdateActionInstStatus update action inst status.
-func (h *Handler) UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string,
-	status action.State) error {
+func (h *Handler) UpdateActionInstStatus(
+	ctx context.Context, operInstID string, actionName string, status action.State) error {
 
 	if ctx == nil {
 		return base.ErrInvalidContext()

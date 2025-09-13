@@ -231,7 +231,7 @@ func (ctl *controller) GetOperation(ctx contextx.IContext, operationID string) (
 
 // ListOperation returns the operations.
 func (ctl *controller) ListOperation(ctx contextx.IContext, operationID ...string) ([]IOperationCtl, error) {
-	opers, num, err := ctl.mgr.stgOperation.ListOperation(ctx, operationID...)
+	opers, num, err := ctl.mgr.stgOperation.ListOperationByOperationID(ctx, operationID...)
 	if err != nil {
 		return nil, err
 	}
@@ -289,11 +289,12 @@ func (ctl *controller) ListEmptyOperation(ctx contextx.IContext, page types.Page
 func (ctl *controller) ListOperationInstances(
 	ctx contextx.IContext, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
 
-	condition := operation.ListOperationInstanceCondition{
-		TriggerIDs: []string{ctl.trig.TriggerID},
-		States:     states,
+	condition := &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			TriggerID: []string{ctl.trig.TriggerID},
+			State:     states,
+		},
 	}
-
 	instanceBriefData, _, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefData(ctx, page, condition)
 	if err != nil {
 		return nil, err

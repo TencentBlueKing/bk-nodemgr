@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	worksche "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
@@ -55,13 +56,13 @@ func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 
 // startScheduleWorkflow starts the scheduled workflows.
 func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
-	dbScheduleWorkflows, _, err := mgr.conf.StorageSchedule.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
+	dbScheduleWorkflows, _, err := mgr.conf.StorageWorkflow.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
 		&types.ScheduleWorkflowCondition{ExactInclude: &types.ScheduleWorkflowExactFields{}})
 	if err != nil {
 		return fmt.Errorf("failed to list schedule workflows from storage: %w", err)
 	}
 
-	dbScheduleWorkflowsMap, err := conv.SliceToMap(dbScheduleWorkflows, func(swo *types.ScheduleWorkflow) string {
+	dbScheduleWorkflowsMap, err := conv.SliceToMap(dbScheduleWorkflows, func(swo *worksche.Schedule) string {
 		return swo.WorkflowName
 	})
 	if err != nil {
@@ -130,7 +131,7 @@ func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflo
 		return fmt.Errorf("create periodic trigger failed: %w", err)
 	}
 
-	scheduleWf := &types.ScheduleWorkflow{
+	scheduleWf := &worksche.Schedule{
 		WorkflowID:   identifier.GenWorkflowID(),
 		WorkflowName: workflowName,
 		TriggerID:    triggerCtl.GetTriggerID(),
@@ -138,7 +139,7 @@ func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflo
 		OperateTime:  time.Now(),
 	}
 
-	err = mgr.conf.StorageSchedule.CreateScheduleWorkflow(ctx, scheduleWf)
+	err = mgr.conf.StorageWorkflow.CreateScheduleWorkflow(ctx, scheduleWf)
 	if err != nil {
 		mgr.logger.Errorf("create schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
 		return fmt.Errorf("create schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)

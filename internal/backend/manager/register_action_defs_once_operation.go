@@ -37,7 +37,7 @@ func (mgr *Manager) registerActionDefsOnceOperation() error {
 
 func (mgr *Manager) registerActionDefCommon() error {
 	return mgr.workflowMgr.RegisterActions(
-		common.NewActionWaitInstallerComplete(mgr.conf.StorageOperInst, mgr.logger),
+		common.NewActionWaitInstallerComplete(mgr.conf.StorageWorkflow, mgr.logger),
 	)
 }
 
@@ -64,11 +64,11 @@ func (mgr *Manager) registerActionDefNode() error {
 		node.NewActionReconfigNode(mgr.conf.StorageNode, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 		node.NewActionRestartNode(mgr.conf.StorageNode, mgr.conf.GSEHandler, mgr.logger),
 		node.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNode, mgr.logger),
-		node.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageOperInst, mgr.conf.StorageNode, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
-		node.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
-		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageOperInst, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
-		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageOperInst, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.FileHandler, mgr.conf.ProxyMessager, mgr.logger),
+		node.NewActionPagentDetectInfoBySSH(mgr.logger, mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageWorkflow, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
+		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageWorkflow, mgr.conf.HostPasswordVault, mgr.logger),
 	)
 }
 

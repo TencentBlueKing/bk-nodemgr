@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
@@ -44,7 +45,8 @@ func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
 		},
 	}
 
-	if err := h.IDomainNodeInstall.UpsertActionInstancePrivateData(gCtx,
+	ctx := contextx.NewContext(gCtx, map[string]any{})
+	if err := h.UpsertActionInstancePrivateData(ctx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
 		h.logger.Errorf("update action private failed: %v", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

@@ -14,7 +14,7 @@ package node
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,7 @@ type handler struct {
 	logger  logger.ILogger
 	crypter crypter.Crypter
 	nodeStg.IDaoNodeDeployment
-	operinstdata.IDomainNodeInstall
+	workflow.IStorage
 }
 
 // newHandler ...
@@ -37,7 +37,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		logger:             capability.Logger,
 		crypter:            capability.Crypter,
 		IDaoNodeDeployment: capability.StorageNode,
-		IDomainNodeInstall: capability.StorageOperInst,
+		IStorage: capability.StorageWorkflow,
 	}
 }
 

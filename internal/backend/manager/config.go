@@ -17,12 +17,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -47,10 +44,7 @@ type Config struct {
 	StorageTopo         topo.IStorage
 	StorageRelease      release.IStorage
 	StorageNode         nodeStg.IStorage
-	StorageTrigger      trigger.IStorage
-	StorageOperation    operation.IStorage
-	StorageOperInst     operinstdata.IStorage
-	StorageSchedule     scheduleworkflow.IStorage
+	StorageWorkflow     workflow.IStorage
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
 

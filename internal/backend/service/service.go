@@ -31,12 +31,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	operinstdataStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -264,13 +261,10 @@ func (svc *Service) initialCapability() error {
 
 	// initial period task.
 	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
-		Locker:              svc.Cap.LockerFactory,
-		Logger:              svc.Cap.Logger,
-		StgGlobalSetting:    svc.Cap.StorageGlobalSettings,
-		StgTrigger:          svc.Cap.StorageTrigger,
-		StgOperation:        svc.Cap.StorageOperation,
-		StgOperInst:         svc.Cap.StorageOperInst,
-		StgScheduleWorkflow: svc.Cap.StorageScheduleWorkflow,
+		Locker:           svc.Cap.LockerFactory,
+		Logger:           svc.Cap.Logger,
+		StgGlobalSetting: svc.Cap.StorageGlobalSettings,
+		StgWorkflow:      svc.Cap.StorageWorkflow,
 	})
 
 	return nil
@@ -408,30 +402,6 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create topo storage: %w", err)
 	}
 
-	svc.Cap.StorageTrigger, err = trigger.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
-	if err != nil {
-		return fmt.Errorf("failed to create trigger storage: %w", err)
-	}
-
-	svc.Cap.StorageOperInst, err = operinstdataStorage.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
-	if err != nil {
-		return fmt.Errorf("failed to create oper inst storage: %w", err)
-	}
-
-	svc.Cap.StorageOperation, err = operation.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
-	if err != nil {
-		return fmt.Errorf("failed to create operation storage: %w", err)
-	}
-
 	svc.Cap.StorageNode, err = nodeStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
@@ -440,12 +410,12 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create node storage: %w", err)
 	}
 
-	svc.Cap.StorageScheduleWorkflow, err = scheduleworkflow.NewStorage(
+	svc.Cap.StorageWorkflow, err = workflow.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
 		svc.Cap.Logger)
 	if err != nil {
-		return fmt.Errorf("failed to create schedule workflow storage: %w", err)
+		return fmt.Errorf("failed to create workflow storage: %w", err)
 	}
 
 	svc.Cap.StorageRelease, err = release.NewStorage(
@@ -507,10 +477,7 @@ func (svc *Service) initialManager() error {
 		StorageTopo:         svc.Cap.StorageTopo,
 		StorageRelease:      svc.Cap.StorageRelease,
 		StorageNode:         svc.Cap.StorageNode,
-		StorageTrigger:      svc.Cap.StorageTrigger,
-		StorageOperation:    svc.Cap.StorageOperation,
-		StorageOperInst:     svc.Cap.StorageOperInst,
-		StorageSchedule:     svc.Cap.StorageScheduleWorkflow,
+		StorageWorkflow:     svc.Cap.StorageWorkflow,
 		StorageHostCredit:   svc.Cap.StorageCredit,
 		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
 		HostPasswordVault:   svc.Cap.CreditVault,

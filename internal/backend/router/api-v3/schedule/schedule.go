@@ -13,8 +13,7 @@ package schedule
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
@@ -25,19 +24,17 @@ const (
 )
 
 type handler struct {
-	rg                      *gin.RouterGroup
-	storageScheduleWorkflow scheduleworkflow.IStorage
-	storageTrigger          trigger.IStorage
-	logger                  logger.ILogger
+	rg              *gin.RouterGroup
+	storageWorkflow workflow.IStorage
+	logger          logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                      rg.Group("/schedule"),
-		storageScheduleWorkflow: capability.StorageScheduleWorkflow,
-		storageTrigger:          capability.StorageTrigger,
-		logger:                  capability.Logger,
+		rg:              rg.Group("/schedule"),
+		storageWorkflow: capability.StorageWorkflow,
+		logger:          capability.Logger,
 	}
 }
 

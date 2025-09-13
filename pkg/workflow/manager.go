@@ -22,6 +22,7 @@ import (
 	brokerRedis "github.com/RichardKnop/machinery/v2/brokers/redis"
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
 	machineryLog "github.com/RichardKnop/machinery/v2/log"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -34,7 +35,7 @@ type IManager interface {
 	IWorker
 
 	// Start starts the worker.
-	Start(ctx context.Context) error
+	Start(ctx contextx.IContext) error
 
 	// CheckHealth checks the health of the worker.
 	CheckHealth() error
@@ -139,6 +140,13 @@ func WithStorageActionInstance(storageActionInst IStorageActionInstance) Options
 	}
 }
 
+// WithStorageSchedule sets the storage schedule for the manager.
+func WithStorageSchedule(storageSchedule IStorageSchedule) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.stgSchedule = storageSchedule
+	}
+}
+
 // WithLocker sets the locker for the manager.
 func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	return func(mgr *manager) {
@@ -170,7 +178,7 @@ type manager struct {
 	isConsuming bool
 
 	// context
-	ctx    context.Context
+	ctx    contextx.IContext
 	cancel context.CancelFunc
 
 	server *machinery.Server
@@ -180,6 +188,7 @@ type manager struct {
 	stgOperation         IStorageOperation
 	stgOperationInstance IStorageOperationInstance
 	stgActionInstance    IStorageActionInstance
+	stgSchedule          IStorageSchedule
 
 	logger logger.ILogger
 
@@ -195,12 +204,12 @@ type manager struct {
 }
 
 // Start starts the manager.
-func (mgr *manager) Start(ctx context.Context) error {
+func (mgr *manager) Start(ctx contextx.IContext) error {
 	if mgr.isRunning {
 		return errors.New("manager already started")
 	}
 
-	mgr.ctx, mgr.cancel = context.WithCancel(ctx)
+	mgr.ctx, mgr.cancel = contextx.WithCancel(ctx)
 
 	if err := mgr.initialize(); err != nil {
 		return err

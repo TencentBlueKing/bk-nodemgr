@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -266,6 +267,7 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *utils.NodeActionS
 	return nil
 }
 
+// nolint: gocognit
 func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	std *utils.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
 
@@ -277,7 +279,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	fileStorageDir := ""
 	completedCount := 0
 
-	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -558,7 +560,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := context.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

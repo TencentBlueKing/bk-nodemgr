@@ -14,10 +14,7 @@ package periodictask
 import (
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/scheduleworkflow"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/trigger"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
@@ -37,11 +34,8 @@ type Config struct {
 	Locker locker.MutexFactory
 	Logger logger.ILogger
 
-	StgGlobalSetting    globalsettings.IStorage
-	StgTrigger          trigger.IStorage
-	StgOperation        operation.IStorage
-	StgOperInst         operinstdata.IStorage
-	StgScheduleWorkflow scheduleworkflow.IStorage
+	StgGlobalSetting globalsettings.IStorage
+	StgWorkflow      workflow.IStorage
 }
 
 // PeriodicTask defines a watcher manager.

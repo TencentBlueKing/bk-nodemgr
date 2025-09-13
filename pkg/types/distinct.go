@@ -109,26 +109,6 @@ type NodeWorkflowDistinctResult struct {
 	Operator []string
 }
 
-// ScheduleWorkflowDistinctRequest describes the wanted distinct fields.
-type ScheduleWorkflowDistinctRequest struct {
-	WorkflowName bool
-	Operator     bool
-}
-
-// NewScheduleWorkflowDistinctRequestAllSet creates a ScheduleWorkflowDistinctRequest with all fields set to true.
-func NewScheduleWorkflowDistinctRequestAllSet() ScheduleWorkflowDistinctRequest {
-	return ScheduleWorkflowDistinctRequest{
-		WorkflowName: true,
-		Operator:     true,
-	}
-}
-
-// ScheduleWorkflowDistinctResult describes the result of distinct.
-type ScheduleWorkflowDistinctResult struct {
-	Type     []string
-	Operator []string
-}
-
 // ReleaseDistinctField describes the wanted distinct fields.
 type ReleaseDistinctField struct {
 	OSType  bool

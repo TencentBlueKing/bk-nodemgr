@@ -29,7 +29,7 @@ const (
 
 // DeleteNonLatestWorkflowScheduleOperInstRecords delete non-latest workflow schedule operation instance records.
 func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx contextx.IContext) error {
-	scheduleWorkflows, cnt, err := pt.conf.StgScheduleWorkflow.ListScheduleWorkflow(ctx, types.UnlimitedPage(), nil)
+	scheduleWorkflows, cnt, err := pt.conf.StgWorkflow.ListScheduleWorkflow(ctx, types.UnlimitedPage(), nil)
 	if err != nil {
 		pt.conf.Logger.Errorf("list schedule workflow failed: %v", err)
 		return fmt.Errorf("list schedule workflow failed: %w", err)
@@ -41,7 +41,7 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 	}
 
 	for _, sw := range scheduleWorkflows {
-		opers, _, err := pt.conf.StgOperation.ListOperationByTrigger(ctx, types.UnlimitedPage(), sw.TriggerID)
+		opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(ctx, types.UnlimitedPage(), sw.TriggerID)
 		if err != nil {
 			pt.conf.Logger.Errorf("list operation by trigger-id(%s) failed: %v", sw.TriggerID, err)
 			return fmt.Errorf("list operation by trigger-id(%s) failed: %w", sw.TriggerID, err)
@@ -68,12 +68,12 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 			}
 		}
 
-		if err := pt.conf.StgOperInst.DeleteOperationInstances(ctx, nonLatestOperInstIDs...); err != nil {
+		if err := pt.conf.StgWorkflow.DeleteOperationInstances(ctx, nonLatestOperInstIDs...); err != nil {
 			pt.conf.Logger.Errorf("delete oper-inst-ids(%v) failed: %v", nonLatestOperInstIDs, err)
 			return fmt.Errorf("delete oper-inst-ids(%v) failed: %w", nonLatestOperInstIDs, err)
 		}
 
-		if err := pt.conf.StgOperation.PullOperationInstanceIDs(
+		if err := pt.conf.StgWorkflow.PullOperationInstanceIDsFromOperation(
 			ctx, opers[0].OperationID, nonLatestOperInstIDs...); err != nil {
 			pt.conf.Logger.Errorf("delete operation-id(%s) related oper-inst-ids(%v) failed: %v",
 				opers[0].OperationID, nonLatestOperInstIDs, err)
@@ -96,7 +96,7 @@ func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
 	actionName := fmt.Sprintf(schedule.ActionNameGenScheduleOnceTrigger, scheduleWorkflowName)
 	triggerIDs := make([]string, 0)
 	for _, operInstID := range operInstIDs {
-		privateData, err := pt.conf.StgOperInst.GetActionInstancePrivateData(ctx, operInstID, actionName)
+		privateData, err := pt.conf.StgWorkflow.GetActionInstancePrivateData(ctx, operInstID, actionName)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				pt.conf.Logger.Warnf("oper-inst-id(%s) already delete, skip it", operInstID)
@@ -125,7 +125,7 @@ func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
 
 // deleteOnceTriggerAndRelationd delete once trigger and its related operations and operation instances.
 func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, triggerID string) error {
-	trig, err := pt.conf.StgTrigger.GetTrigger(ctx, triggerID)
+	trig, err := pt.conf.StgWorkflow.GetTrigger(ctx, triggerID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			pt.conf.Logger.Warnf("trigger-id(%s) already delete, skip it", triggerID)
@@ -139,7 +139,7 @@ func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, tri
 		return fmt.Errorf("trigger-id(%s) is not an once trigger", triggerID)
 	}
 
-	opers, _, err := pt.conf.StgOperation.ListOperationByTrigger(ctx, types.UnlimitedPage(), triggerID)
+	opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(ctx, types.UnlimitedPage(), triggerID)
 	if err != nil {
 		return err
 	}
@@ -151,17 +151,17 @@ func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, tri
 		needDeleteOperInstIDs = append(needDeleteOperInstIDs, oper.InstanceIDs...)
 	}
 
-	err = pt.conf.StgOperInst.DeleteOperationInstances(ctx, needDeleteOperInstIDs...)
+	err = pt.conf.StgWorkflow.DeleteOperationInstances(ctx, needDeleteOperInstIDs...)
 	if err != nil {
 		return err
 	}
 
-	err = pt.conf.StgOperation.DeleteOperations(ctx, needDeleteOperIDs...)
+	err = pt.conf.StgWorkflow.DeleteOperations(ctx, needDeleteOperIDs...)
 	if err != nil {
 		return err
 	}
 
-	err = pt.conf.StgTrigger.DeleteTriggers(ctx, triggerID)
+	err = pt.conf.StgWorkflow.DeleteTriggers(ctx, triggerID)
 	if err != nil {
 		return err
 	}

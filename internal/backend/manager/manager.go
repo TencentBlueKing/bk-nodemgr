@@ -12,7 +12,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -56,10 +55,10 @@ func NewManager(conf Config, logger logger.ILogger) (*Manager, error) {
 
 	mgr.workflowMgr = workflow.NewManager(
 		mgr.conf.WorkflowConfig.WorkNodeNum,
-		workflow.WithStorageTrigger(conf.StorageTrigger),
-		workflow.WithStorageOperation(conf.StorageOperation),
-		workflow.WithStorageOperationInstance(conf.StorageOperInst),
-		workflow.WithStorageActionInstance(conf.StorageOperInst),
+		workflow.WithStorageTrigger(conf.StorageWorkflow),
+		workflow.WithStorageOperation(conf.StorageWorkflow),
+		workflow.WithStorageOperationInstance(conf.StorageWorkflow),
+		workflow.WithStorageActionInstance(conf.StorageWorkflow),
 		workflow.WithLocker(conf.LockerFactory),
 		workflow.WithRedis(
 			mgr.conf.WorkflowConfig.Redis.Addr,
@@ -150,7 +149,7 @@ func (mgr *Manager) GracefulShutdown() error {
 	return nil
 }
 
-func (mgr *Manager) startWorkflowManager(ctx context.Context) error {
+func (mgr *Manager) startWorkflowManager(ctx contextx.IContext) error {
 	// TODO: implement me
 	if err := mgr.registerActionDefs(); err != nil {
 		return err

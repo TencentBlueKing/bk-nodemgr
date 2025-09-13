@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -57,7 +58,7 @@ var once = sync.Once{}
 
 // prepareData for all tests.
 func prepareData(t *testing.T, ctx context.Context) {
-	testDatas := []*types.ScheduleWorkflow{
+	testDatas := []*schedule.Schedule{
 		{
 			WorkflowID:   "1",
 			WorkflowName: "schedule_sync_host",
@@ -89,7 +90,7 @@ func Test_handler_Create(t *testing.T) {
 
 	type args struct {
 		ctx              context.Context
-		scheduleWorkflow *types.ScheduleWorkflow
+		scheduleWorkflow *schedule.Schedule
 	}
 	tests := []struct {
 		name    string
@@ -100,7 +101,7 @@ func Test_handler_Create(t *testing.T) {
 			name: "normal",
 			args: args{
 				ctx: context.Background(),
-				scheduleWorkflow: &types.ScheduleWorkflow{
+				scheduleWorkflow: &schedule.Schedule{
 					WorkflowID:   "3",
 					WorkflowName: "schedule_sync_networkarea",
 					TriggerID:    "T-00003",
@@ -135,7 +136,7 @@ func Test_handler_Get(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
-		want    *types.ScheduleWorkflow
+		want    *schedule.Schedule
 	}{
 		{
 			name: "normal",
@@ -144,7 +145,7 @@ func Test_handler_Get(t *testing.T) {
 				workflowID: "1",
 			},
 			wantErr: false,
-			want: &types.ScheduleWorkflow{
+			want: &schedule.Schedule{
 				WorkflowID:   "1",
 				WorkflowName: "schedule_sync_host",
 				TriggerID:    "T-00002",
@@ -181,7 +182,7 @@ func Test_handler_List(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*types.ScheduleWorkflow
+		want    []*schedule.Schedule
 		wantNum int64
 		wantErr bool
 	}{
@@ -198,7 +199,7 @@ func Test_handler_List(t *testing.T) {
 					WithWorkflowID("1"),
 				},
 			},
-			want: []*types.ScheduleWorkflow{
+			want: []*schedule.Schedule{
 				{
 					WorkflowID:   "1",
 					WorkflowName: "schedule_sync_host",
@@ -221,7 +222,7 @@ func Test_handler_List(t *testing.T) {
 					WithWorkflowName("schedule_sync_biz"),
 				},
 			},
-			want: []*types.ScheduleWorkflow{
+			want: []*schedule.Schedule{
 				{
 					WorkflowID:   "2",
 					WorkflowName: "schedule_sync_biz",

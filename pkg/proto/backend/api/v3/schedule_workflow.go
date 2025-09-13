@@ -14,6 +14,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 )
 
 // Validate check body.
@@ -123,8 +124,8 @@ func newEmptyScheduleWorkflow() *ScheduleWorkflow {
 	}
 }
 
-// ConvertNodeWorkflowsFromTypes convert node workflows from types.
-func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, workflows []*types.ScheduleWorkflow) {
+// ConvertScheduleWorkflowsFromTypes convert node workflows from types.
+func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, workflows []*schedule.Schedule) {
 	items := make([]*ScheduleWorkflow, 0, len(workflows))
 	for _, workflow := range workflows {
 		item := newEmptyScheduleWorkflow()

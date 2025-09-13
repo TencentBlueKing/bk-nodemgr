@@ -399,10 +399,12 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertPageToTypes(maxLimit
 }
 
 // ConvertListStatusConditionsToTypes ...
-func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() operation.ListOperationInstanceCondition {
-	return operation.ListOperationInstanceCondition{
-		TriggerIDs: x.GetExactIncludeConditions().GetTriggerId(),
-		States:     operation.GetAllStates(),
+func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() *types.OperInstDataCondition {
+	return &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			TriggerID: x.ExactIncludeConditions.GetTriggerId(),
+			State:     operation.GetAllStates(),
+		},
 	}
 }
 

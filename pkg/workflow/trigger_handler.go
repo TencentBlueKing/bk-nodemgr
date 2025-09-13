@@ -511,7 +511,7 @@ func (handler *triggerHandler) doPeriodicTrigger(
 		}
 	}
 
-	operList, count, err := handler.mgr.stgOperation.ListOperationByTrigger(
+	operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(
 		ctx, types.UnlimitedPage(), trigCtl.GetTriggerID())
 	if err != nil {
 		return nil, err

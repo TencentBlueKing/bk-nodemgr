@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // TimeRange defines the time range.
@@ -317,8 +318,8 @@ type NodeWorkflowOperationExactFields struct {
 	NodeVersion   []string
 }
 
-// NodeWorkflowoperationFuzzyFields defines the node workflow operation fuzzy fields.
-type NodeWorkflowoperationFuzzyFields struct {
+// NodeWorkflowOperationFuzzyFields defines the node workflow operation fuzzy fields.
+type NodeWorkflowOperationFuzzyFields struct {
 }
 
 // NodeWorkflowOperationCondition defines the node workflow operation condition.
@@ -327,13 +328,64 @@ type NodeWorkflowOperationCondition struct {
 	ExactInclude *NodeWorkflowOperationExactFields
 
 	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *NodeWorkflowoperationFuzzyFields
+	FuzzyInclude *NodeWorkflowOperationFuzzyFields
 
 	// will be used when condition type is excluded in exact mode.
 	ExactExclude *NodeWorkflowOperationExactFields
 
 	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *NodeWorkflowoperationFuzzyFields
+	FuzzyExclude *NodeWorkflowOperationFuzzyFields
+}
+
+// OperationExactFields defines the workflow condition exact fields.
+type OperationExactFields struct {
+	TriggerID     []string
+	OperationID   []string
+	OperInstEmpty bool
+}
+
+// OperationFuzzyFields defines the workflow operation fuzzy fields.
+type OperationFuzzyFields struct{}
+
+// OperationCondition defines the workflow operation condition.
+type OperationCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *OperationExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *OperationFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *OperationExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *OperationFuzzyFields
+}
+
+// OperInstDataExactFields defines the workflow operation instance data condition exact fields.
+type OperInstDataExactFields struct {
+	TriggerID   []string
+	OperationID []string
+	OperInstID  []string
+	State       []operation.State
+}
+
+// OperInstDataFuzzyFields defines the workflow operation instance data fuzzy fields.
+type OperInstDataFuzzyFields struct{}
+
+// OperInstDataCondition defines the workflow operation instance data condition.
+type OperInstDataCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *OperInstDataExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *OperInstDataFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *OperInstDataExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *OperInstDataFuzzyFields
 }
 
 // ScheduleWorkflowExactFields defines the schedule workflow exact fields.

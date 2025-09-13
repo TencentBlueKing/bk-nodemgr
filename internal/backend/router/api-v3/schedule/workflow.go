@@ -27,13 +27,13 @@ func (h *handler) EnableScheduleWorkflow(ctx *restserver.Context) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
+	schedule, err := h.storageWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
 		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	err = h.storageTrigger.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateRunning)
+	err = h.storageWorkflow.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateRunning)
 	if err != nil {
 		h.logger.Errorf("failed to enable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
@@ -53,13 +53,13 @@ func (h *handler) DisableScheduleWorkflow(ctx *restserver.Context) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageScheduleWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
+	schedule, err := h.storageWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
 		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	err = h.storageTrigger.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateTerminated)
+	err = h.storageWorkflow.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateTerminated)
 	if err != nil {
 		h.logger.Errorf("failed to disable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
@@ -80,7 +80,7 @@ func (h *handler) ListScheduleWorkflow(ctx *restserver.Context) (interface{}, er
 	}
 
 	if req.GetOnlyCount() {
-		cnt, err := h.storageScheduleWorkflow.CountScheduleWorkflow(ctx, req.ConvertConditionsToTypes())
+		cnt, err := h.storageWorkflow.CountScheduleWorkflow(ctx, req.ConvertConditionsToTypes())
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to count schedule workflow, failed to decode request body. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -92,7 +92,7 @@ func (h *handler) ListScheduleWorkflow(ctx *restserver.Context) (interface{}, er
 		return resp.GetData(), nil
 	}
 
-	schedule, cnt, err := h.storageScheduleWorkflow.ListScheduleWorkflow(
+	schedule, cnt, err := h.storageWorkflow.ListScheduleWorkflow(
 		ctx,
 		req.ConvertPageToTypes(maxScheduleWorkflowLimit),
 		req.ConvertConditionsToTypes(),

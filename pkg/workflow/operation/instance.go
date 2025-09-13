@@ -205,9 +205,3 @@ func GetAllStates() []State {
 		StateTerminated,
 	}
 }
-
-// ListOperationInstanceCondition defines the condition of list operation instance.
-type ListOperationInstanceCondition struct {
-	TriggerIDs []string
-	States     []State
-}

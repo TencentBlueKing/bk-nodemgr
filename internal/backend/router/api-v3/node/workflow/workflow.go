@@ -15,8 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	storageOperation "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -31,23 +30,21 @@ const (
 )
 
 type handler struct {
-	rg                  *gin.RouterGroup
-	manager             manager.IManager
-	daoNodeWorkflow     nodeStg.IDaoNodeWorkflow
-	storageOperation    storageOperation.IStorage
-	storageOperInstData operinstdata.IStorage
-	logger              logger.ILogger
+	rg              *gin.RouterGroup
+	manager         manager.IManager
+	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
+	storageWorkflow workflow.IStorage
+	logger          logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                  rg.Group("/workflow"),
-		manager:             capability.Manager,
-		daoNodeWorkflow:     capability.StorageNode,
-		storageOperation:    capability.StorageOperation,
-		storageOperInstData: capability.StorageOperInst,
-		logger:              capability.Logger,
+		rg:              rg.Group("/workflow"),
+		manager:         capability.Manager,
+		daoNodeWorkflow: capability.StorageNode,
+		storageWorkflow: capability.StorageWorkflow,
+		logger:          capability.Logger,
 	}
 }
 
@@ -142,8 +139,8 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	result, num, err := h.storageOperation.ListOperationByCondition(ctx, req.ConvertPageToTypes(maxOperationLimit),
-		req.ConvertConditionsToTypes(workflow.TriggerID))
+	result, num, err := h.storageWorkflow.ListOperationByNodeWorkflowOperationCondition(
+		ctx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes(workflow.TriggerID))
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
@@ -175,7 +172,7 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, num, err := h.storageOperInstData.ListOperInstanceBriefByOperation(
+	result, num, err := h.storageWorkflow.ListOperInstanceBriefByOperationID(
 		ctx, types.UnlimitedPage(), req.GetOperationId()...)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -203,7 +200,7 @@ func (h *handler) GetOperationInstanceLog(ctx *restserver.Context) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	instance, err := h.storageOperInstData.GetOperationInstanceFullData(ctx, req.GetOperInstId())
+	instance, err := h.storageWorkflow.GetOperationInstanceFullData(ctx, req.GetOperInstId())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
@@ -223,7 +220,7 @@ func (h *handler) ListOperationInstanceStatus(ctx *restserver.Context) (interfac
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, _, err := h.storageOperInstData.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(),
+	result, _, err := h.storageWorkflow.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(),
 		req.ConvertListStatusConditionsToTypes())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

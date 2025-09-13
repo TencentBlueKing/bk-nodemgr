@@ -114,9 +114,9 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	// handle operation instance lifecycle.
 	if actionInstData.IsFirst() {
-		if execErr := mgr.doOperExtraExecution(operInstBriefData); execErr != nil {
+		if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 			operInstBriefData.Lifecycle.End(action.StateFailed)
-			err = mgr.updateOperationInstanceLifecycle(ctx, operationInstanceID, operInstBriefData.Lifecycle)
+			err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle)
 			if err != nil {
 				return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
 					err, execErr)
@@ -187,7 +187,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		mgr.logger.InfoCtxf(nCtx, "updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
 			operationInstanceID, operInstBriefData.Lifecycle)
 
-		if err = mgr.doOperExtraExecution(operInstBriefData); err != nil {
+		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {
 			return fmt.Errorf("do oper-inst-id(%s) ending extra execution failed: %w", operationInstanceID, err)
 		}
 	}
@@ -196,7 +196,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 }
 
 func (mgr *manager) updateActionLifecycle(
-	ctx context.Context,
+	ctx contextx.IContext,
 	operationInstanceID,
 	actionName string,
 	actionInstLifecycle *action.Lifecycle) error {
@@ -226,7 +226,7 @@ func (mgr *manager) updateActionContent(
 }
 
 func (mgr *manager) updateOperationInstanceLifecycle(
-	ctx context.Context,
+	ctx contextx.IContext,
 	operationInstanceID string,
 	operInstLifecycle *operation.Lifecycle) error {
 
@@ -443,7 +443,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 }
 
 // doOperExtraExecution executes the extra action for the operation instance.
-func (mgr *manager) doOperExtraExecution(oper *operation.InstanceBriefData) error {
+func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.InstanceBriefData) error {
 	if oper.Metadata.ExtraExecutionName == "" {
 		return nil
 	}
@@ -458,9 +458,9 @@ func (mgr *manager) doOperExtraExecution(oper *operation.InstanceBriefData) erro
 	}
 
 	msgIdx := len(oper.Metadata.ExtraExecutionMessages)
-	err := actionDef.Do(mgr.ctx, oper)
+	err := actionDef.Do(ctx, oper)
 	updateErr := mgr.stgOperationInstance.UpdateOperationInstanceExtraExecutionMessages(
-		mgr.ctx,
+		ctx,
 		oper.Metadata.OperationInstanceID,
 		oper.Metadata.ExtraExecutionMessages[msgIdx:]...)
 	if updateErr != nil {
