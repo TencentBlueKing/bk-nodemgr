@@ -89,3 +89,40 @@ func (arch CPUArch) Validate() error {
 		return fmt.Errorf("invalid cpu arch: %s", arch)
 	}
 }
+
+// String returns the string representation of the CPUArch.
+func (arch CPUArch) String() string {
+	return string(arch)
+}
+
+// ToPkgArch convert the CPUArch to the package architecture name.
+func (arch CPUArch) ToPkgArch() string {
+	pkgArch := map[CPUArch]string{
+		CPUArch386:      "x86",
+		CPUArchAmd64:    "x86_64",
+		CPUArchArm:      "arm",
+		CPUArchArm64:    "aarch64",
+		CPUArchLoong64:  "loong64",
+		CPUArchMips:     "mips",
+		CPUArchMipsle:   "mipsle",
+		CPUArchMips64:   "mips64",
+		CPUArchMips64le: "mips64le",
+		CPUArchPpc:      "powerpc",
+		CPUArchPpc64:    "ppc64",
+		CPUArchPpc64le:  "ppc64le",
+		CPUArchRiscv:    "riscv",
+		CPUArchRiscv64:  "riscv64",
+		CPUArchS390:     "s390",
+		CPUArchS390x:    "s390x",
+		CPUArchSparc:    "sparc",
+		CPUArchSparc64:  "sparc64",
+		CPUArchWasm:     "wasm",
+		CPUArchUnknown:  "unknown",
+	}
+
+	if val, ok := pkgArch[arch]; ok {
+		return val
+	}
+
+	return "unknown"
+}

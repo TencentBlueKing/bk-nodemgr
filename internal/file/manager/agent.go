@@ -515,14 +515,12 @@ func (m *Manager) generateAgentPkg(ctx context.Context,
 }
 
 const (
-	originalAgentDirNameEnv              = "env"
-	originalAgentDirNameSupportFile      = "support-files"
-	originalAgentDirNameBin              = "bin"
-	originalAgentDirNameTemplates        = "templates"
-	originalAgentDirNamePlatLinuxAmd64   = "agent_linux_x86_64"
-	originalAgentDirNamePlatLinuxArm64   = "agent_linux_aarch64"
-	originalAgentDirNamePlatDarwinAmd64  = "agent_darwin_x86_64"
-	originalAgentDirNamePlatWindowsAmd64 = "agent_windows_x86_64"
+	originalAgentDirNameEnv            = "env"
+	originalAgentDirNameSupportFile    = "support-files"
+	originalAgentDirNameBin            = "bin"
+	originalAgentDirNameTemplates      = "templates"
+	originalAgentDirNamePlatPrefix     = "agent_"
+	originalAgentDirNamePlatSplitTimes = 3
 
 	originalAgentFileNameVersion           = "VERSION"
 	originalAgentFileNameDescription       = "DESCRIPTION"
@@ -558,46 +556,23 @@ func agentPkgFileNameAgent(plat platform.Platform) string {
 }
 
 func convPlatToAgentDirName(plat platform.Platform) string {
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return originalAgentDirNamePlatLinuxAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return originalAgentDirNamePlatLinuxArm64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return originalAgentDirNamePlatDarwinAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return originalAgentDirNamePlatWindowsAmd64
-	}
-
-	return ""
+	return fmt.Sprintf("%s%s_%s", originalAgentDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
 func convAgentDirNameToPlat(dirName string) platform.Platform {
-	switch dirName {
-	case originalAgentDirNamePlatLinuxAmd64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-		}
-	case originalAgentDirNamePlatLinuxArm64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-		}
-	case originalAgentDirNamePlatWindowsAmd64:
-		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-		}
-	case originalAgentDirNamePlatDarwinAmd64:
-		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
-		}
-	default:
-		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
-		}
+	if !strings.HasPrefix(dirName, originalAgentDirNamePlatPrefix) {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
+
+	dirSplit := strings.SplitN(dirName, "_", originalAgentDirNamePlatSplitTimes)
+	if len(dirSplit) != originalAgentDirNamePlatSplitTimes {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	plat, err := platform.Normalize(dirSplit[1], dirSplit[2])
+	if err != nil {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	return plat
 }

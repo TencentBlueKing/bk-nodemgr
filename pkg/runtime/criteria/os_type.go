@@ -88,3 +88,8 @@ func (os OSType) Validate() error {
 		return fmt.Errorf("invalid os type: %s", os)
 	}
 }
+
+// String converts the OSType to its string representation.
+func (os OSType) String() string {
+	return string(os)
+}

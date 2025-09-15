@@ -240,7 +240,15 @@ func (p Platform) String() string {
 // ValidPlatforms is a map of valid platform combinations supported by Go.
 func ValidPlatforms() map[string]bool {
 	return map[string]bool{
+		"aix6/ppc":        true,
+		"aix7/ppc":        true,
+		"aix/ppc":         true,
+		"aix6/ppc64":      true,
+		"aix7/ppc64":      true,
 		"aix/ppc64":       true,
+		"aix6/ppc64le":    true,
+		"aix7/ppc64le":    true,
+		"aix/ppc64le":     true,
 		"android/386":     true,
 		"android/amd64":   true,
 		"android/arm":     true,
