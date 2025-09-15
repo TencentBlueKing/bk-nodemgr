@@ -19,6 +19,7 @@ import (
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -52,6 +53,9 @@ type Capability struct {
 
 	// StorageNode node storage.
 	StorageNode nodeStg.IStorage
+
+	// StoragePlugin plugin deployment storage.
+	StoragePlugin plugin.IStorage
 
 	// StorageScheduleWorkflow schedule workflow storage.
 	StorageWorkflow workflow.IStorage
@@ -113,6 +117,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.StorageNode.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.StoragePlugin.Start(ctx); err != nil {
 		return err
 	}
 

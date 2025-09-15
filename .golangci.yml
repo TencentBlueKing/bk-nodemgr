@@ -742,3 +742,5 @@ linters-settings:
         alias: daomongo
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule
         alias: worksche
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow
+        alias: pluginworkflow

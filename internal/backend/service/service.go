@@ -31,6 +31,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -408,6 +409,14 @@ func (svc *Service) initialStorages() error {
 		svc.Cap.Logger)
 	if err != nil {
 		return fmt.Errorf("failed to create node storage: %w", err)
+	}
+
+	svc.Cap.StoragePlugin, err = plugin.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database,
+		svc.Cap.Logger)
+	if err != nil {
+		return fmt.Errorf("failed to create plugin storage: %w", err)
 	}
 
 	svc.Cap.StorageWorkflow, err = workflow.NewStorage(
