@@ -65,32 +65,32 @@ func (mode NodeOperationRetryMode) Validate() error {
 	}
 }
 
-// NodeAgentInstallCheckState describes the node agent install check state.
-type NodeAgentInstallCheckState string
+// NodeAgentInstallEligibility describes the node agent install eligibility.
+type NodeAgentInstallEligibility string
 
 const (
-	// NodeAgentInstallCheckStateConflictIP indicates there is a conflicting IP under the same business context.
-	NodeAgentInstallCheckStateConflictIP NodeAgentInstallCheckState = "conflict_ip"
+	// NodeAgentInstallEligibilityConflictIP indicates there is a conflicting IP under the same business context.
+	NodeAgentInstallEligibilityConflictIP NodeAgentInstallEligibility = "conflict_ip"
 
-	// NodeAgentInstallCheckStateDuplicateIP indicates there are duplicate IPs in dynamic addressing mode.
-	NodeAgentInstallCheckStateDuplicateIP NodeAgentInstallCheckState = "duplicate_dynamic_ip"
+	// NodeAgentInstallEligibilityDuplicateIP indicates there are duplicate IPs in dynamic addressing mode.
+	NodeAgentInstallEligibilityDuplicateIP NodeAgentInstallEligibility = "duplicate_dynamic_ip"
 
-	// NodeAgentInstallCheckStateExistProxy indicates a proxy already exists on this node.
-	NodeAgentInstallCheckStateExistProxy NodeAgentInstallCheckState = "exist_proxy"
+	// NodeAgentInstallEligibilityExistProxy indicates a proxy already exists on this node.
+	NodeAgentInstallEligibilityExistProxy NodeAgentInstallEligibility = "exist_proxy"
 
-	// NodeAgentInstallCheckStateExistAgent indicates an agent already exists on this node.
-	NodeAgentInstallCheckStateExistAgent NodeAgentInstallCheckState = "exist_agent"
+	// NodeAgentInstallEligibilityExistAgent indicates an agent already exists on this node.
+	NodeAgentInstallEligibilityExistAgent NodeAgentInstallEligibility = "exist_agent"
 
-	// NodeAgentInstallCheckStateNormal indicates a normal node agent installation; the host can be reused.
-	NodeAgentInstallCheckStateNormal NodeAgentInstallCheckState = "normal_install"
+	// NodeAgentInstallEligibilityNormal indicates a normal node agent installation; the host can be reused.
+	NodeAgentInstallEligibilityNormal NodeAgentInstallEligibility = "normal_install"
 
-	// NodeAgentInstallCheckStateClean indicates a clean node agent installation and can be imported into CMDB.
-	NodeAgentInstallCheckStateClean NodeAgentInstallCheckState = "clean_install"
+	// NodeAgentInstallEligibilityClean indicates a clean node agent installation and can be imported into CMDB.
+	NodeAgentInstallEligibilityClean NodeAgentInstallEligibility = "clean_install"
 )
 
 // NodeAgentInstallCheckResult describes the node agent install check result.
 type NodeAgentInstallCheckResult struct {
-	InnerIP          string
-	State            NodeAgentInstallCheckState
-	DuplicateHostIDs []int64
+	InnerIP             string
+	InstallEligibilitiy NodeAgentInstallEligibility
+	DuplicateHostIDs    []int64
 }

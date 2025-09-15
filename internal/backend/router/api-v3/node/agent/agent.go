@@ -29,7 +29,7 @@ type handler struct {
 	storageHost        topo.IStorageHost
 	storageHostCredit  credit.IStorageHostCredit
 
-	iDomainNodeInstall topo.IDomainNodeInstall
+	domainNodeInstall topo.IDomainNodeInstall
 
 	logger logger.ILogger
 }
@@ -43,7 +43,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageNetworkUnit: capability.StorageTopo,
 		storageHost:        capability.StorageTopo,
 		storageHostCredit:  capability.StorageCredit,
-		iDomainNodeInstall: capability.StorageTopo,
+		domainNodeInstall:  capability.StorageTopo,
 		logger:             capability.Logger,
 	}
 }

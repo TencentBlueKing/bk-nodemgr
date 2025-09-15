@@ -271,13 +271,12 @@ func (x *NodeAgentInstallCheckReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult,
-	total int) *NodeAgentInstallCheckResp_Data {
-	items := make([]*NodeAgentInstallCheckStatus, 0, total)
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, total int) {
+	items := make([]*NodeAgentInstallEligibility, 0, total)
 	for _, status := range result {
-		item := &NodeAgentInstallCheckStatus{
-			Innerip: status.InnerIP,
-			State:   string(status.State),
+		item := &NodeAgentInstallEligibility{
+			InnerIp:           status.InnerIP,
+			EligibilityStatus: string(status.InstallEligibilitiy),
 		}
 		if status.DuplicateHostIDs != nil {
 			item.DuplicateHostIds = status.DuplicateHostIDs
@@ -286,8 +285,7 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 	}
 
 	x.Data = &NodeAgentInstallCheckResp_Data{
-		TotalCount: int64(total),
-		Status:     items,
+		TotalCount:    int64(total),
+		Eligibilities: items,
 	}
-	return x.GetData()
 }

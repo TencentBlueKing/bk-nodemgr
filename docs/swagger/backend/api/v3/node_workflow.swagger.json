@@ -465,8 +465,9 @@
     "v3NodeAgentInstallCheckReqHost": {
       "type": "object",
       "properties": {
-        "bk_addressing": {
-          "type": "string"
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
         },
         "bk_host_innerip": {
           "type": "string"
@@ -500,16 +501,16 @@
           "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
         }
       },
-      "description": "NodeAgentInstallCheckResp describes the node agent install check response."
+      "description": "NodeAgentInstallCheckResp describes the response for node agent installation\ncheck."
     },
     "v3NodeAgentInstallCheckRespData": {
       "type": "object",
       "properties": {
-        "status": {
+        "eligibilities": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeAgentInstallCheckStatus"
+            "$ref": "#/definitions/v3NodeAgentInstallEligibility"
           }
         },
         "total_count": {
@@ -518,17 +519,24 @@
         }
       }
     },
-    "v3NodeAgentInstallCheckStatus": {
+    "v3NodeAgentInstallEligibility": {
       "type": "object",
       "properties": {
-        "innerip": {
+        "inner_ip": {
           "type": "string"
         },
-        "state": {
+        "eligibility_status": {
           "type": "string"
+        },
+        "duplicate_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
-      "description": "NodeAgentInstallCheckResp describes the node agent install check status."
+      "description": "NodeAgentInstallEligibility describes the eligibility for node agent\ninstallation."
     },
     "v3NodeAgentInstallReq": {
       "type": "object",

@@ -33,6 +33,15 @@ type IStorage interface {
 	IDomainNodeInstall
 }
 
+// IDomainNodeInstall defines the Storage interface for domain node install.
+type IDomainNodeInstall interface {
+	// GetHostsByAreaAndIP get hosts by area and ip.
+	GetHostsByAreaAndIP(ctx context.Context, networkAreaID int64, ip string) ([]*types.Host, error)
+
+	// GetNetworkUnitByAreaIDs list network unit by area ids.
+	GetNetworkUnitByAreaIDs(ctx context.Context, networkAreaIDs []int64) ([]*types.NetworkUnit, error)
+}
+
 // IStorageTopoEvent this interface defines the operations which is only for topo event.
 type IStorageTopoEvent interface {
 	// CountTopoEvent counts topo events by conditions.

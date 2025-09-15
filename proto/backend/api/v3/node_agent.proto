@@ -57,7 +57,8 @@ message NodeAgentInstallCheckReq {
   repeated Host host = 1;
 }
 
-// NodeAgentInstallCheckResp describes the node agent install check response.
+// NodeAgentInstallCheckResp describes the response for node agent installation
+// check.
 message NodeAgentInstallCheckResp {
   int32 code = 1;
   string message = 2;
@@ -65,16 +66,17 @@ message NodeAgentInstallCheckResp {
   Error error = 4;
 
   message Data {
-    repeated NodeAgentInstallCheckStatus status = 1;
+    repeated NodeAgentInstallEligibility eligibilities = 1;
     int64 total_count = 2;
   }
   Data data = 5;
 }
 
-// NodeAgentInstallCheckResp describes the node agent install check status.
-message NodeAgentInstallCheckStatus {
-  string innerip = 1;
-  string state = 2;
+// NodeAgentInstallEligibility describes the eligibility for node agent
+// installation.
+message NodeAgentInstallEligibility {
+  string inner_ip = 1;
+  string eligibility_status = 2;
   repeated int64 duplicate_host_ids = 3;
 }
 

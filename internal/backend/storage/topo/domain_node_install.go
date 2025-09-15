@@ -13,70 +13,40 @@ package topo
 import (
 	"context"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IDomainNodeInstall defines the Storage interface for domain node install.
-type IDomainNodeInstall interface {
-	// ListHostByConditions lists hosts by page and conditions.
-	ListHostByConditions(ctx context.Context, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
-
-	ListNetworkUnitByConditions(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
-		results []*types.NetworkUnit, num int64, err error)
-}
-
-// ListHostByConditions lists hosts by page and conditions.
+// GetNetworkUnitByAreaIDs list network unit by area id.
 // nolint: nonamedreturns
-func (s *Storage) ListHostByConditions(ctx context.Context, page types.Page, conditions ...*types.HostCondition) (
-	results []*types.Host, mun int64, err error) {
-
-	// record metric.
-	metric := s.metric().Start("list_host_by_conditions")
-	defer metric.End(err)
-
-	opts := convertHostConditionsToOptions(conditions...)
-
-	if results, mun, err = s.daoHost.List(ctx, page, opts...); err != nil {
-		return nil, 0, err
-	}
-
-	return results, mun, nil
-}
-
-// ListNetworkUnitByConditions lists networkunit by page and conditions.
-// nolint: nonamedreturns
-func (s *Storage) ListNetworkUnitByConditions(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
-	results []*types.NetworkUnit, num int64, err error) {
-
-	// record metric.
-	metric := s.metric().Start("list_networkunit")
-	defer metric.End(err)
+func (s *Storage) GetNetworkUnitByAreaIDs(ctx context.Context, networkAreaIDs []int64) (
+	results []*types.NetworkUnit, err error) {
 
 	opts := make([]networkunit.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
-				networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-			)
-		}
+	opts = append(opts, networkunit.WithNetworkAreaID(networkAreaIDs...))
 
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
-				networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-			)
-		}
+	if results, _, err = s.daoNetworkUnit.List(ctx, types.UnlimitedPage(), opts...); err != nil {
+		return nil, err
 	}
 
-	if results, num, err = s.daoNetworkUnit.List(ctx, page, opts...); err != nil {
-		return nil, 0, err
+	return results, nil
+}
+
+// GetHostsByAreaAndIP get hosts by area and ip.
+// nolint: nonamedreturns
+func (s *Storage) GetHostsByAreaAndIP(ctx context.Context,
+	networkAreaID int64, ip string) (results []*types.Host, err error) {
+
+	opts := make([]host.OptFn, 0)
+
+	opts = append(opts, host.WithNetworkAreaID(networkAreaID))
+	opts = append(opts, host.WithStaticInnerIP(ip))
+
+	if results, _, err = s.daoHost.List(ctx, types.UnlimitedPage(), opts...); err != nil {
+		return nil, err
 	}
 
-	return results, num, nil
+	return results, nil
 }
