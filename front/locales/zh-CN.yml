@@ -33,6 +33,7 @@ platform:
     bk_cloud_name: 管控区域
     bk_cloud_unit: 管控单元
     os_type: 操作系统
+    bk_host_name: 主机名
     System/Arch: 操作系统/架构
     status: Agent 状态
     status_display: Agent 状态

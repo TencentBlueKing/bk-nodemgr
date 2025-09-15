@@ -19,6 +19,7 @@ platform:
     bk_cloud_name: BK-Net
     bk_cloud_unit: BK-Net unit
     os_type: Operating system
+    bk_host_name: Host name
     System/Arch: System/Architecture
     status: Agent status
     status_display: Agent status

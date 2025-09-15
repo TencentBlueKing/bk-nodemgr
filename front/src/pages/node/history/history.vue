@@ -267,10 +267,10 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
 }
 const searchSelectData = computed(() => [
   {id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID')},
-  {id: 'type', name: 'platform.nodeMan.taskHistory.label.taskType', children: getUniqueChildren('type', typeMap)},
-  {id: 'bk_biz_id', name: 'platform.nodeMan.taskHistory.label.business', children: bussinessMap.value, multiple: true},
-  {id: 'operator', name: 'platform.nodeMan.taskHistory.label.operator', children: getUniqueChildren('operator')},
-  {id: 'status', name: 'platform.nodeMan.taskHistory.label.status', children: getUniqueChildren('status', statusMap)},
+  {id: 'type', name: t('platform.nodeMan.taskHistory.label.taskType'), children: getUniqueChildren('type', typeMap)},
+  {id: 'bk_biz_id', name: t('platform.nodeMan.taskHistory.label.business'), children: bussinessMap.value, multiple: true},
+  {id: 'operator', name: t('platform.nodeMan.taskHistory.label.operator'), children: getUniqueChildren('operator')},
+  {id: 'status', name: t('platform.nodeMan.taskHistory.label.status'), children: getUniqueChildren('status', statusMap)},
 ]);
 const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));

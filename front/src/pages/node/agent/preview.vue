@@ -1,7 +1,7 @@
 <template>
     <Sideslider
         v-model:isShow="isShow"
-        :width="1200"
+        :width="1600"
         :title="'安装预览'"
         render-directive="if"
         :before-close="handleBeforeClose"
@@ -37,7 +37,13 @@
                     <Tab.TabPanel v-for="item in tabs" :key="item.name" :label="item.label" :name="item.name">
                         <template #label>
                             <div class="flex gap-[5px] items-center">
-                                <i :class="`nodeman-icon nc-${item.icon} text-[${item.iconColor}]`"></i>
+                                <close
+                                    v-if="item.icon === 'wrong'"
+                                    width="14px"
+                                    height="14px"
+                                    :fill="item.iconColor"
+                                />
+                                <i v-else :class="`nodeman-icon nc-${item.icon} text-[14px]`" :style="{ color: item.iconColor }"></i>
                                 <span class="text-[14px] text-[#313238]">{{ item.label }}</span>
                                 <div 
                                     :class="`rounded-[8px] w-[23px] h-[16px] border text-[12px] leading-[16px] text-center 
@@ -48,68 +54,84 @@
                                 </div>
                             </div>
                         </template>
+                        <template #panel>
+                            <Table
+                                :data="tableData"
+                                :empty-text="'暂无数据'"
+                                :column-config="{ resizable: true }"
+                                show-overflow-tooltip
+                                :max-height="462"
+                                :show-settings="isShowSetting"
+                                :settings="settings"
+                                @setting-change="handleSettingChange"
+                                @checkbox-change="handleSelectChange"
+                                @checkbox-all="handleSelectAllChange"
+                            >
+                                <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
+                                <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" min-width="150" fixed="left"></TableColumn>
+                                <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" min-width="150"></TableColumn>
+                                <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')" min-width="100"></TableColumn>
+                                <TableColumn field="bk_host_name" :title="t('platform.nodeMan.bk_host_name')" min-width="100"></TableColumn>
+                                <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')" min-width="100"></TableColumn>
+                                <TableColumn field="node_status" :title="t('platform.nodeMan.status')" min-width="344">
+                                    <template #default="{ row }">
+                                        <div class="flex">
+                                            <i :class="`nodeman-icon nc-${row.node_status} text-[${row.node_status === 'confirm' ? '#FF9C01' : '#1CAB88'}]`"></i>
+                                            <p>动态寻址下已存在相同 IP 的安装记录，去处理</p>
+                                            <PopConfirm
+                                                width="780"
+                                                title="当前业务下可能已存在您希望安装的相同 IP主机"
+                                                trigger="click"
+                                                @confirm="ensure"
+                                            >
+                                                <Button theme="primary" text>去处理</Button>
+                                                <template #content>
+                                                    <div class="mt-[6px] mb-[8px] text-[12px]">请选择处理方式：</div>
+                                                    <Table
+                                                        class="mb-[24px]"
+                                                        :data="tableData"
+                                                        :empty-text="'暂无数据'"
+                                                        show-overflow-tooltip
+                                                        :column-config="{ resizable: true }"
+                                                        :max-height="462"
+                                                        :show-settings="isShowSetting"
+                                                        :settings="settings"
+                                                        @setting-change="handleSettingChange"
+                                                        @checkbox-change="handleSelectChange"
+                                                        @checkbox-all="handleSelectAllChange"
+                                                    >
+                                                        <template #prepend>
+                                                            <div class="bg-[#F0F5FF] h-[32px] flex items-center pl-[16px]">
+                                                                <Radio v-model="radioValue" label="cmdb">全新安装，并导入 CMDB</Radio>
+                                                            </div>
+                                                        </template>
+                                                        <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" min-width="200">
+                                                            <template #default="{ row }">
+                                                                <Radio v-model="row.check" label="cmdb">
+                                                                    <span>安装为：</span>
+                                                                    <span>{{ row.bk_host_innerip }}</span>
+                                                                </Radio>
+                                                            </template>
+                                                        </TableColumn>
+                                                        <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" min-width="150"></TableColumn>
+                                                        <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')" min-width="100"></TableColumn>
+                                                        <TableColumn field="bk_host_name" :title="t('主机名')" min-width="100"></TableColumn>
+                                                        <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')" min-width="150"></TableColumn>
+                                                    </Table>
+                                                </template>
+                                            </PopConfirm>
+                                        </div>
+                                    </template>
+                                </TableColumn>
+                                <TableColumn field="action" :title="t('platform.nodeMan.operate')" min-width="100" fixed="right">
+                                    <template #default="{ row }">
+                                        <Button theme="primary" text ext-cls="reinstall">移除</Button>
+                                    </template>
+                                </TableColumn>
+                            </Table>
+                        </template>
                     </Tab.TabPanel>
                 </Tab>
-                <Table
-                    :data="tableData"
-                    :empty-text="'暂无数据'"
-                    :column-config="{ resizable: true }"
-                    show-overflow-tooltip
-                    :max-height="462"
-                    :show-settings="isShowSetting"
-                    :settings="settings"
-                    @setting-change="handleSettingChange"
-                    @checkbox-change="handleSelectChange"
-                    @checkbox-all="handleSelectAllChange"
-                >
-                    <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-                    <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
-                    <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
-                    <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')"></TableColumn>
-                    <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
-                    <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')"></TableColumn>
-                    <TableColumn field="node_status" :title="t('platform.nodeMan.status')" width="150">
-                        <template #default="{ row }">
-                            <div class="flex">
-                                <i :class="`nodeman-icon nc-${row.node_status} text-[${row.node_status === 'confirm' ? '#FF9C01' : '#1CAB88'}]`"></i>
-                                <p>动态寻址下已存在相同 IP 的安装记录，去处理</p>
-                                <Popover :is-show="isPopShow">
-                                    <Button theme="primary" text @click="isPopShow = true">去处理</Button>
-                                    <template #content>
-                                        <div class="text-[16px]">当前业务下可能已存在您希望安装的相同 IP主机</div>
-                                        <div class="mt-[6px] mb-[8px] text-[12px]">请选择处理方式：</div>
-                                        <Table
-                                            :data="tableData"
-                                            :empty-text="'暂无数据'"
-                                            :column-config="{ resizable: true }"
-                                            show-overflow-tooltip
-                                            :max-height="462"
-                                            :show-settings="isShowSetting"
-                                            :settings="settings"
-                                            @setting-change="handleSettingChange"
-                                            @checkbox-change="handleSelectChange"
-                                            @checkbox-all="handleSelectAllChange"
-                                        >
-                                            <template #prepend>
-                                                <Radio v-model="radioValue" label="cmdb">全新安装，并导入 CMDB</Radio>
-                                            </template>
-                                            <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" width="150" fixed="left"></TableColumn>
-                                            <TableColumn field="bk_host_innerip_v6" :title="t('platform.nodeMan.inner_ipv6')" width="150"></TableColumn>
-                                            <TableColumn field="os_type" :title="t('platform.nodeMan.os_type')"></TableColumn>
-                                            <TableColumn field="bk_host_name" :title="t('主机名')"></TableColumn>
-                                            <TableColumn field="bk_networkarea_name" :title="t('platform.nodeMan.bk_cloud_name')"></TableColumn>
-                                        </Table>
-                                    </template>
-                                </Popover>
-                            </div>
-                        </template>
-                    </TableColumn>
-                    <TableColumn field="action" :title="t('platform.nodeMan.operate')" width="100" fixed="right">
-                        <template #default="{ row }">
-                            <Button theme="primary" text ext-cls="reinstall">移除</Button>
-                        </template>
-                    </TableColumn>
-                </Table>
             </div>
         </template>
         <template #footer>
@@ -122,7 +144,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, watch, ref } from 'vue';
-import { Sideslider, Input, Button, Tag, Tab, Popover, Radio } from 'bkui-vue';
+import { Sideslider, Input, Button, Tag, Tab, PopConfirm, Radio } from 'bkui-vue';
 import { Table, TableColumn } from '@blueking/table';
 import useTableSetting from '@/composables/use-table-setting';
 import { useI18n } from 'vue-i18n';
@@ -130,6 +152,7 @@ import { NodeAgentService } from '@/api/modules/node_agent';
 import { AgentInstallInfo } from '@/@types/node_agent.d'
 import { useRoute, useRouter } from 'vue-router';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { Close } from 'bkui-vue/lib/icon';
 
 const props = defineProps({
     data: {
@@ -145,7 +168,6 @@ const isShow = defineModel('isShow', { type: Boolean });
 const selection = ref([]);
 const searchValue = ref('');
 const tableData = ref<AgentInstallInfo[]>([]);
-const isPopShow = ref(false);
 
 const tabs = computed(() => ([
     { label: '全部', name: 'all', count: tableData.value.length},
@@ -180,6 +202,9 @@ const radioValue = ref('cmdb');
 const handleBeforeClose = () => {
     isShow.value = false;
 }
+const ensure = () => {
+
+}
 const handleSetup = async () => {
     const res = await NodeAgentService.NodeAgentInstall({
         info: tableData.value,
@@ -213,4 +238,8 @@ watch(() => isShow, () => {
 :deep(.bk-tab-header) {
     background: #F0F1F5;
 }
+:deep(.bk-tab-content) {
+    padding: 0;
+}
+
 </style>

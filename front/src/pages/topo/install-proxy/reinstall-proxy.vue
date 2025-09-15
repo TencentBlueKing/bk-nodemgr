@@ -28,6 +28,7 @@
             v-model:data="form.info"
             realeaseType="proxy"
             :isReinstall="true"
+            :method="form.method"
             :currentSettings="settings"
           ></install-table>
         </Form.FormItem>
@@ -168,6 +169,8 @@ const settings = reactive({
   size: "medium",
 });
 const initData = {
+  login_credit_valid: false,
+  prove: "",
   bk_host_id: "",
   bk_host_innerip: "",
   bk_host_innerip_v6: "",
@@ -282,7 +285,7 @@ const handleConfirm = async () => {
       key: "login_key_file",
     };
     form.info.forEach((item: any) => {
-      item[modeMap[item.login_mode]] = item.prove;
+      item[modeMap[item.login_mode]] = item.prove === '******' ? '' : item.prove;
       Object.keys(item).forEach((key: string) => {
         if(proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
           item.proxy_tags.push(key);
@@ -351,6 +354,7 @@ watch(() => isShow.value, () => {
     form.info = props.data.map((item: Host) => {
       const data = cloneDeep(initData);
       assign(data, item, item.info);
+      data.prove = !item.info.login_credit_valid ? '******' : '';
       return data;
     });
   }

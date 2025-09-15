@@ -59,6 +59,7 @@ export interface ConfigPolicyGetTemplateRespData {
 // policy platform.
 export interface ConfigPolicyListPlatformReq {
   node_role: string;
+  generation: number;
 }
 
 // ConfigPolicyListPlatformResp describes HTTP response body when list config

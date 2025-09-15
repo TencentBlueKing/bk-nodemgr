@@ -53,7 +53,7 @@
         </div>
       </div>
       <div class="bg-[#1A1A1A] flex-1 flex">
-        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]">
+        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]" :class="{'w-[360px]': isFullscreen}">
           <div
             v-for="(item, key, index) in logData.oper_inst_logs"
             :key="key"
@@ -64,7 +64,7 @@
             ]"
           >
             <success
-              v-if="item.life_cycle?.state === 'success'"
+              v-if="['success', 'skipped'].includes(item.life_cycle?.state)"
               width="12.25px"
               height="12.25px"
               :fill="activeKey === key ? '#24954f' : '#4D4F56'"
@@ -75,19 +75,22 @@
               height="12.25px"
               :fill="activeKey === key ? '#993D3D' : '#4D4F56'"
             />
+            <i class="nodeman-icon nc-history" v-else-if="item.life_cycle?.state === 'timeout'"></i>
             <Spinner
               v-else-if="['pending', 'running'].includes(item.life_cycle?.state) && !hasErrorOrTimeout"
               width="12.25px"
               height="12.25px"
             />
             <span class="ml-[7px]">{{ index + 1 }}.</span>
-            <span class="ml-[2px] mr-[4px]">{{ key }}</span>
-            <span
-              v-if="item.life_cycle?.end_time >= 0 && item.life_cycle?.start_time >= 0"
-              >{{
-                item.life_cycle?.end_time - item.life_cycle?.start_time
-              }}s</span
-            >
+            <bk-overflow-title class="overflow-ellipsis w-[200px]" :class="{'w-[300px]': isFullscreen}">
+              <span class="ml-[2px] mr-[4px]">{{ key }}</span>
+              <span
+                v-if="item.life_cycle?.end_time >= 0 && item.life_cycle?.start_time >= 0"
+                >{{
+                  item.life_cycle?.end_time - item.life_cycle?.start_time
+                }}s</span
+              >
+            </bk-overflow-title>
           </div>
         </div>
         <div class="flex-1 text-[#a8acb8]" v-if="logs">
@@ -132,7 +135,7 @@ import dayjs from "dayjs";
 import SlideDetail from "@/components/slide-detail.vue";
 import { useI18n } from "vue-i18n";
 import { RightTurnLine, Success, Close, AngleUpFill, Spinner } from 'bkui-vue/lib/icon';
-import { Button, Dropdown } from 'bkui-vue';
+import { Button, Dropdown, overflowTitle } from 'bkui-vue';
 
 interface IProps {
   data: any;

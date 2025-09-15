@@ -274,6 +274,7 @@ const cpuArchList = ref<{ value: string; label: string }[]>();
 const getPlatform = async () => {
   const res = await ConfigPolicyAPIService.ConfigPolicyListPlatform({
     node_role: nodeRole.value,
+    generation: 2
   }).catch(() => ({
     os_type: [],
     cpu_arch: [],

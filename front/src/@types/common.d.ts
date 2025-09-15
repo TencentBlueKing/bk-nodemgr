@@ -106,6 +106,8 @@ interface HostInfo {
   login_ip: string;
   login_port: number;
   login_user: string;
+  login_mode: string;
+  login_credit_valid: boolean;
   export_ip: string;
   advertise_ip: string;
 }

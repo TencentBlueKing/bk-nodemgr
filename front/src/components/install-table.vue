@@ -252,9 +252,11 @@
           :visible="settings.checked.includes('prove')"
         >
           <template #header>
-            <span class="mr-[5px]">密码 / 密钥</span>
-            <span class="mx-[3px] text-[#FF5656]">*</span>
-            <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            <div class="flex">
+              <span class="mr-[5px]">密码 / 密钥</span>
+              <span class="mx-[3px] text-[#FF5656]">*</span>
+              <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            </div>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -263,11 +265,18 @@
               required
               :ref="(el) => setInputRef($rowIndex, $columnIndex, el)"
             >
-              <Input
-                v-if="curMode === 'password'"
-                v-model.trim="row.prove"
-                type="password"
-              ></Input>
+              <div
+                v-bk-tooltips="{
+                  content: '密码有效，点击修改',
+                  disabled: !isReinstall || !row.prove || !row.login_credit_valid,
+                }"
+              >
+                <Input
+                  v-if="curMode === 'password'"
+                  v-model.trim="row.prove"
+                  type="password"
+                ></Input>
+              </div>
               <Input v-if="curMode === 'key'" v-model="row.prove" />
             </Validate>
           </template>
@@ -367,7 +376,7 @@ interface IValidate {
 }
 type ValidationRules = Record<string, IValidate[]>;
 import { VxeTable, VxeColumn, VxeColgroup } from "@blueking/vxe-table";
-import { Input, Button, Message, Select, Switcher, } from "bkui-vue";
+import { Input, Button, Message, Select, Switcher } from "bkui-vue";
 import { computed, ref, reactive, onMounted } from "vue";
 import { useMainStore } from "@/stores/main";
 import { VALIDATE_REGEX } from "@/common/const";
@@ -388,7 +397,7 @@ const props = defineProps({
   },
   isReinstall: {
     type: Boolean,
-    default: false
+    default: false,
   },
   currentSettings: {
     type: Object,
@@ -415,8 +424,8 @@ const props = defineProps({
       ],
       disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
       size: "medium" as VxeComponentSizeType,
-    }
-  }
+    },
+  },
 });
 const initData = {
   bk_host_innerip: "",
@@ -514,7 +523,7 @@ const handleChangeOsType = (val: string, row: any) => {
     row.login_user = "root";
   }
   if (val === "windows") {
-    row.login_user = "administer";
+    row.login_user = "administrator";
   }
 };
 const getHostDistinct = async () => {

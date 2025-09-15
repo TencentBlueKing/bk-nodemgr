@@ -130,7 +130,7 @@
                                     :popover-options="{
                                         clickContentAutoHide: true,
                                     }">
-                                    <Button text theme="primary" v-if="row.state === 'failed'">
+                                    <Button text theme="primary" v-if="!['success', 'running'].includes(row.state)">
                                         <right-turn-line fill="#3A84FF"/>
                                         <span>重试</span>
                                     </Button>
