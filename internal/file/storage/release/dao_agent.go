@@ -23,11 +23,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// UpsertManyReleaseAgent upsert many release.
-func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_many_agent")
-	defer metric.End(err)
+// upsertManyReleaseAgent upsert many release.
+func (s *Storage) upsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
+	var err error
 
 	releases := make([]*types.Release, 0, len(releaseAgents))
 	for _, rls := range releaseAgents {
@@ -44,14 +42,17 @@ func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*t
 		releases = append(releases, &rls.Release)
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
+	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
+	if err != nil {
+		return fmt.Errorf("failed to upsert many release agent: %v", err)
+	}
+
+	return nil
 }
 
-// ExistReleaseAgent checks if release agent exists.
-func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (result bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_agent")
-	defer metric.End(err)
+// existReleaseAgent checks if release agent exists.
+func (s *Storage) existReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+	var err error
 
 	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen,
 		release.WithGeneration(gen),
@@ -59,21 +60,22 @@ func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, v
 		release.WithVersion(version),
 		release.WithPlatform(plats...))
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to exist release agent: %w", err)
 	}
 
-	return count > 0, nil
+	exist := count > 0
+
+	return exist, nil
 }
 
-// GetReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseAgent(
-	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseAgent, err error) {
+// getReleaseAgent gets release by generation, type, platform and version.
+func (s *Storage) getReleaseAgent(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_agent")
-	defer metric.End(err)
-
-	var rls *types.Release
+	var (
+		rls *types.Release
+		err error
+	)
 	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version); err != nil {
 		return nil, fmt.Errorf("failed to get release agent: %w", err)
 	}

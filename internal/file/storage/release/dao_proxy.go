@@ -22,13 +22,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// GetReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseProxy(
+// getReleaseProxy gets release by generation, type, platform and version.
+func (s *Storage) getReleaseProxy(
 	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseProxy, err error) {
-
-	// record metric.
-	metric := s.metric().Start("get_proxy")
-	defer metric.End(err)
 
 	var rls *types.Release
 	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version); err != nil {
@@ -46,12 +42,8 @@ func (s *Storage) GetReleaseProxy(
 	}, nil
 }
 
-// UpsertManyReleaseProxy upsert many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_many_proxy")
-	defer metric.End(err)
-
+// upsertManyReleaseProxy upsert many release.
+func (s *Storage) upsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) (err error) {
 	releases := make([]*types.Release, 0, len(releaseProxys))
 	for _, rls := range releaseProxys {
 		if rls == nil {

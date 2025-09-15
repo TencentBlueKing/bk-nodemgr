@@ -14,21 +14,21 @@ package release
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// GetReleaseCert gets release cert.
-func (s *Storage) GetReleaseCert(ctx context.Context) (data *types.ReleaseCert, err error) {
-	// record metric.
-	metric := s.metric().Start("get_cert")
-	defer metric.End(err)
-
-	var rls *types.Release
+// getReleaseCert gets release cert.
+func (s *Storage) getReleaseCert(ctx context.Context) (*types.ReleaseCert, error) {
+	var (
+		rls *types.Release
+		err error
+	)
 	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), ""); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get release cert: %w", err)
 	}
 
 	return &types.ReleaseCert{
@@ -36,22 +36,19 @@ func (s *Storage) GetReleaseCert(ctx context.Context) (data *types.ReleaseCert, 
 	}, nil
 }
 
-// ExistReleaseCert checks if release cert exists.
-func (s *Storage) ExistReleaseCert(ctx context.Context) (result bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_cert")
-	defer metric.End(err)
+// existReleaseCert checks if release cert exists.
+func (s *Storage) existReleaseCert(ctx context.Context) (bool, error) {
+	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
+	if err != nil {
+		return false, fmt.Errorf("failed to check if release cert exists: %w", err)
+	}
 
-	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
+	return result, nil
 }
 
-// UpsertReleaseCert upserts release cert.
-func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_cert")
-	defer metric.End(err)
-
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
+// upsertReleaseCert upserts release cert.
+func (s *Storage) upsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error {
+	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
 		Generation: types.Generation2,
 		Type:       types.ReleaseTypeCert,
 		Platform:   platform.EmptyPlatform(),
@@ -60,13 +57,20 @@ func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert)
 		MD5:        cert.MD5,
 		UpdatedAt:  time.Now(),
 	})
+
+	if err != nil {
+		return fmt.Errorf("failed to upsert release cert: %w", err)
+	}
+
+	return nil
 }
 
-// DeleteReleaseCert deletes release cert.
-func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_cert")
-	defer metric.End(err)
+// deleteReleaseCert deletes release cert.
+func (s *Storage) deleteReleaseCert(ctx context.Context, fileName string) error {
+	err := s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), fileName)
+	if err != nil {
+		return fmt.Errorf("failed to delete release cert: %w", err)
+	}
 
-	return s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), fileName)
+	return nil
 }

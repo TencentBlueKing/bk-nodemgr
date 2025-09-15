@@ -19,23 +19,21 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/opluginpkg"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ExistReleaseOfficialPlugin checks if release plugin exists.
-func (s *Storage) ExistReleaseOfficialPlugin(
-	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {
+// existReleaseExternalPlugin checks if release plugin exists.
+func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (
+	bool, error) {
 
-	// record metric.
-	metric := s.metric().Start("exist_official_plugin")
-	defer metric.End(err)
+	var err error
 
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
-		pluginFileName, err := opluginpkg.FormatPkgName(pluginName, types.ReleaseTypeOfficialPlugin, types.Generation2, plat, version)
+		pluginFileName, err := epluginpkg.FormatPkgName(pluginName, types.ReleaseTypeExternalPlugin, types.Generation2, plat, version)
 		if err != nil {
 			return false, err
 		}
@@ -43,35 +41,39 @@ func (s *Storage) ExistReleaseOfficialPlugin(
 		fileNames = append(fileNames, pluginFileName)
 	}
 
-	var num int64
-	if num, err = s.daoRelease.Count(ctx, types.ReleaseTypeOfficialPlugin, types.Generation2,
-		release.WithFileName(fileNames...)); err != nil {
+	num, err := s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, release.WithFileName(fileNames...))
+	if err != nil {
 		return false, err
 	}
 
-	return num > 0, nil
+	result := num > 0
+
+	return result, nil
 }
 
-// UpsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_many_official_plugin")
-	defer metric.End(err)
+// upsertManyReleaseExternalPlugin upsert many release.
+func (s *Storage) upsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+	var err error
 
-	releases := make([]*types.Release, 0, len(releaseOfficialPlugins))
-	for _, rls := range releaseOfficialPlugins {
+	releases := make([]*types.Release, 0, len(releaseExternalPlugins))
+	for _, rls := range releaseExternalPlugins {
 		if rls == nil {
 			continue
 		}
 
 		rls.UpdatedAt = time.Now()
-		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoOfficialPlugin)
+		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoExternalPlugin)
 		if err != nil {
-			return fmt.Errorf("failed to upsert many release agent: %v", err)
+			return fmt.Errorf("failed to upsert convert release addition info: %w", err)
 		}
 
 		releases = append(releases, &rls.Release)
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeOfficialPlugin, types.Generation2, releases...)
+	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, releases...)
+	if err != nil {
+		return fmt.Errorf("failed to upsert many release agent: %w", err)
+	}
+
+	return nil
 }

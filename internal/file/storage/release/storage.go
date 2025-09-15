@@ -12,12 +12,16 @@
 package release
 
 import (
+	"context"
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -73,4 +77,334 @@ func (s *Storage) check() error {
 
 func (s *Storage) metric() *storage.MetricData {
 	return storage.Metric(StorageName)
+}
+
+// UpsertManyReleaseAgent upsert many release.
+func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_many_release_agent")
+	defer metric.End(err)
+
+	err = s.upsertManyReleaseAgent(ctx, releaseAgents)
+
+	return err
+}
+
+// ExistReleaseAgent checks if release agent exists.
+func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_agent")
+	defer metric.End(err)
+
+	result, err = s.existReleaseAgent(ctx, gen, version, plats...)
+
+	return result, err
+}
+
+// GetReleaseAgent gets release by generation, type, platform and version.
+func (s *Storage) GetReleaseAgent(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+
+	var (
+		data *types.ReleaseAgent
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_agent")
+	defer metric.End(err)
+
+	data, err = s.getReleaseAgent(ctx, gen, plat, version)
+
+	return data, err
+}
+
+// UpsertReleaseBinTool upserts release bintool.
+func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_release_bintool")
+	defer metric.End(err)
+
+	err = s.upsertReleaseBinTool(ctx, bintool)
+
+	return err
+}
+
+// DeleteReleaseBinTool deletes release bintool.
+func (s *Storage) DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("delete_release_bintool")
+	defer metric.End(err)
+
+	err = s.deleteReleaseBinTool(ctx, gen, fileName)
+
+	return err
+}
+
+// GetReleaseBinTool gets release bintool.
+func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error) {
+	var (
+		data *types.ReleaseBinTool
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_bintool")
+	defer metric.End(err)
+
+	data, err = s.getReleaseBinTool(ctx, gen)
+
+	return data, err
+}
+
+// ExistReleaseBinTool checks if release bintool exists.
+func (s *Storage) ExistReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_bin_tool")
+	defer metric.End(err)
+
+	result, err = s.existReleaseBinTool(ctx, gen)
+
+	return result, err
+}
+
+// GetReleaseCert gets release cert.
+func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error) {
+	var (
+		data *types.ReleaseCert
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_cert")
+	defer metric.End(err)
+
+	data, err = s.getReleaseCert(ctx)
+
+	return data, err
+}
+
+// ExistReleaseCert checks if release cert exists.
+func (s *Storage) ExistReleaseCert(ctx context.Context) (bool, error) {
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_cert")
+	defer metric.End(err)
+
+	result, err = s.existReleaseCert(ctx)
+
+	return result, err
+}
+
+// UpsertReleaseCert upserts release cert.
+func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_release_cert")
+	defer metric.End(err)
+
+	err = s.upsertReleaseCert(ctx, cert)
+
+	return err
+}
+
+// DeleteReleaseCert deletes release cert.
+func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("delete_release_cert")
+	defer metric.End(err)
+
+	err = s.deleteReleaseCert(ctx, fileName)
+
+	return err
+}
+
+// GetReleaseProxy gets release by generation, type, platform and version.
+func (s *Storage) GetReleaseProxy(
+	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
+
+	var (
+		data *types.ReleaseProxy
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_proxy")
+	defer metric.End(err)
+
+	data, err = s.getReleaseProxy(ctx, gen, plat, version)
+
+	return data, err
+}
+
+// UpsertManyReleaseProxy upsert many release.
+func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_many_release_proxy")
+	defer metric.End(err)
+
+	err = s.upsertManyReleaseProxy(ctx, gen, releaseProxys)
+
+	return err
+}
+
+// UpsertReleasePluginBinTool upserts release plugin bintool.
+func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_release_plugin_bintool")
+	defer metric.End(err)
+
+	err = s.upsertReleasePluginBinTool(ctx, pluginBinTool)
+
+	return err
+}
+
+// DeleteReleasePluginBinTool deletes release plugin bintool.
+func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("delete_release_plugin_bintool")
+	defer metric.End(err)
+
+	err = s.deleteReleasePluginBinTool(ctx, gen, fileName)
+
+	return err
+}
+
+// GetReleasePluginBinTool gets release plugin bintool.
+func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (*types.ReleasePluginBinTool, error) {
+	var (
+		data *types.ReleasePluginBinTool
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_plugin_bintool")
+	defer metric.End(err)
+
+	data, err = s.getReleasePluginBinTool(ctx, gen)
+
+	return data, err
+}
+
+// ExistReleasePluginBinTool checks if release plugin bintool exists.
+func (s *Storage) ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_plugin_bintool")
+	defer metric.End(err)
+
+	result, err = s.existReleasePluginBinTool(ctx, gen)
+
+	return result, err
+}
+
+// ExistReleaseExternalPlugin checks if release plugin exists.
+func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_external_plugin")
+	defer metric.End(err)
+
+	result, err = s.existReleaseExternalPlugin(ctx, pluginName, version, plats...)
+
+	return result, err
+}
+
+// UpsertManyReleaseExternalPlugin upsert many release.
+func (s *Storage) UpsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("upsert_many_release_external_plugin")
+	defer metric.End(err)
+
+	err = s.upsertManyReleaseExternalPlugin(ctx, releaseExternalPlugins)
+
+	return err
+}
+
+// ExistReleaseOfficialPlugin checks if release plugin exists.
+func (s *Storage) ExistReleaseOfficialPlugin(
+	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+
+	var (
+		result bool
+		err    error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_release_official_plugin")
+	defer metric.End(err)
+
+	result, err = s.existReleaseOfficialPlugin(ctx, pluginName, version, plats...)
+
+	return result, err
+}
+
+// UpsertManyReleaseOfficialPlugin upsert many release.
+func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("upsert_many_release_official_plugin")
+	defer metric.End(err)
+
+	err = s.upsertManyReleaseOfficialPlugin(ctx, releaseOfficialPlugins)
+
+	return err
 }
