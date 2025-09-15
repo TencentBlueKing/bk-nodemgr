@@ -42,7 +42,7 @@ func (s *Storage) upsertManyReleaseAgent(ctx context.Context, releaseAgents []*t
 		releases = append(releases, &rls.Release)
 	}
 
-	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
+	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, releases...)
 	if err != nil {
 		return fmt.Errorf("failed to upsert many release agent: %v", err)
 	}
@@ -54,7 +54,7 @@ func (s *Storage) upsertManyReleaseAgent(ctx context.Context, releaseAgents []*t
 func (s *Storage) existReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
 	var err error
 
-	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent, gen,
+	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent,
 		release.WithGeneration(gen),
 		release.WithType(types.ReleaseTypeAgent),
 		release.WithVersion(version),
@@ -76,7 +76,13 @@ func (s *Storage) getReleaseAgent(
 		rls *types.Release
 		err error
 	)
-	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeAgent, gen, plat, version); err != nil {
+
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeAgent,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return nil, fmt.Errorf("failed to get release agent: %w", err)
 	}
 

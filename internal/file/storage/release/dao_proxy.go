@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -27,7 +28,12 @@ func (s *Storage) getReleaseProxy(
 	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseProxy, err error) {
 
 	var rls *types.Release
-	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version); err != nil {
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeProxy,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return nil, fmt.Errorf("failed to get release proxy: %w", err)
 	}
 
@@ -43,7 +49,7 @@ func (s *Storage) getReleaseProxy(
 }
 
 // upsertManyReleaseProxy upsert many release.
-func (s *Storage) upsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) (err error) {
+func (s *Storage) upsertManyReleaseProxy(ctx context.Context, releaseProxys []*types.ReleaseProxy) (err error) {
 	releases := make([]*types.Release, 0, len(releaseProxys))
 	for _, rls := range releaseProxys {
 		if rls == nil {
@@ -59,5 +65,5 @@ func (s *Storage) upsertManyReleaseProxy(ctx context.Context, gen types.Generati
 		releases = append(releases, &rls.Release)
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, gen, releases...)
+	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, releases...)
 }

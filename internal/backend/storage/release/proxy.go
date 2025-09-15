@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -27,7 +28,11 @@ type IProxy interface {
 
 // GetReleaseProxy gets release by generation, release type, platform and version.
 func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeProxy, gen, plat, version)
+	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeProxy,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release proxy: %v", err)
 	}

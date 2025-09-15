@@ -41,7 +41,7 @@ func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName s
 		fileNames = append(fileNames, pluginFileName)
 	}
 
-	num, err := s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, release.WithFileName(fileNames...))
+	num, err := s.daoRelease.Count(ctx, types.ReleaseTypeExternalPlugin, release.WithFileName(fileNames...))
 	if err != nil {
 		return false, err
 	}
@@ -70,7 +70,7 @@ func (s *Storage) upsertManyReleaseExternalPlugin(ctx context.Context, releaseEx
 		releases = append(releases, &rls.Release)
 	}
 
-	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeExternalPlugin, types.Generation2, releases...)
+	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeExternalPlugin, releases...)
 	if err != nil {
 		return fmt.Errorf("failed to upsert many release agent: %w", err)
 	}

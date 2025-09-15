@@ -183,7 +183,7 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IUserContext, uploadID string
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseProxy(ctx, types.Generation2, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseProxy(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upsert release proxy: %v", err)
 
 		return err

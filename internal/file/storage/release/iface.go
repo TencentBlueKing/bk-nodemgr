@@ -51,7 +51,7 @@ type IDaoProxy interface {
 	GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 
 	// UpsertManyReleaseProxy upserts many proxy release.
-	UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error
+	UpsertManyReleaseProxy(ctx context.Context, releaseProxys []*types.ReleaseProxy) error
 }
 
 // IDaoCert defines the cert interface.

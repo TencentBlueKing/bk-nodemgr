@@ -31,10 +31,15 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 
 	releaseType := types.ReleaseType(req.GetReleaseType())
 	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountRelease(ctx, releaseType, gen, req.ConvertConditionsToTypes())
+		num, err := h.storage.CountRelease(ctx, releaseType, cond)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -46,7 +51,8 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListRelease(ctx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	page := req.ConvertPageToTypes(maxReleaseLimit)
+	hosts, num, err := h.storage.ListRelease(ctx, releaseType, page, cond)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to list release. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -68,12 +74,18 @@ func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) 
 
 	releaseType := types.ReleaseType(req.GetReleaseType())
 	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),
 		CPUArch: req.GetDistinctField().GetCpuArch(),
 	}
 
-	result, err := h.storage.DistinctRelease(ctx, releaseType, gen, distinctField, req.ConvertConditionsToTypes())
+	result, err := h.storage.DistinctRelease(ctx, releaseType, distinctField, cond)
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

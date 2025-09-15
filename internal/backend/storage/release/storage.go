@@ -40,15 +40,15 @@ type IStorage interface {
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page,
-		conditions ...*types.ReleaseCondition) ([]*types.Release, int64, error)
+	ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
+		[]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
+	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
 		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (int64, error)
+	CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (int64, error)
 
 	// SetReleaseLabels sets release labels.
 	SetReleaseLabels(ctx context.Context,
@@ -158,7 +158,12 @@ func (s *Storage) GetRelease(ctx context.Context,
 	metric := s.metric().Start("get")
 	defer metric.End(err)
 
-	if data, err = s.daoRelease.Get(ctx, releaseType, gen, plat, version); err != nil {
+	data, err = s.daoRelease.Get(ctx, releaseType,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return nil, err
 	}
 
@@ -166,8 +171,7 @@ func (s *Storage) GetRelease(ctx context.Context,
 }
 
 // ListRelease lists release by page and conditions.
-func (s *Storage) ListRelease(
-	ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, conditions ...*types.ReleaseCondition) (
+func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
 	results []*types.Release, num int64, err error) {
 
 	// record metric.
@@ -179,7 +183,7 @@ func (s *Storage) ListRelease(
 		return nil, 0, err
 	}
 
-	if results, num, err = s.daoRelease.List(ctx, releaseType, gen, page, opts...); err != nil {
+	if results, num, err = s.daoRelease.List(ctx, releaseType, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -187,18 +191,16 @@ func (s *Storage) ListRelease(
 }
 
 // DistinctRelease distincts release by conditions.
-func (s *Storage) DistinctRelease(
-	ctx context.Context, releaseType types.ReleaseType, gen types.Generation,
-	distinctField types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
-	data *types.ReleaseDistinctResult, err error) {
+func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
+	conditions ...*types.ReleaseCondition) (data *types.ReleaseDistinctResult, err error) {
 
 	// record metric.
 	metric := s.metric().Start("distinct")
 	defer metric.End(err)
 
-	var opts []release.OptFn
-	if opts, err = convertReleaseConditionsToOptions(conditions...); err != nil {
-		return nil, err
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
 	}
 
 	data = new(types.ReleaseDistinctResult)
@@ -207,7 +209,7 @@ func (s *Storage) DistinctRelease(
 	if distinctField.OSType {
 		gp.Go(func() error {
 			var err error
-			data.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, gen, opts...)
+			data.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, opts...)
 
 			return err
 		})
@@ -215,7 +217,7 @@ func (s *Storage) DistinctRelease(
 	if distinctField.CPUArch {
 		gp.Go(func() error {
 			var err error
-			data.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, gen, opts...)
+			data.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, opts...)
 
 			return err
 		})
@@ -228,10 +230,7 @@ func (s *Storage) DistinctRelease(
 }
 
 // CountRelease counts release by conditions.
-func (s *Storage) CountRelease(
-	ctx context.Context, releaseType types.ReleaseType, gen types.Generation, conditions ...*types.ReleaseCondition) (
-	num int64, err error) {
-
+func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (num int64, err error) {
 	// record metric.
 	metric := s.metric().Start("count")
 	defer metric.End(err)
@@ -241,7 +240,7 @@ func (s *Storage) CountRelease(
 		return 0, err
 	}
 
-	if num, err = s.daoRelease.Count(ctx, releaseType, gen, opts...); err != nil {
+	if num, err = s.daoRelease.Count(ctx, releaseType, opts...); err != nil {
 		return 0, err
 	}
 
@@ -273,7 +272,12 @@ func (s *Storage) EnableRelease(
 	metric := s.metric().Start("enable")
 	defer metric.End(err)
 
-	if err = s.daoRelease.SetEnabled(ctx, releaseType, gen, plat, version, true); err != nil {
+	err = s.daoRelease.SetEnabled(ctx, releaseType, true,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return err
 	}
 
@@ -290,12 +294,23 @@ func (s *Storage) DisableRelease(
 	defer metric.End(err)
 
 	// cancel this release as default.
-	if err = s.daoRelease.SetAsDefault(ctx, releaseType, gen, plat, version, false); err != nil {
+	err = s.daoRelease.SetAsDefault(ctx, releaseType, false,
+		release.WithVersion(version),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+	)
+
+	if err != nil {
 		return fmt.Errorf("failed to cancel this release as default. platform(%s), version(%s)",
 			plat.String(), version)
 	}
 
-	if err = s.daoRelease.SetEnabled(ctx, releaseType, gen, plat, version, false); err != nil {
+	err = s.daoRelease.SetEnabled(ctx, releaseType, false,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return err
 	}
 
@@ -312,11 +327,20 @@ func (s *Storage) SetAsDefaultRelease(
 	defer metric.End(err)
 
 	// cancel all version as-default in this platform.
-	if err = s.daoRelease.CancelPlatformDefault(ctx, releaseType, gen, plat); err != nil {
+	err = s.daoRelease.CancelPlatformDefault(ctx, releaseType,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+	)
+	if err != nil {
 		return fmt.Errorf("failed to cancel all version in this platform as default. platform(%s)", plat.String())
 	}
 
-	if err = s.daoRelease.SetAsDefault(ctx, releaseType, gen, plat, version, true); err != nil {
+	err = s.daoRelease.SetAsDefault(ctx, releaseType, true,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return err
 	}
 
@@ -332,7 +356,12 @@ func (s *Storage) CancelAsDefaultRelease(
 	metric := s.metric().Start("cancel_as_default")
 	defer metric.End(err)
 
-	if err = s.daoRelease.SetAsDefault(ctx, releaseType, gen, plat, version, false); err != nil {
+	err = s.daoRelease.SetAsDefault(ctx, releaseType, false,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return err
 	}
 
@@ -340,15 +369,20 @@ func (s *Storage) CancelAsDefaultRelease(
 }
 
 // DeleteRelease deletes the release.
-func (s *Storage) DeleteRelease(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) (err error) {
+func (s *Storage) DeleteRelease(ctx context.Context, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform, version string,
+) error {
+
+	var err error
 
 	// record metric.
 	metric := s.metric().Start("delete")
 	defer metric.End(err)
-
-	if err = s.daoRelease.Delete(ctx, releaseType, gen, plat, version); err != nil {
+	err = s.daoRelease.Delete(ctx, releaseType,
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
 		return err
 	}
 

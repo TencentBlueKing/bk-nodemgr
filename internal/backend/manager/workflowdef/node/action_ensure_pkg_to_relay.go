@@ -360,10 +360,11 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			FileName: []string{filename},
+			FileName:   []string{filename},
+			Generation: []types.Generation{gen},
 		},
 	}
-	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, gen, types.UnlimitedPage(), cond)
+	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, err
 	}

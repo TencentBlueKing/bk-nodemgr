@@ -271,7 +271,7 @@ func (s *Storage) GetReleaseProxy(
 }
 
 // UpsertManyReleaseProxy upsert many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error {
+func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, releaseProxys []*types.ReleaseProxy) error {
 	var (
 		err error
 	)
@@ -280,7 +280,7 @@ func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, gen types.Generati
 	metric := s.metric().Start("upsert_many_release_proxy")
 	defer metric.End(err)
 
-	err = s.upsertManyReleaseProxy(ctx, gen, releaseProxys)
+	err = s.upsertManyReleaseProxy(ctx, releaseProxys)
 
 	return err
 }

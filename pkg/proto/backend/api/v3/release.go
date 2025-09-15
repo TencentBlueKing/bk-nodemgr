@@ -41,9 +41,9 @@ func (x *PackageReleaseListReq) ConvertPageToTypes(maxLimit int) types.Page {
 	return generatePage(x.GetPage(), maxLimit)
 }
 
-// ConvertConditionsToTypes convert conditions to types.
-func (x *PackageReleaseListReq) ConvertConditionsToTypes() *types.ReleaseCondition {
-	return convertReleaseConditionsToTypes(x.GetExactIncludeConditions())
+// ConvertExactIncludeConditionsToTypes convert conditions to types.
+func (x *PackageReleaseListReq) ConvertExactIncludeConditionsToTypes() *types.ReleaseExactFields {
+	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -58,25 +58,22 @@ func (x *PackageReleaseListReq) ConvertConditionsFromTypes(condition *types.Rele
 	return nil
 }
 
-func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *types.ReleaseCondition {
-	condition := types.ReleaseCondition{}
+func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditions) *types.ReleaseExactFields {
+	if exactCond == nil {
+		return &types.ReleaseExactFields{}
+	}
 
 	plats := make([]platform.Platform, 0)
 	for _, plat := range exactCond.GetPlatform() {
 		plats = append(plats, ConvertPlatformToTypes(plat))
 	}
 
-	// exact conditions.
-	if exactCond != nil {
-		condition.ExactInclude = &types.ReleaseExactFields{
-			Platform:  plats,
-			Version:   exactCond.GetVersion(),
-			AsDefault: exactCond.GetAsDefault(),
-			Enabled:   exactCond.GetEnabled(),
-		}
+	return &types.ReleaseExactFields{
+		Platform:  plats,
+		Version:   exactCond.GetVersion(),
+		AsDefault: exactCond.GetAsDefault(),
+		Enabled:   exactCond.GetEnabled(),
 	}
-
-	return &condition
 }
 
 func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*PackageReleaseExactConditions, error) {
@@ -179,9 +176,9 @@ func (x *PackageReleaseDistinctReq) Validate() error {
 func (x *PackageReleaseDistinctReq) AutoConvert() {
 }
 
-// ConvertConditionsToTypes converts the request to types.
-func (x *PackageReleaseDistinctReq) ConvertConditionsToTypes() *types.ReleaseCondition {
-	return convertReleaseConditionsToTypes(x.GetExactIncludeConditions())
+// ConvertExactIncludeConditionsToTypes converts the request to types.
+func (x *PackageReleaseDistinctReq) ConvertExactIncludeConditionsToTypes() *types.ReleaseExactFields {
+	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
 }
 
 // ConvertConditionsFromTypes converts the request to types.

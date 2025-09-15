@@ -27,25 +27,25 @@ import (
 // IHandler release Handler interface.
 type IHandler interface {
 	// Get gets a release.
-	Get(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (*types.Release, error)
+	Get(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (*types.Release, error)
 
 	// Exist checks if a release exists.
-	Exist(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (bool, error)
+	Exist(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (bool, error)
 
 	// List lists releases.
-	List(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
+	List(ctx context.Context, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
 
 	// SetLabels sets a release's labels.
 	SetLabels(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string, labels ...string) error
 
 	// Count counts releases.
-	Count(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) (int64, error)
+	Count(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (int64, error)
 
 	// UpsertMany upserts a release.
-	UpsertMany(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, releases ...*types.Release) error
+	UpsertMany(ctx context.Context, releaseType types.ReleaseType, releases ...*types.Release) error
 
 	// Delete deletes a release.
-	Delete(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) error
+	Delete(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) error
 
 	ISwitcher
 	IDistinctor
@@ -54,23 +54,25 @@ type IHandler interface {
 // ISwitcher defines the default interface.
 type ISwitcher interface {
 	// SetEnabled sets a release's enabled.
-	SetEnabled(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string, enabled bool) error
+	SetEnabled(ctx context.Context, releaseType types.ReleaseType, enabled bool, opts ...OptFn) error
 
 	// SetAsDefault sets a release's asDefault.
-	SetAsDefault(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string, asDefault bool) error
+	SetAsDefault(ctx context.Context, releaseType types.ReleaseType, asDefault bool, opts ...OptFn) error
 
 	// CancelPlatformDefault cancel a release's all version asDefault by one platform.
-	CancelPlatformDefault(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform) error
+	CancelPlatformDefault(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) error
 }
 
 // IDistinctor defines the distinctor interface.
 type IDistinctor interface {
 	// DistinctOsType distincts os types.
-	DistinctOsType(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) ([]string, error)
+	DistinctOsType(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 
 	// DistinctCPUArch distincts cpu archs.
-	DistinctCPUArch(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) ([]string, error)
+	DistinctCPUArch(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 }
+
+var _ IHandler = &Handler{}
 
 // Handler implements IHandler.
 type Handler struct {
@@ -81,8 +83,8 @@ type Handler struct {
 	daoMap sync.Map
 }
 
-func (h *Handler) releaseTypeDao(category types.ReleaseType, gen types.Generation) *dao {
-	tableName := TableName(string(category), int64(gen))
+func (h *Handler) releaseTypeDao(category types.ReleaseType) *dao {
+	tableName := TableName(string(category))
 	if d, ok := h.daoMap.Load(tableName); ok {
 		return d.(*dao) // nolint: forcetypeassert
 	}
@@ -109,26 +111,18 @@ func New(client *mongo.Database, logger logger.ILogger) *Handler {
 }
 
 // Get gets a release.
-func (h *Handler) Get(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform,
-	version string) (*types.Release, error) {
-
+func (h *Handler) Get(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (*types.Release, error) {
 	if ctx == nil {
 		return nil, errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	data, err := h.releaseTypeDao(releaseType, gen).Get(ctx, filter)
+	data, err := h.releaseTypeDao(releaseType).Get(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -137,32 +131,22 @@ func (h *Handler) Get(ctx context.Context, releaseType types.ReleaseType, gen ty
 }
 
 // Exist checks if a release exists.
-func (h *Handler) Exist(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform,
-	version string) (bool, error) {
-
+func (h *Handler) Exist(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (bool, error) {
 	if ctx == nil {
 		return false, errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).Exist(ctx, filter)
+	return h.releaseTypeDao(releaseType).Exist(ctx, filter)
 }
 
 // List lists releases.
-func (h *Handler) List(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, page types.Page, opts ...OptFn) (
-	[]*types.Release, int64, error) {
-
+func (h *Handler) List(ctx context.Context, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, int64, error) {
 	if ctx == nil {
 		return nil, 0, errors.New("ctx is nil")
 	}
@@ -172,14 +156,14 @@ func (h *Handler) List(ctx context.Context, releaseType types.ReleaseType, gen t
 		filter = opt(filter)
 	}
 
-	num, err := h.releaseTypeDao(releaseType, gen).Count(ctx, filter)
+	num, err := h.releaseTypeDao(releaseType).Count(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	releases, err := h.releaseTypeDao(releaseType, gen).List(ctx, filter, findOpt)
+	releases, err := h.releaseTypeDao(releaseType).List(ctx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -212,77 +196,56 @@ func (h *Handler) SetLabels(ctx context.Context, releaseType types.ReleaseType, 
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).UpdateField(ctx, filter, FieldKeyLabels, labels)
+	return h.releaseTypeDao(releaseType).UpdateField(ctx, filter, FieldKeyLabels, labels)
 }
 
 // SetEnabled sets a release's enabled.
-func (h *Handler) SetEnabled(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string,
-	enabled bool) error {
-
+func (h *Handler) SetEnabled(ctx context.Context, releaseType types.ReleaseType, enabled bool, opts ...OptFn) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).UpdateField(ctx, filter, FieldKeyEnabled, enabled)
+	return h.releaseTypeDao(releaseType).UpdateField(ctx, filter, FieldKeyEnabled, enabled)
 }
 
 // SetAsDefault sets a release as default.
-func (h *Handler) SetAsDefault(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string,
-	asDefault bool) error {
-
+func (h *Handler) SetAsDefault(ctx context.Context, releaseType types.ReleaseType, asDefault bool, opts ...OptFn) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).UpdateField(ctx, filter, FieldKeyAsDefault, asDefault)
+	return h.releaseTypeDao(releaseType).UpdateField(ctx, filter, FieldKeyAsDefault, asDefault)
 }
 
 // CancelPlatformDefault cancel a release's all version asDefault by one platform.
-func (h *Handler) CancelPlatformDefault(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform) error {
+func (h *Handler) CancelPlatformDefault(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).UpdateField(ctx, filter, FieldKeyAsDefault, false)
+	return h.releaseTypeDao(releaseType).UpdateField(ctx, filter, FieldKeyAsDefault, false)
 }
 
 // Count counts releases.
-func (h *Handler) Count(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) (int64, error) {
+func (h *Handler) Count(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) (int64, error) {
 	if ctx == nil {
 		return 0, errors.New("ctx is nil")
 	}
@@ -292,7 +255,7 @@ func (h *Handler) Count(ctx context.Context, releaseType types.ReleaseType, gen 
 		filter = opt(filter)
 	}
 
-	num, err := h.releaseTypeDao(releaseType, gen).Count(ctx, filter)
+	num, err := h.releaseTypeDao(releaseType).Count(ctx, filter)
 	if err != nil {
 		return 0, err
 	}
@@ -301,7 +264,7 @@ func (h *Handler) Count(ctx context.Context, releaseType types.ReleaseType, gen 
 }
 
 // UpsertMany upsert many release.
-func (h *Handler) UpsertMany(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, releases ...*types.Release) error {
+func (h *Handler) UpsertMany(ctx context.Context, releaseType types.ReleaseType, releases ...*types.Release) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
@@ -315,48 +278,42 @@ func (h *Handler) UpsertMany(ctx context.Context, releaseType types.ReleaseType,
 		data[idx] = convertReleaseFromTypes(release)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).upsertMany(ctx, data)
+	return h.releaseTypeDao(releaseType).upsertMany(ctx, data)
 }
 
 // Delete deletes a release.
-func (h *Handler) Delete(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) error {
+func (h *Handler) Delete(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) error {
 	if ctx == nil {
 		return errors.New("ctx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).DeleteMany(ctx, filter)
+	return h.releaseTypeDao(releaseType).DeleteMany(ctx, filter)
 }
 
 // DistinctOsType distincts os types.
-func (h *Handler) DistinctOsType(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) ([]string, error) {
+func (h *Handler) DistinctOsType(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) ([]string, error) {
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).DistinctString(ctx, FieldKeyOSType, filter, nil)
+	return h.releaseTypeDao(releaseType).DistinctString(ctx, FieldKeyOSType, filter, nil)
 }
 
 // DistinctCPUArch distincts cpu archs.
-func (h *Handler) DistinctCPUArch(ctx context.Context, releaseType types.ReleaseType, gen types.Generation, opts ...OptFn) ([]string, error) {
+func (h *Handler) DistinctCPUArch(ctx context.Context, releaseType types.ReleaseType, opts ...OptFn) ([]string, error) {
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.releaseTypeDao(releaseType, gen).DistinctString(ctx, FieldKeyCPUArch, filter, nil)
+	return h.releaseTypeDao(releaseType).DistinctString(ctx, FieldKeyCPUArch, filter, nil)
 }
 
 func convertReleaseToTypes(release *Release) *types.Release {

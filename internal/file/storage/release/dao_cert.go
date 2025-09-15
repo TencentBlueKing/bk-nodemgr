@@ -17,8 +17,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	defaultVersionCert = "default"
 )
 
 // getReleaseCert gets release cert.
@@ -27,7 +32,14 @@ func (s *Storage) getReleaseCert(ctx context.Context) (*types.ReleaseCert, error
 		rls *types.Release
 		err error
 	)
-	if rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), ""); err != nil {
+
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert,
+		// cert was designed in generation 2.
+		release.WithGeneration(types.Generation2),
+		release.WithVersion(defaultVersionCert),
+		release.WithPlatform(platform.EmptyPlatform()),
+	)
+	if err != nil {
 		return nil, fmt.Errorf("failed to get release cert: %w", err)
 	}
 
@@ -38,7 +50,11 @@ func (s *Storage) getReleaseCert(ctx context.Context) (*types.ReleaseCert, error
 
 // existReleaseCert checks if release cert exists.
 func (s *Storage) existReleaseCert(ctx context.Context) (bool, error) {
-	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
+	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeCert,
+		// cert was designed in generation 2.
+		release.WithGeneration(types.Generation2),
+		release.WithVersion(defaultVersionCert),
+	)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if release cert exists: %w", err)
 	}
@@ -48,11 +64,11 @@ func (s *Storage) existReleaseCert(ctx context.Context) (bool, error) {
 
 // upsertReleaseCert upserts release cert.
 func (s *Storage) upsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error {
-	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, types.Generation2, &types.Release{
+	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, &types.Release{
 		Generation: types.Generation2,
 		Type:       types.ReleaseTypeCert,
 		Platform:   platform.EmptyPlatform(),
-		Version:    "",
+		Version:    defaultVersionCert,
 		FileName:   cert.FileName,
 		MD5:        cert.MD5,
 		UpdatedAt:  time.Now(),
@@ -67,7 +83,7 @@ func (s *Storage) upsertReleaseCert(ctx context.Context, cert types.ReleaseCert)
 
 // deleteReleaseCert deletes release cert.
 func (s *Storage) deleteReleaseCert(ctx context.Context, fileName string) error {
-	err := s.daoRelease.Delete(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), fileName)
+	err := s.daoRelease.Delete(ctx, types.ReleaseTypeCert, release.WithFileName(fileName))
 	if err != nil {
 		return fmt.Errorf("failed to delete release cert: %w", err)
 	}
