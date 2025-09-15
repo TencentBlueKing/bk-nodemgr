@@ -67,7 +67,7 @@ func (m *Manager) UploadOriginBinTool(
 		return nil, err
 	}
 
-	detail, err := checkGen2OriginBinToolPkg(checkingFile)
+	detail, err := checkOriginBinToolPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx,
 			"failed to upload origin bintool package. failed to check origin bintool package. err: %v", err)
@@ -129,7 +129,7 @@ func (m *Manager) UploadOriginBinTool(
 	return detail, nil
 }
 
-func checkGen2OriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
+func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
 	agentPlatforms := make(map[string]platform.Platform)
 	proxyPlatforms := make(map[string]platform.Platform)
 

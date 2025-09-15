@@ -136,7 +136,7 @@ func (m *Manager) UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser
 	return detail, nil
 }
 
-// checkGSE2OriginAgentPkg check gen2 origin agent package.
+// checkGSE2OriginAgentPkg check origin agent package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
@@ -367,7 +367,7 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IUserContext, uploadID string
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseAgentGen2(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseAgent(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to upsert release agent: %v", err)
 
 		return err

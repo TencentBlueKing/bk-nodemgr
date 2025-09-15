@@ -112,7 +112,7 @@ func (m *Manager) UploadOriginExternalPlugin(ctx contextx.IContext, externalPlug
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseExternalPluginGen2(ctx, detail.Name, detail.Version, detail.Platforms...)
+	existed, err := m.storageRelease.ExistReleaseExternalPlugin(ctx, detail.Name, detail.Version, detail.Platforms...)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to check if release existed. err: %v", err)
 
@@ -362,7 +362,7 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, upload
 	}
 
 	// upsert release external plugin.
-	if err = m.storageRelease.UpsertManyReleaseExternalPluginGen2(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseExternalPlugin(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to upsert release external plugin: %v", err)
 
 		return err

@@ -67,7 +67,7 @@ func (m *Manager) UploadOriginPluginBinTool(
 		return nil, err
 	}
 
-	detail, err := checkGen2OriginPluginBinToolPkg(checkingFile)
+	detail, err := checkOriginPluginBinToolPkg(checkingFile)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx,
 			"failed to upload origin plugin bintool package. failed to check origin plugin bintool package. err: %v", err)
@@ -137,7 +137,7 @@ const (
 	pluginBinToolDirNamePlatWindowsAmd64 = "windows_amd64"
 )
 
-func checkGen2OriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
+func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
 	platforms := make(map[string]platform.Platform)
 
 	if err := checkTgz(file, []tgzReadRule{

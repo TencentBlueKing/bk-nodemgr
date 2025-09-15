@@ -20,8 +20,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// GetReleaseCertGen2 gets release cert gen2.
-func (s *Storage) GetReleaseCertGen2(ctx context.Context) (data *types.ReleaseCert, err error) {
+// GetReleaseCert gets release cert.
+func (s *Storage) GetReleaseCert(ctx context.Context) (data *types.ReleaseCert, err error) {
 	// record metric.
 	metric := s.metric().Start("get_cert")
 	defer metric.End(err)
@@ -36,8 +36,8 @@ func (s *Storage) GetReleaseCertGen2(ctx context.Context) (data *types.ReleaseCe
 	}, nil
 }
 
-// ExistReleaseCertGen2 checks if release cert gen2 exists.
-func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (result bool, err error) {
+// ExistReleaseCert checks if release cert exists.
+func (s *Storage) ExistReleaseCert(ctx context.Context) (result bool, err error) {
 	// record metric.
 	metric := s.metric().Start("exist_cert")
 	defer metric.End(err)
@@ -45,8 +45,8 @@ func (s *Storage) ExistReleaseCertGen2(ctx context.Context) (result bool, err er
 	return s.daoRelease.Exist(ctx, types.ReleaseTypeCert, types.Generation2, platform.EmptyPlatform(), "")
 }
 
-// UpsertReleaseCertGen2 upserts release cert gen2.
-func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) (err error) {
+// UpsertReleaseCert upserts release cert.
+func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_cert")
 	defer metric.End(err)
@@ -62,8 +62,8 @@ func (s *Storage) UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseC
 	})
 }
 
-// DeleteReleaseCertGen2 deletes release cert gen2.
-func (s *Storage) DeleteReleaseCertGen2(ctx context.Context, fileName string) (err error) {
+// DeleteReleaseCert deletes release cert.
+func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_cert")
 	defer metric.End(err)

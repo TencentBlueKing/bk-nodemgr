@@ -97,7 +97,7 @@ func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseCertGen2(ctx)
+	existed, err := m.storageRelease.ExistReleaseCert(ctx)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to check if release existed. err: %v", err)
 
@@ -281,7 +281,7 @@ func (m *Manager) PublishReleaseCert(ctx contextx.IUserContext, uploadID string)
 	releaseInfo := releaseFile.Info()
 
 	// upsert release cert.
-	if err = m.storageRelease.UpsertReleaseCertGen2(ctx, types.ReleaseCert{
+	if err = m.storageRelease.UpsertReleaseCert(ctx, types.ReleaseCert{
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeCert,

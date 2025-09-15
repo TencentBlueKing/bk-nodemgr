@@ -420,7 +420,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 
 func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (fileiface.File, error) {
 	// get cert.
-	cert, err := m.storageRelease.GetReleaseCertGen2(ctx)
+	cert, err := m.storageRelease.GetReleaseCert(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release cert: %w", err)
 	}

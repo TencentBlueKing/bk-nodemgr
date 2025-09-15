@@ -25,8 +25,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ExistReleaseOfficialPluginGen2 checks if release plugin exists.
-func (s *Storage) ExistReleaseOfficialPluginGen2(
+// ExistReleaseOfficialPlugin checks if release plugin exists.
+func (s *Storage) ExistReleaseOfficialPlugin(
 	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {
 
 	// record metric.
@@ -52,8 +52,8 @@ func (s *Storage) ExistReleaseOfficialPluginGen2(
 	return num > 0, nil
 }
 
-// UpsertManyReleaseOfficialPluginGen2 upsert many release.
-func (s *Storage) UpsertManyReleaseOfficialPluginGen2(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) (err error) {
+// UpsertManyReleaseOfficialPlugin upsert many release.
+func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many_official_plugin")
 	defer metric.End(err)

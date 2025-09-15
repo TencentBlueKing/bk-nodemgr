@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// UpsertReleasePluginBinTool upserts release plugin bintool gen2.
+// UpsertReleasePluginBinTool upserts release plugin bintool.
 func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_plugin_bintool")
@@ -37,7 +37,7 @@ func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool 
 	})
 }
 
-// DeleteReleasePluginBinTool deletes release plugin bintool gen2.
+// DeleteReleasePluginBinTool deletes release plugin bintool.
 func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_plugin_bintool")
@@ -46,7 +46,7 @@ func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Gene
 	return s.daoRelease.Delete(ctx, types.ReleaseTypePluginBinTool, gen, platform.EmptyPlatform(), fileName)
 }
 
-// GetReleasePluginBinTool gets release plugin bintool gen2.
+// GetReleasePluginBinTool gets release plugin bintool.
 func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (data *types.ReleasePluginBinTool, err error) {
 	// record metric.
 	metric := s.metric().Start("get_plugin_bintool")
@@ -62,7 +62,7 @@ func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generat
 	}, nil
 }
 
-// ExistReleasePluginBinTool checks if release plugin bintool gen2 exists.
+// ExistReleasePluginBinTool checks if release plugin bintool exists.
 func (s *Storage) ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (result bool, err error) {
 	// record metric.
 	metric := s.metric().Start("exist_plugin_bintool")

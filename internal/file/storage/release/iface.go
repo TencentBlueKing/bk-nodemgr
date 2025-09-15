@@ -35,13 +35,13 @@ type IStorage interface {
 
 // IDaoAgent defines the agent interface.
 type IDaoAgent interface {
-	// GetReleaseAgent gets release agent gen2 by generation, type, platform and version.
+	// GetReleaseAgent gets release agent by generation, type, platform and version.
 	GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
-	// UpsertManyReleaseAgent upsert many release agent gen2.
-	UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
+	// UpsertManyReleaseAgent upsert many release agent.
+	UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
 
-	// ExistReleaseAgent checks if release agent gen2 exists.
+	// ExistReleaseAgent checks if release agent exists.
 	ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
@@ -56,63 +56,63 @@ type IDaoProxy interface {
 
 // IDaoCert defines the cert interface.
 type IDaoCert interface {
-	// GetReleaseCertGen2 gets release cert gen2.
-	GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error)
+	// GetReleaseCert gets release cert.
+	GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error)
 
-	// ExistReleaseCertGen2 checks if release cert gen2 exists.
-	ExistReleaseCertGen2(ctx context.Context) (bool, error)
+	// ExistReleaseCert checks if release cert exists.
+	ExistReleaseCert(ctx context.Context) (bool, error)
 
-	// UpsertReleaseCertGen2 upserts release cert gen2.
-	UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error
+	// UpsertReleaseCert upserts release cert.
+	UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error
 
-	// DeleteReleaseCertGen2 deletes release cert gen2.
-	DeleteReleaseCertGen2(ctx context.Context, fileName string) error
+	// DeleteReleaseCert deletes release cert.
+	DeleteReleaseCert(ctx context.Context, fileName string) error
 }
 
 // IDaoBinTool defines the bin tool interface.
 type IDaoBinTool interface {
-	// GetReleaseBinTool gets release bintool gen2.
+	// GetReleaseBinTool gets release bintool.
 	GetReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error)
 
-	// ExistReleaseBinTool checks if release bintool gen2 exists.
+	// ExistReleaseBinTool checks if release bintool exists.
 	ExistReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error)
 
-	// UpsertReleaseBinTool upserts release bintool gen2.
+	// UpsertReleaseBinTool upserts release bintool.
 	UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error
 
-	// DeleteReleaseBinTool deletes release bintool gen2.
+	// DeleteReleaseBinTool deletes release bintool.
 	DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error
 }
 
 // IDaoPluginBinTool defines the bin tool interface.
 type IDaoPluginBinTool interface {
-	// GetReleasePluginBinTool gets release plugin bintool gen2.
+	// GetReleasePluginBinTool gets release plugin bintool.
 	GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (*types.ReleasePluginBinTool, error)
 
-	// ExistReleasePluginBinTool checks if release plugin bintool gen2 exists.
+	// ExistReleasePluginBinTool checks if release plugin bintool exists.
 	ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (bool, error)
 
-	// UpsertReleasePluginBinTool upserts release plugin bintool gen2.
+	// UpsertReleasePluginBinTool upserts release plugin bintool.
 	UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) error
 
-	// DeleteReleasePluginBinTool deletes release plugin bintool gen2.
+	// DeleteReleasePluginBinTool deletes release plugin bintool.
 	DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) error
 }
 
 // IDaoOfficialPlugin defines the interface of official plugin.
 type IDaoOfficialPlugin interface {
-	// ExistReleaseOfficialPluginGen2 checks if release official plugin exists.
-	ExistReleaseOfficialPluginGen2(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+	// ExistReleaseOfficialPlugin checks if release official plugin exists.
+	ExistReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
 
-	// UpsertManyReleaseOfficialPluginGen2 upserts many release official plugin gen2.
-	UpsertManyReleaseOfficialPluginGen2(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error
+	// UpsertManyReleaseOfficialPlugin upserts many release official plugin.
+	UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error
 }
 
 // IDaoExternalPlugin defines the interface of external plugin.
 type IDaoExternalPlugin interface {
-	// ExistReleaseExternalPluginGen2 checks if release external plugin exists.
-	ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+	// ExistReleaseExternalPlugin checks if release external plugin exists.
+	ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
 
-	// UpsertManyReleaseExternalPluginGen2 upserts many release external plugin gen2.
-	UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error
+	// UpsertManyReleaseExternalPlugin upserts many release external plugin.
+	UpsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error
 }

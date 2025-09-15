@@ -111,7 +111,7 @@ func (m *Manager) UploadOriginOfficialPlugin(ctx contextx.IContext, officialPlug
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseOfficialPluginGen2(ctx, detail.Name, detail.Version, detail.Platforms...)
+	existed, err := m.storageRelease.ExistReleaseOfficialPlugin(ctx, detail.Name, detail.Version, detail.Platforms...)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to upload origin official plugin package. failed to check if release existed. err: %v", err)
 
@@ -376,7 +376,7 @@ func (m *Manager) PublishReleaseOfficialPlugin(ctx contextx.IUserContext, upload
 	}
 
 	// upsert release official plugin.
-	if err = m.storageRelease.UpsertManyReleaseOfficialPluginGen2(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleaseOfficialPlugin(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release official plugin, failed to upsert release official plugin: %v", err)
 
 		return err

@@ -25,8 +25,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ExistReleaseExternalPluginGen2 checks if release plugin exists.
-func (s *Storage) ExistReleaseExternalPluginGen2(
+// ExistReleaseExternalPlugin checks if release plugin exists.
+func (s *Storage) ExistReleaseExternalPlugin(
 	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {
 
 	// record metric.
@@ -51,8 +51,8 @@ func (s *Storage) ExistReleaseExternalPluginGen2(
 	return num > 0, nil
 }
 
-// UpsertManyReleaseExternalPluginGen2 upsert many release.
-func (s *Storage) UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) (err error) {
+// UpsertManyReleaseExternalPlugin upsert many release.
+func (s *Storage) UpsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many_external_plugin")
 	defer metric.End(err)

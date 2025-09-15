@@ -23,8 +23,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// UpsertManyReleaseAgentGen2 upsert many release.
-func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) (err error) {
+// UpsertManyReleaseAgent upsert many release.
+func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many_agent")
 	defer metric.End(err)
@@ -47,7 +47,7 @@ func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents 
 	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, types.Generation2, releases...)
 }
 
-// ExistReleaseAgent checks if release agent gen2 exists.
+// ExistReleaseAgent checks if release agent exists.
 func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (result bool, err error) {
 	// record metric.
 	metric := s.metric().Start("exist_agent")
