@@ -12,6 +12,7 @@ package topo
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
@@ -28,24 +29,24 @@ func (s *Storage) GetNetworkUnitByAreaIDs(ctx context.Context, networkAreaIDs []
 	opts = append(opts, networkunit.WithNetworkAreaID(networkAreaIDs...))
 
 	if results, _, err = s.daoNetworkUnit.List(ctx, types.UnlimitedPage(), opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list network unit by area ids failed. ids(%v): %w", networkAreaIDs, err)
 	}
 
 	return results, nil
 }
 
-// GetHostsByAreaAndIP get hosts by area and ip.
+// GetHostsByAreaAndInnerIP get hosts by area and inner ip.
 // nolint: nonamedreturns
-func (s *Storage) GetHostsByAreaAndIP(ctx context.Context,
-	networkAreaID int64, ip string) (results []*types.Host, err error) {
+func (s *Storage) GetHostsByAreaAndInnerIP(ctx context.Context,
+	networkAreaID int64, innerip string) (results []*types.Host, err error) {
 
 	opts := make([]host.OptFn, 0)
 
 	opts = append(opts, host.WithNetworkAreaID(networkAreaID))
-	opts = append(opts, host.WithStaticInnerIP(ip))
+	opts = append(opts, host.WithStaticInnerIP(innerip))
 
 	if results, _, err = s.daoHost.List(ctx, types.UnlimitedPage(), opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get hosts by area and inner-ip failed. area-id(%d) inner-ip(%s): %w", networkAreaID, innerip, err)
 	}
 
 	return results, nil
