@@ -20,21 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IPluginBinTool defines the bin tool interface.
-type IPluginBinTool interface {
-	// GetReleasePluginBinTool gets release plugin bintool gen2.
-	GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (*types.ReleasePluginBinTool, error)
-
-	// ExistReleasePluginBinTool checks if release plugin bintool gen2 exists.
-	ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (bool, error)
-
-	// UpsertReleasePluginBinTool upserts release plugin bintool gen2.
-	UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) error
-
-	// DeleteReleasePluginBinTool deletes release plugin bintool gen2.
-	DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) error
-}
-
 // UpsertReleasePluginBinTool upserts release plugin bintool gen2.
 func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) (err error) {
 	// record metric.

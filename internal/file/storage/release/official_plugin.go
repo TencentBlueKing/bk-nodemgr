@@ -25,15 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IOfficialPlugin defines the interface of official plugin.
-type IOfficialPlugin interface {
-	// ExistReleaseOfficialPluginGen2 checks if release official plugin exists.
-	ExistReleaseOfficialPluginGen2(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
-
-	// UpsertManyReleaseOfficialPluginGen2 upserts many release official plugin gen2.
-	UpsertManyReleaseOfficialPluginGen2(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error
-}
-
 // ExistReleaseOfficialPluginGen2 checks if release plugin exists.
 func (s *Storage) ExistReleaseOfficialPluginGen2(
 	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {

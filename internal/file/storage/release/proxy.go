@@ -22,15 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IProxy defines the proxy interface.
-type IProxy interface {
-	// GetReleaseProxy gets release proxy by generation, type, platform and version.
-	GetReleaseProxy(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
-
-	// UpsertManyReleaseProxy upserts many proxy release.
-	UpsertManyReleaseProxy(ctx context.Context, gen types.Generation, releaseProxys []*types.ReleaseProxy) error
-}
-
 // GetReleaseProxy gets release by generation, type, platform and version.
 func (s *Storage) GetReleaseProxy(
 	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (data *types.ReleaseProxy, err error) {

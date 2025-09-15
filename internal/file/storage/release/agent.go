@@ -23,18 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IAgent defines the agent interface.
-type IAgent interface {
-	// GetReleaseAgent gets release agent gen2 by generation, type, platform and version.
-	GetReleaseAgent(ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
-
-	// UpsertManyReleaseAgentGen2 upsert many release agent gen2.
-	UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) error
-
-	// ExistReleaseAgent checks if release agent gen2 exists.
-	ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
-}
-
 // UpsertManyReleaseAgentGen2 upsert many release.
 func (s *Storage) UpsertManyReleaseAgentGen2(ctx context.Context, releaseAgents []*types.ReleaseAgent) (err error) {
 	// record metric.

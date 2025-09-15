@@ -25,15 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IExternalPlugin defines the interface of external plugin.
-type IExternalPlugin interface {
-	// ExistReleaseExternalPluginGen2 checks if release external plugin exists.
-	ExistReleaseExternalPluginGen2(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
-
-	// UpsertManyReleaseExternalPluginGen2 upserts many release external plugin gen2.
-	UpsertManyReleaseExternalPluginGen2(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error
-}
-
 // ExistReleaseExternalPluginGen2 checks if release plugin exists.
 func (s *Storage) ExistReleaseExternalPluginGen2(
 	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (result bool, err error) {

@@ -21,20 +21,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// IStorage defines the interface of release storage.
-// nolint: interfacebloat
-type IStorage interface {
-	basestorage.Interface
-
-	IAgent
-	IProxy
-	IBinTool
-	ICert
-	IPluginBinTool
-	IOfficialPlugin
-	IExternalPlugin
-}
-
 // StorageName defines the storage name.
 const StorageName = "release"
 

@@ -20,21 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// ICert defines the cert interface.
-type ICert interface {
-	// GetReleaseCertGen2 gets release cert gen2.
-	GetReleaseCertGen2(ctx context.Context) (*types.ReleaseCert, error)
-
-	// ExistReleaseCertGen2 checks if release cert gen2 exists.
-	ExistReleaseCertGen2(ctx context.Context) (bool, error)
-
-	// UpsertReleaseCertGen2 upserts release cert gen2.
-	UpsertReleaseCertGen2(ctx context.Context, cert types.ReleaseCert) error
-
-	// DeleteReleaseCertGen2 deletes release cert gen2.
-	DeleteReleaseCertGen2(ctx context.Context, fileName string) error
-}
-
 // GetReleaseCertGen2 gets release cert gen2.
 func (s *Storage) GetReleaseCertGen2(ctx context.Context) (data *types.ReleaseCert, err error) {
 	// record metric.

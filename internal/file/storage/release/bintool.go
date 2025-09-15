@@ -20,21 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IBinTool defines the bin tool interface.
-type IBinTool interface {
-	// GetReleaseBinTool gets release bintool gen2.
-	GetReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error)
-
-	// ExistReleaseBinTool checks if release bintool gen2 exists.
-	ExistReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error)
-
-	// UpsertReleaseBinTool upserts release bintool gen2.
-	UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error
-
-	// DeleteReleaseBinTool deletes release bintool gen2.
-	DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error
-}
-
 // UpsertReleaseBinTool upserts release bintool gen2.
 func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) (err error) {
 	// record metric.
