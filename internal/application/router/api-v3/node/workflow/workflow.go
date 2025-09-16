@@ -12,8 +12,8 @@
 package workflow
 
 import (
+	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
@@ -181,12 +181,12 @@ func (h *handler) Distinct(ctx *restserver.Context) (interface{}, error) {
 func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to validate request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to validate request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
@@ -198,7 +198,7 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 	result, total, err := h.backendHandler.ListNodeWorkflowOperation(
 		ctx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -218,16 +218,26 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 		operationIDs = append(operationIDs, operation.OperationID)
 	}
 
+	// get all operation instances.
+	// need to grouby operation id. than use last instance status and calculate total time.
 	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(ctx, operationIDs...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
+	// group by operation id.
 	instancesByOpID := groupInstancesByOperationID(allInstances)
-	summaries := calculateOperationSummaries(operationIDs, instancesByOpID)
 
-	filteredResults, filteredSummaries := filterOperationsByStates(
+	// calculate each operation total time and last state.
+	summaries, err := calculateOperationSummaries(operationIDs, instancesByOpID)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to calculate operation summary: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	// filter by states.
+	filteredResults, filteredSummaries := filterOperationsByState(
 		result,
 		summaries,
 		targetStates,
@@ -247,12 +257,12 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceListReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to validate request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to validate request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
@@ -262,7 +272,7 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
 			ctx, req.ConvertConditionsToComm())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to count operation instance. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 		resp.ConvertResultFromTypes(num, nil)
@@ -273,7 +283,7 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
 		ctx, req.ConvertConditionsToComm())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -286,7 +296,7 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 func (h *handler) GetOperationInstanceLog(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceLogGetReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get operation instance log, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to get operation instance log, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -294,7 +304,7 @@ func (h *handler) GetOperationInstanceLog(ctx *restserver.Context) (interface{},
 		ctx,
 		req.GetOperInstId())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get operation instance log, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to get operation instance log: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -407,62 +417,60 @@ func groupInstancesByOperationID(
 	instances []*operation.InstanceBriefData) map[string][]*operation.InstanceBriefData {
 
 	grouped := make(map[string][]*operation.InstanceBriefData)
-
 	for _, instance := range instances {
 		opID := instance.Metadata.OperationID
-
-		if _, exists := grouped[opID]; !exists {
-			grouped[opID] = make([]*operation.InstanceBriefData, 0)
-		}
-
 		grouped[opID] = append(grouped[opID], instance)
 	}
 
 	return grouped
 }
 
-func filterOperationsByStates(
+func filterOperationsByState(
 	ops []*operation.Operation,
 	summaries []*types.OperationSummary,
-	targetStates []string,
-) ([]*operation.Operation, []*types.OperationSummary) {
+	targetStates []string) (
+	[]*operation.Operation, []*types.OperationSummary) {
 
+	// no state filter required. directly return.
 	if len(targetStates) == 0 {
 		return ops, summaries
 	}
-	stateLookup := make(map[string]bool)
+
+	// record the states that need to be filtered.
+	targetStateSet := make(map[types.OperationState]struct{}, len(targetStates))
 	for _, state := range targetStates {
-		if state != "" {
-			stateLookup[strings.ToLower(state)] = true
-		}
+		targetStateSet[types.OperationState(state)] = struct{}{}
 	}
 
-	filteredOps := make([]*operation.Operation, 0, len(ops))
-	filteredSummaries := make([]*types.OperationSummary, 0, len(summaries))
+	matchedOperations := make([]*operation.Operation, len(ops))
+	matchedSummaries := make([]*types.OperationSummary, len(ops))
 
 	for i, op := range ops {
 		summary := summaries[i]
-		if _, exists := stateLookup[summary.LastStatus]; exists {
-			filteredOps = append(filteredOps, op)
-			filteredSummaries = append(filteredSummaries, summary)
+		if _, ok := targetStateSet[summary.LastStatus]; !ok {
+			continue
 		}
+
+		matchedOperations[i] = op
+		matchedSummaries[i] = summary
 	}
 
-	return filteredOps, filteredSummaries
+	return matchedOperations, matchedSummaries
 }
 
 func calculateOperationSummaries(operationIDs []string,
-	instancesByOpID map[string][]*operation.InstanceBriefData) []*types.OperationSummary {
+	instancesByOpID map[string][]*operation.InstanceBriefData) ([]*types.OperationSummary, error) {
 
 	summaries := make([]*types.OperationSummary, len(operationIDs))
 
 	for idx, opID := range operationIDs {
 		instances, exists := instancesByOpID[opID]
 
+		// no instances found.
 		if !exists || len(instances) == 0 {
 			summaries[idx] = &types.OperationSummary{
 				TotalDuration: 0,
-				LastStatus:    "empty_instances",
+				LastStatus:    types.StateInit,
 			}
 
 			continue
@@ -472,16 +480,22 @@ func calculateOperationSummaries(operationIDs []string,
 			return instances[i].Lifecycle.CreatedAt.Before(instances[j].Lifecycle.CreatedAt)
 		})
 
+		// calculate total duration.
 		var totalSeconds int64
 		for _, inst := range instances {
-			if !inst.Lifecycle.CreatedAt.IsZero() && !inst.Lifecycle.EndedAt.IsZero() {
-				durationSec := inst.Lifecycle.EndedAt.Unix() - inst.Lifecycle.CreatedAt.Unix()
-
-				totalSeconds += durationSec
+			if inst.Lifecycle.CreatedAt.IsZero() || inst.Lifecycle.EndedAt.IsZero() {
+				continue
 			}
+
+			totalSeconds += inst.Lifecycle.EndedAt.Unix() - inst.Lifecycle.CreatedAt.Unix()
 		}
+
+		// calculate last status.
 		lastInstance := instances[len(instances)-1]
-		lastStatus := string(lastInstance.Lifecycle.State)
+		lastStatus, err := types.InstanceStatusToOperationState(lastInstance.Lifecycle.State)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert instance status to operation state: %w", err)
+		}
 
 		summaries[idx] = &types.OperationSummary{
 			TotalDuration: totalSeconds,
@@ -489,5 +503,5 @@ func calculateOperationSummaries(operationIDs []string,
 		}
 	}
 
-	return summaries
+	return summaries, nil
 }

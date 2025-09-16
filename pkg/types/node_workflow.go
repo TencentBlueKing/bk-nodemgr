@@ -13,6 +13,8 @@ package types
 import (
 	"fmt"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // NodeWorkflow represents the workflow of a node.
@@ -152,25 +154,25 @@ type OperationState string
 
 // NodeWorkflowOperationStatusList.
 const (
-	// StateInit operation instance state init.
+	// StateInit operation state init.
 	StateInit OperationState = "init"
 
-	// StateLaunched operation instance state launched.
+	// StateLaunched operation state launched.
 	StateLaunched OperationState = "launched"
 
-	// StateRunning operation instance state running.
+	// StateRunning operation state running.
 	StateRunning OperationState = "running"
 
-	// StateSuccess operation instance state success.
+	// StateSuccess operation state success.
 	StateSuccess OperationState = "success"
 
-	// StateFailed operation instance state failed.
+	// StateFailed operation state failed.
 	StateFailed OperationState = "failed"
 
-	// StateTimeout operation instance state timeout.
+	// StateTimeout operation state timeout.
 	StateTimeout OperationState = "timeout"
 
-	// StateTerminated operation instance state terminated.
+	// StateTerminated operation state terminated.
 	StateTerminated OperationState = "terminated"
 )
 
@@ -206,5 +208,27 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 // OperationSummary ...
 type OperationSummary struct {
 	TotalDuration int64
-	LastStatus    string
+	LastStatus    OperationState
+}
+
+// InstanceStatusToOperationState converts the instance status to operation state.
+func InstanceStatusToOperationState(status operation.State) (OperationState, error) {
+	switch status {
+	case operation.StateInit:
+		return StateInit, nil
+	case operation.StateLaunched:
+		return StateLaunched, nil
+	case operation.StateRunning:
+		return StateRunning, nil
+	case operation.StateSuccess:
+		return StateSuccess, nil
+	case operation.StateFailed:
+		return StateFailed, nil
+	case operation.StateTimeout:
+		return StateTimeout, nil
+	case operation.StateTerminated:
+		return StateTerminated, nil
+	default:
+		return "", fmt.Errorf("invalid operation state. state(%s)", status)
+	}
 }

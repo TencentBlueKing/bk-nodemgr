@@ -229,6 +229,10 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 
 	items := make([]*NodeWorkflowOperation, 0, total)
 	for idx, op := range result {
+		if op == nil {
+			continue
+		}
+
 		item := &NodeWorkflowOperation{
 			OperationId: op.OperationID,
 			InstanceIds: op.InstanceIDs,
@@ -240,7 +244,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
 			},
 			Status: &NodeWorkflowOperationStatus{
-				State:           operationsSummary[idx].LastStatus,
+				State:           string(operationsSummary[idx].LastStatus),
 				TotalTimeSecond: operationsSummary[idx].TotalDuration,
 			},
 		}
