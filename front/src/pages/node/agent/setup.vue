@@ -86,7 +86,7 @@
             v-model="formData.bk_biz_id"
             auto-focus
             filterable
-            placeholder="选择业务"
+            :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.selectBiz')"
           >
             <Select.Option
               v-for="item in businessList"
@@ -158,23 +158,23 @@
             class="text-[14px]"
             @click="isShow = !isShow"
           >
-            <span class="mr-[8.5px]">高级选项</span>
+            <span class="mr-[8.5px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
             <angle-double-down-line
               :class="{ 'transform rotate-180': isShow }"
             />
           </Button>
         </Form.FormItem>
-        <Form.FormItem :label="$t('Agent 版本')" required v-if="isShow">
+        <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.version')" required v-if="isShow">
           <div class="w-[568px]">
             <Table :data="systemData" :border="true" width="568">
               <TableColumn
                 field="os"
-                :title="$t('操作系统')"
+                :title="$t('platform.nodeMan.installAgentPage.os_type')"
                 width="200"
               ></TableColumn>
-              <TableColumn field="version" :title="$t('包版本')" width="368">
+              <TableColumn field="version" :title="$t('platform.nodeMan.installAgentPage.packageVersion')" width="368">
                 <template #header>
-                  <span class="mr-[2px]">{{ $t("包版本") }}</span>
+                  <span class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
                   <span class="mr-[10px] w-[14px] text-[#ea3636]">*</span>
                   <i class="nodeman-icon nc-bulk-edit"></i>
                 </template>
@@ -186,7 +186,7 @@
                   >
                     <Input
                       :model-value="row.version"
-                      :placeholder="$t('请选择')"
+                      :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.select')"
                       @click="handleChooseVersion(row)"
                     />
                   </Validate>
@@ -208,9 +208,9 @@
         class="w-[100px] mr-[8px]"
         theme="primary"
         @click="handlePreview"
-        >{{ $t("去安装") }}</Button
+        >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
-      <Button class="w-[88px]" @click="handleCancel">{{ $t("取消") }}</Button>
+      <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
     <preview
       v-model:is-show="previewData.isShow"

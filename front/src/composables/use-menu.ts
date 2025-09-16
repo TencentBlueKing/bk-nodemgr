@@ -21,7 +21,7 @@ export type MainMenuNames = MenuItem['routeName'];
 const navList = [
   {
     routeName: 'nodeManager',
-    title: i18n.global.t('节点管理'),
+    title: i18n.global.t('platform.name'),
     group: [
       {
         title: i18n.global.t('platform.nodeMan.node'),
@@ -52,7 +52,7 @@ const navList = [
   },
   {
     routeName: 'topoManager',
-    title: i18n.global.t('拓扑管理'),
+    title: i18n.global.t('platform.topoManagerName'),
     group: [
       {
         title: i18n.global.t('拓扑'),
@@ -83,7 +83,7 @@ const navList = [
   },
   {
     routeName: 'ruleManager',
-    title: i18n.global.t('策略管理'),
+    title: i18n.global.t('platform.ruleManagerName'),
     group: [
       {
         title: i18n.global.t('策略'),
@@ -119,7 +119,7 @@ const navList = [
   },
   {
     routeName: 'pkgManager',
-    title: i18n.global.t('包管理'),
+    title: i18n.global.t('platform.pkgManagerName'),
     group: [
       {
         title: i18n.global.t('节点'),

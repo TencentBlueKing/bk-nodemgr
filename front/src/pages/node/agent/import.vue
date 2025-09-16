@@ -57,9 +57,9 @@
         class="w-[100px] mr-[8px]"
         theme="primary"
         @click="handlePreview"
-        >{{ $t("去安装") }}</Button
+        >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
-      <Button class="w-[88px]">{{ $t("取消") }}</Button>
+      <Button class="w-[88px]">{{ $t("action.cancel") }}</Button>
     </div>
     <preview v-model:is-show="previewData.isShow"></preview>
   </div>

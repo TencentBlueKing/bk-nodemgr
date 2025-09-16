@@ -608,7 +608,15 @@ const getPackages = async () => {
     generation: 2
   });
   const hostList = await PackageService.DeployedHostCount({
-    request_items: res.items
+    request_items: res.items.map(item => ({
+      generation: item.generation,
+      release_type: item.release_type,
+      version: item.version,
+      platform: {
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch
+      }
+    }))
   });
   const items = res.items.map((item, index) => ({
     ...item,

@@ -22,6 +22,36 @@ platform:
       cloud_unit: 安装到管控单元
       info: 安装信息
       version: Agent 版本
+      packageVersion: 包版本
+      AdvancedOptions: 高级选项
+      placeholder:
+        select: 请选择
+        selectBiz: 选择业务
+      button:
+        install: 去安装
+    preview:
+      title: 安装预览
+      tipTitle: 当前业务中发现部分主机 IP 已经在蓝鲸注册，需要手动确认是全新安装还是基于 CMDB 记录安装：
+      firstTip: 1. 全新安装会将该 IP 当作全新主机处理，执行安装并将该主机导入到 CMDB 中；
+      secondTip: 2. 若是已经在 CMDB 中注册过的主机，为了确保节点管理安装记录与 CMDB 主机记录之间的正确匹配，需要手动指定该 IP 所匹配的正确 CMDB 主机记录。
+      placeholder: 输入 关键词
+      label:
+        all: 全部
+        pendingConfirmation: 待确认
+        error: 错误
+        cleanInstallation: 全新安装并导入 CMDB
+        normalInstallation: 正常安装
+      popConfirm:
+        title: 当前业务下可能已存在您希望安装的相同 IP主机
+        tip: 请选择处理方式：
+        prepend: 全新安装，并导入 CMDB
+        install: 安装为：
+      button:
+        batchInstall: 一键处理为：全新安装
+        batchRemove: 一键移除错误项
+        deel: 去处理
+        remove: 移除
+        performInstallation: 执行安装
     batchOperate: 批量
     copy: 复制
     uninstall: 卸载
@@ -78,12 +108,9 @@ platform:
         failed: 失败
         success: 成功
         partial_failed: 部分失败
-  topoManager:
-    name: 拓扑管理
-  ruleManager:
-    name: 策略管理
-  pkgManager:
-    name: 包管理
+  topoManagerName: 拓扑管理
+  ruleManagerName: 策略管理
+  pkgManagerName: 包管理
 topoManager:
   workArea:
     title: 管控区域
@@ -296,6 +323,7 @@ action:
   install: 安装
   unload: 卸载
 table:
+  loading: 数据加载中
   empty: 暂无数据
   action: 操作
 message:

@@ -2,7 +2,7 @@
     <Sideslider
         v-model:isShow="isShow"
         :width="1600"
-        :title="'安装预览'"
+        :title="$t('platform.nodeMan.preview.title')"
         render-directive="if"
         :before-close="handleBeforeClose"
     >
@@ -11,19 +11,19 @@
                 <div class="flex min-h-[56px] bg-[#FFF4E2] border border-[#FFF4E2] rounded-[2px] py-[6px] px-[9px] gap-[9px]">
                     <i class="nodeman-icon nc-tips pt-[2px] text-[#FF9C01]"></i>
                     <div class="flex-1 text-[12px] text-[#4D4F56]">
-                        <p>当前业务中发现部分主机 IP 已经在蓝鲸注册，需要手动确认是全新安装还是基于 CMDB 记录安装：</p>
-                        <p>1. 全新安装会将该 IP 当作全新主机处理，执行安装并将该主机导入到 CMDB 中；</p>
-                        <p>2. 若是已经在 CMDB 中注册过的主机，为了确保节点管理安装记录与 CMDB 主机记录之间的正确匹配，需要手动指定该 IP 所匹配的正确 CMDB 主机记录。</p>
+                        <p>{{ $t('platform.nodeMan.preview.tipTitle') }}</p>
+                        <p>{{ $t('platform.nodeMan.preview.firstTip') }}</p>
+                        <p>{{ $t('platform.nodeMan.preview.secondTip') }}</p>
                     </div>
                 </div>
                 <div class="flex justify-between mt-[16px]">
                     <div class="w-[50%] flex gap-[8px]">
-                        <Input type="search" v-model="searchValue" placeholder="输入 关键词"/>
+                        <Input type="search" v-model="searchValue" :placeholder="$t('platform.nodeMan.preview.placeholder')"/>
                         <copy-ip-dropdown :type="'agent'" :disabled="!selection.length" :data="tableData"></copy-ip-dropdown>
                     </div>
                     <div class="flex gap-[8px]">
-                        <Button>一键处理为：全新安装</Button>
-                        <Button>一键移除错误项</Button>
+                        <Button>{{ $t('platform.nodeMan.preview.button.batchInstall') }}</Button>
+                        <Button>{{ $t('platform.nodeMan.preview.button.batchRemove') }}</Button>
                     </div>
                 </div>
                 <Tab
@@ -57,7 +57,7 @@
                         <template #panel>
                             <Table
                                 :data="tableData"
-                                :empty-text="'暂无数据'"
+                                :empty-text="$t('table.empty')"
                                 :column-config="{ resizable: true }"
                                 show-overflow-tooltip
                                 :max-height="462"
@@ -80,17 +80,17 @@
                                             <p>动态寻址下已存在相同 IP 的安装记录，去处理</p>
                                             <PopConfirm
                                                 width="780"
-                                                title="当前业务下可能已存在您希望安装的相同 IP主机"
+                                                :title="$t('platform.nodeMan.preview.popConfirm.title')"
                                                 trigger="click"
                                                 @confirm="ensure"
                                             >
-                                                <Button theme="primary" text>去处理</Button>
+                                                <Button theme="primary" text>{{ t('platform.nodeMan.preview.button.deel') }}</Button>
                                                 <template #content>
-                                                    <div class="mt-[6px] mb-[8px] text-[12px]">请选择处理方式：</div>
+                                                    <div class="mt-[6px] mb-[8px] text-[12px]">{{ t('platform.nodeMan.preview.popConfirm.tip') }}</div>
                                                     <Table
                                                         class="mb-[24px]"
                                                         :data="tableData"
-                                                        :empty-text="'暂无数据'"
+                                                        :empty-text="t('table.empty')"
                                                         show-overflow-tooltip
                                                         :column-config="{ resizable: true }"
                                                         :max-height="462"
@@ -102,13 +102,13 @@
                                                     >
                                                         <template #prepend>
                                                             <div class="bg-[#F0F5FF] h-[32px] flex items-center pl-[16px]">
-                                                                <Radio v-model="radioValue" label="cmdb">全新安装，并导入 CMDB</Radio>
+                                                                <Radio v-model="radioValue" label="cmdb">{{ t('platform.nodeMan.preview.popConfirm.prepend') }}</Radio>
                                                             </div>
                                                         </template>
                                                         <TableColumn field="bk_host_innerip" :title="t('platform.nodeMan.inner_ip')" min-width="200">
                                                             <template #default="{ row }">
                                                                 <Radio v-model="row.check" label="cmdb">
-                                                                    <span>安装为：</span>
+                                                                    <span>{{ t('platform.nodeMan.preview.popConfirm.install') }}</span>
                                                                     <span>{{ row.bk_host_innerip }}</span>
                                                                 </Radio>
                                                             </template>
@@ -125,7 +125,7 @@
                                 </TableColumn>
                                 <TableColumn field="action" :title="t('platform.nodeMan.operate')" min-width="100" fixed="right">
                                     <template #default="{ row }">
-                                        <Button theme="primary" text ext-cls="reinstall">移除</Button>
+                                        <Button theme="primary" text ext-cls="reinstall">{{ t('platform.nodeMan.preview.button.remove') }}</Button>
                                     </template>
                                 </TableColumn>
                             </Table>
@@ -136,8 +136,8 @@
         </template>
         <template #footer>
             <div class="flex justify-start gap-[8px]">
-                <Button theme="primary" @click="handleSetup" :disabled="!tableData.length">执行安装</Button>
-                <Button @click="handleBeforeClose">取消</Button>
+                <Button theme="primary" @click="handleSetup" :disabled="!tableData.length">{{ t('platform.nodeMan.preview.button.performInstallation') }}</Button>
+                <Button @click="handleBeforeClose">{{ t('action.cancel') }}</Button>
             </div>
         </template>
     </Sideslider>
@@ -170,11 +170,11 @@ const searchValue = ref('');
 const tableData = ref<AgentInstallInfo[]>([]);
 
 const tabs = computed(() => ([
-    { label: '全部', name: 'all', count: tableData.value.length},
-    { label: '待确认', name: 'confirm', count: 3, icon: 'danger-fill', iconColor: '#FF9C01' },
-    { label: '错误', name: 'error', count: 2, icon: 'wrong', iconColor: '#EA3636'  },
-    { label: '全新安装并导入 CMDB', name: 'CMDB', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88' },
-    { label: '正常安装', name: 'setup', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88'  }
+    { label: t('platform.nodeMan.preview.label.all'), name: 'all', count: tableData.value.length},
+    { label: t('platform.nodeMan.preview.label.pendingConfirmation'), name: 'confirm', count: 3, icon: 'danger-fill', iconColor: '#FF9C01' },
+    { label: t('platform.nodeMan.preview.label.error'), name: 'error', count: 2, icon: 'wrong', iconColor: '#EA3636'  },
+    { label: t('platform.nodeMan.preview.label.cleanInstallation'), name: 'CMDB', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88' },
+    { label: t('platform.nodeMan.preview.label.normalInstallation'), name: 'setup', count: 3, icon: 'check-circle-fill', iconColor: '#1CAB88'  }
 ]));
 const active = ref('all');
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({

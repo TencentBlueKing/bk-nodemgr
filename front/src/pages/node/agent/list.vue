@@ -61,7 +61,7 @@
           name-key="bk_biz_name"
           :remote-method="topoRemotehandler"
           ref="topoSelect"
-          :placeholder="$t('业务拓扑')"
+          :placeholder="$t('platform.nodeMan.bussinessTopology')"
         />
         <SearchSelect
           class="w-[480px] z-99"
@@ -76,13 +76,13 @@
       </div>
     </section>
     <bk-loading
-      title="数据加载中"
+      :title="$t('table.loading')"
       :loading="loading"
       class="w-full overflow-auto"
     >
       <Table
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="$t('table.empty')"
         :pagination="pagination"
         :column-config="{ resizable: true }"
         :max-height="maxHeight"

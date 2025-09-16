@@ -2,7 +2,7 @@
   <Navigation navigation-type="top-bottom" :need-menu="!!subMenuData?.length" @toggle="handleNavToggle">
     <template #side-header>
       <img src="/nodeman.png" class="w-[28px] h-[28px] mr-[12px]" @click="handleGotoHome" />
-      <span class="text-[16px] text-[#FAFBFD] cursor-pointer" @click="handleGotoHome">{{ t('蓝鲸节点管理') }}</span>
+      <span class="text-[16px] text-[#FAFBFD] cursor-pointer" @click="handleGotoHome">{{ t('platform.title') }}</span>
     </template>
     <template #header>
       <FlexRow class="w-full text-[#96A2B9] text-[14px]">
@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { AngleUpFill } from 'bkui-vue/lib/icon';
-import { Menu, Navigation, Select } from 'bkui-vue';
+import { Menu, Navigation, Select, Button } from 'bkui-vue';
 import { computed, onBeforeMount, onMounted, watch, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
