@@ -69,6 +69,8 @@ func (mgr *Manager) registerActionDefNode() error {
 		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageWorkflow, mgr.conf.HostPasswordVault, mgr.logger),
 		node.NewActionPagentDetectInfoByWMI(mgr.logger, mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
 		node.NewActionInstallPagentByWMI(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageWorkflow, mgr.conf.HostPasswordVault, mgr.logger),
+		node.NewActionEnableReleaseTransfer(mgr.conf.StorageNode, mgr.logger),
+		node.NewActionUpgradePagent(mgr.conf.StorageNode, mgr.conf.GSEHandler, mgr.logger, mgr.conf.Provider),
 	)
 }
 

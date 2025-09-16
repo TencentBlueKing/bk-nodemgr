@@ -135,6 +135,11 @@ type HostDynamic struct {
 	ProxyClusterPort int64
 	ProxyDataPort    int64
 	ProxyFilePort    int64
+
+	// RelayDownloadPort represents the port of relay file server.
+	// RelayCallbackPort represents the port of relay callback server.
+	RelayDownloadPort int64
+	RelayCallbackPort int64
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -204,6 +209,9 @@ type HostDynamicFields struct {
 	ProxyClusterPort bool
 	ProxyDataPort    bool
 	ProxyFilePort    bool
+
+	RelayDownloadPort bool
+	RelayCallbackPort bool
 }
 
 // ProxyTag represents a proxy tag.

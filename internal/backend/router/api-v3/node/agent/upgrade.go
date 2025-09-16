@@ -39,12 +39,18 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	unitsMap, err := h.generatesUnitDirectLink(ctx, hosts)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get network unit info. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
 	reqHosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID(), reqHost, hosts)
+		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
 			h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to generate node deployment. err: %v", err)
 
@@ -71,6 +77,32 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 	h.logger.InfoCtxf(ctx, "launched upgrade agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) generatesUnitDirectLink(ctx *restserver.Context, hostMap map[int64]*types.Host) (map[int64]bool, error) {
+	unitInfoMap := make(map[int64]bool)
+
+	unitIDs := make([]int64, 0, len(hostMap))
+	for _, host := range hostMap {
+		unitIDs = append(unitIDs, host.Dynamic.NetworkUnitID)
+	}
+
+	units, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx,
+		types.UnlimitedPage(),
+		&types.NetworkUnitCondition{
+			ExactInclude: &types.NetworkUnitExactFields{
+				NetworkUnitID: unitIDs,
+			},
+		})
+	if err != nil {
+		return nil, fmt.Errorf("list network unit failed: %w", err)
+	}
+
+	for _, unit := range units {
+		unitInfoMap[unit.ID] = unit.IsDirect
+	}
+
+	return unitInfoMap, nil
 }
 
 func (h *handler) getUpgradeNodeHosts(
@@ -111,7 +143,8 @@ func (h *handler) getUpgradeNodeBizIDs(hostMap map[int64]*types.Host) []int64 {
 func (h *handler) generatesUpgradeDeploys(
 	tenantID string,
 	reqHost *protoBackend.NodeAgentUpgradeReq_Host,
-	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+	hostMap map[int64]*types.Host,
+	unitsMap map[int64]bool) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
 	host, ok := hostMap[hostID]
@@ -129,6 +162,9 @@ func (h *handler) generatesUpgradeDeploys(
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           reqHost.GetForce(),
 			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+		},
+		UpgradeOptions: types.DeploymentUpgradeOptions{
+			DirectLink: unitsMap[host.Dynamic.NetworkUnitID],
 		},
 	})
 

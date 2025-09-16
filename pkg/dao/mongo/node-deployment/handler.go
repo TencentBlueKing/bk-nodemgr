@@ -148,10 +148,12 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			return versions
 		}(),
 		RelayInfo: types.RelayInfo{
-			HostID:         info.RelayHostID,
-			AgentID:        info.RelayAgentID,
-			NodeOsType:     criteria.OSType(info.NodeOsType),
-			PackageDestDir: info.RelayPkgPath,
+			HostID:          info.RelayInfo.HostID,
+			AgentID:         info.RelayInfo.AgentID,
+			InnerIP:         info.RelayInfo.InnerIP,
+			PackageDestDir:  info.RelayInfo.PackageDestDir,
+			DownloadSvcPort: info.RelayInfo.DownloadSvcPort,
+			CallbackSvcPort: info.RelayInfo.CallbackSvcPort,
 		},
 	}, nil
 }
@@ -363,10 +365,14 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 
 			return dbTargetVersion
 		}(),
-		RelayHostID:  info.RelayInfo.HostID,
-		RelayAgentID: info.RelayInfo.AgentID,
-		RelayOsType:  string(info.RelayInfo.NodeOsType),
-		RelayPkgPath: info.RelayInfo.PackageDestDir,
+		RelayInfo: RelayInfo{
+			HostID:          info.RelayInfo.HostID,
+			AgentID:         info.RelayInfo.AgentID,
+			PackageDestDir:  info.RelayInfo.PackageDestDir,
+			InnerIP:         info.RelayInfo.InnerIP,
+			DownloadSvcPort: info.RelayInfo.DownloadSvcPort,
+			CallbackSvcPort: info.RelayInfo.CallbackSvcPort,
+		},
 	}
 
 	return data, nil
