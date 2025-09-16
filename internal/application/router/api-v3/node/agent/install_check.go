@@ -27,18 +27,11 @@ func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to check agent install, failed to validate request body: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	result, err := h.backendHandler.CheckAgentInstall(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to check agent install: %v", err)
 		return nil, fmt.Errorf("failed to check agent install: %w", err)
 	}
-
-	h.logger.InfoCtxf(ctx, "check agent install success")
 
 	resp := new(protoApplication.NodeAgentInstallCheckResp)
 	resp.ConvertResultFromTypes(result, len(result))

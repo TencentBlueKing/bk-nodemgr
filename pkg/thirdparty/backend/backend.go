@@ -825,7 +825,7 @@ func (c *cli) checkAgentInstall(ctx contextx.ITenantUserContext, req *protoBacke
 		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("check agent install node failed: %v", err)
 	}
 
 	if code := resp.GetCode(); code != CodeOK {

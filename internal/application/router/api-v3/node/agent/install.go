@@ -25,11 +25,6 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to validate request body: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	workflowID, err := h.backendHandler.InstallAgent(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)

@@ -125,6 +125,23 @@
         }
       }
     },
+    "v3AgentInstallCheckInfo": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "AgentInstallCheckInfo describes the node agent install check parameter."
+    },
     "v3AgentInstallInfo": {
       "type": "object",
       "properties": {
@@ -196,23 +213,6 @@
         }
       }
     },
-    "v3InstallInfoParama": {
-      "type": "object",
-      "properties": {
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip": {
-          "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "description": "InstallInfoParama describes the node agent install check parameter."
-    },
     "v3NodeAgentInstallCheckReq": {
       "type": "object",
       "properties": {
@@ -220,7 +220,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3InstallInfoParama"
+            "$ref": "#/definitions/v3AgentInstallCheckInfo"
           }
         }
       },

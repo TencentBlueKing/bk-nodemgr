@@ -271,9 +271,9 @@ func (x *NodeAgentInstallCheckReq) AutoConvert() {
 }
 
 // ConvertHostParamFromTypes convert host param from types.
-func (x *NodeAgentInstallCheckReq) ConvertHostParamFromTypes(checkParam *types.NodeAgentInstallCheckParam) {
-	hostsParam := make([]*NodeAgentInstallCheckReq_Host, len(checkParam.NodeAgentInstallCheckInfos))
-	for idx, host := range checkParam.NodeAgentInstallCheckInfos {
+func (x *NodeAgentInstallCheckReq) ConvertHostParamFromTypes(checkParam []*types.NodeAgentInstallCheckInfo) {
+	hostsParam := make([]*NodeAgentInstallCheckReq_Host, len(checkParam))
+	for idx, host := range checkParam {
 		hostsParam[idx] = &NodeAgentInstallCheckReq_Host{
 			BkBizId:         host.BizID,
 			BkHostInnerip:   host.InnerIP,
@@ -312,13 +312,13 @@ func (x *NodeAgentInstallCheckResp) ConvertResultToTypes() []*types.NodeAgentIns
 
 	data := x.GetData()
 
-	items := make([]*types.NodeAgentInstallCheckResult, 0, len(data.GetEligibilities()))
-	for _, item := range data.GetEligibilities() {
-		items = append(items, &types.NodeAgentInstallCheckResult{
+	items := make([]*types.NodeAgentInstallCheckResult, len(data.GetEligibilities()))
+	for idx, item := range data.GetEligibilities() {
+		items[idx] = &types.NodeAgentInstallCheckResult{
 			InnerIP:             item.GetInnerIp(),
 			InstallEligibilitiy: types.NodeAgentInstallEligibility(item.GetEligibilityStatus()),
 			DuplicateHostIDs:    item.GetDuplicateHostIds(),
-		})
+		}
 	}
 
 	return items

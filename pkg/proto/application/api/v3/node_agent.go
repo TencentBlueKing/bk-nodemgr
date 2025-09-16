@@ -162,7 +162,7 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 
 // Validate check body.
 // nolint: protogetter
-func (x *InstallInfoParama) Validate() error {
+func (x *AgentInstallCheckInfo) Validate() error {
 	if x.BkHostInnerip == "" {
 		return errors.New("bk_innerip can not be empty")
 	}
@@ -183,7 +183,7 @@ func (x *NodeAgentInstallCheckReq) AutoConvert() {
 }
 
 // ConvertAgentParamToTypes convert to types.
-func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() *types.NodeAgentInstallCheckParam {
+func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() []*types.NodeAgentInstallCheckInfo {
 	infos := x.GetHost()
 	if infos == nil {
 		return nil
@@ -199,9 +199,7 @@ func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() *types.NodeAgentIn
 		}
 	}
 
-	return &types.NodeAgentInstallCheckParam{
-		NodeAgentInstallCheckInfos: infoParam,
-	}
+	return infoParam
 }
 
 // ConvertResultFromTypes convert result from types.
@@ -210,8 +208,8 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 		return
 	}
 
-	installElig := make([]*NodeAgentInstallElig, 0, num)
-	for _, status := range result {
+	installElig := make([]*NodeAgentInstallElig, len(result))
+	for idx, status := range result {
 		item := &NodeAgentInstallElig{
 			InnerIp:    status.InnerIP,
 			EligStatus: string(status.InstallEligibilitiy),
@@ -219,7 +217,7 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 		if status.DuplicateHostIDs != nil {
 			item.DuplicateHostIds = status.DuplicateHostIDs
 		}
-		installElig = append(installElig, item)
+		installElig[idx] = item
 	}
 
 	x.Data = &NodeAgentInstallCheckResp_Data{

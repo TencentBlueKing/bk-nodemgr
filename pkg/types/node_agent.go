@@ -44,11 +44,6 @@ type NodeAgentInstallCheckInfo struct {
 	InnerIP       string
 }
 
-// NodeAgentInstallCheckParam describes the node agent install check parameter.
-type NodeAgentInstallCheckParam struct {
-	NodeAgentInstallCheckInfos []*NodeAgentInstallCheckInfo
-}
-
 // NodeOperationRetryParam validates the node install parameter.
 type NodeOperationRetryParam struct {
 	WorkflowID   string

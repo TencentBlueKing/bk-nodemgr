@@ -11,6 +11,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -185,7 +187,7 @@ type IHandlerNodeAgent interface {
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
 	// @param checkParam the check param.
 	// @return the check result and error.
-	CheckAgentInstall(ctx contextx.ITenantUserContext, checkParam *types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error)
+	CheckAgentInstall(ctx contextx.ITenantUserContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
 
 	// UpgradeAgent node agent.
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
@@ -1234,7 +1236,7 @@ func (h *Handler) InstallAgent(ctx contextx.ITenantUserContext, installParam *ty
 
 // CheckAgentInstall check agent install.
 func (h *Handler) CheckAgentInstall(ctx contextx.ITenantUserContext,
-	checkParam *types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error) {
+	checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error) {
 
 	req := &protoBackend.NodeAgentInstallCheckReq{}
 
@@ -1242,7 +1244,7 @@ func (h *Handler) CheckAgentInstall(ctx contextx.ITenantUserContext,
 
 	resp, err := h.cli.checkAgentInstall(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check agent install: %w", err)
 	}
 
 	result := resp.ConvertResultToTypes()
