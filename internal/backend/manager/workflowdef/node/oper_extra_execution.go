@@ -126,6 +126,11 @@ func (exec *extraExecution) Lock(
 			return fmt.Errorf("get lock by locker(%s) failed: %w", lockerName, err)
 		}
 
+		if string(otherOperInstID) == operationInstanceID {
+			// already locked by self, return nil
+			return nil
+		}
+
 		return fmt.Errorf("locker(%s) already locked by other oper-inst(%s)", lockerName, otherOperInstID)
 	}
 
@@ -136,7 +141,7 @@ func (exec *extraExecution) Lock(
 func (exec *extraExecution) Unlock(ctx context.Context, lockerName string, operationInstanceID string) error {
 	operInstID, err := exec.locker.Get(ctx, lockerName)
 	if err != nil {
-		return fmt.Errorf("get lock by locker(%s) failed: %w", lockerName, err)
+		return fmt.Errorf("try unlock, get lock by locker(%s) failed: %w", lockerName, err)
 	}
 
 	if string(operInstID) != operationInstanceID {

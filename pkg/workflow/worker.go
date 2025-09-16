@@ -112,19 +112,21 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 			"oper-inst-id(%s), err: %v", operationInstanceID, err)
 	}
 
-	// handle operation instance lifecycle.
-	if actionInstData.IsFirst() {
-		if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
-			operInstBriefData.Lifecycle.End(action.StateFailed)
-			err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle)
-			if err != nil {
-				return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
-					err, execErr)
-			}
-
-			return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w", operationInstanceID, execErr)
+	// handle extra execution before action executed.
+	// if retry happens, action maybe not first
+	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
+		operInstBriefData.Lifecycle.End(action.StateFailed)
+		err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle)
+		if err != nil {
+			return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
+				err, execErr)
 		}
 
+		return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w", operationInstanceID, execErr)
+	}
+
+	// handle operation instance lifecycle.
+	if actionInstData.IsFirst() {
 		// first action be executed, means operation instance is started.
 		operInstBriefData.Lifecycle.Start()
 		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
