@@ -34,8 +34,18 @@ type IHandler interface {
 
 // ITransfer is interface for file transfer handler.
 type ITransfer interface {
-	// LaunchTransferRelease launch transfer release.
-	LaunchTransferRelease(ctx context.Context,
+	// LaunchTransferNode launch transfer release.
+	LaunchTransferNode(ctx context.Context,
+		gen types.Generation,
+		rt types.ReleaseType,
+		plat platform.Platform,
+		version string,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+
+	// LaunchTransferPlugin launch transfer release.
+	LaunchTransferPlugin(ctx context.Context,
+		name string,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
@@ -316,8 +326,8 @@ func (h *handler) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 	return nil
 }
 
-// LaunchTransferRelease launch transfer release.
-func (h *handler) LaunchTransferRelease(ctx context.Context,
+// LaunchTransferNode launch transfer release.
+func (h *handler) LaunchTransferNode(ctx context.Context,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -330,7 +340,48 @@ func (h *handler) LaunchTransferRelease(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := h.cli.launchTransferRelease(ctx, tenantID, &protoFile.TransferLaunchReleaseReq{
+	resp, err := h.cli.launchTransferNode(ctx, tenantID, &protoFile.TransferLaunchNodeReq{
+		Generation:   int64(gen),
+		ReleaseType:  string(rt),
+		Platform:     protoFile.ConvertPlatformFromTypes(plat),
+		Version:      version,
+		TargetDir:    dstDir,
+		TargetHostId: dstHost.HostID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to launch transfer release: %w", err)
+	}
+
+	data := resp.GetData()
+
+	return &simpleTransferHandler{
+		taskID: data.GetTaskId(),
+		fileInfo: fileiface.FileInfo{
+			Name: data.GetReleaseFileName(),
+			Size: data.GetReleaseFileSize(),
+			MD5:  data.GetReleaseFileMd5(),
+		},
+		handler: h,
+	}, nil
+}
+
+// LaunchTransferPlugin launch transfer release.
+func (h *handler) LaunchTransferPlugin(ctx context.Context,
+	name string,
+	gen types.Generation,
+	rt types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	tenantID, err := tenant.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.launchTransferPlugin(ctx, tenantID, &protoFile.TransferLaunchPluginReq{
+		Name:         name,
 		Generation:   int64(gen),
 		ReleaseType:  string(rt),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),

@@ -43,12 +43,9 @@ func (lfp *localFilePool) get(filename string) (*localFile, bool) {
 	return data, ok
 }
 
-// EnsureFileToLocal ensure the file to local.
-func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
-	gen types.Generation,
-	rt types.ReleaseType,
-	plat platform.Platform,
-	version string) (fileiface.File, string, error) {
+// EnsureNodeToLocal ensure the node to local.
+func (m *Manager) EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (
+	fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
 		return nil, "", fmt.Errorf("not support generation: %d", gen)
@@ -74,11 +71,42 @@ func (m *Manager) EnsureFileToLocal(ctx contextx.IContext,
 		return nil, "", fmt.Errorf("not support release type: %s", rt)
 	}
 
-	return m.EnsureReleaseToLocal(ctx, release)
+	return m.ensureReleaseToLocal(ctx, release)
 }
 
-// EnsureReleaseToLocal ensure the release to local.
-func (m *Manager) EnsureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error) {
+// EnsurePluginToLocal ensure the plugin to local.
+func (m *Manager) EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform,
+	version string) (fileiface.File, string, error) {
+
+	if gen != types.Generation2 {
+		return nil, "", fmt.Errorf("not support generation: %d", gen)
+	}
+
+	var release types.Release
+	switch rt {
+	case types.ReleaseTypeOfficialPlugin:
+		releaseOfficialPlugin, err := m.storageRelease.GetReleaseOfficialPlugin(ctx, name, gen, plat, version)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get release: %w", err)
+		}
+
+		release = releaseOfficialPlugin.Release
+	case types.ReleaseTypeExternalPlugin:
+		releaseExternalPlugin, err := m.storageRelease.GetReleaseExternalPlugin(ctx, name, gen, plat, version)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get release: %w", err)
+		}
+
+		release = releaseExternalPlugin.Release
+	default:
+		return nil, "", fmt.Errorf("not support release type: %s", rt)
+	}
+
+	return m.ensureReleaseToLocal(ctx, release)
+}
+
+// ensureReleaseToLocal ensure the release to local.
+func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
 		info := cache.file.Info()

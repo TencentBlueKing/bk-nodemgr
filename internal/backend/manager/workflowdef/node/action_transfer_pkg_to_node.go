@@ -171,7 +171,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 		dataDir = filepath.Join(info.InstallerWorkDir, "data")
 	}
 
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(ctx,
+	transferHandler, err := act.fileHandler.LaunchTransferNode(ctx,
 		info.Host.Dynamic.NodeGeneration,
 		rt,
 		platform.Platform{

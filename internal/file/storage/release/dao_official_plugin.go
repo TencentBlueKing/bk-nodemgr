@@ -13,7 +13,6 @@
 package release
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -50,7 +49,7 @@ func (s *Storage) existReleaseOfficialPlugin(
 }
 
 // upsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) upsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IUserContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
 	var err error
 
 	releases := make([]*types.Release, 0, len(releaseOfficialPlugins))
@@ -60,6 +59,7 @@ func (s *Storage) upsertManyReleaseOfficialPlugin(ctx context.Context, releaseOf
 		}
 
 		rls.UpdatedAt = time.Now()
+		rls.Operator = ctx.BKUsername()
 		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoOfficialPlugin)
 		if err != nil {
 			return fmt.Errorf("failed to upsert many release agent: %v", err)
@@ -74,4 +74,33 @@ func (s *Storage) upsertManyReleaseOfficialPlugin(ctx context.Context, releaseOf
 	}
 
 	return nil
+}
+
+func (s *Storage) getReleaseOfficialPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
+	*types.ReleaseOfficialPlugin, error) {
+
+	var (
+		rls *types.Release
+		err error
+	)
+
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeOfficialPlugin,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release official plugin: %w", err)
+	}
+
+	additionInfo := new(types.ReleaseAdditionInfoOfficialPlugin)
+	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
+		return nil, fmt.Errorf("failed to get release official plugin: %v", err)
+	}
+
+	return &types.ReleaseOfficialPlugin{
+		Release:                           *rls,
+		ReleaseAdditionInfoOfficialPlugin: *additionInfo,
+	}, nil
 }

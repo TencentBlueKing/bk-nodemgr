@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -225,9 +224,8 @@ func proxyPkgFileNameAgent(plat platform.Platform) string {
 // generateProxyPkg generates proxy package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateProxyPkg(ctx context.Context,
-	originDetail *types.OriginPkgDetail,
-	originLocalFileName string) ([]*releaseProxyPkg, error) {
+func (m *Manager) generateProxyPkg(ctx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
+	[]*releaseProxyPkg, error) {
 
 	// local origin server.
 	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)

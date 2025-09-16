@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -236,6 +235,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 }
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id.
+// nolint: funlen,gocognit
 func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, uploadID string) error {
 	up, err := m.storageUpload.GetExternalPluginUpload(ctx, uploadID)
 	if err != nil {
@@ -246,7 +246,6 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, upload
 
 	if up.Category != types.UploadCategoryOriginExternalPlugin {
 		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, invalid category, category(%s)", up.Category)
-
 		return fmt.Errorf("failed to publish release external plugin, invalid category, category(%s)", up.Category)
 	}
 
@@ -334,6 +333,7 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, upload
 
 			releasesMap[pkg.platform.String()] = &types.ReleaseExternalPlugin{
 				Release: types.Release{
+					Name:         detail.Name,
 					Generation:   gen,
 					Type:         types.ReleaseTypeExternalPlugin,
 					Version:      detail.Version,
@@ -381,7 +381,7 @@ type releaseExternalPluginPkg struct {
 // generateExternalPluginPkg generates external plugin package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateExternalPluginPkg(ctx context.Context,
+func (m *Manager) generateExternalPluginPkg(ctx contextx.IContext,
 	originDetail *types.OriginExternalPluginPkgDetail,
 	originLocalFileName string) ([]*releaseExternalPluginPkg, error) {
 

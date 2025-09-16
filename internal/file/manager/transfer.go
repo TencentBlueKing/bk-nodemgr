@@ -153,8 +153,8 @@ func (m *Manager) QueryTransfer(
 	return nil, nil, fmt.Errorf("unexpected transfer result: (%v), (%v)", results[0], results[1])
 }
 
-// LaunchTransferRelease launch transfer release.
-func (m *Manager) LaunchTransferRelease(ctx contextx.IContext,
+// LaunchTransferNode launch transfer node pkg.
+func (m *Manager) LaunchTransferNode(ctx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -162,7 +162,35 @@ func (m *Manager) LaunchTransferRelease(ctx contextx.IContext,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	file, dir, err := m.EnsureFileToLocal(ctx, gen, rt, plat, version)
+	file, dir, err := m.EnsureNodeToLocal(ctx, rt, gen, plat, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release file: %w", err)
+	}
+
+	info := file.Info()
+	fp := filepath.Join(dir, info.Name)
+
+	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to transfer package: %w", err)
+	}
+
+	tf.fileInfo = info
+
+	return tf, nil
+}
+
+// LaunchTransferPlugin launch transfer node pkg.
+func (m *Manager) LaunchTransferPlugin(ctx contextx.IContext,
+	name string,
+	gen types.Generation,
+	rt types.ReleaseType,
+	plat platform.Platform,
+	version string,
+	dstDir string,
+	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+
+	file, dir, err := m.EnsurePluginToLocal(ctx, rt, name, gen, plat, version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release file: %w", err)
 	}

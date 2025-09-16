@@ -112,6 +112,7 @@ func ConvertNodeRoleToReleaseType(role NodeRole) (ReleaseType, error) {
 
 // Release defines the release package information.
 type Release struct {
+	Name         string
 	Generation   Generation
 	Type         ReleaseType
 	Version      string

@@ -230,8 +230,7 @@ func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IUserContext, uploadI
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypePluginBinTool,
-			Version:      "",
-			Platform:     platform.Platform{},
+			Platform:     platform.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,

@@ -227,8 +227,7 @@ func (m *Manager) PublishReleaseBinTool(ctx contextx.IUserContext, uploadID stri
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeBinTool,
-			Version:      "",
-			Platform:     platform.Platform{},
+			Platform:     platform.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,

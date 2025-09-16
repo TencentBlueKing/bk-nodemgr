@@ -12,7 +12,6 @@
 package release
 
 import (
-	"context"
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
@@ -80,7 +79,7 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // UpsertManyReleaseAgent upsert many release.
-func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*types.ReleaseAgent) error {
+func (s *Storage) UpsertManyReleaseAgent(ctx contextx.IUserContext, releaseAgents []*types.ReleaseAgent) error {
 	var (
 		err error
 	)
@@ -95,7 +94,7 @@ func (s *Storage) UpsertManyReleaseAgent(ctx context.Context, releaseAgents []*t
 }
 
 // ExistReleaseAgent checks if release agent exists.
-func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -111,9 +110,7 @@ func (s *Storage) ExistReleaseAgent(ctx context.Context, gen types.Generation, v
 }
 
 // GetReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseAgent(
-	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
-
+func (s *Storage) GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
 	var (
 		data *types.ReleaseAgent
 		err  error
@@ -129,7 +126,7 @@ func (s *Storage) GetReleaseAgent(
 }
 
 // UpsertReleaseBinTool upserts release bintool.
-func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error {
+func (s *Storage) UpsertReleaseBinTool(ctx contextx.IUserContext, bintool types.ReleaseBinTool) error {
 	var (
 		err error
 	)
@@ -144,7 +141,7 @@ func (s *Storage) UpsertReleaseBinTool(ctx context.Context, bintool types.Releas
 }
 
 // DeleteReleaseBinTool deletes release bintool.
-func (s *Storage) DeleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+func (s *Storage) DeleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
 	var (
 		err error
 	)
@@ -159,7 +156,7 @@ func (s *Storage) DeleteReleaseBinTool(ctx context.Context, gen types.Generation
 }
 
 // GetReleaseBinTool gets release bintool.
-func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error) {
+func (s *Storage) GetReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
 	var (
 		data *types.ReleaseBinTool
 		err  error
@@ -175,7 +172,7 @@ func (s *Storage) GetReleaseBinTool(ctx context.Context, gen types.Generation) (
 }
 
 // ExistReleaseBinTool checks if release bintool exists.
-func (s *Storage) ExistReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+func (s *Storage) ExistReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -191,7 +188,7 @@ func (s *Storage) ExistReleaseBinTool(ctx context.Context, gen types.Generation)
 }
 
 // GetReleaseCert gets release cert.
-func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error) {
+func (s *Storage) GetReleaseCert(ctx contextx.IContext) (*types.ReleaseCert, error) {
 	var (
 		data *types.ReleaseCert
 		err  error
@@ -207,7 +204,7 @@ func (s *Storage) GetReleaseCert(ctx context.Context) (*types.ReleaseCert, error
 }
 
 // ExistReleaseCert checks if release cert exists.
-func (s *Storage) ExistReleaseCert(ctx context.Context) (bool, error) {
+func (s *Storage) ExistReleaseCert(ctx contextx.IContext) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -223,7 +220,7 @@ func (s *Storage) ExistReleaseCert(ctx context.Context) (bool, error) {
 }
 
 // UpsertReleaseCert upserts release cert.
-func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert) error {
+func (s *Storage) UpsertReleaseCert(ctx contextx.IUserContext, cert types.ReleaseCert) error {
 	var (
 		err error
 	)
@@ -238,7 +235,7 @@ func (s *Storage) UpsertReleaseCert(ctx context.Context, cert types.ReleaseCert)
 }
 
 // DeleteReleaseCert deletes release cert.
-func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) error {
+func (s *Storage) DeleteReleaseCert(ctx contextx.IContext, fileName string) error {
 	var (
 		err error
 	)
@@ -253,9 +250,7 @@ func (s *Storage) DeleteReleaseCert(ctx context.Context, fileName string) error 
 }
 
 // GetReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseProxy(
-	ctx context.Context, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
-
+func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
 	var (
 		data *types.ReleaseProxy
 		err  error
@@ -271,7 +266,7 @@ func (s *Storage) GetReleaseProxy(
 }
 
 // UpsertManyReleaseProxy upsert many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, releaseProxys []*types.ReleaseProxy) error {
+func (s *Storage) UpsertManyReleaseProxy(ctx contextx.IUserContext, releaseProxys []*types.ReleaseProxy) error {
 	var (
 		err error
 	)
@@ -286,7 +281,7 @@ func (s *Storage) UpsertManyReleaseProxy(ctx context.Context, releaseProxys []*t
 }
 
 // UpsertReleasePluginBinTool upserts release plugin bintool.
-func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool types.ReleasePluginBinTool) error {
+func (s *Storage) UpsertReleasePluginBinTool(ctx contextx.IUserContext, pluginBinTool types.ReleasePluginBinTool) error {
 	var (
 		err error
 	)
@@ -301,7 +296,7 @@ func (s *Storage) UpsertReleasePluginBinTool(ctx context.Context, pluginBinTool 
 }
 
 // DeleteReleasePluginBinTool deletes release plugin bintool.
-func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+func (s *Storage) DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
 	var (
 		err error
 	)
@@ -316,7 +311,7 @@ func (s *Storage) DeleteReleasePluginBinTool(ctx context.Context, gen types.Gene
 }
 
 // GetReleasePluginBinTool gets release plugin bintool.
-func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generation) (*types.ReleasePluginBinTool, error) {
+func (s *Storage) GetReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinTool, error) {
 	var (
 		data *types.ReleasePluginBinTool
 		err  error
@@ -332,7 +327,7 @@ func (s *Storage) GetReleasePluginBinTool(ctx context.Context, gen types.Generat
 }
 
 // ExistReleasePluginBinTool checks if release plugin bintool exists.
-func (s *Storage) ExistReleasePluginBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+func (s *Storage) ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -364,7 +359,7 @@ func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName s
 }
 
 // UpsertManyReleaseExternalPlugin upsert many release.
-func (s *Storage) UpsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+func (s *Storage) UpsertManyReleaseExternalPlugin(ctx contextx.IUserContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
 	var (
 		err error
 	)
@@ -397,7 +392,7 @@ func (s *Storage) ExistReleaseOfficialPlugin(
 }
 
 // UpsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx contextx.IUserContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
 	var err error
 
 	// record metric.
@@ -407,4 +402,40 @@ func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx context.Context, releaseOf
 	err = s.upsertManyReleaseOfficialPlugin(ctx, releaseOfficialPlugins)
 
 	return err
+}
+
+// GetReleaseOfficialPlugin gets release official plugin.
+func (s *Storage) GetReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platform.Platform, version string) (
+	*types.ReleaseOfficialPlugin, error) {
+
+	var (
+		data *types.ReleaseOfficialPlugin
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_official_plugin")
+	defer metric.End(err)
+
+	data, err = s.getReleaseOfficialPlugin(ctx, pluginName, gen, plat, version)
+
+	return data, err
+}
+
+// GetReleaseExternalPlugin gets release external plugin..
+func (s *Storage) GetReleaseExternalPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platform.Platform, version string) (
+	*types.ReleaseExternalPlugin, error) {
+
+	var (
+		data *types.ReleaseExternalPlugin
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_release_external_plugin")
+	defer metric.End(err)
+
+	data, err = s.getReleaseExternalPlugin(ctx, pluginName, gen, plat, version)
+
+	return data, err
 }

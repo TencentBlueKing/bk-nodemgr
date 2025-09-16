@@ -20,6 +20,11 @@ import (
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
+// WithName provides filtering by name.
+func WithName(name ...string) OptFn {
+	return base.WithValues(FieldKeyName, name...)
+}
+
 // WithGeneration provides filtering by generation.
 func WithGeneration(gen ...types.Generation) OptFn {
 	return base.WithValues(FieldKeyGeneration, types.GenerationListToInt64List(gen)...)

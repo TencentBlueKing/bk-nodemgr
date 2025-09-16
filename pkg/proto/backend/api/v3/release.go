@@ -137,6 +137,7 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 	result := make([]*types.Release, len(items))
 	for idx, item := range items {
 		release := &types.Release{
+			Name:       item.GetName(),
 			Generation: types.Generation(item.GetGeneration()),
 			Type:       types.ReleaseType(item.GetReleaseType()),
 			Platform: platform.Platform{

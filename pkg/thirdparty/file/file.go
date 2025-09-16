@@ -382,17 +382,17 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *p
 	return resp.GetData(), nil
 }
 
-func (c *cli) launchTransferRelease(ctx context.Context, tenantID string, req *protoFile.TransferLaunchReleaseReq) (
-	*protoFile.TransferLaunchReleaseResp, error) {
+func (c *cli) launchTransferNode(ctx context.Context, tenantID string, req *protoFile.TransferLaunchNodeReq) (
+	*protoFile.TransferLaunchNodeResp, error) {
 
-	resp := new(protoFile.TransferLaunchReleaseResp)
+	resp := new(protoFile.TransferLaunchNodeResp)
 	header, err := c.getCommonHeader(tenantID)
 	if err != nil {
 		return nil, err
 	}
 
 	err = c.client.Post().
-		SubResourcef("/transfer/launch/release").
+		SubResourcef("/transfer/launch/node").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -403,12 +403,44 @@ func (c *cli) launchTransferRelease(ctx context.Context, tenantID string, req *p
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("failed to transfer release launch. code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("failed to transfer node launch. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
-		return nil, errors.New("failed to transfer release launch. data is nil")
+		return nil, errors.New("failed to transfer node launch. data is nil")
+	}
+
+	return resp, nil
+}
+
+func (c *cli) launchTransferPlugin(ctx context.Context, tenantID string, req *protoFile.TransferLaunchPluginReq) (
+	*protoFile.TransferLaunchPluginResp, error) {
+
+	resp := new(protoFile.TransferLaunchPluginResp)
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/transfer/launch/plugin").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to transfer plugin launch. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, errors.New("failed to transfer plugin launch. data is nil")
 	}
 
 	return resp, nil

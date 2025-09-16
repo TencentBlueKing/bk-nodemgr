@@ -5,9 +5,9 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api
 import "common.proto";
 import "google/api/annotations.proto";
 
-// TransferLaunchReleaseReq describes the HTTP request body when launch transfer
+// TransferLaunchNodeReq describes the HTTP request body when launch transfer
 // release.
-message TransferLaunchReleaseReq {
+message TransferLaunchNodeReq {
   int64 generation = 1;
   string release_type = 2;
   Platform platform = 3;
@@ -16,9 +16,37 @@ message TransferLaunchReleaseReq {
   string target_dir = 6;
 }
 
-// TransferLaunchReleaseResp describes the HTTP response body when launch
+// TransferLaunchNodeResp describes the HTTP response body when launch
 // transfer release.
-message TransferLaunchReleaseResp {
+message TransferLaunchNodeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string task_id = 1;
+    optional string release_file_name = 2;
+    optional int64 release_file_size = 3;
+    optional string release_file_md5 = 4;
+  }
+  Data data = 4;
+}
+
+// TransferLaunchPluginReq describes the HTTP request body when launch
+// transfer release.
+message TransferLaunchPluginReq {
+  string name = 1;
+  int64 generation = 2;
+  string release_type = 3;
+  Platform platform = 4;
+  string version = 5;
+  int64 target_host_id = 6;
+  string target_dir = 7;
+}
+
+// TransferLaunchNodePluginResp describes the HTTP response body when launch
+// transfer release.
+message TransferLaunchPluginResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -86,11 +114,20 @@ message TransferQueryResp {
 
 // Transfer service.
 service Transfer {
-  // TransferLaunchRelease provides transferring release package.
-  rpc TransferLaunchRelease(TransferLaunchReleaseReq)
-      returns (stream TransferLaunchReleaseResp) {
+  // TransferLaunchNode provides transferring node package.
+  rpc TransferLaunchNode(TransferLaunchNodeReq)
+      returns (stream TransferLaunchNodeResp) {
     option (google.api.http) = {
-      post : "/transfer/launch/release"
+      post : "/transfer/launch/node"
+      body : "*"
+    };
+  };
+
+  // TransferLaunchPlugin provides transferring plugin package.
+  rpc TransferLaunchPlugin(TransferLaunchPluginReq)
+      returns (stream TransferLaunchPluginResp) {
+    option (google.api.http) = {
+      post : "/transfer/launch/plugin"
       body : "*"
     };
   };
