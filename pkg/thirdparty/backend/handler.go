@@ -1226,7 +1226,7 @@ func (h *Handler) InstallAgent(ctx contextx.ITenantUserContext, installParam *ty
 
 	resp, err := h.cli.installNodeAgent(ctx, req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to install agent: %w", err)
 	}
 
 	result := resp.ConvertResultToComm()

@@ -28,10 +28,10 @@ func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
 	workflowID, err := h.backendHandler.InstallAgent(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "launched install agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(ctx, "launched install agent. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)

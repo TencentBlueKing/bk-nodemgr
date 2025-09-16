@@ -12,8 +12,6 @@
 package agent
 
 import (
-	"fmt"
-
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -30,7 +28,7 @@ func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error
 	result, err := h.backendHandler.CheckAgentInstall(ctx, req.ConvertAgentParamToTypes())
 	if err != nil {
 		h.logger.ErrorCtxf(ctx, "failed to check agent install: %v", err)
-		return nil, fmt.Errorf("failed to check agent install: %w", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.NodeAgentInstallCheckResp)
