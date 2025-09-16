@@ -29,8 +29,8 @@ func WithOperationID(ids ...string) OptFn {
 }
 
 // WithEmptyOperation filter by operation_instance.
-func WithEmptyOperation(isEmpty bool) OptFn {
-	return base.WithValues(FieldKeyOperationInstanceEmpty, isEmpty)
+func WithEmptyOperation(isEmpty ...bool) OptFn {
+	return base.WithValues(FieldKeyOperationInstanceEmpty, isEmpty...)
 }
 
 // WithBizID filter by biz id.

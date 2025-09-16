@@ -341,7 +341,7 @@ type NodeWorkflowOperationCondition struct {
 type OperationExactFields struct {
 	TriggerID     []string
 	OperationID   []string
-	OperInstEmpty bool
+	OperInstEmpty []bool
 }
 
 // OperationFuzzyFields defines the workflow operation fuzzy fields.

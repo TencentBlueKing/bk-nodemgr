@@ -37,7 +37,7 @@ func (s *Storage) listOperation(
 			opts = append(opts,
 				operation.WithTriggerID(condition.ExactInclude.TriggerID...),
 				operation.WithOperationID(condition.ExactInclude.OperationID...),
-				operation.WithEmptyOperation(condition.ExactInclude.OperInstEmpty),
+				operation.WithEmptyOperation(condition.ExactInclude.OperInstEmpty...),
 			)
 		}
 	}

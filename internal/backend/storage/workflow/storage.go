@@ -549,7 +549,7 @@ func (s *Storage) ListEmptyOperation(
 	cond := &types.OperationCondition{
 		ExactInclude: &types.OperationExactFields{
 			TriggerID:     []string{triggerID},
-			OperInstEmpty: true,
+			OperInstEmpty: []bool{true},
 		},
 	}
 	if opers, num, err = s.listOperation(ctx, page, cond); err != nil {
