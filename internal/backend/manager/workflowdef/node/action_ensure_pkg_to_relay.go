@@ -448,7 +448,7 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *utils.NodeActionStand
 
 	std.InstanceData().LogI(fmt.Sprintf("transferring release package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
-	transferHandler, err := act.fileHandler.LaunchTransferRelease(std.Context(),
+	transferHandler, err := act.fileHandler.LaunchTransferNode(std.Context(),
 		std.DeployInfo().Host.Dynamic.NodeGeneration,
 		rt,
 		platform.Platform{

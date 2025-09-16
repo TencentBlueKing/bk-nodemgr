@@ -31,9 +31,9 @@ func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureFileToLocal(ctx,
-		types.Generation(req.GetGeneration()),
+	file, _, err := h.manager.EnsureNodeToLocal(ctx,
 		types.ReleaseTypeProxy,
+		types.Generation(req.GetGeneration()),
 		platform.Platform{
 			OS:   criteria.OSType(req.GetOsType()),
 			Arch: criteria.CPUArch(req.GetCpuArch()),

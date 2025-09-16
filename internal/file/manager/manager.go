@@ -50,20 +50,26 @@ type IManager interface {
 	IOfficialPlugin
 	IExternalPlugin
 
-	// EnsureFileToLocal ensure the file to local.
+	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
-	EnsureFileToLocal(ctx contextx.IContext,
+	EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (fileiface.File, string, error)
+
+	// EnsurePluginToLocal ensure the plugin pkg to local.
+	// returns file, local-file-dir, error.
+	EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform, version string) (fileiface.File, string, error)
+
+	// LaunchTransferNode launch transfer node pkg.
+	LaunchTransferNode(ctx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
-		version string) (fileiface.File, string, error)
+		version string,
+		dstDir string,
+		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
-	// EnsureReleaseToLocal ensure the release to local.
-	// returns file, local-file-dir, error.
-	EnsureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error)
-
-	// LaunchTransferRelease launch transfer release.
-	LaunchTransferRelease(ctx contextx.IContext,
+	// LaunchTransferPlugin launch transfer plugin pkg.
+	LaunchTransferPlugin(ctx contextx.IContext,
+		name string,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
@@ -418,7 +424,7 @@ func (m *Manager) wrapOriginPackageName(name string) string {
 	return name + "-" + time.Now().Format("0102150405")
 }
 
-func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (fileiface.File, error) {
+func (m *Manager) fetchReleaseCertToLocal(ctx contextx.IContext) (fileiface.File, error) {
 	// get cert.
 	cert, err := m.storageRelease.GetReleaseCert(ctx)
 	if err != nil {
@@ -443,7 +449,7 @@ func (m *Manager) fetchReleaseCertToLocal(ctx context.Context) (fileiface.File, 
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (fileiface.File, error) {
+func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.File, error) {
 	// get bintool.
 	bintool, err := m.storageRelease.GetReleaseBinTool(ctx, types.Generation2)
 	if err != nil {
@@ -468,7 +474,7 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx context.Context) (fileiface.Fil
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleasePluginBinToolToLocal(ctx context.Context) (fileiface.File, error) {
+func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext) (fileiface.File, error) {
 	// get plugin bintool.
 	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2)
 	if err != nil {
@@ -493,9 +499,7 @@ func (m *Manager) fetchReleasePluginBinToolToLocal(ctx context.Context) (fileifa
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseAgentLocal(
-	ctx context.Context, plat platform.Platform, version string) (fileiface.File, error) {
-
+func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platform.Platform, version string) (fileiface.File, error) {
 	// get agent.
 	agent, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, plat, version)
 	if err != nil {

@@ -318,6 +318,7 @@ func (h *Handler) DistinctCPUArch(ctx context.Context, releaseType types.Release
 
 func convertReleaseToTypes(release *Release) *types.Release {
 	return &types.Release{
+		Name:       release.Name,
 		Generation: types.Generation(release.Generation),
 		Type:       types.ReleaseType(release.Type),
 		Version:    release.Version,

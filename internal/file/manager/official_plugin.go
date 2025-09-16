@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -348,6 +347,7 @@ func (m *Manager) PublishReleaseOfficialPlugin(ctx contextx.IUserContext, upload
 
 			releasesMap[pkg.platform.String()] = &types.ReleaseOfficialPlugin{
 				Release: types.Release{
+					Name:         detail.Name,
 					Generation:   gen,
 					Type:         types.ReleaseTypeOfficialPlugin,
 					Version:      detail.Version,
@@ -395,7 +395,7 @@ type releaseOfficialPluginPkg struct {
 // generateOfficialPluginPkg generates official plugin package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateOfficialPluginPkg(ctx context.Context,
+func (m *Manager) generateOfficialPluginPkg(ctx contextx.IContext,
 	originDetail *types.OriginOfficialPluginPkgDetail,
 	originLocalFileName string) ([]*releaseOfficialPluginPkg, error) {
 

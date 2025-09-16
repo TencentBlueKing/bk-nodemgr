@@ -11,21 +11,43 @@
 package v3
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check request body.
-func (x *TransferLaunchReleaseReq) Validate() error {
+func (x *TransferLaunchNodeReq) Validate() error {
+	if x.GetTargetHostId() < 0 {
+		return errors.New("target_host_id must be >= 0")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	if x.GetTargetDir() == "" {
+		return errors.New("target_dir is required")
+	}
+
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *TransferLaunchReleaseReq) AutoConvert() {
+func (x *TransferLaunchNodeReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *TransferLaunchReleaseReq) GetIdentifier() (
+func (x *TransferLaunchNodeReq) GetIdentifier() (
 	types.Generation, types.ReleaseType, platform.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
@@ -35,8 +57,69 @@ func (x *TransferLaunchReleaseReq) GetIdentifier() (
 }
 
 // ConvertResult convert result.
-func (x *TransferLaunchReleaseResp) ConvertResult(tf types.ISimpleTransferHandler) {
-	data := &TransferLaunchReleaseResp_Data{
+func (x *TransferLaunchNodeResp) ConvertResult(tf types.ISimpleTransferHandler) {
+	data := &TransferLaunchNodeResp_Data{
+		TaskId:          new(string),
+		ReleaseFileName: new(string),
+		ReleaseFileSize: new(int64),
+		ReleaseFileMd5:  new(string),
+	}
+
+	*data.TaskId = tf.GetTaskID()
+
+	info := tf.GetFileInfo()
+	*data.ReleaseFileName = info.Name
+	*data.ReleaseFileSize = info.Size
+	*data.ReleaseFileMd5 = info.MD5
+
+	x.Data = data
+}
+
+// Validate check request body.
+func (x *TransferLaunchPluginReq) Validate() error {
+	if x.GetTargetHostId() < 0 {
+		return errors.New("target_host_id must be >= 0")
+	}
+
+	if x.GetName() == "" {
+		return errors.New("name is required")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	if x.GetTargetDir() == "" {
+		return errors.New("target_dir is required")
+	}
+
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TransferLaunchPluginReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *TransferLaunchPluginReq) GetIdentifier() (string, types.Generation, types.ReleaseType, platform.Platform, string) {
+	return x.GetName(),
+		types.Generation(x.GetGeneration()),
+		types.ReleaseType(x.GetReleaseType()),
+		ConvertPlatformToTypes(x.GetPlatform()),
+		x.GetVersion()
+}
+
+// ConvertResult convert result.
+func (x *TransferLaunchPluginResp) ConvertResult(tf types.ISimpleTransferHandler) {
+	data := &TransferLaunchPluginResp_Data{
 		TaskId:          new(string),
 		ReleaseFileName: new(string),
 		ReleaseFileSize: new(int64),

@@ -806,6 +806,9 @@
     "v3Release": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "generation": {
           "type": "integer",
           "format": "int64"

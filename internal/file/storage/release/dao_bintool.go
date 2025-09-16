@@ -13,34 +13,33 @@
 package release
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	defaultVersionBinTool = "default"
-)
-
 // upsertReleaseBinTool upserts release bintool.
-func (s *Storage) upsertReleaseBinTool(ctx context.Context, bintool types.ReleaseBinTool) error {
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeBinTool, &types.Release{
-		Generation: bintool.Generation,
-		Type:       types.ReleaseTypeBinTool,
-		Platform:   platform.EmptyPlatform(),
-		Version:    defaultVersionBinTool,
-		FileName:   bintool.FileName,
-		MD5:        bintool.MD5,
-		UpdatedAt:  time.Now(),
-	})
+func (s *Storage) upsertReleaseBinTool(ctx contextx.IUserContext, bintool types.ReleaseBinTool) error {
+	rls := &bintool.Release
+	rls.Operator = ctx.BKUsername()
+	rls.Name = releaseNameBinTool
+	rls.Version = releaseVersionBinTool
+	rls.UpdatedAt = time.Now()
+
+	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeBinTool, rls)
+	if err != nil {
+		return fmt.Errorf("failed to upsert release bintool: %w", err)
+	}
+
+	return nil
 }
 
 // deleteReleaseBinTool deletes release bintool.
-func (s *Storage) deleteReleaseBinTool(ctx context.Context, gen types.Generation, fileName string) error {
+func (s *Storage) deleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
 	err := s.daoRelease.Delete(ctx, types.ReleaseTypeBinTool, release.WithGeneration(gen), release.WithFileName(fileName))
 	if err != nil {
 		return fmt.Errorf("failed to delete release bintool: %w", err)
@@ -50,11 +49,10 @@ func (s *Storage) deleteReleaseBinTool(ctx context.Context, gen types.Generation
 }
 
 // getReleaseBinTool gets release bintool.
-func (s *Storage) getReleaseBinTool(ctx context.Context, gen types.Generation) (*types.ReleaseBinTool, error) {
+func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
 	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeBinTool,
 		release.WithGeneration(gen),
 		release.WithPlatform(platform.EmptyPlatform()),
-		release.WithVersion(defaultVersionBinTool),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release bintool: %w", err)
@@ -66,11 +64,10 @@ func (s *Storage) getReleaseBinTool(ctx context.Context, gen types.Generation) (
 }
 
 // existReleaseBinTool checks if release bintool exists.
-func (s *Storage) existReleaseBinTool(ctx context.Context, gen types.Generation) (bool, error) {
+func (s *Storage) existReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeBinTool,
 		release.WithPlatform(platform.EmptyPlatform()),
 		release.WithGeneration(gen),
-		release.WithVersion(defaultVersionBinTool),
 	)
 	if err != nil {
 		return false, fmt.Errorf("failed to check release bintool: %w", err)

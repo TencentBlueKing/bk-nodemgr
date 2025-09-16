@@ -138,20 +138,22 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 	result := make([]*types.Release, len(items))
 	for idx, item := range items {
 		release := &types.Release{
+			Name:       item.GetName(),
 			Generation: types.Generation(item.GetGeneration()),
 			Type:       types.ReleaseType(item.GetReleaseType()),
+			Version:    item.GetVersion(),
 			Platform: platform.Platform{
 				OS:   criteria.OSType(item.GetOsType()),
 				Arch: criteria.CPUArch(item.GetCpuArch()),
 			},
-			Labels:    item.GetLabels(),
-			Version:   item.GetVersion(),
-			FileName:  item.GetFileName(),
-			MD5:       item.GetMd5(),
-			Enabled:   item.GetEnabled(),
-			AsDefault: item.GetAsDefault(),
-			Operator:  item.GetOperator(),
-			UpdatedAt: time.UnixMilli(int64(item.GetUpdatedAt())).Local(),
+			Labels:       item.GetLabels(),
+			FileName:     item.GetFileName(),
+			MD5:          item.GetMd5(),
+			Enabled:      item.GetEnabled(),
+			AsDefault:    item.GetAsDefault(),
+			UpdatedAt:    time.UnixMilli(int64(item.GetUpdatedAt())).Local(),
+			Operator:     item.GetOperator(),
+			AdditionInfo: nil,
 		}
 
 		result[idx] = release

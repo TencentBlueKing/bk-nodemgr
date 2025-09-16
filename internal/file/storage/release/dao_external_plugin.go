@@ -13,7 +13,6 @@
 package release
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -52,7 +51,7 @@ func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName s
 }
 
 // upsertManyReleaseExternalPlugin upsert many release.
-func (s *Storage) upsertManyReleaseExternalPlugin(ctx context.Context, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+func (s *Storage) upsertManyReleaseExternalPlugin(ctx contextx.IUserContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
 	var err error
 
 	releases := make([]*types.Release, 0, len(releaseExternalPlugins))
@@ -62,6 +61,7 @@ func (s *Storage) upsertManyReleaseExternalPlugin(ctx context.Context, releaseEx
 		}
 
 		rls.UpdatedAt = time.Now()
+		rls.Operator = ctx.BKUsername()
 		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoExternalPlugin)
 		if err != nil {
 			return fmt.Errorf("failed to upsert convert release addition info: %w", err)
@@ -76,4 +76,31 @@ func (s *Storage) upsertManyReleaseExternalPlugin(ctx context.Context, releaseEx
 	}
 
 	return nil
+}
+
+func (s *Storage) getReleaseExternalPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseExternalPlugin, error) {
+	var (
+		rls *types.Release
+		err error
+	)
+
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeExternalPlugin,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release external plugin: %w", err)
+	}
+
+	additionInfo := new(types.ReleaseAdditionInfoExternalPlugin)
+	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
+		return nil, fmt.Errorf("failed to get release external plugin: %v", err)
+	}
+
+	return &types.ReleaseExternalPlugin{
+		Release:                           *rls,
+		ReleaseAdditionInfoExternalPlugin: *additionInfo,
+	}, nil
 }

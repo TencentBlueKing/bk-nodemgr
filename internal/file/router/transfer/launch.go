@@ -16,31 +16,31 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// TransferLaunchRelease launch transfer release package.
-func (h *handler) TransferLaunchRelease(ctx *restserver.Context) (interface{}, error) {
-	req := new(protoFile.TransferLaunchReleaseReq)
+// TransferLaunchNode launch transfer node package.
+func (h *handler) TransferLaunchNode(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.TransferLaunchNodeReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to launch transfer release, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer node, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	host, err := h.storageTopo.GetHostByID(ctx, req.GetTargetHostId())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to launch transfer release, failed to get host. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer node, failed to get host. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	tf, err := h.manager.LaunchTransferRelease(ctx, gen, rt, plat, version, req.GetTargetDir(), host)
+	tf, err := h.manager.LaunchTransferNode(ctx, gen, rt, plat, version, req.GetTargetDir(), host)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to launch transfer release. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer node. err: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "launched release transfer. task-id(%s)", tf.GetTaskID())
+	h.logger.InfoCtxf(ctx, "launched node transfer. task-id(%s)", tf.GetTaskID())
 
-	resp := new(protoFile.TransferLaunchReleaseResp)
+	resp := new(protoFile.TransferLaunchNodeResp)
 	resp.ConvertResult(tf)
 
 	return resp.GetData(), nil
@@ -73,6 +73,36 @@ func (h *handler) TransferLaunchInstaller(ctx *restserver.Context) (interface{},
 	h.logger.InfoCtxf(ctx, "launched installer transfer. task-id(%s)", tf.GetTaskID())
 
 	resp := new(protoFile.TransferLaunchInstallerResp)
+	resp.ConvertResult(tf)
+
+	return resp.GetData(), nil
+}
+
+// TransferLaunchPlugin launch transfer plugin package.
+func (h *handler) TransferLaunchPlugin(ctx *restserver.Context) (interface{}, error) {
+	req := new(protoFile.TransferLaunchPluginReq)
+	if err := ctx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer plugin, failed to decode request body. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	host, err := h.storageTopo.GetHostByID(ctx, req.GetTargetHostId())
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer plugin, failed to get host. err: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, rt, plat, version := req.GetIdentifier()
+	tf, err := h.manager.LaunchTransferPlugin(ctx, name, gen, rt, plat, version, req.GetTargetDir(), host)
+	if err != nil {
+		h.logger.ErrorCtxf(ctx, "failed to launch transfer plugin. err: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	h.logger.InfoCtxf(ctx, "launched plugin transfer. task-id(%s)", tf.GetTaskID())
+
+	resp := new(protoFile.TransferLaunchPluginResp)
 	resp.ConvertResult(tf)
 
 	return resp.GetData(), nil

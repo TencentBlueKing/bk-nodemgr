@@ -11,12 +11,10 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -336,18 +334,13 @@ func (m *Manager) PublishReleaseAgent(ctx contextx.IUserContext, uploadID string
 
 			releasesMap[pkg.platform.String()] = &types.ReleaseAgent{
 				Release: types.Release{
-					Generation:   gen,
-					Type:         types.ReleaseTypeAgent,
-					Version:      detail.Version,
-					Platform:     pkg.platform,
-					Labels:       []string{},
-					FileName:     file.Info().Name,
-					MD5:          file.Info().MD5,
-					Enabled:      true,
-					AsDefault:    false,
-					UpdatedAt:    time.Now(),
-					Operator:     ctx.BKUsername(),
-					AdditionInfo: nil,
+					Generation: gen,
+					Type:       types.ReleaseTypeAgent,
+					Version:    detail.Version,
+					Platform:   pkg.platform,
+					FileName:   file.Info().Name,
+					MD5:        file.Info().MD5,
+					Operator:   ctx.BKUsername(),
 				},
 				ReleaseAdditionInfoAgent: types.ReleaseAdditionInfoAgent{
 					ConfigTemplate: detail.ConfigTemplate,
@@ -386,9 +379,8 @@ type releaseAgentPkg struct {
 // generateAgentPkg generates agent package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateAgentPkg(ctx context.Context,
-	originDetail *types.OriginPkgDetail,
-	originLocalFileName string) ([]*releaseAgentPkg, error) {
+func (m *Manager) generateAgentPkg(ctx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
+	[]*releaseAgentPkg, error) {
 
 	// local origin agent.
 	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
