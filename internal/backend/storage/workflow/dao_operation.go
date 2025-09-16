@@ -11,46 +11,112 @@
 package workflow
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+// getOperation gets operation by operationID.
+func (s *Storage) getOperation(ctx contextx.IContext, operationID string) (*workoper.Operation, error) {
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opers, _, err := s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(opers) != 1 {
+		return nil, fmt.Errorf("failed to get operation, match num not 1, operation-id(%s), count(%d)",
+			operationID, len(opers))
+	}
+
+	return opers[0], nil
+}
+
 // upsertOperation upsert operation.
 func (s *Storage) upsertOperation(ctx contextx.IContext, operation *workoper.Operation) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operation == nil {
+		return basestorage.ErrUpsertNilData()
+	}
+
 	return s.daoOperation.Upsert(ctx, operation)
 }
 
-// listOperation lists operation.
-func (s *Storage) listOperation(
-	ctx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) (
+// listOperationByTriggerID lists operation by triggerID.
+func (s *Storage) listOperationByTriggerID(
+	ctx contextx.IContext, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 
-	opts := make([]operation.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
+	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
+}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				operation.WithTriggerID(condition.ExactInclude.TriggerID...),
-				operation.WithOperationID(condition.ExactInclude.OperationID...),
-				operation.WithEmptyOperation(condition.ExactInclude.OperInstEmpty...),
-			)
-		}
+// listOperation lists operation.
+func (s *Storage) listOperationByOperationID(
+	ctx contextx.IContext, operationID ...string) (
+	[]*workoper.Operation, int64, error) {
+
+	if ctx == nil {
+		return nil, 0, basestorage.ErrNilContent()
 	}
 
-	return s.daoOperation.List(ctx, page, opts...)
+	if len(operationID) == 0 {
+		return nil, 0, basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
 // deleteOperations deletes operations by operation ids.
 func (s *Storage) deleteOperations(ctx contextx.IContext, operationID ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return basestorage.ErrEmptyOperationID()
+	}
+
 	return s.daoOperation.Delete(ctx, operationID...)
 }
 
 // pullOperationInstanceIDs pulls operation instance IDs from operation.
 func (s *Storage) pullOperationInstanceIDs(ctx contextx.IContext, operationID string, operInstIDs ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return basestorage.ErrEmptyOperationID()
+	}
+
 	return s.daoOperation.PullOperInstIDs(ctx, operationID, operInstIDs...)
+}
+
+// listEmptyOperationByTriggerID lists empty operation by triggerID.
+func (s *Storage) listEmptyOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID string) (
+	[]*workoper.Operation, int64, error) {
+
+	if ctx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	if triggerID == "" {
+		return nil, 0, basestorage.ErrEmptyTriggerID()
+	}
+
+	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation(true))
 }

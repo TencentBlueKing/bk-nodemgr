@@ -66,8 +66,8 @@ type IStorageOperation interface {
 	// ListOperationByOperationID lists operation by operation ID.
 	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
 
-	// ListEmptyOperation lists empty operation.
-	ListEmptyOperation(ctx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
+	// ListEmptyOperationByTriggerID lists empty operation.
+	ListEmptyOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 
 	// DeleteOperations deletes operations.
 	DeleteOperations(ctx contextx.IContext, operationID ...string) error
@@ -84,13 +84,13 @@ type IStorageOperationInstance interface {
 	// GetOperationInstanceBriefData gets brief operation instance data.
 	GetOperationInstanceBriefData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceBriefData, error)
 
-	// ListOperationInstanceBriefData lists operation instance brief data. without action instance data.
-	ListOperationInstanceBriefData(
+	// ListOperationInstanceBriefDataWithoutActionInst lists operation instance brief data. without action instance data.
+	ListOperationInstanceBriefDataWithoutActionInst(
 		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 		[]*operation.InstanceBriefData, int64, error)
 
-	// ListOperInstanceBriefByOperationID lists operation instance brief data.
-	ListOperInstanceBriefByOperationID(ctx contextx.IContext, page types.Page, operationID ...string) (
+	// ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
+	ListOperInstanceBriefWithoutActionInstByOperationID(ctx contextx.IContext, page types.Page, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// CountOperationInstance counts operation instance.

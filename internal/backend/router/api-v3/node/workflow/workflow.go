@@ -172,7 +172,7 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, num, err := h.storageWorkflow.ListOperInstanceBriefByOperationID(
+	result, num, err := h.storageWorkflow.ListOperInstanceBriefWithoutActionInstByOperationID(
 		ctx, types.UnlimitedPage(), req.GetOperationId()...)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -220,7 +220,7 @@ func (h *handler) ListOperationInstanceStatus(ctx *restserver.Context) (interfac
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, _, err := h.storageWorkflow.ListOperationInstanceBriefData(ctx, types.UnlimitedPage(),
+	result, _, err := h.storageWorkflow.ListOperationInstanceBriefDataWithoutActionInst(ctx, types.UnlimitedPage(),
 		req.ConvertListStatusConditionsToTypes())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

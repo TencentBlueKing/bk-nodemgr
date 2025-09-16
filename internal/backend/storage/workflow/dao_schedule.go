@@ -11,9 +11,12 @@
 package workflow
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 )
@@ -36,11 +39,31 @@ func (s *Storage) countScheduleWorkflow(
 
 // getScheduleWorkflow gets a schedule workflow by workflow id.
 func (s *Storage) getScheduleWorkflow(ctx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if workflowID == "" {
+		return nil, errors.New("workflow id cannot be empty")
+	}
+
 	return s.daoScheduleWorkflow.Get(ctx, workflowID)
 }
 
 // createScheduleWorkflow creates a new schedule workflow.
 func (s *Storage) createScheduleWorkflow(ctx contextx.IContext, workflow *schedule.Schedule) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if workflow == nil {
+		return errors.New("schedule workflow cannot be nil")
+	}
+
+	if workflow.WorkflowID == "" {
+		return errors.New("schedule workflow id cannot be empty")
+	}
+
 	return s.daoScheduleWorkflow.Create(ctx, workflow)
 }
 

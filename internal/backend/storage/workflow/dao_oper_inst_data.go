@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -27,12 +28,40 @@ import (
 func (s *Storage) updateOperInstActionStatus(
 	ctx contextx.IContext, operInstID string, actionName string, status action.State) error {
 
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("oper inst id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("action name is empty")
+	}
+
+	if err := status.Validate(); err != nil {
+		return err
+	}
+
 	return s.daoOperInstData.UpdateActionInstStatus(ctx, operInstID, actionName, status)
 }
 
 // getActionInstanceData get action instance data.
 func (s *Storage) getActionInstanceData(
 	ctx contextx.IContext, operInstID, actionName string) (*action.InstanceData, error) {
+
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, basestorage.ErrEmptyOperaInstID()
+	}
+
+	if actionName == "" {
+		return nil, basestorage.ErrEmptyActionName()
+	}
 
 	return s.daoOperInstData.GetActionInstData(ctx, operInstID, actionName)
 }
@@ -41,6 +70,18 @@ func (s *Storage) getActionInstanceData(
 func (s *Storage) getActionInstanceLifecycle(
 	ctx contextx.IContext, operInstID, actionName string) (*action.Lifecycle, error) {
 
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("action name is empty")
+	}
+
 	return s.daoOperInstData.GetActInstLifecycle(ctx, operInstID, actionName)
 }
 
@@ -48,12 +89,40 @@ func (s *Storage) getActionInstanceLifecycle(
 func (s *Storage) getActionInstancePrivateData(
 	ctx contextx.IContext, operInstID, actionName string) (map[string]any, error) {
 
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return nil, errors.New("action name is empty")
+	}
+
 	return s.daoOperInstData.GetActInstPrivateData(ctx, operInstID, actionName)
 }
 
 // updateActionInstanceLifecycle updates action instance lifecycle.
 func (s *Storage) updateActionInstanceLifecycle(
 	ctx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("action name is empty")
+	}
+
+	if lifecycle == nil {
+		return errors.New("lifecycle is nil")
+	}
 
 	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
 		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s): %w",
@@ -66,6 +135,22 @@ func (s *Storage) updateActionInstanceLifecycle(
 // pushActionInstanceMessage pushes action instance message.
 func (s *Storage) pushActionInstanceMessage(
 	ctx contextx.IContext, operInstID, actionName string, messages ...common.Message) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("action name is empty")
+	}
+
+	if len(messages) == 0 {
+		return nil
+	}
 
 	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
 		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s): %w",
@@ -84,9 +169,37 @@ func (s *Storage) pushActionInstanceMessage(
 
 // getOperationInstanceData gets operation instance data.
 func (s *Storage) getOperationInstanceData(
-	ctx contextx.IContext, conditions ...*types.OperInstDataCondition) (*operation.InstanceData, error) {
+	ctx contextx.IContext, operInstID string) (*operation.InstanceData, error) {
 
-	return s.daoOperInstData.FindOne(ctx, convertOperInstDataConditionsToOptions(conditions...)...)
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation inst id is empty")
+	}
+
+	return s.daoOperInstData.FindOne(ctx, operinstdata.WithOperInstID(operInstID))
+}
+
+// getOperationInstanceData gets operation instance data.
+func (s *Storage) getOperationInstanceDataBriefData(
+	ctx contextx.IContext, operInstID string) (*operation.InstanceBriefData, error) {
+
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return nil, errors.New("operation inst id is empty")
+	}
+
+	oper, err := s.daoOperInstData.FindOne(ctx, operinstdata.WithOperInstID(operInstID))
+	if err != nil {
+		return nil, err
+	}
+
+	return &oper.InstanceBriefData, err
 }
 
 // listOperationInstanceBriefDataWithoutActionInst lists operation instance brief data without action instance data.
@@ -94,18 +207,58 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInst(
 	ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 	[]*operation.InstanceBriefData, int64, error) {
 
+	if ctx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
 	return s.daoOperInstData.ListWithoutActInst(ctx, page, convertOperInstDataConditionsToOptions(conditions...)...)
 }
 
 // countOperationInstance counts operation instance.
 func (s *Storage) countOperationInstance(
-	ctx contextx.IContext, conditions ...*types.OperInstDataCondition) (int64, error) {
+	ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error) {
 
-	return s.daoOperInstData.Count(ctx, convertOperInstDataConditionsToOptions(conditions...)...)
+	if ctx == nil {
+		return 0, basestorage.ErrNilContent()
+	}
+
+	if triggerID == "" {
+		return 0, errors.New("trigger id is empty")
+	}
+
+	return s.daoOperInstData.Count(ctx, operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
+}
+
+// listOperationInstanceBriefDataWithoutActionInstByOperationID lists operation instance brief data without action instance data.
+func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByOperationID(
+	ctx contextx.IContext, page types.Page, operationID ...string) (
+	[]*operation.InstanceBriefData, int64, error) {
+
+	if ctx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	return s.daoOperInstData.ListWithoutActInst(ctx, page, operinstdata.WithOperInstID(operationID...))
 }
 
 // upsertOperationInstanceData upserts operation instance data.
 func (s *Storage) upsertOperationInstanceData(ctx contextx.IContext, operInstData *operation.InstanceData) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstData == nil {
+		return basestorage.ErrUpsertNilData()
+	}
+
 	return s.daoOperInstData.Upsert(ctx, operInstData)
 }
 
@@ -113,12 +266,32 @@ func (s *Storage) upsertOperationInstanceData(ctx contextx.IContext, operInstDat
 func (s *Storage) updateOperationInstanceLifecycle(
 	ctx contextx.IContext, operInstID string, lifecycle *operation.Lifecycle) error {
 
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if lifecycle == nil {
+		return errors.New("lifecycle is nil")
+	}
+
 	return s.daoOperInstData.UpdateLifeCycle(ctx, operInstID, lifecycle)
 }
 
 // updateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) updateOperationInstanceExtraExecutionMessages(
 	ctx contextx.IContext, operInstID string, messages ...common.Message) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return basestorage.ErrEmptyOperaInstID()
+	}
+
+	if len(messages) == 0 {
+		return nil
+	}
 
 	return s.daoOperInstData.UpdateExtraExecutionMessages(ctx, operInstID, messages...)
 }
@@ -226,6 +399,22 @@ func (s *Storage) getNotifications() []notifyItem {
 func (s *Storage) updateActionInstanceContent(
 	ctx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
 
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("action name is empty")
+	}
+
+	if len(content) == 0 {
+		return errors.New("content is empty")
+	}
+
 	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
 		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -257,6 +446,22 @@ func (s *Storage) existsAction(ctx contextx.IContext, operInstID string, actionN
 func (s *Storage) upsertActionInstancePrivateData(
 	ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error {
 
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if actionName == "" {
+		return errors.New("action name is empty")
+	}
+
+	if len(privateData) == 0 {
+		return nil
+	}
+
 	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
 		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s), err: %w",
 			operInstID, actionName, err)
@@ -271,6 +476,14 @@ func (s *Storage) upsertActionInstancePrivateData(
 
 // deleteOperationInstances deletes operation instances by given operation instance IDs.
 func (s *Storage) deleteOperationInstances(ctx contextx.IContext, operInstID ...string) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(operInstID) == 0 {
+		return nil
+	}
+
 	return s.daoOperInstData.Delete(ctx, operInstID...)
 }
 

@@ -11,6 +11,8 @@
 package workflow
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -19,11 +21,19 @@ import (
 
 // createTrigger creates a new trigger.
 func (s *Storage) createTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+	if trig == nil {
+		return errors.New("trigger is nil")
+	}
+
 	return s.daoTrigger.Create(ctx, trig)
 }
 
 // updateTrigger updates a trigger.
 func (s *Storage) updateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+	if trig == nil {
+		return errors.New("trigger is nil")
+	}
+
 	return s.daoTrigger.Update(ctx, trig)
 }
 
@@ -51,5 +61,9 @@ func (s *Storage) listAliveTrigger(ctx contextx.IContext, category trigger.Categ
 
 // deleteTriggers deletes triggers by given trigger IDs.
 func (s *Storage) deleteTriggers(ctx contextx.IContext, triggerIDs ...string) error {
+	if len(triggerIDs) == 0 {
+		return errors.New("triggerIDs is empty")
+	}
+
 	return s.daoTrigger.Delete(ctx, triggerIDs...)
 }

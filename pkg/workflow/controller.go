@@ -268,7 +268,7 @@ func (ctl *controller) UpdateLastTriggeredTime(ctx contextx.IContext) error {
 
 // ListEmptyOperation returns the empty operation.
 func (ctl *controller) ListEmptyOperation(ctx contextx.IContext, page types.Page) ([]IOperationCtl, error) {
-	opers, _, err := ctl.mgr.stgOperation.ListEmptyOperation(ctx, page, ctl.trig.TriggerID)
+	opers, _, err := ctl.mgr.stgOperation.ListEmptyOperationByTriggerID(ctx, page, ctl.trig.TriggerID)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,8 @@ func (ctl *controller) ListOperationInstances(
 			State:     states,
 		},
 	}
-	instanceBriefData, _, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefData(ctx, page, condition)
+	instanceBriefData, _, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(
+		ctx, page, condition)
 	if err != nil {
 		return nil, err
 	}
