@@ -143,3 +143,87 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
 }
+
+// Validate check body.
+func (x *NodeAgentInstallCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *InstallInfoParama) Validate() error {
+	if x.BkHostInnerip == "" {
+		return errors.New("bk_innerip can not be empty")
+	}
+
+	if x.GetBkBizId() < 0 {
+		return errors.New("biz_id must be equal or greater than 0")
+	}
+
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("network_unit_id must be greater than or equal to 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentInstallCheckReq) AutoConvert() {
+}
+
+// ConvertAgentParamToTypes convert to types.
+func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() *types.NodeAgentInstallCheckParam {
+	infos := x.GetHost()
+	if infos == nil {
+		return nil
+	}
+
+	infoParam := make([]*types.NodeAgentInstallCheckInfo, len(infos))
+
+	for idx, info := range infos {
+		infoParam[idx] = &types.NodeAgentInstallCheckInfo{
+			BizID:         info.GetBkBizId(),
+			InnerIP:       info.GetBkHostInnerip(),
+			NetworkUnitID: info.GetBkNetworkunitId(),
+		}
+	}
+
+	return &types.NodeAgentInstallCheckParam{
+		NodeAgentInstallCheckInfos: infoParam,
+	}
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, num int) {
+	if result == nil {
+		return
+	}
+
+	installElig := make([]*NodeAgentInstallElig, 0, num)
+	for _, status := range result {
+		item := &NodeAgentInstallElig{
+			InnerIp:    status.InnerIP,
+			EligStatus: string(status.InstallEligibilitiy),
+		}
+		if status.DuplicateHostIDs != nil {
+			item.DuplicateHostIds = status.DuplicateHostIDs
+		}
+		installElig = append(installElig, item)
+	}
+
+	x.Data = &NodeAgentInstallCheckResp_Data{
+		InstallEligs: installElig,
+		TotalCount:   int64(num),
+	}
+}

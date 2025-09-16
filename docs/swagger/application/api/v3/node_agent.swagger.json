@@ -49,6 +49,40 @@
           "NodeAgent"
         ]
       }
+    },
+    "/api/v3/node/agent/install_check": {
+      "post": {
+        "summary": "NodeAgentInstallCheck  check installs node agent.",
+        "operationId": "NodeAgent_NodeAgentInstallCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentInstallCheckReq describes the node agent install check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
     }
   },
   "definitions": {
@@ -59,14 +93,6 @@
           "type": "string"
         },
         "message": {
-          "type": "string"
-        }
-      }
-    },
-    "NodeAgentInstallRespData": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
           "type": "string"
         }
       }
@@ -170,6 +196,93 @@
         }
       }
     },
+    "v3InstallInfoParama": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "InstallInfoParama describes the node agent install check parameter."
+    },
+    "v3NodeAgentInstallCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3InstallInfoParama"
+          }
+        }
+      },
+      "description": "NodeAgentInstallCheckReq describes the node agent install check request."
+    },
+    "v3NodeAgentInstallCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
+        }
+      },
+      "description": "NodeAgentInstallCheckResp describes the response for node agent installation\ncheck."
+    },
+    "v3NodeAgentInstallCheckRespData": {
+      "type": "object",
+      "properties": {
+        "install_eligs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallElig"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentInstallElig": {
+      "type": "object",
+      "properties": {
+        "inner_ip": {
+          "type": "string"
+        },
+        "elig_status": {
+          "type": "string"
+        },
+        "duplicate_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeAgentInstallElig describes the eligibility for node agent\ninstallation."
+    },
     "v3NodeAgentInstallReq": {
       "type": "object",
       "properties": {
@@ -210,10 +323,18 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/NodeAgentInstallRespData"
+          "$ref": "#/definitions/v3NodeAgentInstallRespData"
         }
       },
       "description": "NodeAgentInstallResp describes the node agent install response."
+    },
+    "v3NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     },
     "v3TargetVersion": {
       "type": "object",

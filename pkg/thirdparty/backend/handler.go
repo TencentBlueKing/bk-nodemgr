@@ -181,6 +181,12 @@ type IHandlerNodeAgent interface {
 	// @return the installing workflow-ids and error.
 	InstallAgent(ctx contextx.ITenantUserContext, installParam *types.NodeAgentInstallParam) (string, error)
 
+	// CheckAgentInstall node agent.
+	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param checkParam the check param.
+	// @return the check result and error.
+	CheckAgentInstall(ctx contextx.ITenantUserContext, checkParam *types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error)
+
 	// UpgradeAgent node agent.
 	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
 	// @param retryParam the retry param.
@@ -1222,6 +1228,24 @@ func (h *Handler) InstallAgent(ctx contextx.ITenantUserContext, installParam *ty
 	}
 
 	result := resp.ConvertResultToComm()
+
+	return result, nil
+}
+
+// CheckAgentInstall check agent install.
+func (h *Handler) CheckAgentInstall(ctx contextx.ITenantUserContext,
+	checkParam *types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error) {
+
+	req := &protoBackend.NodeAgentInstallCheckReq{}
+
+	req.ConvertHostParamFromTypes(checkParam)
+
+	resp, err := h.cli.checkAgentInstall(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := resp.ConvertResultToTypes()
 
 	return result, nil
 }

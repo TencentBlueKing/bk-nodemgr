@@ -193,10 +193,6 @@ func getDynamicDuplicateIPHostIDs(hosts []*types.Host) []int64 {
 		if host.Static.Addressing != types.AddressingDynamic {
 			continue
 		}
-		if host.Dynamic.NodeStatus == types.NodeStatusRunning {
-			continue
-		}
-
 		hostIDs = append(hostIDs, host.HostID)
 	}
 
@@ -209,10 +205,6 @@ func getIPConflictHostIDsByBizID(hosts []*types.Host, bizID int64) []int64 {
 		if host.Static.BizID != bizID {
 			continue
 		}
-		if host.Dynamic.NodeStatus == types.NodeStatusRunning {
-			continue
-		}
-
 		hostIDs = append(hostIDs, host.HostID)
 	}
 

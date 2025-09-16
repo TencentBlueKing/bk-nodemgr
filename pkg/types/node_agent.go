@@ -37,6 +37,18 @@ type NodeAgentInstallParam struct {
 	DisableDefaultTargetVersion bool
 }
 
+// NodeAgentInstallCheckInfo describes the node agent install check info.
+type NodeAgentInstallCheckInfo struct {
+	BizID         int64
+	NetworkUnitID int64
+	InnerIP       string
+}
+
+// NodeAgentInstallCheckParam describes the node agent install check parameter.
+type NodeAgentInstallCheckParam struct {
+	NodeAgentInstallCheckInfos []*NodeAgentInstallCheckInfo
+}
+
 // NodeOperationRetryParam validates the node install parameter.
 type NodeOperationRetryParam struct {
 	WorkflowID   string

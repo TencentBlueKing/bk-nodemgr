@@ -43,11 +43,53 @@ message NodeAgentInstallResp {
   Data data = 5;
 }
 
+// InstallInfoParama describes the node agent install check parameter.
+message InstallInfoParama {
+  int64 bk_biz_id = 1;
+  string bk_host_innerip = 2;
+  int64 bk_networkunit_id = 3;
+}
+
+// NodeAgentInstallCheckReq describes the node agent install check request.
+message NodeAgentInstallCheckReq { repeated InstallInfoParama host = 1; }
+
+// NodeAgentInstallCheckResp describes the response for node agent installation
+// check.
+message NodeAgentInstallCheckResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated NodeAgentInstallElig install_eligs = 1;
+    int64 total_count = 2;
+  }
+  Data data = 5;
+}
+
+// NodeAgentInstallElig describes the eligibility for node agent
+// installation.
+message NodeAgentInstallElig {
+  string inner_ip = 1;
+  string elig_status = 2;
+  repeated int64 duplicate_host_ids = 3;
+}
+
 service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install"
+      body : "*"
+    };
+  }
+
+  // NodeAgentInstallCheck  check installs node agent.
+  rpc NodeAgentInstallCheck(NodeAgentInstallCheckReq)
+      returns (NodeAgentInstallCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/install_check"
       body : "*"
     };
   }

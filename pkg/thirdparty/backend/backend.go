@@ -811,6 +811,37 @@ func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
+func (c *cli) checkAgentInstall(ctx contextx.ITenantUserContext, req *protoBackend.NodeAgentInstallCheckReq,
+) (*protoBackend.NodeAgentInstallCheckResp, error) {
+
+	resp := new(protoBackend.NodeAgentInstallCheckResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/agent/install_check").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("check agent install node failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("check agent install node failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationRetryReq,
 ) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
