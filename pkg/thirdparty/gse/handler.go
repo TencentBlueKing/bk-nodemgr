@@ -120,7 +120,7 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 				AgentID:    info.BKAgentID,
 				CloudID:    info.BKCloudID,
 				Version:    info.Version,
-				RunMode:    info.RunMode,
+				NodeRole:   convRunModeToNodeRole(info.RunMode),
 				StatusCode: types.AgentStatusCode(info.StatusCode),
 				ReportTime: info.ReportTime,
 			},
@@ -170,13 +170,24 @@ func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 			AgentID:    info.BKAgentID,
 			CloudID:    info.BKCloudID,
 			Version:    info.Version,
-			RunMode:    info.RunMode,
+			NodeRole:   convRunModeToNodeRole(info.RunMode),
 			StatusCode: types.AgentStatusCode(info.StatusCode),
 			ReportTime: info.ReportTime,
 		}
 	}
 
 	return data, nil
+}
+
+func convRunModeToNodeRole(runMode RunMode) types.NodeRole {
+	switch runMode {
+	case RunModeAgent:
+		return types.NodeRoleAgent
+	case RunModeProxy:
+		return types.NodeRoleProxy
+	default:
+		return types.NodeRoleBlank
+	}
 }
 
 // ExecuteScript execute script.

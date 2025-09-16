@@ -31,6 +31,7 @@ func (mgr *Manager) registerActionDefSchedule() error {
 	return mgr.workflowMgr.RegisterActions(
 		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbHostWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncBizAndHost),
 		schedule.NewActionGenScheduleOnceTrigger(SyncGseAgentStateWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncAllAgentState),
+		schedule.NewActionGenScheduleOnceTrigger(SyncAliveHostAgentInfoWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncAliveHostAgentInfo),
 		schedule.NewActionGenScheduleOnceTrigger(SyncCmdbNetworkAreaWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchSyncNetworkArea),
 		schedule.NewActionGenScheduleOnceTrigger(WatchAndApplyCMDBResourceWorkflowName, mgr.conf.StorageWorkflow, mgr.LaunchWatchAndApplyCMDBResource),
 	)

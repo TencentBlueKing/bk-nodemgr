@@ -81,6 +81,8 @@ func (mgr *Manager) registerActionDefSyncData() error {
 		syncdata.NewActionGenOperSyncHost(mgr.conf.StorageTopo, mgr.workflowMgr),
 		syncdata.NewActionSyncAgentState(mgr.conf.GSEHandler, mgr.conf.StorageTopo, mgr.logger),
 		syncdata.NewActionGenOperSyncAgentState(mgr.conf.StorageTopo, mgr.workflowMgr),
+		syncdata.NewActionSyncAgentInfo(mgr.conf.GSEHandler, mgr.conf.StorageTopo, mgr.logger),
+		syncdata.NewActionSyncAliveHostAgentInfo(mgr.conf.StorageTopo, mgr.workflowMgr),
 		syncdata.NewActionWatchCMDBResource(mgr.conf.Cache, mgr.conf.CmdbHandler, mgr.conf.StorageTopo),
 	)
 }

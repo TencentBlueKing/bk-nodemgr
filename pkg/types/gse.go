@@ -107,7 +107,7 @@ type AgentState struct {
 	AgentID    string
 	CloudID    int
 	Version    string
-	RunMode    int
+	NodeRole   NodeRole
 	StatusCode AgentStatusCode
 	ReportTime uint64
 }

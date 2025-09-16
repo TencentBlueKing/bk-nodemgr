@@ -82,6 +82,36 @@ message SyncAllAgentStateResp {
   Data data = 5;
 }
 
+// SyncAgentInfoReq describes the HTTP request body when sync agent info.
+message SyncAgentInfoReq { repeated int64 host_ids = 1; }
+
+// SyncAgentInfoResp describes the HTTP response body when sync agent info.
+message SyncAgentInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// SyncAliveHostAgentInfoReq describes the HTTP request body when sync alive
+// host agent info.
+message SyncAliveHostAgentInfoReq {}
+
+// SyncAliveHostAgentInfoResp describes the HTTP response body when sync alive
+// host agent info.
+message SyncAliveHostAgentInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // sync service.
 service Sync {
   // SyncCmdbHost provides syncing cmdb host.
@@ -119,6 +149,21 @@ service Sync {
   rpc SyncAllAgentState(SyncAllAgentStateReq) returns (SyncAllAgentStateResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/agent/state/all"
+      body : "*"
+    };
+  }
+
+  rpc SyncAgentInfo(SyncAgentInfoReq) returns (SyncAgentInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/agent/info"
+      body : "*"
+    };
+  }
+
+  rpc SyncAliveHostAgentInfo(SyncAliveHostAgentInfoReq)
+      returns (SyncAliveHostAgentInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/agent/info/alive"
       body : "*"
     };
   }

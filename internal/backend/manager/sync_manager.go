@@ -36,6 +36,12 @@ type ISyncManager interface {
 
 	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
 	LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error)
+
+	// LaunchSyncAgentInfo launch a task to sync agent info from gse. returns the workflow-id.
+	LaunchSyncAgentInfo(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error)
+
+	// LaunchSyncAliveHostAgentInfo launch a task to sync alive host agent info. returns the trigger-id.
+	LaunchSyncAliveHostAgentInfo(ctx contextx.ITenantUserContext) (string, error)
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
@@ -201,6 +207,86 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (stri
 	}
 
 	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAliveHostAgentInfo launch a task to sync all agent state.
+func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.ITenantUserContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAliveHostAgentInfoFromGSE(syncdata.OperParamSyncAliveHostAgentInfoFromGSE{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync alive host agent info task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
+		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAgentInfo launch a task to sync agent info.
+func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	if err != nil {
+		return "", err
+	}
+
+	hosts, err := mgr.conf.StorageTopo.FindHostWithDynamic(ctx, types.UnlimitedPage(), &types.HostCondition{
+		ExactInclude: &types.HostExactFields{
+			HostID: hostIDs,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to find hosts with dynamic info: %w", err)
+	}
+
+	hostAgentID := make([]*syncdata.HostIDAgentID, 0, len(hosts))
+	for _, host := range hosts {
+		hostAgentID = append(hostAgentID, &syncdata.HostIDAgentID{
+			HostID:  host.HostID,
+			AgentID: host.Dynamic.AgentID,
+		})
+	}
+
+	operationDef := syncdata.NewOperSyncAgentInfoFromGSE(syncdata.OperParamSyncAgentInfoFromGSE{
+		TenantID: tenantID,
+		Hosts:    hostAgentID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	mgr.logger.InfoCtxf(ctx, "launched sync agent info task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
 		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
 
 	return triggerCtl.GetTriggerID(), nil

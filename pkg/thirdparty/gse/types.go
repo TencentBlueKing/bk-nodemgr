@@ -16,6 +16,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// RunMode represents the gse agent run mode.
+type RunMode int
+
+const (
+	// RunModeAgent means agent run mode.
+	RunModeAgent = 1
+	// RunModeProxy means proxy run mode.
+	RunModeProxy = 0
+)
+
 // AgentInfo describes the agent information from gse.
 type AgentInfo struct {
 	BKAgentID      string  `json:"bk_agent_id"`
@@ -34,7 +44,7 @@ type AgentInfo struct {
 	StartTime      uint64  `json:"start_time"`
 	LastWorkTime   uint64  `json:"last_work_time"`
 	ConnCycleTime  string  `json:"conn_cycle_time"`
-	RunMode        int     `json:"run_mode"`
+	RunMode        RunMode `json:"run_mode"`
 	StatusCode     int     `json:"status_code"`
 	Status         string  `json:"status"`
 	LastStatusCode int     `json:"last_status_code"`
@@ -44,12 +54,12 @@ type AgentInfo struct {
 
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
-	BKAgentID  string `json:"bk_agent_id"`
-	BKCloudID  int    `json:"bk_cloud_id"`
-	Version    string `json:"version"`
-	RunMode    int    `json:"run_mode"`
-	StatusCode int    `json:"status_code"`
-	ReportTime uint64 `json:"report_time"`
+	BKAgentID  string  `json:"bk_agent_id"`
+	BKCloudID  int     `json:"bk_cloud_id"`
+	Version    string  `json:"version"`
+	RunMode    RunMode `json:"run_mode"`
+	StatusCode int     `json:"status_code"`
+	ReportTime uint64  `json:"report_time"`
 }
 
 // Endpoint describes the basic endpoint information.

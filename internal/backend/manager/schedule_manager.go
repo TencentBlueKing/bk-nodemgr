@@ -37,6 +37,9 @@ const (
 	// SyncGseAgentStateWorkflowName defines the name of the sync GSE agent state workflow.
 	SyncGseAgentStateWorkflowName = "schedule_sync_gse_agent_state"
 
+	// SyncAliveHostAgentInfoWorkflowName defines the name of the sync alive host agent info workflow.
+	SyncAliveHostAgentInfoWorkflowName = "schedule_sync_alive_host_agent_info"
+
 	// WatchAndApplyCMDBResourceWorkflowName defines the name of the watch and apply cmdb resource workflow.
 	WatchAndApplyCMDBResourceWorkflowName = "schedule_watch_and_apply_cmdb_resource"
 )
@@ -50,6 +53,7 @@ func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
 		SyncCmdbHostWorkflowName:              mgr.ScheduleSyncHostFromCMDB,
 		SyncCmdbNetworkAreaWorkflowName:       mgr.ScheduleSyncNetworkAreaFromCMDB,
 		SyncGseAgentStateWorkflowName:         mgr.ScheduleSyncAllAgentStateFromGSE,
+		SyncAliveHostAgentInfoWorkflowName:    mgr.ScheduleSyncAliveHostAgentInfo,
 		WatchAndApplyCMDBResourceWorkflowName: mgr.ScheduleWatchAndApplyCMDBResource,
 	}
 }
@@ -185,4 +189,9 @@ func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx contextx.IContext) erro
 // ScheduleWatchAndApplyCMDBResource creates a new schedule workflow to watch and apply CMDB resources.
 func (mgr *Manager) ScheduleWatchAndApplyCMDBResource(ctx contextx.IContext) error {
 	return mgr.createAndRunScheduleWorkflows(ctx, WatchAndApplyCMDBResourceWorkflowName, scheduler.Every+"10s")
+}
+
+// ScheduleSyncAliveHostAgentInfo creates a new schedule workflow to sync alive host agent info.
+func (mgr *Manager) ScheduleSyncAliveHostAgentInfo(ctx contextx.IContext) error {
+	return mgr.createAndRunScheduleWorkflows(ctx, SyncAliveHostAgentInfoWorkflowName, scheduler.Every+"10h")
 }
