@@ -101,7 +101,11 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 		errMsg = fmt.Sprintf("failed to create temp file: %v", err)
 		return
 	}
-	defer tmp.Clean()
+	defer func() {
+		if err := tmp.Clean(); err != nil {
+			h.logger.Errorf(fmt.Sprintf("failed to clean temp file: %v", err))
+		}
+	}()
 
 	// transfer install bat file
 	stdOut, stdErr, err = client.UploadFile(ctx, tmpInstallBat.Path(), event.InstallerWorkDir)
