@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/api/v3/package/publish/release/server": {
+    "/api/v3/package/publish/release/proxy": {
       "post": {
         "summary": "PublishReleaseServer provides release server publish.",
         "operationId": "Package_PublishReleaseProxy",

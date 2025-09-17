@@ -59,6 +59,49 @@
         ]
       }
     },
+    "/download/plugin": {
+      "post": {
+        "summary": "DownloadAgent provides downloading plugin.",
+        "operationId": "Download_DownloadPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadAgentReq is the request for download agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Download"
+        ]
+      }
+    },
     "/download/proxy": {
       "post": {
         "summary": "DownloadProxy provides downloading proxy pkg.",

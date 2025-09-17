@@ -20,6 +20,15 @@ message DownloadProxyReq {
   string version = 4;
 }
 
+// DownloadPluginReq is the request for download plugin.
+message DownloadPluginReq {
+  string os_type = 1;
+  string cpu_arch = 2;
+  string plugin_name = 3;
+  string plugin_type = 4;
+  string version = 5;
+}
+
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
@@ -37,6 +46,14 @@ service Download {
   rpc DownloadProxy(DownloadProxyReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/download/proxy"
+      body : "*"
+    };
+  }
+
+  // DownloadAgent provides downloading plugin.
+  rpc DownloadPlugin(DownloadAgentReq) returns (stream FileChunk) {
+    option (google.api.http) = {
+      post : "/download/plugin"
       body : "*"
     };
   }

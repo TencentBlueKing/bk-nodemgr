@@ -10,23 +10,28 @@
 
 package v3
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // Validate check request body.
 func (x *DownloadAgentReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
-	if x.CpuArch == "" {
+	if x.GetCpuArch() == "" {
 		return errors.New("cpu_arch is required")
 	}
 
-	if x.OsType == "" {
+	if x.GetOsType() == "" {
 		return errors.New("os_type is required")
 	}
 
-	if x.Version == "" {
+	if x.GetVersion() == "" {
 		return errors.New("version is required")
 	}
 
@@ -39,19 +44,19 @@ func (x *DownloadAgentReq) AutoConvert() {
 
 // Validate check request body.
 func (x *DownloadProxyReq) Validate() error {
-	if x.Generation == 0 {
+	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
 	}
 
-	if x.CpuArch == "" {
+	if x.GetCpuArch() == "" {
 		return errors.New("cpu_arch is required")
 	}
 
-	if x.OsType == "" {
+	if x.GetOsType() == "" {
 		return errors.New("os_type is required")
 	}
 
-	if x.Version == "" {
+	if x.GetVersion() == "" {
 		return errors.New("version is required")
 	}
 
@@ -60,4 +65,33 @@ func (x *DownloadProxyReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *DownloadProxyReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *DownloadPluginReq) Validate() error {
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name is required")
+	}
+
+	if err := types.PluginType(x.GetPluginType()).Validate(); err != nil {
+		return fmt.Errorf("plugin_type is invalid: %w", err)
+	}
+
+	if x.GetCpuArch() == "" {
+		return errors.New("cpu_arch is required")
+	}
+
+	if x.GetOsType() == "" {
+		return errors.New("os_type is required")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadPluginReq) AutoConvert() {
 }
