@@ -207,7 +207,7 @@ func (act *actionRestartNode) restartThroughCommandUnix(ctx *action.InstanceCont
 	}
 
 	restartLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	restartCmd := fmt.Sprintf("chmod +x %s && %s step restart %s >%s 2>&1 &",
+	restartCmd := fmt.Sprintf("chmod +x %s && %s node step restart %s >%s 2>&1 &",
 		installerPath, installerPath, strings.Join(args, " "), restartLogPath)
 	ctx.Data.LogI("restart cmd: " + restartCmd)
 
@@ -248,7 +248,7 @@ func (act *actionRestartNode) restartThroughCommandWindows(ctx *action.InstanceC
 	}
 
 	restartLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	restartCmd := fmt.Sprintf("%s step restart %s >%s 2>&1",
+	restartCmd := fmt.Sprintf("%s node step restart %s >%s 2>&1",
 		installerPath, strings.Join(args, " "), restartLogPath)
 	ctx.Data.LogI("restart cmd: " + restartCmd)
 

@@ -17,8 +17,8 @@ import (
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
@@ -54,10 +54,7 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	// sub commands.
-	rootCmd.AddCommand(step.NewStepComand())
-	rootCmd.AddCommand(NewFullInstall())
-	rootCmd.AddCommand(NewFullUpgrade())
-	rootCmd.AddCommand(NewFullReconfig())
+	rootCmd.AddCommand(node.NewNodeCommand())
 
 	/*
 	 * persistent required flags.

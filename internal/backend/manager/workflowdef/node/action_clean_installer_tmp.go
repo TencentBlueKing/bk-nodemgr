@@ -172,7 +172,7 @@ func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param 
 	}
 
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	cleanCmd := fmt.Sprintf("chmod +x %s && %s step clean-tmp %s >%s 2>&1 &",
+	cleanCmd := fmt.Sprintf("chmod +x %s && %s node step clean-tmp %s >%s 2>&1 &",
 		installerPath, installerPath, strings.Join(args, " "), cleanLogPath)
 	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 
@@ -213,7 +213,7 @@ func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, par
 	}
 
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	cleanCmd := fmt.Sprintf("%s step clean-tmp %s >%s 2>&1",
+	cleanCmd := fmt.Sprintf("%s node step clean-tmp %s >%s 2>&1",
 		installerPath, strings.Join(args, " "), cleanLogPath)
 	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 

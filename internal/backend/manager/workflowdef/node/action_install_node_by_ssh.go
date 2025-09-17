@@ -329,7 +329,7 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	installCmd := fmt.Sprintf("%s full-install %s", param.InstallerPath, strings.Join(args, " "))
+	installCmd := fmt.Sprintf("%s node full-install %s", param.InstallerPath, strings.Join(args, " "))
 
 	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)

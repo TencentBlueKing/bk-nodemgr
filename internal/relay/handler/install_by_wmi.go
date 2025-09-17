@@ -134,7 +134,7 @@ func (h *handler) buildBat(installerPath, targetWorkDir string, args []string) s
 
 	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
-	installCmd := fmt.Sprintf("cd %s && %s full-install %s >%s 2>&1",
+	installCmd := fmt.Sprintf("cd %s && %s node full-install %s >%s 2>&1",
 		targetWorkDir, installerPath, strings.Join(args, " "), installLogPath)
 
 	return installCmd

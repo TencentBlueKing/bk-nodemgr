@@ -204,7 +204,7 @@ func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param
 	}
 
 	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	reconfigCmd := fmt.Sprintf("chmod +x %s && %s full-reconfig %s >%s 2>&1 &",
+	reconfigCmd := fmt.Sprintf("chmod +x %s && %s node full-reconfig %s >%s 2>&1 &",
 		installerPath, installerPath, strings.Join(args, " "), reconfigLogPath)
 	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 
@@ -248,7 +248,7 @@ func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, pa
 	}
 
 	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	reconfigCmd := fmt.Sprintf("%s full-reconfig %s >%s 2>&1",
+	reconfigCmd := fmt.Sprintf("%s node full-reconfig %s >%s 2>&1",
 		installerPath, strings.Join(args, " "), reconfigLogPath)
 	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 

@@ -201,7 +201,7 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, p
 	}
 
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("chmod +x %s && %s full-upgrade %s >%s 2>&1 &",
+	upgradeCmd := fmt.Sprintf("chmod +x %s && %s node full-upgrade %s >%s 2>&1 &",
 		installerPath, installerPath, strings.Join(args, " "), upgradeLogPath)
 	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 
@@ -248,7 +248,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder
 	}
 
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("%s full-upgrade %s >%s 2>&1",
+	upgradeCmd := fmt.Sprintf("%s node full-upgrade %s >%s 2>&1",
 		installerPath, strings.Join(args, " "), upgradeLogPath)
 	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 

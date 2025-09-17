@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package main
+package logger
 
 import (
 	"fmt"
@@ -29,8 +29,9 @@ const (
 	defaultLogReportBulkSize = 10
 )
 
-func newLoggerHandler(logDir, deployToken, operInstID, callbackSvrAddr string) *loggerHandler {
-	return &loggerHandler{
+// NewHandler creates a new logger handler.
+func NewHandler(logDir, deployToken, operInstID, callbackSvrAddr string) *Handler {
+	return &Handler{
 		logDir:      logDir,
 		logFilePath: filepath.Join(logDir, fmt.Sprintf("installer_%s.log", time.Now().Format("2006-01-02T15-04-05"))),
 		args: logreporter.ReportLogsArgs{
@@ -43,7 +44,8 @@ func newLoggerHandler(logDir, deployToken, operInstID, callbackSvrAddr string) *
 	}
 }
 
-type loggerHandler struct {
+// Handler logs handler.
+type Handler struct {
 	logDir      string
 	logFilePath string
 	args        logreporter.ReportLogsArgs
@@ -54,7 +56,8 @@ type loggerHandler struct {
 	watchStopper func() error
 }
 
-func (lh *loggerHandler) start() error {
+// Start starts the logger handler.
+func (lh *Handler) Start() error {
 	err := os.MkdirAll(lh.logDir, logFileMode)
 	if err != nil {
 		return fmt.Errorf("failed to mkdir log dir: %w", err)
@@ -85,7 +88,8 @@ func (lh *loggerHandler) start() error {
 	return nil
 }
 
-func (lh *loggerHandler) stop() {
+// Stop stops the logger handler.
+func (lh *Handler) Stop() {
 	_ = lh.watchStopper()
 
 	if lh.logWFile != nil {

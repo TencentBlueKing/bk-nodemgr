@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package main
+package node
 
 import (
 	"encoding/json"
@@ -18,8 +18,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
@@ -96,11 +97,11 @@ func NewFullInstall() *cobra.Command {
 			}()
 
 			// init log settings.
-			lHandler := newLoggerHandler(logDir, deployToken, operInstID, callbackSvrAddr)
-			if err := lHandler.start(); err != nil {
+			lHandler := logger.NewHandler(logDir, deployToken, operInstID, callbackSvrAddr)
+			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
-			defer lHandler.stop()
+			defer lHandler.Stop()
 
 			// download files.
 			if err := filedownloader.NewStep(filedownloader.StepArgs{
@@ -117,7 +118,7 @@ func NewFullInstall() *cobra.Command {
 				return err
 			}
 
-			// stop node.
+			// Stop node.
 			if err := nodestopper.NewStep(nodestopper.StepArgs{
 				AgentHandler: agentHandler,
 				Force:        true,
@@ -162,7 +163,7 @@ func NewFullInstall() *cobra.Command {
 				return err
 			}
 
-			// start node.
+			// Start node.
 			if err := nodestarter.NewStep(nodestarter.StepArgs{
 				AgentHandler: agentHandler,
 			}).Run(cmd.Context()); err != nil {

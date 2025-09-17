@@ -331,7 +331,7 @@ func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 	}
 	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 
-	installCmd := fmt.Sprintf("cd %s && %s full-install %s >%s 2>&1",
+	installCmd := fmt.Sprintf("cd %s && %s node full-install %s >%s 2>&1",
 		winpath.Join(param.BaseWorkDir, system.GetEnv()), param.InstallerPath, strings.Join(args, " "), installLogPath)
 
 	return installCmd
