@@ -99,7 +99,13 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 	executor := runtime.NewPageExecutor[*types.Host](MaxPageSize, 1*time.Hour)
 	fn := func(fnCtx context.Context, p types.Page) ([]*types.Host, error) {
-		hosts, err := act.topoStg.FindHostWithDynamic(fnCtx, p, nil)
+		cond := &types.HostCondition{
+			ExactExclude: &types.HostExactFields{
+				AgentID: []string{""},
+			},
+		}
+
+		hosts, err := act.topoStg.FindHostWithDynamic(fnCtx, p, cond)
 		if err != nil {
 			return nil, err
 		}
@@ -158,8 +164,8 @@ func (act *actionGenOperSyncAgentState) executeOper(
 	operCtl, err := trigCtl.CreateOperation(ctx, operationDef, operationParam)
 	if err != nil {
 		actionInstData.LogE(
-			fmt.Sprintf("failed to create sync agent state operation, tenant-id(%s), operation-id(%s): %s",
-				tenantID, actionInstData.OperationID, err.Error()))
+			fmt.Sprintf("failed to create sync agent state operation, tenant-id(%s), operation-id(%s): %v",
+				tenantID, actionInstData.OperationID, err))
 
 		return err
 	}
