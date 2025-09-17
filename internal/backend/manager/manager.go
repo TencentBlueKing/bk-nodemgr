@@ -97,7 +97,7 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 	}
 
 	if err := mgr.conf.Validate(); err != nil {
-		return fmt.Errorf("config is invalid, err: %v", err)
+		return fmt.Errorf("config is invalid: %v", err)
 	}
 
 	if err := mgr.startWorkflowManager(ctx); err != nil {
@@ -105,7 +105,7 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 	}
 
 	if err := mgr.startScheduleWorkflow(ctx); err != nil {
-		return fmt.Errorf("failed to start schedule workflow, err: %w", err)
+		return fmt.Errorf("failed to start schedule workflow: %w", err)
 	}
 
 	mgr.isRunning = true
@@ -122,7 +122,7 @@ func (mgr *Manager) CheckHealth() error {
 	}
 
 	if err := mgr.conf.StorageTopo.CheckHealthz(); err != nil {
-		return fmt.Errorf("topo storage is unhealthy, err: %v", err)
+		return fmt.Errorf("topo storage is unhealthy: %v", err)
 	}
 
 	if mgr.workflowMgr == nil {
@@ -130,7 +130,7 @@ func (mgr *Manager) CheckHealth() error {
 	}
 
 	if err := mgr.workflowMgr.CheckHealth(); err != nil {
-		return fmt.Errorf("workflow manager is unhealthy, err: %v", err)
+		return fmt.Errorf("workflow manager is unhealthy: %v", err)
 	}
 
 	return nil

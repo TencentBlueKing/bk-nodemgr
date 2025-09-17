@@ -85,7 +85,7 @@ func (p *Polling) Do(ctx context.Context, fn func(attempt int) error) error {
 				return nil
 			}
 
-			p.opts.Logger.Warnf("fn failed, attempt(%d), retry-after(%vs), err: %v.",
+			p.opts.Logger.Warnf("fn failed, attempt(%d), retry-after(%vs): %v.",
 				attempt, p.opts.Interval.Seconds(), err)
 		}
 	}

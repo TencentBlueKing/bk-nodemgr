@@ -31,7 +31,7 @@ func CheckDirPathSafe(dirPath string) error {
 	}
 
 	if err := isDangerousPath(dirPath); err != nil {
-		return fmt.Errorf("dirPath is dangerous, dirPath(%s), err: %v", dirPath, err)
+		return fmt.Errorf("dirPath is dangerous, dirPath(%s): %v", dirPath, err)
 	}
 
 	return nil

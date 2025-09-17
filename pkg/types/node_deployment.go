@@ -155,18 +155,18 @@ func (info DeploymentInfo) Validate() error {
 	}
 
 	if err := info.Host.Dynamic.NodeRole.Validate(); err != nil {
-		return fmt.Errorf("node_role validate failed, err: %w", err)
+		return fmt.Errorf("node_role validate failed: %w", err)
 	}
 
 	if err := info.Host.Dynamic.NodeStatus.Validate(); err != nil {
-		return fmt.Errorf("node_status validate failed, err: %w", err)
+		return fmt.Errorf("node_status validate failed: %w", err)
 	}
 
 	if info.Host.Dynamic.NodeVersion == "" {
 		return errors.New("node_version shouldn't not be empty")
 	}
 	if err := info.Host.Dynamic.NodeGeneration.Validate(); err != nil {
-		return fmt.Errorf("node_generation validate failed, err: %w", err)
+		return fmt.Errorf("node_generation validate failed: %w", err)
 	}
 	if info.Host.Dynamic.NetworkUnitID < 0 {
 		return errors.New("network_unit_id should be equal or greater than 0")
@@ -210,7 +210,7 @@ func (info DeploymentInfo) Validate() error {
 	}
 
 	if err := info.Host.Dynamic.LoginMode.Validate(); err != nil {
-		return fmt.Errorf("login_mode validate failed, err: %w", err)
+		return fmt.Errorf("login_mode validate failed: %w", err)
 	}
 
 	return nil
@@ -244,11 +244,11 @@ type TargetVersion struct {
 // Validate validate target version.
 func (v TargetVersion) Validate() error {
 	if err := v.OsType.Validate(); err != nil {
-		return fmt.Errorf("os_type validate failed, err: %w", err)
+		return fmt.Errorf("os_type validate failed: %w", err)
 	}
 
 	if err := v.CPUArch.Validate(); err != nil {
-		return fmt.Errorf("cpu_arch validate failed, err: %w", err)
+		return fmt.Errorf("cpu_arch validate failed: %w", err)
 	}
 
 	if v.Version == "" {

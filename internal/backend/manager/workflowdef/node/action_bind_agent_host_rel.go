@@ -107,7 +107,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 
 	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
-		return fmt.Errorf("get node deployment info failed, err: %w", err)
+		return fmt.Errorf("get node deployment info failed: %w", err)
 	}
 
 	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
@@ -145,7 +145,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	})
 
 	if err = gp.Wait(); err != nil {
-		return fmt.Errorf("bind host agent relation failed, err: %w", err)
+		return fmt.Errorf("bind host agent relation failed: %w", err)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.Host.HostID,
@@ -157,7 +157,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 func (act *actionBindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
 	daoHost, err := act.storageHost.GetHostByID(ctx, info.Host.HostID)
 	if err != nil {
-		return fmt.Errorf("get host info failed, err: %w", err)
+		return fmt.Errorf("get host info failed: %w", err)
 	}
 
 	if daoHost == nil {

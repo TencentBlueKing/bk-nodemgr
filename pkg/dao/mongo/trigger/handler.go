@@ -56,7 +56,7 @@ func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure trigger indexes, err: %v",
+		h.logger.Warnf("failed to ensure trigger indexes: %v",
 			errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 

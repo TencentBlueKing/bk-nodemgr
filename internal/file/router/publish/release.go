@@ -26,7 +26,7 @@ func (h *handler) PublishReleaseAgent(ctx *restserver.Context) (interface{}, err
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseAgent(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release agent. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release agent. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -48,7 +48,7 @@ func (h *handler) PublishReleaseProxy(ctx *restserver.Context) (interface{}, err
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseProxy(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release proxy. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release proxy. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -70,7 +70,7 @@ func (h *handler) PublishReleaseCert(ctx *restserver.Context) (interface{}, erro
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseCert(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release cert. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release cert. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -92,7 +92,7 @@ func (h *handler) PublishReleaseBinTool(ctx *restserver.Context) (interface{}, e
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseBinTool(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release bintool. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release bintool. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -114,7 +114,7 @@ func (h *handler) PublishReleasePluginBinTool(ctx *restserver.Context) (interfac
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleasePluginBinTool(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -136,7 +136,7 @@ func (h *handler) PublishReleaseOfficialPlugin(ctx *restserver.Context) (interfa
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseOfficialPlugin(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release official plugin. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release official plugin. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -158,7 +158,7 @@ func (h *handler) PublishReleaseExternalPlugin(ctx *restserver.Context) (interfa
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseExternalPlugin(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release external plugin. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release external plugin. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}

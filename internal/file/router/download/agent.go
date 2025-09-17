@@ -40,12 +40,12 @@ func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, erro
 			Arch: criteria.CPUArch(req.GetCpuArch()),
 		}, req.GetVersion())
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
 	reader, err := file.Content(ctx)
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}
 
 	info := file.Info()

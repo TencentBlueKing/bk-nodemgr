@@ -52,7 +52,7 @@ func generateWMIClient(
 
 	client, err := wmix.NewClient(wmiConf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
+		return nil, fmt.Errorf("failed to connect to host, host(%s): %w",
 			fmt.Sprintf("%s:%d", ip, port), err)
 	}
 

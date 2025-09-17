@@ -35,7 +35,7 @@ func (h *handler) ListBusiness(ctx *restserver.Context) (interface{}, error) {
 		req.ConvertPageToTypes(maxBusinessLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

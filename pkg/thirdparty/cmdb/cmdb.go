@@ -116,7 +116,7 @@ func (c *cli) listBizHosts(ctx contextx.ITenantUserContext, req *ListBizHostsReq
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list biz hosts failed, err: %v", err)
+		return nil, fmt.Errorf("list biz hosts failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -142,7 +142,7 @@ func (c *cli) searchBusiness(ctx contextx.ITenantUserContext, req *SearchBusines
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search business failed, err: %v", err)
+		return nil, fmt.Errorf("search business failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -168,7 +168,7 @@ func (c *cli) searchCloudArea(ctx contextx.ITenantUserContext, req *SearchCloudA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search cloud area failed, err: %v", err)
+		return nil, fmt.Errorf("search cloud area failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -194,7 +194,7 @@ func (c *cli) createCloudArea(ctx contextx.ITenantUserContext, req *CreateCloudA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("create cloud area failed, err: %v", err)
+		return nil, fmt.Errorf("create cloud area failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -220,7 +220,7 @@ func (c *cli) updateCloudArea(ctx contextx.ITenantUserContext, req *UpdateCloudA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update cloud area failed, err: %v", err)
+		return fmt.Errorf("update cloud area failed: %v", err)
 	}
 
 	return nil
@@ -246,7 +246,7 @@ func (c *cli) deleteCloudArea(ctx contextx.ITenantUserContext, req *DeleteCloudA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("delete cloud area failed, err: %v", err)
+		return fmt.Errorf("delete cloud area failed: %v", err)
 	}
 
 	return nil
@@ -272,7 +272,7 @@ func (c *cli) updateHostCloudAreaField(ctx contextx.ITenantUserContext, req *Upd
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update host cloud area field failed, err: %v", err)
+		return fmt.Errorf("update host cloud area field failed: %v", err)
 	}
 
 	return nil
@@ -299,7 +299,7 @@ func (c *cli) searchBizInstTopo(ctx contextx.ITenantUserContext, req *SearchBizI
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search biz inst topo failed, err: %v", err)
+		return nil, fmt.Errorf("search biz inst topo failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -326,7 +326,7 @@ func (c *cli) getBizInternalModule(ctx contextx.ITenantUserContext, req *GetBizI
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get biz internal module failed, err: %v", err)
+		return nil, fmt.Errorf("get biz internal module failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -353,7 +353,7 @@ func (c *cli) findTopoNodePaths(ctx contextx.ITenantUserContext, req *FindTopoNo
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find topo node paths failed, err: %v", err)
+		return nil, fmt.Errorf("find topo node paths failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -380,7 +380,7 @@ func (c *cli) findModuleBatch(ctx contextx.ITenantUserContext, req *FindModuleBa
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find module batch failed, err: %v", err)
+		return nil, fmt.Errorf("find module batch failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -408,7 +408,7 @@ func (c *cli) searchObjectAttribute(ctx contextx.ITenantUserContext, req *Search
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search object attribute failed, err: %v", err)
+		return nil, fmt.Errorf("search object attribute failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -434,7 +434,7 @@ func (c *cli) bindHostAgent(ctx contextx.ITenantUserContext, req *BindHostAgentR
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("bind host agent failed, err: %v", err)
+		return fmt.Errorf("bind host agent failed: %v", err)
 	}
 
 	return nil
@@ -460,7 +460,7 @@ func (c *cli) unbindHostAgent(ctx contextx.ITenantUserContext, req *UnbindHostAg
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("unbind host agent failed, err: %v", err)
+		return fmt.Errorf("unbind host agent failed: %v", err)
 	}
 
 	return nil
@@ -488,7 +488,7 @@ func (c *cli) addHostToBusinessIdle(ctx contextx.ITenantUserContext, req *AddHos
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("add host to business idle failed, err: %v", err)
+		return nil, fmt.Errorf("add host to business idle failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -514,7 +514,7 @@ func (c *cli) pushHostIdentifier(ctx contextx.ITenantUserContext, req *PushHostI
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("push host identifier failed, err: %v", err)
+		return nil, fmt.Errorf("push host identifier failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -542,7 +542,7 @@ func (c *cli) findHostIdentifierPushResult(ctx contextx.ITenantUserContext, req 
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host identifier push result failed, err: %v", err)
+		return nil, fmt.Errorf("find host identifier push result failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -570,7 +570,7 @@ func (c *cli) addHostToResource(ctx contextx.ITenantUserContext, req *AddHostToR
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("add host to resource failed, err: %v", err)
+		return nil, fmt.Errorf("add host to resource failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -597,7 +597,7 @@ func (c *cli) listResourcePoolHosts(ctx contextx.ITenantUserContext, req *ListRe
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list resource pool hosts failed, err: %v", err)
+		return nil, fmt.Errorf("list resource pool hosts failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -624,7 +624,7 @@ func (c *cli) createDynamicGroup(ctx contextx.ITenantUserContext, req *CreateDyn
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("create dynamic group failed, err: %v", err)
+		return nil, fmt.Errorf("create dynamic group failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -650,7 +650,7 @@ func (c *cli) executeDynamicGroup(ctx contextx.ITenantUserContext, req *ExecuteD
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("execute host dynamic group failed, err: %v", err)
+		return nil, fmt.Errorf("execute host dynamic group failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -676,7 +676,7 @@ func (c *cli) searchDynamicGroup(ctx contextx.ITenantUserContext, req *SearchDyn
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search dynamic group failed, err: %v", err)
+		return nil, fmt.Errorf("search dynamic group failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -703,7 +703,7 @@ func (c *cli) deleteDynamicGroup(ctx contextx.ITenantUserContext, req *DeleteDyn
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("delete dynamic group failed, err: %v", err)
+		return fmt.Errorf("delete dynamic group failed: %v", err)
 	}
 
 	return nil
@@ -728,7 +728,7 @@ func (c *cli) getDynamicGroup(ctx contextx.ITenantUserContext, req *GetDynamicGr
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get dynamic group failed, err: %v", err)
+		return nil, fmt.Errorf("get dynamic group failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -755,7 +755,7 @@ func (c *cli) updateDynamicGroup(ctx contextx.ITenantUserContext, req *UpdateDyn
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("update dynamic group failed, err: %v", err)
+		return fmt.Errorf("update dynamic group failed: %v", err)
 	}
 
 	return nil
@@ -783,7 +783,7 @@ func (c *cli) listHostsWithoutBusiness(ctx contextx.ITenantUserContext, req *Lis
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list hosts without business failed, err: %v", err)
+		return nil, fmt.Errorf("list hosts without business failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -812,7 +812,7 @@ func (c *cli) getMainlineObjectTopo(ctx contextx.ITenantUserContext, req *GetMai
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get mainline object failed, err: %v", err)
+		return nil, fmt.Errorf("get mainline object failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -840,7 +840,7 @@ func (c *cli) listServiceTemplate(ctx contextx.ITenantUserContext, req *ListServ
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list service template failed, err: %v", err)
+		return nil, fmt.Errorf("list service template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -869,7 +869,7 @@ func (c *cli) listServiceInstance(ctx contextx.ITenantUserContext, req *ListServ
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list service instance failed, err: %v", err)
+		return nil, fmt.Errorf("list service instance failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -898,7 +898,7 @@ func (c *cli) listProcessInstance(ctx contextx.ITenantUserContext, req *ListProc
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list process instance failed, err: %v", err)
+		return nil, fmt.Errorf("list process instance failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -927,7 +927,7 @@ func (c *cli) listProcTemplate(ctx contextx.ITenantUserContext, req *ListProcTem
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list proc template failed, err: %v", err)
+		return nil, fmt.Errorf("list proc template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -954,7 +954,7 @@ func (c *cli) findSetBatch(ctx contextx.ITenantUserContext, req *FindSetBatchReq
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find set batch failed, err: %v", err)
+		return nil, fmt.Errorf("find set batch failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -981,7 +981,7 @@ func (c *cli) searchSet(ctx contextx.ITenantUserContext, req *SearchSetReq) (*Se
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search set failed, err: %v", err)
+		return nil, fmt.Errorf("search set failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1008,7 +1008,7 @@ func (c *cli) searchModule(ctx contextx.ITenantUserContext, req *SearchModuleReq
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search module failed, err: %v", err)
+		return nil, fmt.Errorf("search module failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1037,7 +1037,7 @@ func (c *cli) findHostTopoRelation(ctx contextx.ITenantUserContext, req *FindHos
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host topo relation failed, err: %v", err)
+		return nil, fmt.Errorf("find host topo relation failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1066,7 +1066,7 @@ func (c *cli) findHostBizRelations(ctx contextx.ITenantUserContext, req *FindHos
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host biz relations failed, err: %v", err)
+		return nil, fmt.Errorf("find host biz relations failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1094,7 +1094,7 @@ func (c *cli) findHostByServiceTemplate(ctx contextx.ITenantUserContext, req *Fi
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host by service template failed, err: %v", err)
+		return nil, fmt.Errorf("find host by service template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1123,7 +1123,7 @@ func (c *cli) findHostBySetTemplate(ctx contextx.ITenantUserContext, req *FindHo
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host by set template failed, err: %v", err)
+		return nil, fmt.Errorf("find host by set template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1152,7 +1152,7 @@ func (c *cli) findHostByTopo(ctx contextx.ITenantUserContext, req *FindHostByTop
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host by topo failed, err: %v", err)
+		return nil, fmt.Errorf("find host by topo failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1181,7 +1181,7 @@ func (c *cli) findHostRelationsWithTopo(ctx contextx.ITenantUserContext, req *Fi
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host relations with topo failed, err: %v", err)
+		return nil, fmt.Errorf("find host relations with topo failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1210,7 +1210,7 @@ func (c *cli) listServiceInstanceDetail(ctx contextx.ITenantUserContext, req *Li
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list service instance detail failed, err: %v", err)
+		return nil, fmt.Errorf("list service instance detail failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1239,7 +1239,7 @@ func (c *cli) listBizHostsTopo(ctx contextx.ITenantUserContext, req *ListBizHost
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list hosts topo failed, err: %v", err)
+		return nil, fmt.Errorf("list hosts topo failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1268,7 +1268,7 @@ func (c *cli) listServiceInstanceByHost(ctx contextx.ITenantUserContext, req *Li
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list service instance by host failed, err: %v", err)
+		return nil, fmt.Errorf("list service instance by host failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1297,7 +1297,7 @@ func (c *cli) listServiceInstanceBySetTemplate(ctx contextx.ITenantUserContext, 
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list service instance by set template failed, err: %v", err)
+		return nil, fmt.Errorf("list service instance by set template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1326,7 +1326,7 @@ func (c *cli) listSetTemplate(ctx contextx.ITenantUserContext, req *ListSetTempl
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list set template failed, err: %v", err)
+		return nil, fmt.Errorf("list set template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1353,7 +1353,7 @@ func (c *cli) batchUpdateHost(ctx contextx.ITenantUserContext, req *BatchUpdateH
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("batch update host failed, err: %v", err)
+		return fmt.Errorf("batch update host failed: %v", err)
 	}
 
 	return nil
@@ -1382,7 +1382,7 @@ func (c *cli) findHostServiceTemplate(ctx contextx.ITenantUserContext, req *Find
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("find host service template failed, err: %v", err)
+		return nil, fmt.Errorf("find host service template failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -1410,7 +1410,7 @@ func (c *cli) resourceWatch(ctx contextx.ITenantUserContext, req *ResourceWatchR
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("resource watch failed, err: %v", err)
+		return nil, fmt.Errorf("resource watch failed: %v", err)
 	}
 
 	return resp.Data, nil

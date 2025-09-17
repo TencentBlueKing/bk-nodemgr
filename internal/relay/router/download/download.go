@@ -63,12 +63,12 @@ func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, erro
 
 	file, err := h.fileManager.GetFile(ctx, pkgName)
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
 	reader, err := file.Content(ctx)
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}
 
 	info := file.Info()
@@ -113,12 +113,12 @@ func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, erro
 
 	file, err := h.fileManager.GetFile(ctx, pkgName)
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
 	reader, err := file.Content(ctx)
 	if err != nil {
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed, err: %w", err))
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}
 
 	info := file.Info()

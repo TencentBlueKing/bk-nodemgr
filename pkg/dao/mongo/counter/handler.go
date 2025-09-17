@@ -54,7 +54,7 @@ func (h *handler) Generate(ctx context.Context, key string) (int64, error) {
 func (h *handler) getDao() *dao {
 	h.once.Do(func() {
 		if err := h.dao.ensureIndexes(); err != nil {
-			h.logger.Warnf("failed to ensure counter indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+			h.logger.Warnf("failed to ensure counter indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 		}
 	})
 

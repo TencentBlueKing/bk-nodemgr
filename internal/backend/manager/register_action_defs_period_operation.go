@@ -19,7 +19,7 @@ import (
 // registerPeriodicTriggerActions registers the action definitions for periodic trigger actions.
 func (mgr *Manager) registerActionDefsPeriodicOperation() error {
 	if err := mgr.registerActionDefSchedule(); err != nil {
-		return fmt.Errorf("register action def schedule failed, err: %w", err)
+		return fmt.Errorf("register action def schedule failed: %w", err)
 	}
 
 	return nil

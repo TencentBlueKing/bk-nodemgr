@@ -28,7 +28,7 @@ func (h *handler) SyncCmdbHost(ctx *restserver.Context) (interface{}, error) {
 
 	triggerID, err := h.manager.LaunchSyncBizAndHost(ctx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to start sync cmdb host operation. trigger-id(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to start sync cmdb host operation. trigger-id(%s): %v",
 			triggerID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -50,7 +50,7 @@ func (h *handler) SyncCmdbNetworkArea(ctx *restserver.Context) (interface{}, err
 
 	triggerID, err := h.manager.LaunchSyncNetworkArea(ctx)
 	if err != nil {
-		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s), err: %v", triggerID, err)
+		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s): %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 

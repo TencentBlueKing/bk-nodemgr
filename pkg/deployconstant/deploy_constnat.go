@@ -34,7 +34,7 @@ type DeployConf struct {
 // Validate checks if the deployment configuration is valid.
 func (conf DeployConf) Validate() error {
 	if err := conf.Generation.Validate(); err != nil {
-		return fmt.Errorf("invalid generation, err: %w", err)
+		return fmt.Errorf("invalid generation: %w", err)
 	}
 
 	if err := conf.OsType.Validate(); err != nil {
@@ -73,7 +73,7 @@ func SetDeployConf(conf DeployConf) error {
 	populateDefaultValues(&conf)
 
 	if err := conf.Validate(); err != nil {
-		return fmt.Errorf("set deploy conf failed, err: %w", err)
+		return fmt.Errorf("set deploy conf failed: %w", err)
 	}
 
 	if _, ok := deployConfMap[conf.Generation]; !ok {

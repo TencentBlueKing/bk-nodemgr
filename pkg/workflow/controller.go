@@ -427,7 +427,7 @@ func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error
 		ctl.operInstanceBriefData.Metadata.OperationInstanceID)
 	_, err = ctl.mgr.server.SendChainWithContext(ctx, chain)
 	if err != nil {
-		return fmt.Errorf("send chain to machinery failed, err: %v", err)
+		return fmt.Errorf("send chain to machinery failed: %v", err)
 	}
 
 	return nil
@@ -449,7 +449,7 @@ func (ctl *controller) CreateRetryOperationInstance(ctx contextx.IContext, retry
 	lastInstanceID := ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-1]
 	prevInstance, err := ctl.mgr.stgOperationInstance.GetOperationInstanceFullData(ctx, lastInstanceID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get last operation instance, err: %v", err)
+		return nil, fmt.Errorf("failed to get last operation instance: %v", err)
 	}
 
 	switch retryMod {
@@ -571,7 +571,7 @@ func (ctl *controller) createPartialRetryInstance(
 	}
 
 	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(ctx, instanceData); err != nil {
-		return nil, fmt.Errorf("failed to update instance with copied content, err: %w", err)
+		return nil, fmt.Errorf("failed to update instance with copied content: %w", err)
 	}
 
 	return &controller{

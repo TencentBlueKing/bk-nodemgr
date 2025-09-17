@@ -44,7 +44,7 @@ func main() {
 	)
 
 	if err := rootCMD.Execute(); err != nil {
-		fmt.Printf("failed to execute cmd, err: %v\n", err)
+		fmt.Printf("failed to execute cmd: %v\n", err)
 		os.Exit(1)
 	}
 }

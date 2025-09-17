@@ -135,7 +135,7 @@ func GetProcessInfo(pid int) (ProcessInfo, error) {
 		binNamePath := fmt.Sprintf("/proc/%d/comm", pid)
 		binNameBytes, err := os.ReadFile(filepath.Clean(binNamePath))
 		if err != nil {
-			return fmt.Errorf("failed to read %s, err: %v", binNamePath, err)
+			return fmt.Errorf("failed to read %s: %v", binNamePath, err)
 		}
 
 		procInfo.Name = strings.TrimSpace(string(binNameBytes))
@@ -151,7 +151,7 @@ func GetProcessInfo(pid int) (ProcessInfo, error) {
 			// must make the full path available,
 			// otherwise if you use this path to kill the process in the future, it will be deleted by mistake.
 
-			return fmt.Errorf("failed to readlink %s, err: %v", exePath, err)
+			return fmt.Errorf("failed to readlink %s: %v", exePath, err)
 		}
 		procInfo.FullPath = fullPath
 
@@ -199,7 +199,7 @@ func GetProcessInfo(pid int) (ProcessInfo, error) {
 	})
 
 	if err := gp.Wait(); err != nil {
-		return procInfo, fmt.Errorf("failed to get process info, err: %v", err)
+		return procInfo, fmt.Errorf("failed to get process info: %v", err)
 	}
 
 	return procInfo, nil

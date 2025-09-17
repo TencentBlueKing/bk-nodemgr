@@ -125,7 +125,7 @@ func (act *actionGenOperSyncHost) executeOper(
 	trigCtl, err := act.workflowCtl.GetTrigger(ctx.Ctx, ctx.Data.TriggerID)
 	if err != nil {
 		err = fmt.Errorf(
-			"failed to get trigger. tenant-id(%s), trigger-id(%s), biz-name(%s), biz-id(%d), err: %w",
+			"failed to get trigger. tenant-id(%s), trigger-id(%s), biz-name(%s), biz-id(%d): %w",
 			biz.TenantID, ctx.Data.TriggerID, biz.BizName, biz.BizID, err)
 
 		ctx.Data.LogE(err.Error())
@@ -145,7 +145,7 @@ func (act *actionGenOperSyncHost) executeOper(
 	operCtl, err := trigCtl.CreateOperation(ctx.Ctx, operationDef, operationParam)
 	if err != nil {
 		err = fmt.Errorf(
-			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d), err: %w",
+			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d): %w",
 			biz.TenantID, biz.BizName, biz.BizID, err)
 
 		ctx.Data.LogE(err.Error())

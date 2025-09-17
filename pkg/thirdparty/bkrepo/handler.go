@@ -86,7 +86,7 @@ func (h *Handler) GetFile(ctx context.Context, path string) (fileiface.File, err
 
 	resp, err := h.cli.QueryNodeInfo(ctx, &QueryNodeInfoReq{Path: path})
 	if err != nil {
-		return nil, fmt.Errorf("get file failed, err: %w", err)
+		return nil, fmt.Errorf("get file failed: %w", err)
 	}
 
 	if resp.NodeInfo.Folder {
@@ -111,7 +111,7 @@ func (h *Handler) GetFileGroup(ctx context.Context, path string) (fileiface.File
 
 	resp, err := h.cli.QueryNodeInfo(ctx, &QueryNodeInfoReq{Path: path})
 	if err != nil {
-		return nil, fmt.Errorf("get file failed, err: %w", err)
+		return nil, fmt.Errorf("get file failed: %w", err)
 	}
 
 	if !resp.NodeInfo.Folder {
@@ -144,7 +144,7 @@ func (h *Handler) EnsureFileGroup(ctx context.Context, path string) (fileiface.F
 	}
 
 	if err = h.cli.MkDir(ctx, &MkdirReq{Path: path}); err != nil {
-		return nil, fmt.Errorf("ensure file group failed, err: %w", err)
+		return nil, fmt.Errorf("ensure file group failed: %w", err)
 	}
 
 	return h.GetFileGroup(ctx, path)
@@ -160,7 +160,7 @@ func (h *Handler) listGroups(ctx context.Context, path string) ([]fileiface.File
 
 	nodes, err := h.listNodes(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("list groups failed, err: %w", err)
+		return nil, fmt.Errorf("list groups failed: %w", err)
 	}
 
 	groups := make([]fileiface.FileGroup, 0)
@@ -171,7 +171,7 @@ func (h *Handler) listGroups(ctx context.Context, path string) ([]fileiface.File
 
 		group, err := h.GetFileGroup(ctx, node.FullPath)
 		if err != nil {
-			return nil, fmt.Errorf("list groups failed, err: %w", err)
+			return nil, fmt.Errorf("list groups failed: %w", err)
 		}
 
 		groups = append(groups, group)
@@ -190,7 +190,7 @@ func (h *Handler) listFiles(ctx context.Context, path string) ([]fileiface.File,
 
 	nodes, err := h.listNodes(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("list files failed, err: %w", err)
+		return nil, fmt.Errorf("list files failed: %w", err)
 	}
 
 	files := make([]fileiface.File, 0)
@@ -201,7 +201,7 @@ func (h *Handler) listFiles(ctx context.Context, path string) ([]fileiface.File,
 
 		file, err := h.GetFile(ctx, node.FullPath)
 		if err != nil {
-			return nil, fmt.Errorf("list files failed, err: %w", err)
+			return nil, fmt.Errorf("list files failed: %w", err)
 		}
 
 		files = append(files, file)
@@ -239,7 +239,7 @@ func (h *Handler) listNodes(ctx context.Context, path string) ([]NodeRecord, err
 
 	records, err := executor.Execute(ctx, types.UnlimitedPage(), fn)
 	if err != nil {
-		return nil, fmt.Errorf("list node failed, err: %w", err)
+		return nil, fmt.Errorf("list node failed: %w", err)
 	}
 
 	return records.Items, nil
@@ -260,7 +260,7 @@ func (h *Handler) storeFile(
 
 	uploadFilePath, err := url.JoinPath(fileGroupPath, info.Name)
 	if err != nil {
-		return fmt.Errorf("join path failed, err: %w", err)
+		return fmt.Errorf("join path failed: %w", err)
 	}
 
 	uploadFileReq := &UploadFileReq{
@@ -286,7 +286,7 @@ func (h *Handler) storeFile(
 
 	_, err = h.cli.UploadFile(ctx, uploadFileReq)
 	if err != nil {
-		return fmt.Errorf("upload file failed, err: %w", err)
+		return fmt.Errorf("upload file failed: %w", err)
 	}
 
 	return nil
@@ -302,7 +302,7 @@ func (h *Handler) getFileContent(ctx context.Context, path string) (io.ReadClose
 
 	downloadFileResp, err := h.cli.DownloadFile(ctx, &DownloadFileReq{Path: path})
 	if err != nil {
-		return nil, fmt.Errorf("download file failed, err: %w", err)
+		return nil, fmt.Errorf("download file failed: %w", err)
 	}
 
 	return io.NopCloser(bytes.NewReader(downloadFileResp.Data)), nil

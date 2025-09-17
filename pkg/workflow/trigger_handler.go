@@ -168,7 +168,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 	for _, task := range scheduleTasks {
 		err := handler.scheduler.RegisterTask(task)
 		if err != nil {
-			handler.mgr.logger.Errorf("failed to register task, task-id(%s), err: %v", task.ID, err)
+			handler.mgr.logger.Errorf("failed to register task, task-id(%s): %v", task.ID, err)
 			continue
 		}
 	}
@@ -254,13 +254,13 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 			// make sure the trigger data is fresh.
 			trigCtl, err := handler.mgr.GetTrigger(ctx, trig.TriggerID)
 			if err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to get trigger. trigger-id:(%s), err: %v", trig.TriggerID, err)
+				handler.mgr.logger.ErrorCtxf(ctx, "failed to get trigger. trigger-id:(%s): %v", trig.TriggerID, err)
 
 				return nil
 			}
 
 			if err := handler.doTrigger(ctx, trigCtl); err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to do trigger. trigger-id:(%s), err: %v", trig.TriggerID, err)
+				handler.mgr.logger.ErrorCtxf(ctx, "failed to do trigger. trigger-id:(%s): %v", trig.TriggerID, err)
 
 				return nil
 			}
@@ -272,7 +272,7 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 	}
 
 	if err := gp.Wait(); err != nil {
-		handler.mgr.logger.Errorf("check periodic trigger failed, err: %v", err)
+		handler.mgr.logger.Errorf("check periodic trigger failed: %v", err)
 		return err
 	}
 
@@ -286,7 +286,7 @@ func (handler *triggerHandler) tryLockTrigger(ctx contextx.IContext, trig *trigg
 
 	err := mutex.TryLock()
 	if err != nil {
-		handler.mgr.logger.ErrorCtxf(ctx, "failed to lock trigger. trigger-id:(%s), err: %v", trig.TriggerID, err)
+		handler.mgr.logger.ErrorCtxf(ctx, "failed to lock trigger. trigger-id:(%s): %v", trig.TriggerID, err)
 
 		return nil
 	}
@@ -386,7 +386,7 @@ func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITrigger
 	// update triggered time if there is any instance launched.
 	if len(instanceCtls) > 0 {
 		if err = trigCtl.UpdateLastTriggeredTime(ctx); err != nil {
-			handler.mgr.logger.WarnCtxf(ctx, "failed to update last triggered time. trigger-id:(%s), err: %v",
+			handler.mgr.logger.WarnCtxf(ctx, "failed to update last triggered time. trigger-id:(%s): %v",
 				trigCtl.GetTriggerID(), err)
 		}
 	}

@@ -123,14 +123,14 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	gp.Go(func() error {
 		if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-			return fmt.Errorf("update node deployment info failed, err: %w", err)
+			return fmt.Errorf("update node deployment info failed: %w", err)
 		}
 
 		return nil
 	})
 
 	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("wait group failed, err: %w", err)
+		return fmt.Errorf("wait group failed: %w", err)
 	}
 
 	return nil
@@ -166,7 +166,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, in
 				return err
 			}
 			if err := act.storageHost.UpsertManyHost(ctx, &info.Host); err != nil {
-				return fmt.Errorf("upsert host to db failed, err: %w", err)
+				return fmt.Errorf("upsert host to db failed: %w", err)
 			}
 		} else {
 			info.Host.HostID = hosts[0].HostID

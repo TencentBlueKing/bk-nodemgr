@@ -26,14 +26,14 @@ import (
 func (h *handler) GetCheckList(gCtx *gin.Context) {
 	req := new(protoBackend.GetCheckListReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -41,7 +41,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 
 	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -50,7 +50,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 	conf := new(CheckList)
 	conf.DiskRequires, err = h.calCheckListDiskRequires(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -58,7 +58,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 
 	conf.PortPolicies, err = h.calCheckListPortPolicies(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -66,7 +66,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 
 	conf.NetworkPolicies, err = h.calCheckListNetworkPolicies(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed, err: %s", err)
+		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return

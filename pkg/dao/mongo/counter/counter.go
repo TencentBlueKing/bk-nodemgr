@@ -61,14 +61,14 @@ func (d *dao) generate(ctx context.Context, key string) (int64, error) {
 		return 0, nil
 	}
 	if err := result.Err(); err != nil {
-		d.logger.Errorf("failed to generate counter. key(%s), err: %v", key, err)
+		d.logger.Errorf("failed to generate counter. key(%s): %v", key, err)
 
 		return -1, err
 	}
 
 	data := &TableCounter{}
 	if err := result.Decode(data); err != nil {
-		d.logger.Errorf("failed to decode counter. key(%s), err: %v", key, err)
+		d.logger.Errorf("failed to decode counter. key(%s): %v", key, err)
 
 		return -1, err
 	}

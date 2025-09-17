@@ -60,14 +60,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new storage failed: %v", err)
 		return nil, err
 	}
 
 	err = s.registerScheduler()
 	if err != nil {
-		s.Logger.Errorf("register scheduler failed, err: %v", err)
-		return nil, fmt.Errorf("register scheduler failed, err: %w", err)
+		s.Logger.Errorf("register scheduler failed: %v", err)
+		return nil, fmt.Errorf("register scheduler failed: %w", err)
 	}
 
 	return s, nil
@@ -103,8 +103,8 @@ func (s *Storage) registerScheduler() error {
 		s.obtainMonitoredWorkflows,
 	))
 	if err != nil {
-		s.Logger.Errorf("register obtain monitored workflows task failed, err: %v", err)
-		return fmt.Errorf("register obtain monitored workflows task failed, err: %w", err)
+		s.Logger.Errorf("register obtain monitored workflows task failed: %v", err)
+		return fmt.Errorf("register obtain monitored workflows task failed: %w", err)
 	}
 
 	err = s.Scheduler.RegisterTask(scheduler.NewTask(
@@ -114,8 +114,8 @@ func (s *Storage) registerScheduler() error {
 		s.monitorWorkflowStatus,
 	))
 	if err != nil {
-		s.Logger.Errorf("register monitor workflow status task failed, err: %v", err)
-		return fmt.Errorf("register monitor workflow status task failed, err: %w", err)
+		s.Logger.Errorf("register monitor workflow status task failed: %v", err)
+		return fmt.Errorf("register monitor workflow status task failed: %w", err)
 	}
 
 	return nil
@@ -128,7 +128,7 @@ func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 		types.UnlimitedPage(),
 		nodeworkflow.WithStatus(types.NodeWorkflowStatusRunning))
 	if err != nil {
-		return fmt.Errorf("query running workflows failed, err: %w", err)
+		return fmt.Errorf("query running workflows failed: %w", err)
 	}
 
 	recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
@@ -138,7 +138,7 @@ func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 		daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
 	)
 	if err != nil {
-		return fmt.Errorf("query recent finished workflows failed, err: %w", err)
+		return fmt.Errorf("query recent finished workflows failed: %w", err)
 	}
 
 	convFn := func(workflows []*types.NodeWorkflow) (map[string]*types.NodeWorkflow, error) {
@@ -149,12 +149,12 @@ func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 
 	runningWorkflowMap, err := convFn(runningWorkflows)
 	if err != nil {
-		return fmt.Errorf("convert running workflows to map failed, err: %w", err)
+		return fmt.Errorf("convert running workflows to map failed: %w", err)
 	}
 
 	recentFinishedWorkflowMap, err := convFn(recentFinishedWorkflows)
 	if err != nil {
-		return fmt.Errorf("convert recent finished workflows to map failed, err: %w", err)
+		return fmt.Errorf("convert recent finished workflows to map failed: %w", err)
 	}
 
 	s.monitoredWorkflowsMutex.Lock()
@@ -186,7 +186,7 @@ func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
 	operInst, err := s.daoOperInstData.ListAllLastOperInst(ctx,
 		operinstdata.WithTriggerID(conv.MapKeyToSlice(s.monitoredWorkflows)...))
 	if err != nil {
-		return fmt.Errorf("query last operation instance failed, err: %w", err)
+		return fmt.Errorf("query last operation instance failed: %w", err)
 	}
 
 	unfinishedTriggerMap := make(map[string]struct{}, len(operInst))
@@ -209,13 +209,13 @@ func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
 
 		err = s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status)
 		if err != nil {
-			return fmt.Errorf("update node workflow status failed, err: %w", err)
+			return fmt.Errorf("update node workflow status failed: %w", err)
 		}
 
 		err = s.daoNodeWorkflow.UpdateFinishTime(
 			ctx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime)
 		if err != nil {
-			return fmt.Errorf("update node workflow finish time failed, err: %w", err)
+			return fmt.Errorf("update node workflow finish time failed: %w", err)
 		}
 
 		delete(s.monitoredWorkflows, triggerID)

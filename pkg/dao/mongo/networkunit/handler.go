@@ -55,7 +55,7 @@ func New(client *mongo.Database, logger logger.ILogger) IHandler {
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure networkunit indexes, err: %v",
+		h.logger.Warnf("failed to ensure networkunit indexes: %v",
 			errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 

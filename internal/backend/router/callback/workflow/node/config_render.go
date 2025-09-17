@@ -72,7 +72,7 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderj
 		case reflect.Struct, reflect.Map, reflect.Slice:
 			bytes, err := json.Marshal(value)
 			if err != nil {
-				return nil, fmt.Errorf("json marshal failed. content(%v), err: %w", value, err)
+				return nil, fmt.Errorf("json marshal failed. content(%v): %w", value, err)
 			}
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
@@ -83,7 +83,7 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderj
 
 	config := new(orderjson.OrderedData)
 	if err := json.Unmarshal([]byte(configStr), config); err != nil {
-		return nil, fmt.Errorf("json unmarshal failed. content(%s), err: %w", configStr, err)
+		return nil, fmt.Errorf("json unmarshal failed. content(%s): %w", configStr, err)
 	}
 
 	return config, nil

@@ -93,6 +93,6 @@ func Test(t *testing.T) {
 	}
 
 	if err := Clean(); err != nil {
-		t.Errorf("clean tmp file failed, err: %s", err)
+		t.Errorf("clean tmp file failed: %s", err)
 	}
 }

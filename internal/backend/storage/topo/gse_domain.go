@@ -75,7 +75,7 @@ func (s *Storage) getAgentAccessEndpoints(
 	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
 	if err != nil {
 		return nil, nil, nil,
-			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 	}
 
 	// direct unit return direct endpoints.
@@ -96,7 +96,7 @@ func (s *Storage) getAgentAccessEndpoints(
 	)
 	if err != nil {
 		return nil, nil, nil,
-			fmt.Errorf("failed to get host by networkunit id, networkunit-id(%d), err: %w", networkUnitID, err)
+			fmt.Errorf("failed to get host by networkunit id, networkunit-id(%d): %w", networkUnitID, err)
 	}
 	if count == 0 {
 		return nil, nil, nil,
@@ -146,7 +146,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 	var networkUnit *types.NetworkUnit
 	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
 		return nil, nil, nil,
-			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 	}
 
 	// direct unit return direct endpoints.
@@ -167,7 +167,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 		networkUnit.Links.Data.AccessPointID,
 	)); err != nil {
 		return nil, nil, nil,
-			fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d), err: %w", networkUnitID, err)
+			fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d): %w", networkUnitID, err)
 	}
 
 	apList := types.AccessPointList(accesspoints)
@@ -210,7 +210,7 @@ func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (re
 	var networkUnit *types.NetworkUnit
 	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
 		return false,
-			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d), err: %w", networkUnitID, err)
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 	}
 
 	need := false

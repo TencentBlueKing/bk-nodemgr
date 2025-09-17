@@ -108,7 +108,7 @@ func (h *handler) SetReleaseLabels(ctx *restserver.Context) (interface{}, error)
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.SetReleaseLabels(ctx, gen, rt, plat, version, req.GetLabels()); err != nil {
 		h.logger.ErrorCtxf(ctx,
-			"failed to set release labels. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+			"failed to set release labels. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -132,7 +132,7 @@ func (h *handler) EnableRelease(ctx *restserver.Context) (interface{}, error) {
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.EnableRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -156,7 +156,7 @@ func (h *handler) DisableRelease(ctx *restserver.Context) (interface{}, error) {
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.DisableRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -181,7 +181,7 @@ func (h *handler) SetAsDefaultRelease(ctx *restserver.Context) (interface{}, err
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.SetAsDefaultRelease(ctx, gen, rt, plat, version); err != nil {
 		h.logger.ErrorCtxf(ctx,
-			"failed to set default release. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+			"failed to set default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -206,7 +206,7 @@ func (h *handler) CancelAsDefaultRelease(ctx *restserver.Context) (interface{}, 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.CancelAsDefaultRelease(ctx, gen, rt, plat, version); err != nil {
 		h.logger.ErrorCtxf(ctx,
-			"failed to cancel default release. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+			"failed to cancel default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -230,7 +230,7 @@ func (h *handler) DeleteRelease(ctx *restserver.Context) (interface{}, error) {
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.storage.DeleteRelease(ctx, gen, rt, plat, version); err != nil {
 		h.logger.ErrorCtxf(ctx,
-			"failed to delete release. gen(%d), release-type(%s), platform(%s), version(%s), err: %v",
+			"failed to delete release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

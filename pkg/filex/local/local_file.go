@@ -28,7 +28,7 @@ import (
 func NewLocalFile(fullPath string) (*LocalFile, error) {
 	exists, err := afero.Exists(rFs(), fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if file exists, err: %w", err)
+		return nil, fmt.Errorf("failed to check if file exists: %w", err)
 	}
 
 	if !exists {
@@ -38,7 +38,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 	// check if it's a directory
 	info, err := rFs().Stat(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file info, err: %w", err)
+		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
 
 	if info.IsDir() {
@@ -48,12 +48,12 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 	fileName := filepath.Base(fullPath)
 	md5Str, err := MD5SumWithBuffer(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file md5, err: %w", err)
+		return nil, fmt.Errorf("failed to get file md5: %w", err)
 	}
 
 	stat, err := rFs().Stat(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file info, err: %w", err)
+		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
 
 	file := &LocalFile{
@@ -76,7 +76,7 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 func MD5SumWithBuffer(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return "", fmt.Errorf("open file failed, err: %w", err)
+		return "", fmt.Errorf("open file failed: %w", err)
 	}
 	defer file.Close()
 
@@ -88,14 +88,14 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 		n, err := reader.Read(buffer)
 		if n > 0 {
 			if _, err := hash.Write(buffer[:n]); err != nil {
-				return "", fmt.Errorf("write to hash failed, err: %w", err)
+				return "", fmt.Errorf("write to hash failed: %w", err)
 			}
 		}
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			return "", fmt.Errorf("read file failed, err: %w", err)
+			return "", fmt.Errorf("read file failed: %w", err)
 		}
 	}
 

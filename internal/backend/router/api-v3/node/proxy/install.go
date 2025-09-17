@@ -229,9 +229,9 @@ func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Hos
 
 		loginKeyFile, err := base64.StdEncoding.DecodeString(keyfile)
 		if err != nil {
-			h.logger.Errorf("use base64 decode key file failed, err: %v", err)
+			h.logger.Errorf("use base64 decode key file failed: %v", err)
 
-			return fmt.Errorf("failed to decode key file, err: %w", err)
+			return fmt.Errorf("failed to decode key file: %w", err)
 		}
 
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(

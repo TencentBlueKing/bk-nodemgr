@@ -25,7 +25,7 @@ const (
 func (h *handler) ListGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.ListGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list global settings, failed to decode request body, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list global settings, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -34,7 +34,7 @@ func (h *handler) ListGlobalSettings(ctx *restserver.Context) (interface{}, erro
 	if req.GetOnlyCount() {
 		count, err := h.storage.CountGlobalSettings(ctx, req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to count global settings, err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to count global settings: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -50,7 +50,7 @@ func (h *handler) ListGlobalSettings(ctx *restserver.Context) (interface{}, erro
 		req.ConvertPageToTypes(maxGlobalSettingsLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list global settings, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list global settings: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -63,13 +63,13 @@ func (h *handler) ListGlobalSettings(ctx *restserver.Context) (interface{}, erro
 func (h *handler) GetGlobalSetting(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.GetGlobalSettingReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get global setting, failed to decode request body, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to get global setting, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	value, err := h.storage.GetGlobalSetting(ctx, req.GetSettingName())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get global setting, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to get global setting: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -83,12 +83,12 @@ func (h *handler) GetGlobalSetting(ctx *restserver.Context) (interface{}, error)
 func (h *handler) UpsertManyGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.UpsertGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, failed to decode request body, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.UpsertGlobalSettings(ctx, req.ConvertGlobalSettingsToTypes()...); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upsert global settings, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upsert global settings: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -101,12 +101,12 @@ func (h *handler) UpsertManyGlobalSettings(ctx *restserver.Context) (interface{}
 func (h *handler) DeleteManyGlobalSettings(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.DeleteGlobalSettingsReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete global settings, failed to decode request body, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to delete global settings, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.DeleteGlobalSettings(ctx, req.GetSettingName()...); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete global settings, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to delete global settings: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

@@ -23,14 +23,14 @@ import (
 func (h *handler) ReportStatus(gCtx *gin.Context) {
 	req := new(protoCallback.ReportStatusReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report status failed, err: %s", err)
+		h.logger.Errorf("report status failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report status failed, err: %s", err)
+		h.logger.Errorf("report status failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -38,7 +38,7 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 
 	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("token is invalid, err: %s", err)
+		h.logger.Errorf("token is invalid: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return

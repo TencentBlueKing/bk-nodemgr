@@ -19,7 +19,7 @@ import (
 // registerOperExecDefs init operation execution definitions.
 func (mgr *Manager) registerOperExecDefs() error {
 	if err := mgr.registerOperExecDefNodeInstall(); err != nil {
-		return fmt.Errorf("register oper extra action def node install failed, err: %w", err)
+		return fmt.Errorf("register oper extra action def node install failed: %w", err)
 	}
 
 	return nil

@@ -36,7 +36,7 @@ func NextActiveTime(cronExpr string, from time.Time) (time.Time, error) {
 	parser := CronParser()
 	schedule, err := parser.Parse(cronExpr)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("parser cron-expr(%s), err: %v", cronExpr, err)
+		return time.Time{}, fmt.Errorf("parser cron-expr(%s): %v", cronExpr, err)
 	}
 
 	nextTime := schedule.Next(from)
@@ -161,7 +161,7 @@ func (s *scheduler) RegisterTask(task *Task) error {
 		s.executeTask(s.tasks[task.ID])
 	})
 	if err != nil {
-		s.logger.Errorf("failed to add cron task, task-id(%s), err: %v", task.ID, err)
+		s.logger.Errorf("failed to add cron task, task-id(%s): %v", task.ID, err)
 		return err
 	}
 
@@ -192,14 +192,14 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 				stack = stack[line+1:]
 			}
 
-			s.logger.Errorf("task execution panic, scheduler-task-id(%s), err: %v, stack: \n%s", task.ID, r, stack)
+			s.logger.Errorf("task execution panic, scheduler-task-id(%s): %v, stack: \n%s", task.ID, r, stack)
 		}
 
 		task.lastExecuted = time.Now()
 	}()
 
 	if err := task.Fn(ctx); err != nil {
-		s.logger.Errorf("task execution failed, scheduler-task-id(%s), err: %v", task.ID, err)
+		s.logger.Errorf("task execution failed, scheduler-task-id(%s): %v", task.ID, err)
 		return
 	}
 

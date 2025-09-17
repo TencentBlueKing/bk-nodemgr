@@ -321,7 +321,7 @@ func (s *Storage) syncStopOperInsts(ctx contextx.IContext) error {
 	go func() {
 		err := s.checkNotifyStopping(ctx)
 		if err != nil {
-			s.Logger.Errorf("sync stopping event succeed, but check notify stopping failed, err: %v", err)
+			s.Logger.Errorf("sync stopping event succeed, but check notify stopping failed: %v", err)
 		}
 	}()
 
@@ -463,7 +463,7 @@ func (s *Storage) upsertActionInstancePrivateData(
 	}
 
 	if err := s.existsAction(ctx, operInstID, actionName); err != nil {
-		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s), err: %w",
+		return fmt.Errorf("action does not exist, operation-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
 	}
 

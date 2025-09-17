@@ -30,12 +30,12 @@ func CheckDiskFreeSpace(requires []DiskRequire) error {
 		gp.Go(func() error {
 			absDirPath, err := filepath.Abs(req.DirPath)
 			if err != nil {
-				return fmt.Errorf("get abs path failed, err: %v", err)
+				return fmt.Errorf("get abs path failed: %v", err)
 			}
 
 			freeSpace, err := utils.CountDiskFreeSpace(absDirPath)
 			if err != nil {
-				return fmt.Errorf("CountDiskFreeSpace failed, err: %v", err)
+				return fmt.Errorf("CountDiskFreeSpace failed: %v", err)
 			}
 
 			freeMB := freeSpace / MBSize
@@ -51,7 +51,7 @@ func CheckDiskFreeSpace(requires []DiskRequire) error {
 	}
 
 	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("CheckDiskFreeSpace failed, err: %v", err)
+		return fmt.Errorf("CheckDiskFreeSpace failed: %v", err)
 	}
 
 	return nil

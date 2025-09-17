@@ -36,7 +36,7 @@ func (s *Storage) matchConfigPolicy(ctx context.Context,
 		},
 		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch),
 	); err != nil {
-		return nil, false, fmt.Errorf("list config policy failed, err: %w", err)
+		return nil, false, fmt.Errorf("list config policy failed: %w", err)
 	}
 
 	if len(results) == 0 {

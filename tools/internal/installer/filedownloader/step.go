@@ -131,7 +131,7 @@ func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL
 	downloadURL, err := url.JoinPath(baseURL, subURL)
 	if err != nil {
 		logger.Errorf(installer.StepDownloadFiles, "failed to join path(%s, %s): %v", baseURL, subURL, err)
-		return fmt.Errorf("download file failed, err: %v", err)
+		return fmt.Errorf("download file failed: %v", err)
 	}
 
 	downloadConfig := downloader.Config{

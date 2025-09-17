@@ -48,7 +48,7 @@ func New(client *mongo.Database, logger logger.ILogger) *Handler {
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure nodedeloyment indexes, err: %v",
+		h.logger.Warnf("failed to ensure nodedeloyment indexes: %v",
 			errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 

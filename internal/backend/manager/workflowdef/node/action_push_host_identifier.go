@@ -123,7 +123,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	err = polling.Do(tenantUserCtx, func(_ int) error {
 		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(tenantUserCtx, taskID)
 		if err != nil {
-			act.logger.Errorf("failed to find host identifier push result, err: %s", err.Error())
+			act.logger.Errorf("failed to find host identifier push result: %s", err.Error())
 
 			return err
 		}
@@ -143,7 +143,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		ctx.Data.LogE("failed to push host identifier, err: " + err.Error())
+		ctx.Data.LogE("failed to push host identifier: " + err.Error())
 
 		return err
 	}

@@ -27,7 +27,7 @@ func init() {
 	gin.DebugPrintFunc = func(format string, args ...interface{}) {
 		_, err := fmt.Fprintf(blog.WriterDebug{}, format, args...)
 		if err != nil {
-			fmt.Printf("failed to write gin debug log, err: %v", err)
+			fmt.Printf("failed to write gin debug log: %v", err)
 			os.Exit(1)
 		}
 	}
@@ -95,13 +95,13 @@ func main() {
 
 	err := serverCmd.MarkPersistentFlagRequired("file")
 	if err != nil {
-		fmt.Printf("failed to mark flag required, err: %v\n", err)
+		fmt.Printf("failed to mark flag required: %v\n", err)
 		os.Exit(1)
 	}
 
 	err = serverCmd.Execute()
 	if err != nil {
-		fmt.Printf("failed to execute cmd, err: %v\n", err)
+		fmt.Printf("failed to execute cmd: %v\n", err)
 		os.Exit(1)
 	}
 }

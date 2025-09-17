@@ -88,7 +88,7 @@ func (e *ExpoBackoff) Do(ctx context.Context, fn func(attempt int) error) error 
 	for attempt := 0; attempt < e.opts.MaxRetries; attempt++ {
 		// if context cancelled, return.
 		if err := ctx.Err(); err != nil {
-			return fmt.Errorf("fn cancelled, err: %v", err)
+			return fmt.Errorf("fn cancelled: %v", err)
 		}
 
 		err = fn(attempt)
@@ -102,7 +102,7 @@ func (e *ExpoBackoff) Do(ctx context.Context, fn func(attempt int) error) error 
 		}
 
 		delay := e.calculateDelay(attempt)
-		e.opts.Logger.Warnf("fn failed, attempt(%d/%d), retry-after(%vs), err: %v.",
+		e.opts.Logger.Warnf("fn failed, attempt(%d/%d), retry-after(%vs): %v.",
 			attempt+1, e.opts.MaxRetries, delay.Seconds(), err)
 
 		select {

@@ -204,7 +204,7 @@ func (client *Client) UploadFile(ctx context.Context, srcFilePath, dstDirPath st
 
 	stdOut, stdErr, err := client.RunCommand(ctx, command)
 	if err != nil {
-		return "", "", fmt.Errorf("upload file failed, srcFilePath(%s), dstDirPath(%s), err: %w",
+		return "", "", fmt.Errorf("upload file failed, srcFilePath(%s), dstDirPath(%s): %w",
 			srcFilePath, dstDirPath, err)
 	}
 

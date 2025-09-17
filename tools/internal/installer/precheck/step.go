@@ -61,7 +61,7 @@ func (step *Step) Run(ctx context.Context) error {
 				return checkFn()
 			}); err != nil {
 				logger.Errorf(installer.StepPreCheck,
-					"failed to check %s, err: %v", name, err)
+					"failed to check %s: %v", name, err)
 
 				return err
 			}

@@ -133,7 +133,7 @@ func (lk *logKeeper) remove(tag string) (ok bool) {
 	if err := lk.removeFile(block.name); err != nil {
 		// 不能使用log输出，否则会死锁问题
 		// log.Printf("remove file '%s' failed: %s", block.name, err.Error())
-		fmt.Printf("remove file failed, block-name(%s), err: %v\n", block.name, err)
+		fmt.Printf("remove file failed, block-name(%s): %v\n", block.name, err)
 	}
 	lk.head[tag] = block.next
 	block = nil // for GC
@@ -152,17 +152,17 @@ const dirMode = 0750
 func (lk *logKeeper) load() {
 	_dir, err := os.ReadDir(lk.dir)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		fmt.Printf("read dir failed, err: %v", err)
+		fmt.Printf("read dir failed: %v", err)
 		return
 	}
 
 	if err = os.MkdirAll(lk.dir, dirMode); err != nil {
-		fmt.Printf("mkdir failed, err: %v", err)
+		fmt.Printf("mkdir failed: %v", err)
 		return
 	}
 
 	if _dir, err = os.ReadDir(lk.dir); err != nil {
-		fmt.Printf("read dir failed, err: %v", err)
+		fmt.Printf("read dir failed: %v", err)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (lk *logKeeper) load() {
 				lk.total[tag]++
 			} else {
 				if err = lk.removeFile(block.name); err != nil {
-					fmt.Printf("remove file failed, filename(%s), err: %v", block.name, err)
+					fmt.Printf("remove file failed, filename(%s): %v", block.name, err)
 				}
 			}
 		}
@@ -321,5 +321,5 @@ func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 		lastErr = err
 	}
 
-	return nil, "", fmt.Errorf("cannot create log, err: %v", lastErr)
+	return nil, "", fmt.Errorf("cannot create log: %v", lastErr)
 }

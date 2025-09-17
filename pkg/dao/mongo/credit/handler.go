@@ -50,7 +50,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure credit indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure credit indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)

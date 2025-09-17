@@ -131,32 +131,32 @@ func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param Re
 
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(ctx, param.WorkflowID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed, err: %w", err)
+		return nil, fmt.Errorf("get trigger failed: %w", err)
 	}
 
 	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, nodeWorkflow.TriggerID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed, err: %w", err)
+		return nil, fmt.Errorf("get trigger failed: %w", err)
 	}
 
 	operCtls, err := triggerCtl.ListOperation(ctx, param.OperationIDs...)
 	if err != nil {
-		return nil, fmt.Errorf("get operation failed, err: %w", err)
+		return nil, fmt.Errorf("get operation failed: %w", err)
 	}
 
 	err = mgr.conf.StorageNode.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning)
 	if err != nil {
-		return nil, fmt.Errorf("update node workflow status failed, err: %w", err)
+		return nil, fmt.Errorf("update node workflow status failed: %w", err)
 	}
 
 	for _, operCtl := range operCtls {
 		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.RetryMod)
 		if err != nil {
-			return nil, fmt.Errorf("create operation instance failed, err: %w", err)
+			return nil, fmt.Errorf("create operation instance failed: %w", err)
 		}
 
 		if err := instanceCtl.LaunchOperationInstance(ctx); err != nil {
-			return nil, fmt.Errorf("launch operation instance failed, err: %w", err)
+			return nil, fmt.Errorf("launch operation instance failed: %w", err)
 		}
 
 		instanceIDs = append(instanceIDs, instanceCtl.GetOperationInstanceID())

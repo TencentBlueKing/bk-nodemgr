@@ -101,7 +101,7 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	gp.Go(func() error {
 		cmdbData, err = act.cmdbHandler.ListBizHosts(tenantUserCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
-			return fmt.Errorf("list host from cmdb failed, err: %w", err)
+			return fmt.Errorf("list host from cmdb failed: %w", err)
 		}
 
 		return nil
@@ -119,7 +119,7 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("list host from db failed, err: %w", err)
+			return fmt.Errorf("list host from db failed: %w", err)
 		}
 
 		return nil
@@ -166,7 +166,7 @@ func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
 		return host.HostID
 	})
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("convert cmdb data to map failed, err: %w", err)
+		return nil, nil, nil, fmt.Errorf("convert cmdb data to map failed: %w", err)
 	}
 
 	// Handle hosts in the database

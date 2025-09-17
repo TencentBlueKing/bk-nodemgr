@@ -108,34 +108,34 @@ func (m *Manager) EnsureReleaseToLocal(ctx contextx.IContext, release types.Rele
 	// get upstream file.
 	upstreamFile, err := ufg.GetFile(ctx, release.FileName)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to get upstream file, filename(%s), err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to get upstream file, filename(%s): %w", release.FileName, err)
 	}
 
 	// get upstream content.
 	content, err := upstreamFile.Content(ctx)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to get upstream file content, filename(%s), err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to get upstream file content, filename(%s): %w", release.FileName, err)
 	}
 
 	// create new local dir.
 	cacheDir := filepath.Join(local.GetLocalFileGroupAbsDirPath(m.cacheFileGroup), uuid.New().String())
 	if err = os.MkdirAll(cacheDir, 0700); err != nil { // nolint: mnd,gosec
-		return nil, "", fmt.Errorf("failed to create temp cache dir, dirpath(%s), err: %w", cacheDir, err)
+		return nil, "", fmt.Errorf("failed to create temp cache dir, dirpath(%s): %w", cacheDir, err)
 	}
 
 	lfg, err := local.NewLocalDir(cacheDir, m.logger)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create local file group, dirpath(%s), err: %w", cacheDir, err)
+		return nil, "", fmt.Errorf("failed to create local file group, dirpath(%s): %w", cacheDir, err)
 	}
 
 	// save file to loca.
 	if err = lfg.Store(ctx, fileiface.FileInfo{Name: release.FileName}, content, true); err != nil {
-		return nil, "", fmt.Errorf("failed to store file, filename(%s), err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to store file, filename(%s): %w", release.FileName, err)
 	}
 
 	file, err := lfg.GetFile(ctx, release.FileName)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to get local file, filename(%s), err: %w", release.FileName, err)
+		return nil, "", fmt.Errorf("failed to get local file, filename(%s): %w", release.FileName, err)
 	}
 
 	m.localFilePool.filesMutex.Lock()

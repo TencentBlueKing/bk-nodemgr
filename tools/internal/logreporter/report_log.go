@@ -188,12 +188,12 @@ const bulkReportLogsTimeout = 10 * time.Second
 func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, callbackEndpoint string, req *ReportLogReq) error {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		return fmt.Errorf("marshal request body failed, err: %v", err)
+		return fmt.Errorf("marshal request body failed: %v", err)
 	}
 
 	reportURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/report_log")
 	if err != nil {
-		return fmt.Errorf("format report URL failed, err: %v", err)
+		return fmt.Errorf("format report URL failed: %v", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, reportURL, bytes.NewReader(jsonData))
@@ -304,7 +304,7 @@ func (reporter *Reporter) Watch(interval time.Duration) (<-chan error, func() er
 				reportCancel()
 
 				if err != nil {
-					errorCh <- fmt.Errorf("final report failed, err: %w", err)
+					errorCh <- fmt.Errorf("final report failed: %w", err)
 				}
 
 				return
@@ -315,7 +315,7 @@ func (reporter *Reporter) Watch(interval time.Duration) (<-chan error, func() er
 				reportCancel()
 
 				if err != nil {
-					errorCh <- fmt.Errorf("failed to report, err: %w", err)
+					errorCh <- fmt.Errorf("failed to report: %w", err)
 				}
 			}
 		}

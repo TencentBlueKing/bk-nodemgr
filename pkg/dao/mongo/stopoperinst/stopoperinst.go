@@ -44,7 +44,7 @@ type dao struct {
 func (d *dao) upsert(ctx context.Context, inst *StopOperInst) error {
 	indexModel := buildTTLIndexModel()
 	if _, err := d.client.Indexes().CreateOne(ctx, indexModel); err != nil {
-		d.logger.Errorf("create ttl index failed, err: %s", err)
+		d.logger.Errorf("create ttl index failed: %s", err)
 		return err
 	}
 

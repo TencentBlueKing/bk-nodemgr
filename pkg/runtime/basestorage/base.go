@@ -147,19 +147,19 @@ func (s *Storage) Start(ctx context.Context) (err error) {
 	}
 
 	if err := s.Database.Client().Ping(s.Ctx, nil); err != nil {
-		s.Logger.Errorf("failed to ping mongo client, err: %v", err)
+		s.Logger.Errorf("failed to ping mongo client: %v", err)
 
 		return err
 	}
 
 	if err := s.startFunc(); err != nil {
-		s.Logger.Errorf("failed to start storage, err: %v", err)
+		s.Logger.Errorf("failed to start storage: %v", err)
 
 		return err
 	}
 
 	if err := s.checkFunc(); err != nil {
-		s.Logger.Errorf("failed to check storage health, err: %v", err)
+		s.Logger.Errorf("failed to check storage health: %v", err)
 
 		return err
 	}

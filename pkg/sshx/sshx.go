@@ -204,7 +204,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 		var dialErr error
 		client.sshClient, dialErr = ssh.Dial(string(config.Network), config.getAddr(), sshConf)
 		if dialErr != nil {
-			client.logger.Errorf("failed to connect to host, host(%s), err: %v", config.getAddr(), dialErr)
+			client.logger.Errorf("failed to connect to host, host(%s): %v", config.getAddr(), dialErr)
 			return dialErr
 		}
 
@@ -227,8 +227,8 @@ type Client struct {
 func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("failed to run command, cmd(%s), err: %v", cmd, r)
-			cli.logger.Errorf("failed to run command, cmd(%s), err: %v", cmd, r)
+			err = fmt.Errorf("failed to run command, cmd(%s): %v", cmd, r)
+			cli.logger.Errorf("failed to run command, cmd(%s): %v", cmd, r)
 		}
 	}()
 
@@ -240,7 +240,7 @@ func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 
 	output, err := session.CombinedOutput(cmd)
 	if err != nil {
-		err = fmt.Errorf("failed to run command, cmd(%s), output(%s), err: %w", cmd, string(output), err)
+		err = fmt.Errorf("failed to run command, cmd(%s), output(%s): %w", cmd, string(output), err)
 
 		return "", err
 	}
@@ -259,22 +259,22 @@ func (cli *Client) TransferFile(file io.ReadCloser, destPath string) error {
 
 	sftpClient, err := sftp.NewClient(cli.sshClient)
 	if err != nil {
-		return fmt.Errorf("failed to create sftp client, err: %w", err)
+		return fmt.Errorf("failed to create sftp client: %w", err)
 	}
 
 	destDir := path.Dir(destPath)
 	if err := sftpClient.MkdirAll(destDir); err != nil {
-		return fmt.Errorf("failed to create dir, err: %w", err)
+		return fmt.Errorf("failed to create dir: %w", err)
 	}
 
 	destFile, err := sftpClient.Create(destPath)
 	if err != nil {
-		return fmt.Errorf("failed to create file, err: %w", err)
+		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer func() { _ = destFile.Close() }()
 
 	if _, err := io.Copy(destFile, file); err != nil {
-		return fmt.Errorf("failed to copy file, err: %w", err)
+		return fmt.Errorf("failed to copy file: %w", err)
 	}
 
 	return nil

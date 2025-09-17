@@ -300,7 +300,7 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *utils.NodeActionStanda
 	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, installBatName))
 	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
-		err = fmt.Errorf("failed to run install node, err: %w", err)
+		err = fmt.Errorf("failed to run install node: %w", err)
 
 		return err
 	}

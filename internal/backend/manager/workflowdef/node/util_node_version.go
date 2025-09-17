@@ -47,7 +47,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 
 	releases, num, err := versionParam.daoRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
-		return "", fmt.Errorf("failed to list default releases, err: %w", err)
+		return "", fmt.Errorf("failed to list default releases: %w", err)
 	}
 	if num == 0 {
 		return "", fmt.Errorf("failed to list default releases for platform. no default release found. platform(%v)", plat)
@@ -64,7 +64,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVersionParam) error {
 	plat, err := platform.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
 	if err != nil {
-		return fmt.Errorf("invalid platform, err: %w", err)
+		return fmt.Errorf("invalid platform: %w", err)
 	}
 
 	cond := &types.ReleaseCondition{

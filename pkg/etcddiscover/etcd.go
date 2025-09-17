@@ -397,7 +397,7 @@ func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 			case clientv3.EventTypePut:
 				var instance discover.Instance
 				if err := json.Unmarshal(ev.Kv.Value, &instance); err != nil {
-					provider.logger.Errorf("observed instance put, failed to unmarshal. service(%s), id(%s), data(%s), err: %s",
+					provider.logger.Errorf("observed instance put, failed to unmarshal. service(%s), id(%s), data(%s): %s",
 						serviceName, id, string(ev.Kv.Value), err)
 
 					continue
@@ -457,7 +457,7 @@ func (provider *ProviderEtcd) list(serviceName discover.ServiceName) {
 		clientv3.WithPrefix(),
 	)
 	if err != nil {
-		provider.logger.Errorf("failed to list instances. service(%s), err: %s", serviceName, err)
+		provider.logger.Errorf("failed to list instances. service(%s): %s", serviceName, err)
 
 		return
 	}
@@ -470,7 +470,7 @@ func (provider *ProviderEtcd) list(serviceName discover.ServiceName) {
 
 		var instance discover.Instance
 		if err := json.Unmarshal(kv.Value, &instance); err != nil {
-			provider.logger.Errorf("failed to unmarshal instance. service(%s), id(%s), data(%s), err: %s",
+			provider.logger.Errorf("failed to unmarshal instance. service(%s), id(%s), data(%s): %s",
 				serviceName, id, string(kv.Value), err)
 
 			continue

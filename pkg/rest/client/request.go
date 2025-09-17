@@ -215,7 +215,7 @@ func processBody(body interface{}) ([]byte, error) {
 
 		jsonBytes, err := json.Marshal(body)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal body, err: %v", err)
+			return nil, fmt.Errorf("failed to marshal body: %v", err)
 		}
 
 		return jsonBytes, nil
@@ -223,7 +223,7 @@ func processBody(body interface{}) ([]byte, error) {
 	case reflect.Struct:
 		jsonBytes, err := json.Marshal(body)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal struct, err: %v", err)
+			return nil, fmt.Errorf("failed to marshal struct: %v", err)
 		}
 
 		return jsonBytes, nil

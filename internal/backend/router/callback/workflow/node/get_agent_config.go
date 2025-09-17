@@ -24,14 +24,14 @@ import (
 func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	req := new(protoBackend.GetAgentConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse agent config failed, err: %v", err)
+		h.logger.Errorf("get gse agent config failed: %v", err)
 		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse agent config failed, err: %v", err)
+		h.logger.Errorf("get gse agent config failed: %v", err)
 		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
@@ -39,7 +39,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 
 	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse agent setting failed, err: %v", err)
+		h.logger.Errorf("get gse agent setting failed: %v", err)
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
@@ -49,7 +49,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	if !ok {
 		err := fmt.Errorf("config template not found: %s", types.ConfigKeyAgent)
 
-		h.logger.Errorf("get gse agent config failed, err: %v", err)
+		h.logger.Errorf("get gse agent config failed: %v", err)
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
@@ -60,7 +60,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		Content:   configTemplate,
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse agent config failed, err: %v", err)
+		h.logger.Errorf("render gse agent config failed: %v", err)
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return

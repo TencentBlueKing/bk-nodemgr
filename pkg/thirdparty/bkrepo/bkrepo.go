@@ -83,7 +83,7 @@ func (c *cli) DownloadFile(ctx context.Context, req *DownloadFileReq) (*Download
 		WithHeaders(header).
 		Do().RawData()
 	if err != nil {
-		return nil, fmt.Errorf("download file failed, err: %w", err)
+		return nil, fmt.Errorf("download file failed: %w", err)
 	}
 
 	return resp, nil
@@ -102,7 +102,7 @@ func (c *cli) UploadFile(ctx context.Context, req *UploadFileReq) (*UploadFileRe
 		BodyReader(req.Reader).
 		Do().Into(resp)
 	if err != nil {
-		return nil, fmt.Errorf("upload file failed, err: %w", err)
+		return nil, fmt.Errorf("upload file failed: %w", err)
 	}
 
 	return resp.Data, nil
@@ -120,11 +120,11 @@ func (c *cli) QueryNodeInfo(ctx context.Context, req *QueryNodeInfoReq) (*QueryN
 		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
-		return nil, fmt.Errorf("query node info failed, err: %w", err)
+		return nil, fmt.Errorf("query node info failed: %w", err)
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("query node info failed, err: %w", err)
+		return nil, fmt.Errorf("query node info failed: %w", err)
 	}
 
 	return resp.Data, nil
@@ -149,11 +149,11 @@ func (c *cli) ListNode(ctx context.Context, req *ListNodeReq) (*ListNodeResp, er
 		}).
 		Do().Into(resp)
 	if err != nil {
-		return nil, fmt.Errorf("list node failed, err: %w", err)
+		return nil, fmt.Errorf("list node failed: %w", err)
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list node failed, err: %w", err)
+		return nil, fmt.Errorf("list node failed: %w", err)
 	}
 
 	return resp.Data, nil
@@ -170,11 +170,11 @@ func (c *cli) MkDir(ctx context.Context, req *MkdirReq) error {
 		WithHeaders(header).
 		Do().Into(resp)
 	if err != nil {
-		return fmt.Errorf("mkdir failed, err: %w", err)
+		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return fmt.Errorf("mkdir failed, err: %w", err)
+		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
 	return nil

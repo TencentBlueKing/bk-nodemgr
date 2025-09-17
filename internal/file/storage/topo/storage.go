@@ -62,7 +62,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new storage failed: %v", err)
 		return nil, err
 	}
 
@@ -157,7 +157,7 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (data *types.Ho
 
 	hosts, count, err := s.daoHost.List(ctx, types.Page{Limit: 1}, host.WithHostID(hostID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get host by id, host-id(%d), err: %w", hostID, err)
+		return nil, fmt.Errorf("failed to get host by id, host-id(%d): %w", hostID, err)
 	}
 
 	if count != 1 {

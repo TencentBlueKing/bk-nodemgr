@@ -31,7 +31,7 @@ const defaultBufferSize = 32 * 1024 // 32KB usually has better performance.
 func NewLocalDir(fullPath string, logger logger.ILogger) (*LocalDir, error) {
 	exists, err := afero.Exists(rFs(), fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if file exists, err: %w", err)
+		return nil, fmt.Errorf("failed to check if file exists: %w", err)
 	}
 
 	if !exists {
@@ -41,7 +41,7 @@ func NewLocalDir(fullPath string, logger logger.ILogger) (*LocalDir, error) {
 	// check if path is a dir.
 	isDir, err := afero.IsDir(rFs(), fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if path is dir, err: %w", err)
+		return nil, fmt.Errorf("failed to check if path is dir: %w", err)
 	}
 
 	if !isDir {
@@ -76,7 +76,7 @@ func (group *LocalDir) Name() string {
 func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, error) {
 	entries, err := afero.ReadDir(rFs(), group.fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("read dir failed, err: %w", err)
+		return nil, fmt.Errorf("read dir failed: %w", err)
 	}
 
 	subGroups := make([]fileiface.FileGroup, 0)
@@ -86,7 +86,7 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, erro
 		if entry.IsDir() {
 			subDir, err := NewLocalDir(fullPath, group.logger)
 			if err != nil {
-				return nil, fmt.Errorf("failed to create local file group, subgroup(%s), err: %w", fullPath, err)
+				return nil, fmt.Errorf("failed to create local file group, subgroup(%s): %w", fullPath, err)
 			}
 
 			subGroups = append(subGroups, subDir)
@@ -100,7 +100,7 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, erro
 func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
 	entries, err := afero.ReadDir(rFs(), group.fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("read dir failed, err: %w", err)
+		return nil, fmt.Errorf("read dir failed: %w", err)
 	}
 
 	files := make([]fileiface.File, 0)
@@ -110,7 +110,7 @@ func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
 		if !entry.IsDir() {
 			file, err := NewLocalFile(fullPath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to create local file. file(%s), err: %w", fullPath, err)
+				return nil, fmt.Errorf("failed to create local file. file(%s): %w", fullPath, err)
 			}
 
 			files = append(files, file)
@@ -125,7 +125,7 @@ func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, 
 	fullPath := filepath.Join(group.fullPath, name)
 	file, err := NewLocalFile(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create local file. file(%s), err: %w", fullPath, err)
+		return nil, fmt.Errorf("failed to create local file. file(%s): %w", fullPath, err)
 	}
 
 	return file, nil
@@ -144,20 +144,20 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 	// check dir exist or not.
 	exists, err := afero.DirExists(wFs(), group.fullPath)
 	if err != nil {
-		return fmt.Errorf("check directory existence failed, err: %w", err)
+		return fmt.Errorf("check directory existence failed: %w", err)
 	}
 
 	if !exists {
 		err = wFs().MkdirAll(group.fullPath, 0755) // nolint:mnd
 		if err != nil {
-			return fmt.Errorf("create dir failed, err: %w", err)
+			return fmt.Errorf("create dir failed: %w", err)
 		}
 
 		group.logger.Infof("successfully create dir, path(%s)", group.fullPath)
 	}
 
 	if err != nil {
-		return fmt.Errorf("get file info failed, err: %w", err)
+		return fmt.Errorf("get file info failed: %w", err)
 	}
 
 	fileFullPath := filepath.Join(group.fullPath, info.Name)
@@ -166,7 +166,7 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 	if !overwrite {
 		exists, err = afero.Exists(wFs(), fileFullPath)
 		if err != nil {
-			return fmt.Errorf("check file existence failed, err: %w", err)
+			return fmt.Errorf("check file existence failed: %w", err)
 		}
 
 		if exists {
@@ -175,7 +175,7 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 
 		flock := filelock.NewFileLock(fileFullPath)
 		if err = flock.TryLock(); err != nil {
-			return fmt.Errorf("lock file failed, err: %w", err)
+			return fmt.Errorf("lock file failed: %w", err)
 		}
 
 		defer func() {

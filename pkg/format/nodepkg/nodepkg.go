@@ -31,11 +31,11 @@ func FormatPkgName(
 ) (string, error) {
 
 	if err := generation.Validate(); err != nil {
-		return "", fmt.Errorf("format node pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format node pkg name failed: %w", err)
 	}
 
 	if err := releaseType.Validate(); err != nil {
-		return "", fmt.Errorf("format node pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format node pkg name failed: %w", err)
 	}
 
 	if version == "" {

@@ -54,7 +54,7 @@ func generateSSHClient(
 
 	client, err := sshx.NewClient(ctx, sshConf, sshx.DefaultTimeout)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to host, host(%s), err: %w",
+		return nil, fmt.Errorf("failed to connect to host, host(%s): %w",
 			fmt.Sprintf("%s:%d", ip, port), err)
 	}
 

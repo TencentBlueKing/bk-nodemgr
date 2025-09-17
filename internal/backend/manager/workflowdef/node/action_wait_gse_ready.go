@@ -135,13 +135,13 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		ctx.Data.LogE("failed to query agent state, err: " + err.Error())
+		ctx.Data.LogE("failed to query agent state: " + err.Error())
 
 		return err
 	}
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-		return fmt.Errorf("update node deployment info failed, err: %w", err)
+		return fmt.Errorf("update node deployment info failed: %w", err)
 	}
 
 	return nil

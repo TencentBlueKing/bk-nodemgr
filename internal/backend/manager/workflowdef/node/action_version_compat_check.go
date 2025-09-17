@@ -98,7 +98,7 @@ func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) (err error)
 	param := new(ActionParamVersionCompatCheck)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}

@@ -100,12 +100,12 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 
 	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
 	if err != nil {
-		return fmt.Errorf("get node deployment info failed, err: %w", err)
+		return fmt.Errorf("get node deployment info failed: %w", err)
 	}
 
 	err = act.storageHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
 	if err != nil {
-		return fmt.Errorf("update host dynamic failed, err: %w", err)
+		return fmt.Errorf("update host dynamic failed: %w", err)
 	}
 
 	return nil

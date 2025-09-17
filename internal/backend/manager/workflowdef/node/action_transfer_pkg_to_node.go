@@ -103,7 +103,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	param := new(ActionParamTransferPkgToNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
@@ -121,7 +121,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default.
@@ -141,7 +141,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d), err: %s", info.Host.HostID, err.Error())
+		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d): %s", info.Host.HostID, err.Error())
 		return err
 	}
 
@@ -182,7 +182,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 		dataDir,
 		&info.Host)
 	if err != nil {
-		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", info.Host.HostID, err)
+		return fmt.Errorf("failed to launch transfer release. host-id(%d): %w", info.Host.HostID, err)
 	}
 
 	act.logger.InfoCtxf(ctx, "launched transfer release. task-id(%s), host-id(%d)",
@@ -190,7 +190,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 
 	result, err := transferHandler.WaitUntilDone(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d), err: %w",
+		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), info.Host.HostID, err)
 	}
 
@@ -220,7 +220,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, inf
 		info.InstallerWorkDir,
 		&info.Host)
 	if err != nil {
-		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", info.Host.HostID, err)
+		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)
 	}
 
 	act.logger.InfoCtxf(ctx, "launched transfer installer. task-id(%s), host-id(%d)",
@@ -228,7 +228,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, inf
 
 	result, err := transferHandler.WaitUntilDone(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d), err: %w",
+		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), info.Host.HostID, err)
 	}
 

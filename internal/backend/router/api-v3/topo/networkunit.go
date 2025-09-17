@@ -38,7 +38,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	networkAreaID := req.GetBkNetworkareaId()
 	networkArea, err := h.storage.GetNetworkArea(ctx, networkAreaID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -94,7 +94,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			})...); err != nil {
-			h.logger.Warnf("failed to record topo event in networkunit create. networkunit-id(%d), err: %v", networkUnitID, err)
+			h.logger.Warnf("failed to record topo event in networkunit create. networkunit-id(%d): %v", networkUnitID, err)
 		}
 	}()
 
@@ -121,7 +121,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	networkAreaID := req.GetBkNetworkareaId()
 	networkArea, err := h.storage.GetNetworkArea(ctx, networkAreaID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -197,7 +197,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			})...); err != nil {
-			h.logger.Warnf("failed to record topo event in networkunit update. networkunit-id(%d), err: %v",
+			h.logger.Warnf("failed to record topo event in networkunit update. networkunit-id(%d): %v",
 				networkUnitID, err)
 		}
 	}()
@@ -315,7 +315,7 @@ func (h *handler) DeleteNetworkUnit(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			}); err != nil {
-			h.logger.Warnf("failed to record topo event in networkunit delete. networkunit-id(%d), err: %v",
+			h.logger.Warnf("failed to record topo event in networkunit delete. networkunit-id(%d): %v",
 				req.GetBkNetworkunitId(), err)
 		}
 	}()

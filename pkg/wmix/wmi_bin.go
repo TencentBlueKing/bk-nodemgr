@@ -38,7 +38,7 @@ func wmiBinaryPath() (string, error) {
 	wmiBin.once.Do(func() {
 		tmpFile, err := tmp.NewTempFile(io.NopCloser(bytes.NewBuffer(wmiexec.Binary)), "wmiexec")
 		if err != nil {
-			initErr = fmt.Errorf("failed to create temporary file, err: %w", err)
+			initErr = fmt.Errorf("failed to create temporary file: %w", err)
 
 			return
 		}
@@ -47,7 +47,7 @@ func wmiBinaryPath() (string, error) {
 		// nolint: gosec,mnd
 		if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
 			_ = os.Remove(tmpFile.Path())
-			initErr = fmt.Errorf("failed to make temporary file executable, err: %w", err)
+			initErr = fmt.Errorf("failed to make temporary file executable: %w", err)
 
 			return
 		}
@@ -59,7 +59,7 @@ func wmiBinaryPath() (string, error) {
 	})
 
 	if initErr != nil {
-		return "", fmt.Errorf("failed to initialize wmiexec binary, err: %w", initErr)
+		return "", fmt.Errorf("failed to initialize wmiexec binary: %w", initErr)
 	}
 
 	return wmiBin.binaryPath, nil
@@ -81,7 +81,7 @@ func wmiRunCmd(ctx context.Context, args []string, envs []string) (string, strin
 	cmd.Stderr = stdErr
 
 	if err := cmd.Run(); err != nil {
-		return "", "", fmt.Errorf("commands cannot be executed using wmiexec, stdOut(%s), stdErr(%s), err: %w",
+		return "", "", fmt.Errorf("commands cannot be executed using wmiexec, stdOut(%s), stdErr(%s): %w",
 			stdOut.String(), stdErr.String(), err)
 	}
 

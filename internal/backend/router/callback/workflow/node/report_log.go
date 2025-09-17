@@ -26,14 +26,14 @@ import (
 func (h *handler) ReportLog(gCtx *gin.Context) {
 	req := new(protoCallback.ReportLogReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report log failed, err: %s", err)
+		h.logger.Errorf("report log failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report log failed, err: %s", err)
+		h.logger.Errorf("report log failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -41,7 +41,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 
 	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("token is invalid, err: %s", err)
+		h.logger.Errorf("token is invalid: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -61,7 +61,7 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 
 	ctx := contextx.NewContext(gCtx, map[string]any{})
 	if err = h.PushActionInstanceMessage(ctx, req.GetOperInstId(), info.BlockingActionName, logs...); err != nil {
-		h.logger.Errorf("report log failed, err: %s", err)
+		h.logger.Errorf("report log failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return

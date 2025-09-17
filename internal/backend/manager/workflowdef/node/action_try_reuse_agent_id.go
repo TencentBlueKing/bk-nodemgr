@@ -135,7 +135,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("reuse agent id failed, err: %w", err)
+		return fmt.Errorf("reuse agent id failed: %w", err)
 	}
 
 	// not match host, can't reuse.
@@ -150,7 +150,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	info.Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-		return fmt.Errorf("update node deployment info failed, err: %w", err)
+		return fmt.Errorf("update node deployment info failed: %w", err)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Host.Dynamic.AgentID))

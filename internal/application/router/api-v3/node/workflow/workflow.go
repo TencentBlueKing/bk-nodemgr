@@ -86,13 +86,13 @@ func (h *handler) List(ctx *restserver.Context) (interface{}, error) {
 		req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
 
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list workflow, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list workflow: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	businessMap, err := h.listAllBusiness(ctx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -122,7 +122,7 @@ func (h *handler) Statistics(ctx *restserver.Context) (interface{}, error) {
 		instanceStatus, err = h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
 			ctx, convertWorkflowToTriggerID(workflows))
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list workflow instance status, err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to list workflow instance status: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 	}
@@ -168,7 +168,7 @@ func (h *handler) Distinct(ctx *restserver.Context) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	resp := new(protoApplication.NodeWorkflowDistinctResp)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct workflow, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to distinct workflow: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -401,7 +401,7 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 func (h *handler) listAllBusiness(ctx *restserver.Context) (map[int64]string, error) {
 	businesses, num, err := h.backendHandler.ListBusiness(ctx, types.UnlimitedPage(), nil)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business, err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

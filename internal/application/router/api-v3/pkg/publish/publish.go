@@ -59,7 +59,7 @@ func (h *handler) PublishReleaseAgent(ctx *restserver.Context) (interface{}, err
 
 	uploadID := req.GetUploadId()
 	if err := h.fileHandler.PublishReleaseAgent(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release agent. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release agent. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -81,7 +81,7 @@ func (h *handler) PublishReleaseProxy(ctx *restserver.Context) (interface{}, err
 
 	uploadID := req.GetUploadId()
 	if err := h.fileHandler.PublishReleaseProxy(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release proxy. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release proxy. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -103,7 +103,7 @@ func (h *handler) PublishReleaseCert(ctx *restserver.Context) (interface{}, erro
 
 	uploadID := req.GetUploadId()
 	if err := h.fileHandler.PublishReleaseCert(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release cert. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release cert. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -125,7 +125,7 @@ func (h *handler) PublishReleaseBinTool(ctx *restserver.Context) (interface{}, e
 
 	uploadID := req.GetUploadId()
 	if err := h.fileHandler.PublishReleaseBinTool(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release bintool. upload-id(%s), err: %v", uploadID, err)
+		h.logger.ErrorCtxf(ctx, "failed to publish release bintool. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}

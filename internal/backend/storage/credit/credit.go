@@ -51,7 +51,7 @@ func NewStorage(
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new storage failed: %v", err)
 		return nil, err
 	}
 

@@ -193,7 +193,7 @@ func (m *Manager) LaunchTransferInstaller(ctx contextx.IContext,
 
 	toolFile, err := m.installerFileGroup.GetFile(ctx, toolName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file, err: %w", err)
+		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
 
 	fp := local.GetLocalFileAbsFilePath(toolFile)

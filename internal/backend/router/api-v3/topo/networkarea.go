@@ -51,7 +51,7 @@ func (h *handler) CreateNetworkArea(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			}); err != nil {
-			h.logger.Warnf("failed to record topo event in networkarea create. networkarea-id(%d), err: %v",
+			h.logger.Warnf("failed to record topo event in networkarea create. networkarea-id(%d): %v",
 				networkArea.ID, err)
 		}
 	}()
@@ -95,7 +95,7 @@ func (h *handler) UpdateNetworkArea(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			}); err != nil {
-			h.logger.Warnf("failed to record topo event in networkarea update. networkarea-id(%d), err: %v",
+			h.logger.Warnf("failed to record topo event in networkarea update. networkarea-id(%d): %v",
 				networkArea.ID, err)
 		}
 	}()
@@ -183,7 +183,7 @@ func (h *handler) DeleteNetworkArea(ctx *restserver.Context) (interface{}, error
 				OperateTime:     time.Now(),
 				Operator:        ctx.BKUsername(),
 			}); err != nil {
-			h.logger.Warnf("failed to record topo event in networkarea delete. networkarea-id(%d), err: %v", networkArea.ID, err)
+			h.logger.Warnf("failed to record topo event in networkarea delete. networkarea-id(%d): %v", networkArea.ID, err)
 		}
 	}()
 

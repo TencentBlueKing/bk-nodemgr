@@ -48,7 +48,7 @@ func (h *handler) request(gCtx *gin.Context) {
 	h.logger.Infof("request to callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(content))
 	resp, statusCode, err := h.client.RequestCallback(rctx, gCtx.Request.URL.Path, content)
 	if err != nil {
-		h.logger.Errorf("failed to request to callback, err: %v", err)
+		h.logger.Errorf("failed to request to callback: %v", err)
 		gCtx.JSON(statusCode, err)
 
 		return

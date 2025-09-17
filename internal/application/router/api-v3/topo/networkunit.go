@@ -34,7 +34,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
 	if _, err := h.backendHandler.GetNetworkArea(ctx, networkAreaID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -77,7 +77,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
 	if _, err := h.backendHandler.GetNetworkArea(ctx, networkAreaID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d), err: %v",
+		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

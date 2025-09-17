@@ -25,7 +25,7 @@ const PkgExtension = "tgz"
 // FormatPkgName formats the package name based on the node role, generation, and version.
 func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (string, error) {
 	if err := releaseType.Validate(); err != nil {
-		return "", fmt.Errorf("format external plugin pkg name failed, err: %w", err)
+		return "", fmt.Errorf("format external plugin pkg name failed: %w", err)
 	}
 
 	if version == "" {

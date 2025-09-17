@@ -129,19 +129,19 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
-		return fmt.Errorf("set node conf failed, err: %w", err)
+		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
 	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(tenantCtx, param.Token)
 	if err != nil {
-		return fmt.Errorf("get node conf failed, err: %w", err)
+		return fmt.Errorf("get node conf failed: %w", err)
 	}
 
 	// get release of this node.
 	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
 	if err != nil {
-		return fmt.Errorf("convert node role to release type failed, err: %w", err)
+		return fmt.Errorf("convert node role to release type failed: %w", err)
 	}
 
 	switch releaseType {
@@ -155,7 +155,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			info.Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
-			return fmt.Errorf("get release failed, err: %w", err)
+			return fmt.Errorf("get release failed: %w", err)
 		}
 
 		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
@@ -170,7 +170,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			info.Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
-			return fmt.Errorf("get release failed, err: %w", err)
+			return fmt.Errorf("get release failed: %w", err)
 		}
 
 		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
@@ -182,7 +182,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	gp.Go(func() error {
 		if err := act.renderLogicSetting(ctx, nodeConf, &info.Host); err != nil {
-			return fmt.Errorf("render logic setting failed, err: %w", err)
+			return fmt.Errorf("render logic setting failed: %w", err)
 		}
 
 		act.logger.Infof("rendered logic setting, token: %s", param.Token)
@@ -192,7 +192,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		if err := act.renderCustomSetting(ctx, nodeConf, info); err != nil {
-			return fmt.Errorf("render custom setting failed, err: %w", err)
+			return fmt.Errorf("render custom setting failed: %w", err)
 		}
 
 		act.logger.Infof("rendered custom setting, token: %s", param.Token)
@@ -201,17 +201,17 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	})
 
 	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("failed to render node install config, err: %w", err)
+		return fmt.Errorf("failed to render node install config: %w", err)
 	}
 
 	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
-		return fmt.Errorf("set node conf failed, err: %w", err)
+		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
 	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
-		return fmt.Errorf("set node deployment info failed, err: %w", err)
+		return fmt.Errorf("set node deployment info failed: %w", err)
 	}
 
 	return nil
@@ -379,7 +379,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 	osType := host.Dynamic.NodeOsType
 	deploymentConf, err := deployconstant.GetNodeDeployConf(host.Dynamic.NodeGeneration, osType)
 	if err != nil {
-		return fmt.Errorf("get deploy conf failed, err: %w", err)
+		return fmt.Errorf("get deploy conf failed: %w", err)
 	}
 
 	advertiseIPV4 := strings.Split(host.Static.InnerIP, ",")[0]
@@ -459,7 +459,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 		ctx.Ctx, host.Dynamic.NetworkUnitID)
 
 	if err != nil {
-		return fmt.Errorf("check static access failed, err: %w", err)
+		return fmt.Errorf("check static access failed: %w", err)
 	}
 
 	// render access endpoints
@@ -468,7 +468,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 		{
 			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
-				return fmt.Errorf("get agent access endpoints failed, err: %w", err)
+				return fmt.Errorf("get agent access endpoints failed: %w", err)
 			}
 
 			if len(clusters) == 0 {
@@ -492,7 +492,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
 			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
 			if err != nil {
-				return fmt.Errorf("get proxy upstream endpoints failed, err: %w", err)
+				return fmt.Errorf("get proxy upstream endpoints failed: %w", err)
 			}
 
 			nodeConf.PreSetting[GseTemplateKeyAccessClusterEndpoints] = strings.Join(clusters, ",")
@@ -561,7 +561,7 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(
 		info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return fmt.Errorf("match config policy failed. "+
-			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), err: %w",
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s): %w",
 			info.Host.Static.BizID,
 			info.Host.Static.NetworkAreaID,
 			info.Host.Dynamic.NetworkUnitID,
@@ -601,7 +601,7 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(
 func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
 	host, err := act.storageHost.GetHostByID(ctx, hostID)
 	if err != nil {
-		return fmt.Errorf("get host info failed, err: %w", err)
+		return fmt.Errorf("get host info failed: %w", err)
 	}
 
 	if host == nil {

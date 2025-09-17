@@ -124,7 +124,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamReconfigNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
+		err = fmt.Errorf("failed to convert param: %w", err)
 
 		return err
 	}
@@ -145,7 +145,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name, err: %w", err)
+		err = fmt.Errorf("failed to format tools name: %w", err)
 
 		return err
 	}
@@ -156,12 +156,12 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 		discover.EndpointNameBackendCallback,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint, err: %w", err)
+		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	reconfigParams := &ReconfigParams{

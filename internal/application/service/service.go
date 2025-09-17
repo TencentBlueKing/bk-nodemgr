@@ -494,7 +494,7 @@ func (svc *Service) Start() error {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 
@@ -511,7 +511,7 @@ func (svc *Service) GracefulShutdown() error {
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {
-		blog.Errorf("failed to shutdown capability, err: %v", err)
+		blog.Errorf("failed to shutdown capability: %v", err)
 		return err
 	}
 

@@ -153,7 +153,7 @@ func CheckWritePermission(path string) error {
 	if exists, _ := PathExists(path); !exists {
 		path, err := filepath.Abs(path)
 		if err != nil {
-			return fmt.Errorf("failed to get absolute path, path(%s), err: %w", path, err)
+			return fmt.Errorf("failed to get absolute path, path(%s): %w", path, err)
 		}
 
 		dir = filepath.Dir(path)
@@ -167,7 +167,7 @@ func CheckWritePermission(path string) error {
 	}
 
 	if err := os.Remove(tmpFile); err != nil {
-		return fmt.Errorf("failed to remove file, file-name(%s), err: %w", tmpFile, err)
+		return fmt.Errorf("failed to remove file, file-name(%s): %w", tmpFile, err)
 	}
 
 	return nil
@@ -463,7 +463,7 @@ func ListFiles(dir string) ([]string, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("error walking directory, err: %w", err)
+		return nil, fmt.Errorf("error walking directory: %w", err)
 	}
 
 	return files, nil

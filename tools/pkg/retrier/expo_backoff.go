@@ -79,13 +79,13 @@ func (e *expoBackoff) calculateDelay(attempt int) time.Duration {
 func (e *expoBackoff) Do(ctx context.Context, fn func(attempt int) error) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("fn panic, err: %v", r)
+			err = fmt.Errorf("fn panic: %v", r)
 		}
 	}()
 	for attempt := 0; attempt < e.opts.MaxRetries; attempt++ {
 		// if context cancelled, return.
 		if err := ctx.Err(); err != nil {
-			return fmt.Errorf("fn cancelled, err: %v", err)
+			return fmt.Errorf("fn cancelled: %v", err)
 		}
 
 		err = fn(attempt)

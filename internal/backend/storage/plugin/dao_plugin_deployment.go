@@ -69,7 +69,7 @@ func (s *Storage) updateInfo(ctx contextx.IContext, token string, pluginDeployme
 	}
 
 	if err := s.daoPluginDeployment.UpdateInfo(ctx, token, pluginDeploymentInfo); err != nil {
-		return fmt.Errorf("update plugin deployment info failed, err: %v", err)
+		return fmt.Errorf("update plugin deployment info failed: %v", err)
 	}
 
 	return nil

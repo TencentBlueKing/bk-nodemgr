@@ -386,7 +386,7 @@ func (s *Storage) UpdateHostDynamicFields(ctx context.Context, fields types.Host
 	}
 
 	if err = s.daoHost.UpdateDynamicFields(ctx, fields, hosts...); err != nil {
-		return fmt.Errorf("failed to update host dynamic fields, err: %w", err)
+		return fmt.Errorf("failed to update host dynamic fields: %w", err)
 	}
 
 	return nil

@@ -70,7 +70,7 @@ func (h *handler) tenantDao(tenantID string) *dao {
 
 	newDaoClient := newDao(tenantID, h.client, h.logger)
 	if err := newDaoClient.ensureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure topoevent indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure topoevent indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)

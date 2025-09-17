@@ -29,13 +29,13 @@ func (h *handler) EnableScheduleWorkflow(ctx *restserver.Context) (interface{}, 
 
 	schedule, err := h.storageWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
-		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
+		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s): %v", req.GetWorkflowId(), err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	err = h.storageWorkflow.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateRunning)
 	if err != nil {
-		h.logger.Errorf("failed to enable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
+		h.logger.Errorf("failed to enable schedule workflow. workflow-id(%s), trigger-id(%s): %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -55,13 +55,13 @@ func (h *handler) DisableScheduleWorkflow(ctx *restserver.Context) (interface{},
 
 	schedule, err := h.storageWorkflow.GetScheduleWorkflow(ctx, req.GetWorkflowId())
 	if err != nil {
-		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s), err: %v", req.GetWorkflowId(), err)
+		h.logger.Errorf("failed to get schedule workflow. workflow-id(%s): %v", req.GetWorkflowId(), err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	err = h.storageWorkflow.UpdateTriggerState(ctx, schedule.TriggerID, trigger.StateTerminated)
 	if err != nil {
-		h.logger.Errorf("failed to disable schedule workflow. workflow-id(%s), trigger-id(%s), err: %v",
+		h.logger.Errorf("failed to disable schedule workflow. workflow-id(%s), trigger-id(%s): %v",
 			schedule.WorkflowID, schedule.TriggerID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)

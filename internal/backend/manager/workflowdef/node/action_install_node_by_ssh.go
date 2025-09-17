@@ -300,7 +300,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *utils.NodeActionStanda
 		installCmd),
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to run install node, err: %w", err)
+		err = fmt.Errorf("failed to run install node: %w", err)
 
 		return err
 	}

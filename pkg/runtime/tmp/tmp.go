@@ -20,11 +20,11 @@ import (
 func Clean() error {
 	tmpDir, err := GetTmpDir()
 	if err != nil {
-		return fmt.Errorf("failed to get tmp dir, err: %w", err)
+		return fmt.Errorf("failed to get tmp dir: %w", err)
 	}
 
 	if err := os.RemoveAll(tmpDir); err != nil {
-		return fmt.Errorf("failed to remove tmp dir, err: %w", err)
+		return fmt.Errorf("failed to remove tmp dir: %w", err)
 	}
 
 	return nil

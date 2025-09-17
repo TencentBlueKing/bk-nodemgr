@@ -619,13 +619,13 @@ func (svc *Service) Start() error {
 
 	// after all servers brings up, register the instance into discover provider.
 	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameFile, svc.instance); err != nil {
-		blog.Errorf("failed to register instance, err: %v", err)
+		blog.Errorf("failed to register instance: %v", err)
 		return err
 	}
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers, err: %v", err)
+		blog.Errorf("failed to start servers: %v", err)
 		return err
 	}
 

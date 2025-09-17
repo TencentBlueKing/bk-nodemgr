@@ -68,7 +68,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 
 	newDaoClient := newDao(h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure schedule workflow indexes, err: %v",
+		h.logger.Warnf("failed to ensure schedule workflow indexes: %v",
 			errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 

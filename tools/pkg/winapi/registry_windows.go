@@ -25,13 +25,13 @@ func AddRegistryCurrentUserStartRun(cmdName, cmdStr string) error {
 		registry.ALL_ACCESS,
 	)
 	if err != nil {
-		return fmt.Errorf("open registry key failed, err: %w", err)
+		return fmt.Errorf("open registry key failed: %w", err)
 	}
 	defer key.Close()
 
 	err = key.SetStringValue(cmdName, cmdStr)
 	if err != nil {
-		return fmt.Errorf("set registry cmdName failed, err: %w", err)
+		return fmt.Errorf("set registry cmdName failed: %w", err)
 	}
 
 	return nil
@@ -49,13 +49,13 @@ func DelRegistryCurrentUserStartRun(cmdName string) error {
 			return nil
 		}
 
-		return fmt.Errorf("open registry key failed, err: %w", err)
+		return fmt.Errorf("open registry key failed: %w", err)
 	}
 	defer key.Close()
 
 	err = key.DeleteValue(cmdName)
 	if err != nil && !errors.Is(err, registry.ErrNotExist) {
-		return fmt.Errorf("delete registry cmdName failed, err: %w", err)
+		return fmt.Errorf("delete registry cmdName failed: %w", err)
 	}
 
 	return nil

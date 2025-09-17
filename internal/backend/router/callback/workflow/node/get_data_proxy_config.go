@@ -23,14 +23,14 @@ import (
 func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 	req := new(protoBackend.GetDataProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse data proxy config failed, err: %s", err)
+		h.logger.Errorf("get gse data proxy config failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse data proxy config failed, err: %s", err)
+		h.logger.Errorf("get gse data proxy config failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -38,7 +38,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 
 	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse data proxy setting failed, err: %s", err)
+		h.logger.Errorf("get gse data proxy setting failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -49,7 +49,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		Content:   nodeConf.ConfigTemplate[types.ConfigKeyData],
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse data proxy config failed, err: %s", err)
+		h.logger.Errorf("render gse data proxy config failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err.Error())
 
 		return

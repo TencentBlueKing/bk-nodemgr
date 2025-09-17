@@ -63,7 +63,7 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (I
 	if err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check)); err != nil {
-		s.Logger.Errorf("new storage failed, err: %v", err)
+		s.Logger.Errorf("new storage failed: %v", err)
 		return nil, err
 	}
 
@@ -102,8 +102,8 @@ func (s *Storage) initDao() error {
 
 	err := s.registerScheduler()
 	if err != nil {
-		s.Logger.Errorf("failed to register scheduler, err: %v", err)
-		return fmt.Errorf("failed to register scheduler, err: %w", err)
+		s.Logger.Errorf("failed to register scheduler: %v", err)
+		return fmt.Errorf("failed to register scheduler: %w", err)
 	}
 
 	return nil
@@ -126,8 +126,8 @@ func (s *Storage) registerScheduler() error {
 		s.syncStopOperInsts,
 	))
 	if err != nil {
-		s.Logger.Errorf("failed to register sync stopping operation inst task, err: %v", err)
-		return fmt.Errorf("failed to register sync stopping operation inst task, err: %w", err)
+		s.Logger.Errorf("failed to register sync stopping operation inst task: %v", err)
+		return fmt.Errorf("failed to register sync stopping operation inst task: %w", err)
 	}
 
 	go s.daoStopOperInst.WatchInsert(func(stopInstID string) {
@@ -138,7 +138,7 @@ func (s *Storage) registerScheduler() error {
 		go func() {
 			err := s.checkNotifyStopping(contextx.NewContext(s.Ctx, map[string]any{}))
 			if err != nil {
-				s.Logger.Warnf("failed to notify stopping operation inst, err: %v", err)
+				s.Logger.Warnf("failed to notify stopping operation inst: %v", err)
 			}
 		}()
 	})
@@ -824,7 +824,7 @@ func (s *Storage) WatchOperInstStopping(ctx contextx.IContext, operInstID string
 		err := s.checkNotifyStopping(ctx)
 		if err != nil {
 			s.Logger.Errorf("watch operation instance stopping event succeed, "+
-				"but check notify stopping failed, err: %v", err)
+				"but check notify stopping failed: %v", err)
 		}
 	}()
 
@@ -867,7 +867,7 @@ func (s *Storage) UpsertActionInstancePrivateData(
 			operInstID, actionName, err)
 
 		return fmt.Errorf(
-			"failed to update operation instance private data, operation-inst-id(%s), action-name(%s), err: %w",
+			"failed to update operation instance private data, operation-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
 	}
 

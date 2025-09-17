@@ -24,23 +24,23 @@ import (
 func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 	req := new(protoBackend.GetFileProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed, err: %w", err))
+		h.logger.Errorf("get gse file proxy config failed: %s", err)
+		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed: %w", err))
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed, err: %w", err))
+		h.logger.Errorf("get gse file proxy config failed: %s", err)
+		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed: %w", err))
 
 		return
 	}
 
 	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse file proxy setting failed, err: %s", err)
-		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("get gse file proxy setting failed, err: %w", err))
+		h.logger.Errorf("get gse file proxy setting failed: %s", err)
+		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("get gse file proxy setting failed: %w", err))
 
 		return
 	}
@@ -50,8 +50,8 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		Content:   nodeConf.ConfigTemplate[types.ConfigKeyFile],
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse file proxy config failed, err: %s", err)
-		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed, err: %w", err))
+		h.logger.Errorf("render gse file proxy config failed: %s", err)
+		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed: %w", err))
 
 		return
 	}

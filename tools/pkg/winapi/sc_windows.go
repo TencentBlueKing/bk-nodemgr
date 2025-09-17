@@ -107,13 +107,13 @@ func getStartType(startType uint32) string {
 func GetServiceStatus(svcName string) (WinSvcStatus, error) {
 	m, err := mgr.Connect()
 	if err != nil {
-		return "", fmt.Errorf("failed to connect to service manager, err: %w", err)
+		return "", fmt.Errorf("failed to connect to service manager: %w", err)
 	}
 	defer m.Disconnect()
 
 	s, err := m.OpenService(svcName)
 	if err != nil && !errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
-		return "", fmt.Errorf("failed to open service, svcName(%s), err: %w", svcName, err)
+		return "", fmt.Errorf("failed to open service, svcName(%s): %w", svcName, err)
 	}
 
 	if errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
@@ -124,7 +124,7 @@ func GetServiceStatus(svcName string) (WinSvcStatus, error) {
 
 	status, err := s.Query()
 	if err != nil {
-		return "", fmt.Errorf("failed to get status for service, svcName(%s), err: %v", svcName, err)
+		return "", fmt.Errorf("failed to get status for service, svcName(%s): %v", svcName, err)
 	}
 
 	return ConvStateToWinSvcStatus(status.State), nil
@@ -134,24 +134,24 @@ func GetServiceStatus(svcName string) (WinSvcStatus, error) {
 func GetService(svcName string) (*ServiceInfo, error) {
 	m, err := mgr.Connect()
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to service manager, err: %w", err)
+		return nil, fmt.Errorf("failed to connect to service manager: %w", err)
 	}
 	defer m.Disconnect()
 
 	s, err := m.OpenService(svcName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open service, svcName(%s), err: %w", svcName, err)
+		return nil, fmt.Errorf("failed to open service, svcName(%s): %w", svcName, err)
 	}
 	defer s.Close()
 
 	config, err := s.Config()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get config for service, svcName(%s), err: %v", svcName, err)
+		return nil, fmt.Errorf("failed to get config for service, svcName(%s): %v", svcName, err)
 	}
 
 	status, err := s.Query()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get status for service, svcName(%s), err: %v", svcName, err)
+		return nil, fmt.Errorf("failed to get status for service, svcName(%s): %v", svcName, err)
 
 	}
 
@@ -170,26 +170,26 @@ func GetService(svcName string) (*ServiceInfo, error) {
 func StopService(ctx context.Context, svcName string) error {
 	m, err := mgr.Connect()
 	if err != nil {
-		return fmt.Errorf("failed to connect to service manager, err: %w", err)
+		return fmt.Errorf("failed to connect to service manager: %w", err)
 	}
 	defer m.Disconnect()
 
 	s, err := m.OpenService(svcName)
 	if err != nil {
-		return fmt.Errorf("failed to open service, svcName(%s), err: %w", svcName, err)
+		return fmt.Errorf("failed to open service, svcName(%s): %w", svcName, err)
 	}
 	defer s.Close()
 
 	_, err = s.Control(svc.Stop)
 	if err != nil {
-		return fmt.Errorf("failed to stop service, svcName(%s), err: %w", svcName, err)
+		return fmt.Errorf("failed to stop service, svcName(%s): %w", svcName, err)
 	}
 
 	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	err = r.Do(ctx, func(attempt int) error {
 		status, err := s.Query()
 		if err != nil {
-			return fmt.Errorf("failed to get status for service, svcName(%s), err: %v", svcName, err)
+			return fmt.Errorf("failed to get status for service, svcName(%s): %v", svcName, err)
 		}
 
 		if status.State != svc.Stopped {
@@ -199,7 +199,7 @@ func StopService(ctx context.Context, svcName string) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("failed to stop service, svcName(%s), err: %w", svcName, err)
+		return fmt.Errorf("failed to stop service, svcName(%s): %w", svcName, err)
 	}
 
 	return nil

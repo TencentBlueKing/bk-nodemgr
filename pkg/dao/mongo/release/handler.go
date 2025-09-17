@@ -91,7 +91,7 @@ func (h *Handler) releaseTypeDao(category types.ReleaseType) *dao {
 
 	newDaoClient := newDao(tableName, h.client, h.logger)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure release indexes, err: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		h.logger.Warnf("failed to ensure release indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tableName, newDaoClient)

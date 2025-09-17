@@ -29,7 +29,7 @@ type Config struct {
 // Validate the config.
 func (conf *Config) Validate() error {
 	if err := conf.APIGWUserConfig.Validate(); err != nil {
-		return fmt.Errorf("failed to validate gse config, err: %v", err)
+		return fmt.Errorf("failed to validate gse config: %v", err)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAge
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list agent info failed, err: %v", err)
+		return nil, fmt.Errorf("list agent info failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -111,7 +111,7 @@ func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("list agent info failed, err: %v", err)
+		return nil, fmt.Errorf("list agent info failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -136,7 +136,7 @@ func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("async execute script failed, err: %v", err)
+		return nil, fmt.Errorf("async execute script failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -163,7 +163,7 @@ func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptR
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get execute script result failed, err: %v", err)
+		return nil, fmt.Errorf("get execute script result failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -190,7 +190,7 @@ func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTermina
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("async terminate execute script failed, err: %v", err)
+		return nil, fmt.Errorf("async terminate execute script failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -215,7 +215,7 @@ func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) 
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("async transfer file failed, err: %v", err)
+		return nil, fmt.Errorf("async transfer file failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -242,7 +242,7 @@ func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileRes
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get transfer file result failed, err: %v", err)
+		return nil, fmt.Errorf("get transfer file result failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -269,7 +269,7 @@ func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminat
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("async transfer file failed, err: %v", err)
+		return nil, fmt.Errorf("async transfer file failed: %v", err)
 	}
 
 	return resp.Data, nil
@@ -293,7 +293,7 @@ func (c *cli) operateAgent(ctx context.Context, req *OperateAgentReq) (*OperateA
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("operate agent failed, err: %v", err)
+		return nil, fmt.Errorf("operate agent failed: %v", err)
 	}
 
 	return resp.Data, nil

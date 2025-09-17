@@ -203,7 +203,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 			// this copy is only for admin usage, so it's ok to ignore the security check.
 			// nolint: gosec
 			if _, err = io.Copy(tarWriter, tarReader); err != nil {
-				return fmt.Errorf("failed to copy file. origin(%v), target(%v), err: %w", paths, target, err)
+				return fmt.Errorf("failed to copy file. origin(%v), target(%v): %w", paths, target, err)
 			}
 		}
 	}

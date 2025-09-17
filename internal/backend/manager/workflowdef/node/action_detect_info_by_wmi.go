@@ -164,7 +164,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default > connected dir.
@@ -235,7 +235,7 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 	// 1. detect target system
 	osTypeStr, _, err := client.RunCommand(ctx.Ctx, "ver")
 	if err != nil {
-		err = fmt.Errorf("failed to run ver, err: %w", err)
+		err = fmt.Errorf("failed to run ver: %w", err)
 
 		return "", "", err
 	}
@@ -244,7 +244,7 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 	})
 	osType, err = platform.NormalizeOS(osTypeStr)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to detect info, err: %w", err)
+		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
 	switch osType {
@@ -259,14 +259,14 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 	// 2. detect target cpu arch
 	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
 	if err != nil {
-		return "", "", fmt.Errorf("failed to run uname -m, err: %w", err)
+		return "", "", fmt.Errorf("failed to run uname -m: %w", err)
 	}
 	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
 		return r == '\n'
 	})
 	cpuArch, err = platform.NormalizeArch(cpuArchStr)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to detect info, err: %w", err)
+		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
