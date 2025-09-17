@@ -44,8 +44,8 @@ func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 			h.logger.Errorf("failed to report host info: %v", err)
 			return
 		}
-		h.logger.Infof("report host info success. action-name(%s), instance-id(%s),os-type(%s), cpu-arch(%s), connected-dir(%s)",
-			event.ActionName, event.OperInstID, osType, cpuArch, connectedDir)
+		h.logger.Infof("report host info success. action-name(%s), instance-id(%s),os-type(%s), cpu-arch(%s), connected-dir(%s), err-msg(%s)",
+			event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg)
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {

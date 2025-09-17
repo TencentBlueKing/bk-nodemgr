@@ -185,14 +185,6 @@ func (x *ReportDetectResultReq) Validate() error {
 		return errors.New("oper_inst_id is required")
 	}
 
-	if x.GetCpuArch() == "" {
-		return errors.New("cpu_arch is required")
-	}
-
-	if x.GetOsType() == "" {
-		return errors.New("os_type is required")
-	}
-
 	return nil
 }
 
