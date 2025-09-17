@@ -141,7 +141,7 @@ func (h *handler) Statistics(ctx *restserver.Context) (interface{}, error) {
 				OperationID: instatus.OperationID,
 				Index:       instatus.Index,
 				TriggerID:   instatus.TriggerID,
-				State:       types.OperationState(instatus.State),
+				State:       types.NodeWorkflowOperationState(instatus.State),
 			}
 		}
 	}
@@ -376,19 +376,19 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 			for _, inst := range innerMap {
 				statusList.TotalCount++
 				switch inst.State {
-				case types.StateInit:
+				case types.NodeWorkflowOperationStateInit:
 					statusList.InitCount++
-				case types.StateRunning:
+				case types.NodeWorkflowOperationStateRunning:
 					statusList.RunningCount++
-				case types.StateLaunched:
+				case types.NodeWorkflowOperationStateLaunched:
 					statusList.LaunchedCount++
-				case types.StateSuccess:
+				case types.NodeWorkflowOperationStateSuccess:
 					statusList.SuccessCount++
-				case types.StateFailed:
+				case types.NodeWorkflowOperationStateFailed:
 					statusList.FailedCount++
-				case types.StateTimeout:
+				case types.NodeWorkflowOperationStateTimeout:
 					statusList.TimeoutCount++
-				case types.StateTerminated:
+				case types.NodeWorkflowOperationStateTerminated:
 					statusList.TerminatedCount++
 				}
 			}
@@ -437,9 +437,9 @@ func filterOperationsByState(
 	}
 
 	// record the states that need to be filtered.
-	targetStateSet := make(map[types.OperationState]struct{}, len(targetStates))
+	targetStateSet := make(map[types.NodeWorkflowOperationState]struct{}, len(targetStates))
 	for _, state := range targetStates {
-		targetStateSet[types.OperationState(state)] = struct{}{}
+		targetStateSet[types.NodeWorkflowOperationState(state)] = struct{}{}
 	}
 
 	matchedOperations := make([]*operation.Operation, len(ops))
@@ -470,7 +470,7 @@ func calculateOperationSummaries(operationIDs []string,
 		if !exists || len(instances) == 0 {
 			summaries[idx] = &types.OperationSummary{
 				TotalDuration: 0,
-				LastStatus:    types.StateInit,
+				LastStatus:    types.NodeWorkflowOperationStateInit,
 			}
 
 			continue
@@ -492,7 +492,7 @@ func calculateOperationSummaries(operationIDs []string,
 
 		// calculate last status.
 		lastInstance := instances[len(instances)-1]
-		lastStatus, err := types.InstanceStatusToOperationState(lastInstance.Lifecycle.State)
+		lastStatus, err := types.InstanceStatusToNodeWorkflowOperationState(lastInstance.Lifecycle.State)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert instance status to operation state: %w", err)
 		}

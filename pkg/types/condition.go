@@ -310,7 +310,7 @@ type ReleaseCondition struct {
 type NodeWorkflowOperationExactFields struct {
 	TriggerID     string
 	WorkflowID    string
-	State         []OperationState
+	State         []NodeWorkflowOperationState
 	InnerIP       []string
 	InnerIPv6     []string
 	BizID         []int64
