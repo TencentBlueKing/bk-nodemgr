@@ -292,6 +292,7 @@ func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param Upg
 
 		gp.Go(func() error {
 			operationDef := mgr.getUpgradeOperationDef(deploy, param.Operator)
+			enablePagentInstaller(deploy)
 
 			operationParam := operationDef.DefaultParameters()
 			operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
@@ -354,14 +355,25 @@ func (mgr *Manager) getUpgradeOperationDef(deploy *types.NodeDeployment, operato
 		})
 	}
 
-	// if not direct link, use pagent. than we noly need to transfer installer.
-	deploy.Info.TransferOptions.SelectDownloads = true
-	deploy.Info.TransferOptions.EnableInstaller = true
-
+	// indirect link, use pagent.
 	return node.NewoperUpgradePagent(node.OperParamUpgradePagent{
 		Token:    deploy.Token,
 		Operator: operator,
 	})
+}
+
+func enablePagentInstaller(deploy *types.NodeDeployment) {
+	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return
+	}
+
+	if deploy.Info.UpgradeOptions.DirectLink {
+		return
+	}
+
+	// if not direct link, use pagent. than we noly need to transfer installer.
+	deploy.Info.TransferOptions.SelectDownloads = true
+	deploy.Info.TransferOptions.EnableInstaller = true
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.

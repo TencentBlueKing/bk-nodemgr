@@ -29,19 +29,19 @@ import (
 func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.NodeAgentUpgradeReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, err := h.getUpgradeNodeHosts(ctx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get host list. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get host list: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	unitsMap, err := h.generatesUnitDirectLink(ctx, hosts)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get network unit info. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get network unit info: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -52,7 +52,7 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to generate node deployment: %v", err)
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
