@@ -19,6 +19,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -172,8 +173,8 @@ func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param 
 	}
 
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	cleanCmd := fmt.Sprintf("chmod +x %s && %s node step clean-tmp %s >%s 2>&1 &",
-		installerPath, installerPath, strings.Join(args, " "), cleanLogPath)
+	cleanCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
+		installerPath, installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
 	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
@@ -213,8 +214,8 @@ func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, par
 	}
 
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	cleanCmd := fmt.Sprintf("%s node step clean-tmp %s >%s 2>&1",
-		installerPath, strings.Join(args, " "), cleanLogPath)
+	cleanCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
+		installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
 	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,

@@ -24,6 +24,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -201,8 +202,8 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, p
 	}
 
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("chmod +x %s && %s node full-upgrade %s >%s 2>&1 &",
-		installerPath, installerPath, strings.Join(args, " "), upgradeLogPath)
+	upgradeCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
+		installerPath, installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
 	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
@@ -248,8 +249,8 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder
 	}
 
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("%s node full-upgrade %s >%s 2>&1",
-		installerPath, strings.Join(args, " "), upgradeLogPath)
+	upgradeCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
+		installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
 	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),

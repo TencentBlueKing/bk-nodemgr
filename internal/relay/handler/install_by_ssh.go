@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -136,7 +137,7 @@ func (h *handler) buildCMD(installerPath string, args []string) string {
 	args = append(args, "--dlsvr_addr "+getIPV4Address(h.downloadSvcIP, h.downloadSvcPort))
 	args = append(args, "--cbsvr_addr "+getIPV4Address(h.callbackSvcIP, h.callbackSvcPort))
 
-	cmd := fmt.Sprintf("%s node full-install %s", installerPath, strings.Join(args, " "))
+	cmd := fmt.Sprintf("%s %s %s", installerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
 
 	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 

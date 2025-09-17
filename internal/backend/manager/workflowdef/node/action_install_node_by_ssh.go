@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -329,7 +330,7 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	installCmd := fmt.Sprintf("%s node full-install %s", param.InstallerPath, strings.Join(args, " "))
+	installCmd := fmt.Sprintf("%s %s %s", param.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
 
 	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)

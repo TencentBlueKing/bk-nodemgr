@@ -21,6 +21,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
@@ -204,8 +205,8 @@ func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param
 	}
 
 	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	reconfigCmd := fmt.Sprintf("chmod +x %s && %s node full-reconfig %s >%s 2>&1 &",
-		installerPath, installerPath, strings.Join(args, " "), reconfigLogPath)
+	reconfigCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
+		installerPath, installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
 	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
@@ -248,8 +249,8 @@ func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, pa
 	}
 
 	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	reconfigCmd := fmt.Sprintf("%s node full-reconfig %s >%s 2>&1",
-		installerPath, strings.Join(args, " "), reconfigLogPath)
+	reconfigCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
+		installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
 	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
 
 	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,

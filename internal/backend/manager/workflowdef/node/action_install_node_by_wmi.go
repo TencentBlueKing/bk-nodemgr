@@ -26,6 +26,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
@@ -331,8 +332,8 @@ func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 	}
 	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 
-	installCmd := fmt.Sprintf("cd %s && %s node full-install %s >%s 2>&1",
-		winpath.Join(param.BaseWorkDir, system.GetEnv()), param.InstallerPath, strings.Join(args, " "), installLogPath)
+	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
+		winpath.Join(param.BaseWorkDir, system.GetEnv()), param.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
 
 	return installCmd
 }

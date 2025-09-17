@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -134,8 +135,8 @@ func (h *handler) buildBat(installerPath, targetWorkDir string, args []string) s
 
 	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 
-	installCmd := fmt.Sprintf("cd %s && %s node full-install %s >%s 2>&1",
-		targetWorkDir, installerPath, strings.Join(args, " "), installLogPath)
+	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
+		targetWorkDir, installerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
 
 	return installCmd
 }
