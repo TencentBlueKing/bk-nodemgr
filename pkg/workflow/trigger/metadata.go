@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 )
 
 // Metadata defines the trigger metadata.

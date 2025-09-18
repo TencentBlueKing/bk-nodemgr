@@ -23,6 +23,7 @@ import (
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -96,13 +97,13 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	installCmd := h.buildBat(installerPath, event.TargetWorkDir, event.InstallerCmd)
 	h.logger.Infof("install node cmd: %s", installCmd)
 
-	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installCmd)), event.InstallerBatName)
+	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installCmd)), system.Code, event.InstallerBatName)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to create temp file: %v", err)
 		return
 	}
 	defer func() {
-		if err := tmp.Clean(); err != nil {
+		if err := tmp.Clean(system.Code); err != nil {
 			h.logger.Errorf(fmt.Sprintf("failed to clean temp file: %v", err))
 		}
 	}()

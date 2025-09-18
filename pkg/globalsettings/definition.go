@@ -14,7 +14,7 @@ package globalsettings
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 

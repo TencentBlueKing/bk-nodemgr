@@ -15,7 +15,7 @@ package upload
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 

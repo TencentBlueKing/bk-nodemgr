@@ -11,8 +11,8 @@
 package credit
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 )
 
 // IStorage defines the Storage interface.

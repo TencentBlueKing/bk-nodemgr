@@ -13,7 +13,7 @@ package configpolicy
 import (
 	"context"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )

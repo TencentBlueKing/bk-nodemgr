@@ -17,7 +17,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"

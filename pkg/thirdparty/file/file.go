@@ -21,11 +21,11 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 // CodeOK defines the success code.

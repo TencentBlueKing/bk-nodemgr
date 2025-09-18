@@ -17,9 +17,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -97,7 +97,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	executor := runtime.NewPageExecutor[*types.Host](MaxPageSize, 1*time.Hour)
+	executor := pageexecutor.NewPageExecutor[*types.Host](MaxPageSize, 1*time.Hour)
 	fn := func(fnCtx context.Context, p types.Page) ([]*types.Host, error) {
 		cond := &types.HostCondition{
 			ExactExclude: &types.HostExactFields{

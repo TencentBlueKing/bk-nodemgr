@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 )
 
 // Interface discovery interface.

@@ -19,7 +19,7 @@ import (
 	"time"
 
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/gin-gonic/gin"
 )
 

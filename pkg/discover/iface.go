@@ -15,7 +15,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 )
 
 // Provider this defines the interface of a complete service discovery provider.

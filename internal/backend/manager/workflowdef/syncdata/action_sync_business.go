@@ -17,11 +17,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/pageexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -103,7 +103,7 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	gp.SetLimit(10) // nolint: mnd
 
-	executor := runtime.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
+	executor := pageexecutor.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
 		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, access.GetVirtualUser())
 		bizs, err := act.cmdbHandler.SearchBusiness(tenantUserCtx, p)

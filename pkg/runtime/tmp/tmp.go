@@ -16,6 +16,16 @@ import (
 	"os"
 )
 
+var (
+	// nolint: gochecknoglobals
+	prefixName = "tmpdir"
+)
+
+// SetPrefixName sets the prefix name.
+func SetPrefixName(name string) {
+	prefixName = name
+}
+
 // Clean cleans the file and removes it from the filesystem.
 func Clean() error {
 	tmpDir, err := GetTmpDir()

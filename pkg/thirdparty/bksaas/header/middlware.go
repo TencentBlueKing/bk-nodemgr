@@ -12,8 +12,8 @@
 package header
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 )
 
 var _ restserver.IRequestIDSetter = &RequestIDSetter{}

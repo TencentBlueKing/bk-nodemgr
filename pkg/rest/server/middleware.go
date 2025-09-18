@@ -17,10 +17,10 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/gin-gonic/gin"
 )
 

@@ -15,8 +15,8 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )

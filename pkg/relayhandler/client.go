@@ -20,8 +20,8 @@ import (
 	"time"
 
 	agentmessage "github.com/TencentBlueKing/bk-gse-sdk/go/service/agent-message"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 

@@ -23,8 +23,8 @@ import (
 
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -218,7 +218,7 @@ func (h *Handler) listNodes(ctx context.Context, path string) ([]NodeRecord, err
 		return nil, errEmptyPathOrName
 	}
 
-	executor := runtime.NewPageExecutor[NodeRecord](500, time.Minute) // nolint: mnd
+	executor := pageexecutor.NewPageExecutor[NodeRecord](500, time.Minute) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]NodeRecord, error) {
 		result, err := h.cli.ListNode(ctx, &ListNodeReq{
 			Path:     path,

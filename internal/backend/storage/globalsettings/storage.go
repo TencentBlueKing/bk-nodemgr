@@ -12,8 +12,8 @@
 package globalsettings
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/basestorage"
 )
 
 // IStorage defines the interface of global settings storage.

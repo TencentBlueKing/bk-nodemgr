@@ -8,5 +8,35 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package runtime defines the basic interfaces of workflow.
-package runtime
+// Package main is an example
+package main
+
+import (
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
+)
+
+// nolint: mnd
+func main() {
+	schedule := scheduler.NewScheduler()
+
+	err := schedule.RegisterTask(scheduler.NewTask(
+		"test1",
+		1*time.Second,
+		5*time.Second,
+		func(_ contextx.IContext) error {
+			time.Sleep(10 * time.Second)
+
+			return nil
+		},
+	))
+	if err != nil {
+		panic(err)
+	}
+
+	schedule.Start()
+
+	time.Sleep(100 * time.Second)
+}

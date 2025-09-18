@@ -16,8 +16,6 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/system"
 )
 
 // tmpDirInstance is the instance of tmpDir.
@@ -29,7 +27,7 @@ var tmpDirInstance struct {
 
 // GetTmpDir returns the system's temporary directory path.
 func GetTmpDir() (string, error) {
-	tmpDirInstance.dir = filepath.Join(os.TempDir(), system.Code+"_"+time.Now().Format("20060102150405"))
+	tmpDirInstance.dir = filepath.Join(os.TempDir(), prefixName+"_"+time.Now().Format("20060102150405"))
 
 	dirInfo, err := os.Stat(tmpDirInstance.dir)
 	if err != nil && os.IsNotExist(err) {

@@ -2,14 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package winpath_test
+package winpath
 
 import (
 	"reflect"
 	"runtime"
 	"testing"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 )
 
 type PathTest struct {
@@ -111,15 +109,15 @@ var wincleantests = []PathTest{
 func TestClean(t *testing.T) {
 	tests := cleantests
 	for i := range tests {
-		tests[i].result = winpath.FromSlash(tests[i].result)
+		tests[i].result = FromSlash(tests[i].result)
 	}
 	tests = append(tests, wincleantests...)
 
 	for _, test := range tests {
-		if s := winpath.Clean(test.path); s != test.result {
+		if s := Clean(test.path); s != test.result {
 			t.Errorf("Clean(%q) = %q, want %q", test.path, s, test.result)
 		}
-		if s := winpath.Clean(test.result); s != test.result {
+		if s := Clean(test.result); s != test.result {
 			t.Errorf("Clean(%q) = %q, want %q", test.result, s, test.result)
 		}
 	}
@@ -133,14 +131,14 @@ func TestClean(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		allocs := testing.AllocsPerRun(100, func() { winpath.Clean(test.result) })
+		allocs := testing.AllocsPerRun(100, func() { Clean(test.result) })
 		if allocs > 0 {
 			t.Errorf("Clean(%q): %v allocs, want zero", test.result, allocs)
 		}
 	}
 }
 
-const sep = winpath.DirSeparator
+const sep = DirSeparator
 
 var slashtests = []PathTest{
 	{"", ""},
@@ -151,10 +149,10 @@ var slashtests = []PathTest{
 
 func TestFromAndToSlash(t *testing.T) {
 	for _, test := range slashtests {
-		if s := winpath.FromSlash(test.path); s != test.result {
+		if s := FromSlash(test.path); s != test.result {
 			t.Errorf("FromSlash(%q) = %q, want %q", test.path, s, test.result)
 		}
-		if s := winpath.ToSlash(test.result); s != test.path {
+		if s := ToSlash(test.result); s != test.path {
 			t.Errorf("ToSlash(%q) = %q, want %q", test.result, s, test.path)
 		}
 	}
@@ -165,7 +163,7 @@ type SplitListTest struct {
 	result []string
 }
 
-const lsep = winpath.ListSeparator
+const lsep = ListSeparator
 
 var splitlisttests = []SplitListTest{
 	{"", []string{}},
@@ -200,7 +198,7 @@ func TestSplitList(t *testing.T) {
 	tests = append(tests, winsplitlisttests...)
 
 	for _, test := range tests {
-		if l := winpath.SplitList(test.list); !reflect.DeepEqual(l, test.result) {
+		if l := SplitList(test.list); !reflect.DeepEqual(l, test.result) {
 			t.Errorf("SplitList(%#q) = %#q, want %#q", test.list, l, test.result)
 		}
 	}
@@ -237,7 +235,7 @@ func TestSplit(t *testing.T) {
 	splittests = append(splittests, winsplittests...)
 
 	for _, test := range splittests {
-		if d, f := winpath.Split(test.path); d != test.dir || f != test.file {
+		if d, f := Split(test.path); d != test.dir || f != test.file {
 			t.Errorf("Split(%q) = %q, %q, want %q, %q", test.path, d, f, test.dir, test.file)
 		}
 	}
@@ -313,8 +311,8 @@ func TestJoin(t *testing.T) {
 	jointests = append(jointests, winjointests...)
 
 	for _, test := range jointests {
-		expected := winpath.FromSlash(test.path)
-		if p := winpath.Join(test.elem...); p != expected {
+		expected := FromSlash(test.path)
+		if p := Join(test.elem...); p != expected {
 			t.Errorf("join(%q) = %q, want %q", test.elem, p, expected)
 		}
 	}
@@ -334,7 +332,7 @@ var exttests = []ExtTest{
 
 func TestExt(t *testing.T) {
 	for _, test := range exttests {
-		if x := winpath.Ext(test.path); x != test.ext {
+		if x := Ext(test.path); x != test.ext {
 			t.Errorf("Ext(%q) = %q, want %q", test.path, x, test.ext)
 		}
 	}
@@ -376,13 +374,13 @@ func TestBase(t *testing.T) {
 	tests := basetests
 	// make unix tests work on windows
 	for i := range tests {
-		tests[i].result = winpath.Clean(tests[i].result)
+		tests[i].result = Clean(tests[i].result)
 	}
 	// add windows specific tests
 	tests = append(tests, winbasetests...)
 
 	for _, test := range tests {
-		if s := winpath.Base(test.path); s != test.result {
+		if s := Base(test.path); s != test.result {
 			t.Errorf("Base(%q) = %q, want %q", test.path, s, test.result)
 		}
 	}
@@ -419,13 +417,13 @@ func TestDir(t *testing.T) {
 	tests := dirtests
 	// make unix tests work on windows
 	for i := range tests {
-		tests[i].result = winpath.Clean(tests[i].result)
+		tests[i].result = Clean(tests[i].result)
 	}
 	// add windows specific tests
 	tests = append(tests, windirtests...)
 
 	for _, test := range tests {
-		if s := winpath.Dir(test.path); s != test.result {
+		if s := Dir(test.path); s != test.result {
 			t.Errorf("Dir(%q) = %q, want %q", test.path, s, test.result)
 		}
 	}
@@ -480,7 +478,7 @@ func TestIsAbs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if r := winpath.IsAbs(test.path); r != test.isAbs {
+		if r := IsAbs(test.path); r != test.isAbs {
 			t.Errorf("IsAbs(%q) = %v, want %v", test.path, r, test.isAbs)
 		}
 	}
@@ -547,12 +545,12 @@ var winreltests = []RelTests{
 func TestRel(t *testing.T) {
 	tests := append([]RelTests{}, reltests...)
 	for i := range tests {
-		tests[i].want = winpath.FromSlash(tests[i].want)
+		tests[i].want = FromSlash(tests[i].want)
 	}
 	tests = append(tests, winreltests...)
 
 	for _, test := range tests {
-		got, err := winpath.Rel(test.root, test.path)
+		got, err := Rel(test.root, test.path)
 		if test.want == "err" {
 			if err == nil {
 				t.Errorf("Rel(%q, %q)=%q, want error", test.root, test.path, got)
@@ -621,7 +619,7 @@ var volumenametests = []VolumeNameTest{
 
 func TestVolumeName(t *testing.T) {
 	for _, v := range volumenametests {
-		if vol := winpath.VolumeName(v.path); vol != v.vol {
+		if vol := VolumeName(v.path); vol != v.vol {
 			t.Errorf("VolumeName(%q)=%q, want %q", v.path, vol, v.vol)
 		}
 	}
@@ -646,7 +644,7 @@ func TestIssue52476(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got := winpath.Join(test.lhs, test.rhs)
+		got := Join(test.lhs, test.rhs)
 		if got != test.want {
 			t.Errorf(`Join(%q, %q): got %q, want %q`, test.lhs, test.rhs, got, test.want)
 		}
