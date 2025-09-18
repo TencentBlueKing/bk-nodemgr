@@ -8,19 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package noderestarter provides step to restart node.
-package noderestarter
+// Package nodestarter provides step to start node.
+package nodestarter
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
-// Step restart node step.
+// Step start node step.
 type Step struct {
 	args StepArgs
 }
@@ -28,8 +28,6 @@ type Step struct {
 // StepArgs this define the args for step.
 type StepArgs struct {
 	AgentHandler agenthandler.IAgentHandler
-
-	Force bool
 }
 
 // NewStep new a step.
@@ -37,36 +35,35 @@ func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
-// Run run step to restart node.
+// Run run step to start node.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepRestartNode, "start to restart node")
+	logger.Infof(node.StepStartNode, "start to start node")
 
 	hasStdout := false
 	stdoutF := func(content string) {
 		hasStdout = true
-		logger.Infof(installer.StepRestartNode, "node output: %s", content)
+		logger.Infof(node.StepStartNode, "node output: %s", content)
 	}
 	var stderrMsg string
 	stderrF := func(content string) {
 		stderrMsg += content + "\n"
 	}
 
-	if err := step.args.AgentHandler.Process().Restart(ctx,
-		step.args.Force,
+	if err := step.args.AgentHandler.Process().Start(ctx,
 		&agenthandler.AsyncOutputOptions{
 			Stdout: stdoutF,
 			Stderr: stderrF,
 		}); err != nil {
-		logger.Errorf(installer.StepRestartNode, "failed to restart node. err-output(%s): %v", stderrMsg, err)
+		logger.Errorf(node.StepStartNode, "failed to start node. err-output(%s): %v", stderrMsg, err)
 
-		return fmt.Errorf("failed to restart node: %w", err)
+		return fmt.Errorf("failed to start node: %w", err)
 	}
 
 	if !hasStdout {
-		logger.Warnf(installer.StepRestartNode, "process restarted without output")
+		logger.Warnf(node.StepStartNode, "process started without output")
 	}
 
-	logger.Infof(installer.StepRestartNode, "restarted node")
+	logger.Infof(node.StepStartNode, "started node")
 
 	return nil
 }

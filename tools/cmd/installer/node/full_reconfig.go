@@ -19,14 +19,14 @@ import (
 	logger2 "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/checkdeploy"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/noderestarter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeupgrader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/checkdeploy"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
@@ -136,7 +136,7 @@ func NewFullReconfig() *cobra.Command {
 			// get agent-id.
 			agentID, err := agentHandler.Process().GetAgentID(cmd.Context())
 			if err != nil {
-				logger.Errorf(installer.StepGeneral, "failed to get agent-id: %v", err)
+				logger.Errorf(node.StepGeneral, "failed to get agent-id: %v", err)
 
 				return fmt.Errorf("failed to get agent-id: %w", err)
 			}

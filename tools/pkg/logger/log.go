@@ -16,7 +16,7 @@ import (
 	"log"
 	"sync/atomic"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 )
 
 // LogLevel defines the log severity levels.
@@ -79,7 +79,7 @@ func GetLevel() LogLevel {
 }
 
 // Internal unified logging method to reduce code duplication.
-func logInternal(level LogLevel, step installer.Step, msg string) {
+func logInternal(level LogLevel, step node.Step, msg string) {
 	if LogLevel(currentLevel.Load()) <= level {
 		// Ensure fixed width for each field to improve readability
 		log.Print(fmt.Sprintf(logFormat, levelNames(level), step, msg))
@@ -87,41 +87,41 @@ func logInternal(level LogLevel, step installer.Step, msg string) {
 }
 
 // Debug logs messages at debug level.
-func Debug(step installer.Step, args ...interface{}) {
+func Debug(step node.Step, args ...interface{}) {
 	logInternal(LevelDebug, step, fmt.Sprint(args...))
 }
 
 // Debugf logs formatted messages at debug level.
-func Debugf(step installer.Step, format string, args ...interface{}) {
+func Debugf(step node.Step, format string, args ...interface{}) {
 	logInternal(LevelDebug, step, fmt.Sprintf(format, args...))
 }
 
 // Info logs messages at info level.
-func Info(step installer.Step, args ...interface{}) {
+func Info(step node.Step, args ...interface{}) {
 	logInternal(LevelInfo, step, fmt.Sprint(args...))
 }
 
 // Infof logs formatted messages at info level.
-func Infof(step installer.Step, format string, args ...interface{}) {
+func Infof(step node.Step, format string, args ...interface{}) {
 	logInternal(LevelInfo, step, fmt.Sprintf(format, args...))
 }
 
 // Warn logs messages at warning level.
-func Warn(step installer.Step, args ...interface{}) {
+func Warn(step node.Step, args ...interface{}) {
 	logInternal(LevelWarn, step, fmt.Sprint(args...))
 }
 
 // Warnf logs formatted messages at warning level.
-func Warnf(step installer.Step, format string, args ...interface{}) {
+func Warnf(step node.Step, format string, args ...interface{}) {
 	logInternal(LevelWarn, step, fmt.Sprintf(format, args...))
 }
 
 // Error logs messages at error level.
-func Error(step installer.Step, args ...interface{}) {
+func Error(step node.Step, args ...interface{}) {
 	logInternal(LevelError, step, fmt.Sprint(args...))
 }
 
 // Errorf logs formatted messages at error level.
-func Errorf(step installer.Step, format string, args ...interface{}) {
+func Errorf(step node.Step, format string, args ...interface{}) {
 	logInternal(LevelError, step, fmt.Sprintf(format, args...))
 }

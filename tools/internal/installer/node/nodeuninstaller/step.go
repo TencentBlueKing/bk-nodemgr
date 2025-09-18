@@ -16,8 +16,8 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
 // Step uninstall step.
@@ -39,28 +39,28 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step tp uninstall agent.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepUninstallNode, "start to uninstall node")
+	logger.Infof(node.StepUninstallNode, "start to uninstall node")
 
 	if step.args.Backup {
 		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
-			logger.Warnf(installer.StepUninstallNode, "failed to backup: %v", err)
+			logger.Warnf(node.StepUninstallNode, "failed to backup: %v", err)
 		} else {
-			logger.Info(installer.StepUninstallNode, "backuped node")
+			logger.Info(node.StepUninstallNode, "backuped node")
 		}
 	}
 
 	if err := step.uninstallAutoStartup(ctx); err != nil {
 		return err
 	}
-	logger.Info(installer.StepUninstallNode, "uninstalled auto-startup")
+	logger.Info(node.StepUninstallNode, "uninstalled auto-startup")
 
 	if err := step.args.AgentHandler.FS().Purge(ctx); err != nil {
-		logger.Errorf(installer.StepUninstallNode, "failed to purge file-system: %v", err)
+		logger.Errorf(node.StepUninstallNode, "failed to purge file-system: %v", err)
 
 		return fmt.Errorf("failed to purge file-system: %w", err)
 	}
 
-	logger.Infof(installer.StepUninstallNode, "uninstalled node")
+	logger.Infof(node.StepUninstallNode, "uninstalled node")
 
 	return nil
 }
@@ -69,7 +69,7 @@ func (step *Step) uninstallAutoStartup(ctx context.Context) error {
 	hasStdout := false
 	stdoutF := func(content string) {
 		hasStdout = true
-		logger.Infof(installer.StepUninstallNode, "node output: %s", content)
+		logger.Infof(node.StepUninstallNode, "node output: %s", content)
 	}
 	var stderrMsg string
 	stderrF := func(content string) {
@@ -81,13 +81,13 @@ func (step *Step) uninstallAutoStartup(ctx context.Context) error {
 			Stdout: stdoutF,
 			Stderr: stderrF,
 		}); err != nil {
-		logger.Errorf(installer.StepUninstallNode, "failed to uninstall auto startup. err-output(%s): %v", stderrMsg, err)
+		logger.Errorf(node.StepUninstallNode, "failed to uninstall auto startup. err-output(%s): %v", stderrMsg, err)
 
 		return fmt.Errorf("failed to uninstall auto startup: %w", err)
 	}
 
 	if !hasStdout {
-		logger.Warnf(installer.StepUninstallNode, "uninstalled auto startup without output")
+		logger.Warnf(node.StepUninstallNode, "uninstalled auto startup without output")
 	}
 
 	return nil

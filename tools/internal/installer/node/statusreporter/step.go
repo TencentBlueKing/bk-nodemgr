@@ -21,8 +21,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
@@ -53,12 +53,12 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepReportStatus, "start to report status: %s", step.args.String())
+	logger.Infof(node.StepReportStatus, "start to report status: %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
 		if err := step.reportStatus(ctx); err != nil {
-			logger.Errorf(installer.StepReportStatus,
+			logger.Errorf(node.StepReportStatus,
 				"failed to retry report status. attempt(%d): %v", attempt, err)
 
 			return err
@@ -66,11 +66,11 @@ func (step *Step) Run(ctx context.Context) error {
 
 		return nil
 	}); err != nil {
-		logger.Errorf(installer.StepReportStatus, "failed to report status: %v", err)
+		logger.Errorf(node.StepReportStatus, "failed to report status: %v", err)
 		return fmt.Errorf("failed to report status: %w", err)
 	}
 
-	logger.Infof(installer.StepReportStatus, "reported status")
+	logger.Infof(node.StepReportStatus, "reported status")
 
 	return nil
 }
@@ -120,7 +120,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		logger.Errorf(installer.StepReportStatus, "failed to send request to report status. resp-code(%d), resp-body(%s)",
+		logger.Errorf(node.StepReportStatus, "failed to send request to report status. resp-code(%d), resp-body(%s)",
 			resp.StatusCode, body)
 
 		return fmt.Errorf("failed to send status request. resp-code(%d)", resp.StatusCode)

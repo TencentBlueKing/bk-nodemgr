@@ -14,7 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
 	"github.com/spf13/cobra"
 )
 

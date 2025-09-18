@@ -21,8 +21,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 )
 
@@ -51,12 +51,12 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepReportData, "start to report data. %s", step.args.String())
+	logger.Infof(node.StepReportData, "start to report data. %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
 		if err := step.reportData(ctx); err != nil {
-			logger.Infof(installer.StepReportData, "retry report data. attempt(%d): %v", attempt, err)
+			logger.Infof(node.StepReportData, "retry report data. attempt(%d): %v", attempt, err)
 
 			return err
 		}
@@ -66,7 +66,7 @@ func (step *Step) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to report data. %s: %w", step.args.String(), err)
 	}
 
-	logger.Infof(installer.StepReportData, "successfully reported data")
+	logger.Infof(node.StepReportData, "successfully reported data")
 
 	return nil
 }

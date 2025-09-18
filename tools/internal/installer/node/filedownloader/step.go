@@ -20,9 +20,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/downloader"
@@ -67,7 +67,7 @@ func NewStep(args StepArgs) *Step {
 // Run run the step to download files.
 // nolint: funlen,gocognit
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepDownloadFiles, "start to download files. %s", step.args.String())
+	logger.Infof(node.StepDownloadFiles, "start to download files. %s", step.args.String())
 
 	gp := gopool.NewPool()
 
@@ -114,11 +114,11 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 
 	if err := gp.Wait(); err != nil {
-		logger.Infof(installer.StepDownloadFiles, "failed to download files. %s: %v", step.args.String(), err)
+		logger.Infof(node.StepDownloadFiles, "failed to download files. %s: %v", step.args.String(), err)
 		return fmt.Errorf("failed to download files: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded all files")
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded all files")
 
 	return nil
 }
@@ -130,7 +130,7 @@ const (
 func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL, savedPath string) error {
 	downloadURL, err := url.JoinPath(baseURL, subURL)
 	if err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to join path(%s, %s): %v", baseURL, subURL, err)
+		logger.Errorf(node.StepDownloadFiles, "failed to join path(%s, %s): %v", baseURL, subURL, err)
 		return fmt.Errorf("download file failed: %v", err)
 	}
 
@@ -150,14 +150,14 @@ func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL
 	// start progress report.
 	downloadConfig.ProgressFunc = func(current, total int64) {
 		if current == total {
-			logger.Infof(installer.StepDownloadFiles, "file downloading completed. file(%s)", savedPath)
+			logger.Infof(node.StepDownloadFiles, "file downloading completed. file(%s)", savedPath)
 		}
 
 		if current-lastProgress < total/10 {
 			return
 		}
 
-		logger.Infof(installer.StepDownloadFiles,
+		logger.Infof(node.StepDownloadFiles,
 			"file downloading. file(%s), progress(%d/%d)", savedPath, current, total)
 
 		lastProgress = current
@@ -193,12 +193,12 @@ func (step *Step) downloadAgentConfig(ctx context.Context) error {
 		step.args.CallbackSvrAddr,
 		"/callback/workflow/node_install/get_agent_config",
 		savedPath); err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to get agent config: %v", err)
+		logger.Errorf(node.StepDownloadFiles, "failed to get agent config: %v", err)
 
 		return fmt.Errorf("failed to get agent config: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded agent-config(%s)", savedPath)
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded agent-config(%s)", savedPath)
 
 	return nil
 }
@@ -224,12 +224,12 @@ func (step *Step) downloadFileProxyConfig(ctx context.Context) error {
 		step.args.CallbackSvrAddr,
 		"/callback/workflow/node_install/get_file_proxy_config",
 		savedPath); err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to get file proxy config: %v", err)
+		logger.Errorf(node.StepDownloadFiles, "failed to get file proxy config: %v", err)
 
 		return fmt.Errorf("failed to get file proxy config: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded file-proxy-config(%s)", savedPath)
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded file-proxy-config(%s)", savedPath)
 
 	return nil
 }
@@ -255,12 +255,12 @@ func (step *Step) downloadDataProxyConfig(ctx context.Context) error {
 		step.args.CallbackSvrAddr,
 		"/callback/workflow/node_install/get_data_proxy_config",
 		savedPath); err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to get data proxy config: %v", err)
+		logger.Errorf(node.StepDownloadFiles, "failed to get data proxy config: %v", err)
 
 		return fmt.Errorf("failed to get data proxy config: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded data-proxy-config(%s)", savedPath)
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded data-proxy-config(%s)", savedPath)
 
 	return nil
 }
@@ -285,12 +285,12 @@ func (step *Step) downloadCheckList(ctx context.Context) error {
 		step.args.CallbackSvrAddr,
 		"/callback/workflow/node_install/get_check_list",
 		step.args.CheckListSavedPath); err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to get check list: %v", err)
+		logger.Errorf(node.StepDownloadFiles, "failed to get check list: %v", err)
 
 		return fmt.Errorf("failed to get check list: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded check-list(%s)",
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded check-list(%s)",
 		step.args.CheckListSavedPath)
 
 	return nil
@@ -316,12 +316,12 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 		step.args.DownloadSvrAddr,
 		"/download/"+string(step.args.NodeRole),
 		step.args.PkgSavedPath); err != nil {
-		logger.Errorf(installer.StepDownloadFiles, "failed to get release package: %v", err)
+		logger.Errorf(node.StepDownloadFiles, "failed to get release package: %v", err)
 
 		return fmt.Errorf("failed to get release package: %w", err)
 	}
 
-	logger.Infof(installer.StepDownloadFiles, "successfully downloaded release package(%s)",
+	logger.Infof(node.StepDownloadFiles, "successfully downloaded release package(%s)",
 		step.args.PkgSavedPath)
 
 	return nil

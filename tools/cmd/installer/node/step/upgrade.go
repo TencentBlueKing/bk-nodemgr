@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/nodeupgrader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
 	"github.com/spf13/cobra"
 )
 

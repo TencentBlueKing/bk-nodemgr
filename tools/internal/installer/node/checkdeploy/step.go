@@ -8,19 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package cleantmp provides step to clean tmp files in fs.
-package cleantmp
+// Package checkdeploy provides step to check this gse node is deployed or not.
+package checkdeploy
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
-// Step this step is used to clean tmp files in fs.
+// Step this step is used to check this gse node is deploy or not.
 type Step struct {
 	args StepArgs
 }
@@ -35,29 +35,34 @@ func (args StepArgs) String() string {
 	return fmt.Sprintf("node-role(%s)", args.AgentHandler.Role())
 }
 
-// NewStep new step to clean tmp files in fs.
+// NewStep new step to check this gse node is deploy or not.
 func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
-// Run the step to clean tmp files in fs.
+// Run the step to check this gse node is deploy or not.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepCleanTmp, "start to clean tmp files. %s", step.args.String())
+	logger.Infof(node.StepCheckDeploy, "start to check deploy result. %s", step.args.String())
 
-	err := step.cleanTmp(ctx)
+	err := step.checkDeploy(ctx)
 	if err != nil {
-		logger.Errorf(installer.StepCleanTmp, "failed to clean tmp files. %s: %v", step.args.String(), err)
-		return fmt.Errorf("failed to clean tmp files. %s: %w", step.args.String(), err)
+		logger.Errorf(node.StepCheckDeploy, "failed to check deploy result. %s: %v", step.args.String(), err)
+		return fmt.Errorf("failed to check deploy result. %s: %w", step.args.String(), err)
 	}
 
-	logger.Infof(installer.StepCleanTmp, "successfully cleaned tmp files")
+	logger.Infof(node.StepCheckDeploy, "successfully checked deploy, it is running")
 
 	return nil
 }
 
-func (step *Step) cleanTmp(ctx context.Context) error {
-	if err := step.args.AgentHandler.FS().Clean(ctx); err != nil {
-		return fmt.Errorf("failed to clean tmp files: %w", err)
+func (step *Step) checkDeploy(ctx context.Context) error {
+	processNode, err := step.args.AgentHandler.Process().GetProcess(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if node is running: %w", err)
+	}
+
+	if !processNode.IsAllRunning() {
+		return fmt.Errorf("there are some node process not running: %v", processNode.Dead)
 	}
 
 	return nil

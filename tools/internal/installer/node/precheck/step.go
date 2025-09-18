@@ -18,9 +18,9 @@ import (
 	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 )
 
@@ -48,25 +48,25 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to precheck.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepPreCheck, "start to precheck with config: %s", step.args.String())
+	logger.Infof(node.StepPreCheck, "start to precheck with config: %s", step.args.String())
 
 	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	gp := gopool.NewPool()
 
 	runCheck := func(name string, checkFn func() error) func() error {
 		return func() error {
-			logger.Infof(installer.StepPreCheck, "start check %s", name)
+			logger.Infof(node.StepPreCheck, "start check %s", name)
 
 			if err := r.Do(ctx, func(_ int) error {
 				return checkFn()
 			}); err != nil {
-				logger.Errorf(installer.StepPreCheck,
+				logger.Errorf(node.StepPreCheck,
 					"failed to check %s: %v", name, err)
 
 				return err
 			}
 
-			logger.Infof(installer.StepPreCheck, "done check %s", name)
+			logger.Infof(node.StepPreCheck, "done check %s", name)
 
 			return nil
 		}
@@ -95,11 +95,11 @@ func (step *Step) Run(ctx context.Context) error {
 	}))
 
 	if err := gp.Wait(); err != nil {
-		logger.Errorf(installer.StepPreCheck, "failed to do all precheck: %v", err)
+		logger.Errorf(node.StepPreCheck, "failed to do all precheck: %v", err)
 		return err
 	}
 
-	logger.Infof(installer.StepPreCheck, "done all precheck")
+	logger.Infof(node.StepPreCheck, "done all precheck")
 
 	return nil
 }

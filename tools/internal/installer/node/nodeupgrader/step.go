@@ -16,8 +16,8 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
 // Step upgrade node.
@@ -52,46 +52,46 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to upgrade node.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepUpgradeNode, "start to upgrade node. %s", step.args.String())
+	logger.Infof(node.StepUpgradeNode, "start to upgrade node. %s", step.args.String())
 
 	// 1. init file-system architecture.
 	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
-		logger.Errorf(installer.StepUpgradeNode, "failed to init file-system: %v", err)
+		logger.Errorf(node.StepUpgradeNode, "failed to init file-system: %v", err)
 
 		return err
 	}
-	logger.Info(installer.StepUpgradeNode, "inited file-system")
+	logger.Info(node.StepUpgradeNode, "inited file-system")
 
 	if step.args.Backup {
 		// 1.1. backup old files.
 		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
-			logger.Warnf(installer.StepUpgradeNode, "failed to backup: %v", err)
+			logger.Warnf(node.StepUpgradeNode, "failed to backup: %v", err)
 		} else {
-			logger.Info(installer.StepUpgradeNode, "backuped node")
+			logger.Info(node.StepUpgradeNode, "backuped node")
 		}
 	}
 
 	if !step.args.SelectUpgrades || step.args.EnableUpgradeReleasePackage {
 		// 2. unpack release package files into installed file-system.
 		if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
-			logger.Errorf(installer.StepUpgradeNode, "failed to unpack release pkg: %v", err)
+			logger.Errorf(node.StepUpgradeNode, "failed to unpack release pkg: %v", err)
 
 			return err
 		}
-		logger.Info(installer.StepUpgradeNode, "unpacked release pkg")
+		logger.Info(node.StepUpgradeNode, "unpacked release pkg")
 	}
 
 	if !step.args.SelectUpgrades || step.args.EnableUpgradeConfig {
 		// 3. copy config files to installed file-system.
 		if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-			logger.Errorf(installer.StepUpgradeNode, "failed to copy config dir: %v", err)
+			logger.Errorf(node.StepUpgradeNode, "failed to copy config dir: %v", err)
 
 			return err
 		}
-		logger.Info(installer.StepUpgradeNode, "copied config dir")
+		logger.Info(node.StepUpgradeNode, "copied config dir")
 	}
 
-	logger.Info(installer.StepUpgradeNode, "upgraded node, wait for restarting")
+	logger.Info(node.StepUpgradeNode, "upgraded node, wait for restarting")
 
 	return nil
 }

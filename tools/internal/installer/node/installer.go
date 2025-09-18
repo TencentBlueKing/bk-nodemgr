@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package installer provides the installer common types.
-package installer
+// Package node provides the node installer common types.
+package node
 
 // Step define the ctl step.
 type Step string

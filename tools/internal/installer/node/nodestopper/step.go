@@ -16,8 +16,8 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
 // Step stop node step.
@@ -44,12 +44,12 @@ func NewStep(args StepArgs) *Step {
 
 // Run run step to stop node.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(installer.StepStopNode, "start to stop node. %s", step.args.String())
+	logger.Infof(node.StepStopNode, "start to stop node. %s", step.args.String())
 
 	hasStdout := false
 	stdoutF := func(content string) {
 		hasStdout = true
-		logger.Infof(installer.StepStopNode, "agent output: %s", content)
+		logger.Infof(node.StepStopNode, "agent output: %s", content)
 	}
 	var stderrMsg string
 	stderrF := func(content string) {
@@ -64,26 +64,26 @@ func (step *Step) Run(ctx context.Context) error {
 		}); err != nil {
 
 		if !step.args.Force {
-			logger.Errorf(installer.StepStopNode, "failed to stop node by pid-file. err-output(%s): %v", stderrMsg, err)
+			logger.Errorf(node.StepStopNode, "failed to stop node by pid-file. err-output(%s): %v", stderrMsg, err)
 			return fmt.Errorf("failed to stop node: %v", err)
 		}
 
-		logger.Warnf(installer.StepStopNode, "failed to stop node by pid-file. err-output(%s): %v", stderrMsg, err)
+		logger.Warnf(node.StepStopNode, "failed to stop node by pid-file. err-output(%s): %v", stderrMsg, err)
 
 		// force kill.
 		if err := step.args.AgentHandler.Process().ForceKill(ctx); err != nil {
-			logger.Errorf(installer.StepStopNode, "failed to force kill node: %v", err)
+			logger.Errorf(node.StepStopNode, "failed to force kill node: %v", err)
 			return fmt.Errorf("failed to stop node: %v", err)
 		}
 
-		logger.Info(installer.StepStopNode, "force killed node")
+		logger.Info(node.StepStopNode, "force killed node")
 	}
 
 	if !hasStdout {
-		logger.Warnf(installer.StepStopNode, "process stopped without output")
+		logger.Warnf(node.StepStopNode, "process stopped without output")
 	}
 
-	logger.Infof(installer.StepStopNode, "stopped node. %s", step.args.String())
+	logger.Infof(node.StepStopNode, "stopped node. %s", step.args.String())
 
 	return nil
 }

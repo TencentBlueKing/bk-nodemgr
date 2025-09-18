@@ -16,8 +16,8 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
 // Step install agent.
@@ -53,57 +53,57 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to install node.
 func (step *Step) Run(ctx context.Context) (*StepResult, error) {
-	logger.Infof(installer.StepInstallNode, "start to install node. %s", step.args.String())
+	logger.Infof(node.StepInstallNode, "start to install node. %s", step.args.String())
 
 	// 1. init file-system architecture.
 	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to init file-system: %v", err)
+		logger.Errorf(node.StepInstallNode, "failed to init file-system: %v", err)
 
 		return nil, err
 	}
-	logger.Info(installer.StepInstallNode, "inited file-system")
+	logger.Info(node.StepInstallNode, "inited file-system")
 
 	// 2. unpack release package files into installed file-system.
 	if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to unpack release pkg: %v", err)
+		logger.Errorf(node.StepInstallNode, "failed to unpack release pkg: %v", err)
 
 		return nil, err
 	}
-	logger.Info(installer.StepInstallNode, "unpacked release pkg")
+	logger.Info(node.StepInstallNode, "unpacked release pkg")
 
 	// 3. copy config files to installed file-system.
 	if err := step.args.AgentHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to copy config dir: %v", err)
+		logger.Errorf(node.StepInstallNode, "failed to copy config dir: %v", err)
 
 		return nil, err
 	}
-	logger.Info(installer.StepInstallNode, "copied config dir")
+	logger.Info(node.StepInstallNode, "copied config dir")
 
 	if step.args.ReRegisterAgent {
 		// 3.1. unregister agent if necessary.
 		if err := step.args.AgentHandler.Process().UnregisterAgentID(ctx); err != nil {
-			logger.Errorf(installer.StepInstallNode, "failed to unregister agent: %v", err)
+			logger.Errorf(node.StepInstallNode, "failed to unregister agent: %v", err)
 
 			return nil, err
 		}
-		logger.Info(installer.StepInstallNode, "unregistered agent")
+		logger.Info(node.StepInstallNode, "unregistered agent")
 	}
 
 	// 4. register agent.
 	agentID, err := step.args.AgentHandler.Process().RegisterAgentID(ctx, step.args.AgentID)
 	if err != nil {
-		logger.Error(installer.StepInstallNode, fmt.Sprintf("failed to register agent: %v", err))
+		logger.Error(node.StepInstallNode, fmt.Sprintf("failed to register agent: %v", err))
 
 		return nil, err
 	}
-	logger.Info(installer.StepInstallNode, "registered agent")
+	logger.Info(node.StepInstallNode, "registered agent")
 
 	if err := step.installAutoStartup(ctx); err != nil {
 		return nil, err
 	}
-	logger.Info(installer.StepInstallNode, "installed auto-startup")
+	logger.Info(node.StepInstallNode, "installed auto-startup")
 
-	logger.Info(installer.StepInstallNode, "installed node")
+	logger.Info(node.StepInstallNode, "installed node")
 
 	return &StepResult{AgentID: agentID}, nil
 }
@@ -112,7 +112,7 @@ func (step *Step) installAutoStartup(ctx context.Context) error {
 	hasStdout := false
 	stdoutF := func(content string) {
 		hasStdout = true
-		logger.Infof(installer.StepInstallNode, "node output: %s", content)
+		logger.Infof(node.StepInstallNode, "node output: %s", content)
 	}
 	var stderrMsg string
 	stderrF := func(content string) {
@@ -124,13 +124,13 @@ func (step *Step) installAutoStartup(ctx context.Context) error {
 			Stdout: stdoutF,
 			Stderr: stderrF,
 		}); err != nil {
-		logger.Errorf(installer.StepInstallNode, "failed to install auto startup. err-output(%s): %v", stderrMsg, err)
+		logger.Errorf(node.StepInstallNode, "failed to install auto startup. err-output(%s): %v", stderrMsg, err)
 
 		return fmt.Errorf("failed to install auto startup: %w", err)
 	}
 
 	if !hasStdout {
-		logger.Warnf(installer.StepInstallNode, "installed auto startup without output")
+		logger.Warnf(node.StepInstallNode, "installed auto startup without output")
 	}
 
 	return nil
