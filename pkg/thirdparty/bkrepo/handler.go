@@ -22,9 +22,9 @@ import (
 	"time"
 
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
