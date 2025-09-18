@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
+	nodeflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
@@ -63,7 +63,7 @@ func (vars Variables) EnsureDirs() error {
 
 // GetVariables get the persistent vars.
 func GetVariables(cmd *cobra.Command) (*Variables, error) {
-	generation, err := cmd.Flags().GetInt(flag.Generation)
+	generation, err := cmd.Flags().GetInt(nodeflag.Generation)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, err
 	}
 
-	nodeRole, err := cmd.Flags().GetString(flag.NodeRole)
+	nodeRole, err := cmd.Flags().GetString(nodeflag.NodeRole)
 	if err != nil {
 		return nil, err
 	}
@@ -79,28 +79,28 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, err
 	}
 
-	baseDeployDir, err := cmd.Flags().GetString(flag.BaseDeployDir)
+	baseDeployDir, err := cmd.Flags().GetString(nodeflag.BaseDeployDir)
 	if err != nil {
 		return nil, err
 	}
 	if baseDeployDir == "" {
-		return nil, fmt.Errorf("%s is empty", flag.BaseDeployDir)
+		return nil, fmt.Errorf("%s is empty", nodeflag.BaseDeployDir)
 	}
 
-	baseWorkDir, err := cmd.Flags().GetString(flag.BaseWorkDir)
+	baseWorkDir, err := cmd.Flags().GetString(nodeflag.BaseWorkDir)
 	if err != nil {
 		return nil, err
 	}
 	if baseWorkDir == "" {
-		return nil, fmt.Errorf("%s is empty", flag.BaseWorkDir)
+		return nil, fmt.Errorf("%s is empty", nodeflag.BaseWorkDir)
 	}
 
-	deployEnv, err := cmd.Flags().GetString(flag.DeployEnv)
+	deployEnv, err := cmd.Flags().GetString(nodeflag.DeployEnv)
 	if err != nil {
 		return nil, err
 	}
 	if deployEnv == "" {
-		return nil, fmt.Errorf("%s is empty", flag.DeployEnv)
+		return nil, fmt.Errorf("%s is empty", nodeflag.DeployEnv)
 	}
 
 	return &Variables{

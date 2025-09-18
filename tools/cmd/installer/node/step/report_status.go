@@ -13,7 +13,7 @@ package step
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"

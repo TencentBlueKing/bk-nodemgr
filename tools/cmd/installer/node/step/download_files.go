@@ -15,8 +15,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"

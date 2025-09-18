@@ -11,7 +11,11 @@
 package node
 
 import (
+	"runtime"
+
+	nodeflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -31,5 +35,35 @@ func NewNodeCommand() *cobra.Command {
 	nodeCommand.AddCommand(NewFullUpgrade())
 	nodeCommand.AddCommand(NewFullReconfig())
 
+	/*
+	 * persistent required flags.
+	 */
+	nodeCommand.PersistentFlags().StringP(nodeflag.DeployEnv, nodeflag.DeployEnvS, "", "the deploy environment which to operate at")
+	_ = nodeCommand.MarkFlagRequired(nodeflag.DeployEnv)
+
+	/*
+	 * persistent optional flags.
+	 */
+	nodeCommand.PersistentFlags().StringP(nodeflag.NodeRole, nodeflag.NodeRoleS, string(types.NodeRoleAgent), "node role, agent or proxy")
+	nodeCommand.PersistentFlags().IntP(nodeflag.Generation, nodeflag.GenerationS, int(types.Generation2), "the generation of this node, 1 or 2")
+	nodeCommand.PersistentFlags().String(nodeflag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
+	nodeCommand.PersistentFlags().String(nodeflag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
+
 	return nodeCommand
+}
+
+func defaultBaseDeployDir() string {
+	if runtime.GOOS == "windows" {
+		return `C:\`
+	}
+
+	return "/usr/local/"
+}
+
+func defaultBaseWorkDir() string {
+	if runtime.GOOS == "windows" {
+		return `C:\tmp\bknm\`
+	}
+
+	return "/tmp/bknm/"
 }

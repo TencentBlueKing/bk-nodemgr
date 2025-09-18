@@ -14,12 +14,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -36,19 +32,10 @@ func NewRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          "installer",
 		Short:        "installer",
-		Long:         "nodemgr node installer",
+		Long:         "nodemgr installer",
 		SilenceUsage: true,
 		Version:      "1.0.0",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			vars, err := persistent.GetVariables(cmd)
-			if err != nil {
-				return err
-			}
-
-			if err = vars.EnsureDirs(); err != nil {
-				return err
-			}
-
 			return nil
 		},
 	}
@@ -56,35 +43,5 @@ func NewRootCommand() *cobra.Command {
 	// sub commands.
 	rootCmd.AddCommand(node.NewNodeCommand())
 
-	/*
-	 * persistent required flags.
-	 */
-	rootCmd.PersistentFlags().StringP(flag.DeployEnv, flag.DeployEnvS, "", "the deploy environment which to operate at")
-	_ = rootCmd.MarkFlagRequired(flag.DeployEnv)
-
-	/*
-	 * persistent optional flags.
-	 */
-	rootCmd.PersistentFlags().IntP(flag.Generation, flag.GenerationS, int(types.Generation2), "the generation of this node, 1 or 2")
-	rootCmd.PersistentFlags().StringP(flag.NodeRole, flag.NodeRoleS, string(types.NodeRoleAgent), "node role, agent or proxy")
-	rootCmd.PersistentFlags().String(flag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
-	rootCmd.PersistentFlags().String(flag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
-
 	return rootCmd
-}
-
-func defaultBaseDeployDir() string {
-	if runtime.GOOS == "windows" {
-		return `C:\`
-	}
-
-	return "/usr/local/"
-}
-
-func defaultBaseWorkDir() string {
-	if runtime.GOOS == "windows" {
-		return `C:\tmp\bknm\`
-	}
-
-	return "/tmp/bknm/"
 }
