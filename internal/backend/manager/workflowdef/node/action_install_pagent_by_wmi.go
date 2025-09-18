@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
@@ -25,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -159,7 +161,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// build install command.
-	installCmd := act.buildInstallParams(std, installerPath, deployConstant)
+	installCmd := act.buildInstallCmd(std, installerPath, deployConstant)
 
 	// notify relay to install pagent by ssh.
 	targetWorkDir := winpath.Join(deployConstant.BaseWorkDir, system.GetEnv())
@@ -202,8 +204,8 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActio
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	std *utils.NodeActionStandarder,
 	cMethod wmix.AuthMethod, cKey,
-	toolsName, targetWorkDir string,
-	args []string) error {
+	toolsName, targetWorkDir,
+	installCmd string) error {
 
 	event := protoRelay.InstallPagentByWMIReq{
 		ActionName:       std.InstanceData().Name,
@@ -215,8 +217,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 		Password:         cKey,
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
-		InstallerCmd:     args,
-		TargetWorkDir:    targetWorkDir,
+		InstallerCmd:     installCmd,
 		InstallerBatName: installBatName,
 	}
 	data, err := json.Marshal(event)
@@ -300,20 +301,21 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 	}
 }
 
-// TODO: add relay file and callback address.
-func (act *actionInstallPagentByWMI) buildInstallParams(
+func (act *actionInstallPagentByWMI) buildInstallCmd(
 	std *utils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.NodeDeployConf) []string {
+	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
 
 	installParams := &InstallParamsWin{
-		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
-		InstallerPath: installerPath,
-		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
-		DeployToken:   std.Token(),
-		OperInstID:    std.InstanceData().OperationInstanceID,
-		BaseWorkDir:   deployConstant.BaseWorkDir,
-		BaseDeployDir: deployConstant.BaseDeployDir,
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
+		InstallerPath:   installerPath,
+		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
+		DeployToken:     std.Token(),
+		OperInstID:      std.InstanceData().OperationInstanceID,
+		BaseWorkDir:     deployConstant.BaseWorkDir,
+		BaseDeployDir:   deployConstant.BaseDeployDir,
+		CallbackSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort),
+		DownloadSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort),
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -330,12 +332,20 @@ func (act *actionInstallPagentByWMI) buildInstallParams(
 		fmt.Sprintf("--deploy_token %s", installParams.DeployToken),
 		fmt.Sprintf("--node_version %s", installParams.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", installParams.OperInstID),
+		fmt.Sprintf("--dlsvr_addr %s", installParams.DownloadSvrAddr),
+		fmt.Sprintf("--cbsvr_addr %s", installParams.CallbackSvrAddr),
 	}
 	if len(installParams.AdditionArgs) > 0 {
 		args = append(args, installParams.AdditionArgs...)
 	}
 
+	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installParams.InstallerPath))
+
+	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
+		winpath.Join(installParams.BaseWorkDir, system.GetEnv()),
+		installParams.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
+
 	std.InstanceData().LogI(fmt.Sprintf("build install params: %v", args))
 
-	return args
+	return installCmd
 }

@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -52,6 +51,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 		return
 	}
 
+	// connect to host.
 	client, err := generateWMIClient(ctx, event.IP, int(event.Port), event.User, event.Password,
 		types.LoginMode(event.LoginMode), h.logger)
 	if err != nil {
@@ -91,12 +91,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	outStr += buildLogOutput("upload", event.ToolsName, stdOut, stdErr)
 	h.logger.Infof("transfer file success, stdout: %s, stderr: %s", stdOut, stdErr)
 
-	// build install bat with filesvr and backend address
-	installerPath := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.ToolsName))
-	installCmd := h.buildBat(installerPath, event.TargetWorkDir, event.InstallerCmd)
-	h.logger.Infof("install node cmd: %s", installCmd)
-
-	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installCmd)), event.InstallerBatName)
+	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(event.InstallerCmd)), event.InstallerBatName)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to create temp file: %v", err)
 		return
@@ -106,6 +101,7 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 			h.logger.Errorf(fmt.Sprintf("failed to clean temp file: %v", err))
 		}
 	}()
+	h.logger.Infof("install node cmd: %s", event.InstallerCmd)
 
 	// transfer install bat file
 	stdOut, stdErr, err = client.UploadFile(ctx, tmpInstallBat.Path(), event.InstallerWorkDir)
@@ -129,18 +125,4 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 
 	h.logger.Infof("install pagent by wmi success. stdout(%s). ip(%s), port(%d), user(%s),",
 		stdOut, event.IP, event.Port, event.User)
-}
-
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (h *handler) buildBat(installerPath, targetWorkDir string, args []string) string {
-	args = append(args, "--dlsvr_addr "+getIPV4Address(h.downloadSvcIP, h.downloadSvcPort))
-	args = append(args, "--cbsvr_addr "+getIPV4Address(h.callbackSvcIP, h.callbackSvcPort))
-
-	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-
-	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
-		targetWorkDir, installerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
-
-	return installCmd
 }

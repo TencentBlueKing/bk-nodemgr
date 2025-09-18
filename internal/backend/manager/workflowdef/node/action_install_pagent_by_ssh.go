@@ -14,7 +14,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
@@ -26,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -159,7 +162,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// build install command.
-	installCmd := act.buildInstallParams(std, installerPath, deployConstant)
+	installCmd := act.buildInstallCmd(std, installerPath, deployConstant)
 
 	// notify relay to install pagent by ssh.
 	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
@@ -178,8 +181,8 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 	std *utils.NodeActionStandarder,
-	cMethod sshx.AuthMethod, cKey string,
-	toolsName string, args []string,
+	cMethod sshx.AuthMethod, cKey,
+	toolsName, installCmd string,
 ) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
@@ -192,7 +195,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 		Password:         cKey,
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
-		InstallerCmd:     args,
+		InstallerCmd:     installCmd,
 	}
 	data, err := json.Marshal(event)
 	if err != nil {
@@ -297,20 +300,21 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActio
 	return toolName, installerPath, deployConstant, nil
 }
 
-// TODO: add relay file and callback address.
-func (act *actionInstallPagentBySSH) buildInstallParams(
+func (act *actionInstallPagentBySSH) buildInstallCmd(
 	std *utils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.NodeDeployConf) []string {
+	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
 
 	installParams := &InstallParams{
-		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
-		InstallerPath: installerPath,
-		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
-		DeployToken:   std.Token(),
-		OperInstID:    std.InstanceData().OperationInstanceID,
-		BaseWorkDir:   deployConstant.BaseWorkDir,
-		BaseDeployDir: deployConstant.BaseDeployDir,
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
+		InstallerPath:   installerPath,
+		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
+		DeployToken:     std.Token(),
+		OperInstID:      std.InstanceData().OperationInstanceID,
+		BaseWorkDir:     deployConstant.BaseWorkDir,
+		BaseDeployDir:   deployConstant.BaseDeployDir,
+		DownloadSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort),
+		CallbackSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort),
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -327,12 +331,28 @@ func (act *actionInstallPagentBySSH) buildInstallParams(
 		fmt.Sprintf("--deploy_token %s", installParams.DeployToken),
 		fmt.Sprintf("--node_version %s", installParams.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", installParams.OperInstID),
+		fmt.Sprintf("--dlsvr_addr %s", installParams.DownloadSvrAddr),
+		fmt.Sprintf("--cbsvr_addr %s", installParams.CallbackSvrAddr),
 	}
 	if len(installParams.AdditionArgs) > 0 {
 		args = append(args, installParams.AdditionArgs...)
 	}
+	installCmd := fmt.Sprintf("%s %s %s", installParams.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
 
-	std.InstanceData().LogI(fmt.Sprintf("build install params: %v", args))
+	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", installParams.InstallerPath))
+	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)
 
-	return args
+	result := fmt.Sprintf(
+		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
+		std.DeployInfo().InstallerWorkDir,
+		std.DeployInfo().InstallerWorkDir,
+		installCmd)
+
+	std.InstanceData().LogI(fmt.Sprintf("build install cmd: %v", result))
+
+	return result
+}
+
+func buildURL(ip string, port int64) string {
+	return fmt.Sprintf("http://%s", net.JoinHostPort(ip, fmt.Sprintf("%d", port)))
 }

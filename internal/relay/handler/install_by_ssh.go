@@ -15,12 +15,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"path"
-	"strconv"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -53,6 +50,7 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 		return
 	}
 
+	// connect to host.
 	client, err := generateSSHClient(ctx, event.IP, int(event.Port), event.User, event.Password,
 		types.LoginMode(event.LoginMode), h.logger)
 	if err != nil {
@@ -91,6 +89,7 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 		return
 	}
 
+	// transfer tools
 	installerPath := path.Clean(path.Join(event.InstallerWorkDir, event.ToolsName))
 	err = client.TransferFile(reader, installerPath)
 	if err != nil {
@@ -113,12 +112,9 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	h.logger.Infof("run command chmod success. chmod +x %s", installerPath)
 
 	// execute install command
-	installCmd := h.buildCMD(installerPath, event.InstallerCmd)
-	h.logger.Infof("install node cmd: %s", installCmd)
+	h.logger.Infof("install node cmd: %s", event.InstallerCmd)
 
-	result, err = client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		event.InstallerWorkDir, event.InstallerWorkDir, installCmd))
+	result, err = client.RunCommand(event.InstallerCmd)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to exec cmd: %v", err)
 		h.logger.Errorf(errMsg)
@@ -129,22 +125,6 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 
 	h.logger.Infof("install pagent by ssh success. stdout(%s). ip(%s), port(%d), user(%s),",
 		outStr, event.IP, event.Port, event.User)
-}
-
-// add cmd backend svc and file svc.
-// nolint: perfsprint
-func (h *handler) buildCMD(installerPath string, args []string) string {
-	args = append(args, "--dlsvr_addr "+getIPV4Address(h.downloadSvcIP, h.downloadSvcPort))
-	args = append(args, "--cbsvr_addr "+getIPV4Address(h.callbackSvcIP, h.callbackSvcPort))
-
-	cmd := fmt.Sprintf("%s %s %s", installerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
-
-	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-
-	return fmt.Sprintf("%s >%s 2>&1 &", cmd, installLogPath)
-}
-func getIPV4Address(ip string, port int) string {
-	return "http://" + net.JoinHostPort(ip, strconv.Itoa(port))
 }
 
 func buildLogOutput(action, target, stdout, stderr string) string {

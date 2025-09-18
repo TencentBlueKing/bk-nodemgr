@@ -79,9 +79,7 @@ func detectInfoByWMI(ctx context.Context, client *wmix.Client) (
 	// 1. detect target system
 	osTypeStr, _, err := client.RunCommand(ctx, "ver")
 	if err != nil {
-		err = fmt.Errorf("failed to run ver: %w", err)
-
-		return "", "", err
+		return "", "", fmt.Errorf("failed to run ver: %w", err)
 	}
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'

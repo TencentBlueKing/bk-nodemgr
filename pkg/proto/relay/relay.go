@@ -180,9 +180,9 @@ type InstallPagentBySSHReq struct {
 	Password  string `json:"password"`
 	LoginMode string `json:"login_mode"`
 
-	InstallerWorkDir string   `json:"installer_work_dir"`
-	ToolsName        string   `json:"tools_name"`
-	InstallerCmd     []string `json:"installer_cmd"`
+	InstallerWorkDir string `json:"installer_work_dir"`
+	ToolsName        string `json:"tools_name"`
+	InstallerCmd     string `json:"installer_cmd"`
 }
 
 // InstallPagentByWMIReq defines the install pagent by wmi request.
@@ -196,9 +196,8 @@ type InstallPagentByWMIReq struct {
 	Password  string `json:"password"`
 	LoginMode string `json:"login_mode"`
 
-	InstallerWorkDir string   `json:"installer_work_dir"`
-	TargetWorkDir    string   `json:"target_work_dir"`
-	ToolsName        string   `json:"tools_name"`
-	InstallerBatName string   `json:"installer_bat_name"`
-	InstallerCmd     []string `json:"installer_cmd"`
+	InstallerWorkDir string `json:"installer_work_dir"`
+	ToolsName        string `json:"tools_name"`
+	InstallerBatName string `json:"installer_bat_name"`
+	InstallerCmd     string `json:"installer_cmd"`
 }

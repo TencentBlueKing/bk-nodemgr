@@ -141,7 +141,9 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	}
 
 	if num == 0 {
-		std.InstanceData().LogE("no proxy host in network unit")
+		std.InstanceData().LogE(fmt.Sprintf("no proxy host in network unit. network-unit-id(%d)",
+			std.DeployInfo().Host.Dynamic.NetworkUnitID))
+
 		return types.RelayInfo{}, errors.New("no proxy host in network unit")
 	}
 

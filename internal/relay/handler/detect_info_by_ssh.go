@@ -84,9 +84,7 @@ func detectInfoBySSH(client *sshx.Client) (
 	// 1. detect target system
 	osTypeStr, err := client.RunCommand("uname -s")
 	if err != nil {
-		err = fmt.Errorf("failed to run (uname -s): %w", err)
-
-		return "", "", "", err
+		return "", "", "", fmt.Errorf("failed to run (uname -s): %w", err)
 	}
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
@@ -99,9 +97,7 @@ func detectInfoBySSH(client *sshx.Client) (
 	switch osType {
 	case criteria.OSLinux, criteria.OSDarwin:
 	default:
-		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
-
-		return "", "", "", err
+		return "", "", "", fmt.Errorf("unsupported os type, os-type(%s)", osType)
 	}
 
 	// 2. detect target cpu arch
@@ -120,9 +116,7 @@ func detectInfoBySSH(client *sshx.Client) (
 	// 3. detect target dir
 	connectedDir, err = client.RunCommand("pwd")
 	if err != nil {
-		err = fmt.Errorf("failed to run pwd: %w", err)
-
-		return "", "", "", err
+		return "", "", "", fmt.Errorf("failed to run pwd: %w", err)
 	}
 	connectedDir = strings.TrimFunc(connectedDir, func(r rune) bool {
 		return r == '\n'
