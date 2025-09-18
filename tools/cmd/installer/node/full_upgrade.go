@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
@@ -98,7 +99,7 @@ func NewFullUpgrade() *cobra.Command {
 			}()
 
 			// init log settings.
-			lHandler := NewHandler(logDir, deployToken, operInstID, callbackSvrAddr)
+			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
