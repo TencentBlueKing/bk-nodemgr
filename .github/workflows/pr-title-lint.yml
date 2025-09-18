@@ -29,7 +29,7 @@ jobs:
           # (--issue=#\d+(\s?,\s?#\d+)*)  - 支持一个或多个 issue 的格式 (--issue=#数字, #数字)
           # $                             - 匹配结尾
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          title-regex: "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):\\s[a-zA-Z0-9\\s,\\.\\-\\_]+\\s--issue=#\\d+(\\s?,\\s?#\\d+)*\\s*$"
+          title-regex: "^(feat|fix|docs|style|refactor|perf|test|chore):\\s[a-zA-Z0-9\\s,\\.\\-\\_]+\\s--issue=#\\d+(\\s?,\\s?#\\d+)*\\s*$"
           on-failed-regex-fail-action: true
           on-failed-regex-create-review: true
           on-failed-regex-request-changes: true
