@@ -11,46 +11,45 @@
 // Package node provides the node installer common types.
 package node
 
-// Step define the ctl step.
-type Step string
+import "github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 
 const (
 	// StepGeneral this is the step to general.
-	StepGeneral Step = "general"
+	StepGeneral logger.Step = "general"
 
 	// StepInstallNode this is the step to install node.
-	StepInstallNode Step = "install_node"
+	StepInstallNode logger.Step = "install_node"
 
 	// StepUpgradeNode this is the step to upgrade node.
-	StepUpgradeNode Step = "upgrade_node"
+	StepUpgradeNode logger.Step = "upgrade_node"
 
 	// StepDownloadFiles this is the step to download files.
-	StepDownloadFiles Step = "download_files"
+	StepDownloadFiles logger.Step = "download_files"
 
 	// StepPreCheck this is the step to pre check.
-	StepPreCheck Step = "pre_check"
+	StepPreCheck logger.Step = "pre_check"
 
 	// StepReportData this is the step to report data.
-	StepReportData Step = "report_data"
+	StepReportData logger.Step = "report_data"
 
 	// StepReportStatus this is the step to report status.
-	StepReportStatus Step = "report_status"
+	StepReportStatus logger.Step = "report_status"
 
 	// StepStartNode this is the step to start node.
-	StepStartNode Step = "start_node"
+	StepStartNode logger.Step = "start_node"
 
 	// StepStopNode this is the step to stop node.
-	StepStopNode Step = "stop_node"
+	StepStopNode logger.Step = "stop_node"
 
 	// StepRestartNode this is the step to restart node.
-	StepRestartNode Step = "restart_node"
+	StepRestartNode logger.Step = "restart_node"
 
 	// StepCheckDeploy this is the step to check this gse node is deploy or not.
-	StepCheckDeploy Step = "check_deploy"
+	StepCheckDeploy logger.Step = "check_deploy"
 
 	// StepUninstallNode this is the step to uninstall node.
-	StepUninstallNode Step = "uninstall_node"
+	StepUninstallNode logger.Step = "uninstall_node"
 
 	// StepCleanTmp this is the step to clean tmp.
-	StepCleanTmp Step = "clean_tmp"
+	StepCleanTmp logger.Step = "clean_tmp"
 )
