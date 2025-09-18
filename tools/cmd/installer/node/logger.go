@@ -13,6 +13,7 @@ package node
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -35,11 +36,15 @@ func NewHandler(logDir, deployToken, operInstID, callbackSvrAddr string) *Handle
 		logDir:      logDir,
 		logFilePath: filepath.Join(logDir, fmt.Sprintf("installer_%s.log", time.Now().Format("2006-01-02T15-04-05"))),
 		args: logreporter.ReportLogsArgs{
-			Token:           deployToken,
-			OperInstID:      operInstID,
-			LogRptCnt:       0,
-			BulkSize:        defaultLogReportBulkSize,
-			CallbackSvrAddr: callbackSvrAddr,
+			Token:      deployToken,
+			OperInstID: operInstID,
+			LogRptCnt:  0,
+			BulkSize:   defaultLogReportBulkSize,
+			ReportLogURL: func() string {
+				fullUrl, _ := url.JoinPath(callbackSvrAddr, "/callback/workflow/node_install/report_log")
+
+				return fullUrl
+			}(),
 		},
 	}
 }

@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -48,19 +47,19 @@ type ReportLogsArgs struct {
 	// BulkSize the number of logs that can be sent in one bulk request.
 	BulkSize int
 
-	// CallbackSvrAddr the callback endpoint for report log.
-	CallbackSvrAddr string
+	// ReportLogURL the URL for report log.
+	ReportLogURL string
 }
 
 // Reporter report logs.
 type Reporter struct {
-	token           string
-	operInstID      string
-	reader          io.ReadCloser
-	mu              sync.Mutex
-	logRptCnt       uint
-	bulkSize        int
-	callbackSvrAddr string
+	token        string
+	operInstID   string
+	reader       io.ReadCloser
+	mu           sync.Mutex
+	logRptCnt    uint
+	bulkSize     int
+	reportLogURL string
 }
 
 // Validate ReportLogsArgs.
@@ -83,12 +82,12 @@ func (reporter *Reporter) Validate() error {
 // NewReporter new reporter.
 func NewReporter(args ReportLogsArgs) *Reporter {
 	reporter := &Reporter{
-		token:           args.Token,
-		operInstID:      args.OperInstID,
-		reader:          args.Reader,
-		logRptCnt:       args.LogRptCnt,
-		bulkSize:        args.BulkSize,
-		callbackSvrAddr: args.CallbackSvrAddr,
+		token:        args.Token,
+		operInstID:   args.OperInstID,
+		reader:       args.Reader,
+		logRptCnt:    args.LogRptCnt,
+		bulkSize:     args.BulkSize,
+		reportLogURL: args.ReportLogURL,
 	}
 
 	return reporter
@@ -149,7 +148,7 @@ func (reporter *Reporter) ReportLogs(ctx context.Context) (uint, error) {
 			Logs:       entries,
 		}
 
-		if err := bulkReportLogs(ctx, backoff, reporter.callbackSvrAddr, req); err != nil {
+		if err := bulkReportLogs(ctx, backoff, reporter.reportLogURL, req); err != nil {
 			return 0, fmt.Errorf("bulk report logs failed: %v", err)
 		}
 	}
@@ -185,15 +184,10 @@ func splitIntoN(items []*LogEntry, num int) [][]*LogEntry {
 const bulkReportLogsTimeout = 10 * time.Second
 
 // bulkReportLogs bulk report logs.
-func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, callbackEndpoint string, req *ReportLogReq) error {
+func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, reportURL string, req *ReportLogReq) error {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("marshal request body failed: %v", err)
-	}
-
-	reportURL, err := url.JoinPath(callbackEndpoint, "/callback/workflow/node_install/report_log")
-	if err != nil {
-		return fmt.Errorf("format report URL failed: %v", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, reportURL, bytes.NewReader(jsonData))
