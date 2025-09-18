@@ -246,7 +246,7 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByOperationID(
 		return nil, 0, err
 	}
 
-	return s.daoOperInstData.ListWithoutActInst(ctx, page, operinstdata.WithOperInstID(operationID...))
+	return s.daoOperInstData.ListWithoutActInst(ctx, page, operinstdata.WithOperationID(operationID...))
 }
 
 // upsertOperationInstanceData upserts operation instance data.
