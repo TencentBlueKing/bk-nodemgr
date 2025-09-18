@@ -14,6 +14,7 @@ import (
 	"runtime"
 
 	nodeflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
@@ -25,6 +26,18 @@ func NewNodeCommand() *cobra.Command {
 		Use:   "node",
 		Short: "Node command",
 		Long:  "Node command",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			vars, err := persistent.GetVariables(cmd)
+			if err != nil {
+				return err
+			}
+
+			if err = vars.EnsureDirs(); err != nil {
+				return err
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
 		},

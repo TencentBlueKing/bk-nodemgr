@@ -38,6 +38,9 @@ func NewRootCommand() *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return nil
 		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
+		},
 	}
 
 	// sub commands.
