@@ -16,7 +16,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/handler"
-	logger2 "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
@@ -86,7 +85,7 @@ func NewFullReconfig() *cobra.Command {
 			}()
 
 			// init log settings.
-			lHandler := logger2.NewHandler(logDir, deployToken, operInstID, callbackSvrAddr)
+			lHandler := NewHandler(logDir, deployToken, operInstID, callbackSvrAddr)
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}

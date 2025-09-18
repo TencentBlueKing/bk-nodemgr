@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package logger
+package node
 
 import (
 	"fmt"
