@@ -20,7 +20,7 @@ export const PackageService = {
   // PublishReleaseAgent provides release agent publish.
   PublishReleaseAgent: async <Request = PackagePublishReleaseAgentReq, ResponseData = PackagePublishReleaseAgentResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/agent')(params, config),
   // PublishReleaseServer provides release server publish.
-  PublishReleaseProxy: async <Request = PackagePublishReleaseProxyReq, ResponseData = PackagePublishReleaseProxyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/server')(params, config),
+  PublishReleaseProxy: async <Request = PackagePublishReleaseProxyReq, ResponseData = PackagePublishReleaseProxyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/proxy')(params, config),
   // PublishReleaseCert provides release cert publish.
   PublishReleaseCert: async <Request = PackagePublishReleaseCertReq, ResponseData = PackagePublishReleaseCertResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/cert')(params, config),
   // PublishReleaseBinTool provides release bintool publish.

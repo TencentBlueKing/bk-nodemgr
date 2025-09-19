@@ -161,6 +161,7 @@ interface TimeRange {
 
 // Release describes the release.
 interface Release {
+  name: string;
   generation: number;
   release_type: string;
   os_type: string;
