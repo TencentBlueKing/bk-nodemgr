@@ -14,14 +14,13 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // GetConstant get constant values.
 func (h *handler) GetConstant(ctx *restserver.Context) (interface{}, error) {
 	req := new(protoBackend.TopoConstantGetReq)
 	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to decode request body. err: %v", err)
+		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -29,16 +28,11 @@ func (h *handler) GetConstant(ctx *restserver.Context) (interface{}, error) {
 	osTypes := make([]string, 0)
 
 	if req.GetCloudVendor() {
-		var err error
-		cloudVendors, err = h.cmdbHandler.GetCloudVendors(ctx)
-		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to get constant, failed to get cloud vendors. err: %v", err)
-			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-		}
+		cloudVendors = h.cmdbHandler.GetCloudVendors()
 	}
 
 	if req.GetOsType() {
-		osTypes = []string{string(criteria.OSLinux), string(criteria.OSWindows), string(criteria.OSDarwin)}
+		osTypes = h.cmdbHandler.GetOSTypes()
 	}
 
 	return &protoBackend.TopoConstantGetResp_Data{

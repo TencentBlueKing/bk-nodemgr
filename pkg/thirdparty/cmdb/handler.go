@@ -65,7 +65,10 @@ type IBiz interface {
 // IEnum this interface is used to get enum resource.
 type IEnum interface {
 	// GetCloudVendors get cloud vendors.
-	GetCloudVendors(ctx contextx.ITenantUserContext) ([]string, error)
+	GetCloudVendors() []string
+
+	// GetOSTypes get os types.
+	GetOSTypes() []string
 }
 
 // IHostIdentifier host identifier.
@@ -314,7 +317,7 @@ func (h *Handler) ListBizHosts(ctx contextx.ITenantUserContext, bizID int64, pag
 			},
 		}
 		tenantUserCtx := contextx.NewTenantUserContext(ctx, tenantID, loginUsername)
-		resp, err := h.cli.listBizHosts(tenantUserCtx, req)
+		resp, err := h.cli.listBizHosts(tenantUserCtx, req) // nolint: contextcheck
 		if err != nil {
 			return nil, err
 		}
@@ -461,8 +464,13 @@ func (h *Handler) UpdateHostNetworkAreaField(
 }
 
 // GetCloudVendors get cloud vendors.
-func (h *Handler) GetCloudVendors(_ contextx.ITenantUserContext) ([]string, error) {
-	return h.cloudVendorKeeper.values(), nil
+func (h *Handler) GetCloudVendors() []string {
+	return h.cloudVendorKeeper.values()
+}
+
+// GetOSTypes get os types.
+func (h *Handler) GetOSTypes() []string {
+	return h.osTypeKeeper.values()
 }
 
 // BindHostAgent bind host agent.
