@@ -1259,6 +1259,12 @@
         "version": {
           "type": "string"
         },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
+        },
         "platforms": {
           "type": "array",
           "items": {
@@ -1468,6 +1474,12 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
         }
       }
     },

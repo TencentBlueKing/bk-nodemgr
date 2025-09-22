@@ -27,6 +27,8 @@ message PackageUploadOriginAgentResp {
     optional int64 size = 5;
     optional string md5 = 6;
     optional string version = 7;
+    optional string change_log_en = 8;
+    optional string change_log_zh = 9;
     repeated Platform platforms = 10;
   }
   Data data = 5;
@@ -54,6 +56,8 @@ message PackageUploadOriginServerResp {
     optional string md5 = 6;
     optional string version = 7;
     repeated Platform platforms = 8;
+    optional string change_log_en = 9;
+    optional string change_log_zh = 10;
   }
   Data data = 5;
 }
