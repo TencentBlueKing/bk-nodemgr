@@ -101,13 +101,6 @@ type InstanceStatus struct {
 	OperationID         string
 }
 
-// Start starts the action instance lifecycle.
-func (life *Lifecycle) Start() {
-	life.StartedAt = time.Now()
-
-	life.State = StateRunning
-}
-
 // End ends the action instance lifecycle.
 func (life *Lifecycle) End(lastActionInstState action.State) {
 	life.EndedAt = time.Now()

@@ -381,7 +381,7 @@ func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error
 	}
 
 	// update state.
-	// ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
+	ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
 	ctl.operInstanceBriefData.Lifecycle.State = operation.StateLaunched
 	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
 		ctx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
