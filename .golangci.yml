@@ -595,6 +595,8 @@ linters-settings:
       - t *Transfer
       - m *clientMessager
       - m *serverMessager
+      - c Context
+      - o *Option
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false
