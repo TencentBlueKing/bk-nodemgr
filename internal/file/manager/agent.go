@@ -146,7 +146,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read version file. err: %w", err)
+					return fmt.Errorf("failed to read version file: %w", err)
 				}
 
 				detail.Version = strings.Trim(string(content), "\n\r\t ")
@@ -159,7 +159,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read description file. err: %w", err)
+					return fmt.Errorf("failed to read description file: %w", err)
 				}
 
 				detail.ChangeLogZH = string(content)
@@ -172,7 +172,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read description-en file. err: %w", err)
+					return fmt.Errorf("failed to read description-en file: %w", err)
 				}
 
 				detail.ChangeLogEN = string(content)
@@ -181,11 +181,24 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgent},
+			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgentTypeOne},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read gse_agent.conf template file. err: %w", err)
+					return fmt.Errorf("failed to read #etc#gse#gse_agent.conf template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyAgent] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgentTypeTwo},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_agent.conf.template file: %w", err)
 				}
 
 				detail.ConfigTemplate[types.ConfigKeyAgent] = string(content)
@@ -198,7 +211,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {
-					return fmt.Errorf("failed to read gse_agent.env file. err: %w", err)
+					return fmt.Errorf("failed to read gse_agent.env file: %w", err)
 				}
 
 				detail.ConfigEnviron = environ
@@ -220,7 +233,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 	}); err != nil {
-		return nil, fmt.Errorf("failed to check origin agent package. err: %w", err)
+		return nil, fmt.Errorf("failed to check origin agent package: %w", err)
 	}
 
 	detail.Platforms = conv.MapValueToSlice(plats)
@@ -514,11 +527,12 @@ const (
 	originalAgentDirNamePlatPrefix     = "agent_"
 	originalAgentDirNamePlatSplitTimes = 3
 
-	originalAgentFileNameVersion           = "VERSION"
-	originalAgentFileNameDescription       = "DESCRIPTION"
-	originalAgentFileNameDescriptionEN     = "DESCRIPTION_EN"
-	originalAgentFileNameConfTemplateAgent = "#etc#gse#gse_agent.conf"
-	originalAgentFileNameAgentEnv          = "gse_agent.env"
+	originalAgentFileNameVersion                  = "VERSION"
+	originalAgentFileNameDescription              = "DESCRIPTION"
+	originalAgentFileNameDescriptionEN            = "DESCRIPTION_EN"
+	originalAgentFileNameConfTemplateAgentTypeOne = "#etc#gse#gse_agent.conf"
+	originalAgentFileNameConfTemplateAgentTypeTwo = "gse_agent.conf.template"
+	originalAgentFileNameAgentEnv                 = "gse_agent.env"
 
 	agentPkgDirNameCert = "cert"
 	agentPkgDirNameBin  = "bin"

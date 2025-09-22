@@ -135,11 +135,13 @@ const (
 	originalServerDirNameSupportFile = "support-files"
 	originalServerDirNameTemplate    = "templates"
 
-	originalServerFileNameProxyEnv               = "gse_proxy.env"
-	originalServerFileNameFileServer             = "gse_file"
-	originalServerFileNameDataServer             = "gse_data"
-	originalServerFileNameConfTemplateFileServer = "#etc#gse#gse_file_proxy.conf"
-	originalServerFileNameConfTemplateDataServer = "#etc#gse#gse_data_proxy.conf"
+	originalServerFileNameProxyEnv                      = "gse_proxy.env"
+	originalServerFileNameFileServer                    = "gse_file"
+	originalServerFileNameDataServer                    = "gse_data"
+	originalServerFileNameConfTemplateFileServerTypeOne = "#etc#gse#gse_file_proxy.conf"
+	originalServerFileNameConfTemplateDataServerTypeOne = "#etc#gse#gse_data_proxy.conf"
+	originalServerFileNameConfTemplateFileServerTypeTwo = "gse_file_proxy.conf.template"
+	originalServerFileNameConfTemplateDataServerTypeTwo = "gse_data_proxy.conf.template"
 )
 
 // checkGSE2OriginServerPkg check gse2 origin server package.
@@ -154,7 +156,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read version file. err: %w", err)
+					return fmt.Errorf("failed to read version file: %w", err)
 				}
 
 				detail.Version = strings.Trim(string(content), "\n\r\t ")
@@ -168,7 +170,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 				seenFile = true
 				plat, err := checkServerBinaryPlatform(r)
 				if err != nil {
-					return fmt.Errorf("failed to check server binary platform. err: %w", err)
+					return fmt.Errorf("failed to check server binary platform: %w", err)
 				}
 
 				if len(detail.Platforms) == 0 {
@@ -184,7 +186,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 				seenData = true
 				plat, err := checkServerBinaryPlatform(r)
 				if err != nil {
-					return fmt.Errorf("failed to check server binary platform. err: %w", err)
+					return fmt.Errorf("failed to check server binary platform: %w", err)
 				}
 
 				if len(detail.Platforms) == 0 {
@@ -195,11 +197,11 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServer},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServerTypeOne},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read gse_file_proxy.conf template file. err: %w", err)
+					return fmt.Errorf("failed to read #etc#gse#gse_file_proxy.conf template file: %w", err)
 				}
 
 				detail.ConfigTemplate[types.ConfigKeyFile] = string(content)
@@ -208,11 +210,37 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServer},
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServerTypeOne},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
-					return fmt.Errorf("failed to read gse_data_proxy.conf template file. err: %w", err)
+					return fmt.Errorf("failed to read #etc#gse#gse_data_proxy.conf template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServerTypeTwo},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_file_proxy.conf.template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServerTypeTwo},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_data_proxy.conf.template file: %w", err)
 				}
 
 				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
@@ -225,7 +253,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {
-					return fmt.Errorf("failed to read gse_proxy.env file. err: %w", err)
+					return fmt.Errorf("failed to read gse_proxy.env file: %w", err)
 				}
 
 				detail.ConfigEnviron = environ
@@ -234,7 +262,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 	}); err != nil {
-		return nil, fmt.Errorf("failed to check origin server package. err: %w", err)
+		return nil, fmt.Errorf("failed to check origin server package: %w", err)
 	}
 
 	if !seenFile || !seenData || detail.Version == "" {
